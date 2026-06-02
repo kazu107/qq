@@ -1,0 +1,446 @@
+[
+  {
+    "id": "salvage_cache",
+    "title": "Salvage Cache",
+    "description": "A broken convoy still holds usable supplies.",
+    "areas": [1, 2, 3],
+    "weight": 3,
+    "choices": [
+      {
+        "id": "take_gold",
+        "label": "Take {gold_reward} Gold",
+        "description": "Strip the crate and move on.",
+        "values": {
+          "gold_reward": {
+            "base": 24,
+            "per_area": 6
+          }
+        },
+        "effects": [
+          {
+            "type": "grant_gold",
+            "amount": {
+              "ref": "gold_reward"
+            }
+          }
+        ],
+        "result": "Gained {gold_reward} gold."
+      },
+      {
+        "id": "take_card",
+        "label": "Recover {card_name}",
+        "description": "Pull one useful combat card from the wreck.",
+        "effects": [
+          {
+            "type": "grant_random_card",
+            "rarity_pool": ["common", "common", "rare"],
+            "guarantee_new": true,
+            "card_name_key": "card_name"
+          }
+        ],
+        "result": "Recovered {card_name}."
+      }
+    ]
+  },
+  {
+    "id": "training_drill",
+    "title": "Combat Drill",
+    "description": "An abandoned simulator still has enough power for one session.",
+    "areas": [1, 2, 3],
+    "weight": 3,
+    "choices": [
+      {
+        "id": "attack_up",
+        "label": "Sharpen Offense",
+        "description": "Gain +1 attack for the rest of the run.",
+        "effects": [
+          {
+            "type": "modify_attack",
+            "amount": 1
+          }
+        ],
+        "result": "Attack increased by 1."
+      },
+      {
+        "id": "speed_up",
+        "label": "Sharpen Timing",
+        "description": "Gain +1 speed for the rest of the run.",
+        "effects": [
+          {
+            "type": "modify_speed",
+            "amount": 1
+          }
+        ],
+        "result": "Speed increased by 1."
+      }
+    ]
+  },
+  {
+    "id": "relic_shrine",
+    "title": "Relic Shrine",
+    "description": "The shrine offers power in exchange for strain.",
+    "areas": [1, 2, 3],
+    "weight": 2,
+    "choices": [
+      {
+        "id": "take_relic",
+        "label": "Lose {hp_cost} HP for {relic_name}",
+        "description": "Accept the strain and claim one relic.",
+        "values": {
+          "hp_cost": {
+            "base": 8,
+            "per_area": 2
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_hp",
+            "amount": {
+              "ref": "hp_cost"
+            }
+          },
+          {
+            "type": "grant_random_relic",
+            "relic_name_key": "relic_name"
+          }
+        ],
+        "result": "Lost {hp_cost} HP and claimed {relic_name}."
+      },
+      {
+        "id": "recover",
+        "label": "Recover {heal_amount} HP",
+        "description": "Leave the relic and stabilize instead.",
+        "values": {
+          "heal_amount": {
+            "base": 12,
+            "per_area": 4
+          }
+        },
+        "effects": [
+          {
+            "type": "heal",
+            "amount": {
+              "ref": "heal_amount"
+            }
+          }
+        ],
+        "result": "Recovered {heal_amount} HP."
+      }
+    ]
+  },
+  {
+    "id": "maintenance_bay",
+    "title": "Maintenance Bay",
+    "description": "A quiet repair station hums in the dark.",
+    "areas": [1, 2, 3],
+    "weight": 2,
+    "choices": [
+      {
+        "id": "full_repair",
+        "label": "Full Repair",
+        "description": "Spend the stop on restoring armor and plating.",
+        "effects": [
+          {
+            "type": "heal",
+            "amount": {
+              "by_area": {
+                "1": 16,
+                "2": 20,
+                "3": 24
+              }
+            }
+          }
+        ],
+        "result": "Recovered structural integrity."
+      },
+      {
+        "id": "reinforce",
+        "label": "Reinforce Hull",
+        "description": "Gain +1 defense for the rest of the run.",
+        "effects": [
+          {
+            "type": "modify_defense",
+            "amount": 1
+          }
+        ],
+        "result": "Defense increased by 1."
+      }
+    ]
+  },
+  {
+    "id": "black_market",
+    "title": "Black Market Relay",
+    "description": "A smuggler pings your channel with off-book hardware.",
+    "areas": [2, 3],
+    "weight": 1,
+    "choices": [
+      {
+        "id": "buy_card",
+        "label": "Buy {card_name} for {gold_cost} Gold",
+        "description": "Pay for a contraband upgrade.",
+        "values": {
+          "gold_cost": {
+            "base": 26,
+            "per_area": 6
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_gold",
+            "amount": {
+              "ref": "gold_cost"
+            }
+          },
+          {
+            "type": "grant_random_card",
+            "rarity_pool": ["rare", "rare", "epic"],
+            "guarantee_new": true,
+            "card_name_key": "card_name"
+          }
+        ],
+        "result": "Paid {gold_cost} gold for {card_name}."
+      },
+      {
+        "id": "steal_card",
+        "label": "Steal {card_name}",
+        "description": "Take the part and run, but it will cost HP.",
+        "values": {
+          "hp_cost": {
+            "base": 8,
+            "per_area": 2
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_hp",
+            "amount": {
+              "ref": "hp_cost"
+            }
+          },
+          {
+            "type": "grant_random_card",
+            "rarity_pool": ["rare", "rare"],
+            "guarantee_new": true,
+            "card_name_key": "card_name"
+          }
+        ],
+        "result": "Lost {hp_cost} HP and escaped with {card_name}."
+      }
+    ]
+  },
+  {
+    "id": "calibration_lab",
+    "title": "Calibration Lab",
+    "description": "A precision rig can tune one system before it goes cold.",
+    "areas": [1, 2, 3],
+    "weight": 2,
+    "choices": [
+      {
+        "id": "upgrade_card",
+        "label": "Tune {card_name} to {next_grade}",
+        "description": "Upgrade one equipped card by one tier.",
+        "effects": [
+          {
+            "type": "upgrade_random_card",
+            "scope": "equipped",
+            "card_name_key": "card_name",
+            "grade_key": "next_grade"
+          }
+        ],
+        "result": "Upgraded {card_name} to {next_grade}."
+      },
+      {
+        "id": "expand_loadout",
+        "label": "Expand Loadout Rails",
+        "description": "Increase loadout capacity by 1.",
+        "effects": [
+          {
+            "type": "modify_loadout_limit",
+            "amount": 1
+          }
+        ],
+        "result": "Loadout capacity increased by 1."
+      }
+    ]
+  },
+  {
+    "id": "overclock_station",
+    "title": "Overclock Station",
+    "description": "The terminal can push output beyond safe limits.",
+    "areas": [1, 2, 3],
+    "weight": 2,
+    "choices": [
+      {
+        "id": "push_output",
+        "label": "Push Output",
+        "description": "Gain +1 attack, but suffer damage immediately.",
+        "values": {
+          "hp_cost": {
+            "base": 6,
+            "per_area": 2
+          }
+        },
+        "effects": [
+          {
+            "type": "modify_attack",
+            "amount": 1
+          },
+          {
+            "type": "lose_hp",
+            "amount": {
+              "ref": "hp_cost"
+            }
+          }
+        ],
+        "result": "Attack increased by 1 at the cost of {hp_cost} HP."
+      },
+      {
+        "id": "stabilize_frame",
+        "label": "Stabilize Frame",
+        "description": "Gain +1 defense and recover a little HP.",
+        "effects": [
+          {
+            "type": "modify_defense",
+            "amount": 1
+          },
+          {
+            "type": "heal",
+            "amount": 6
+          }
+        ],
+        "result": "Defense increased by 1 and some HP was restored."
+      }
+    ]
+  },
+  {
+    "id": "field_hospital",
+    "title": "Field Hospital",
+    "description": "An emergency ward still offers one useful intervention.",
+    "areas": [1, 2, 3],
+    "weight": 2,
+    "choices": [
+      {
+        "id": "long_repair",
+        "label": "Long Repair",
+        "description": "Take the full treatment and recover a large amount of HP.",
+        "effects": [
+          {
+            "type": "heal",
+            "amount": {
+              "by_area": {
+                "1": 20,
+                "2": 24,
+                "3": 28
+              }
+            }
+          }
+        ],
+        "result": "The repair cycle completed successfully."
+      },
+      {
+        "id": "combat_patch",
+        "label": "Combat Patch: {card_name}",
+        "description": "Recover a little HP and leave with a practical card.",
+        "effects": [
+          {
+            "type": "heal",
+            "amount": 8
+          },
+          {
+            "type": "grant_random_card",
+            "rarity_pool": ["common", "common", "rare"],
+            "guarantee_new": true,
+            "card_name_key": "card_name"
+          }
+        ],
+        "result": "Recovered some HP and secured {card_name}."
+      }
+    ]
+  },
+  {
+    "id": "signal_archive",
+    "title": "Signal Archive",
+    "description": "Fragments of combat data pulse through the relay.",
+    "areas": [2, 3],
+    "weight": 1,
+    "choices": [
+      {
+        "id": "decode_card",
+        "label": "Decode {card_name}",
+        "description": "Reconstruct one high-value tactical card.",
+        "effects": [
+          {
+            "type": "grant_random_card",
+            "rarity_pool": ["rare", "rare", "epic"],
+            "guarantee_new": true,
+            "card_name_key": "card_name"
+          }
+        ],
+        "result": "Decoded {card_name} from the archive."
+      },
+      {
+        "id": "trace_relic",
+        "label": "Trace {relic_name} for {gold_cost} Gold",
+        "description": "Spend gold to follow the signal to a relic cache.",
+        "values": {
+          "gold_cost": {
+            "base": 18,
+            "per_area": 4
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_gold",
+            "amount": {
+              "ref": "gold_cost"
+            }
+          },
+          {
+            "type": "grant_random_relic",
+            "relic_name_key": "relic_name"
+          }
+        ],
+        "result": "Spent {gold_cost} gold and traced {relic_name}."
+      }
+    ]
+  },
+  {
+    "id": "battlefield_memorial",
+    "title": "Battlefield Memorial",
+    "description": "Spent hulls and old banners mark where others made their stand.",
+    "areas": [3],
+    "weight": 1,
+    "choices": [
+      {
+        "id": "honor_fallen",
+        "label": "Honor the Fallen",
+        "description": "Carry their lesson forward by upgrading one owned card.",
+        "effects": [
+          {
+            "type": "upgrade_random_card",
+            "scope": "owned",
+            "card_name_key": "card_name",
+            "grade_key": "next_grade"
+          }
+        ],
+        "result": "Honored the fallen by upgrading {card_name} to {next_grade}."
+      },
+      {
+        "id": "recover_supplies",
+        "label": "Recover Supplies",
+        "description": "Take what can still be used: gold and emergency repair gel.",
+        "effects": [
+          {
+            "type": "grant_gold",
+            "amount": 36
+          },
+          {
+            "type": "heal",
+            "amount": 12
+          }
+        ],
+        "result": "Recovered supplies from the memorial field."
+      }
+    ]
+  }
+]

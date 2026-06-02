@@ -1,0 +1,1026 @@
+[
+  {
+    "id": "quick_slash",
+    "name": "Quick Slash",
+    "description": "Fast damage with a light timing edge.",
+    "rarity": "common",
+    "tags": [
+      "attack",
+      "fast"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 8,
+    "cast_time": 1.8,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 4,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "id": "strike",
+    "name": "Strike",
+    "description": "Reliable mid-speed attack.",
+    "rarity": "common",
+    "tags": [
+      "attack"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 12,
+    "cast_time": 3.6,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 6,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        2,
+        3,
+        4
+      ]
+    }
+  },
+  {
+    "id": "guard",
+    "name": "Guard",
+    "description": "Generate a sturdy shield.",
+    "rarity": "common",
+    "tags": [
+      "defense"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 12,
+    "cast_time": 1.2,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 8,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "shield": [
+        0,
+        2,
+        4,
+        6
+      ]
+    }
+  },
+  {
+    "id": "heavy_swing",
+    "name": "Heavy Swing",
+    "description": "Slow, heavy, interruptible finisher.",
+    "rarity": "common",
+    "tags": [
+      "attack",
+      "heavy"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 28,
+    "cast_time": 13.2,
+    "active_slot_cost": 2,
+    "priority_modifier": -0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 14,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        3,
+        5,
+        7
+      ]
+    }
+  },
+  {
+    "id": "delay_step",
+    "name": "Delay Step",
+    "description": "Delay an enemy active card.",
+    "rarity": "common",
+    "tags": [
+      "control",
+      "delay"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 24,
+    "cast_time": 3,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "delay_enemy_active_card",
+        "amount": 6,
+        "scope": "single"
+      }
+    ],
+    "upgrade_profile": {
+      "delay": [
+        0,
+        1.2,
+        2.4,
+        3.6
+      ]
+    }
+  },
+  {
+    "id": "haste_focus",
+    "name": "Haste Focus",
+    "description": "Accelerate an allied active card.",
+    "rarity": "common",
+    "tags": [
+      "support",
+      "haste"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 20,
+    "cast_time": 2.4,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "haste_own_active_card",
+        "amount": 3.6,
+        "scope": "single"
+      }
+    ],
+    "upgrade_profile": {
+      "haste": [
+        0,
+        0.9,
+        1.8,
+        2.7
+      ]
+    }
+  },
+  {
+    "id": "weak_shot",
+    "name": "Weak Shot",
+    "description": "Chip damage plus weak.",
+    "rarity": "common",
+    "tags": [
+      "attack",
+      "debuff"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 20,
+    "cast_time": 3.6,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 2,
+        "target": "enemy"
+      },
+      {
+        "type": "apply_status",
+        "status": "weak",
+        "duration": 30,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "duration": [
+        0,
+        6,
+        12,
+        18
+      ]
+    }
+  },
+  {
+    "id": "bleed_cut",
+    "name": "Bleed Cut",
+    "description": "Apply bleed while striking.",
+    "rarity": "common",
+    "tags": [
+      "attack",
+      "bleed"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 20,
+    "cast_time": 4.2,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 4,
+        "target": "enemy"
+      },
+      {
+        "type": "apply_status",
+        "status": "bleed",
+        "duration": 36,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "id": "quick_guard",
+    "name": "Quick Guard",
+    "description": "Very fast shield response.",
+    "rarity": "common",
+    "tags": [
+      "defense",
+      "fast"
+    ],
+    "loadout_cost": 1,
+    "recast_time": 16,
+    "cast_time": 0.6,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 5,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "shield": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "id": "reload",
+    "name": "Reload",
+    "description": "Reduce one own cooldown.",
+    "rarity": "common",
+    "tags": [
+      "support",
+      "cooldown"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 32,
+    "cast_time": 3,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reduce_recast",
+        "amount": 6,
+        "scope": "highest_cooldown"
+      }
+    ],
+    "upgrade_profile": {
+      "recast_reduction": [
+        0,
+        1.2,
+        2.4,
+        3.6
+      ]
+    }
+  },
+  {
+    "id": "assault",
+    "name": "Assault",
+    "description": "High-pressure rare strike.",
+    "rarity": "rare",
+    "tags": [
+      "attack"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 24,
+    "cast_time": 4.8,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 10,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        2,
+        4,
+        6
+      ]
+    }
+  },
+  {
+    "id": "barrier_deploy",
+    "name": "Barrier Deploy",
+    "description": "Large shield and defense boost.",
+    "rarity": "rare",
+    "tags": [
+      "defense",
+      "buff"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 36,
+    "cast_time": 9,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 18,
+        "target": "self"
+      },
+      {
+        "type": "modify_defense",
+        "amount": 1,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "shield": [
+        0,
+        3,
+        5,
+        7
+      ]
+    }
+  },
+  {
+    "id": "interrupt_shot",
+    "name": "Interrupt Shot",
+    "description": "Interrupt one enemy heavy cast.",
+    "rarity": "rare",
+    "tags": [
+      "control",
+      "interrupt"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 36,
+    "cast_time": 2.4,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "interrupt_card",
+        "scope": "single_interruptible"
+      }
+    ],
+    "upgrade_profile": {
+      "recast_time": [
+        0,
+        -2.4,
+        -4.8,
+        -7.2
+      ]
+    }
+  },
+  {
+    "id": "time_buy",
+    "name": "Time Buy",
+    "description": "Delay all enemy active cards.",
+    "rarity": "rare",
+    "tags": [
+      "control",
+      "delay"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 32,
+    "cast_time": 4.2,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "delay_enemy_active_card",
+        "amount": 3,
+        "scope": "all"
+      }
+    ],
+    "upgrade_profile": {
+      "delay": [
+        0,
+        0.9,
+        1.8,
+        2.7
+      ]
+    }
+  },
+  {
+    "id": "recirculate",
+    "name": "Recirculate",
+    "description": "Reduce the last used card's cooldown.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "cooldown"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 40,
+    "cast_time": 4.8,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reduce_recast",
+        "amount": 12,
+        "scope": "last_used"
+      }
+    ],
+    "upgrade_profile": {
+      "recast_reduction": [
+        0,
+        1.8,
+        3.6,
+        6
+      ]
+    }
+  },
+  {
+    "id": "execution",
+    "name": "Execution",
+    "description": "Massive damage against weakened targets.",
+    "rarity": "epic",
+    "tags": [
+      "attack",
+      "finisher"
+    ],
+    "loadout_cost": 5,
+    "recast_time": 56,
+    "cast_time": 15,
+    "active_slot_cost": 3,
+    "priority_modifier": -0.2,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 24,
+        "target": "enemy",
+        "bonus_if_target_hp_below_ratio": 0.5,
+        "bonus_amount": 10
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        4,
+        7,
+        10
+      ]
+    }
+  },
+  {
+    "id": "fortify",
+    "name": "Fortify",
+    "description": "Massive shield and defense gain.",
+    "rarity": "epic",
+    "tags": [
+      "defense",
+      "buff"
+    ],
+    "loadout_cost": 5,
+    "recast_time": 56,
+    "cast_time": 16.8,
+    "active_slot_cost": 3,
+    "priority_modifier": -0.1,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 30,
+        "target": "self"
+      },
+      {
+        "type": "modify_defense",
+        "amount": 3,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "shield": [
+        0,
+        5,
+        8,
+        12
+      ]
+    }
+  },
+  {
+    "id": "time_flow_control",
+    "name": "Time Flow Control",
+    "description": "Haste self and delay the enemy at once.",
+    "rarity": "epic",
+    "tags": [
+      "control",
+      "haste",
+      "delay"
+    ],
+    "loadout_cost": 5,
+    "recast_time": 60,
+    "cast_time": 6,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "mixed",
+    "effects": [
+      {
+        "type": "haste_own_active_card",
+        "amount": 6,
+        "scope": "single"
+      },
+      {
+        "type": "delay_enemy_active_card",
+        "amount": 6,
+        "scope": "single"
+      }
+    ],
+    "upgrade_profile": {
+      "timing": [
+        0,
+        1.2,
+        2.4,
+        3.6
+      ]
+    }
+  },
+  {
+    "id": "blood_chain",
+    "name": "Blood Chain",
+    "description": "Extra damage against bleeding targets.",
+    "rarity": "epic",
+    "tags": [
+      "attack",
+      "bleed"
+    ],
+    "loadout_cost": 4,
+    "recast_time": 48,
+    "cast_time": 10.8,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 12,
+        "target": "enemy",
+        "bonus_if_target_has_status": "bleed",
+        "bonus_amount": 12
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        3,
+        5,
+        8
+      ]
+    }
+  },
+  {
+    "id": "over_reload",
+    "name": "Over Reload",
+    "description": "Reduce all own card cooldowns.",
+    "rarity": "epic",
+    "tags": [
+      "support",
+      "cooldown"
+    ],
+    "loadout_cost": 4,
+    "recast_time": 64,
+    "cast_time": 7.2,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reduce_recast",
+        "amount": 6,
+        "scope": "all"
+      }
+    ],
+    "upgrade_profile": {
+      "recast_reduction": [
+        0,
+        1.5,
+        3,
+        4.5
+      ]
+    }
+  },
+  {
+    "id": "repair_burst",
+    "name": "Repair Burst",
+    "description": "Restore HP while patching on fresh plating.",
+    "rarity": "common",
+    "tags": [
+      "defense",
+      "heal"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 20,
+    "cast_time": 3,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "heal",
+        "amount": 4,
+        "target": "self"
+      },
+      {
+        "type": "gain_shield",
+        "amount": 4,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "heal": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "shield": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "id": "tripwire",
+    "name": "Tripwire",
+    "description": "Nick the target and slow their timing.",
+    "rarity": "common",
+    "tags": [
+      "attack",
+      "control"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 16,
+    "cast_time": 2.4,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 3,
+        "target": "enemy"
+      },
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "duration": 24,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "duration": [
+        0,
+        6,
+        12,
+        18
+      ]
+    }
+  },
+  {
+    "id": "stasis_field",
+    "name": "Stasis Field",
+    "description": "Slow a target and drag their cast back.",
+    "rarity": "rare",
+    "tags": [
+      "control",
+      "slow",
+      "delay"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 28,
+    "cast_time": 4.8,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "slow",
+        "duration": 36,
+        "target": "enemy"
+      },
+      {
+        "type": "delay_enemy_active_card",
+        "amount": 4.8,
+        "scope": "single"
+      }
+    ],
+    "upgrade_profile": {
+      "duration": [
+        0,
+        6,
+        12,
+        18
+      ],
+      "delay": [
+        0,
+        1.2,
+        2.4,
+        3.6
+      ]
+    }
+  },
+  {
+    "id": "rupture_strike",
+    "name": "Rupture Strike",
+    "description": "Punish bleeding targets with a deeper hit.",
+    "rarity": "rare",
+    "tags": [
+      "attack",
+      "bleed"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 22,
+    "cast_time": 4.2,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 7,
+        "target": "enemy",
+        "bonus_if_target_has_status": "bleed",
+        "bonus_amount": 4
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        2,
+        4,
+        6
+      ]
+    }
+  },
+  {
+    "id": "bastion_drive",
+    "name": "Bastion Drive",
+    "description": "Raise a wall of shield and brace the frame.",
+    "rarity": "rare",
+    "tags": [
+      "defense",
+      "buff"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 24,
+    "cast_time": 3.6,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 10,
+        "target": "self"
+      },
+      {
+        "type": "modify_defense",
+        "amount": 1,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "shield": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "defense_mod": [
+        0,
+        0,
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "id": "adrenaline_link",
+    "name": "Adrenaline Link",
+    "description": "Accelerate your board and trim a key cooldown.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "haste",
+      "cooldown"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 30,
+    "cast_time": 4.8,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "haste_own_active_card",
+        "amount": 2.4,
+        "scope": "all"
+      },
+      {
+        "type": "reduce_recast",
+        "amount": 6,
+        "scope": "highest_cooldown"
+      }
+    ],
+    "upgrade_profile": {
+      "haste": [
+        0,
+        0.6,
+        1.2,
+        1.8
+      ],
+      "cooldown": [
+        0,
+        1.2,
+        2.4,
+        3.6
+      ]
+    }
+  },
+  {
+    "id": "purge_pulse",
+    "name": "Purge Pulse",
+    "description": "Clear control effects and recover some stability.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "cleanse",
+      "heal"
+    ],
+    "loadout_cost": 2,
+    "recast_time": 20,
+    "cast_time": 2.4,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "remove_status",
+        "status": "weak",
+        "target": "self"
+      },
+      {
+        "type": "remove_status",
+        "status": "slow",
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 5,
+        "target": "self"
+      },
+      {
+        "type": "gain_shield",
+        "amount": 3,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "heal": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "shield": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "id": "meteor_crash",
+    "name": "Meteor Crash",
+    "description": "A crushing finisher that leaves the target exposed.",
+    "rarity": "epic",
+    "tags": [
+      "attack",
+      "finisher",
+      "interrupt"
+    ],
+    "loadout_cost": 4,
+    "recast_time": 36,
+    "cast_time": 15,
+    "active_slot_cost": 2,
+    "priority_modifier": -0.15,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 12,
+        "target": "enemy"
+      },
+      {
+        "type": "apply_status",
+        "status": "vulnerable",
+        "duration": 30,
+        "target": "enemy"
+      },
+      {
+        "type": "interrupt_card",
+        "scope": "all_interruptible"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        3,
+        5,
+        7
+      ],
+      "duration": [
+        0,
+        6,
+        12,
+        18
+      ]
+    }
+  }
+]

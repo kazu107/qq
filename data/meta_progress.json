@@ -1,0 +1,23 @@
+{
+  "points": 0,
+  "best_clear": 0,
+  "unlocked_starters": ["balanced"],
+  "unlocked_cards": [
+    "quick_slash",
+    "strike",
+    "guard",
+    "heavy_swing",
+    "delay_step",
+    "haste_focus",
+    "weak_shot",
+    "bleed_cut",
+    "quick_guard",
+    "reload",
+    "repair_burst",
+    "tripwire"
+  ],
+  "unlocked_relics": [
+    "iron_plating",
+    "reactive_barrier"
+  ]
+}

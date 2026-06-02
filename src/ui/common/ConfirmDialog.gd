@@ -1,0 +1,2 @@
+extends ConfirmationDialog
+class_name ConfirmDialog

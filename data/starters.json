@@ -1,0 +1,32 @@
+[
+  {
+    "id": "balanced",
+    "name": "Balanced Frame",
+    "description": "Stable starter with attack, defense, and timing control.",
+    "max_hp": 60,
+    "attack": 3,
+    "defense": 1,
+    "speed": 5,
+    "cards": ["quick_slash", "strike", "guard", "delay_step", "reload"]
+  },
+  {
+    "id": "tempo",
+    "name": "Tempo Frame",
+    "description": "Fast starter focused on timing advantage.",
+    "max_hp": 54,
+    "attack": 2,
+    "defense": 0,
+    "speed": 7,
+    "cards": ["quick_slash", "quick_guard", "haste_focus", "weak_shot", "bleed_cut"]
+  },
+  {
+    "id": "fortress",
+    "name": "Fortress Frame",
+    "description": "Defensive starter with stronger survivability.",
+    "max_hp": 68,
+    "attack": 1,
+    "defense": 3,
+    "speed": 3,
+    "cards": ["guard", "quick_guard", "strike", "heavy_swing", "reload"]
+  }
+]

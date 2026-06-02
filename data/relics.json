@@ -1,0 +1,57 @@
+[
+  {
+    "id": "iron_plating",
+    "name": "Iron Plating",
+    "description": "Gain +10 max HP and heal 10 when acquired."
+  },
+  {
+    "id": "tempered_edge",
+    "name": "Tempered Edge",
+    "description": "Gain +1 attack permanently."
+  },
+  {
+    "id": "kinetic_boots",
+    "name": "Kinetic Boots",
+    "description": "Gain +1 speed permanently."
+  },
+  {
+    "id": "auxiliary_core",
+    "name": "Auxiliary Core",
+    "description": "Increase loadout capacity by 2."
+  },
+  {
+    "id": "reactive_barrier",
+    "name": "Reactive Barrier",
+    "description": "Start each battle with 6 shield."
+  },
+  {
+    "id": "chrono_shard",
+    "name": "Chrono Shard",
+    "description": "Your cast times are 10% faster."
+  },
+  {
+    "id": "salvage_magnet",
+    "name": "Salvage Magnet",
+    "description": "Gain 10 gold after every victory."
+  },
+  {
+    "id": "repair_nanites",
+    "name": "Repair Nanites",
+    "description": "Recover 5 HP after every victory."
+  },
+  {
+    "id": "war_banner",
+    "name": "War Banner",
+    "description": "Start each battle with +2 attack."
+  },
+  {
+    "id": "aegis_matrix",
+    "name": "Aegis Matrix",
+    "description": "Start each battle with +2 defense."
+  },
+  {
+    "id": "surge_gimbal",
+    "name": "Surge Gimbal",
+    "description": "Start each battle with +1 speed."
+  }
+]

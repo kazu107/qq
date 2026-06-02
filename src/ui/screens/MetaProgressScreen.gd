@@ -1,0 +1,316 @@
+extends Control
+
+var _summary_label: RichTextLabel
+var _starter_box: VBoxContainer
+var _card_box: VBoxContainer
+var _relic_box: VBoxContainer
+var _developer_panel: DeveloperPanel
+
+
+func _ready() -> void:
+	Game.current_screen_hint = "meta"
+	SaveManager.save_game("meta")
+
+	_build_ui()
+	_refresh_ui()
+	if Game.is_developer_mode_enabled():
+		_build_developer_panel()
+
+
+func _build_ui() -> void:
+	var margin: MarginContainer = MarginContainer.new()
+	margin.anchor_right = 1.0
+	margin.anchor_bottom = 1.0
+	margin.offset_left = 32.0
+	margin.offset_top = 24.0
+	margin.offset_right = -32.0
+	margin.offset_bottom = -24.0
+	add_child(margin)
+
+	var root: HBoxContainer = HBoxContainer.new()
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_theme_constant_override("separation", 18)
+	margin.add_child(root)
+
+	var summary_panel: VBoxContainer = _create_panel(root, Localization.get_text("meta.title", "Meta Progress"))
+	_summary_label = RichTextLabel.new()
+	_summary_label.fit_content = true
+	summary_panel.add_child(_summary_label)
+
+	var back_button: Button = Button.new()
+	back_button.text = Localization.get_text("meta.return_hub", "Return to Hub")
+	back_button.pressed.connect(func() -> void:
+		Game.current_screen_hint = "hub"
+		SaveManager.save_game("hub")
+		SceneRouter.go_to_hub()
+	)
+	summary_panel.add_child(back_button)
+
+	var library_button: Button = Button.new()
+	library_button.text = Localization.get_text("meta.open_library", "Open Card Library")
+	library_button.pressed.connect(func() -> void:
+		Game.current_screen_hint = "library"
+		SaveManager.save_game("library")
+		SceneRouter.go_to_card_library()
+	)
+	summary_panel.add_child(library_button)
+
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(scroll)
+
+	var content: VBoxContainer = VBoxContainer.new()
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 18)
+	scroll.add_child(content)
+
+	var starters_panel: VBoxContainer = _create_panel(content, Localization.get_text("meta.starters", "Starter Unlocks"))
+	_starter_box = VBoxContainer.new()
+	_starter_box.name = "MetaStarterBox"
+	_starter_box.add_theme_constant_override("separation", 10)
+	starters_panel.add_child(_starter_box)
+
+	var cards_panel: VBoxContainer = _create_panel(content, Localization.get_text("meta.cards", "Card Unlocks"))
+	_card_box = VBoxContainer.new()
+	_card_box.name = "MetaCardBox"
+	_card_box.add_theme_constant_override("separation", 10)
+	cards_panel.add_child(_card_box)
+
+	var relics_panel: VBoxContainer = _create_panel(content, Localization.get_text("meta.relics", "Relic Unlocks"))
+	_relic_box = VBoxContainer.new()
+	_relic_box.name = "MetaRelicBox"
+	_relic_box.add_theme_constant_override("separation", 10)
+	relics_panel.add_child(_relic_box)
+
+
+func _create_panel(parent: Control, title: String) -> VBoxContainer:
+	var panel: PanelContainer = PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(panel)
+
+	var box: VBoxContainer = VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 10)
+	panel.add_child(box)
+
+	var label: Label = Label.new()
+	label.text = title
+	box.add_child(label)
+	return box
+
+
+func _refresh_ui() -> void:
+	var summary: Dictionary = Game.get_meta_summary()
+	_summary_label.text = "\n".join([
+		Localization.get_textf("meta.summary.points", "Points: {value}", {"value": int(summary.get("points", 0))}),
+		Localization.get_textf("meta.summary.best_clear", "Best Clear: {value}", {"value": int(summary.get("best_clear", 0))}),
+		Localization.get_textf("meta.summary.starters", "Starters: {current} / {total}", {
+			"current": int(summary.get("starter_unlocked", 0)),
+			"total": int(summary.get("starter_total", 0)),
+		}),
+		Localization.get_textf("meta.summary.cards", "Cards: {current} / {total}", {
+			"current": int(summary.get("card_unlocked", 0)),
+			"total": int(summary.get("card_total", 0)),
+		}),
+		Localization.get_textf("meta.summary.relics", "Relics: {current} / {total}", {
+			"current": int(summary.get("relic_unlocked", 0)),
+			"total": int(summary.get("relic_total", 0)),
+		}),
+	])
+	_rebuild_starters()
+	_rebuild_cards()
+	_rebuild_relics()
+
+
+func _rebuild_starters() -> void:
+	_clear_box(_starter_box)
+	for entry in Game.get_meta_starter_entries():
+		var starter_id: String = String(entry.get("id", ""))
+
+		var row: HBoxContainer = HBoxContainer.new()
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_theme_constant_override("separation", 10)
+		_starter_box.add_child(row)
+
+		var info: VBoxContainer = VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(info)
+
+		var name_label: Label = Label.new()
+		name_label.text = Localization.get_textf("meta.cost_line", "{name} | Cost {cost}", {
+			"name": String(entry.get("name", starter_id)),
+			"cost": int(entry.get("cost", 0)),
+		})
+		info.add_child(name_label)
+
+		var desc_label: Label = Label.new()
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_label.text = String(entry.get("description", ""))
+		info.add_child(desc_label)
+
+		var status_label: Label = Label.new()
+		status_label.name = "StatusStarter_%s" % starter_id
+		status_label.text = Localization.get_text("meta.%s" % ("unlocked" if bool(entry.get("unlocked", false)) else "locked"), "Unlocked" if bool(entry.get("unlocked", false)) else "Locked")
+		info.add_child(status_label)
+
+		var unlock_button: Button = Button.new()
+		unlock_button.name = "UnlockStarter_%s" % starter_id
+		unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
+		unlock_button.disabled = bool(entry.get("unlocked", false)) or Game.get_meta_points() < int(entry.get("cost", 0))
+		unlock_button.pressed.connect(_on_unlock_starter.bind(starter_id))
+		row.add_child(unlock_button)
+
+
+func _rebuild_cards() -> void:
+	_clear_box(_card_box)
+	var rarity_order: Array[String] = ["common", "rare", "epic"]
+	for rarity in rarity_order:
+		var section_label: Label = Label.new()
+		section_label.text = Localization.get_rarity_name(rarity)
+		_card_box.add_child(section_label)
+
+		for entry in Game.get_meta_card_entries():
+			if String(entry.get("rarity", "")) != rarity:
+				continue
+			var card_id: String = String(entry.get("id", ""))
+			var card_def: CardDef = Database.get_card(card_id)
+			if card_def == null:
+				continue
+
+			var row: HBoxContainer = HBoxContainer.new()
+			row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_theme_constant_override("separation", 10)
+			_card_box.add_child(row)
+
+			var preview: CardButton = CardButton.new()
+			preview.name = "MetaCard_%s" % card_id
+			preview.set_tile_size(Vector2(92.0, 92.0))
+			preview.bind_preview(card_def, card_id, false, "META")
+			row.add_child(preview)
+
+			var info: VBoxContainer = VBoxContainer.new()
+			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(info)
+
+			var name_label: Label = Label.new()
+			name_label.text = Localization.get_textf("meta.cost_line", "{name} | Cost {cost}", {
+				"name": card_def.name,
+				"cost": int(entry.get("cost", 0)),
+			})
+			info.add_child(name_label)
+
+			var desc_label: Label = Label.new()
+			desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			desc_label.text = "%s\n%s" % [card_def.description, CardInfoFormatter.build_effect_summary(card_def)]
+			info.add_child(desc_label)
+
+			var status_label: Label = Label.new()
+			status_label.name = "StatusCard_%s" % card_id
+			status_label.text = Localization.get_text("meta.%s" % ("unlocked" if bool(entry.get("unlocked", false)) else "locked"), "Unlocked" if bool(entry.get("unlocked", false)) else "Locked")
+			info.add_child(status_label)
+
+			var unlock_button: Button = Button.new()
+			unlock_button.name = "UnlockCard_%s" % card_id
+			unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
+			unlock_button.disabled = bool(entry.get("unlocked", false)) or Game.get_meta_points() < int(entry.get("cost", 0))
+			unlock_button.pressed.connect(_on_unlock_card.bind(card_id))
+			row.add_child(unlock_button)
+
+
+func _rebuild_relics() -> void:
+	_clear_box(_relic_box)
+	for entry in Game.get_meta_relic_entries():
+		var relic_id: String = String(entry.get("id", ""))
+
+		var row: HBoxContainer = HBoxContainer.new()
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_theme_constant_override("separation", 10)
+		_relic_box.add_child(row)
+
+		var info: VBoxContainer = VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(info)
+
+		var name_label: Label = Label.new()
+		name_label.text = Localization.get_textf("meta.cost_line", "{name} | Cost {cost}", {
+			"name": String(entry.get("name", relic_id)),
+			"cost": int(entry.get("cost", 0)),
+		})
+		info.add_child(name_label)
+
+		var desc_label: Label = Label.new()
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_label.text = String(entry.get("description", ""))
+		info.add_child(desc_label)
+
+		var status_label: Label = Label.new()
+		status_label.name = "StatusRelic_%s" % relic_id
+		status_label.text = Localization.get_text("meta.%s" % ("unlocked" if bool(entry.get("unlocked", false)) else "locked"), "Unlocked" if bool(entry.get("unlocked", false)) else "Locked")
+		info.add_child(status_label)
+
+		var unlock_button: Button = Button.new()
+		unlock_button.name = "UnlockRelic_%s" % relic_id
+		unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
+		unlock_button.disabled = bool(entry.get("unlocked", false)) or Game.get_meta_points() < int(entry.get("cost", 0))
+		unlock_button.pressed.connect(_on_unlock_relic.bind(relic_id))
+		row.add_child(unlock_button)
+
+
+func _clear_box(box: VBoxContainer) -> void:
+	for child in box.get_children():
+		box.remove_child(child)
+		child.queue_free()
+
+
+func _on_unlock_starter(starter_id: String) -> void:
+	if Game.unlock_meta_starter(starter_id):
+		_refresh_ui()
+
+
+func _on_unlock_card(card_id: String) -> void:
+	if Game.unlock_meta_card(card_id):
+		_refresh_ui()
+
+
+func _on_unlock_relic(relic_id: String) -> void:
+	if Game.unlock_meta_relic(relic_id):
+		_refresh_ui()
+
+
+func _build_developer_panel() -> void:
+	_developer_panel = DeveloperPanel.new()
+	add_child(_developer_panel)
+	_developer_panel.pin_top_right()
+	_developer_panel.configure(
+		Localization.get_text("developer.title", "Developer Mode"),
+		[
+			{"id": "DevMetaAddPoints", "label": Localization.get_text("hub.dev.add_points", "Add 5 Points"), "callback": Callable(self, "_on_dev_add_points")},
+			{"id": "DevMetaUnlockAll", "label": Localization.get_text("meta.dev.unlock_all", "Unlock All"), "callback": Callable(self, "_on_dev_unlock_all")},
+			{"id": "DevMetaReset", "label": Localization.get_text("hub.dev.reset_meta", "Reset Meta"), "callback": Callable(self, "_on_dev_reset_meta")},
+			{"id": "DevMetaLibrary", "label": Localization.get_text("meta.dev.open_library", "Open Library"), "callback": Callable(self, "_on_dev_open_library")},
+		],
+		Localization.get_text("meta.dev.summary", "Testing shortcuts for progression data.")
+	)
+
+
+func _on_dev_add_points() -> void:
+	Game.developer_add_points(5)
+	_refresh_ui()
+
+
+func _on_dev_unlock_all() -> void:
+	Game.developer_unlock_all_meta()
+	_refresh_ui()
+
+
+func _on_dev_reset_meta() -> void:
+	Game.developer_reset_meta_progress()
+	_refresh_ui()
+
+
+func _on_dev_open_library() -> void:
+	Game.current_screen_hint = "library"
+	SaveManager.save_game("library")
+	SceneRouter.go_to_card_library()

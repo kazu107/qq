@@ -1,0 +1,39 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="qq"
+run/main_scene="res://scenes/boot/Boot.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Localization="*res://src/autoload/Localization.gd"
+Game="*res://src/autoload/Game.gd"
+Database="*res://src/autoload/Database.gd"
+SaveManager="*res://src/autoload/SaveManager.gd"
+SceneRouter="*res://src/autoload/SceneRouter.gd"
+AudioManager="*res://src/autoload/AudioManager.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/stretch/mode="canvas_items"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"

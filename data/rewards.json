@@ -1,0 +1,58 @@
+{
+  "normal": {
+    "gold": 20,
+    "gold_per_area": 6,
+    "heal": 4,
+    "heal_per_area": 2,
+    "option_count": 3,
+    "guarantee_new": true,
+    "rarity_pool": ["common", "common", "common", "rare"],
+    "rarity_pool_by_area": {
+      "1": ["common", "common", "common", "rare"],
+      "2": ["common", "common", "rare", "rare"],
+      "3": ["common", "rare", "rare", "epic"]
+    }
+  },
+  "elite": {
+    "gold": 32,
+    "gold_per_area": 8,
+    "heal": 3,
+    "heal_per_area": 1,
+    "option_count": 3,
+    "guarantee_new": true,
+    "rarity_pool": ["rare", "rare", "epic"],
+    "rarity_pool_by_area": {
+      "1": ["common", "rare", "rare", "epic"],
+      "2": ["rare", "rare", "epic"],
+      "3": ["rare", "epic", "epic"]
+    }
+  },
+  "hazard": {
+    "gold": 20,
+    "gold_per_area": 6,
+    "heal": 3,
+    "heal_per_area": 1,
+    "option_count": 3,
+    "guarantee_new": true,
+    "rarity_pool": ["common", "rare", "rare", "epic"],
+    "rarity_pool_by_area": {
+      "1": ["common", "common", "rare", "rare"],
+      "2": ["common", "rare", "rare", "epic"],
+      "3": ["rare", "rare", "epic", "epic"]
+    }
+  },
+  "boss": {
+    "gold": 56,
+    "gold_per_area": 12,
+    "heal": 10,
+    "heal_per_area": 2,
+    "option_count": 0,
+    "guarantee_new": false,
+    "rarity_pool": ["rare", "rare", "epic"],
+    "rarity_pool_by_area": {
+      "1": ["rare", "rare", "epic"],
+      "2": ["rare", "rare", "epic", "epic"],
+      "3": ["rare", "epic", "epic"]
+    }
+  }
+}
