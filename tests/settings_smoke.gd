@@ -8,6 +8,7 @@ func _ready() -> void:
 	Game.ensure_meta_initialized()
 	Game.set_developer_mode_enabled(true)
 	Game.set_master_volume(1.0)
+	Game.set_resolution(Game.DEFAULT_RESOLUTION)
 	Game.set_replay_auto_export_enabled(true)
 	call_deferred("_run")
 
@@ -35,10 +36,14 @@ func _run() -> void:
 
 	var volume_slider: HSlider = settings_scene.find_child("MasterVolumeSlider", true, false) as HSlider
 	var sfx_slider: HSlider = settings_scene.find_child("SfxVolumeSlider", true, false) as HSlider
+	var resolution_option: OptionButton = settings_scene.find_child("ResolutionOptionButton", true, false) as OptionButton
 	var replay_toggle: CheckButton = settings_scene.find_child("ReplayAutoExportToggle", true, false) as CheckButton
 	var back_button: Button = settings_scene.find_child("SettingsBackButton", true, false) as Button
-	if volume_slider == null or sfx_slider == null or replay_toggle == null or back_button == null:
+	if volume_slider == null or sfx_slider == null or resolution_option == null or replay_toggle == null or back_button == null:
 		_fail("Settings smoke failed: one or more settings controls were missing")
+		return
+	if resolution_option.item_count < 3:
+		_fail("Settings smoke failed: resolution options were not populated")
 		return
 
 	AudioManager.clear_play_history()
@@ -46,6 +51,13 @@ func _run() -> void:
 	volume_slider.emit_signal("value_changed", 0.35)
 	sfx_slider.value = 0.45
 	sfx_slider.emit_signal("value_changed", 0.45)
+	var target_resolution: String = "1600x900"
+	var target_resolution_index: int = _find_resolution_index(target_resolution)
+	if target_resolution_index < 0 or target_resolution_index >= resolution_option.item_count:
+		_fail("Settings smoke failed: target resolution option was missing")
+		return
+	resolution_option.select(target_resolution_index)
+	resolution_option.emit_signal("item_selected", target_resolution_index)
 	replay_toggle.button_pressed = false
 	replay_toggle.emit_signal("toggled", false)
 	await get_tree().process_frame
@@ -62,6 +74,9 @@ func _run() -> void:
 	if absf(AudioManager.get_sfx_volume() - 0.45) > 0.001:
 		_fail("Settings smoke failed: SFX volume did not update in AudioManager")
 		return
+	if Game.get_resolution() != target_resolution:
+		_fail("Settings smoke failed: resolution did not update in Game settings")
+		return
 	if Game.is_replay_auto_export_enabled():
 		_fail("Settings smoke failed: replay auto export toggle did not persist")
 		return
@@ -72,7 +87,7 @@ func _run() -> void:
 	_restore_from_disk()
 	if _failed:
 		return
-	if absf(Game.get_master_volume() - 0.35) > 0.001 or absf(Game.get_sfx_volume() - 0.45) > 0.001 or Game.is_replay_auto_export_enabled():
+	if absf(Game.get_master_volume() - 0.35) > 0.001 or absf(Game.get_sfx_volume() - 0.45) > 0.001 or Game.get_resolution() != target_resolution or Game.is_replay_auto_export_enabled():
 		_fail("Settings smoke failed: settings were not restored from disk")
 		return
 
@@ -96,6 +111,15 @@ func _restore_from_disk() -> void:
 	Game.last_replay_export_path = ""
 	var save_data: SaveData = SaveManager.load_save()
 	Game.apply_loaded_save(save_data)
+
+
+func _find_resolution_index(resolution_code: String) -> int:
+	var resolutions: Array[Dictionary] = Game.get_available_resolutions()
+	for resolution_index in range(resolutions.size()):
+		var resolution_entry: Dictionary = resolutions[resolution_index]
+		if String(resolution_entry.get("code", "")) == resolution_code:
+			return resolution_index
+	return -1
 
 
 func _wait_for_scene(scene_name: String) -> Node:

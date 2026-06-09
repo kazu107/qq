@@ -44,6 +44,7 @@
   "settings.master_volume": "全体音量",
   "settings.sfx_volume": "効果音音量",
   "settings.language": "言語",
+  "settings.resolution": "解像度",
   "settings.replay_auto_export": "各戦闘後にリプレイ JSON を自動出力する",
   "settings.developer_mode": "開発者モードを有効化",
   "settings.back": "戻る",

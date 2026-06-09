@@ -6,6 +6,8 @@ var _sfx_volume_value: Label
 var _sfx_volume_slider: HSlider
 var _language_option: OptionButton
 var _language_codes: Array[String] = []
+var _resolution_option: OptionButton
+var _resolution_codes: Array[String] = []
 var _replay_toggle: CheckButton
 var _developer_toggle: CheckButton
 var _status_label: Label
@@ -36,6 +38,8 @@ func _rebuild_ui() -> void:
 	_sfx_volume_slider = null
 	_language_option = null
 	_language_codes.clear()
+	_resolution_option = null
+	_resolution_codes.clear()
 	_replay_toggle = null
 	_developer_toggle = null
 	_status_label = null
@@ -142,6 +146,27 @@ func _build_ui() -> void:
 		_language_codes.append(language_code)
 		_language_option.add_item(label)
 
+	var resolution_row: HBoxContainer = HBoxContainer.new()
+	resolution_row.add_theme_constant_override("separation", 12)
+	root.add_child(resolution_row)
+
+	var resolution_label: Label = Label.new()
+	resolution_label.text = Localization.get_text("settings.resolution", "Resolution")
+	resolution_label.custom_minimum_size = Vector2(160.0, 0.0)
+	resolution_row.add_child(resolution_label)
+
+	_resolution_option = OptionButton.new()
+	_resolution_option.name = "ResolutionOptionButton"
+	_resolution_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_resolution_option.item_selected.connect(_on_resolution_selected)
+	resolution_row.add_child(_resolution_option)
+
+	for resolution_entry in Game.get_available_resolutions():
+		var resolution_code: String = String(resolution_entry.get("code", Game.DEFAULT_RESOLUTION))
+		var resolution_label_text: String = String(resolution_entry.get("label", resolution_code))
+		_resolution_codes.append(resolution_code)
+		_resolution_option.add_item(resolution_label_text)
+
 	_replay_toggle = CheckButton.new()
 	_replay_toggle.name = "ReplayAutoExportToggle"
 	_replay_toggle.text = Localization.get_text("settings.replay_auto_export", "Auto-export replay JSON after each battle")
@@ -188,6 +213,11 @@ func _refresh_ui() -> void:
 		if _language_codes[language_index] == current_language:
 			_language_option.select(language_index)
 			break
+	var current_resolution: String = Game.get_resolution()
+	for resolution_index in range(_resolution_codes.size()):
+		if _resolution_codes[resolution_index] == current_resolution:
+			_resolution_option.select(resolution_index)
+			break
 	_replay_toggle.set_pressed_no_signal(Game.is_replay_auto_export_enabled())
 	_developer_toggle.set_pressed_no_signal(Game.is_developer_mode_enabled())
 	var replay_path: String = Game.get_last_replay_export_path()
@@ -216,6 +246,13 @@ func _on_language_selected(index: int) -> void:
 		return
 	AudioManager.play_sfx("ui_toggle")
 	Game.set_language(_language_codes[index])
+
+
+func _on_resolution_selected(index: int) -> void:
+	if index < 0 or index >= _resolution_codes.size():
+		return
+	AudioManager.play_sfx("ui_toggle")
+	Game.set_resolution(_resolution_codes[index])
 
 
 func _on_replay_toggle_changed(enabled: bool) -> void:

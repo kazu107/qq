@@ -3,6 +3,8 @@ extends Node
 const NON_BATTLE_NODE_TYPES := ["shop", "forge", "heal", "event", "hazard"]
 const DEVELOPER_META_RESET_POINTS := 10
 const DEBUG_EVENT_NODE_ID := "__debug_event__"
+const DEFAULT_RESOLUTION := "1920x1080"
+const AVAILABLE_RESOLUTION_CODES := ["1280x720", "1600x900", "1920x1080", "2560x1440"]
 
 var current_run: RunState
 var meta_progress: Dictionary = {}
@@ -10,6 +12,7 @@ var settings: Dictionary = {
 	"master_volume": 1.0,
 	"sfx_volume": 1.0,
 	"language": Localization.DEFAULT_LANGUAGE,
+	"resolution": DEFAULT_RESOLUTION,
 	"developer_mode": false,
 	"replay_auto_export": true,
 	"settings_return_hint": "title",
@@ -32,6 +35,7 @@ var _relic_service: RelicService = RelicService.new()
 var _event_service: EventService = EventService.new()
 var _meta_progress_service: MetaProgressService = MetaProgressService.new()
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _applied_resolution: String = ""
 
 
 func _ready() -> void:
@@ -46,6 +50,7 @@ func ensure_meta_initialized() -> void:
 			"master_volume": 1.0,
 			"sfx_volume": 1.0,
 			"language": Localization.DEFAULT_LANGUAGE,
+			"resolution": DEFAULT_RESOLUTION,
 			"developer_mode": false,
 			"replay_auto_export": true,
 			"settings_return_hint": "title",
@@ -60,6 +65,9 @@ func ensure_meta_initialized() -> void:
 		settings["sfx_volume"] = 1.0
 	if not settings.has("language"):
 		settings["language"] = Localization.DEFAULT_LANGUAGE
+	if not settings.has("resolution"):
+		settings["resolution"] = DEFAULT_RESOLUTION
+	settings["resolution"] = _normalize_resolution_code(String(settings.get("resolution", DEFAULT_RESOLUTION)))
 	if not settings.has("developer_mode"):
 		settings["developer_mode"] = false
 	if not settings.has("replay_auto_export"):
@@ -79,6 +87,7 @@ func ensure_meta_initialized() -> void:
 	last_replay_export_path = String(settings.get("last_replay_export_path", last_replay_export_path))
 	_meta_progress_service.ensure_defaults(meta_progress)
 	AudioManager.apply_settings(settings)
+	_apply_resolution_from_settings()
 
 
 func apply_loaded_save(save_data: SaveData) -> void:
@@ -396,6 +405,25 @@ func get_available_languages() -> Array[Dictionary]:
 	return Localization.get_supported_languages()
 
 
+func get_resolution() -> String:
+	ensure_meta_initialized()
+	return String(settings.get("resolution", DEFAULT_RESOLUTION))
+
+
+func get_available_resolutions() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for raw_resolution_code in AVAILABLE_RESOLUTION_CODES:
+		var resolution_code: String = String(raw_resolution_code)
+		var resolution_size: Vector2i = _parse_resolution_code(resolution_code)
+		result.append({
+			"code": resolution_code,
+			"label": "%d x %d" % [resolution_size.x, resolution_size.y],
+			"width": resolution_size.x,
+			"height": resolution_size.y,
+		})
+	return result
+
+
 func set_master_volume(value: float) -> void:
 	ensure_meta_initialized()
 	settings["master_volume"] = clampf(value, 0.0, 1.0)
@@ -414,6 +442,13 @@ func set_language(language_code: String) -> void:
 	ensure_meta_initialized()
 	settings["language"] = Localization.normalize_language_code(language_code)
 	_sync_language_from_settings(true)
+	SaveManager.save_game(current_screen_hint)
+
+
+func set_resolution(resolution_code: String) -> void:
+	ensure_meta_initialized()
+	settings["resolution"] = _normalize_resolution_code(resolution_code)
+	_apply_resolution_from_settings(true)
 	SaveManager.save_game(current_screen_hint)
 
 
@@ -471,6 +506,7 @@ func reset_settings_to_defaults() -> void:
 		"master_volume": 1.0,
 		"sfx_volume": 1.0,
 		"language": get_language(),
+		"resolution": DEFAULT_RESOLUTION,
 		"developer_mode": developer_mode,
 		"replay_auto_export": true,
 		"settings_return_hint": get_settings_return_hint(),
@@ -481,6 +517,7 @@ func reset_settings_to_defaults() -> void:
 		"last_run_seed": int(settings.get("last_run_seed", 0)),
 	}
 	AudioManager.apply_settings(settings)
+	_apply_resolution_from_settings(true)
 	SaveManager.save_game(current_screen_hint)
 
 
@@ -1571,6 +1608,46 @@ func _add_clear_rewards() -> void:
 	ensure_meta_initialized()
 	meta_progress["points"] = int(meta_progress.get("points", 0)) + 1
 	meta_progress["best_clear"] = max(int(meta_progress.get("best_clear", 0)), current_run.encounters_cleared)
+
+
+func _normalize_resolution_code(resolution_code: String) -> String:
+	if AVAILABLE_RESOLUTION_CODES.has(resolution_code):
+		return resolution_code
+	return DEFAULT_RESOLUTION
+
+
+func _parse_resolution_code(resolution_code: String) -> Vector2i:
+	var normalized_code: String = _normalize_resolution_code(resolution_code)
+	var parts: PackedStringArray = normalized_code.split("x", false)
+	if parts.size() != 2:
+		return Vector2i(1920, 1080)
+	return Vector2i(int(parts[0]), int(parts[1]))
+
+
+func _apply_resolution_from_settings(center_window: bool = false) -> void:
+	var resolution_code: String = _normalize_resolution_code(String(settings.get("resolution", DEFAULT_RESOLUTION)))
+	settings["resolution"] = resolution_code
+	if _applied_resolution == resolution_code:
+		return
+	_applied_resolution = resolution_code
+	if DisplayServer.get_name() == "headless":
+		return
+
+	var window_size: Vector2i = _parse_resolution_code(resolution_code)
+	if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_WINDOWED:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	DisplayServer.window_set_size(window_size)
+	if center_window:
+		_center_game_window(window_size)
+
+
+func _center_game_window(window_size: Vector2i) -> void:
+	var screen_id: int = DisplayServer.window_get_current_screen()
+	var screen_position: Vector2i = DisplayServer.screen_get_position(screen_id)
+	var screen_size: Vector2i = DisplayServer.screen_get_size(screen_id)
+	var offset_x: int = maxi(0, int((screen_size.x - window_size.x) / 2))
+	var offset_y: int = maxi(0, int((screen_size.y - window_size.y) / 2))
+	DisplayServer.window_set_position(screen_position + Vector2i(offset_x, offset_y))
 
 
 func _sync_language_from_settings(emit_signal: bool) -> void:
