@@ -267,18 +267,55 @@ func _run() -> void:
 
 	var bottom_split: HBoxContainer = battle_scene.find_child("BottomSplit", true, false) as HBoxContainer
 	var timeline_section: VBoxContainer = battle_scene.find_child("TimelineSection", true, false) as VBoxContainer
-	var log_section: VBoxContainer = battle_scene.find_child("LogSection", true, false) as VBoxContainer
-	var log_panel: LogPanel = battle_scene.find_child("LogPanel", true, false) as LogPanel
-	if bottom_split == null or timeline_section == null or log_section == null or log_panel == null:
+	var battle_timeline_panel: TimelinePanel = battle_scene.find_child("TimelinePanel", true, false) as TimelinePanel
+	var obsolete_secondary_timeline_section: VBoxContainer = battle_scene.find_child("TimelineSectionSecondary", true, false) as VBoxContainer
+	var obsolete_log_section: VBoxContainer = battle_scene.find_child("LogSection", true, false) as VBoxContainer
+	var log_button: Button = battle_scene.find_child("BattleLogButton", true, false) as Button
+	var log_popup: PanelContainer = battle_scene.find_child("BattleLogPopup", true, false) as PanelContainer
+	var log_panel: LogPanel = battle_scene.find_child("BattleLogPanel", true, false) as LogPanel
+	if bottom_split == null or timeline_section == null or battle_timeline_panel == null or log_button == null or log_popup == null or log_panel == null:
 		push_error("Card UI smoke failed: battle scene layout sections were not created")
 		get_tree().quit(1)
 		return
-	if bottom_split.custom_minimum_size.y < 320.0 or timeline_section.custom_minimum_size.y < 320.0 or log_section.custom_minimum_size.y < 320.0:
-		push_error("Card UI smoke failed: timeline and log sections should keep a fixed minimum height")
+	if obsolete_log_section != null:
+		push_error("Card UI smoke failed: bottom log section should be replaced by a timeline section")
+		get_tree().quit(1)
+		return
+	if obsolete_secondary_timeline_section != null or bottom_split.get_child_count() != 1:
+		push_error("Card UI smoke failed: battle bottom area should be one connected timeline")
+		get_tree().quit(1)
+		return
+	if bottom_split.custom_minimum_size.y < 320.0 or timeline_section.custom_minimum_size.y < 320.0:
+		push_error("Card UI smoke failed: connected timeline should keep a fixed minimum height")
+		get_tree().quit(1)
+		return
+	if battle_timeline_panel.custom_minimum_size.y < 260.0:
+		push_error("Card UI smoke failed: connected timeline panel should keep the enlarged timeline height")
 		get_tree().quit(1)
 		return
 	if log_panel.custom_minimum_size.y < 180.0:
-		push_error("Card UI smoke failed: log panel should keep a fixed height")
+		push_error("Card UI smoke failed: popup log panel should keep a fixed height")
+		get_tree().quit(1)
+		return
+	if log_popup.visible:
+		push_error("Card UI smoke failed: battle log popup should be hidden by default")
+		get_tree().quit(1)
+		return
+	log_button.emit_signal("pressed")
+	await get_tree().process_frame
+	if not log_popup.visible:
+		push_error("Card UI smoke failed: battle log button should open the log popup")
+		get_tree().quit(1)
+		return
+	var battle_log_text: RichTextLabel = log_popup.find_child("BattleLogText", true, false) as RichTextLabel
+	if battle_log_text == null:
+		push_error("Card UI smoke failed: battle log popup did not render log text")
+		get_tree().quit(1)
+		return
+	log_button.emit_signal("pressed")
+	await get_tree().process_frame
+	if log_popup.visible:
+		push_error("Card UI smoke failed: battle log button should close the log popup")
 		get_tree().quit(1)
 		return
 	battle_scene.queue_free()

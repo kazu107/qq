@@ -8,6 +8,8 @@ var _enemy_cards_panel: CardHandPanel
 var _player_panel: UnitPanel
 var _card_hand_panel: CardHandPanel
 var _timeline_panel: TimelinePanel
+var _log_button: Button
+var _log_popup: PanelContainer
 var _log_panel: LogPanel
 var _battle_info_label: RichTextLabel
 var _slow_mode_label: Label
@@ -87,6 +89,15 @@ func _build_ui() -> void:
 	_result_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_bar.add_child(_result_label)
 
+	_log_button = Button.new()
+	_log_button.name = "BattleLogButton"
+	_log_button.text = Localization.get_text("battle.log_button", "LOG")
+	_log_button.tooltip_text = Localization.get_text("battle.log_button_tooltip", "Show battle log")
+	_log_button.custom_minimum_size = Vector2(56.0, 32.0)
+	_log_button.z_index = 80
+	_log_button.pressed.connect(_on_log_button_pressed)
+	top_bar.add_child(_log_button)
+
 	var main_split := HBoxContainer.new()
 	main_split.name = "MainSplit"
 	main_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -149,12 +160,35 @@ func _build_ui() -> void:
 	_timeline_panel.name = "TimelinePanel"
 	timeline_section.add_child(_timeline_panel)
 
-	var log_section := _create_section(bottom_split, Localization.get_text("battle.log", "Log"))
-	log_section.name = "LogSection"
-	log_section.custom_minimum_size = Vector2(0.0, BOTTOM_PANEL_MIN_HEIGHT)
+	_build_log_popup()
+
+
+func _build_log_popup() -> void:
+	_log_popup = PanelContainer.new()
+	_log_popup.name = "BattleLogPopup"
+	_log_popup.visible = false
+	_log_popup.mouse_filter = Control.MOUSE_FILTER_STOP
+	_log_popup.z_index = 80
+	_log_popup.anchor_left = 1.0
+	_log_popup.anchor_right = 1.0
+	_log_popup.anchor_top = 0.0
+	_log_popup.anchor_bottom = 0.0
+	_log_popup.offset_left = -520.0
+	_log_popup.offset_top = 64.0
+	_log_popup.offset_right = -24.0
+	_log_popup.offset_bottom = 344.0
+	add_child(_log_popup)
+
+	var popup_margin: MarginContainer = MarginContainer.new()
+	popup_margin.add_theme_constant_override("margin_left", 12)
+	popup_margin.add_theme_constant_override("margin_top", 12)
+	popup_margin.add_theme_constant_override("margin_right", 12)
+	popup_margin.add_theme_constant_override("margin_bottom", 12)
+	_log_popup.add_child(popup_margin)
+
 	_log_panel = LogPanel.new()
-	_log_panel.name = "LogPanel"
-	log_section.add_child(_log_panel)
+	_log_panel.name = "BattleLogPanel"
+	popup_margin.add_child(_log_panel)
 
 
 func _create_section(parent: Control, title: String) -> VBoxContainer:
@@ -224,6 +258,11 @@ func _on_card_requested(runtime_id: String) -> void:
 	if not _engine.request_use_card("player", runtime_id):
 		AudioManager.play_sfx("ui_error")
 	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
+
+
+func _on_log_button_pressed() -> void:
+	_log_popup.visible = not _log_popup.visible
+	AudioManager.play_sfx("ui_toggle")
 
 
 func _advance_after_battle() -> void:

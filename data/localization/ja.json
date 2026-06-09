@@ -239,6 +239,8 @@
   "battle.cards": "カード",
   "battle.timeline": "タイムライン",
   "battle.log": "戦闘ログ",
+  "battle.log_button": "LOG",
+  "battle.log_button_tooltip": "戦闘ログを表示",
   "battle.slow_mode_hold": "Space 長押しで Slow Mode",
   "battle.slow_mode_rate": "Slow Mode {rate}%",
   "battle.result.victory": "勝利",
