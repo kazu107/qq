@@ -128,7 +128,7 @@ func _run() -> void:
 	], 1.5)
 	await get_tree().process_frame
 
-	if timeline_panel.custom_minimum_size.y < 180.0:
+	if timeline_panel.custom_minimum_size.y < 260.0:
 		push_error("Card UI smoke failed: timeline panel height should stay fixed")
 		get_tree().quit(1)
 		return
@@ -142,6 +142,10 @@ func _run() -> void:
 	var earliest_button: CardButton = cards_row.get_child(0) as CardButton
 	if earliest_button == null or earliest_button.runtime_id != "timeline_1":
 		push_error("Card UI smoke failed: timeline entries were not sorted by earliest cast")
+		get_tree().quit(1)
+		return
+	if earliest_button.custom_minimum_size != Vector2(168.0, 168.0):
+		push_error("Card UI smoke failed: timeline card tile should be four-card area size")
 		get_tree().quit(1)
 		return
 	var timeline_meta: Label = earliest_button.get_node("MetaBadge/Meta") as Label
@@ -269,7 +273,7 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle scene layout sections were not created")
 		get_tree().quit(1)
 		return
-	if bottom_split.custom_minimum_size.y < 240.0 or timeline_section.custom_minimum_size.y < 240.0 or log_section.custom_minimum_size.y < 240.0:
+	if bottom_split.custom_minimum_size.y < 320.0 or timeline_section.custom_minimum_size.y < 320.0 or log_section.custom_minimum_size.y < 320.0:
 		push_error("Card UI smoke failed: timeline and log sections should keep a fixed minimum height")
 		get_tree().quit(1)
 		return

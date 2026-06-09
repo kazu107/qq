@@ -1,5 +1,7 @@
 extends Control
 
+const BOTTOM_PANEL_MIN_HEIGHT: float = 324.0
+
 var _engine := RealtimeBattleEngine.new()
 var _enemy_panel: UnitPanel
 var _enemy_cards_panel: CardHandPanel
@@ -136,20 +138,20 @@ func _build_ui() -> void:
 	var bottom_split := HBoxContainer.new()
 	bottom_split.name = "BottomSplit"
 	bottom_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bottom_split.custom_minimum_size = Vector2(0.0, 248.0)
+	bottom_split.custom_minimum_size = Vector2(0.0, BOTTOM_PANEL_MIN_HEIGHT)
 	bottom_split.add_theme_constant_override("separation", 16)
 	outer.add_child(bottom_split)
 
 	var timeline_section := _create_section(bottom_split, Localization.get_text("battle.timeline", "Timeline"))
 	timeline_section.name = "TimelineSection"
-	timeline_section.custom_minimum_size = Vector2(0.0, 248.0)
+	timeline_section.custom_minimum_size = Vector2(0.0, BOTTOM_PANEL_MIN_HEIGHT)
 	_timeline_panel = TimelinePanel.new()
 	_timeline_panel.name = "TimelinePanel"
 	timeline_section.add_child(_timeline_panel)
 
 	var log_section := _create_section(bottom_split, Localization.get_text("battle.log", "Log"))
 	log_section.name = "LogSection"
-	log_section.custom_minimum_size = Vector2(0.0, 248.0)
+	log_section.custom_minimum_size = Vector2(0.0, BOTTOM_PANEL_MIN_HEIGHT)
 	_log_panel = LogPanel.new()
 	_log_panel.name = "LogPanel"
 	log_section.add_child(_log_panel)
