@@ -17,6 +17,7 @@ var _empty_label: Label
 var _cards: Array[CardButton] = []
 var _card_layouts: Array[Dictionary] = []
 var _timeline_horizon: float = DEFAULT_TIMELINE_HORIZON
+var _fixed_horizon: float = DEFAULT_TIMELINE_HORIZON
 
 
 func _ready() -> void:
@@ -56,7 +57,17 @@ func _ready() -> void:
 	_empty_label = Label.new()
 	_empty_label.text = Localization.get_text("timeline.empty", "No scheduled actions")
 	add_child(_empty_label)
-	_refresh_scale(DEFAULT_TIMELINE_HORIZON)
+	_timeline_horizon = _fixed_horizon
+	_refresh_scale(_timeline_horizon)
+
+
+func set_fixed_horizon(horizon: float) -> void:
+	_fixed_horizon = maxf(0.1, horizon)
+	_timeline_horizon = _fixed_horizon
+	if _scale_row != null:
+		_refresh_scale(_timeline_horizon)
+	if _cards_scroll != null:
+		_layout_cards()
 
 
 func refresh_timeline(entries: Array[TimelineEntry], battle_time: float, run_state: RunState = null) -> void:
@@ -66,7 +77,7 @@ func refresh_timeline(entries: Array[TimelineEntry], battle_time: float, run_sta
 		"count": sorted_entries.size(),
 	})
 	_empty_label.visible = sorted_entries.is_empty()
-	_timeline_horizon = _resolve_timeline_horizon(sorted_entries)
+	_timeline_horizon = _fixed_horizon
 	_refresh_scale(_timeline_horizon)
 	_ensure_card_count(sorted_entries.size())
 	_card_layouts.clear()
@@ -138,15 +149,6 @@ func _layout_cards() -> void:
 		button.position = Vector2(usable_width * ratio, y_position)
 		button.size = TIMELINE_TILE_SIZE
 		button.z_index = _card_layouts.size() - layout_index
-
-
-func _resolve_timeline_horizon(sorted_entries: Array[TimelineEntry]) -> float:
-	if sorted_entries.is_empty():
-		return DEFAULT_TIMELINE_HORIZON
-	var max_cast_time: float = 0.1
-	for entry in sorted_entries:
-		max_cast_time = maxf(max_cast_time, maxf(0.1, entry.scheduled_time - entry.created_at))
-	return max_cast_time
 
 
 func _format_scale_seconds(seconds: float) -> String:

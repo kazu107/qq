@@ -121,6 +121,7 @@ func _run() -> void:
 
 	var timeline_panel: TimelinePanel = TimelinePanel.new()
 	timeline_panel.size = Vector2(900.0, 300.0)
+	timeline_panel.set_fixed_horizon(6.0)
 	add_child(timeline_panel)
 	timeline_panel.refresh_timeline([
 		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
@@ -186,8 +187,8 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	var max_marker: Label = timeline_scale.get_child(timeline_scale.get_child_count() - 1) as Label
-	if max_marker == null or max_marker.text != "+3.2s":
-		push_error("Card UI smoke failed: timeline scale should end at max cast time")
+	if max_marker == null or max_marker.text != "+6s":
+		push_error("Card UI smoke failed: timeline scale should use fixed max cast time")
 		get_tree().quit(1)
 		return
 	if earliest_button.tooltip_text.find("Owner: Enemy") == -1:
@@ -297,7 +298,7 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 
-	Game.start_new_run("balanced")
+	Game.developer_open_battle("scout", "balanced")
 	var battle_scene: Control = load("res://scenes/battle/Battle.tscn").instantiate() as Control
 	add_child(battle_scene)
 	await get_tree().process_frame
@@ -328,6 +329,16 @@ func _run() -> void:
 		return
 	if battle_timeline_panel.custom_minimum_size.y < 260.0:
 		push_error("Card UI smoke failed: connected timeline panel should keep the enlarged timeline height")
+		get_tree().quit(1)
+		return
+	var battle_timeline_scale: HBoxContainer = battle_timeline_panel.get_node("TimelineScale") as HBoxContainer
+	if battle_timeline_scale == null or battle_timeline_scale.get_child_count() < 1:
+		push_error("Card UI smoke failed: battle timeline scale markers were not rendered")
+		get_tree().quit(1)
+		return
+	var battle_max_marker: Label = battle_timeline_scale.get_child(battle_timeline_scale.get_child_count() - 1) as Label
+	if battle_max_marker == null or battle_max_marker.text != "+3.6s":
+		push_error("Card UI smoke failed: battle timeline scale should use both loadouts' max cast time")
 		get_tree().quit(1)
 		return
 	if log_panel.custom_minimum_size.y < 180.0:

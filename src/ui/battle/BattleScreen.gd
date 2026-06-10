@@ -27,6 +27,7 @@ func _ready() -> void:
 
 	var enemy_id: String = Game.prepare_next_battle()
 	_engine.setup(Game.current_run, enemy_id)
+	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
 	_player_panel.configure_visual("player", Game.current_run.starter_id)
 	_enemy_panel.configure_visual("enemy", enemy_id)
 	set_process(true)
@@ -258,6 +259,28 @@ func _on_card_requested(runtime_id: String) -> void:
 	if not _engine.request_use_card("player", runtime_id):
 		AudioManager.play_sfx("ui_error")
 	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
+
+
+func _compute_timeline_horizon() -> float:
+	if _engine.battle_state == null:
+		return TimelinePanel.DEFAULT_TIMELINE_HORIZON
+	var max_cast_time: float = TimelinePanel.DEFAULT_TIMELINE_HORIZON
+	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(_engine.battle_state.player, true))
+	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(_engine.battle_state.enemy, false))
+	return max_cast_time
+
+
+func _get_unit_loadout_max_cast_time(unit: UnitState, use_player_upgrades: bool) -> float:
+	var max_cast_time: float = 0.1
+	for runtime_state in unit.card_runtime_states:
+		var card_def: CardDef = null
+		if use_player_upgrades and Game.current_run != null:
+			card_def = CardUpgradeResolver.build_effective_card(runtime_state.card_id, Game.current_run)
+		else:
+			card_def = Database.get_card(runtime_state.card_id)
+		if card_def != null:
+			max_cast_time = maxf(max_cast_time, card_def.cast_time)
+	return max_cast_time
 
 
 func _on_log_button_pressed() -> void:
