@@ -2,6 +2,8 @@ extends Button
 class_name CardButton
 
 signal card_requested(runtime_id: String)
+signal card_hovered(runtime_id: String)
+signal card_unhovered(runtime_id: String)
 
 const ART_PATH_TEMPLATE := "res://assets/icons/cards/%s.png"
 const FRAME_FILL := Color(0.09, 0.10, 0.13, 0.96)
@@ -170,6 +172,18 @@ func _on_pressed() -> void:
 	card_requested.emit(runtime_id)
 
 
+func _on_mouse_entered() -> void:
+	if runtime_id == "":
+		return
+	card_hovered.emit(runtime_id)
+
+
+func _on_mouse_exited() -> void:
+	if runtime_id == "":
+		return
+	card_unhovered.emit(runtime_id)
+
+
 func _ensure_visuals() -> void:
 	if _art_rect != null:
 		return
@@ -186,6 +200,10 @@ func _ensure_visuals() -> void:
 		pressed.connect(_on_pressed)
 	if not resized.is_connected(_update_cooldown_mask):
 		resized.connect(_update_cooldown_mask)
+	if not mouse_entered.is_connected(_on_mouse_entered):
+		mouse_entered.connect(_on_mouse_entered)
+	if not mouse_exited.is_connected(_on_mouse_exited):
+		mouse_exited.connect(_on_mouse_exited)
 
 	_art_rect = TextureRect.new()
 	_art_rect.name = "Art"

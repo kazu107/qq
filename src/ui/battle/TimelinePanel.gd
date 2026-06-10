@@ -7,6 +7,8 @@ const TIMELINE_SCROLL_MIN_HEIGHT: float = 188.0
 const TIMELINE_SCALE_MARK_COUNT: int = 5
 const DEFAULT_TIMELINE_HORIZON: float = 3.0
 const FALLBACK_TRACK_WIDTH: float = 960.0
+const PREVIEW_ALPHA: float = 0.58
+const PREVIEW_Z_INDEX: int = 1000
 
 var _title_label: Label
 var _summary_label: Label
@@ -16,6 +18,8 @@ var _cards_track: Control
 var _empty_label: Label
 var _cards: Array[CardButton] = []
 var _card_layouts: Array[Dictionary] = []
+var _preview_button: CardButton
+var _preview_remaining: float = 0.0
 var _timeline_horizon: float = DEFAULT_TIMELINE_HORIZON
 var _fixed_horizon: float = DEFAULT_TIMELINE_HORIZON
 
@@ -70,13 +74,20 @@ func set_fixed_horizon(horizon: float) -> void:
 		_layout_cards()
 
 
-func refresh_timeline(entries: Array[TimelineEntry], battle_time: float, run_state: RunState = null) -> void:
+func refresh_timeline(
+	entries: Array[TimelineEntry],
+	battle_time: float,
+	run_state: RunState = null,
+	preview_entry: TimelineEntry = null,
+	preview_card_def: CardDef = null
+) -> void:
 	var sorted_entries: Array[TimelineEntry] = entries.duplicate()
 	sorted_entries.sort_custom(_compare_entries)
 	_summary_label.text = Localization.get_textf("timeline.queued", "Queued {count}", {
 		"count": sorted_entries.size(),
 	})
-	_empty_label.visible = sorted_entries.is_empty()
+	var has_preview: bool = preview_entry != null and preview_card_def != null
+	_empty_label.visible = sorted_entries.is_empty() and not has_preview
 	_timeline_horizon = _fixed_horizon
 	_refresh_scale(_timeline_horizon)
 	_ensure_card_count(sorted_entries.size())
@@ -100,6 +111,7 @@ func refresh_timeline(entries: Array[TimelineEntry], battle_time: float, run_sta
 			"button": button,
 			"remaining": maxf(0.0, entry.scheduled_time - battle_time),
 		})
+	_refresh_preview(preview_entry, preview_card_def, battle_time)
 	_layout_cards()
 
 
@@ -128,7 +140,37 @@ func _ensure_card_count(count: int) -> void:
 		button.set_tile_size(TIMELINE_TILE_SIZE)
 		button.size = TIMELINE_TILE_SIZE
 		_cards_track.add_child(button)
+		if _preview_button != null:
+			_cards_track.move_child(button, _cards.size())
 		_cards.append(button)
+
+
+func _ensure_preview_button() -> void:
+	if _preview_button != null:
+		return
+	_preview_button = CardButton.new()
+	_preview_button.name = "TimelinePreviewCard"
+	_preview_button.set_tile_size(TIMELINE_TILE_SIZE)
+	_preview_button.size = TIMELINE_TILE_SIZE
+	_preview_button.visible = false
+	_preview_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_preview_button.z_index = PREVIEW_Z_INDEX
+	_cards_track.add_child(_preview_button)
+
+
+func _refresh_preview(preview_entry: TimelineEntry, preview_card_def: CardDef, battle_time: float) -> void:
+	if preview_entry == null or preview_card_def == null:
+		if _preview_button != null:
+			_preview_button.visible = false
+		_preview_remaining = 0.0
+		return
+
+	_ensure_preview_button()
+	_preview_button.visible = true
+	_preview_button.bind_timeline(preview_card_def, preview_entry, battle_time, false)
+	_preview_button.modulate = Color(1.0, 1.0, 1.0, PREVIEW_ALPHA)
+	_preview_button.z_index = PREVIEW_Z_INDEX
+	_preview_remaining = maxf(0.0, preview_entry.scheduled_time - battle_time)
 
 
 func _layout_cards() -> void:
@@ -145,10 +187,25 @@ func _layout_cards() -> void:
 		if button == null:
 			continue
 		var remaining: float = clampf(float(layout_data.get("remaining", 0.0)), 0.0, horizon)
-		var ratio: float = remaining / horizon
-		button.position = Vector2(usable_width * ratio, y_position)
-		button.size = TIMELINE_TILE_SIZE
-		button.z_index = _card_layouts.size() - layout_index
+		_position_timeline_card(button, remaining, usable_width, y_position, horizon, _card_layouts.size() - layout_index)
+
+	if _preview_button != null and _preview_button.visible:
+		_position_timeline_card(_preview_button, _preview_remaining, usable_width, y_position, horizon, PREVIEW_Z_INDEX)
+
+
+func _position_timeline_card(
+	button: CardButton,
+	remaining: float,
+	usable_width: float,
+	y_position: float,
+	horizon: float,
+	z_index: int
+) -> void:
+	var clamped_remaining: float = clampf(remaining, 0.0, horizon)
+	var ratio: float = clamped_remaining / horizon
+	button.position = Vector2(usable_width * ratio, y_position)
+	button.size = TIMELINE_TILE_SIZE
+	button.z_index = z_index
 
 
 func _format_scale_seconds(seconds: float) -> String:

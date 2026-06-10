@@ -2,6 +2,8 @@ extends HFlowContainer
 class_name CardHandPanel
 
 signal card_requested(runtime_id: String)
+signal card_hovered(runtime_id: String)
+signal card_unhovered(runtime_id: String)
 
 var _interactive: bool = true
 var _buttons: Array[CardButton] = []
@@ -78,9 +80,23 @@ func _ensure_button_count(count: int) -> void:
 		var button: CardButton = CardButton.new()
 		button.set_tile_size(_tile_size)
 		button.card_requested.connect(_on_card_requested)
+		button.card_hovered.connect(_on_card_hovered)
+		button.card_unhovered.connect(_on_card_unhovered)
 		add_child(button)
 		_buttons.append(button)
 
 
 func _on_card_requested(runtime_id: String) -> void:
 	card_requested.emit(runtime_id)
+
+
+func _on_card_hovered(runtime_id: String) -> void:
+	if not _interactive:
+		return
+	card_hovered.emit(runtime_id)
+
+
+func _on_card_unhovered(runtime_id: String) -> void:
+	if not _interactive:
+		return
+	card_unhovered.emit(runtime_id)

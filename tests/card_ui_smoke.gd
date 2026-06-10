@@ -110,6 +110,21 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle hand tile is not square")
 		get_tree().quit(1)
 		return
+	var hovered_runtime_ids: Array[String] = []
+	var unhovered_runtime_ids: Array[String] = []
+	hand_panel.card_hovered.connect(func(runtime_id: String) -> void:
+		hovered_runtime_ids.append(runtime_id)
+	)
+	hand_panel.card_unhovered.connect(func(runtime_id: String) -> void:
+		unhovered_runtime_ids.append(runtime_id)
+	)
+	first_button.emit_signal("mouse_entered")
+	first_button.emit_signal("mouse_exited")
+	await get_tree().process_frame
+	if not hovered_runtime_ids.has("hand_quick") or not unhovered_runtime_ids.has("hand_quick"):
+		push_error("Card UI smoke failed: hand panel should relay player card hover state")
+		get_tree().quit(1)
+		return
 
 	hand_panel.refresh_cards(unit)
 	await get_tree().process_frame
@@ -208,6 +223,37 @@ func _run() -> void:
 	var overlay_style: StyleBoxFlat = timeline_overlay.get_theme_stylebox("panel") as StyleBoxFlat
 	if overlay_style == null or overlay_style.border_color.r < 0.8:
 		push_error("Card UI smoke failed: enemy timeline overlay border should be red")
+		get_tree().quit(1)
+		return
+	var timeline_preview_entry: TimelineEntry = _make_timeline_entry("quick_slash", "player", 5.1, 1.5, 900)
+	timeline_preview_entry.runtime_id = "preview_hand_quick"
+	timeline_panel.refresh_timeline([
+		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
+		_make_timeline_entry("heavy_swing", "enemy", 2.8, 0.5, 1),
+		_make_timeline_entry("guard", "player", 3.4, 0.8, 3),
+	], 1.5, null, timeline_preview_entry, Database.get_card("quick_slash"))
+	await get_tree().process_frame
+	var timeline_preview: CardButton = cards_track.get_node("TimelinePreviewCard") as CardButton
+	if timeline_preview == null or not timeline_preview.visible:
+		push_error("Card UI smoke failed: timeline preview card should be visible while hovering")
+		get_tree().quit(1)
+		return
+	if timeline_preview.modulate.a >= 0.99:
+		push_error("Card UI smoke failed: timeline preview card should be visually ghosted")
+		get_tree().quit(1)
+		return
+	if timeline_preview.position.x <= earliest_button.position.x:
+		push_error("Card UI smoke failed: timeline preview card should be positioned by preview cast time")
+		get_tree().quit(1)
+		return
+	timeline_panel.refresh_timeline([
+		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
+		_make_timeline_entry("heavy_swing", "enemy", 2.8, 0.5, 1),
+		_make_timeline_entry("guard", "player", 3.4, 0.8, 3),
+	], 1.5)
+	await get_tree().process_frame
+	if timeline_preview.visible:
+		push_error("Card UI smoke failed: timeline preview card should hide after hover ends")
 		get_tree().quit(1)
 		return
 
@@ -329,6 +375,39 @@ func _run() -> void:
 		return
 	if battle_timeline_panel.custom_minimum_size.y < 260.0:
 		push_error("Card UI smoke failed: connected timeline panel should keep the enlarged timeline height")
+		get_tree().quit(1)
+		return
+	var battle_player_hand_panel: CardHandPanel = battle_scene.find_child("PlayerHandPanel", true, false) as CardHandPanel
+	if battle_player_hand_panel == null or battle_player_hand_panel.get_child_count() < 1:
+		push_error("Card UI smoke failed: battle player hand panel was not rendered")
+		get_tree().quit(1)
+		return
+	var battle_player_card: CardButton = battle_player_hand_panel.get_child(0) as CardButton
+	if battle_player_card == null:
+		push_error("Card UI smoke failed: battle player hand card was not rendered")
+		get_tree().quit(1)
+		return
+	battle_player_card.emit_signal("mouse_entered")
+	await get_tree().process_frame
+	var battle_cards_track: Control = battle_timeline_panel.get_node("TimelineScroll/TimelineCards") as Control
+	var battle_preview: CardButton = battle_cards_track.get_node("TimelinePreviewCard") as CardButton
+	if battle_preview == null or not battle_preview.visible:
+		push_error("Card UI smoke failed: battle hand hover should show a timeline preview")
+		get_tree().quit(1)
+		return
+	if not battle_preview.runtime_id.begins_with("preview_"):
+		push_error("Card UI smoke failed: battle timeline preview should use a preview runtime id")
+		get_tree().quit(1)
+		return
+	var battle_preview_style: StyleBoxFlat = battle_preview.get_theme_stylebox("normal") as StyleBoxFlat
+	if battle_preview_style == null or battle_preview_style.border_color.b < 0.8:
+		push_error("Card UI smoke failed: battle timeline preview should use the player border color")
+		get_tree().quit(1)
+		return
+	battle_player_card.emit_signal("mouse_exited")
+	await get_tree().process_frame
+	if battle_preview.visible:
+		push_error("Card UI smoke failed: battle hand hover preview should hide on mouse exit")
 		get_tree().quit(1)
 		return
 	var battle_timeline_scale: HBoxContainer = battle_timeline_panel.get_node("TimelineScale") as HBoxContainer

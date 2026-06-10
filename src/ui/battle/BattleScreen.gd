@@ -1,6 +1,7 @@
 extends Control
 
 const BOTTOM_PANEL_MIN_HEIGHT: float = 324.0
+const TIMELINE_PREVIEW_INSTANCE_ID: int = 999999
 
 var _engine := RealtimeBattleEngine.new()
 var _enemy_panel: UnitPanel
@@ -17,6 +18,7 @@ var _result_label: Label
 var _developer_panel: DeveloperPanel
 var _transition_timer: float = -1.0
 var _handled_finish: bool = false
+var _hovered_player_runtime_id: String = ""
 
 
 func _ready() -> void:
@@ -145,6 +147,8 @@ func _build_ui() -> void:
 	_card_hand_panel.set_interactive(true)
 	_card_hand_panel.set_tile_size(Vector2(100.0, 100.0))
 	_card_hand_panel.card_requested.connect(_on_card_requested)
+	_card_hand_panel.card_hovered.connect(_on_player_card_hovered)
+	_card_hand_panel.card_unhovered.connect(_on_player_card_unhovered)
 	right_panel.add_child(_card_hand_panel)
 
 	var bottom_split := HBoxContainer.new()
@@ -225,7 +229,10 @@ func _refresh_ui(time_scale: float) -> void:
 	_player_panel.refresh_unit(battle_state.player)
 	_enemy_cards_panel.refresh_cards(battle_state.enemy, null, "enemy")
 	_card_hand_panel.refresh_cards(battle_state.player, Game.current_run, "player")
-	_timeline_panel.refresh_timeline(battle_state.timeline, battle_state.battle_time, Game.current_run)
+	var preview_runtime_state: CardRuntimeState = _get_hovered_player_runtime_state(battle_state)
+	var preview_card_def: CardDef = _get_hover_preview_card_def(preview_runtime_state)
+	var preview_entry: TimelineEntry = _build_hover_preview_entry(battle_state, preview_runtime_state, preview_card_def)
+	_timeline_panel.refresh_timeline(battle_state.timeline, battle_state.battle_time, Game.current_run, preview_entry, preview_card_def)
 	_log_panel.refresh_logs(battle_state.logs)
 	var total_steps: int = max(1, Game.get_map_step_count())
 	var display_step: int = min(total_steps, Game.get_current_step_index() + 1)
@@ -256,9 +263,64 @@ func _refresh_ui(time_scale: float) -> void:
 
 
 func _on_card_requested(runtime_id: String) -> void:
-	if not _engine.request_use_card("player", runtime_id):
+	var requested: bool = _engine.request_use_card("player", runtime_id)
+	if not requested:
 		AudioManager.play_sfx("ui_error")
+	elif _hovered_player_runtime_id == runtime_id:
+		_hovered_player_runtime_id = ""
 	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
+
+
+func _on_player_card_hovered(runtime_id: String) -> void:
+	_hovered_player_runtime_id = runtime_id
+	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
+
+
+func _on_player_card_unhovered(runtime_id: String) -> void:
+	if _hovered_player_runtime_id != runtime_id:
+		return
+	_hovered_player_runtime_id = ""
+	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
+
+
+func _get_hovered_player_runtime_state(battle_state: BattleState) -> CardRuntimeState:
+	if _hovered_player_runtime_id == "":
+		return null
+	return battle_state.player.get_runtime_state(_hovered_player_runtime_id)
+
+
+func _get_hover_preview_card_def(runtime_state: CardRuntimeState) -> CardDef:
+	if runtime_state == null or Game.current_run == null:
+		return null
+	return CardUpgradeResolver.build_effective_card(runtime_state.card_id, Game.current_run)
+
+
+func _build_hover_preview_entry(
+	battle_state: BattleState,
+	runtime_state: CardRuntimeState,
+	card_def: CardDef
+) -> TimelineEntry:
+	if runtime_state == null or card_def == null:
+		return null
+	if not runtime_state.can_use():
+		return null
+	if battle_state.player.active_slots_used + card_def.active_slot_cost > battle_state.player.active_slot_max:
+		return null
+
+	var entry: TimelineEntry = TimelineEntry.new()
+	entry.instance_id = TIMELINE_PREVIEW_INSTANCE_ID
+	entry.owner_side = "player"
+	entry.runtime_id = "preview_%s" % runtime_state.runtime_id
+	entry.card_id = runtime_state.card_id
+	entry.card_name = card_def.name
+	entry.created_at = battle_state.battle_time
+	entry.scheduled_time = battle_state.battle_time + card_def.cast_time * battle_state.player.get_cast_time_multiplier()
+	entry.sort_key = entry.scheduled_time - card_def.priority_modifier
+	entry.priority_modifier = card_def.priority_modifier
+	entry.actor_speed = battle_state.player.speed
+	entry.slot_cost = card_def.active_slot_cost
+	entry.interruptible = card_def.interruptible
+	return entry
 
 
 func _compute_timeline_horizon() -> float:
