@@ -149,8 +149,30 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	var timeline_meta: Label = earliest_button.get_node("MetaBadge/Meta") as Label
-	if timeline_meta == null or timeline_meta.text != "casting":
-		push_error("Card UI smoke failed: timeline casting card should show casting text")
+	if timeline_meta == null or timeline_meta.text != "1.3s":
+		push_error("Card UI smoke failed: timeline card should show remaining seconds")
+		get_tree().quit(1)
+		return
+	var next_badge: ColorRect = earliest_button.get_node("TimelineNextBadge") as ColorRect
+	var next_label: Label = earliest_button.get_node("TimelineNextBadge/Next") as Label
+	if next_badge == null or next_label == null or not next_badge.visible or next_label.text != "NEXT":
+		push_error("Card UI smoke failed: earliest timeline card should show NEXT badge")
+		get_tree().quit(1)
+		return
+	var timeline_progress: ColorRect = earliest_button.get_node("TimelineProgressBar") as ColorRect
+	var timeline_progress_fill: ColorRect = earliest_button.get_node("TimelineProgressBar/TimelineProgressFill") as ColorRect
+	if timeline_progress == null or timeline_progress_fill == null or not timeline_progress.visible:
+		push_error("Card UI smoke failed: timeline card should show a progress bar")
+		get_tree().quit(1)
+		return
+	var timeline_scale: HBoxContainer = timeline_panel.get_node("TimelineScale") as HBoxContainer
+	if timeline_scale == null or timeline_scale.get_child_count() < 4:
+		push_error("Card UI smoke failed: timeline scale markers were not rendered")
+		get_tree().quit(1)
+		return
+	var now_marker: Label = timeline_scale.get_child(0) as Label
+	if now_marker == null or now_marker.text != "NOW":
+		push_error("Card UI smoke failed: timeline scale should start with NOW")
 		get_tree().quit(1)
 		return
 	if earliest_button.tooltip_text.find("Owner: Enemy") == -1:

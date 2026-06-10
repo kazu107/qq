@@ -283,6 +283,8 @@
   "timeline.summary": "詠唱が早く終わる順に解決されます",
   "timeline.empty": "予約された行動はありません",
   "timeline.queued": "予約数 {count}",
+  "timeline.now": "NOW",
+  "timeline.next": "NEXT",
   "unit.title": "ユニット",
   "unit.stats_line": "ATK {attack} | DEF {defense} | SPD {speed}",
   "unit.shield": "シールド {value}",

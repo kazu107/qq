@@ -5,9 +5,11 @@ const TIMELINE_TILE_SIZE: Vector2 = Vector2(168.0, 168.0)
 const TIMELINE_PANEL_MIN_HEIGHT: float = 264.0
 const TIMELINE_SCROLL_MIN_HEIGHT: float = 188.0
 const TIMELINE_CARD_SEPARATION: int = 12
+const TIMELINE_SCALE_MARK_COUNT: int = 4
 
 var _title_label: Label
 var _summary_label: Label
+var _scale_row: HBoxContainer
 var _cards_scroll: ScrollContainer
 var _cards_row: HBoxContainer
 var _empty_label: Label
@@ -26,6 +28,11 @@ func _ready() -> void:
 	_summary_label = Label.new()
 	_summary_label.text = Localization.get_text("timeline.summary", "Soonest cast resolves first")
 	add_child(_summary_label)
+
+	_scale_row = HBoxContainer.new()
+	_scale_row.name = "TimelineScale"
+	_scale_row.add_theme_constant_override("separation", 8)
+	add_child(_scale_row)
 
 	_cards_scroll = ScrollContainer.new()
 	_cards_scroll.name = "TimelineScroll"
@@ -53,6 +60,7 @@ func refresh_timeline(entries: Array[TimelineEntry], battle_time: float, run_sta
 		"count": sorted_entries.size(),
 	})
 	_empty_label.visible = sorted_entries.is_empty()
+	_refresh_scale(sorted_entries, battle_time)
 	_ensure_card_count(sorted_entries.size())
 
 	for index in range(_cards.size()):
@@ -68,7 +76,33 @@ func refresh_timeline(entries: Array[TimelineEntry], battle_time: float, run_sta
 			continue
 
 		button.visible = true
-		button.bind_timeline(card_def, entry, battle_time)
+		button.bind_timeline(card_def, entry, battle_time, index == 0)
+
+
+func _refresh_scale(sorted_entries: Array[TimelineEntry], battle_time: float) -> void:
+	for child in _scale_row.get_children():
+		_scale_row.remove_child(child)
+		child.queue_free()
+
+	_scale_row.visible = not sorted_entries.is_empty()
+	if sorted_entries.is_empty():
+		return
+
+	var max_remaining: float = 0.0
+	for entry in sorted_entries:
+		max_remaining = maxf(max_remaining, maxf(0.0, entry.scheduled_time - battle_time))
+	var horizon: int = maxi(3, int(ceil(max_remaining)))
+	var step: int = maxi(1, int(ceil(float(horizon) / float(TIMELINE_SCALE_MARK_COUNT - 1))))
+
+	for scale_index in range(TIMELINE_SCALE_MARK_COUNT):
+		var label: Label = Label.new()
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		if scale_index == 0:
+			label.text = Localization.get_text("timeline.now", "NOW")
+		else:
+			label.text = "+%ds" % (step * scale_index)
+		_scale_row.add_child(label)
 
 
 func _ensure_card_count(count: int) -> void:
