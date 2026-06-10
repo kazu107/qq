@@ -120,6 +120,7 @@ func _run() -> void:
 		return
 
 	var timeline_panel: TimelinePanel = TimelinePanel.new()
+	timeline_panel.size = Vector2(900.0, 300.0)
 	add_child(timeline_panel)
 	timeline_panel.refresh_timeline([
 		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
@@ -133,13 +134,13 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 
-	var cards_row: HBoxContainer = timeline_panel.get_node("TimelineScroll/TimelineCards") as HBoxContainer
-	if cards_row == null or cards_row.get_child_count() < 1:
+	var cards_track: Control = timeline_panel.get_node("TimelineScroll/TimelineCards") as Control
+	if cards_track == null or cards_track.get_child_count() < 3:
 		push_error("Card UI smoke failed: timeline panel did not create card tiles")
 		get_tree().quit(1)
 		return
 
-	var earliest_button: CardButton = cards_row.get_child(0) as CardButton
+	var earliest_button: CardButton = cards_track.get_child(0) as CardButton
 	if earliest_button == null or earliest_button.runtime_id != "timeline_1":
 		push_error("Card UI smoke failed: timeline entries were not sorted by earliest cast")
 		get_tree().quit(1)
@@ -153,26 +154,40 @@ func _run() -> void:
 		push_error("Card UI smoke failed: timeline card should show remaining seconds")
 		get_tree().quit(1)
 		return
+	var later_button: CardButton = cards_track.get_child(2) as CardButton
+	if later_button == null or earliest_button.position.x >= later_button.position.x:
+		push_error("Card UI smoke failed: timeline cards should slide right-to-left by remaining time")
+		get_tree().quit(1)
+		return
 	var next_badge: ColorRect = earliest_button.get_node("TimelineNextBadge") as ColorRect
 	var next_label: Label = earliest_button.get_node("TimelineNextBadge/Next") as Label
 	if next_badge == null or next_label == null or not next_badge.visible or next_label.text != "NEXT":
 		push_error("Card UI smoke failed: earliest timeline card should show NEXT badge")
 		get_tree().quit(1)
 		return
-	var timeline_progress: ColorRect = earliest_button.get_node("TimelineProgressBar") as ColorRect
-	var timeline_progress_fill: ColorRect = earliest_button.get_node("TimelineProgressBar/TimelineProgressFill") as ColorRect
-	if timeline_progress == null or timeline_progress_fill == null or not timeline_progress.visible:
-		push_error("Card UI smoke failed: timeline card should show a progress bar")
+	var timeline_progress: Node = earliest_button.find_child("TimelineProgressBar", true, false)
+	if timeline_progress != null:
+		push_error("Card UI smoke failed: timeline card should not use progress bars")
+		get_tree().quit(1)
+		return
+	var timeline_shade: ColorRect = earliest_button.get_node("CooldownShade") as ColorRect
+	if timeline_shade == null or timeline_shade.visible:
+		push_error("Card UI smoke failed: timeline card should not use brightness shading")
 		get_tree().quit(1)
 		return
 	var timeline_scale: HBoxContainer = timeline_panel.get_node("TimelineScale") as HBoxContainer
-	if timeline_scale == null or timeline_scale.get_child_count() < 4:
+	if timeline_scale == null or timeline_scale.get_child_count() < 5:
 		push_error("Card UI smoke failed: timeline scale markers were not rendered")
 		get_tree().quit(1)
 		return
 	var now_marker: Label = timeline_scale.get_child(0) as Label
 	if now_marker == null or now_marker.text != "NOW":
 		push_error("Card UI smoke failed: timeline scale should start with NOW")
+		get_tree().quit(1)
+		return
+	var max_marker: Label = timeline_scale.get_child(timeline_scale.get_child_count() - 1) as Label
+	if max_marker == null or max_marker.text != "+3.2s":
+		push_error("Card UI smoke failed: timeline scale should end at max cast time")
 		get_tree().quit(1)
 		return
 	if earliest_button.tooltip_text.find("Owner: Enemy") == -1:

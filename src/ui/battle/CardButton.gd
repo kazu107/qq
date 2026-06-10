@@ -11,8 +11,6 @@ const BADGE_ACTIVE := Color(0.16, 0.44, 0.70, 0.92)
 const TEXT_LIGHT := Color(0.97, 0.96, 0.93, 1.0)
 const COOLDOWN_SHADE := Color(0.01, 0.02, 0.03, 0.70)
 const PROGRESS_EDGE := Color(1.0, 0.95, 0.72, 0.38)
-const TIMELINE_PROGRESS_BACK := Color(0.01, 0.02, 0.03, 0.72)
-const TIMELINE_PROGRESS_FILL := Color(1.0, 0.92, 0.36, 0.92)
 const TIMELINE_NEXT_BADGE := Color(1.0, 0.70, 0.16, 0.96)
 const COMMON_BORDER := Color(0.88, 0.80, 0.67, 1.0)
 const RARE_BORDER := Color(0.47, 0.86, 0.90, 1.0)
@@ -39,8 +37,6 @@ var _meta_badge: ColorRect
 var _meta_label: Label
 var _timeline_next_badge: ColorRect
 var _timeline_next_label: Label
-var _timeline_progress_back: ColorRect
-var _timeline_progress_fill: ColorRect
 
 
 func _ready() -> void:
@@ -163,7 +159,7 @@ func bind_timeline(card_def: CardDef, entry: TimelineEntry, battle_time: float, 
 	_meta_badge.color = BADGE_ACTIVE if is_next else BADGE_DARK
 	_apply_frame(_get_active_border(entry.owner_side), 4 if is_next else 2, 8 if is_next else 4)
 	_set_mouse_cursor(false)
-	_set_recovery_ratio(_compute_timeline_ratio(entry, battle_time))
+	_set_recovery_ratio(1.0)
 	_set_timeline_indicators(true, is_next)
 	tooltip_text = _build_timeline_tooltip(card_def, entry, remaining)
 
@@ -302,27 +298,6 @@ func _ensure_visuals() -> void:
 	_configure_overlay(_timeline_next_label)
 	_timeline_next_badge.add_child(_timeline_next_label)
 
-	_timeline_progress_back = ColorRect.new()
-	_timeline_progress_back.name = "TimelineProgressBar"
-	_timeline_progress_back.visible = false
-	_timeline_progress_back.anchor_top = 1.0
-	_timeline_progress_back.anchor_right = 1.0
-	_timeline_progress_back.anchor_bottom = 1.0
-	_timeline_progress_back.offset_left = 12.0
-	_timeline_progress_back.offset_top = -44.0
-	_timeline_progress_back.offset_right = -12.0
-	_timeline_progress_back.offset_bottom = -38.0
-	_timeline_progress_back.color = TIMELINE_PROGRESS_BACK
-	_configure_overlay(_timeline_progress_back)
-	add_child(_timeline_progress_back)
-
-	_timeline_progress_fill = ColorRect.new()
-	_timeline_progress_fill.name = "TimelineProgressFill"
-	_timeline_progress_fill.anchor_bottom = 1.0
-	_timeline_progress_fill.color = TIMELINE_PROGRESS_FILL
-	_configure_overlay(_timeline_progress_fill)
-	_timeline_progress_back.add_child(_timeline_progress_fill)
-
 	_apply_frame(COMMON_BORDER)
 	_update_cooldown_mask()
 
@@ -390,9 +365,6 @@ func _set_recovery_ratio(value: float) -> void:
 func _set_timeline_indicators(show_timeline: bool, is_next: bool) -> void:
 	if _timeline_next_badge != null:
 		_timeline_next_badge.visible = show_timeline and is_next
-	if _timeline_progress_back != null:
-		_timeline_progress_back.visible = show_timeline
-	_update_timeline_progress()
 
 
 func _set_mouse_cursor(enabled: bool) -> void:
@@ -415,7 +387,6 @@ func _update_cooldown_mask() -> void:
 
 	if hidden_width <= 1.0 or _recovery_ratio <= 0.0 or _recovery_ratio >= 1.0:
 		_progress_edge.visible = false
-		_update_timeline_progress()
 		return
 
 	_progress_edge.visible = true
@@ -423,19 +394,6 @@ func _update_cooldown_mask() -> void:
 	_progress_edge.offset_top = 0.0
 	_progress_edge.offset_right = minf(size.x, hidden_width + 1.0)
 	_progress_edge.offset_bottom = 0.0
-	_update_timeline_progress()
-
-
-func _update_timeline_progress() -> void:
-	if _timeline_progress_back == null or _timeline_progress_fill == null:
-		return
-	if not _timeline_progress_back.visible:
-		return
-	var fill_width: float = maxf(0.0, _timeline_progress_back.size.x * _recovery_ratio)
-	_timeline_progress_fill.offset_left = 0.0
-	_timeline_progress_fill.offset_top = 0.0
-	_timeline_progress_fill.offset_right = fill_width
-	_timeline_progress_fill.offset_bottom = 0.0
 
 
 func _compute_cooldown_ratio(card_def: CardDef, runtime_state: CardRuntimeState) -> float:
