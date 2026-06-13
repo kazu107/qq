@@ -7,7 +7,8 @@ const TIMELINE_SCROLL_MIN_HEIGHT: float = 188.0
 const TIMELINE_SCALE_MARK_COUNT: int = 5
 const DEFAULT_TIMELINE_HORIZON: float = 3.0
 const FALLBACK_TRACK_WIDTH: float = 960.0
-const PREVIEW_BLEACH_AMOUNT: float = 0.42
+const PREVIEW_ALPHA: float = 0.68
+const PREVIEW_BLEACH_AMOUNT: float = 0.36
 const PREVIEW_Z_INDEX: int = 1000
 
 var _title_label: Label
@@ -168,7 +169,7 @@ func _refresh_preview(preview_entry: TimelineEntry, preview_card_def: CardDef, b
 	_ensure_preview_button()
 	_preview_button.visible = true
 	_preview_button.bind_timeline(preview_card_def, preview_entry, battle_time, false)
-	_preview_button.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	_preview_button.modulate = Color(1.0, 1.0, 1.0, PREVIEW_ALPHA)
 	_preview_button.set_bleach_enabled(true, PREVIEW_BLEACH_AMOUNT)
 	_preview_button.z_index = PREVIEW_Z_INDEX
 	_preview_remaining = maxf(0.0, preview_entry.scheduled_time - battle_time)
