@@ -243,8 +243,31 @@ func _run() -> void:
 		push_error("Card UI smoke failed: timeline preview should not use a white bleach overlay")
 		get_tree().quit(1)
 		return
-	if timeline_preview.modulate.a >= 0.8 or timeline_preview.modulate.a <= 0.4:
-		push_error("Card UI smoke failed: timeline preview card should use transparency only")
+	timeline_panel.refresh_timeline([
+		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
+		_make_timeline_entry("heavy_swing", "enemy", 2.8, 0.5, 1),
+		_make_timeline_entry("guard", "player", 3.4, 0.8, 3),
+	], 1.5)
+	timeline_panel.refresh_timeline([
+		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
+		_make_timeline_entry("heavy_swing", "enemy", 2.8, 0.5, 1),
+		_make_timeline_entry("guard", "player", 3.4, 0.8, 3),
+	], 1.5, null, timeline_preview_entry, Database.get_card("quick_slash"))
+	var timeline_preview_start_alpha: float = timeline_preview.modulate.a
+	if absf(timeline_preview_start_alpha - 0.58) > 0.01:
+		push_error("Card UI smoke failed: timeline preview alpha should start at 0.58")
+		get_tree().quit(1)
+		return
+	timeline_panel._process(0.5)
+	var timeline_preview_mid_alpha: float = timeline_preview.modulate.a
+	if absf(timeline_preview_mid_alpha - 0.32) > 0.02:
+		push_error("Card UI smoke failed: timeline preview alpha should reach 0.32 halfway through the cycle")
+		get_tree().quit(1)
+		return
+	timeline_panel._process(0.5)
+	var timeline_preview_end_alpha: float = timeline_preview.modulate.a
+	if absf(timeline_preview_end_alpha - 0.58) > 0.02:
+		push_error("Card UI smoke failed: timeline preview alpha should return to 0.58 after one cycle")
 		get_tree().quit(1)
 		return
 	if timeline_preview.position.x <= earliest_button.position.x:
@@ -431,8 +454,8 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle timeline preview should not use a white bleach overlay")
 		get_tree().quit(1)
 		return
-	if battle_preview.modulate.a >= 0.8 or battle_preview.modulate.a <= 0.4:
-		push_error("Card UI smoke failed: battle timeline preview should use transparency only")
+	if battle_preview.modulate.a > 0.59 or battle_preview.modulate.a < 0.31:
+		push_error("Card UI smoke failed: battle timeline preview alpha should stay within the transparent pulse range")
 		get_tree().quit(1)
 		return
 	battle_player_card.emit_signal("mouse_exited")

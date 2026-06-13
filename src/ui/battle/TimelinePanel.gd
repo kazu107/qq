@@ -7,7 +7,9 @@ const TIMELINE_SCROLL_MIN_HEIGHT: float = 188.0
 const TIMELINE_SCALE_MARK_COUNT: int = 5
 const DEFAULT_TIMELINE_HORIZON: float = 3.0
 const FALLBACK_TRACK_WIDTH: float = 960.0
-const PREVIEW_ALPHA: float = 0.58
+const PREVIEW_ALPHA_MAX: float = 0.58
+const PREVIEW_ALPHA_MIN: float = 0.32
+const PREVIEW_ALPHA_CYCLE_SECONDS: float = 1.0
 const PREVIEW_Z_INDEX: int = 1000
 
 var _title_label: Label
@@ -20,11 +22,14 @@ var _cards: Array[CardButton] = []
 var _card_layouts: Array[Dictionary] = []
 var _preview_button: CardButton
 var _preview_remaining: float = 0.0
+var _preview_runtime_id: String = ""
+var _preview_alpha_elapsed: float = 0.0
 var _timeline_horizon: float = DEFAULT_TIMELINE_HORIZON
 var _fixed_horizon: float = DEFAULT_TIMELINE_HORIZON
 
 
 func _ready() -> void:
+	set_process(true)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	custom_minimum_size = Vector2(0.0, TIMELINE_PANEL_MIN_HEIGHT)
@@ -63,6 +68,13 @@ func _ready() -> void:
 	add_child(_empty_label)
 	_timeline_horizon = _fixed_horizon
 	_refresh_scale(_timeline_horizon)
+
+
+func _process(delta: float) -> void:
+	if _preview_button == null or not _preview_button.visible:
+		return
+	_preview_alpha_elapsed = fposmod(_preview_alpha_elapsed + delta, PREVIEW_ALPHA_CYCLE_SECONDS)
+	_apply_preview_alpha()
 
 
 func set_fixed_horizon(horizon: float) -> void:
@@ -163,15 +175,32 @@ func _refresh_preview(preview_entry: TimelineEntry, preview_card_def: CardDef, b
 		if _preview_button != null:
 			_preview_button.visible = false
 		_preview_remaining = 0.0
+		_preview_runtime_id = ""
+		_preview_alpha_elapsed = 0.0
 		return
 
 	_ensure_preview_button()
+	if _preview_runtime_id != preview_entry.runtime_id:
+		_preview_runtime_id = preview_entry.runtime_id
+		_preview_alpha_elapsed = 0.0
 	_preview_button.visible = true
 	_preview_button.bind_timeline(preview_card_def, preview_entry, battle_time, false)
-	_preview_button.modulate = Color(1.0, 1.0, 1.0, PREVIEW_ALPHA)
+	_apply_preview_alpha()
 	_preview_button.set_bleach_enabled(false)
 	_preview_button.z_index = PREVIEW_Z_INDEX
 	_preview_remaining = maxf(0.0, preview_entry.scheduled_time - battle_time)
+
+
+func _apply_preview_alpha() -> void:
+	if _preview_button == null:
+		return
+	var cycle_position: float = _preview_alpha_elapsed / PREVIEW_ALPHA_CYCLE_SECONDS
+	var alpha: float = PREVIEW_ALPHA_MAX
+	if cycle_position <= 0.5:
+		alpha = lerpf(PREVIEW_ALPHA_MAX, PREVIEW_ALPHA_MIN, cycle_position * 2.0)
+	else:
+		alpha = lerpf(PREVIEW_ALPHA_MIN, PREVIEW_ALPHA_MAX, (cycle_position - 0.5) * 2.0)
+	_preview_button.modulate = Color(1.0, 1.0, 1.0, alpha)
 
 
 func _layout_cards() -> void:

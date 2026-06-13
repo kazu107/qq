@@ -42,6 +42,16 @@ func _ready() -> void:
 	_rng.randomize()
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		persist_settings_for_shutdown()
+
+
+func persist_settings_for_shutdown() -> bool:
+	ensure_meta_initialized()
+	return SaveManager.save_game(current_screen_hint)
+
+
 func ensure_meta_initialized() -> void:
 	if meta_progress.is_empty():
 		meta_progress = Database.meta_progress_template.duplicate(true)

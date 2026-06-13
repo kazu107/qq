@@ -91,6 +91,18 @@ func _run() -> void:
 		_fail("Settings smoke failed: settings were not restored from disk")
 		return
 
+	var shutdown_master_volume: float = 0.62
+	Game.settings["master_volume"] = shutdown_master_volume
+	if not Game.persist_settings_for_shutdown():
+		_fail("Settings smoke failed: shutdown settings snapshot could not be saved")
+		return
+	_restore_from_disk()
+	if _failed:
+		return
+	if absf(Game.get_master_volume() - shutdown_master_volume) > 0.001:
+		_fail("Settings smoke failed: shutdown settings snapshot was not restored from disk")
+		return
+
 	back_button.emit_signal("pressed")
 	var returned_scene: Node = await _wait_for_scene("Title")
 	if _failed or returned_scene == null:
