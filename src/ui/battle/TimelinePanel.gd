@@ -7,8 +7,8 @@ const TIMELINE_SCROLL_MIN_HEIGHT: float = 188.0
 const TIMELINE_SCALE_MARK_COUNT: int = 5
 const DEFAULT_TIMELINE_HORIZON: float = 3.0
 const FALLBACK_TRACK_WIDTH: float = 960.0
-const PREVIEW_ALPHA: float = 0.68
-const PREVIEW_BLEACH_AMOUNT: float = 0.36
+const PREVIEW_ALPHA: float = 0.76
+const PREVIEW_BLEACH_AMOUNT: float = 0.58
 const PREVIEW_Z_INDEX: int = 1000
 
 var _title_label: Label

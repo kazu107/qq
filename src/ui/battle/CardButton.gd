@@ -55,6 +55,9 @@ func set_bleach_enabled(enabled: bool, amount: float = BLEACH_COLOR.a) -> void:
 	_ensure_visuals()
 	_bleach_overlay.visible = enabled
 	_bleach_overlay.color = Color(BLEACH_COLOR.r, BLEACH_COLOR.g, BLEACH_COLOR.b, clampf(amount, 0.0, 1.0))
+	if enabled:
+		_bleach_overlay.z_index = 100
+		move_child(_bleach_overlay, get_child_count() - 1)
 
 
 func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, click_enabled: bool = true) -> void:
@@ -232,6 +235,7 @@ func _ensure_visuals() -> void:
 	_bleach_overlay.anchor_bottom = 1.0
 	_bleach_overlay.color = BLEACH_COLOR
 	_bleach_overlay.visible = false
+	_bleach_overlay.z_index = 100
 	_configure_overlay(_bleach_overlay)
 	add_child(_bleach_overlay)
 
