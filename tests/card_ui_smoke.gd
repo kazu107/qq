@@ -239,16 +239,12 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	var timeline_preview_bleach: ColorRect = timeline_preview.get_node("BleachOverlay") as ColorRect
-	if timeline_preview_bleach == null or not timeline_preview_bleach.visible or timeline_preview_bleach.color.a < 0.5:
-		push_error("Card UI smoke failed: timeline preview card should use a visible bleach overlay")
+	if timeline_preview_bleach == null or timeline_preview_bleach.visible:
+		push_error("Card UI smoke failed: timeline preview should not use a white bleach overlay")
 		get_tree().quit(1)
 		return
-	if timeline_preview.get_child(timeline_preview.get_child_count() - 1) != timeline_preview_bleach:
-		push_error("Card UI smoke failed: timeline preview bleach should render above the whole card")
-		get_tree().quit(1)
-		return
-	if timeline_preview.modulate.a >= 0.99 or timeline_preview.modulate.a <= 0.4:
-		push_error("Card UI smoke failed: timeline preview card should use transparent bleach")
+	if timeline_preview.modulate.a >= 0.8 or timeline_preview.modulate.a <= 0.4:
+		push_error("Card UI smoke failed: timeline preview card should use transparency only")
 		get_tree().quit(1)
 		return
 	if timeline_preview.position.x <= earliest_button.position.x:
@@ -431,16 +427,12 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	var battle_preview_bleach: ColorRect = battle_preview.get_node("BleachOverlay") as ColorRect
-	if battle_preview_bleach == null or not battle_preview_bleach.visible or battle_preview_bleach.color.a < 0.5:
-		push_error("Card UI smoke failed: battle timeline preview should use a visible bleach overlay")
+	if battle_preview_bleach == null or battle_preview_bleach.visible:
+		push_error("Card UI smoke failed: battle timeline preview should not use a white bleach overlay")
 		get_tree().quit(1)
 		return
-	if battle_preview.get_child(battle_preview.get_child_count() - 1) != battle_preview_bleach:
-		push_error("Card UI smoke failed: battle timeline preview bleach should render above the whole card")
-		get_tree().quit(1)
-		return
-	if battle_preview.modulate.a >= 0.99 or battle_preview.modulate.a <= 0.4:
-		push_error("Card UI smoke failed: battle timeline preview should use transparent bleach")
+	if battle_preview.modulate.a >= 0.8 or battle_preview.modulate.a <= 0.4:
+		push_error("Card UI smoke failed: battle timeline preview should use transparency only")
 		get_tree().quit(1)
 		return
 	battle_player_card.emit_signal("mouse_exited")
