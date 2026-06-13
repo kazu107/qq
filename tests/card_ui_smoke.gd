@@ -238,8 +238,9 @@ func _run() -> void:
 		push_error("Card UI smoke failed: timeline preview card should be visible while hovering")
 		get_tree().quit(1)
 		return
-	if timeline_preview.modulate.a >= 0.99:
-		push_error("Card UI smoke failed: timeline preview card should be visually ghosted")
+	var timeline_preview_bleach: ColorRect = timeline_preview.get_node("BleachOverlay") as ColorRect
+	if timeline_preview_bleach == null or not timeline_preview_bleach.visible or timeline_preview_bleach.color.a < 0.3:
+		push_error("Card UI smoke failed: timeline preview card should be bleached by brightness")
 		get_tree().quit(1)
 		return
 	if timeline_preview.position.x <= earliest_button.position.x:
@@ -307,6 +308,8 @@ func _run() -> void:
 	player_unit.attack = 3
 	player_unit.defense = 1
 	player_unit.speed = 5
+	player_unit.active_slot_max = 4
+	player_unit.active_slots_used = 2
 	unit_panel.refresh_unit(player_unit)
 	await get_tree().process_frame
 
@@ -320,6 +323,21 @@ func _run() -> void:
 	var hp_label: Label = unit_panel.get_node("BodyRow/InfoColumn/HpStack/HpLabel") as Label
 	if hp_bar == null or hp_label == null or int(hp_bar.value) != 48 or hp_label.text != "48 / 60":
 		push_error("Card UI smoke failed: HP bar and HP label should match the unit state")
+		get_tree().quit(1)
+		return
+	var shield_bar: ProgressBar = unit_panel.get_node("BodyRow/InfoColumn/ShieldStack/ShieldBar") as ProgressBar
+	var shield_label: Label = unit_panel.get_node("BodyRow/InfoColumn/ShieldStack/ShieldLabel") as Label
+	if shield_bar == null or shield_label == null or int(shield_bar.value) != 3 or shield_label.text != "Shield 3":
+		push_error("Card UI smoke failed: shield bar and shield label should match the unit state")
+		get_tree().quit(1)
+		return
+	if shield_bar.get_parent().custom_minimum_size.y >= hp_bar.get_parent().custom_minimum_size.y:
+		push_error("Card UI smoke failed: shield bar should be smaller than the HP bar")
+		get_tree().quit(1)
+		return
+	var unit_slot_label: Label = unit_panel.get_node("BodyRow/InfoColumn/SlotLabel") as Label
+	if unit_slot_label == null or unit_slot_label.text != "Slots 2 / 4":
+		push_error("Card UI smoke failed: unit panel should render active slots")
 		get_tree().quit(1)
 		return
 
@@ -404,6 +422,11 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle timeline preview should use the player border color")
 		get_tree().quit(1)
 		return
+	var battle_preview_bleach: ColorRect = battle_preview.get_node("BleachOverlay") as ColorRect
+	if battle_preview_bleach == null or not battle_preview_bleach.visible:
+		push_error("Card UI smoke failed: battle timeline preview should use brightness bleach")
+		get_tree().quit(1)
+		return
 	battle_player_card.emit_signal("mouse_exited")
 	await get_tree().process_frame
 	if battle_preview.visible:
@@ -413,6 +436,16 @@ func _run() -> void:
 	var battle_timeline_scale: HBoxContainer = battle_timeline_panel.get_node("TimelineScale") as HBoxContainer
 	if battle_timeline_scale == null or battle_timeline_scale.get_child_count() < 1:
 		push_error("Card UI smoke failed: battle timeline scale markers were not rendered")
+		get_tree().quit(1)
+		return
+	var battle_info: RichTextLabel = battle_scene.find_child("RichTextLabel", true, false) as RichTextLabel
+	if battle_info != null and (battle_info.text.find("Player Slots") != -1 or battle_info.text.find("Enemy Slots") != -1):
+		push_error("Card UI smoke failed: active slots should move out of battle info")
+		get_tree().quit(1)
+		return
+	var battle_player_slots: Label = battle_scene.find_child("SlotLabel", true, false) as Label
+	if battle_player_slots == null or battle_player_slots.text.find("Slots") == -1:
+		push_error("Card UI smoke failed: player unit panel should show active slots")
 		get_tree().quit(1)
 		return
 	var battle_max_marker: Label = battle_timeline_scale.get_child(battle_timeline_scale.get_child_count() - 1) as Label

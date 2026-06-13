@@ -13,6 +13,7 @@ const BADGE_ACTIVE := Color(0.16, 0.44, 0.70, 0.92)
 const TEXT_LIGHT := Color(0.97, 0.96, 0.93, 1.0)
 const COOLDOWN_SHADE := Color(0.01, 0.02, 0.03, 0.70)
 const PROGRESS_EDGE := Color(1.0, 0.95, 0.72, 0.38)
+const BLEACH_COLOR := Color(1.0, 1.0, 1.0, 0.34)
 const TIMELINE_NEXT_BADGE := Color(1.0, 0.70, 0.16, 0.96)
 const COMMON_BORDER := Color(0.88, 0.80, 0.67, 1.0)
 const RARE_BORDER := Color(0.47, 0.86, 0.90, 1.0)
@@ -28,6 +29,7 @@ var _click_enabled: bool = true
 var _recovery_ratio: float = 1.0
 
 var _art_rect: TextureRect
+var _bleach_overlay: ColorRect
 var _frame_overlay: Panel
 var _cooldown_shade: ColorRect
 var _progress_edge: ColorRect
@@ -47,6 +49,12 @@ func _ready() -> void:
 
 func set_tile_size(size: Vector2) -> void:
 	custom_minimum_size = size
+
+
+func set_bleach_enabled(enabled: bool, amount: float = BLEACH_COLOR.a) -> void:
+	_ensure_visuals()
+	_bleach_overlay.visible = enabled
+	_bleach_overlay.color = Color(BLEACH_COLOR.r, BLEACH_COLOR.g, BLEACH_COLOR.b, clampf(amount, 0.0, 1.0))
 
 
 func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, click_enabled: bool = true) -> void:
@@ -96,6 +104,7 @@ func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, cli
 	_meta_label.text = meta_text
 	_meta_badge.color = BADGE_DARK
 	modulate = modulate_color
+	set_bleach_enabled(false)
 	_set_mouse_cursor(_can_use)
 	_apply_frame(_get_rarity_border(card_def.rarity))
 	_set_recovery_ratio(recovery_ratio)
@@ -116,6 +125,7 @@ func bind_preview(card_def: CardDef, preview_id: String, click_enabled: bool = f
 	_set_timeline_indicators(false, false)
 	_meta_label.text = "%dS" % card_def.active_slot_cost
 	_meta_badge.color = BADGE_DARK
+	set_bleach_enabled(false)
 	_apply_frame(_get_rarity_border(card_def.rarity))
 	_set_mouse_cursor(_can_use)
 	_set_recovery_ratio(1.0)
@@ -138,6 +148,7 @@ func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: f
 	var remaining: float = instance.get_remaining(battle_time)
 	_meta_label.text = Localization.get_text("card.meta.casting", "casting")
 	_meta_badge.color = BADGE_DARK
+	set_bleach_enabled(false)
 	_apply_frame(_get_active_border(instance.owner_side))
 	_set_mouse_cursor(false)
 	_set_recovery_ratio(_compute_active_ratio(instance, battle_time))
@@ -159,6 +170,7 @@ func bind_timeline(card_def: CardDef, entry: TimelineEntry, battle_time: float, 
 	var remaining: float = maxf(0.0, entry.scheduled_time - battle_time)
 	_meta_label.text = "%.1fs" % remaining
 	_meta_badge.color = BADGE_ACTIVE if is_next else BADGE_DARK
+	set_bleach_enabled(false)
 	_apply_frame(_get_active_border(entry.owner_side), 4 if is_next else 2, 8 if is_next else 4)
 	_set_mouse_cursor(false)
 	_set_recovery_ratio(1.0)
@@ -213,6 +225,15 @@ func _ensure_visuals() -> void:
 	_art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_configure_overlay(_art_rect)
 	add_child(_art_rect)
+
+	_bleach_overlay = ColorRect.new()
+	_bleach_overlay.name = "BleachOverlay"
+	_bleach_overlay.anchor_right = 1.0
+	_bleach_overlay.anchor_bottom = 1.0
+	_bleach_overlay.color = BLEACH_COLOR
+	_bleach_overlay.visible = false
+	_configure_overlay(_bleach_overlay)
+	add_child(_bleach_overlay)
 
 	_frame_overlay = Panel.new()
 	_frame_overlay.name = "FrameOverlay"

@@ -36,11 +36,17 @@ func _run() -> void:
 	if map_panel == null:
 		_fail("Developer mode smoke failed: map scene did not render the developer panel")
 		return
+	if map_panel.mouse_filter != Control.MOUSE_FILTER_IGNORE:
+		_fail("Developer mode smoke failed: developer panel background should not block covered UI")
+		return
 
 	var gold_before: int = Game.current_run.gold
 	var add_gold_button: Button = map_panel.find_child("DevAddGold", true, false) as Button
 	if add_gold_button == null:
 		_fail("Developer mode smoke failed: map developer gold action was missing")
+		return
+	if add_gold_button.mouse_filter != Control.MOUSE_FILTER_STOP:
+		_fail("Developer mode smoke failed: developer buttons should remain clickable")
 		return
 	add_gold_button.emit_signal("pressed")
 	await get_tree().process_frame

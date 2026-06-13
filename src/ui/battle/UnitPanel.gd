@@ -6,6 +6,9 @@ const PANEL_FILL := Color(0.08, 0.10, 0.13, 0.92)
 const PANEL_STROKE := Color(0.28, 0.34, 0.42, 1.0)
 const HP_BAR_FILL := Color(0.77, 0.19, 0.22, 1.0)
 const HP_BAR_BG := Color(0.18, 0.05, 0.06, 0.96)
+const SHIELD_BAR_FILL := Color(0.26, 0.63, 0.92, 1.0)
+const SHIELD_BAR_BG := Color(0.04, 0.11, 0.18, 0.96)
+const SHIELD_BAR_SOFT_MAX: float = 12.0
 const TEXT_LIGHT := Color(0.95, 0.95, 0.93, 1.0)
 const DAMAGE_COLOR := Color(1.0, 0.40, 0.35, 1.0)
 const HEAL_COLOR := Color(0.48, 0.95, 0.58, 1.0)
@@ -29,7 +32,9 @@ var _portrait_rect: TextureRect
 var _portrait_effect_layer: Control
 var _hp_bar: ProgressBar
 var _hp_label: Label
+var _shield_bar: ProgressBar
 var _shield_label: Label
+var _slots_label: Label
 var _stats_label: Label
 var _status_label: Label
 var _floating_texts: Array[FloatingStatText] = []
@@ -127,9 +132,38 @@ func _ready() -> void:
 	_hp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hp_stack.add_child(_hp_label)
 
+	var shield_stack: Control = Control.new()
+	shield_stack.name = "ShieldStack"
+	shield_stack.custom_minimum_size = Vector2(0.0, 25.0)
+	shield_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_column.add_child(shield_stack)
+
+	_shield_bar = ProgressBar.new()
+	_shield_bar.name = "ShieldBar"
+	_shield_bar.anchor_right = 1.0
+	_shield_bar.anchor_bottom = 1.0
+	_shield_bar.show_percentage = false
+	_shield_bar.min_value = 0.0
+	_shield_bar.max_value = SHIELD_BAR_SOFT_MAX
+	_shield_bar.value = 0.0
+	_shield_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shield_bar.add_theme_stylebox_override("background", _make_shield_background_stylebox())
+	_shield_bar.add_theme_stylebox_override("fill", _make_shield_fill_stylebox())
+	shield_stack.add_child(_shield_bar)
+
 	_shield_label = Label.new()
 	_shield_label.name = "ShieldLabel"
-	info_column.add_child(_shield_label)
+	_shield_label.anchor_right = 1.0
+	_shield_label.anchor_bottom = 1.0
+	_shield_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_shield_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_shield_label.add_theme_color_override("font_color", TEXT_LIGHT)
+	_shield_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shield_stack.add_child(_shield_label)
+
+	_slots_label = Label.new()
+	_slots_label.name = "SlotLabel"
+	info_column.add_child(_slots_label)
 
 	_stats_label = Label.new()
 	_stats_label.name = "StatsLabel"
@@ -176,7 +210,13 @@ func refresh_unit(unit: UnitState) -> void:
 	_hp_bar.max_value = float(max_hp_value)
 	_hp_bar.value = float(hp_value)
 	_hp_label.text = "%d / %d" % [hp_value, max_hp_value]
+	_shield_bar.max_value = maxf(SHIELD_BAR_SOFT_MAX, float(shield_value))
+	_shield_bar.value = float(shield_value)
 	_shield_label.text = Localization.get_textf("unit.shield", "Shield {value}", {"value": shield_value})
+	_slots_label.text = Localization.get_textf("unit.slots", "Slots {used} / {total}", {
+		"used": unit.active_slots_used,
+		"total": unit.active_slot_max,
+	})
 	_stats_label.text = stat_line
 	_status_label.text = Localization.get_textf("unit.status", "Status: {value}", {"value": status_line})
 
@@ -313,4 +353,28 @@ func _make_hp_fill_stylebox() -> StyleBoxFlat:
 	style.corner_radius_top_right = 10
 	style.corner_radius_bottom_left = 10
 	style.corner_radius_bottom_right = 10
+	return style
+
+
+func _make_shield_background_stylebox() -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = SHIELD_BAR_BG
+	style.corner_radius_top_left = 9
+	style.corner_radius_top_right = 9
+	style.corner_radius_bottom_left = 9
+	style.corner_radius_bottom_right = 9
+	style.content_margin_left = 3
+	style.content_margin_top = 3
+	style.content_margin_right = 3
+	style.content_margin_bottom = 3
+	return style
+
+
+func _make_shield_fill_stylebox() -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = SHIELD_BAR_FILL
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
 	return style

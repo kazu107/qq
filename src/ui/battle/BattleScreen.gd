@@ -243,14 +243,6 @@ func _refresh_ui(time_scale: float) -> void:
 			"total": total_steps,
 		}),
 		Localization.get_textf("battle.info.current_enemy", "Current Enemy: {value}", {"value": battle_state.enemy.display_name}),
-		Localization.get_textf("battle.info.player_slots", "Player Slots: {used} / {total}", {
-			"used": battle_state.player.active_slots_used,
-			"total": battle_state.player.active_slot_max,
-		}),
-		Localization.get_textf("battle.info.enemy_slots", "Enemy Slots: {used} / {total}", {
-			"used": battle_state.enemy.active_slots_used,
-			"total": battle_state.enemy.active_slot_max,
-		}),
 		Localization.get_textf("battle.info.timeline_entries", "Timeline Entries: {value}", {
 			"value": battle_state.timeline.size(),
 		}),

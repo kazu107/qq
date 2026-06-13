@@ -288,6 +288,7 @@
   "unit.title": "ユニット",
   "unit.stats_line": "ATK {attack} | DEF {defense} | SPD {speed}",
   "unit.shield": "シールド {value}",
+  "unit.slots": "スロット {used} / {total}",
   "unit.status": "状態: {value}",
   "unit.shield_delta": "シールド {amount}",
   "card.meta.ready": "ready",
