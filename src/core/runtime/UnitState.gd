@@ -77,7 +77,11 @@ func heal(amount: int) -> void:
 
 func add_status(status_id: String, duration: float) -> void:
 	var data: Dictionary = Dictionary(statuses.get(status_id, {"duration": 0.0, "tick_accumulator": 0.0}))
-	data["duration"] = max(float(data.get("duration", 0.0)), duration)
+	var current_duration: float = float(data.get("duration", 0.0))
+	var current_max_duration: float = float(data.get("max_duration", current_duration))
+	var next_duration: float = max(current_duration, duration)
+	data["duration"] = next_duration
+	data["max_duration"] = maxf(maxf(current_max_duration, next_duration), duration)
 	statuses[status_id] = data
 
 

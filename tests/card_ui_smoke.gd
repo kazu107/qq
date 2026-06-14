@@ -382,16 +382,30 @@ func _run() -> void:
 	player_unit.active_slots_used = 2
 	unit_panel.refresh_unit(player_unit)
 	await get_tree().process_frame
-	player_unit.add_status("bleed", 4.0)
+	player_unit.add_status("bleed", 10.0)
+	player_unit.tick_statuses(6.0)
 	player_unit.add_status("slow", 5.0)
 	unit_panel.refresh_unit(player_unit)
 	await get_tree().process_frame
 
 	var status_icon_row: HBoxContainer = unit_panel.get_node("BodyRow/InfoColumn/StatusIconRow") as HBoxContainer
+	var bleed_icon: TextureRect = null
+	var slow_icon: TextureRect = null
+	if status_icon_row != null:
+		bleed_icon = status_icon_row.find_child("StatusIcon_bleed", false, false) as TextureRect
+		slow_icon = status_icon_row.find_child("StatusIcon_slow", false, false) as TextureRect
 	if status_icon_row == null \
-	or status_icon_row.find_child("StatusIcon_bleed", false, false) == null \
-	or status_icon_row.find_child("StatusIcon_slow", false, false) == null:
+	or bleed_icon == null \
+	or slow_icon == null:
 		push_error("Card UI smoke failed: unit statuses should render as icons")
+		get_tree().quit(1)
+		return
+	if bleed_icon.tooltip_text.find("Remaining: 4.0s") == -1 or bleed_icon.tooltip_text.find("Takes 1 damage") == -1:
+		push_error("Card UI smoke failed: status icon hover should show remaining time and concrete details")
+		get_tree().quit(1)
+		return
+	if bleed_icon.modulate.r >= slow_icon.modulate.r:
+		push_error("Card UI smoke failed: status icon brightness should reflect remaining duration")
 		get_tree().quit(1)
 		return
 	var status_label: Label = unit_panel.get_node("BodyRow/InfoColumn/StatusLabel") as Label

@@ -24,6 +24,14 @@ const SLOT_PREVIEW_ALPHA_CYCLE_SECONDS: float = 1.0
 const DAMAGE_COLOR := Color(1.0, 0.40, 0.35, 1.0)
 const HEAL_COLOR := Color(0.48, 0.95, 0.58, 1.0)
 const SHIELD_COLOR := Color(0.47, 0.82, 1.0, 1.0)
+const STATUS_BRIGHTNESS_MIN: float = 0.34
+const STATUS_BRIGHTNESS_MAX: float = 1.0
+const STATUS_FALLBACK_DURATIONS := {
+	"bleed": 36.0,
+	"weak": 30.0,
+	"slow": 36.0,
+	"vulnerable": 30.0,
+}
 
 class FloatingStatText:
 	extends RefCounted
@@ -288,13 +296,17 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		var remaining: float = float(status_data.get("duration", 0.0))
 		if remaining <= 0.0:
 			continue
+		var reference_duration: float = _get_status_reference_duration(status_id, status_data, remaining)
+		var brightness: float = _get_status_brightness(remaining, reference_duration)
 		var icon: TextureRect = TextureRect.new()
 		icon.name = "StatusIcon_%s" % status_id
 		icon.custom_minimum_size = Vector2(26.0, 26.0)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_STOP
 		icon.texture = _get_status_icon_texture(status_id)
-		icon.tooltip_text = "%s %.1fs" % [Localization.get_status_name(status_id), snappedf(remaining, 0.1)]
+		icon.modulate = Color(brightness, brightness, brightness, 1.0)
+		icon.tooltip_text = _build_status_tooltip(status_id, remaining)
 		_status_icons_box.add_child(icon)
 		rendered_count += 1
 
@@ -304,6 +316,50 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		_status_none_label.text = Localization.get_text("status.none", "None")
 		_status_none_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_status_icons_box.add_child(_status_none_label)
+
+
+func _get_status_reference_duration(status_id: String, status_data: Dictionary, remaining: float) -> float:
+	var reference_duration: float = float(status_data.get("max_duration", 0.0))
+	if reference_duration <= 0.0:
+		reference_duration = float(STATUS_FALLBACK_DURATIONS.get(status_id, remaining))
+	return maxf(reference_duration, 0.1)
+
+
+func _get_status_brightness(remaining: float, reference_duration: float) -> float:
+	var remaining_ratio: float = clampf(remaining / maxf(reference_duration, 0.1), 0.0, 1.0)
+	return lerpf(STATUS_BRIGHTNESS_MIN, STATUS_BRIGHTNESS_MAX, remaining_ratio)
+
+
+func _build_status_tooltip(status_id: String, remaining: float) -> String:
+	var lines: Array[String] = [
+		Localization.get_status_name(status_id),
+		Localization.get_textf("status.tooltip.remaining", "Remaining: {value}s", {
+			"value": "%.1f" % snappedf(remaining, 0.1),
+		}),
+	]
+	var detail_text: String = _get_status_detail_text(status_id)
+	if detail_text != "":
+		lines.append(Localization.get_textf("status.tooltip.effect", "Effect: {value}", {
+			"value": detail_text,
+		}))
+	return "\n".join(lines)
+
+
+func _get_status_detail_text(status_id: String) -> String:
+	match status_id:
+		"bleed":
+			return Localization.get_textf("status.detail.bleed", "Takes {amount} damage every {interval}s.", {
+				"amount": 1,
+				"interval": "%.1f" % UnitState.BLEED_TICK_INTERVAL,
+			})
+		"weak":
+			return Localization.get_textf("status.detail.weak", "ATK -{amount} while active.", {"amount": 2})
+		"slow":
+			return Localization.get_textf("status.detail.slow", "Cast time +{percent}% while active.", {"percent": 10})
+		"vulnerable":
+			return Localization.get_textf("status.detail.vulnerable", "Incoming damage +{amount} while active.", {"amount": 3})
+		_:
+			return Localization.get_text("status.detail.unknown", "Temporary status effect.")
 
 
 func _refresh_slot_battery(used_slots: int, total_slots: int, preview_slot_cost: int = 0) -> void:
