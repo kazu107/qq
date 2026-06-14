@@ -246,6 +246,34 @@ func _run() -> void:
 		push_error("Card UI smoke failed: delayed timeline card should include elapsed time when the slide ends")
 		get_tree().quit(1)
 		return
+	var reverse_entry_start: TimelineEntry = _make_timeline_entry("guard", "enemy", 4.0, 1.0, 7)
+	timeline_panel.refresh_timeline([reverse_entry_start], 2.0)
+	var reverse_button_start: CardButton = _find_timeline_card(cards_track, "timeline_7")
+	var expected_reverse_start_x: float = _expected_timeline_x(timeline_panel, 2.0, 6.0)
+	if reverse_button_start == null or absf(reverse_button_start.position.x - expected_reverse_start_x) > 1.0:
+		push_error("Card UI smoke failed: reverse-flow target card should start at its current remaining time")
+		get_tree().quit(1)
+		return
+	var reverse_entry_step: TimelineEntry = _make_timeline_entry("guard", "enemy", 4.5, 1.0, 7)
+	reverse_entry_step.continuous_shift_battle_time = 2.25
+	reverse_entry_step.continuous_shift_amount = 0.5
+	timeline_panel.refresh_timeline([reverse_entry_step], 2.25)
+	var reverse_button_step: CardButton = _find_timeline_card(cards_track, "timeline_7")
+	var expected_reverse_step_x: float = _expected_timeline_x(timeline_panel, 2.25, 6.0)
+	if reverse_button_step == null or absf(reverse_button_step.position.x - expected_reverse_step_x) > 1.0:
+		push_error("Card UI smoke failed: reverse-flow timeline card should move right at the direct continuous-flow position")
+		get_tree().quit(1)
+		return
+	var reverse_entry_step_2: TimelineEntry = _make_timeline_entry("guard", "enemy", 5.0, 1.0, 7)
+	reverse_entry_step_2.continuous_shift_battle_time = 2.5
+	reverse_entry_step_2.continuous_shift_amount = 0.5
+	timeline_panel.refresh_timeline([reverse_entry_step_2], 2.5)
+	var reverse_button_step_2: CardButton = _find_timeline_card(cards_track, "timeline_7")
+	var expected_reverse_step_2_x: float = _expected_timeline_x(timeline_panel, 2.5, 6.0)
+	if reverse_button_step_2 == null or absf(reverse_button_step_2.position.x - expected_reverse_step_2_x) > 1.0:
+		push_error("Card UI smoke failed: reverse-flow timeline card should keep moving right at a steady calculated rate")
+		get_tree().quit(1)
+		return
 	timeline_panel.refresh_timeline([
 		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
 		_make_timeline_entry("heavy_swing", "enemy", 2.8, 0.5, 1),

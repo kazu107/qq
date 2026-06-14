@@ -217,17 +217,30 @@ func _get_display_remaining(entry: TimelineEntry, battle_time: float) -> float:
 	if _last_scheduled_times.has(instance_id):
 		var previous_scheduled_time: float = float(_last_scheduled_times[instance_id])
 		if scheduled_time > previous_scheduled_time + SCHEDULE_CHANGE_EPSILON:
-			var current_display_remaining: float = _get_current_display_remaining(instance_id, previous_scheduled_time, battle_time)
-			_delay_animation_states[instance_id] = {
-				"start_time": battle_time,
-				"from_scheduled_time": battle_time + current_display_remaining,
-				"to_scheduled_time": scheduled_time,
-			}
+			var schedule_delta: float = scheduled_time - previous_scheduled_time
+			var continuous_delta: float = _get_continuous_shift_amount(entry, battle_time)
+			if continuous_delta >= schedule_delta - SCHEDULE_CHANGE_EPSILON:
+				_delay_animation_states.erase(instance_id)
+			else:
+				var current_display_remaining: float = _get_current_display_remaining(instance_id, previous_scheduled_time, battle_time)
+				_delay_animation_states[instance_id] = {
+					"start_time": battle_time,
+					"from_scheduled_time": battle_time + current_display_remaining,
+					"to_scheduled_time": scheduled_time,
+				}
 		elif scheduled_time < previous_scheduled_time - SCHEDULE_CHANGE_EPSILON:
 			_delay_animation_states.erase(instance_id)
 
 	_last_scheduled_times[instance_id] = scheduled_time
 	return _resolve_animated_remaining(instance_id, scheduled_time, battle_time)
+
+
+func _get_continuous_shift_amount(entry: TimelineEntry, battle_time: float) -> float:
+	if entry == null:
+		return 0.0
+	if absf(entry.continuous_shift_battle_time - battle_time) > SCHEDULE_CHANGE_EPSILON:
+		return 0.0
+	return maxf(0.0, entry.continuous_shift_amount)
 
 
 func _get_current_display_remaining(instance_id: int, fallback_scheduled_time: float, battle_time: float) -> float:

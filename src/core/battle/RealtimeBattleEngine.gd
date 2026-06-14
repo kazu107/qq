@@ -675,7 +675,7 @@ func _apply_flow_shift(flow: Dictionary, shift_amount: float) -> int:
 		return 0
 	var targets: Array[ActiveCardInstance] = _get_flow_targets(flow)
 	for instance in targets:
-		instance.shift_schedule(shift_amount, battle_state.battle_time)
+		instance.shift_schedule(shift_amount, battle_state.battle_time, true)
 	return targets.size()
 
 
