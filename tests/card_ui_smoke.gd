@@ -106,6 +106,39 @@ func _run() -> void:
 		push_error("Card UI smoke failed: tooltip should include all grade info")
 		get_tree().quit(1)
 		return
+	var tooltip_run: RunState = RunState.from_starter(Database.get_starter("balanced"), 123)
+	tooltip_run.temporary_card_modifiers = {
+		"quick_slash": {
+			"damage": 2,
+			"cast_time": 1.2,
+			"recast_time": -2.0,
+		},
+	}
+	var boosted_quick: CardDef = CardUpgradeResolver.build_effective_card("quick_slash", tooltip_run)
+	var boosted_button: CardButton = CardButton.new()
+	boosted_button.set_tile_size(Vector2(120.0, 120.0))
+	boosted_button.size = Vector2(120.0, 120.0)
+	add_child(boosted_button)
+	boosted_button.bind_preview(boosted_quick, "boosted_quick")
+	await get_tree().process_frame
+	if boosted_button.tooltip_text.find("Deal 6 (+2) damage") == -1:
+		push_error("Card UI smoke failed: boosted tooltip should show plain effect deltas")
+		get_tree().quit(1)
+		return
+	if boosted_button.tooltip_text.find("Cast: 3.0 (+1.2)s") == -1 or boosted_button.tooltip_text.find("Recast: 6.0 (-2.0)s") == -1:
+		push_error("Card UI smoke failed: boosted tooltip should show plain timing deltas")
+		get_tree().quit(1)
+		return
+	var rich_tooltip: Control = boosted_button._make_custom_tooltip(boosted_button.tooltip_text) as Control
+	var rich_label: RichTextLabel = rich_tooltip.find_child("CardTooltipText", true, false) as RichTextLabel
+	if rich_label == null \
+	or rich_label.text.find("[color=#72d36f]6 (+2)[/color]") == -1 \
+	or rich_label.text.find("[color=#ff6868]3.0 (+1.2)[/color]") == -1 \
+	or rich_label.text.find("[color=#72d36f]6.0 (-2.0)[/color]") == -1:
+		push_error("Card UI smoke failed: boosted custom tooltip should color beneficial and harmful deltas")
+		get_tree().quit(1)
+		return
+	rich_tooltip.free()
 	if absf(first_button.size.x - first_button.size.y) > 0.1:
 		push_error("Card UI smoke failed: battle hand tile is not square")
 		get_tree().quit(1)
@@ -710,6 +743,8 @@ func _run() -> void:
 		"adrenaline_link",
 		"purge_pulse",
 		"meteor_crash",
+		"auto_turret",
+		"crisis_drone_swarm",
 	]
 	for card_id in new_card_ids:
 		if not ResourceLoader.exists("res://assets/icons/cards/%s.png" % card_id):

@@ -206,9 +206,12 @@ func empower_cards(side: String, source_card_id: String, effect: Dictionary) -> 
 func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: Dictionary) -> int:
 	if battle_state == null or source_instance == null:
 		return 0
-	var max_depth: int = maxi(0, int(effect.get("max_depth", 1)))
-	if max_depth <= 0 or source_instance.auto_depth >= max_depth:
-		return 0
+	var max_depth_value: int = int(effect.get("max_depth", 1))
+	var unlimited_depth: bool = bool(effect.get("unlimited", false)) or max_depth_value < 0
+	if not unlimited_depth:
+		var max_depth: int = maxi(0, max_depth_value)
+		if max_depth <= 0 or source_instance.auto_depth >= max_depth:
+			return 0
 
 	var queued_card_id: String = String(effect.get("card_id", "self"))
 	if queued_card_id == "" or queued_card_id == "self":
@@ -224,28 +227,49 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 	if use_cast_time:
 		cast_duration = card_def.cast_time * unit.get_cast_time_multiplier()
 
-	var instance: ActiveCardInstance = ActiveCardInstance.new()
-	instance.instance_id = battle_state.next_instance_id
-	battle_state.next_instance_id += 1
-	instance.owner_side = side
-	instance.runtime_id = "__auto_%s_%d" % [side, instance.instance_id]
-	instance.card_id = queued_card_id
-	instance.card_name = card_def.name
-	instance.priority_modifier = card_def.priority_modifier
-	instance.slot_cost = 0
-	instance.interruptible = card_def.interruptible
-	instance.actor_speed = unit.speed
-	instance.target_type = card_def.target_type
-	instance.created_at = battle_state.battle_time
-	instance.scheduled_time = battle_state.battle_time + delay + cast_duration
-	instance.sort_key = instance.scheduled_time - card_def.priority_modifier
-	instance.is_auto_queued = true
-	instance.auto_depth = source_instance.auto_depth + 1
-	instance.source_instance_id = source_instance.instance_id
-
-	battle_state.active_instances.append(instance)
+	var queue_count: int = _resolve_auto_queue_count(unit, effect)
+	if queue_count <= 0:
+		return 0
+	var queue_spacing: float = maxf(0.0, float(effect.get("queue_spacing", 0.0)))
+	var queued_count: int = 0
+	for queue_index in range(queue_count):
+		var instance: ActiveCardInstance = ActiveCardInstance.new()
+		instance.instance_id = battle_state.next_instance_id
+		battle_state.next_instance_id += 1
+		instance.owner_side = side
+		instance.runtime_id = "__auto_%s_%d" % [side, instance.instance_id]
+		instance.card_id = queued_card_id
+		instance.card_name = card_def.name
+		instance.priority_modifier = card_def.priority_modifier
+		instance.slot_cost = 0
+		instance.interruptible = card_def.interruptible
+		instance.actor_speed = unit.speed
+		instance.target_type = card_def.target_type
+		instance.created_at = battle_state.battle_time
+		instance.scheduled_time = battle_state.battle_time + delay + cast_duration + (float(queue_index) * queue_spacing)
+		instance.sort_key = instance.scheduled_time - card_def.priority_modifier
+		instance.is_auto_queued = true
+		instance.auto_depth = source_instance.auto_depth + 1
+		instance.source_instance_id = source_instance.instance_id
+		battle_state.active_instances.append(instance)
+		queued_count += 1
 	_timeline_resolver.rebuild_timeline(battle_state)
-	return 1
+	return queued_count
+
+
+func _resolve_auto_queue_count(unit: UnitState, effect: Dictionary) -> int:
+	var queue_count: int = maxi(0, int(effect.get("count", 1)))
+	var missing_hp_ratio_per_extra: float = float(effect.get("missing_hp_ratio_per_extra", 0.0))
+	if unit != null and missing_hp_ratio_per_extra > 0.0:
+		var max_hp_value: float = maxf(1.0, float(unit.max_hp))
+		var hp_ratio: float = clampf(float(unit.hp) / max_hp_value, 0.0, 1.0)
+		var missing_ratio: float = clampf(1.0 - hp_ratio, 0.0, 1.0)
+		var missing_bonus: int = floori(missing_ratio / missing_hp_ratio_per_extra)
+		queue_count += missing_bonus
+	var max_count: int = int(effect.get("max_count", queue_count))
+	if max_count > 0:
+		queue_count = mini(queue_count, max_count)
+	return clampi(queue_count, 0, 12)
 
 
 func apply_timeline_flow(side: String, effect: Dictionary) -> int:

@@ -14,6 +14,10 @@ func _run() -> void:
 		return
 	if not _test_auto_queue_card():
 		return
+	if not _test_unlimited_auto_turret():
+		return
+	if not _test_hp_scaled_auto_queue():
+		return
 	if not _test_timeline_stop():
 		return
 	if not _test_timeline_reverse():
@@ -67,6 +71,44 @@ func _test_auto_queue_card() -> bool:
 	engine.update(6.2)
 	if _count_active_auto_instances(engine, "player", "recursive_protocol") > 0:
 		_fail("Special card smoke failed: recursive_protocol exceeded its auto-queue depth")
+		return false
+	return true
+
+
+func _test_unlimited_auto_turret() -> bool:
+	var engine: RealtimeBattleEngine = _setup_engine(["auto_turret"])
+	if not _request_card(engine, "player", "auto_turret"):
+		_fail("Special card smoke failed: auto_turret could not be requested")
+		return false
+	engine.update(3.1)
+	engine.update(4.0)
+	engine.update(4.0)
+
+	var max_depth: int = _max_auto_depth(engine, "player", "auto_turret")
+	if max_depth < 2:
+		_fail("Special card smoke failed: auto_turret should keep auto-queueing itself without the normal depth cap")
+		return false
+	return true
+
+
+func _test_hp_scaled_auto_queue() -> bool:
+	var full_hp_engine: RealtimeBattleEngine = _setup_engine(["crisis_drone_swarm"])
+	if not _request_card(full_hp_engine, "player", "crisis_drone_swarm"):
+		_fail("Special card smoke failed: crisis_drone_swarm could not be requested at full HP")
+		return false
+	full_hp_engine.update(4.3)
+	if _count_active_auto_instances(full_hp_engine, "player", "quick_guard") != 1:
+		_fail("Special card smoke failed: crisis_drone_swarm should queue one guard at full HP")
+		return false
+
+	var low_hp_engine: RealtimeBattleEngine = _setup_engine(["crisis_drone_swarm"])
+	low_hp_engine.battle_state.player.hp = int(round(float(low_hp_engine.battle_state.player.max_hp) * 0.25))
+	if not _request_card(low_hp_engine, "player", "crisis_drone_swarm"):
+		_fail("Special card smoke failed: crisis_drone_swarm could not be requested at low HP")
+		return false
+	low_hp_engine.update(4.3)
+	if _count_active_auto_instances(low_hp_engine, "player", "quick_guard") != 4:
+		_fail("Special card smoke failed: crisis_drone_swarm should scale queued guards with missing HP")
 		return false
 	return true
 
@@ -135,7 +177,7 @@ func _test_timeline_reverse() -> bool:
 
 
 func _test_special_card_descriptions() -> bool:
-	for card_id in ["self_tuning_edge", "sequence_loader", "chronostasis", "entropy_reversal"]:
+	for card_id in ["self_tuning_edge", "sequence_loader", "chronostasis", "entropy_reversal", "auto_turret", "crisis_drone_swarm"]:
 		var card_def: CardDef = Database.get_card(card_id)
 		if card_def == null:
 			_fail("Special card smoke failed: missing special card %s" % card_id)
@@ -190,6 +232,14 @@ func _count_active_auto_instances(engine: RealtimeBattleEngine, side: String, ca
 		if instance.owner_side == side and instance.card_id == card_id and instance.is_auto_queued:
 			count += 1
 	return count
+
+
+func _max_auto_depth(engine: RealtimeBattleEngine, side: String, card_id: String) -> int:
+	var max_depth: int = 0
+	for instance in engine.battle_state.active_instances:
+		if instance.owner_side == side and instance.card_id == card_id and instance.is_auto_queued:
+			max_depth = maxi(max_depth, instance.auto_depth)
+	return max_depth
 
 
 func _effect_amount(card_def: CardDef, effect_type: String) -> float:

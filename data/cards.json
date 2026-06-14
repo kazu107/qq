@@ -1286,5 +1286,87 @@
         1.8
       ]
     }
+  },
+  {
+    "id": "auto_turret",
+    "name": "Auto Turret",
+    "description": "Deploys a turret routine that keeps reloading itself into the timeline without a chain limit.",
+    "rarity": "rare",
+    "tags": [
+      "attack",
+      "chain",
+      "special"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 26,
+    "cast_time": 3.0,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 2,
+        "target": "enemy"
+      },
+      {
+        "type": "auto_queue_card",
+        "card_id": "self",
+        "delay": 0.8,
+        "max_depth": -1
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "id": "crisis_drone_swarm",
+    "name": "Crisis Drone Swarm",
+    "description": "Launches more defensive drones as HP drops, automatically queueing Quick Guard copies.",
+    "rarity": "epic",
+    "tags": [
+      "defense",
+      "chain",
+      "special"
+    ],
+    "loadout_cost": 4,
+    "recast_time": 34,
+    "cast_time": 4.2,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 4,
+        "target": "self"
+      },
+      {
+        "type": "auto_queue_card",
+        "card_id": "quick_guard",
+        "delay": 0.2,
+        "count": 1,
+        "missing_hp_ratio_per_extra": 0.25,
+        "max_count": 4,
+        "queue_spacing": 0.15,
+        "max_depth": 1
+      }
+    ],
+    "upgrade_profile": {
+      "shield": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
   }
 ]

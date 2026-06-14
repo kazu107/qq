@@ -20,6 +20,8 @@ const RARE_BORDER := Color(0.47, 0.86, 0.90, 1.0)
 const EPIC_BORDER := Color(0.97, 0.69, 0.34, 1.0)
 const ACTIVE_PLAYER_BORDER := Color(0.24, 0.56, 1.0, 1.0)
 const ACTIVE_ENEMY_BORDER := Color(0.95, 0.28, 0.25, 1.0)
+const TOOLTIP_BUFF_COLOR := "#72d36f"
+const TOOLTIP_NERF_COLOR := "#ff6868"
 
 static var _texture_cache: Dictionary = {}
 
@@ -27,6 +29,7 @@ var runtime_id: String = ""
 var _can_use: bool = false
 var _click_enabled: bool = true
 var _recovery_ratio: float = 1.0
+var _tooltip_bbcode: String = ""
 
 var _art_rect: TextureRect
 var _bleach_overlay: ColorRect
@@ -111,7 +114,8 @@ func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, cli
 	_set_mouse_cursor(_can_use)
 	_apply_frame(_get_rarity_border(card_def.rarity))
 	_set_recovery_ratio(recovery_ratio)
-	tooltip_text = _build_hand_tooltip(card_def, tooltip_state, tooltip_blocked, runtime_state)
+	tooltip_text = _build_hand_tooltip(card_def, tooltip_state, tooltip_blocked, runtime_state, false)
+	_tooltip_bbcode = _build_hand_tooltip(card_def, tooltip_state, tooltip_blocked, runtime_state, true)
 
 
 func bind_preview(card_def: CardDef, preview_id: String, click_enabled: bool = false, badge_text: String = "CARD") -> void:
@@ -132,7 +136,8 @@ func bind_preview(card_def: CardDef, preview_id: String, click_enabled: bool = f
 	_apply_frame(_get_rarity_border(card_def.rarity))
 	_set_mouse_cursor(_can_use)
 	_set_recovery_ratio(1.0)
-	tooltip_text = _build_preview_tooltip(card_def)
+	tooltip_text = _build_preview_tooltip(card_def, false)
+	_tooltip_bbcode = _build_preview_tooltip(card_def, true)
 
 
 func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: float) -> void:
@@ -155,7 +160,8 @@ func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: f
 	_apply_frame(_get_active_border(instance.owner_side))
 	_set_mouse_cursor(false)
 	_set_recovery_ratio(_compute_active_ratio(instance, battle_time))
-	tooltip_text = _build_active_tooltip(card_def, instance, remaining)
+	tooltip_text = _build_active_tooltip(card_def, instance, remaining, false)
+	_tooltip_bbcode = _build_active_tooltip(card_def, instance, remaining, true)
 
 
 func bind_timeline(card_def: CardDef, entry: TimelineEntry, battle_time: float, is_next: bool = false) -> void:
@@ -178,7 +184,8 @@ func bind_timeline(card_def: CardDef, entry: TimelineEntry, battle_time: float, 
 	_set_mouse_cursor(false)
 	_set_recovery_ratio(1.0)
 	_set_timeline_indicators(true, is_next)
-	tooltip_text = _build_timeline_tooltip(card_def, entry, remaining)
+	tooltip_text = _build_timeline_tooltip(card_def, entry, remaining, false)
+	_tooltip_bbcode = _build_timeline_tooltip(card_def, entry, remaining, true)
 
 
 func _on_pressed() -> void:
@@ -197,6 +204,33 @@ func _on_mouse_exited() -> void:
 	if runtime_id == "":
 		return
 	card_unhovered.emit(runtime_id)
+
+
+func _make_custom_tooltip(for_text: String) -> Object:
+	var panel: PanelContainer = PanelContainer.new()
+	panel.name = "CardTooltipPopup"
+	panel.custom_minimum_size = Vector2(460.0, 0.0)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	panel.add_child(margin)
+
+	var label: RichTextLabel = RichTextLabel.new()
+	label.name = "CardTooltipText"
+	label.bbcode_enabled = true
+	label.fit_content = true
+	label.scroll_active = false
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size = Vector2(440.0, 0.0)
+	if _tooltip_bbcode != "":
+		label.text = _tooltip_bbcode
+	else:
+		label.text = _escape_bbcode(for_text)
+	margin.add_child(label)
+	return panel
 
 
 func _ensure_visuals() -> void:
@@ -457,20 +491,26 @@ func _compute_timeline_ratio(entry: TimelineEntry, battle_time: float) -> float:
 	return clampf(elapsed / total_duration, 0.0, 1.0)
 
 
-func _build_hand_tooltip(card_def: CardDef, tooltip_state: String, tooltip_blocked: String, runtime_state: CardRuntimeState) -> String:
+func _build_hand_tooltip(card_def: CardDef, tooltip_state: String, tooltip_blocked: String, runtime_state: CardRuntimeState, rich: bool = false) -> String:
+	var comparison_card: CardDef = _get_comparison_card(card_def)
+	var base_cast_time: float = card_def.cast_time
+	var base_recast_time: float = card_def.recast_time
+	if comparison_card != null:
+		base_cast_time = comparison_card.cast_time
+		base_recast_time = comparison_card.recast_time
 	var lines: Array[String] = [
 		card_def.name,
 		card_def.description,
 		"",
 		Localization.get_textf("card.tooltip.rarity", "Rarity: {value}", {"value": Localization.get_rarity_name(card_def.rarity)}),
 		Localization.get_textf("card.tooltip.tags", "Tags: {value}", {"value": _build_tags_text(card_def.tags)}),
-		Localization.get_textf("card.tooltip.cast", "Cast: {value}s", {"value": "%.1f" % card_def.cast_time}),
-		Localization.get_textf("card.tooltip.recast", "Recast: {value}s", {"value": "%.1f" % card_def.recast_time}),
+		Localization.get_textf("card.tooltip.cast", "Cast: {value}s", {"value": _format_compared_float(card_def.cast_time, base_cast_time, 1, false, rich)}),
+		Localization.get_textf("card.tooltip.recast", "Recast: {value}s", {"value": _format_compared_float(card_def.recast_time, base_recast_time, 1, false, rich)}),
 		Localization.get_textf("card.tooltip.slots", "Slots: {value}", {"value": card_def.active_slot_cost}),
 		Localization.get_textf("card.tooltip.target", "Target: {value}", {"value": Localization.get_target_name(card_def.target_type)}),
 		Localization.get_textf("card.tooltip.state", "State: {value}", {"value": tooltip_state}),
 	]
-	_append_effect_lines(lines, card_def)
+	_append_effect_lines(lines, card_def, rich)
 	if runtime_state.state == CardRuntimeState.CardState.COOLDOWN:
 		lines.append(Localization.get_textf("card.tooltip.recovery", "Recovery: {value}%", {
 			"value": int(round(_compute_cooldown_ratio(card_def, runtime_state) * 100.0)),
@@ -481,24 +521,30 @@ func _build_hand_tooltip(card_def: CardDef, tooltip_state: String, tooltip_block
 	return "\n".join(lines)
 
 
-func _build_preview_tooltip(card_def: CardDef) -> String:
+func _build_preview_tooltip(card_def: CardDef, rich: bool = false) -> String:
+	var comparison_card: CardDef = _get_comparison_card(card_def)
+	var base_cast_time: float = card_def.cast_time
+	var base_recast_time: float = card_def.recast_time
+	if comparison_card != null:
+		base_cast_time = comparison_card.cast_time
+		base_recast_time = comparison_card.recast_time
 	var lines: Array[String] = [
 		card_def.name,
 		card_def.description,
 		"",
 		Localization.get_textf("card.tooltip.rarity", "Rarity: {value}", {"value": Localization.get_rarity_name(card_def.rarity)}),
 		Localization.get_textf("card.tooltip.tags", "Tags: {value}", {"value": _build_tags_text(card_def.tags)}),
-		Localization.get_textf("card.tooltip.cast", "Cast: {value}s", {"value": "%.1f" % card_def.cast_time}),
-		Localization.get_textf("card.tooltip.recast", "Recast: {value}s", {"value": "%.1f" % card_def.recast_time}),
+		Localization.get_textf("card.tooltip.cast", "Cast: {value}s", {"value": _format_compared_float(card_def.cast_time, base_cast_time, 1, false, rich)}),
+		Localization.get_textf("card.tooltip.recast", "Recast: {value}s", {"value": _format_compared_float(card_def.recast_time, base_recast_time, 1, false, rich)}),
 		Localization.get_textf("card.tooltip.slots", "Slots: {value}", {"value": card_def.active_slot_cost}),
 		Localization.get_textf("card.tooltip.target", "Target: {value}", {"value": Localization.get_target_name(card_def.target_type)}),
 	]
-	_append_effect_lines(lines, card_def)
+	_append_effect_lines(lines, card_def, rich)
 	_append_grade_lines(lines, card_def.id)
 	return "\n".join(lines)
 
 
-func _build_active_tooltip(card_def: CardDef, instance: ActiveCardInstance, remaining: float) -> String:
+func _build_active_tooltip(card_def: CardDef, instance: ActiveCardInstance, remaining: float, rich: bool = false) -> String:
 	var lines: Array[String] = [
 		card_def.name,
 		card_def.description,
@@ -509,14 +555,14 @@ func _build_active_tooltip(card_def: CardDef, instance: ActiveCardInstance, rema
 		Localization.get_textf("card.tooltip.resolves_in", "Resolves in: {value}s", {"value": "%.1f" % remaining}),
 		Localization.get_textf("card.tooltip.slots_used", "Slots Used: {value}", {"value": instance.slot_cost}),
 	]
-	_append_effect_lines(lines, card_def)
+	_append_effect_lines(lines, card_def, rich)
 	if instance.interruptible:
 		lines.append(Localization.get_text("card.tooltip.interruptible", "Interruptible"))
 	_append_grade_lines(lines, card_def.id)
 	return "\n".join(lines)
 
 
-func _build_timeline_tooltip(card_def: CardDef, entry: TimelineEntry, remaining: float) -> String:
+func _build_timeline_tooltip(card_def: CardDef, entry: TimelineEntry, remaining: float, rich: bool = false) -> String:
 	var lines: Array[String] = [
 		card_def.name,
 		card_def.description,
@@ -528,7 +574,7 @@ func _build_timeline_tooltip(card_def: CardDef, entry: TimelineEntry, remaining:
 		Localization.get_textf("card.tooltip.cast_window", "Cast Window: {value}s", {"value": "%.1f" % max(0.0, entry.scheduled_time - entry.created_at)}),
 		Localization.get_textf("card.tooltip.slots_used", "Slots Used: {value}", {"value": entry.slot_cost}),
 	]
-	_append_effect_lines(lines, card_def)
+	_append_effect_lines(lines, card_def, rich)
 	if entry.interruptible:
 		lines.append(Localization.get_text("card.tooltip.interruptible", "Interruptible"))
 	_append_grade_lines(lines, card_def.id)
@@ -539,8 +585,49 @@ func _build_tags_text(tags: Array[String]) -> String:
 	return Localization.get_tags_text(tags)
 
 
-func _append_effect_lines(lines: Array[String], card_def: CardDef) -> void:
-	var effect_lines: Array[String] = CardInfoFormatter.build_effect_lines(card_def)
+func _get_comparison_card(card_def: CardDef) -> CardDef:
+	if card_def == null:
+		return null
+	return Database.get_card(card_def.id)
+
+
+func _format_compared_float(current_value: float, base_value: float, decimals: int, higher_is_beneficial: bool, rich: bool) -> String:
+	var current_text: String = _format_float_value(current_value, decimals, false)
+	var delta: float = current_value - base_value
+	if absf(delta) < 0.001:
+		return current_text
+
+	var delta_text: String = _format_float_value(delta, decimals, true)
+	var compared_text: String = "%s (%s)" % [current_text, delta_text]
+	if not rich:
+		return compared_text
+
+	var is_beneficial: bool = delta > 0.0 if higher_is_beneficial else delta < 0.0
+	var color: String = TOOLTIP_BUFF_COLOR if is_beneficial else TOOLTIP_NERF_COLOR
+	return "[color=%s]%s[/color]" % [color, compared_text]
+
+
+func _format_float_value(value: float, decimals: int, force_sign: bool) -> String:
+	if decimals <= 0:
+		var int_value: int = int(roundf(value))
+		if force_sign:
+			if int_value >= 0:
+				return "+%d" % int_value
+			return "%d" % int_value
+		return "%d" % int_value
+	var pattern: String = "%." + str(decimals) + "f"
+	var value_text: String = pattern % value
+	if force_sign and value >= 0.0:
+		return "+%s" % value_text
+	return value_text
+
+
+func _escape_bbcode(value: String) -> String:
+	return value.replace("[", "[lb]").replace("]", "[rb]")
+
+
+func _append_effect_lines(lines: Array[String], card_def: CardDef, rich: bool = false) -> void:
+	var effect_lines: Array[String] = CardInfoFormatter.build_effect_lines(card_def, _get_comparison_card(card_def), rich)
 	if effect_lines.is_empty():
 		return
 	lines.append(Localization.get_text("card.tooltip.effects", "Effects:"))
