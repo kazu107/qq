@@ -14,6 +14,7 @@ var player_cards: Array[String] = []
 var equipped_cards: Array[String] = []
 var loadout_limit: int = 10
 var card_upgrades: Dictionary = {}
+var temporary_card_modifiers: Dictionary = {}
 var relics: Array[String] = []
 var gold: int = 0
 var encounters_cleared: int = 0
@@ -39,6 +40,7 @@ static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> Ru
 	run_state.loadout_limit = max(10, get_total_loadout_cost(run_state.player_cards))
 	run_state.equipped_cards = build_default_equipped_cards(run_state.player_cards, run_state.loadout_limit)
 	run_state.card_upgrades = {}
+	run_state.temporary_card_modifiers = {}
 	run_state.relics = []
 	run_state.gold = 0
 	return run_state
@@ -61,6 +63,7 @@ static func from_dict(data: Dictionary) -> RunState:
 	if run_state.equipped_cards.is_empty():
 		run_state.equipped_cards = build_default_equipped_cards(run_state.player_cards, run_state.loadout_limit)
 	run_state.card_upgrades = Dictionary(data.get("card_upgrades", {}))
+	run_state.temporary_card_modifiers = Dictionary(data.get("temporary_card_modifiers", {}))
 	run_state.relics = _to_string_array(data.get("relics", []))
 	run_state.gold = int(data.get("gold", 0))
 	run_state.encounters_cleared = int(data.get("encounters_cleared", 0))
@@ -84,6 +87,7 @@ func to_dict() -> Dictionary:
 		"equipped_cards": equipped_cards,
 		"loadout_limit": loadout_limit,
 		"card_upgrades": card_upgrades,
+		"temporary_card_modifiers": temporary_card_modifiers,
 		"relics": relics,
 		"gold": gold,
 		"encounters_cleared": encounters_cleared,

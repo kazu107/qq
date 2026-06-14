@@ -101,6 +101,27 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 					"card_name": card_def.name,
 					"target_name": speed_target.display_name,
 				}))
+			"empower_card":
+				var empowered_count: int = engine.empower_cards(instance.owner_side, instance.card_id, effect)
+				messages.append(Localization.get_textf("battle.log.card_empower", "{card_name} empowered {count} card(s): {stat} {amount}", {
+					"card_name": card_def.name,
+					"count": empowered_count,
+					"stat": String(effect.get("stat", "damage")),
+					"amount": _format_signed_float(float(effect.get("amount", 0.0))),
+				}))
+			"auto_queue_card":
+				var queued_count: int = engine.auto_queue_card(instance.owner_side, instance, effect)
+				messages.append(Localization.get_textf("battle.log.card_auto_queue", "{card_name} queued {count} extra card(s)", {
+					"card_name": card_def.name,
+					"count": queued_count,
+				}))
+			"timeline_flow":
+				var affected_count: int = engine.apply_timeline_flow(instance.owner_side, effect)
+				messages.append(Localization.get_textf("battle.log.card_timeline_flow", "{card_name} changed timeline flow for {duration}s ({count} active)", {
+					"card_name": card_def.name,
+					"duration": "%.1f" % float(effect.get("duration", 0.0)),
+					"count": affected_count,
+				}))
 			_:
 				messages.append(Localization.get_textf("battle.log.card_unknown_effect", "{card_name} had unknown effect {effect_type}", {
 					"card_name": card_def.name,
@@ -120,3 +141,13 @@ static func _opponent_side(side: String) -> String:
 	if side == "player":
 		return "enemy"
 	return "player"
+
+
+static func _format_signed_float(amount: float) -> String:
+	if absf(amount - roundf(amount)) < 0.01:
+		if amount >= 0.0:
+			return "+%d" % int(roundf(amount))
+		return "%d" % int(roundf(amount))
+	if amount >= 0.0:
+		return "+%.1f" % amount
+	return "%.1f" % amount

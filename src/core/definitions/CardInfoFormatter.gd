@@ -103,6 +103,23 @@ static func _describe_effect(effect: Dictionary, compact: bool) -> String:
 				"target": _target_label(effect),
 				"amount": _format_signed_value(int(effect.get("amount", 0))),
 			})
+		"empower_card":
+			return Localization.get_textf("effect.empower_card", "Empower {scope}: {stat} {amount} for this run", {
+				"scope": _empower_scope_label(effect),
+				"stat": _modifier_stat_label(String(effect.get("stat", "damage"))),
+				"amount": _format_signed_float(float(effect.get("amount", 0.0))),
+			})
+		"auto_queue_card":
+			return Localization.get_textf("effect.auto_queue_card", "Auto-queue {card} after {delay}s", {
+				"card": _auto_queue_card_label(effect),
+				"delay": "%.1f" % float(effect.get("delay", 0.0)),
+			})
+		"timeline_flow":
+			return Localization.get_textf("effect.timeline_flow", "{mode} {target} timeline for {duration}s", {
+				"mode": _timeline_mode_label(String(effect.get("mode", "stop"))),
+				"target": _timeline_target_label(String(effect.get("target_side", "enemy"))),
+				"duration": "%.1f" % float(effect.get("duration", 0.0)),
+			})
 		_:
 			if compact:
 				return effect_type
@@ -178,7 +195,93 @@ static func _interrupt_scope_label(scope: String) -> String:
 			return Localization.get_text("effect.scope.interrupt_single", "1 enemy interruptible card")
 
 
+static func _empower_scope_label(effect: Dictionary) -> String:
+	match String(effect.get("scope", "self")):
+		"all_own":
+			return Localization.get_text("effect.scope.empower_all_own", "all own cards")
+		"other_own":
+			return Localization.get_text("effect.scope.empower_other_own", "other own cards")
+		"card_id":
+			return _card_name_or_id(String(effect.get("card_id", "")))
+		_:
+			return Localization.get_text("effect.scope.empower_self", "this card")
+
+
+static func _auto_queue_card_label(effect: Dictionary) -> String:
+	var card_id: String = String(effect.get("card_id", "self"))
+	if card_id == "" or card_id == "self":
+		return Localization.get_text("effect.card.self", "this card")
+	return _card_name_or_id(card_id)
+
+
+static func _card_name_or_id(card_id: String) -> String:
+	var card_def: CardDef = Database.get_card(card_id)
+	if card_def != null:
+		return card_def.name
+	return card_id
+
+
+static func _timeline_mode_label(mode: String) -> String:
+	match mode:
+		"reverse":
+			return Localization.get_text("effect.timeline_mode.reverse", "Reverse")
+		_:
+			return Localization.get_text("effect.timeline_mode.stop", "Stop")
+
+
+static func _timeline_target_label(target_side: String) -> String:
+	match target_side:
+		"self", "own":
+			return Localization.get_text("effect.timeline_target.self", "own")
+		"all":
+			return Localization.get_text("effect.timeline_target.all", "all")
+		"player":
+			return Localization.get_text("effect.timeline_target.player", "player")
+		_:
+			return Localization.get_text("effect.timeline_target.enemy", "enemy")
+
+
+static func _modifier_stat_label(stat: String) -> String:
+	match stat:
+		"damage":
+			return Localization.get_text("effect.stat.damage", "damage")
+		"shield":
+			return Localization.get_text("effect.stat.shield", "shield")
+		"heal":
+			return Localization.get_text("effect.stat.heal", "heal")
+		"cast_time":
+			return Localization.get_text("effect.stat.cast_time", "cast time")
+		"recast_time":
+			return Localization.get_text("effect.stat.recast_time", "recast")
+		"duration":
+			return Localization.get_text("effect.stat.duration", "duration")
+		"delay":
+			return Localization.get_text("effect.stat.delay", "delay")
+		"haste":
+			return Localization.get_text("effect.stat.haste", "haste")
+		"cooldown":
+			return Localization.get_text("effect.stat.cooldown", "cooldown")
+		"attack_mod":
+			return Localization.get_text("effect.stat.attack_mod", "attack modifier")
+		"defense_mod":
+			return Localization.get_text("effect.stat.defense_mod", "defense modifier")
+		"speed_mod":
+			return Localization.get_text("effect.stat.speed_mod", "speed modifier")
+		"timeline_duration":
+			return Localization.get_text("effect.stat.timeline_duration", "timeline duration")
+		_:
+			return stat
+
+
 static func _format_signed_value(amount: int) -> String:
 	if amount >= 0:
 		return "+%d" % amount
 	return "%d" % amount
+
+
+static func _format_signed_float(amount: float) -> String:
+	if absf(amount - roundf(amount)) < 0.01:
+		return _format_signed_value(int(roundf(amount)))
+	if amount >= 0.0:
+		return "+%.1f" % amount
+	return "%.1f" % amount

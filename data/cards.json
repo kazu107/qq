@@ -1022,5 +1022,269 @@
         18
       ]
     }
+  },
+  {
+    "id": "self_tuning_edge",
+    "name": "Self Tuning Edge",
+    "description": "A blade that permanently tunes its own output during this run.",
+    "rarity": "rare",
+    "tags": [
+      "attack",
+      "buff",
+      "special"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 18,
+    "cast_time": 3.6,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 5,
+        "target": "enemy"
+      },
+      {
+        "type": "empower_card",
+        "scope": "self",
+        "stat": "damage",
+        "amount": 1
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "empower": [
+        0,
+        0.5,
+        1,
+        1.5
+      ]
+    }
+  },
+  {
+    "id": "overclock_routine",
+    "name": "Overclock Routine",
+    "description": "Harden up while permanently shortening your loadout's cast and recast for this run.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "buff",
+      "special"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 30,
+    "cast_time": 4.2,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 5,
+        "target": "self"
+      },
+      {
+        "type": "empower_card",
+        "scope": "all_own",
+        "stat": "cast_time",
+        "amount": -0.3
+      },
+      {
+        "type": "empower_card",
+        "scope": "all_own",
+        "stat": "recast_time",
+        "amount": -0.6
+      }
+    ],
+    "upgrade_profile": {
+      "shield": [
+        0,
+        2,
+        4,
+        6
+      ]
+    }
+  },
+  {
+    "id": "sequence_loader",
+    "name": "Sequence Loader",
+    "description": "Loads a quick attack into the timeline and improves that attack for the rest of the run.",
+    "rarity": "rare",
+    "tags": [
+      "attack",
+      "chain",
+      "special"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 24,
+    "cast_time": 4.8,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 3,
+        "target": "enemy"
+      },
+      {
+        "type": "empower_card",
+        "scope": "card_id",
+        "card_id": "quick_slash",
+        "stat": "damage",
+        "amount": 1
+      },
+      {
+        "type": "auto_queue_card",
+        "card_id": "quick_slash",
+        "delay": 0.3,
+        "max_depth": 1
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "empower": [
+        0,
+        1,
+        1,
+        2
+      ]
+    }
+  },
+  {
+    "id": "recursive_protocol",
+    "name": "Recursive Protocol",
+    "description": "Fires once, improves its own recast, then queues one temporary copy of itself.",
+    "rarity": "epic",
+    "tags": [
+      "attack",
+      "chain",
+      "special"
+    ],
+    "loadout_cost": 4,
+    "recast_time": 36,
+    "cast_time": 5.4,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 4,
+        "target": "enemy"
+      },
+      {
+        "type": "empower_card",
+        "scope": "self",
+        "stat": "recast_time",
+        "amount": -1.2
+      },
+      {
+        "type": "auto_queue_card",
+        "card_id": "self",
+        "delay": 0.6,
+        "max_depth": 1
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "recast_time": [
+        0,
+        -2,
+        -4,
+        -6
+      ]
+    }
+  },
+  {
+    "id": "chronostasis",
+    "name": "Chronostasis",
+    "description": "Freezes the opponent timeline for a short window.",
+    "rarity": "epic",
+    "tags": [
+      "control",
+      "time",
+      "special"
+    ],
+    "loadout_cost": 4,
+    "recast_time": 40,
+    "cast_time": 4.2,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "timeline_flow",
+        "mode": "stop",
+        "target_side": "enemy",
+        "duration": 3,
+        "scope": "all"
+      }
+    ],
+    "upgrade_profile": {
+      "duration": [
+        0,
+        0.6,
+        1.2,
+        1.8
+      ]
+    }
+  },
+  {
+    "id": "entropy_reversal",
+    "name": "Entropy Reversal",
+    "description": "Pushes the opponent timeline backward so cast time grows for a moment.",
+    "rarity": "epic",
+    "tags": [
+      "control",
+      "time",
+      "special"
+    ],
+    "loadout_cost": 4,
+    "recast_time": 44,
+    "cast_time": 5.4,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "timeline_flow",
+        "mode": "reverse",
+        "target_side": "enemy",
+        "duration": 2.4,
+        "speed": 1,
+        "scope": "all"
+      }
+    ],
+    "upgrade_profile": {
+      "duration": [
+        0,
+        0.6,
+        1.2,
+        1.8
+      ]
+    }
   }
 ]

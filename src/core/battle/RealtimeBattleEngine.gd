@@ -5,6 +5,7 @@ var battle_state: BattleState
 var _timeline_resolver := TimelineResolver.new()
 var _enemy_ai := EnemyAI.new()
 var _boss_passive_timer: float = 0.0
+var _timeline_flows: Array[Dictionary] = []
 var _player_run: RunState
 var _relic_service: RelicService = RelicService.new()
 
@@ -35,6 +36,7 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 	))
 	_enemy_ai.reset()
 	_boss_passive_timer = float(enemy_def.passive.get("interval", 0.0))
+	_timeline_flows.clear()
 	AudioManager.play_sfx("battle_start")
 
 
@@ -50,6 +52,7 @@ func update(delta: float) -> void:
 	_tick_statuses(delta)
 	_process_boss_passive(delta)
 	_enemy_ai.update(self, delta)
+	_tick_timeline_flows(delta)
 	_resolve_due_entries()
 	_check_victory()
 
@@ -180,6 +183,89 @@ func interrupt_active_card(side: String, scope: String) -> int:
 	return hit_count
 
 
+func empower_cards(side: String, source_card_id: String, effect: Dictionary) -> int:
+	if battle_state == null:
+		return 0
+	var stat: String = String(effect.get("stat", "damage"))
+	var amount: float = float(effect.get("amount", 0.0))
+	if stat == "" or is_zero_approx(amount):
+		return 0
+
+	var card_ids: Array[String] = _resolve_modifier_card_ids(side, source_card_id, effect)
+	var changed: int = 0
+	for card_id in card_ids:
+		if card_id == "":
+			continue
+		if Database.get_card(card_id) == null:
+			continue
+		_add_temporary_card_modifier(side, card_id, stat, amount)
+		changed += 1
+	return changed
+
+
+func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: Dictionary) -> int:
+	if battle_state == null or source_instance == null:
+		return 0
+	var max_depth: int = maxi(0, int(effect.get("max_depth", 1)))
+	if max_depth <= 0 or source_instance.auto_depth >= max_depth:
+		return 0
+
+	var queued_card_id: String = String(effect.get("card_id", "self"))
+	if queued_card_id == "" or queued_card_id == "self":
+		queued_card_id = source_instance.card_id
+	var card_def: CardDef = _get_card_def(side, queued_card_id)
+	if card_def == null:
+		return 0
+
+	var unit: UnitState = battle_state.get_unit(side)
+	var delay: float = maxf(0.0, float(effect.get("delay", 0.0)))
+	var use_cast_time: bool = bool(effect.get("use_cast_time", true))
+	var cast_duration: float = 0.0
+	if use_cast_time:
+		cast_duration = card_def.cast_time * unit.get_cast_time_multiplier()
+
+	var instance: ActiveCardInstance = ActiveCardInstance.new()
+	instance.instance_id = battle_state.next_instance_id
+	battle_state.next_instance_id += 1
+	instance.owner_side = side
+	instance.runtime_id = "__auto_%s_%d" % [side, instance.instance_id]
+	instance.card_id = queued_card_id
+	instance.card_name = card_def.name
+	instance.priority_modifier = card_def.priority_modifier
+	instance.slot_cost = 0
+	instance.interruptible = card_def.interruptible
+	instance.actor_speed = unit.speed
+	instance.target_type = card_def.target_type
+	instance.created_at = battle_state.battle_time
+	instance.scheduled_time = battle_state.battle_time + delay + cast_duration
+	instance.sort_key = instance.scheduled_time - card_def.priority_modifier
+	instance.is_auto_queued = true
+	instance.auto_depth = source_instance.auto_depth + 1
+	instance.source_instance_id = source_instance.instance_id
+
+	battle_state.active_instances.append(instance)
+	_timeline_resolver.rebuild_timeline(battle_state)
+	return 1
+
+
+func apply_timeline_flow(side: String, effect: Dictionary) -> int:
+	if battle_state == null:
+		return 0
+	var duration: float = maxf(0.0, float(effect.get("duration", 0.0)))
+	if duration <= 0.0:
+		return 0
+
+	var flow: Dictionary = {
+		"side": _resolve_flow_side(side, String(effect.get("target_side", "enemy"))),
+		"mode": String(effect.get("mode", "stop")),
+		"scope": String(effect.get("scope", "all")),
+		"remaining": duration,
+		"speed": maxf(0.0, float(effect.get("speed", 1.0))),
+	}
+	_timeline_flows.append(flow)
+	return _count_flow_targets(flow)
+
+
 func has_heavy_preparing_card(side: String) -> bool:
 	for instance in battle_state.get_active_instances_for_side(side):
 		if instance.slot_cost >= 2:
@@ -213,6 +299,7 @@ func _build_player_unit(run_state: RunState) -> UnitState:
 	unit.defense = run_state.defense
 	unit.speed = run_state.speed
 	unit.active_slot_max = 3
+	unit.temporary_card_modifiers = run_state.temporary_card_modifiers
 	unit.set_runtime_states(_create_runtime_states("player", run_state.equipped_cards))
 	_relic_service.apply_battle_modifiers(unit, run_state)
 	return unit
@@ -339,6 +426,32 @@ func _process_boss_passive(delta: float) -> void:
 		))
 
 
+func _tick_timeline_flows(delta: float) -> void:
+	if _timeline_flows.is_empty():
+		return
+
+	var active_flows: Array[Dictionary] = []
+	var shifted_any: bool = false
+	for raw_flow in _timeline_flows:
+		var flow: Dictionary = Dictionary(raw_flow)
+		var remaining: float = float(flow.get("remaining", 0.0))
+		if remaining <= 0.0:
+			continue
+		var active_delta: float = minf(delta, remaining)
+		var shift_amount: float = active_delta
+		if String(flow.get("mode", "stop")) == "reverse":
+			shift_amount = active_delta * (1.0 + maxf(0.0, float(flow.get("speed", 1.0))))
+		if _apply_flow_shift(flow, shift_amount) > 0:
+			shifted_any = true
+		remaining = maxf(0.0, remaining - delta)
+		if remaining > 0.0:
+			flow["remaining"] = remaining
+			active_flows.append(flow)
+	_timeline_flows = active_flows
+	if shifted_any:
+		_timeline_resolver.rebuild_timeline(battle_state)
+
+
 func _resolve_due_entries() -> void:
 	_timeline_resolver.rebuild_timeline(battle_state)
 	while not battle_state.timeline.is_empty():
@@ -352,14 +465,15 @@ func _resolve_due_entries() -> void:
 			continue
 
 		var unit := battle_state.get_unit(instance.owner_side)
-		var runtime_state := unit.get_runtime_state(instance.runtime_id)
+		var runtime_state: CardRuntimeState = unit.get_runtime_state(instance.runtime_id)
 		var card_def: CardDef = _get_card_def(instance.owner_side, instance.card_id)
-		if runtime_state == null or card_def == null:
+		if card_def == null or (runtime_state == null and not instance.is_auto_queued):
 			battle_state.remove_active_instance(instance.instance_id)
 			_timeline_resolver.rebuild_timeline(battle_state)
 			continue
 
-		runtime_state.begin_resolve()
+		if runtime_state != null:
+			runtime_state.begin_resolve()
 		var timeline_before := _snapshot_timeline()
 		var target_unit: UnitState = battle_state.get_opponent(instance.owner_side)
 		var player_before: Dictionary = _snapshot_unit(battle_state.player)
@@ -370,7 +484,8 @@ func _resolve_due_entries() -> void:
 		var resolved_instance := battle_state.remove_active_instance(instance.instance_id)
 		if resolved_instance != null:
 			unit.active_slots_used = max(0, unit.active_slots_used - resolved_instance.slot_cost)
-		runtime_state.begin_cooldown(card_def.recast_time)
+		if runtime_state != null:
+			runtime_state.begin_cooldown(card_def.recast_time)
 		_timeline_resolver.rebuild_timeline(battle_state)
 		var timeline_after := _snapshot_timeline()
 		for message in messages:
@@ -466,6 +581,104 @@ func _shift_active_cards(side: String, delta_amount: float, scope: String, exclu
 	return count
 
 
+func _resolve_modifier_card_ids(side: String, source_card_id: String, effect: Dictionary) -> Array[String]:
+	var result: Array[String] = []
+	var scope: String = String(effect.get("scope", "self"))
+	match scope:
+		"self":
+			result.append(source_card_id)
+		"all_own":
+			for runtime_state in battle_state.get_unit(side).card_runtime_states:
+				if not result.has(runtime_state.card_id):
+					result.append(runtime_state.card_id)
+		"other_own":
+			for runtime_state in battle_state.get_unit(side).card_runtime_states:
+				if runtime_state.card_id == source_card_id:
+					continue
+				if not result.has(runtime_state.card_id):
+					result.append(runtime_state.card_id)
+		"card_id":
+			result.append(String(effect.get("card_id", "")))
+		_:
+			if effect.has("card_id"):
+				result.append(String(effect.get("card_id", "")))
+			else:
+				result.append(source_card_id)
+	return result
+
+
+func _add_temporary_card_modifier(side: String, card_id: String, stat: String, amount: float) -> void:
+	var modifier_root: Dictionary = {}
+	var unit: UnitState = battle_state.get_unit(side)
+	if side == "player" and _player_run != null:
+		modifier_root = _player_run.temporary_card_modifiers
+	else:
+		modifier_root = unit.temporary_card_modifiers
+
+	var card_modifiers: Dictionary = Dictionary(modifier_root.get(card_id, {}))
+	card_modifiers[stat] = float(card_modifiers.get(stat, 0.0)) + amount
+	modifier_root[card_id] = card_modifiers
+
+	if side == "player" and _player_run != null:
+		_player_run.temporary_card_modifiers = modifier_root
+		unit.temporary_card_modifiers = modifier_root
+	else:
+		unit.temporary_card_modifiers = modifier_root
+
+
+func _resolve_flow_side(source_side: String, target_side: String) -> String:
+	match target_side:
+		"self", "own":
+			return source_side
+		"enemy", "opponent":
+			return _opponent_side(source_side)
+		"all":
+			return "all"
+		"player":
+			return "player"
+		"enemy_absolute":
+			return "enemy"
+		_:
+			return _opponent_side(source_side)
+
+
+func _count_flow_targets(flow: Dictionary) -> int:
+	return _get_flow_targets(flow).size()
+
+
+func _apply_flow_shift(flow: Dictionary, shift_amount: float) -> int:
+	if shift_amount <= 0.0:
+		return 0
+	var targets: Array[ActiveCardInstance] = _get_flow_targets(flow)
+	for instance in targets:
+		instance.shift_schedule(shift_amount, battle_state.battle_time)
+	return targets.size()
+
+
+func _get_flow_targets(flow: Dictionary) -> Array[ActiveCardInstance]:
+	var targets: Array[ActiveCardInstance] = []
+	var target_side: String = String(flow.get("side", "all"))
+	if target_side == "all":
+		for instance in battle_state.active_instances:
+			targets.append(instance)
+	else:
+		targets = battle_state.get_active_instances_for_side(target_side)
+	targets.sort_custom(func(a: ActiveCardInstance, b: ActiveCardInstance) -> bool:
+		return a.scheduled_time < b.scheduled_time
+	)
+	if String(flow.get("scope", "all")) == "all" or targets.size() <= 1:
+		return targets
+	var selected: Array[ActiveCardInstance] = []
+	selected.append(targets[0])
+	return selected
+
+
+func _opponent_side(side: String) -> String:
+	if side == "player":
+		return "enemy"
+	return "player"
+
+
 func _check_victory() -> void:
 	var previous_winner := battle_state.winner
 	if battle_state.player.hp <= 0 and battle_state.enemy.hp <= 0:
@@ -495,7 +708,11 @@ func _check_victory() -> void:
 func _get_card_def(side: String, card_id: String) -> CardDef:
 	if side == "player":
 		return CardUpgradeResolver.build_effective_card(card_id, _player_run)
-	return Database.get_card(card_id)
+	if battle_state == null:
+		return Database.get_card(card_id)
+	var unit: UnitState = battle_state.get_unit(side)
+	var modifier_totals: Dictionary = Dictionary(unit.temporary_card_modifiers.get(card_id, {}))
+	return CardUpgradeResolver.build_card_with_modifiers(card_id, modifier_totals)
 
 
 func _record_event(record: BattleEventRecord) -> void:
@@ -542,6 +759,7 @@ func _snapshot_unit(unit: UnitState) -> Dictionary:
 		"statuses": unit.statuses.duplicate(true),
 		"active_slots_used": unit.active_slots_used,
 		"active_slot_max": unit.active_slot_max,
+		"temporary_card_modifiers": unit.temporary_card_modifiers.duplicate(true),
 		"cooldowns": _snapshot_runtime_states(unit),
 	}
 

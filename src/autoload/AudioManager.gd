@@ -176,11 +176,11 @@ func _resolve_card_resolution_sfx(card_def: CardDef) -> String:
 				has_shield = true
 			"heal":
 				has_heal = true
-			"delay_enemy_active_card", "haste_own_active_card", "reduce_recast":
+			"delay_enemy_active_card", "haste_own_active_card", "reduce_recast", "auto_queue_card", "timeline_flow":
 				has_timeline = true
 			"interrupt_card":
 				has_interrupt = true
-			"apply_status", "remove_status", "modify_attack", "modify_defense", "modify_speed":
+			"apply_status", "remove_status", "modify_attack", "modify_defense", "modify_speed", "empower_card":
 				has_status = true
 
 	if has_interrupt:

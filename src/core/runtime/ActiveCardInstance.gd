@@ -14,6 +14,9 @@ var interruptible: bool = false
 var actor_speed: int = 0
 var target_type: String = "enemy"
 var created_at: float = 0.0
+var is_auto_queued: bool = false
+var auto_depth: int = 0
+var source_instance_id: int = 0
 
 
 func get_remaining(current_time: float) -> float:
