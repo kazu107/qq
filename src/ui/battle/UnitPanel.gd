@@ -24,10 +24,11 @@ const SLOT_PREVIEW_ALPHA_CYCLE_SECONDS: float = 1.0
 const DAMAGE_COLOR := Color(1.0, 0.40, 0.35, 1.0)
 const HEAL_COLOR := Color(0.48, 0.95, 0.58, 1.0)
 const SHIELD_COLOR := Color(0.47, 0.82, 1.0, 1.0)
-const STATUS_ICON_SIZE := Vector2(26.0, 26.0)
-const STATUS_BRIGHTNESS_MIN: float = 0.16
+const STATUS_ICON_SIZE: Vector2 = Vector2(26.0, 26.0)
+const STATUS_BRIGHTNESS_MIN: float = 0.08
 const STATUS_BRIGHTNESS_MAX: float = 1.0
-const STATUS_FALLBACK_DURATIONS := {
+const STATUS_DARKEN_ALPHA_MAX: float = 0.78
+const STATUS_FALLBACK_DURATIONS: Dictionary = {
 	"bleed": 36.0,
 	"weak": 30.0,
 	"slow": 36.0,
@@ -62,7 +63,10 @@ var _stats_label: Label
 var _status_label: Label
 var _status_icons_box: HBoxContainer
 var _status_none_label: Label
+var _status_item_nodes: Dictionary = {}
 var _status_icon_nodes: Dictionary = {}
+var _status_time_labels: Dictionary = {}
+var _status_darken_nodes: Dictionary = {}
 var _status_hovered_id: String = ""
 var _status_hovered_icon: TextureRect
 var _status_tooltip_popup: PanelContainer
@@ -308,11 +312,17 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		active_status_ids.append(status_id)
 		var reference_duration: float = _get_status_reference_duration(status_id, status_data, remaining)
 		var brightness: float = _get_status_brightness(remaining, reference_duration)
+		var darken_alpha: float = _get_status_darken_alpha(remaining, reference_duration)
 		var icon: TextureRect = _get_or_create_status_icon(status_id)
+		var time_label: Label = _status_time_labels[status_id] as Label
+		var darken: ColorRect = _status_darken_nodes[status_id] as ColorRect
 		icon.visible = true
 		icon.texture = _get_status_icon_texture(status_id)
 		icon.self_modulate = Color(brightness, brightness, brightness, 1.0)
 		icon.tooltip_text = _build_status_tooltip(status_id, remaining)
+		time_label.text = _format_status_remaining(remaining)
+		time_label.self_modulate = Color(brightness, brightness, brightness, 1.0)
+		darken.color = Color(0.0, 0.0, 0.0, darken_alpha)
 		if _status_hovered_id == status_id:
 			_status_hovered_icon = icon
 			_show_status_tooltip(icon.tooltip_text, icon)
@@ -347,8 +357,31 @@ func _get_or_create_status_icon(status_id: String) -> TextureRect:
 	icon.mouse_filter = Control.MOUSE_FILTER_STOP
 	icon.mouse_entered.connect(_on_status_icon_mouse_entered.bind(status_id, icon))
 	icon.mouse_exited.connect(_on_status_icon_mouse_exited.bind(status_id))
-	_status_icons_box.add_child(icon)
+
+	var darken: ColorRect = ColorRect.new()
+	darken.name = "StatusDarken_%s" % status_id
+	darken.anchor_right = 1.0
+	darken.anchor_bottom = 1.0
+	darken.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.add_child(darken)
+
+	var time_label: Label = Label.new()
+	time_label.name = "StatusTime_%s" % status_id
+	time_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	time_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var item: HBoxContainer = HBoxContainer.new()
+	item.name = "StatusItem_%s" % status_id
+	item.add_theme_constant_override("separation", 3)
+	item.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	item.add_child(icon)
+	item.add_child(time_label)
+	_status_icons_box.add_child(item)
+
+	_status_item_nodes[status_id] = item
 	_status_icon_nodes[status_id] = icon
+	_status_time_labels[status_id] = time_label
+	_status_darken_nodes[status_id] = darken
 	return icon
 
 
@@ -357,13 +390,16 @@ func _remove_inactive_status_icons(active_status_ids: Array[String]) -> void:
 		var status_id: String = String(raw_status_id)
 		if active_status_ids.has(status_id):
 			continue
-		var icon: TextureRect = _status_icon_nodes[status_id] as TextureRect
+		var item: HBoxContainer = _status_item_nodes[status_id] as HBoxContainer
+		_status_item_nodes.erase(status_id)
 		_status_icon_nodes.erase(status_id)
+		_status_time_labels.erase(status_id)
+		_status_darken_nodes.erase(status_id)
 		if _status_hovered_id == status_id:
 			_hide_status_tooltip()
-		if icon != null and is_instance_valid(icon):
-			_status_icons_box.remove_child(icon)
-			icon.queue_free()
+		if item != null and is_instance_valid(item):
+			_status_icons_box.remove_child(item)
+			item.queue_free()
 
 
 func _get_status_reference_duration(status_id: String, status_data: Dictionary, remaining: float) -> float:
@@ -375,8 +411,17 @@ func _get_status_reference_duration(status_id: String, status_data: Dictionary, 
 
 func _get_status_brightness(remaining: float, reference_duration: float) -> float:
 	var remaining_ratio: float = clampf(remaining / maxf(reference_duration, 0.1), 0.0, 1.0)
-	var eased_ratio: float = pow(remaining_ratio, 1.35)
+	var eased_ratio: float = pow(remaining_ratio, 2.2)
 	return lerpf(STATUS_BRIGHTNESS_MIN, STATUS_BRIGHTNESS_MAX, eased_ratio)
+
+
+func _get_status_darken_alpha(remaining: float, reference_duration: float) -> float:
+	var remaining_ratio: float = clampf(remaining / maxf(reference_duration, 0.1), 0.0, 1.0)
+	return lerpf(STATUS_DARKEN_ALPHA_MAX, 0.0, pow(remaining_ratio, 1.25))
+
+
+func _format_status_remaining(remaining: float) -> String:
+	return "%.1fs" % snappedf(remaining, 0.1)
 
 
 func _build_status_tooltip(status_id: String, remaining: float) -> String:
@@ -430,6 +475,11 @@ func _show_status_tooltip(text: String, anchor: Control) -> void:
 	if _status_tooltip_popup == null or _status_tooltip_label == null:
 		return
 	_status_tooltip_label.text = text
+	_status_tooltip_label.reset_size()
+	var label_size: Vector2 = _status_tooltip_label.get_combined_minimum_size()
+	var popup_size: Vector2 = label_size + Vector2(16.0, 12.0)
+	_status_tooltip_popup.custom_minimum_size = Vector2.ZERO
+	_status_tooltip_popup.size = popup_size
 	_status_tooltip_popup.visible = true
 	_status_tooltip_popup.global_position = anchor.get_global_position() + Vector2(0.0, anchor.size.y + 8.0)
 
@@ -450,7 +500,12 @@ func _ensure_status_tooltip_popup() -> void:
 	_status_tooltip_popup.visible = false
 	_status_tooltip_popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_status_tooltip_popup.z_index = 140
-	_status_tooltip_popup.custom_minimum_size = Vector2(220.0, 0.0)
+	_status_tooltip_popup.anchor_left = 0.0
+	_status_tooltip_popup.anchor_top = 0.0
+	_status_tooltip_popup.anchor_right = 0.0
+	_status_tooltip_popup.anchor_bottom = 0.0
+	_status_tooltip_popup.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_status_tooltip_popup.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 
 	var margin: MarginContainer = MarginContainer.new()
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -462,7 +517,7 @@ func _ensure_status_tooltip_popup() -> void:
 
 	_status_tooltip_label = Label.new()
 	_status_tooltip_label.name = "StatusTooltipText"
-	_status_tooltip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_status_tooltip_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_status_tooltip_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(_status_tooltip_label)
 

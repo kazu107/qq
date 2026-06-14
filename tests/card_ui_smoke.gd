@@ -391,13 +391,23 @@ func _run() -> void:
 	var status_icon_row: HBoxContainer = unit_panel.get_node("BodyRow/InfoColumn/StatusIconRow") as HBoxContainer
 	var bleed_icon: TextureRect = null
 	var slow_icon: TextureRect = null
+	var bleed_time_label: Label = null
+	var bleed_darken: ColorRect = null
 	if status_icon_row != null:
-		bleed_icon = status_icon_row.find_child("StatusIcon_bleed", false, false) as TextureRect
-		slow_icon = status_icon_row.find_child("StatusIcon_slow", false, false) as TextureRect
+		bleed_icon = status_icon_row.find_child("StatusIcon_bleed", true, false) as TextureRect
+		slow_icon = status_icon_row.find_child("StatusIcon_slow", true, false) as TextureRect
+		bleed_time_label = status_icon_row.find_child("StatusTime_bleed", true, false) as Label
+		bleed_darken = status_icon_row.find_child("StatusDarken_bleed", true, false) as ColorRect
 	if status_icon_row == null \
 	or bleed_icon == null \
-	or slow_icon == null:
-		push_error("Card UI smoke failed: unit statuses should render as icons")
+	or slow_icon == null \
+	or bleed_time_label == null \
+	or bleed_darken == null:
+		push_error("Card UI smoke failed: unit statuses should render as icon/time groups")
+		get_tree().quit(1)
+		return
+	if bleed_time_label.text != "4.0s":
+		push_error("Card UI smoke failed: status icon should show remaining seconds to the right")
 		get_tree().quit(1)
 		return
 	if bleed_icon.tooltip_text.find("Remaining: 4.0s") == -1 or bleed_icon.tooltip_text.find("Takes 1 damage") == -1:
@@ -410,6 +420,7 @@ func _run() -> void:
 		return
 	var bleed_icon_before_refresh: TextureRect = bleed_icon
 	var bleed_brightness_before: float = bleed_icon.self_modulate.r
+	var bleed_darken_before: float = bleed_darken.color.a
 	bleed_icon.emit_signal("mouse_entered")
 	await get_tree().process_frame
 	var status_tooltip_popup: PanelContainer = find_child("StatusTooltipPopup", true, false) as PanelContainer
@@ -420,16 +431,30 @@ func _run() -> void:
 		push_error("Card UI smoke failed: status icon mouseover should show a visible detail popup")
 		get_tree().quit(1)
 		return
+	if status_tooltip_popup.size.y > 120.0:
+		push_error("Card UI smoke failed: status tooltip should size to its text instead of stretching down")
+		get_tree().quit(1)
+		return
 	player_unit.tick_statuses(2.0)
 	unit_panel.refresh_unit(player_unit)
 	await get_tree().process_frame
-	bleed_icon = status_icon_row.find_child("StatusIcon_bleed", false, false) as TextureRect
+	bleed_icon = status_icon_row.find_child("StatusIcon_bleed", true, false) as TextureRect
+	bleed_time_label = status_icon_row.find_child("StatusTime_bleed", true, false) as Label
+	bleed_darken = status_icon_row.find_child("StatusDarken_bleed", true, false) as ColorRect
 	if bleed_icon != bleed_icon_before_refresh:
 		push_error("Card UI smoke failed: status icons should be reused across refreshes so hover can remain active")
 		get_tree().quit(1)
 		return
+	if bleed_time_label == null or bleed_time_label.text != "2.0s":
+		push_error("Card UI smoke failed: status seconds should update as remaining time decreases")
+		get_tree().quit(1)
+		return
 	if bleed_icon.self_modulate.r >= bleed_brightness_before:
 		push_error("Card UI smoke failed: status icon should visibly darken as remaining time decreases")
+		get_tree().quit(1)
+		return
+	if bleed_darken == null or bleed_darken.color.a <= bleed_darken_before:
+		push_error("Card UI smoke failed: status darken overlay should increase as remaining time decreases")
 		get_tree().quit(1)
 		return
 	bleed_icon.emit_signal("mouse_exited")
