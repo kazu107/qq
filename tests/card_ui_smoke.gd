@@ -427,6 +427,43 @@ func _run() -> void:
 		push_error("Card UI smoke failed: used and empty slot battery cells should be visually distinct")
 		get_tree().quit(1)
 		return
+	unit_panel.refresh_unit(player_unit, 1)
+	await get_tree().process_frame
+	var preview_slot_cell: Panel = slot_bars.get_child(2) as Panel
+	var preview_slot_style: StyleBoxFlat = preview_slot_cell.get_theme_stylebox("panel") as StyleBoxFlat
+	if preview_slot_style == null or preview_slot_style.border_color.b < 0.9 or preview_slot_style.bg_color.a < 0.25 or preview_slot_style.bg_color.a > 0.7:
+		push_error("Card UI smoke failed: slot battery should preview hovered card slot usage")
+		get_tree().quit(1)
+		return
+	var preview_slot_start_alpha: float = preview_slot_style.bg_color.a
+	unit_panel._process(0.5)
+	var preview_slot_mid_style: StyleBoxFlat = preview_slot_cell.get_theme_stylebox("panel") as StyleBoxFlat
+	if preview_slot_mid_style == null or absf(preview_slot_mid_style.bg_color.a - preview_slot_start_alpha) < 0.05 or preview_slot_mid_style.bg_color.a < 0.25 or preview_slot_mid_style.bg_color.a > 0.7:
+		push_error("Card UI smoke failed: slot battery preview should pulse like the timeline preview")
+		get_tree().quit(1)
+		return
+	unit_panel.refresh_unit(player_unit, 3)
+	await get_tree().process_frame
+	if slot_bars.get_child_count() < 5:
+		push_error("Card UI smoke failed: slot battery should add overflow preview cells to the right")
+		get_tree().quit(1)
+		return
+	var overflow_slot_cell: Panel = slot_bars.get_child(4) as Panel
+	if overflow_slot_cell == null:
+		push_error("Card UI smoke failed: slot battery overflow preview cell should be a panel")
+		get_tree().quit(1)
+		return
+	var overflow_slot_style: StyleBoxFlat = overflow_slot_cell.get_theme_stylebox("panel") as StyleBoxFlat
+	if not overflow_slot_cell.visible or overflow_slot_style == null or overflow_slot_style.border_color.r < 0.9 or overflow_slot_style.border_color.b > 0.4:
+		push_error("Card UI smoke failed: slot battery overflow preview should be red and visible")
+		get_tree().quit(1)
+		return
+	unit_panel.refresh_unit(player_unit)
+	await get_tree().process_frame
+	if overflow_slot_cell.visible:
+		push_error("Card UI smoke failed: slot battery overflow preview should hide after hover ends")
+		get_tree().quit(1)
+		return
 
 	player_unit.hp = 39
 	player_unit.shield = 5
@@ -516,6 +553,16 @@ func _run() -> void:
 		return
 	if battle_preview.modulate.a > 0.59 or battle_preview.modulate.a < 0.31:
 		push_error("Card UI smoke failed: battle timeline preview alpha should stay within the transparent pulse range")
+		get_tree().quit(1)
+		return
+	var battle_player_panel: UnitPanel = battle_scene.find_child("PlayerUnitPanel", true, false) as UnitPanel
+	if battle_player_panel == null:
+		push_error("Card UI smoke failed: battle player panel should exist for slot preview")
+		get_tree().quit(1)
+		return
+	var battle_slot_bars: HBoxContainer = battle_player_panel.get_node("BodyRow/InfoColumn/SlotBattery/SlotBatteryBars") as HBoxContainer
+	if battle_slot_bars == null or not _has_slot_preview(battle_slot_bars):
+		push_error("Card UI smoke failed: battle hand hover should preview slot usage")
 		get_tree().quit(1)
 		return
 	battle_player_card.emit_signal("mouse_exited")
@@ -658,3 +705,14 @@ func _expected_timeline_x(timeline_panel: TimelinePanel, remaining: float, horiz
 		track_width = 960.0
 	var usable_width: float = maxf(1.0, track_width - 168.0)
 	return usable_width * clampf(remaining, 0.0, horizon) / horizon
+
+
+func _has_slot_preview(slot_bars: HBoxContainer) -> bool:
+	for child in slot_bars.get_children():
+		var slot_cell: Panel = child as Panel
+		if slot_cell == null or not slot_cell.visible:
+			continue
+		var slot_style: StyleBoxFlat = slot_cell.get_theme_stylebox("panel") as StyleBoxFlat
+		if slot_style != null and slot_style.border_color.b > 0.9 and slot_style.bg_color.a < 0.8:
+			return true
+	return false

@@ -225,12 +225,13 @@ func _refresh_ui(time_scale: float) -> void:
 	else:
 		_slow_mode_label.text = Localization.get_text("battle.slow_mode_hold", "Hold Space for Slow Mode")
 
-	_enemy_panel.refresh_unit(battle_state.enemy)
-	_player_panel.refresh_unit(battle_state.player)
-	_enemy_cards_panel.refresh_cards(battle_state.enemy, null, "enemy")
-	_card_hand_panel.refresh_cards(battle_state.player, Game.current_run, "player")
 	var preview_runtime_state: CardRuntimeState = _get_hovered_player_runtime_state(battle_state)
 	var preview_card_def: CardDef = _get_hover_preview_card_def(preview_runtime_state)
+	var preview_slot_cost: int = _get_hover_preview_slot_cost(preview_runtime_state, preview_card_def)
+	_enemy_panel.refresh_unit(battle_state.enemy)
+	_player_panel.refresh_unit(battle_state.player, preview_slot_cost)
+	_enemy_cards_panel.refresh_cards(battle_state.enemy, null, "enemy")
+	_card_hand_panel.refresh_cards(battle_state.player, Game.current_run, "player")
 	var preview_entry: TimelineEntry = _build_hover_preview_entry(battle_state, preview_runtime_state, preview_card_def)
 	_timeline_panel.refresh_timeline(battle_state.timeline, battle_state.battle_time, Game.current_run, preview_entry, preview_card_def)
 	_log_panel.refresh_logs(battle_state.logs)
@@ -285,6 +286,14 @@ func _get_hover_preview_card_def(runtime_state: CardRuntimeState) -> CardDef:
 	if runtime_state == null or Game.current_run == null:
 		return null
 	return CardUpgradeResolver.build_effective_card(runtime_state.card_id, Game.current_run)
+
+
+func _get_hover_preview_slot_cost(runtime_state: CardRuntimeState, card_def: CardDef) -> int:
+	if runtime_state == null or card_def == null:
+		return 0
+	if not runtime_state.can_use():
+		return 0
+	return card_def.active_slot_cost
 
 
 func _build_hover_preview_entry(

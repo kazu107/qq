@@ -13,6 +13,13 @@ const TEXT_LIGHT := Color(0.95, 0.95, 0.93, 1.0)
 const SLOT_USED_FILL := Color(0.38, 0.93, 0.72, 1.0)
 const SLOT_EMPTY_FILL := Color(0.05, 0.09, 0.12, 0.46)
 const SLOT_BORDER := Color(0.53, 0.69, 0.74, 1.0)
+const SLOT_PREVIEW_FILL := Color(0.38, 0.74, 1.0, 1.0)
+const SLOT_PREVIEW_BORDER := Color(0.58, 0.86, 1.0, 1.0)
+const SLOT_OVERFLOW_FILL := Color(1.0, 0.28, 0.23, 1.0)
+const SLOT_OVERFLOW_BORDER := Color(1.0, 0.18, 0.16, 1.0)
+const SLOT_PREVIEW_ALPHA_MAX: float = 0.58
+const SLOT_PREVIEW_ALPHA_MIN: float = 0.32
+const SLOT_PREVIEW_ALPHA_CYCLE_SECONDS: float = 1.0
 const DAMAGE_COLOR := Color(1.0, 0.40, 0.35, 1.0)
 const HEAL_COLOR := Color(0.48, 0.95, 0.58, 1.0)
 const SHIELD_COLOR := Color(0.47, 0.82, 1.0, 1.0)
@@ -48,6 +55,12 @@ var _last_shield: int = -1
 var _last_stat_line: String = ""
 var _last_status_line: String = ""
 var _has_previous_snapshot: bool = false
+var _slot_preview_active: bool = false
+var _slot_preview_key: String = ""
+var _slot_preview_elapsed: float = 0.0
+var _slot_preview_used: int = 0
+var _slot_preview_total: int = 0
+var _slot_preview_cost: int = 0
 
 
 func _ready() -> void:
@@ -206,7 +219,7 @@ func configure_visual(unit_side: String, portrait_key: String) -> void:
 		_portrait_rect.texture = _get_portrait_texture(portrait_key)
 
 
-func refresh_unit(unit: UnitState) -> void:
+func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 	if _portrait_rect != null and _portrait_rect.texture == null:
 		_portrait_rect.texture = _get_portrait_texture(_portrait_key)
 
@@ -234,7 +247,7 @@ func refresh_unit(unit: UnitState) -> void:
 		"used": unit.active_slots_used,
 		"total": unit.active_slot_max,
 	})
-	_refresh_slot_battery(unit.active_slots_used, unit.active_slot_max)
+	_refresh_slot_battery(unit.active_slots_used, unit.active_slot_max, preview_slot_cost)
 	_stats_label.text = stat_line
 	_status_label.text = Localization.get_textf("unit.status", "Status: {value}", {"value": status_line})
 
@@ -245,17 +258,41 @@ func refresh_unit(unit: UnitState) -> void:
 	_has_previous_snapshot = true
 
 
-func _refresh_slot_battery(used_slots: int, total_slots: int) -> void:
-	var resolved_total: int = max(0, total_slots)
+func _refresh_slot_battery(used_slots: int, total_slots: int, preview_slot_cost: int = 0) -> void:
+	var resolved_total: int = maxi(0, total_slots)
 	var resolved_used: int = clampi(used_slots, 0, resolved_total)
-	_ensure_slot_cell_count(resolved_total)
+	var resolved_preview_cost: int = maxi(0, preview_slot_cost)
+	var preview_key: String = "%d:%d:%d" % [resolved_used, resolved_total, resolved_preview_cost]
+	if resolved_preview_cost > 0:
+		if not _slot_preview_active or _slot_preview_key != preview_key:
+			_slot_preview_elapsed = 0.0
+		_slot_preview_active = true
+		_slot_preview_key = preview_key
+	else:
+		_slot_preview_active = false
+		_slot_preview_key = ""
+		_slot_preview_elapsed = 0.0
+	_slot_preview_used = resolved_used
+	_slot_preview_total = resolved_total
+	_slot_preview_cost = resolved_preview_cost
+	_apply_slot_battery_styles()
+
+
+func _apply_slot_battery_styles() -> void:
+	var preview_end: int = _slot_preview_used + _slot_preview_cost
+	var visible_count: int = maxi(_slot_preview_total, preview_end)
+	var has_overflow: bool = preview_end > _slot_preview_total
+	_ensure_slot_cell_count(visible_count)
 	for index in range(_slot_cells.size()):
 		var slot_cell: Panel = _slot_cells[index]
-		var is_visible: bool = index < resolved_total
+		var is_visible: bool = index < visible_count
 		slot_cell.visible = is_visible
 		if not is_visible:
 			continue
-		slot_cell.add_theme_stylebox_override("panel", _make_slot_cell_stylebox(index < resolved_used))
+		var is_used: bool = index < _slot_preview_used
+		var is_preview: bool = index >= _slot_preview_used and index < preview_end
+		var is_overflow_slot: bool = has_overflow and is_preview
+		slot_cell.add_theme_stylebox_override("panel", _make_slot_cell_stylebox(is_used, is_preview, is_overflow_slot))
 
 
 func _ensure_slot_cell_count(total_slots: int) -> void:
@@ -271,6 +308,10 @@ func _ensure_slot_cell_count(total_slots: int) -> void:
 
 
 func _process(delta: float) -> void:
+	if _slot_preview_active:
+		_slot_preview_elapsed = fposmod(_slot_preview_elapsed + delta, SLOT_PREVIEW_ALPHA_CYCLE_SECONDS)
+		_apply_slot_battery_styles()
+
 	for index in range(_floating_texts.size() - 1, -1, -1):
 		var floating_text: FloatingStatText = _floating_texts[index]
 		if floating_text == null or floating_text.label == null:
@@ -423,10 +464,18 @@ func _make_shield_fill_stylebox() -> StyleBoxFlat:
 	return style
 
 
-func _make_slot_cell_stylebox(is_filled: bool) -> StyleBoxFlat:
+func _make_slot_cell_stylebox(is_filled: bool, is_preview: bool = false, is_overflow: bool = false) -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = SLOT_USED_FILL if is_filled else SLOT_EMPTY_FILL
-	style.border_color = SLOT_BORDER
+	var fill_color: Color = SLOT_USED_FILL if is_filled else SLOT_EMPTY_FILL
+	var border_color: Color = SLOT_BORDER
+	if is_preview:
+		var preview_alpha: float = _get_slot_preview_alpha()
+		fill_color = SLOT_OVERFLOW_FILL if is_overflow else SLOT_PREVIEW_FILL
+		border_color = SLOT_OVERFLOW_BORDER if is_overflow else SLOT_PREVIEW_BORDER
+		fill_color.a = preview_alpha
+		border_color.a = preview_alpha
+	style.bg_color = fill_color
+	style.border_color = border_color
 	style.border_width_left = 1
 	style.border_width_top = 1
 	style.border_width_right = 1
@@ -436,3 +485,10 @@ func _make_slot_cell_stylebox(is_filled: bool) -> StyleBoxFlat:
 	style.corner_radius_bottom_left = 2
 	style.corner_radius_bottom_right = 2
 	return style
+
+
+func _get_slot_preview_alpha() -> float:
+	var cycle_position: float = _slot_preview_elapsed / SLOT_PREVIEW_ALPHA_CYCLE_SECONDS
+	if cycle_position <= 0.5:
+		return lerpf(SLOT_PREVIEW_ALPHA_MAX, SLOT_PREVIEW_ALPHA_MIN, cycle_position * 2.0)
+	return lerpf(SLOT_PREVIEW_ALPHA_MIN, SLOT_PREVIEW_ALPHA_MAX, (cycle_position - 0.5) * 2.0)
