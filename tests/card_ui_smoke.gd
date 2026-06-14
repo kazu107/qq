@@ -404,10 +404,36 @@ func _run() -> void:
 		push_error("Card UI smoke failed: status icon hover should show remaining time and concrete details")
 		get_tree().quit(1)
 		return
-	if bleed_icon.modulate.r >= slow_icon.modulate.r:
+	if bleed_icon.self_modulate.r >= slow_icon.self_modulate.r:
 		push_error("Card UI smoke failed: status icon brightness should reflect remaining duration")
 		get_tree().quit(1)
 		return
+	var bleed_icon_before_refresh: TextureRect = bleed_icon
+	var bleed_brightness_before: float = bleed_icon.self_modulate.r
+	bleed_icon.emit_signal("mouse_entered")
+	await get_tree().process_frame
+	var status_tooltip_popup: PanelContainer = find_child("StatusTooltipPopup", true, false) as PanelContainer
+	var status_tooltip_text: Label = null
+	if status_tooltip_popup != null:
+		status_tooltip_text = status_tooltip_popup.find_child("StatusTooltipText", true, false) as Label
+	if status_tooltip_popup == null or status_tooltip_text == null or not status_tooltip_popup.visible or status_tooltip_text.text.find("Takes 1 damage") == -1:
+		push_error("Card UI smoke failed: status icon mouseover should show a visible detail popup")
+		get_tree().quit(1)
+		return
+	player_unit.tick_statuses(2.0)
+	unit_panel.refresh_unit(player_unit)
+	await get_tree().process_frame
+	bleed_icon = status_icon_row.find_child("StatusIcon_bleed", false, false) as TextureRect
+	if bleed_icon != bleed_icon_before_refresh:
+		push_error("Card UI smoke failed: status icons should be reused across refreshes so hover can remain active")
+		get_tree().quit(1)
+		return
+	if bleed_icon.self_modulate.r >= bleed_brightness_before:
+		push_error("Card UI smoke failed: status icon should visibly darken as remaining time decreases")
+		get_tree().quit(1)
+		return
+	bleed_icon.emit_signal("mouse_exited")
+	await get_tree().process_frame
 	var status_label: Label = unit_panel.get_node("BodyRow/InfoColumn/StatusLabel") as Label
 	if status_label == null or status_label.text.find("Bleed") != -1 or status_label.text.find("Slow") != -1:
 		push_error("Card UI smoke failed: unit status details should move out of the label text")

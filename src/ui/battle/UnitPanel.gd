@@ -24,7 +24,8 @@ const SLOT_PREVIEW_ALPHA_CYCLE_SECONDS: float = 1.0
 const DAMAGE_COLOR := Color(1.0, 0.40, 0.35, 1.0)
 const HEAL_COLOR := Color(0.48, 0.95, 0.58, 1.0)
 const SHIELD_COLOR := Color(0.47, 0.82, 1.0, 1.0)
-const STATUS_BRIGHTNESS_MIN: float = 0.34
+const STATUS_ICON_SIZE := Vector2(26.0, 26.0)
+const STATUS_BRIGHTNESS_MIN: float = 0.16
 const STATUS_BRIGHTNESS_MAX: float = 1.0
 const STATUS_FALLBACK_DURATIONS := {
 	"bleed": 36.0,
@@ -61,6 +62,11 @@ var _stats_label: Label
 var _status_label: Label
 var _status_icons_box: HBoxContainer
 var _status_none_label: Label
+var _status_icon_nodes: Dictionary = {}
+var _status_hovered_id: String = ""
+var _status_hovered_icon: TextureRect
+var _status_tooltip_popup: PanelContainer
+var _status_tooltip_label: Label
 var _floating_texts: Array[FloatingStatText] = []
 var _last_hp: int = -1
 var _last_shield: int = -1
@@ -231,6 +237,11 @@ func _ready() -> void:
 	set_process(true)
 
 
+func _exit_tree() -> void:
+	if _status_tooltip_popup != null and is_instance_valid(_status_tooltip_popup):
+		_status_tooltip_popup.queue_free()
+
+
 func set_title(title: String) -> void:
 	_title_label.text = title
 
@@ -285,37 +296,74 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 func _refresh_status_icons(statuses: Dictionary) -> void:
 	if _status_icons_box == null:
 		return
-	for child in _status_icons_box.get_children():
-		_status_icons_box.remove_child(child)
-		child.queue_free()
 
 	var rendered_count: int = 0
+	var active_status_ids: Array[String] = []
 	for raw_status_id in statuses.keys():
 		var status_id: String = String(raw_status_id)
 		var status_data: Dictionary = Dictionary(statuses.get(status_id, {}))
 		var remaining: float = float(status_data.get("duration", 0.0))
 		if remaining <= 0.0:
 			continue
+		active_status_ids.append(status_id)
 		var reference_duration: float = _get_status_reference_duration(status_id, status_data, remaining)
 		var brightness: float = _get_status_brightness(remaining, reference_duration)
-		var icon: TextureRect = TextureRect.new()
-		icon.name = "StatusIcon_%s" % status_id
-		icon.custom_minimum_size = Vector2(26.0, 26.0)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.mouse_filter = Control.MOUSE_FILTER_STOP
+		var icon: TextureRect = _get_or_create_status_icon(status_id)
+		icon.visible = true
 		icon.texture = _get_status_icon_texture(status_id)
-		icon.modulate = Color(brightness, brightness, brightness, 1.0)
+		icon.self_modulate = Color(brightness, brightness, brightness, 1.0)
 		icon.tooltip_text = _build_status_tooltip(status_id, remaining)
-		_status_icons_box.add_child(icon)
+		if _status_hovered_id == status_id:
+			_status_hovered_icon = icon
+			_show_status_tooltip(icon.tooltip_text, icon)
 		rendered_count += 1
 
-	if rendered_count == 0:
+	_remove_inactive_status_icons(active_status_ids)
+	if _status_none_label == null:
 		_status_none_label = Label.new()
 		_status_none_label.name = "StatusNoneLabel"
 		_status_none_label.text = Localization.get_text("status.none", "None")
 		_status_none_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_status_icons_box.add_child(_status_none_label)
+	if rendered_count == 0:
+		_status_none_label.text = Localization.get_text("status.none", "None")
+		_status_none_label.visible = true
+	else:
+		_status_none_label.visible = false
+
+
+func _get_or_create_status_icon(status_id: String) -> TextureRect:
+	if _status_icon_nodes.has(status_id):
+		var existing_icon: TextureRect = _status_icon_nodes[status_id] as TextureRect
+		if existing_icon != null and is_instance_valid(existing_icon):
+			return existing_icon
+
+	var icon: TextureRect = TextureRect.new()
+	icon.name = "StatusIcon_%s" % status_id
+	icon.custom_minimum_size = STATUS_ICON_SIZE
+	icon.size = STATUS_ICON_SIZE
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_STOP
+	icon.mouse_entered.connect(_on_status_icon_mouse_entered.bind(status_id, icon))
+	icon.mouse_exited.connect(_on_status_icon_mouse_exited.bind(status_id))
+	_status_icons_box.add_child(icon)
+	_status_icon_nodes[status_id] = icon
+	return icon
+
+
+func _remove_inactive_status_icons(active_status_ids: Array[String]) -> void:
+	for raw_status_id in _status_icon_nodes.keys():
+		var status_id: String = String(raw_status_id)
+		if active_status_ids.has(status_id):
+			continue
+		var icon: TextureRect = _status_icon_nodes[status_id] as TextureRect
+		_status_icon_nodes.erase(status_id)
+		if _status_hovered_id == status_id:
+			_hide_status_tooltip()
+		if icon != null and is_instance_valid(icon):
+			_status_icons_box.remove_child(icon)
+			icon.queue_free()
 
 
 func _get_status_reference_duration(status_id: String, status_data: Dictionary, remaining: float) -> float:
@@ -327,7 +375,8 @@ func _get_status_reference_duration(status_id: String, status_data: Dictionary, 
 
 func _get_status_brightness(remaining: float, reference_duration: float) -> float:
 	var remaining_ratio: float = clampf(remaining / maxf(reference_duration, 0.1), 0.0, 1.0)
-	return lerpf(STATUS_BRIGHTNESS_MIN, STATUS_BRIGHTNESS_MAX, remaining_ratio)
+	var eased_ratio: float = pow(remaining_ratio, 1.35)
+	return lerpf(STATUS_BRIGHTNESS_MIN, STATUS_BRIGHTNESS_MAX, eased_ratio)
 
 
 func _build_status_tooltip(status_id: String, remaining: float) -> String:
@@ -360,6 +409,67 @@ func _get_status_detail_text(status_id: String) -> String:
 			return Localization.get_textf("status.detail.vulnerable", "Incoming damage +{amount} while active.", {"amount": 3})
 		_:
 			return Localization.get_text("status.detail.unknown", "Temporary status effect.")
+
+
+func _on_status_icon_mouse_entered(status_id: String, icon: TextureRect) -> void:
+	_status_hovered_id = status_id
+	_status_hovered_icon = icon
+	_show_status_tooltip(icon.tooltip_text, icon)
+
+
+func _on_status_icon_mouse_exited(status_id: String) -> void:
+	if _status_hovered_id != status_id:
+		return
+	_hide_status_tooltip()
+
+
+func _show_status_tooltip(text: String, anchor: Control) -> void:
+	if text == "" or anchor == null:
+		return
+	_ensure_status_tooltip_popup()
+	if _status_tooltip_popup == null or _status_tooltip_label == null:
+		return
+	_status_tooltip_label.text = text
+	_status_tooltip_popup.visible = true
+	_status_tooltip_popup.global_position = anchor.get_global_position() + Vector2(0.0, anchor.size.y + 8.0)
+
+
+func _hide_status_tooltip() -> void:
+	_status_hovered_id = ""
+	_status_hovered_icon = null
+	if _status_tooltip_popup != null and is_instance_valid(_status_tooltip_popup):
+		_status_tooltip_popup.visible = false
+
+
+func _ensure_status_tooltip_popup() -> void:
+	if _status_tooltip_popup != null and is_instance_valid(_status_tooltip_popup):
+		return
+
+	_status_tooltip_popup = PanelContainer.new()
+	_status_tooltip_popup.name = "StatusTooltipPopup"
+	_status_tooltip_popup.visible = false
+	_status_tooltip_popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_status_tooltip_popup.z_index = 140
+	_status_tooltip_popup.custom_minimum_size = Vector2(220.0, 0.0)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 6)
+	_status_tooltip_popup.add_child(margin)
+
+	_status_tooltip_label = Label.new()
+	_status_tooltip_label.name = "StatusTooltipText"
+	_status_tooltip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_status_tooltip_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(_status_tooltip_label)
+
+	var owner: Node = get_tree().current_scene
+	if owner == null:
+		owner = get_tree().root
+	owner.add_child(_status_tooltip_popup)
 
 
 func _refresh_slot_battery(used_slots: int, total_slots: int, preview_slot_cost: int = 0) -> void:
