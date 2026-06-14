@@ -1,7 +1,12 @@
 extends Control
 
+const DEBUG_CARD_SLOT_COUNT := 6
+
 var _info_label: Label
 var _developer_panel: DeveloperPanel
+var _debug_enemy_option: OptionButton
+var _debug_starter_option: OptionButton
+var _debug_card_options: Array[OptionButton] = []
 
 
 func _ready() -> void:
@@ -59,7 +64,131 @@ func _ready() -> void:
 	root.add_child(settings_button)
 
 	if Game.is_developer_mode_enabled():
+		_build_debug_battle_lab(root)
 		_build_developer_panel()
+
+
+func _build_debug_battle_lab(parent: Control) -> void:
+	var panel: PanelContainer = PanelContainer.new()
+	panel.name = "DebugBattleLab"
+	panel.custom_minimum_size = Vector2(620.0, 0.0)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	parent.add_child(panel)
+
+	var box: VBoxContainer = VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	panel.add_child(box)
+
+	var title: Label = Label.new()
+	title.text = Localization.get_text("hub.debug_battle_lab", "Debug Battle Lab")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(title)
+
+	_debug_enemy_option = _create_debug_option(
+		"DebugEnemyOption",
+		Game.get_debug_battle_enemy_entries(),
+		"scout",
+		false
+	)
+	_add_option_row(box, Localization.get_text("hub.debug_enemy", "Enemy"), _debug_enemy_option)
+
+	_debug_starter_option = _create_debug_option(
+		"DebugStarterOption",
+		Game.get_debug_battle_starter_entries(),
+		"balanced",
+		false
+	)
+	_add_option_row(box, Localization.get_text("hub.debug_starter", "Starter"), _debug_starter_option)
+
+	var cards_label: Label = Label.new()
+	cards_label.text = Localization.get_text("hub.debug_loadout", "Loadout")
+	box.add_child(cards_label)
+
+	var card_entries: Array[Dictionary] = Game.get_debug_battle_card_entries()
+	var default_cards: Array[String] = ["quick_slash", "strike", "guard", "heavy_swing", "delay_step", "reload"]
+	_debug_card_options.clear()
+	for slot_index in range(DEBUG_CARD_SLOT_COUNT):
+		var default_card_id: String = default_cards[slot_index] if slot_index < default_cards.size() else "quick_slash"
+		var option: OptionButton = _create_debug_option(
+			"DebugCardSlot%d" % slot_index,
+			card_entries,
+			default_card_id,
+			true
+		)
+		_debug_card_options.append(option)
+		_add_option_row(
+			box,
+			Localization.get_textf("hub.debug_card_slot", "Card {index}", {"index": slot_index + 1}),
+			option
+		)
+
+	var start_button: Button = Button.new()
+	start_button.name = "DevCustomBattleStart"
+	start_button.text = Localization.get_text("hub.debug_start_custom_battle", "Start Custom Battle")
+	start_button.pressed.connect(_on_dev_start_custom_battle)
+	box.add_child(start_button)
+
+
+func _add_option_row(parent: Control, label_text: String, option: OptionButton) -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 8)
+	parent.add_child(row)
+
+	var label: Label = Label.new()
+	label.custom_minimum_size = Vector2(120.0, 0.0)
+	label.text = label_text
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(label)
+
+	option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(option)
+
+
+func _create_debug_option(name: String, entries: Array[Dictionary], default_id: String, include_empty: bool) -> OptionButton:
+	var option: OptionButton = OptionButton.new()
+	option.name = name
+	if include_empty:
+		option.add_item(Localization.get_text("hub.debug_empty_slot", "Empty"))
+		option.set_item_metadata(option.item_count - 1, "")
+	for entry in entries:
+		var entry_id: String = String(entry.get("id", ""))
+		if entry_id == "":
+			continue
+		option.add_item("%s [%s]" % [String(entry.get("name", entry_id)), entry_id])
+		option.set_item_metadata(option.item_count - 1, entry_id)
+	_select_option_by_metadata(option, default_id)
+	return option
+
+
+func _select_option_by_metadata(option: OptionButton, target_id: String) -> void:
+	for index in range(option.item_count):
+		if String(option.get_item_metadata(index)) == target_id:
+			option.select(index)
+			return
+	if option.item_count > 0:
+		option.select(0)
+
+
+func _on_dev_start_custom_battle() -> void:
+	var enemy_id: String = _get_selected_option_id(_debug_enemy_option)
+	var starter_id: String = _get_selected_option_id(_debug_starter_option)
+	var card_ids: Array[String] = []
+	for option in _debug_card_options:
+		var card_id: String = _get_selected_option_id(option)
+		if card_id != "":
+			card_ids.append(card_id)
+	Game.developer_open_custom_battle(enemy_id, starter_id, card_ids)
+	SceneRouter.go_to_battle()
+
+
+func _get_selected_option_id(option: OptionButton) -> String:
+	if option == null or option.item_count == 0:
+		return ""
+	var selected_index: int = option.selected
+	if selected_index < 0 or selected_index >= option.item_count:
+		return ""
+	return String(option.get_item_metadata(selected_index))
 
 
 func _build_developer_panel() -> void:

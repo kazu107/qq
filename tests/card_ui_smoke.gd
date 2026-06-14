@@ -382,6 +382,23 @@ func _run() -> void:
 	player_unit.active_slots_used = 2
 	unit_panel.refresh_unit(player_unit)
 	await get_tree().process_frame
+	player_unit.add_status("bleed", 4.0)
+	player_unit.add_status("slow", 5.0)
+	unit_panel.refresh_unit(player_unit)
+	await get_tree().process_frame
+
+	var status_icon_row: HBoxContainer = unit_panel.get_node("BodyRow/InfoColumn/StatusIconRow") as HBoxContainer
+	if status_icon_row == null \
+	or status_icon_row.find_child("StatusIcon_bleed", false, false) == null \
+	or status_icon_row.find_child("StatusIcon_slow", false, false) == null:
+		push_error("Card UI smoke failed: unit statuses should render as icons")
+		get_tree().quit(1)
+		return
+	var status_label: Label = unit_panel.get_node("BodyRow/InfoColumn/StatusLabel") as Label
+	if status_label == null or status_label.text.find("Bleed") != -1 or status_label.text.find("Slow") != -1:
+		push_error("Card UI smoke failed: unit status details should move out of the label text")
+		get_tree().quit(1)
+		return
 
 	var portrait: TextureRect = unit_panel.get_node("BodyRow/PortraitFrame/PortraitMargin/PortraitAnchor/Portrait") as TextureRect
 	if portrait == null or portrait.texture == null:
@@ -651,6 +668,13 @@ func _run() -> void:
 	for portrait_id in portrait_ids:
 		if not ResourceLoader.exists("res://assets/portraits/%s.png" % portrait_id):
 			push_error("Card UI smoke failed: missing generated portrait for %s" % portrait_id)
+			get_tree().quit(1)
+			return
+
+	var status_icon_ids: Array[String] = ["bleed", "weak", "slow", "vulnerable"]
+	for status_icon_id in status_icon_ids:
+		if not FileAccess.file_exists("res://assets/icons/status/%s.png" % status_icon_id):
+			push_error("Card UI smoke failed: missing generated status icon for %s" % status_icon_id)
 			get_tree().quit(1)
 			return
 

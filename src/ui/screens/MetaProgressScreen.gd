@@ -1,6 +1,7 @@
 extends Control
 
 var _summary_label: RichTextLabel
+var _achievement_box: VBoxContainer
 var _starter_box: VBoxContainer
 var _card_box: VBoxContainer
 var _relic_box: VBoxContainer
@@ -66,6 +67,12 @@ func _build_ui() -> void:
 	content.add_theme_constant_override("separation", 18)
 	scroll.add_child(content)
 
+	var achievements_panel: VBoxContainer = _create_panel(content, Localization.get_text("meta.achievements", "Achievements"))
+	_achievement_box = VBoxContainer.new()
+	_achievement_box.name = "MetaAchievementBox"
+	_achievement_box.add_theme_constant_override("separation", 10)
+	achievements_panel.add_child(_achievement_box)
+
 	var starters_panel: VBoxContainer = _create_panel(content, Localization.get_text("meta.starters", "Starter Unlocks"))
 	_starter_box = VBoxContainer.new()
 	_starter_box.name = "MetaStarterBox"
@@ -118,10 +125,77 @@ func _refresh_ui() -> void:
 			"current": int(summary.get("relic_unlocked", 0)),
 			"total": int(summary.get("relic_total", 0)),
 		}),
+		Localization.get_textf("meta.summary.achievements", "Achievements: {current} / {total}", {
+			"current": int(summary.get("achievement_claimed", 0)),
+			"total": int(summary.get("achievement_total", 0)),
+		}),
+		Localization.get_textf("meta.summary.claimable", "Achievement Rewards Ready: {value}", {
+			"value": int(summary.get("achievement_claimable", 0)),
+		}),
+		Localization.get_textf("meta.summary.permanent_bonuses", "Permanent Bonuses: {value}", {
+			"value": String(summary.get("permanent_bonus_text", "")),
+		}),
 	])
+	_rebuild_achievements()
 	_rebuild_starters()
 	_rebuild_cards()
 	_rebuild_relics()
+
+
+func _rebuild_achievements() -> void:
+	_clear_box(_achievement_box)
+	for entry in Game.get_meta_achievement_entries():
+		var achievement_id: String = String(entry.get("id", ""))
+
+		var row: HBoxContainer = HBoxContainer.new()
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_theme_constant_override("separation", 10)
+		_achievement_box.add_child(row)
+
+		var info: VBoxContainer = VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(info)
+
+		var name_label: Label = Label.new()
+		name_label.text = String(entry.get("name", achievement_id))
+		info.add_child(name_label)
+
+		var desc_label: Label = Label.new()
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_label.text = String(entry.get("description", ""))
+		info.add_child(desc_label)
+
+		var progress_label: Label = Label.new()
+		progress_label.name = "AchievementProgress_%s" % achievement_id
+		progress_label.text = Localization.get_textf("meta.achievement_progress", "Progress: {current} / {target}", {
+			"current": int(entry.get("current", 0)),
+			"target": int(entry.get("target", 0)),
+		})
+		info.add_child(progress_label)
+
+		var reward_label: Label = Label.new()
+		reward_label.name = "AchievementReward_%s" % achievement_id
+		reward_label.text = Localization.get_textf("meta.achievement_reward", "Reward: {value}", {
+			"value": String(entry.get("reward_text", "")),
+		})
+		info.add_child(reward_label)
+
+		var status_label: Label = Label.new()
+		status_label.name = "AchievementStatus_%s" % achievement_id
+		if bool(entry.get("claimed", false)):
+			status_label.text = Localization.get_text("meta.claimed", "Claimed")
+		elif bool(entry.get("claimable", false)):
+			status_label.text = Localization.get_text("meta.ready", "Ready")
+		else:
+			status_label.text = Localization.get_text("meta.locked", "Locked")
+		info.add_child(status_label)
+
+		var claim_button: Button = Button.new()
+		claim_button.name = "ClaimAchievement_%s" % achievement_id
+		claim_button.text = Localization.get_text("meta.claim", "Claim")
+		claim_button.disabled = not bool(entry.get("claimable", false))
+		claim_button.pressed.connect(_on_claim_achievement.bind(achievement_id))
+		row.add_child(claim_button)
 
 
 func _rebuild_starters() -> void:
@@ -276,6 +350,11 @@ func _on_unlock_card(card_id: String) -> void:
 
 func _on_unlock_relic(relic_id: String) -> void:
 	if Game.unlock_meta_relic(relic_id):
+		_refresh_ui()
+
+
+func _on_claim_achievement(achievement_id: String) -> void:
+	if Game.claim_meta_achievement(achievement_id):
 		_refresh_ui()
 
 

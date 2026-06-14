@@ -2,6 +2,7 @@ extends VBoxContainer
 class_name UnitPanel
 
 const PORTRAIT_PATH_TEMPLATE := "res://assets/portraits/%s.png"
+const STATUS_ICON_PATH_TEMPLATE := "res://assets/icons/status/%s.png"
 const PANEL_FILL := Color(0.08, 0.10, 0.13, 0.92)
 const PANEL_STROKE := Color(0.28, 0.34, 0.42, 1.0)
 const HP_BAR_FILL := Color(0.77, 0.19, 0.22, 1.0)
@@ -33,6 +34,7 @@ class FloatingStatText:
 	var drift: Vector2 = Vector2.ZERO
 
 static var _portrait_cache: Dictionary = {}
+static var _status_icon_cache: Dictionary = {}
 
 var _title_label: Label
 var _portrait_key: String = ""
@@ -49,6 +51,8 @@ var _slot_bars: HBoxContainer
 var _slot_cells: Array[Panel] = []
 var _stats_label: Label
 var _status_label: Label
+var _status_icons_box: HBoxContainer
+var _status_none_label: Label
 var _floating_texts: Array[FloatingStatText] = []
 var _last_hp: int = -1
 var _last_shield: int = -1
@@ -202,8 +206,19 @@ func _ready() -> void:
 
 	_status_label = Label.new()
 	_status_label.name = "StatusLabel"
-	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_status_label.text = Localization.get_text("unit.status_icons", "Status")
 	info_column.add_child(_status_label)
+
+	_status_icons_box = HBoxContainer.new()
+	_status_icons_box.name = "StatusIconRow"
+	_status_icons_box.add_theme_constant_override("separation", 6)
+	info_column.add_child(_status_icons_box)
+
+	_status_none_label = Label.new()
+	_status_none_label.name = "StatusNoneLabel"
+	_status_none_label.text = Localization.get_text("status.none", "None")
+	_status_none_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_status_icons_box.add_child(_status_none_label)
 
 	set_process(true)
 
@@ -249,13 +264,46 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 	})
 	_refresh_slot_battery(unit.active_slots_used, unit.active_slot_max, preview_slot_cost)
 	_stats_label.text = stat_line
-	_status_label.text = Localization.get_textf("unit.status", "Status: {value}", {"value": status_line})
+	_status_label.text = Localization.get_text("unit.status_icons", "Status")
+	_refresh_status_icons(unit.statuses)
 
 	_last_hp = hp_value
 	_last_shield = shield_value
 	_last_stat_line = stat_line
 	_last_status_line = status_line
 	_has_previous_snapshot = true
+
+
+func _refresh_status_icons(statuses: Dictionary) -> void:
+	if _status_icons_box == null:
+		return
+	for child in _status_icons_box.get_children():
+		_status_icons_box.remove_child(child)
+		child.queue_free()
+
+	var rendered_count: int = 0
+	for raw_status_id in statuses.keys():
+		var status_id: String = String(raw_status_id)
+		var status_data: Dictionary = Dictionary(statuses.get(status_id, {}))
+		var remaining: float = float(status_data.get("duration", 0.0))
+		if remaining <= 0.0:
+			continue
+		var icon: TextureRect = TextureRect.new()
+		icon.name = "StatusIcon_%s" % status_id
+		icon.custom_minimum_size = Vector2(26.0, 26.0)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture = _get_status_icon_texture(status_id)
+		icon.tooltip_text = "%s %.1fs" % [Localization.get_status_name(status_id), snappedf(remaining, 0.1)]
+		_status_icons_box.add_child(icon)
+		rendered_count += 1
+
+	if rendered_count == 0:
+		_status_none_label = Label.new()
+		_status_none_label.name = "StatusNoneLabel"
+		_status_none_label.text = Localization.get_text("status.none", "None")
+		_status_none_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_status_icons_box.add_child(_status_none_label)
 
 
 func _refresh_slot_battery(used_slots: int, total_slots: int, preview_slot_cost: int = 0) -> void:
@@ -382,6 +430,21 @@ func _get_portrait_texture(portrait_key: String) -> Texture2D:
 	return texture
 
 
+func _get_status_icon_texture(status_id: String) -> Texture2D:
+	if _status_icon_cache.has(status_id):
+		return _status_icon_cache[status_id] as Texture2D
+
+	var path: String = STATUS_ICON_PATH_TEMPLATE % status_id
+	var texture: Texture2D = null
+	if ResourceLoader.exists(path):
+		var resource: Resource = load(path)
+		texture = resource as Texture2D
+	if texture == null:
+		texture = _build_status_placeholder_texture(status_id)
+	_status_icon_cache[status_id] = texture
+	return texture
+
+
 func _build_placeholder_texture(unit_side: String, portrait_key: String) -> Texture2D:
 	var image: Image = Image.create(320, 320, false, Image.FORMAT_RGBA8)
 	var base_hue: float = float(abs(portrait_key.hash()) % 1000) / 1000.0
@@ -398,6 +461,15 @@ func _build_placeholder_texture(unit_side: String, portrait_key: String) -> Text
 	image.fill_rect(Rect2i(72, 168, 176, 96), shadow_color.lightened(0.10))
 	image.fill_rect(Rect2i(108, 84, 38, 38), accent_color.lightened(0.08))
 	image.fill_rect(Rect2i(174, 84, 38, 38), accent_color.lightened(0.08))
+	return ImageTexture.create_from_image(image)
+
+
+func _build_status_placeholder_texture(status_id: String) -> Texture2D:
+	var image: Image = Image.create(96, 96, false, Image.FORMAT_RGBA8)
+	var base_hue: float = float(abs(status_id.hash()) % 1000) / 1000.0
+	image.fill(Color(0.02, 0.03, 0.04, 0.0))
+	var fill_color: Color = Color.from_hsv(base_hue, 0.68, 0.88, 1.0)
+	image.fill_rect(Rect2i(18, 18, 60, 60), fill_color)
 	return ImageTexture.create_from_image(image)
 
 

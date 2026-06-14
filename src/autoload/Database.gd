@@ -7,6 +7,7 @@ const REWARDS_PATH := "res://data/rewards.json"
 const META_PROGRESS_PATH := "res://data/meta_progress.json"
 const RELICS_PATH := "res://data/relics.json"
 const EVENTS_PATH := "res://data/events.json"
+const ACHIEVEMENTS_PATH := "res://data/achievements.json"
 
 var cards: Dictionary = {}
 var enemies: Dictionary = {}
@@ -16,6 +17,8 @@ var meta_progress_template: Dictionary = {}
 var relics: Dictionary = {}
 var events: Dictionary = {}
 var event_order: Array[String] = []
+var achievements: Dictionary = {}
+var achievement_order: Array[String] = []
 var load_errors: Array[String] = []
 
 
@@ -28,6 +31,8 @@ func load_all() -> void:
 	relics.clear()
 	events.clear()
 	event_order.clear()
+	achievements.clear()
+	achievement_order.clear()
 	load_errors.clear()
 
 	_load_cards()
@@ -37,15 +42,17 @@ func load_all() -> void:
 	meta_progress_template = _load_json_dictionary(META_PROGRESS_PATH)
 	_load_relics()
 	_load_events()
+	_load_achievements()
 	_apply_localization()
 
 	if load_errors.is_empty():
-		print("Database loaded: %d cards / %d enemies / %d starters / %d relics / %d events" % [
+		print("Database loaded: %d cards / %d enemies / %d starters / %d relics / %d events / %d achievements" % [
 			cards.size(),
 			enemies.size(),
 			starters.size(),
 			relics.size(),
 			event_order.size(),
+			achievement_order.size(),
 		])
 	else:
 		for error_text in load_errors:
@@ -104,6 +111,16 @@ func get_all_event_ids() -> Array[String]:
 	return event_order.duplicate()
 
 
+func get_achievement(achievement_id: String) -> Dictionary:
+	if not achievements.has(achievement_id):
+		return {}
+	return Dictionary(achievements[achievement_id]).duplicate(true)
+
+
+func get_all_achievement_ids() -> Array[String]:
+	return achievement_order.duplicate()
+
+
 func _load_cards() -> void:
 	for raw_card in _load_json_array(CARDS_PATH):
 		var card_data: Dictionary = Dictionary(raw_card)
@@ -142,6 +159,19 @@ func _load_events() -> void:
 			continue
 		events[event_id] = event_data.duplicate(true)
 		event_order.append(event_id)
+
+
+func _load_achievements() -> void:
+	for raw_achievement in _load_json_array(ACHIEVEMENTS_PATH):
+		var achievement_data: Dictionary = Dictionary(raw_achievement)
+		if not _has_required_keys(achievement_data, ACHIEVEMENTS_PATH, ["id", "name", "description", "condition", "rewards"]):
+			continue
+		var achievement_id: String = String(achievement_data.get("id", ""))
+		if achievement_id == "":
+			_record_error("%s contains an achievement with an empty id" % ACHIEVEMENTS_PATH)
+			continue
+		achievements[achievement_id] = achievement_data.duplicate(true)
+		achievement_order.append(achievement_id)
 
 
 func _apply_localization() -> void:
@@ -205,6 +235,15 @@ func _apply_localization() -> void:
 			choices[choice_index] = choice_data
 		event_data["choices"] = choices
 		events[event_id] = event_data
+
+	for achievement_index in range(achievement_order.size()):
+		var achievement_id: String = achievement_order[achievement_index]
+		var achievement_data: Dictionary = Dictionary(achievements.get(achievement_id, {})).duplicate(true)
+		if achievement_data.is_empty():
+			continue
+		achievement_data["name"] = Localization.get_text("achievement.%s.name" % achievement_id, String(achievement_data.get("name", achievement_id)))
+		achievement_data["description"] = Localization.get_text("achievement.%s.description" % achievement_id, String(achievement_data.get("description", "")))
+		achievements[achievement_id] = achievement_data
 
 
 func _load_json_array(path: String) -> Array:

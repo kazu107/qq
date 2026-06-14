@@ -1,0 +1,86 @@
+[
+  {
+    "id": "first_victory",
+    "name": "First Victory",
+    "description": "Win any battle once.",
+    "condition": {
+      "stat": "victories",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "permanent_bonus",
+        "stat": "max_hp",
+        "amount": 5
+      }
+    ]
+  },
+  {
+    "id": "seasoned_pilot",
+    "name": "Seasoned Pilot",
+    "description": "Win three battles across runs.",
+    "condition": {
+      "stat": "victories",
+      "value": 3
+    },
+    "rewards": [
+      {
+        "type": "permanent_bonus",
+        "stat": "attack",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "id": "deep_push",
+    "name": "Deep Push",
+    "description": "Clear at least two encounters in one run.",
+    "condition": {
+      "stat": "best_clear",
+      "value": 2
+    },
+    "rewards": [
+      {
+        "type": "permanent_bonus",
+        "stat": "defense",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "id": "deck_expander",
+    "name": "Deck Expander",
+    "description": "Unlock sixteen cards.",
+    "condition": {
+      "stat": "unlocked_cards",
+      "value": 16
+    },
+    "rewards": [
+      {
+        "type": "permanent_bonus",
+        "stat": "loadout_limit",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "id": "timekeeper_down",
+    "name": "Timekeeper Down",
+    "description": "Defeat the Timekeeper boss.",
+    "condition": {
+      "stat": "boss_wins",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "permanent_bonus",
+        "stat": "speed",
+        "amount": 1
+      },
+      {
+        "type": "meta_points",
+        "amount": 2
+      }
+    ]
+  }
+]

@@ -33,6 +33,10 @@ func _run() -> void:
 	var starter_box: VBoxContainer = meta_scene.find_child("MetaStarterBox", true, false) as VBoxContainer
 	var card_box: VBoxContainer = meta_scene.find_child("MetaCardBox", true, false) as VBoxContainer
 	var relic_box: VBoxContainer = meta_scene.find_child("MetaRelicBox", true, false) as VBoxContainer
+	var achievement_box: VBoxContainer = meta_scene.find_child("MetaAchievementBox", true, false) as VBoxContainer
+	if achievement_box == null or achievement_box.get_child_count() == 0:
+		_fail("Meta progress smoke failed: achievement section did not render")
+		return
 	if starter_box == null or starter_box.get_child_count() == 0:
 		_fail("Meta progress smoke failed: starter unlock section did not render")
 		return
@@ -41,6 +45,24 @@ func _run() -> void:
 		return
 	if relic_box == null or relic_box.get_child_count() == 0:
 		_fail("Meta progress smoke failed: relic unlock section did not render")
+		return
+
+	Game.developer_add_achievement_stat("victories", 1)
+	meta_scene.call("_refresh_ui")
+	await get_tree().process_frame
+	var first_victory_button: Button = meta_scene.find_child("ClaimAchievement_first_victory", true, false) as Button
+	if first_victory_button == null or first_victory_button.disabled:
+		_fail("Meta progress smoke failed: first victory achievement should become claimable")
+		return
+	first_victory_button.emit_signal("pressed")
+	await get_tree().process_frame
+	if int(Game.get_permanent_bonuses().get("max_hp", 0)) != 5:
+		_fail("Meta progress smoke failed: achievement claim should grant a permanent HP bonus")
+		return
+	var base_hp: int = int(Database.get_starter("balanced").get("max_hp", 0))
+	Game.start_new_run("balanced")
+	if Game.current_run == null or Game.current_run.max_hp != base_hp + 5:
+		_fail("Meta progress smoke failed: claimed permanent HP bonus should apply to new runs")
 		return
 
 	Game.developer_add_points(10)
@@ -109,6 +131,9 @@ func _run() -> void:
 		return
 	if Game.get_unlocked_card_ids().has("assault"):
 		_fail("Meta progress smoke failed: developer reset should relock previously unlocked rare cards")
+		return
+	if int(Game.get_permanent_bonuses().get("max_hp", 0)) != 0:
+		_fail("Meta progress smoke failed: developer reset should clear claimed permanent bonuses")
 		return
 
 	meta_scene = load("res://scenes/meta/MetaProgress.tscn").instantiate() as Control

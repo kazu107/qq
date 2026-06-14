@@ -26,6 +26,31 @@ func _run() -> void:
 		_fail("Developer mode smoke failed: title toggle did not enable developer mode")
 		return
 
+	get_tree().change_scene_to_file("res://scenes/hub/Hub.tscn")
+	var hub_scene: Node = await _wait_for_scene("Hub")
+	if _failed or hub_scene == null:
+		return
+	var enemy_option: OptionButton = hub_scene.find_child("DebugEnemyOption", true, false) as OptionButton
+	var first_card_option: OptionButton = hub_scene.find_child("DebugCardSlot0", true, false) as OptionButton
+	var custom_battle_button: Button = hub_scene.find_child("DevCustomBattleStart", true, false) as Button
+	if enemy_option == null or first_card_option == null or custom_battle_button == null:
+		_fail("Developer mode smoke failed: custom battle lab controls were missing")
+		return
+	if not _select_option_by_metadata(enemy_option, "brute") or not _select_option_by_metadata(first_card_option, "meteor_crash"):
+		_fail("Developer mode smoke failed: custom battle lab could not select requested options")
+		return
+	custom_battle_button.emit_signal("pressed")
+	var custom_battle_scene: Node = await _wait_for_scene("Battle")
+	if _failed or custom_battle_scene == null:
+		return
+	var custom_engine: RealtimeBattleEngine = custom_battle_scene.get("_engine") as RealtimeBattleEngine
+	if custom_engine == null or custom_engine.battle_state == null or custom_engine.battle_state.enemy.unit_id != "brute":
+		_fail("Developer mode smoke failed: custom battle lab did not open the requested enemy")
+		return
+	if Game.current_run == null or not Game.current_run.equipped_cards.has("meteor_crash"):
+		_fail("Developer mode smoke failed: custom battle lab did not apply the requested loadout")
+		return
+
 	Game.developer_start_run("balanced")
 	get_tree().change_scene_to_file("res://scenes/map/Map.tscn")
 	var map_scene: Node = await _wait_for_scene("Map")
@@ -138,6 +163,14 @@ func _wait_for_scene(scene_name: String) -> Node:
 		timeout_frames -= 1
 	_fail("Developer mode smoke failed: scene %s did not open" % scene_name)
 	return null
+
+
+func _select_option_by_metadata(option: OptionButton, target_id: String) -> bool:
+	for index in range(option.item_count):
+		if String(option.get_item_metadata(index)) == target_id:
+			option.select(index)
+			return true
+	return false
 
 
 func _fail(message: String) -> void:

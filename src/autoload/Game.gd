@@ -149,15 +149,18 @@ func get_unlocked_starters() -> Array[Dictionary]:
 
 
 func start_new_run(starter_id: String, seed_override: int = 0) -> void:
+	ensure_meta_initialized()
 	var starter: Dictionary = Database.get_starter(starter_id)
 	if starter.is_empty():
 		return
 	current_run = RunState.from_starter(starter, seed_override)
+	_apply_permanent_bonuses_to_run(current_run)
 	current_run.map_state = _map_generator.generate_run(current_run.seed)
 	pending_enemy_id = ""
 	reward_options.clear()
 	last_battle_summary.clear()
 	last_reward_bundle.clear()
+	_meta_progress_service.increment_achievement_stat(meta_progress, "runs_started")
 	settings["last_run_starter_id"] = current_run.starter_id
 	settings["last_run_seed"] = current_run.seed
 	current_screen_hint = "map"
@@ -183,6 +186,7 @@ func prepare_next_battle() -> String:
 func complete_battle(summary: Dictionary) -> void:
 	if current_run == null:
 		return
+	ensure_meta_initialized()
 
 	last_battle_summary = summary.duplicate(true)
 	current_run.player_hp = int(summary.get("player_hp", current_run.player_hp))
@@ -208,6 +212,10 @@ func complete_battle(summary: Dictionary) -> void:
 		current_screen_hint = "result"
 		SaveManager.save_game(current_screen_hint)
 		return
+
+	_meta_progress_service.increment_achievement_stat(meta_progress, "victories")
+	if node_type == "boss" or String(summary.get("enemy_id", "")) == "boss_timekeeper":
+		_meta_progress_service.increment_achievement_stat(meta_progress, "boss_wins")
 
 	current_run.encounters_cleared += 1
 	if not active_node.is_empty():
@@ -318,14 +326,22 @@ func get_meta_summary() -> Dictionary:
 	var starter_entries: Array[Dictionary] = get_meta_starter_entries()
 	var card_entries: Array[Dictionary] = get_meta_card_entries()
 	var relic_entries: Array[Dictionary] = get_meta_relic_entries()
+	var achievement_entries: Array[Dictionary] = get_meta_achievement_entries()
 	var unlocked_card_count: int = 0
 	var unlocked_relic_count: int = 0
+	var claimed_achievement_count: int = 0
+	var claimable_achievement_count: int = 0
 	for entry in card_entries:
 		if bool(entry.get("unlocked", false)):
 			unlocked_card_count += 1
 	for entry in relic_entries:
 		if bool(entry.get("unlocked", false)):
 			unlocked_relic_count += 1
+	for entry in achievement_entries:
+		if bool(entry.get("claimed", false)):
+			claimed_achievement_count += 1
+		elif bool(entry.get("claimable", false)):
+			claimable_achievement_count += 1
 	return {
 		"points": get_meta_points(),
 		"best_clear": get_best_clear(),
@@ -335,6 +351,10 @@ func get_meta_summary() -> Dictionary:
 		"card_total": card_entries.size(),
 		"relic_unlocked": unlocked_relic_count,
 		"relic_total": relic_entries.size(),
+		"achievement_claimed": claimed_achievement_count,
+		"achievement_total": achievement_entries.size(),
+		"achievement_claimable": claimable_achievement_count,
+		"permanent_bonus_text": get_permanent_bonus_summary(),
 	}
 
 
@@ -351,6 +371,39 @@ func get_meta_card_entries() -> Array[Dictionary]:
 func get_meta_relic_entries() -> Array[Dictionary]:
 	ensure_meta_initialized()
 	return _meta_progress_service.build_relic_entries(meta_progress)
+
+
+func get_meta_achievement_entries() -> Array[Dictionary]:
+	ensure_meta_initialized()
+	return _meta_progress_service.build_achievement_entries(meta_progress)
+
+
+func get_permanent_bonuses() -> Dictionary:
+	ensure_meta_initialized()
+	return _meta_progress_service.get_permanent_bonuses(meta_progress)
+
+
+func get_permanent_bonus_summary() -> String:
+	var bonuses: Dictionary = get_permanent_bonuses()
+	var parts: Array[String] = []
+	var max_hp_bonus: int = int(bonuses.get("max_hp", 0))
+	var attack_bonus: int = int(bonuses.get("attack", 0))
+	var defense_bonus: int = int(bonuses.get("defense", 0))
+	var speed_bonus: int = int(bonuses.get("speed", 0))
+	var loadout_bonus: int = int(bonuses.get("loadout_limit", 0))
+	if max_hp_bonus != 0:
+		parts.append("HP +%d" % max_hp_bonus)
+	if attack_bonus != 0:
+		parts.append("ATK +%d" % attack_bonus)
+	if defense_bonus != 0:
+		parts.append("DEF +%d" % defense_bonus)
+	if speed_bonus != 0:
+		parts.append("SPD +%d" % speed_bonus)
+	if loadout_bonus != 0:
+		parts.append("Loadout +%d" % loadout_bonus)
+	if parts.is_empty():
+		return Localization.get_text("meta.bonus_none", "None")
+	return ", ".join(parts)
 
 
 func unlock_meta_starter(starter_id: String) -> bool:
@@ -378,6 +431,15 @@ func unlock_meta_relic(relic_id: String) -> bool:
 		AudioManager.play_sfx("meta_unlock")
 		SaveManager.save_game(current_screen_hint)
 	return unlocked
+
+
+func claim_meta_achievement(achievement_id: String) -> bool:
+	ensure_meta_initialized()
+	var claimed: bool = _meta_progress_service.claim_achievement(meta_progress, achievement_id)
+	if claimed:
+		AudioManager.play_sfx("meta_unlock")
+		SaveManager.save_game(current_screen_hint)
+	return claimed
 
 
 func get_card_library_entries() -> Array[Dictionary]:
@@ -609,6 +671,30 @@ func developer_open_battle(enemy_id: String = "scout", starter_id: String = "bal
 	SaveManager.save_game(current_screen_hint)
 
 
+func developer_open_custom_battle(enemy_id: String, starter_id: String, card_ids: Array[String]) -> void:
+	var resolved_enemy_id: String = enemy_id
+	if Database.get_enemy(resolved_enemy_id) == null:
+		resolved_enemy_id = "scout"
+
+	var resolved_starter_id: String = starter_id
+	if Database.get_starter(resolved_starter_id).is_empty():
+		resolved_starter_id = "balanced"
+
+	start_new_run(resolved_starter_id)
+	var valid_card_ids: Array[String] = _filter_valid_card_ids(card_ids)
+	if not valid_card_ids.is_empty():
+		current_run.player_cards = valid_card_ids.duplicate()
+		current_run.loadout_limit = maxi(current_run.loadout_limit, RunState.get_total_loadout_cost(valid_card_ids))
+		current_run.equipped_cards = valid_card_ids.duplicate()
+
+	pending_enemy_id = resolved_enemy_id
+	reward_options.clear()
+	last_battle_summary.clear()
+	last_reward_bundle.clear()
+	current_screen_hint = "battle"
+	SaveManager.save_game(current_screen_hint)
+
+
 func developer_open_reward(starter_id: String = "balanced") -> void:
 	if current_run == null or current_run.run_complete:
 		start_new_run(starter_id)
@@ -688,6 +774,13 @@ func developer_add_points(amount: int = 5) -> int:
 	AudioManager.play_sfx("meta_points")
 	SaveManager.save_game(current_screen_hint)
 	return int(meta_progress.get("points", 0))
+
+
+func developer_add_achievement_stat(stat_id: String, amount: int = 1) -> int:
+	ensure_meta_initialized()
+	var next_value: int = _meta_progress_service.increment_achievement_stat(meta_progress, stat_id, amount)
+	SaveManager.save_game(current_screen_hint)
+	return next_value
 
 
 func developer_restore_hp() -> int:
@@ -779,6 +872,48 @@ func get_available_event_debug_entries() -> Array[Dictionary]:
 		entries.append({
 			"id": event_id,
 			"title": _event_service.get_event_title(event_id),
+		})
+	return entries
+
+
+func get_debug_battle_enemy_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	for raw_enemy_id in Database.enemies.keys():
+		var enemy_id: String = String(raw_enemy_id)
+		var enemy_def: EnemyDef = Database.get_enemy(enemy_id)
+		if enemy_def == null:
+			continue
+		entries.append({
+			"id": enemy_id,
+			"name": enemy_def.name,
+		})
+	return entries
+
+
+func get_debug_battle_starter_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	for starter in Database.starters:
+		var starter_id: String = String(starter.get("id", ""))
+		if starter_id == "":
+			continue
+		entries.append({
+			"id": starter_id,
+			"name": String(starter.get("name", starter_id)),
+		})
+	return entries
+
+
+func get_debug_battle_card_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	for card_id in Database.get_all_card_ids():
+		var card_def: CardDef = Database.get_card(card_id)
+		if card_def == null:
+			continue
+		entries.append({
+			"id": card_id,
+			"name": card_def.name,
+			"rarity": card_def.rarity,
+			"loadout_cost": card_def.loadout_cost,
 		})
 	return entries
 
@@ -1160,6 +1295,37 @@ func leave_facility() -> void:
 	_complete_active_map_node_and_advance()
 	current_screen_hint = _get_post_progress_scene_hint()
 	SaveManager.save_game(current_screen_hint)
+
+
+func _apply_permanent_bonuses_to_run(run_state: RunState) -> void:
+	if run_state == null:
+		return
+	var bonuses: Dictionary = _meta_progress_service.get_permanent_bonuses(meta_progress)
+	var max_hp_bonus: int = int(bonuses.get("max_hp", 0))
+	var attack_bonus: int = int(bonuses.get("attack", 0))
+	var defense_bonus: int = int(bonuses.get("defense", 0))
+	var speed_bonus: int = int(bonuses.get("speed", 0))
+	var loadout_bonus: int = int(bonuses.get("loadout_limit", 0))
+	if max_hp_bonus != 0:
+		run_state.max_hp = max(1, run_state.max_hp + max_hp_bonus)
+		run_state.player_hp = run_state.max_hp
+	if attack_bonus != 0:
+		run_state.attack += attack_bonus
+	if defense_bonus != 0:
+		run_state.defense += defense_bonus
+	if speed_bonus != 0:
+		run_state.speed += speed_bonus
+	if loadout_bonus != 0:
+		run_state.loadout_limit = max(1, run_state.loadout_limit + loadout_bonus)
+		run_state.equipped_cards = RunState.build_default_equipped_cards(run_state.player_cards, run_state.loadout_limit)
+
+
+func _filter_valid_card_ids(card_ids: Array[String]) -> Array[String]:
+	var valid_card_ids: Array[String] = []
+	for card_id in card_ids:
+		if Database.get_card(card_id) != null:
+			valid_card_ids.append(card_id)
+	return valid_card_ids
 
 
 func _ensure_map_state() -> void:
