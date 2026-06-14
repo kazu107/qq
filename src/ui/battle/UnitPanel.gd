@@ -10,6 +10,9 @@ const SHIELD_BAR_FILL := Color(0.26, 0.63, 0.92, 1.0)
 const SHIELD_BAR_BG := Color(0.04, 0.11, 0.18, 0.96)
 const SHIELD_BAR_SOFT_MAX: float = 12.0
 const TEXT_LIGHT := Color(0.95, 0.95, 0.93, 1.0)
+const SLOT_USED_FILL := Color(0.38, 0.93, 0.72, 1.0)
+const SLOT_EMPTY_FILL := Color(0.05, 0.09, 0.12, 0.46)
+const SLOT_BORDER := Color(0.53, 0.69, 0.74, 1.0)
 const DAMAGE_COLOR := Color(1.0, 0.40, 0.35, 1.0)
 const HEAL_COLOR := Color(0.48, 0.95, 0.58, 1.0)
 const SHIELD_COLOR := Color(0.47, 0.82, 1.0, 1.0)
@@ -35,6 +38,8 @@ var _hp_label: Label
 var _shield_bar: ProgressBar
 var _shield_label: Label
 var _slots_label: Label
+var _slot_bars: HBoxContainer
+var _slot_cells: Array[Panel] = []
 var _stats_label: Label
 var _status_label: Label
 var _floating_texts: Array[FloatingStatText] = []
@@ -161,9 +166,21 @@ func _ready() -> void:
 	_shield_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	shield_stack.add_child(_shield_label)
 
+	var slot_battery: HBoxContainer = HBoxContainer.new()
+	slot_battery.name = "SlotBattery"
+	slot_battery.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot_battery.add_theme_constant_override("separation", 10)
+	info_column.add_child(slot_battery)
+
 	_slots_label = Label.new()
 	_slots_label.name = "SlotLabel"
-	info_column.add_child(_slots_label)
+	_slots_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	slot_battery.add_child(_slots_label)
+
+	_slot_bars = HBoxContainer.new()
+	_slot_bars.name = "SlotBatteryBars"
+	_slot_bars.add_theme_constant_override("separation", 4)
+	slot_battery.add_child(_slot_bars)
 
 	_stats_label = Label.new()
 	_stats_label.name = "StatsLabel"
@@ -217,6 +234,7 @@ func refresh_unit(unit: UnitState) -> void:
 		"used": unit.active_slots_used,
 		"total": unit.active_slot_max,
 	})
+	_refresh_slot_battery(unit.active_slots_used, unit.active_slot_max)
 	_stats_label.text = stat_line
 	_status_label.text = Localization.get_textf("unit.status", "Status: {value}", {"value": status_line})
 
@@ -225,6 +243,31 @@ func refresh_unit(unit: UnitState) -> void:
 	_last_stat_line = stat_line
 	_last_status_line = status_line
 	_has_previous_snapshot = true
+
+
+func _refresh_slot_battery(used_slots: int, total_slots: int) -> void:
+	var resolved_total: int = max(0, total_slots)
+	var resolved_used: int = clampi(used_slots, 0, resolved_total)
+	_ensure_slot_cell_count(resolved_total)
+	for index in range(_slot_cells.size()):
+		var slot_cell: Panel = _slot_cells[index]
+		var is_visible: bool = index < resolved_total
+		slot_cell.visible = is_visible
+		if not is_visible:
+			continue
+		slot_cell.add_theme_stylebox_override("panel", _make_slot_cell_stylebox(index < resolved_used))
+
+
+func _ensure_slot_cell_count(total_slots: int) -> void:
+	if _slot_bars == null:
+		return
+	while _slot_cells.size() < total_slots:
+		var slot_cell: Panel = Panel.new()
+		slot_cell.name = "SlotCell%d" % _slot_cells.size()
+		slot_cell.custom_minimum_size = Vector2(10.0, 28.0)
+		slot_cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_slot_bars.add_child(slot_cell)
+		_slot_cells.append(slot_cell)
 
 
 func _process(delta: float) -> void:
@@ -377,4 +420,19 @@ func _make_shield_fill_stylebox() -> StyleBoxFlat:
 	style.corner_radius_top_right = 8
 	style.corner_radius_bottom_left = 8
 	style.corner_radius_bottom_right = 8
+	return style
+
+
+func _make_slot_cell_stylebox(is_filled: bool) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = SLOT_USED_FILL if is_filled else SLOT_EMPTY_FILL
+	style.border_color = SLOT_BORDER
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 2
+	style.corner_radius_top_right = 2
+	style.corner_radius_bottom_left = 2
+	style.corner_radius_bottom_right = 2
 	return style

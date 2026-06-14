@@ -175,6 +175,49 @@ func _run() -> void:
 		push_error("Card UI smoke failed: timeline cards should slide right-to-left by remaining time")
 		get_tree().quit(1)
 		return
+	var guard_button_before_delay: CardButton = _find_timeline_card(cards_track, "timeline_3")
+	if guard_button_before_delay == null:
+		push_error("Card UI smoke failed: target card for delay slide was not rendered")
+		get_tree().quit(1)
+		return
+	var guard_position_before_delay: float = guard_button_before_delay.position.x
+	timeline_panel.refresh_timeline([
+		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
+		_make_timeline_entry("heavy_swing", "enemy", 2.8, 0.5, 1),
+		_make_timeline_entry("guard", "player", 4.4, 0.8, 3),
+	], 1.5)
+	var guard_button_delay_start: CardButton = _find_timeline_card(cards_track, "timeline_3")
+	if guard_button_delay_start == null or absf(guard_button_delay_start.position.x - guard_position_before_delay) > 1.0:
+		push_error("Card UI smoke failed: delayed timeline card should start sliding from its previous position")
+		get_tree().quit(1)
+		return
+	timeline_panel.refresh_timeline([
+		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
+		_make_timeline_entry("heavy_swing", "enemy", 2.8, 0.5, 1),
+		_make_timeline_entry("guard", "player", 4.4, 0.8, 3),
+	], 1.75)
+	var guard_button_delay_mid: CardButton = _find_timeline_card(cards_track, "timeline_3")
+	var expected_mid_x: float = _expected_timeline_x(timeline_panel, 2.15, 6.0)
+	if guard_button_delay_mid == null or absf(guard_button_delay_mid.position.x - expected_mid_x) > 1.0:
+		push_error("Card UI smoke failed: delayed timeline card should slide toward the delayed time over 0.5s")
+		get_tree().quit(1)
+		return
+	timeline_panel.refresh_timeline([
+		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
+		_make_timeline_entry("heavy_swing", "enemy", 2.8, 0.5, 1),
+		_make_timeline_entry("guard", "player", 4.4, 0.8, 3),
+	], 2.0)
+	var guard_button_delay_end: CardButton = _find_timeline_card(cards_track, "timeline_3")
+	var expected_end_x: float = _expected_timeline_x(timeline_panel, 2.4, 6.0)
+	if guard_button_delay_end == null or absf(guard_button_delay_end.position.x - expected_end_x) > 1.0:
+		push_error("Card UI smoke failed: delayed timeline card should include elapsed time when the slide ends")
+		get_tree().quit(1)
+		return
+	timeline_panel.refresh_timeline([
+		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
+		_make_timeline_entry("heavy_swing", "enemy", 2.8, 0.5, 1),
+		_make_timeline_entry("guard", "player", 3.4, 0.8, 3),
+	], 1.5)
 	var next_badge: ColorRect = earliest_button.get_node("TimelineNextBadge") as ColorRect
 	var next_label: Label = earliest_button.get_node("TimelineNextBadge/Next") as Label
 	if next_badge == null or next_label == null or not next_badge.visible or next_label.text != "NEXT":
@@ -362,9 +405,26 @@ func _run() -> void:
 		push_error("Card UI smoke failed: shield bar should be smaller than the HP bar")
 		get_tree().quit(1)
 		return
-	var unit_slot_label: Label = unit_panel.get_node("BodyRow/InfoColumn/SlotLabel") as Label
+	var unit_slot_label: Label = unit_panel.get_node("BodyRow/InfoColumn/SlotBattery/SlotLabel") as Label
 	if unit_slot_label == null or unit_slot_label.text != "Slots 2 / 4":
 		push_error("Card UI smoke failed: unit panel should render active slots")
+		get_tree().quit(1)
+		return
+	var slot_bars: HBoxContainer = unit_panel.get_node("BodyRow/InfoColumn/SlotBattery/SlotBatteryBars") as HBoxContainer
+	if slot_bars == null or slot_bars.get_child_count() != 4:
+		push_error("Card UI smoke failed: unit panel should render slot battery cells")
+		get_tree().quit(1)
+		return
+	var first_slot_cell: Panel = slot_bars.get_child(0) as Panel
+	var last_slot_cell: Panel = slot_bars.get_child(3) as Panel
+	if first_slot_cell == null or last_slot_cell == null:
+		push_error("Card UI smoke failed: unit panel slot battery cells should be panels")
+		get_tree().quit(1)
+		return
+	var first_slot_style: StyleBoxFlat = first_slot_cell.get_theme_stylebox("panel") as StyleBoxFlat
+	var last_slot_style: StyleBoxFlat = last_slot_cell.get_theme_stylebox("panel") as StyleBoxFlat
+	if first_slot_style == null or last_slot_style == null or first_slot_style.bg_color.a < 0.9 or last_slot_style.bg_color.a > 0.8:
+		push_error("Card UI smoke failed: used and empty slot battery cells should be visually distinct")
 		get_tree().quit(1)
 		return
 
@@ -581,3 +641,20 @@ func _make_timeline_entry(card_id: String, owner_side: String, scheduled_time: f
 	entry.instance_id = instance_id
 	entry.slot_cost = 1
 	return entry
+
+
+func _find_timeline_card(cards_track: Control, runtime_id: String) -> CardButton:
+	for child in cards_track.get_children():
+		var button: CardButton = child as CardButton
+		if button != null and button.runtime_id == runtime_id:
+			return button
+	return null
+
+
+func _expected_timeline_x(timeline_panel: TimelinePanel, remaining: float, horizon: float) -> float:
+	var timeline_scroll: Control = timeline_panel.get_node("TimelineScroll") as Control
+	var track_width: float = timeline_scroll.size.x
+	if track_width <= 168.0:
+		track_width = 960.0
+	var usable_width: float = maxf(1.0, track_width - 168.0)
+	return usable_width * clampf(remaining, 0.0, horizon) / horizon

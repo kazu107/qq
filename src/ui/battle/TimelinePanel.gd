@@ -11,6 +11,8 @@ const PREVIEW_ALPHA_MAX: float = 0.58
 const PREVIEW_ALPHA_MIN: float = 0.32
 const PREVIEW_ALPHA_CYCLE_SECONDS: float = 1.0
 const PREVIEW_Z_INDEX: int = 1000
+const DELAY_SLIDE_SECONDS: float = 0.5
+const SCHEDULE_CHANGE_EPSILON: float = 0.001
 
 var _title_label: Label
 var _summary_label: Label
@@ -26,6 +28,8 @@ var _preview_runtime_id: String = ""
 var _preview_alpha_elapsed: float = 0.0
 var _timeline_horizon: float = DEFAULT_TIMELINE_HORIZON
 var _fixed_horizon: float = DEFAULT_TIMELINE_HORIZON
+var _last_scheduled_times: Dictionary = {}
+var _delay_animation_states: Dictionary = {}
 
 
 func _ready() -> void:
@@ -104,6 +108,10 @@ func refresh_timeline(
 	_refresh_scale(_timeline_horizon)
 	_ensure_card_count(sorted_entries.size())
 	_card_layouts.clear()
+	var active_instance_ids: Array[int] = []
+	for sorted_entry in sorted_entries:
+		active_instance_ids.append(sorted_entry.instance_id)
+	_cleanup_entry_state(active_instance_ids)
 
 	for index in range(_cards.size()):
 		var button: CardButton = _cards[index]
@@ -121,7 +129,7 @@ func refresh_timeline(
 		button.bind_timeline(card_def, entry, battle_time, index == 0)
 		_card_layouts.append({
 			"button": button,
-			"remaining": maxf(0.0, entry.scheduled_time - battle_time),
+			"remaining": _get_display_remaining(entry, battle_time),
 		})
 	_refresh_preview(preview_entry, preview_card_def, battle_time)
 	_layout_cards()
@@ -201,6 +209,72 @@ func _apply_preview_alpha() -> void:
 	else:
 		alpha = lerpf(PREVIEW_ALPHA_MIN, PREVIEW_ALPHA_MAX, (cycle_position - 0.5) * 2.0)
 	_preview_button.modulate = Color(1.0, 1.0, 1.0, alpha)
+
+
+func _get_display_remaining(entry: TimelineEntry, battle_time: float) -> float:
+	var instance_id: int = entry.instance_id
+	var scheduled_time: float = entry.scheduled_time
+	if _last_scheduled_times.has(instance_id):
+		var previous_scheduled_time: float = float(_last_scheduled_times[instance_id])
+		if scheduled_time > previous_scheduled_time + SCHEDULE_CHANGE_EPSILON:
+			var current_display_remaining: float = _get_current_display_remaining(instance_id, previous_scheduled_time, battle_time)
+			_delay_animation_states[instance_id] = {
+				"start_time": battle_time,
+				"from_scheduled_time": battle_time + current_display_remaining,
+				"to_scheduled_time": scheduled_time,
+			}
+		elif scheduled_time < previous_scheduled_time - SCHEDULE_CHANGE_EPSILON:
+			_delay_animation_states.erase(instance_id)
+
+	_last_scheduled_times[instance_id] = scheduled_time
+	return _resolve_animated_remaining(instance_id, scheduled_time, battle_time)
+
+
+func _get_current_display_remaining(instance_id: int, fallback_scheduled_time: float, battle_time: float) -> float:
+	if not _delay_animation_states.has(instance_id):
+		return maxf(0.0, fallback_scheduled_time - battle_time)
+	var animation_state: Dictionary = Dictionary(_delay_animation_states.get(instance_id, {}))
+	if animation_state.is_empty():
+		return maxf(0.0, fallback_scheduled_time - battle_time)
+	return _resolve_remaining_from_animation_state(animation_state, fallback_scheduled_time, battle_time)
+
+
+func _resolve_animated_remaining(instance_id: int, scheduled_time: float, battle_time: float) -> float:
+	if not _delay_animation_states.has(instance_id):
+		return maxf(0.0, scheduled_time - battle_time)
+	var animation_state: Dictionary = Dictionary(_delay_animation_states.get(instance_id, {}))
+	if animation_state.is_empty():
+		_delay_animation_states.erase(instance_id)
+		return maxf(0.0, scheduled_time - battle_time)
+	var start_time: float = float(animation_state.get("start_time", battle_time))
+	var elapsed: float = battle_time - start_time
+	if elapsed >= DELAY_SLIDE_SECONDS:
+		_delay_animation_states.erase(instance_id)
+		return maxf(0.0, scheduled_time - battle_time)
+	if elapsed < 0.0:
+		return maxf(0.0, scheduled_time - battle_time)
+	return _resolve_remaining_from_animation_state(animation_state, scheduled_time, battle_time)
+
+
+func _resolve_remaining_from_animation_state(animation_state: Dictionary, scheduled_time: float, battle_time: float) -> float:
+	var start_time: float = float(animation_state.get("start_time", battle_time))
+	var elapsed: float = battle_time - start_time
+	var progress: float = clampf(elapsed / DELAY_SLIDE_SECONDS, 0.0, 1.0)
+	var eased_progress: float = progress * progress * (3.0 - 2.0 * progress)
+	var from_scheduled_time: float = float(animation_state.get("from_scheduled_time", scheduled_time))
+	var to_scheduled_time: float = float(animation_state.get("to_scheduled_time", scheduled_time))
+	var from_remaining: float = maxf(0.0, from_scheduled_time - battle_time)
+	var to_remaining: float = maxf(0.0, to_scheduled_time - battle_time)
+	return lerpf(from_remaining, to_remaining, eased_progress)
+
+
+func _cleanup_entry_state(active_instance_ids: Array[int]) -> void:
+	for raw_instance_id in _last_scheduled_times.keys():
+		var instance_id: int = int(raw_instance_id)
+		if active_instance_ids.has(instance_id):
+			continue
+		_last_scheduled_times.erase(instance_id)
+		_delay_animation_states.erase(instance_id)
 
 
 func _layout_cards() -> void:
