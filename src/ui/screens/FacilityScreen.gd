@@ -293,16 +293,36 @@ func _render_event_options() -> void:
 	var choices: Array = Array(event_data.get("choices", []))
 	for raw_choice in choices:
 		var choice_data: Dictionary = Dictionary(raw_choice)
+		var choice_id: String = String(choice_data.get("id", ""))
 		var button: Button = Button.new()
+		button.name = "EventChoiceButton_%s" % choice_id
 		button.text = "%s | %s" % [
 			String(choice_data.get("label", "")),
 			String(choice_data.get("description", "")),
 		]
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.disabled = not bool(choice_data.get("enabled", true))
 		button.tooltip_text = String(choice_data.get("disabled_reason", ""))
 		if not button.disabled:
-			button.pressed.connect(_on_resolve_event.bind(String(choice_data.get("id", ""))))
-		_options_box.add_child(button)
+			button.pressed.connect(_on_resolve_event.bind(choice_id))
+
+		var relic_ids: Array[String] = _get_choice_relic_ids(choice_data)
+		if relic_ids.is_empty():
+			_options_box.add_child(button)
+			continue
+
+		var row: HBoxContainer = HBoxContainer.new()
+		row.name = "EventChoiceRow_%s" % choice_id
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_theme_constant_override("separation", 8)
+		_options_box.add_child(row)
+		row.add_child(button)
+		for relic_id in relic_ids:
+			var relic_icon: RelicIcon = RelicIcon.new()
+			relic_icon.set_icon_size(Vector2(44.0, 44.0))
+			relic_icon.bind_relic_id(relic_id, button.disabled)
+			relic_icon.name = "EventChoiceRelicIcon_%s_%s" % [choice_id, relic_id]
+			row.add_child(relic_icon)
 
 
 func _render_hazard_options() -> void:
@@ -367,6 +387,18 @@ func _on_continue_hazard() -> void:
 func _on_withdraw_hazard() -> void:
 	Game.withdraw_hazard()
 	SceneRouter.go_to_map()
+
+
+func _get_choice_relic_ids(choice_data: Dictionary) -> Array[String]:
+	var relic_ids: Array[String] = []
+	for raw_effect in Array(choice_data.get("effects", [])):
+		var effect_data: Dictionary = Dictionary(raw_effect)
+		if String(effect_data.get("type", "")) != "grant_random_relic":
+			continue
+		var relic_id: String = String(effect_data.get("relic_id", ""))
+		if relic_id != "" and not relic_ids.has(relic_id):
+			relic_ids.append(relic_id)
+	return relic_ids
 
 
 func _apply_forge_preview_state(preview: CardButton, tier_label: Label, details_label: Label, card_id: String, tier: int) -> void:

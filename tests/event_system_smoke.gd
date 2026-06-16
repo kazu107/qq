@@ -50,6 +50,9 @@ func _run() -> void:
 	if trace_choice.is_empty() or bool(trace_choice.get("enabled", true)):
 		_fail("Event system smoke failed: archive relic trace should be disabled when gold is too low")
 		return
+	await _assert_event_choice_relic_icon("trace_relic", trace_choice)
+	if _failed:
+		return
 	if Game.resolve_event_choice("trace_relic") != "":
 		_fail("Event system smoke failed: disabled event choice should not resolve")
 		return
@@ -68,6 +71,10 @@ func _run() -> void:
 		relics_before = Game.current_run.relics.size()
 	var hp_before: int = Game.current_run.player_hp
 	_open_debug_event("relic_shrine", 2)
+	var shrine_choice: Dictionary = _find_choice(Array(Game.get_active_event_data().get("choices", [])), "take_relic")
+	await _assert_event_choice_relic_icon("take_relic", shrine_choice)
+	if _failed:
+		return
 	var shrine_result: String = Game.resolve_event_choice("take_relic")
 	if shrine_result == "" or Game.current_run.relics.size() != relics_before + 1:
 		_fail("Event system smoke failed: relic shrine did not grant a relic")
@@ -103,6 +110,30 @@ func _assert_debug_event_closed(expected_step: int) -> void:
 		return
 	if not Game.get_active_map_node().is_empty():
 		_fail("Event system smoke failed: debug event should clear the active node")
+
+
+func _assert_event_choice_relic_icon(choice_id: String, choice_data: Dictionary) -> void:
+	if choice_data.is_empty():
+		_fail("Event system smoke failed: relic event choice data was missing for %s" % choice_id)
+		return
+	var relic_id: String = _get_choice_relic_id(choice_data)
+	if relic_id == "":
+		_fail("Event system smoke failed: relic event choice should expose a resolved relic id")
+		return
+
+	var facility_scene: Control = load("res://scenes/facility/Facility.tscn").instantiate() as Control
+	add_child(facility_scene)
+	await get_tree().process_frame
+
+	var relic_icon: RelicIcon = facility_scene.find_child("EventChoiceRelicIcon_%s_%s" % [choice_id, relic_id], true, false) as RelicIcon
+	var relic_def: RelicDef = Database.get_relic(relic_id)
+	if relic_icon == null:
+		_fail("Event system smoke failed: relic event choice should render the target relic icon")
+	elif relic_def == null or relic_icon.tooltip_text.find(relic_def.name) == -1:
+		_fail("Event system smoke failed: relic event choice icon should expose the relic tooltip")
+
+	facility_scene.queue_free()
+	await get_tree().process_frame
 
 
 func _get_total_upgrade_tiers() -> int:
@@ -152,6 +183,14 @@ func _find_choice(choices: Array, choice_id: String) -> Dictionary:
 		if String(choice_data.get("id", "")) == choice_id:
 			return choice_data
 	return {}
+
+
+func _get_choice_relic_id(choice_data: Dictionary) -> String:
+	for raw_effect in Array(choice_data.get("effects", [])):
+		var effect_data: Dictionary = Dictionary(raw_effect)
+		if String(effect_data.get("type", "")) == "grant_random_relic":
+			return String(effect_data.get("relic_id", ""))
+	return ""
 
 
 func _fail(message: String) -> void:
