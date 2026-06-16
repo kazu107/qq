@@ -3,6 +3,7 @@ extends Control
 var _summary_label: RichTextLabel
 var _help_label: Label
 var _relics_label: Label
+var _relics_icon_row: RelicIconRow
 var _steps_box: VBoxContainer
 var _equipped_summary_label: Label
 var _equipped_panel: CardHandPanel
@@ -52,6 +53,11 @@ func _build_ui() -> void:
 	_relics_label = Label.new()
 	_relics_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info_panel.add_child(_relics_label)
+
+	_relics_icon_row = RelicIconRow.new()
+	_relics_icon_row.name = "MapRelicIconRow"
+	_relics_icon_row.set_icon_size(Vector2(42.0, 42.0))
+	info_panel.add_child(_relics_icon_row)
 
 	var back_button: Button = Button.new()
 	back_button.text = Localization.get_text("map.return_hub", "Return to Hub")
@@ -154,6 +160,7 @@ func _refresh_ui() -> void:
 		"next_label": next_label,
 	})
 	_relics_label.text = relic_text
+	_relics_icon_row.refresh_relic_ids(current_run.relics)
 	_equipped_summary_label.text = Localization.get_textf("map.loadout_cost", "Loadout Cost {used} / {limit}", {
 		"used": Game.get_current_loadout_cost(),
 		"limit": Game.get_loadout_limit(),

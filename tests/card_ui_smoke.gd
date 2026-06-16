@@ -806,6 +806,34 @@ func _run() -> void:
 			get_tree().quit(1)
 			return
 
+	for relic_id in Database.get_all_relic_ids():
+		if not ResourceLoader.exists("res://assets/icons/relics/%s.png" % relic_id):
+			push_error("Card UI smoke failed: missing generated relic art for %s" % relic_id)
+			get_tree().quit(1)
+			return
+
+	var relic_icon: RelicIcon = RelicIcon.new()
+	relic_icon.set_icon_size(Vector2(52.0, 52.0))
+	relic_icon.bind_relic_id("iron_plating")
+	add_child(relic_icon)
+	await get_tree().process_frame
+	var relic_art: TextureRect = relic_icon.get_node("RelicArt") as TextureRect
+	if relic_art == null or relic_art.texture == null:
+		push_error("Card UI smoke failed: relic icon should render generated art")
+		get_tree().quit(1)
+		return
+	if relic_icon.tooltip_text.find("Iron Plating") == -1 or relic_icon.tooltip_text.find("max HP") == -1:
+		push_error("Card UI smoke failed: relic icon tooltip should include name and effect description")
+		get_tree().quit(1)
+		return
+	var relic_tooltip: Control = relic_icon._make_custom_tooltip(relic_icon.tooltip_text) as Control
+	var relic_tooltip_text: RichTextLabel = relic_tooltip.find_child("RelicTooltipText", true, false) as RichTextLabel
+	if relic_tooltip_text == null or relic_tooltip_text.text.find("Iron Plating") == -1:
+		push_error("Card UI smoke failed: relic custom tooltip should render text")
+		get_tree().quit(1)
+		return
+	relic_tooltip.free()
+
 	var shield_unit: UnitState = UnitState.new()
 	shield_unit.shield = 3
 	var decayed_once: int = shield_unit.tick_shield_decay(1.1)

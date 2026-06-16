@@ -84,12 +84,15 @@ func _assert_map_scene() -> void:
 	var steps_box: VBoxContainer = map_scene.find_child("MapSteps", true, false) as VBoxContainer
 	var equipped_deck: CardHandPanel = map_scene.find_child("EquippedDeck", true, false) as CardHandPanel
 	var inventory_box: VBoxContainer = map_scene.find_child("LoadoutInventory", true, false) as VBoxContainer
+	var relic_icon_row: RelicIconRow = map_scene.find_child("MapRelicIconRow", true, false) as RelicIconRow
 	if steps_box == null or steps_box.get_child_count() == 0:
 		_fail("Map/facility smoke failed: map scene did not render step nodes")
 	elif equipped_deck == null or equipped_deck.get_child_count() == 0:
 		_fail("Map/facility smoke failed: map scene did not render equipped loadout")
 	elif inventory_box == null or inventory_box.get_child_count() == 0:
 		_fail("Map/facility smoke failed: map scene did not render inventory rows")
+	elif relic_icon_row == null:
+		_fail("Map/facility smoke failed: map scene did not render relic icon row")
 
 	map_scene.queue_free()
 	await get_tree().process_frame
@@ -421,10 +424,13 @@ func _assert_facility_scene(expected_type: String) -> Control:
 
 	var options_box: VBoxContainer = facility_scene.find_child("FacilityOptions", true, false) as VBoxContainer
 	var facility_deck: CardHandPanel = facility_scene.find_child("FacilityDeck", true, false) as CardHandPanel
+	var relic_icon_row: RelicIconRow = facility_scene.find_child("FacilityRelicIconRow", true, false) as RelicIconRow
 	if options_box == null or options_box.get_child_count() == 0:
 		_fail("Map/facility smoke failed: %s scene did not render options" % expected_type)
 	elif facility_deck == null or facility_deck.get_child_count() == 0:
 		_fail("Map/facility smoke failed: %s scene did not render loadout cards" % expected_type)
+	elif relic_icon_row == null:
+		_fail("Map/facility smoke failed: %s scene did not render relic icon row" % expected_type)
 	return facility_scene
 
 

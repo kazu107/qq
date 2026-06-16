@@ -303,6 +303,12 @@ func _rebuild_relics() -> void:
 		row.add_theme_constant_override("separation", 10)
 		_relic_box.add_child(row)
 
+		var relic_icon: RelicIcon = RelicIcon.new()
+		relic_icon.set_icon_size(Vector2(72.0, 72.0))
+		relic_icon.bind_relic_id(relic_id, not bool(entry.get("unlocked", false)))
+		relic_icon.name = "MetaRelic_%s" % relic_id
+		row.add_child(relic_icon)
+
 		var info: VBoxContainer = VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)

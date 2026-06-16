@@ -46,6 +46,10 @@ func _run() -> void:
 	if relic_box == null or relic_box.get_child_count() == 0:
 		_fail("Meta progress smoke failed: relic unlock section did not render")
 		return
+	var iron_relic_icon: RelicIcon = meta_scene.find_child("MetaRelic_iron_plating", true, false) as RelicIcon
+	if iron_relic_icon == null or iron_relic_icon.tooltip_text.find("Iron Plating") == -1:
+		_fail("Meta progress smoke failed: relic unlock section should render relic icons with tooltips")
+		return
 
 	Game.developer_add_achievement_stat("victories", 1)
 	meta_scene.call("_refresh_ui")

@@ -3,6 +3,7 @@ extends Control
 var _title_label: Label
 var _summary_label: RichTextLabel
 var _status_label: Label
+var _relics_icon_row: RelicIconRow
 var _options_box: VBoxContainer
 var _deck_summary_label: Label
 var _deck_panel: CardHandPanel
@@ -48,6 +49,11 @@ func _build_ui() -> void:
 	_summary_label = RichTextLabel.new()
 	_summary_label.fit_content = true
 	facility_panel.add_child(_summary_label)
+
+	_relics_icon_row = RelicIconRow.new()
+	_relics_icon_row.name = "FacilityRelicIconRow"
+	_relics_icon_row.set_icon_size(Vector2(42.0, 42.0))
+	facility_panel.add_child(_relics_icon_row)
 
 	_status_label = Label.new()
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -124,6 +130,7 @@ func _refresh_ui() -> void:
 		"used": Game.get_current_loadout_cost(),
 		"limit": Game.get_loadout_limit(),
 	})
+	_relics_icon_row.refresh_relic_ids(current_run.relics)
 
 	for child in _options_box.get_children():
 		_options_box.remove_child(child)

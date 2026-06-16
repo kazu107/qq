@@ -28,6 +28,7 @@ func _ready() -> void:
 
 	var summary := RichTextLabel.new()
 	var relic_names: Array = Array(summary_data.get("relic_names", []))
+	var relic_ids: Array[String] = _to_string_array(summary_data.get("relic_ids", []))
 	var relic_text: String = Localization.get_text("status.none", "None")
 	var replay_path: String = Game.get_last_replay_export_path()
 	var replay_text: String = Localization.get_text("result.replay_none", "none")
@@ -59,6 +60,13 @@ func _ready() -> void:
 	])
 	root.add_child(summary)
 
+	var relic_icon_row: RelicIconRow = RelicIconRow.new()
+	relic_icon_row.name = "ResultRelicIconRow"
+	relic_icon_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	relic_icon_row.set_icon_size(Vector2(52.0, 52.0))
+	relic_icon_row.refresh_relic_ids(relic_ids)
+	root.add_child(relic_icon_row)
+
 	var replay_button := Button.new()
 	replay_button.name = "ResultReplayViewerButton"
 	replay_button.text = Localization.get_text("result.view_replay", "View Replay")
@@ -80,6 +88,13 @@ func _ready() -> void:
 
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+
+
+func _to_string_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	for raw_value in Array(value):
+		result.append(String(raw_value))
+	return result
 
 
 func _on_return_to_hub() -> void:

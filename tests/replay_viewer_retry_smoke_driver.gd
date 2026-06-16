@@ -59,6 +59,8 @@ func _run() -> void:
 
 	Game.current_run.run_complete = true
 	Game.current_run.defeated = false
+	if not Game.current_run.relics.has("iron_plating"):
+		RelicService.new().grant_relic(Game.current_run, "iron_plating")
 	Game.last_replay_export_path = replay_path
 	Game.current_screen_hint = "result"
 	SaveManager.save_game("result")
@@ -74,6 +76,14 @@ func _run() -> void:
 		return
 	if result_retry_button == null or result_retry_button.disabled:
 		_fail("Replay viewer smoke failed: result same-seed retry button should be enabled")
+		return
+	var result_relic_row: RelicIconRow = result_scene.find_child("ResultRelicIconRow", true, false) as RelicIconRow
+	var result_relic_icon: RelicIcon = result_scene.find_child("RelicIcon_iron_plating", true, false) as RelicIcon
+	if result_relic_row == null or result_relic_row.get_child_count() == 0 or result_relic_icon == null:
+		_fail("Replay viewer smoke failed: result should render relic icons")
+		return
+	if result_relic_icon.tooltip_text.find("Iron Plating") == -1:
+		_fail("Replay viewer smoke failed: result relic icon should expose a tooltip")
 		return
 
 	result_replay_button.emit_signal("pressed")

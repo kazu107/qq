@@ -15,6 +15,7 @@ func summarize(run_state: RunState, last_battle_summary: Dictionary) -> Dictiona
 		"gold": run_state.gold,
 		"remaining_hp": run_state.player_hp,
 		"relic_count": run_state.relics.size(),
+		"relic_ids": run_state.relics.duplicate(),
 		"relic_names": RelicService.new().get_relic_names(run_state.relics),
 		"defeated": run_state.defeated,
 		"run_complete": run_state.run_complete,
