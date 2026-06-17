@@ -19,6 +19,7 @@ var _developer_panel: DeveloperPanel
 var _transition_timer: float = -1.0
 var _handled_finish: bool = false
 var _hovered_player_runtime_id: String = ""
+var _processed_battle_event_count: int = 0
 
 
 func _ready() -> void:
@@ -29,6 +30,7 @@ func _ready() -> void:
 
 	var enemy_id: String = Game.prepare_next_battle()
 	_engine.setup(Game.current_run, enemy_id)
+	_processed_battle_event_count = 0
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
 	_player_panel.configure_visual("player", Game.current_run.starter_id)
 	_enemy_panel.configure_visual("enemy", enemy_id)
@@ -228,8 +230,9 @@ func _refresh_ui(time_scale: float) -> void:
 	var preview_runtime_state: CardRuntimeState = _get_hovered_player_runtime_state(battle_state)
 	var preview_card_def: CardDef = _get_hover_preview_card_def(preview_runtime_state)
 	var preview_slot_cost: int = _get_hover_preview_slot_cost(preview_runtime_state, preview_card_def)
-	_enemy_panel.refresh_unit(battle_state.enemy)
-	_player_panel.refresh_unit(battle_state.player, preview_slot_cost)
+	var suppressed_shield_losses: Dictionary = _consume_suppressed_shield_decay_losses(battle_state)
+	_enemy_panel.refresh_unit(battle_state.enemy, 0, int(suppressed_shield_losses.get(battle_state.enemy.unit_id, 0)))
+	_player_panel.refresh_unit(battle_state.player, preview_slot_cost, int(suppressed_shield_losses.get(battle_state.player.unit_id, 0)))
 	_enemy_cards_panel.refresh_cards(battle_state.enemy, null, "enemy")
 	_card_hand_panel.refresh_cards(battle_state.player, Game.current_run, "player")
 	var preview_entry: TimelineEntry = _build_hover_preview_entry(battle_state, preview_runtime_state, preview_card_def)
@@ -253,6 +256,26 @@ func _refresh_ui(time_scale: float) -> void:
 		Localization.get_text("battle.info.hover_card", "- Hover any card for details"),
 		Localization.get_text("battle.info.slow_mode", "- Hold Space to slow time to 30%"),
 	])
+
+
+func _consume_suppressed_shield_decay_losses(battle_state: BattleState) -> Dictionary:
+	var suppressed_by_unit: Dictionary = {}
+	if battle_state == null:
+		return suppressed_by_unit
+
+	var battle_events: Array[Dictionary] = battle_state.battle_events
+	var start_index: int = clampi(_processed_battle_event_count, 0, battle_events.size())
+	for event_index in range(start_index, battle_events.size()):
+		var event_data: Dictionary = Dictionary(battle_events[event_index])
+		if String(event_data.get("event_type", "")) != "shield_decay":
+			continue
+		var target_id: String = String(event_data.get("target_id", ""))
+		var shield_loss: int = max(0, -int(event_data.get("shield_delta", 0)))
+		if target_id == "" or shield_loss <= 0:
+			continue
+		suppressed_by_unit[target_id] = int(suppressed_by_unit.get(target_id, 0)) + shield_loss
+	_processed_battle_event_count = battle_events.size()
+	return suppressed_by_unit
 
 
 func _on_card_requested(runtime_id: String) -> void:

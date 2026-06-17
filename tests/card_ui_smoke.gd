@@ -619,13 +619,40 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 
+	var floating_labels: Array[Label] = _collect_floating_text_labels(effect_layer)
 	var floating_texts: Array[String] = []
-	for effect_index in range(effect_layer.get_child_count()):
-		var effect_label: Label = effect_layer.get_child(effect_index) as Label
-		if effect_label != null:
-			floating_texts.append(effect_label.text)
+	for effect_label in floating_labels:
+		floating_texts.append(effect_label.text)
+		var label_parent: Node = effect_label.get_parent()
+		var badge: PanelContainer = null
+		if label_parent != null:
+			badge = label_parent.get_parent() as PanelContainer
+		var badge_style: StyleBoxFlat = null
+		if badge != null:
+			badge_style = badge.get_theme_stylebox("panel") as StyleBoxFlat
+		if effect_label.get_theme_font_size("font_size") < 30 \
+		or effect_label.get_theme_constant("outline_size") < 4 \
+		or badge_style == null \
+		or badge_style.bg_color.a < 0.7:
+			push_error("Card UI smoke failed: floating battle text should be larger and badge-backed")
+			get_tree().quit(1)
+			return
 	if not floating_texts.has("-9") or not floating_texts.has("Shield +2"):
 		push_error("Card UI smoke failed: floating battle text should show damage and shield gain")
+		get_tree().quit(1)
+		return
+	unit_panel._process(1.0)
+	await get_tree().process_frame
+	if _collect_floating_text_labels(effect_layer).size() < 2:
+		push_error("Card UI smoke failed: floating battle text should stay visible slightly longer")
+		get_tree().quit(1)
+		return
+	var floating_count_before_decay: int = _collect_floating_text_labels(effect_layer).size()
+	player_unit.shield = 4
+	unit_panel.refresh_unit(player_unit, 0, 1)
+	await get_tree().process_frame
+	if _collect_floating_text_labels(effect_layer).size() != floating_count_before_decay:
+		push_error("Card UI smoke failed: natural shield decay should not emit floating battle text")
 		get_tree().quit(1)
 		return
 
@@ -876,6 +903,24 @@ func _find_timeline_card(cards_track: Control, runtime_id: String) -> CardButton
 		if button != null and button.runtime_id == runtime_id:
 			return button
 	return null
+
+
+func _collect_floating_text_labels(effect_layer: Control) -> Array[Label]:
+	var labels: Array[Label] = []
+	if effect_layer == null:
+		return labels
+	for child in effect_layer.get_children():
+		var direct_label: Label = child as Label
+		if direct_label != null:
+			labels.append(direct_label)
+			continue
+		var child_control: Control = child as Control
+		if child_control == null:
+			continue
+		var nested_label: Label = child_control.find_child("FloatingStatLabel", true, false) as Label
+		if nested_label != null:
+			labels.append(nested_label)
+	return labels
 
 
 func _expected_timeline_x(timeline_panel: TimelinePanel, remaining: float, horizon: float) -> float:

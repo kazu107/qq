@@ -24,6 +24,9 @@ const SLOT_PREVIEW_ALPHA_CYCLE_SECONDS: float = 1.0
 const DAMAGE_COLOR := Color(1.0, 0.40, 0.35, 1.0)
 const HEAL_COLOR := Color(0.48, 0.95, 0.58, 1.0)
 const SHIELD_COLOR := Color(0.47, 0.82, 1.0, 1.0)
+const FLOATING_TEXT_LIFETIME: float = 1.25
+const FLOATING_TEXT_FADE_START: float = 0.58
+const FLOATING_TEXT_FONT_SIZE: int = 32
 const STATUS_ICON_SIZE: Vector2 = Vector2(26.0, 26.0)
 const STATUS_BRIGHTNESS_MIN: float = 0.08
 const STATUS_BRIGHTNESS_MAX: float = 1.0
@@ -38,8 +41,9 @@ const STATUS_FALLBACK_DURATIONS: Dictionary = {
 class FloatingStatText:
 	extends RefCounted
 
+	var control: Control
 	var label: Label
-	var lifetime: float = 0.9
+	var lifetime: float = FLOATING_TEXT_LIFETIME
 	var elapsed: float = 0.0
 	var drift: Vector2 = Vector2.ZERO
 
@@ -257,7 +261,7 @@ func configure_visual(unit_side: String, portrait_key: String) -> void:
 		_portrait_rect.texture = _get_portrait_texture(portrait_key)
 
 
-func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
+func refresh_unit(unit: UnitState, preview_slot_cost: int = 0, suppressed_shield_loss: int = 0) -> void:
 	if _portrait_rect != null and _portrait_rect.texture == null:
 		_portrait_rect.texture = _get_portrait_texture(_portrait_key)
 
@@ -272,7 +276,7 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 	var status_line: String = unit.get_status_summary()
 
 	if _has_previous_snapshot:
-		_emit_delta_popups(hp_value, shield_value)
+		_emit_delta_popups(hp_value, shield_value, suppressed_shield_loss)
 
 	_name_label.text = unit.display_name
 	_hp_bar.max_value = float(max_hp_value)
@@ -583,29 +587,36 @@ func _process(delta: float) -> void:
 
 	for index in range(_floating_texts.size() - 1, -1, -1):
 		var floating_text: FloatingStatText = _floating_texts[index]
-		if floating_text == null or floating_text.label == null:
+		if floating_text == null or floating_text.control == null or not is_instance_valid(floating_text.control):
 			_floating_texts.remove_at(index)
 			continue
 		floating_text.elapsed += delta
 		var progress: float = clampf(floating_text.elapsed / floating_text.lifetime, 0.0, 1.0)
-		floating_text.label.position += floating_text.drift * delta
-		var color: Color = floating_text.label.get_theme_color("font_color")
-		color.a = 1.0 - progress
-		floating_text.label.add_theme_color_override("font_color", color)
+		floating_text.control.position += floating_text.drift * delta
+		var fade_progress: float = clampf((progress - FLOATING_TEXT_FADE_START) / (1.0 - FLOATING_TEXT_FADE_START), 0.0, 1.0)
+		floating_text.control.modulate.a = 1.0 - fade_progress
+		var pop_scale: float = 1.0
+		if progress < 0.16:
+			pop_scale = lerpf(1.18, 1.0, progress / 0.16)
+		floating_text.control.scale = Vector2(pop_scale, pop_scale)
 		if floating_text.elapsed >= floating_text.lifetime:
-			floating_text.label.queue_free()
+			floating_text.control.queue_free()
 			_floating_texts.remove_at(index)
 
 
-func _emit_delta_popups(current_hp: int, current_shield: int) -> void:
+func _emit_delta_popups(current_hp: int, current_shield: int, suppressed_shield_loss: int = 0) -> void:
 	if current_hp < _last_hp:
 		_spawn_floating_text("-%d" % (_last_hp - current_hp), DAMAGE_COLOR, 0.0)
 	elif current_hp > _last_hp:
 		_spawn_floating_text("+%d" % (current_hp - _last_hp), HEAL_COLOR, 18.0)
 
 	if current_shield < _last_shield:
+		var shield_loss: int = _last_shield - current_shield
+		var visible_shield_loss: int = max(0, shield_loss - max(0, suppressed_shield_loss))
+		if visible_shield_loss <= 0:
+			return
 		_spawn_floating_text(Localization.get_textf("unit.shield_delta", "Shield {amount}", {
-			"amount": "-%d" % (_last_shield - current_shield),
+			"amount": "-%d" % visible_shield_loss,
 		}), SHIELD_COLOR, 32.0)
 	elif current_shield > _last_shield:
 		_spawn_floating_text(Localization.get_textf("unit.shield_delta", "Shield {amount}", {
@@ -617,20 +628,42 @@ func _spawn_floating_text(text: String, color: Color, x_offset: float) -> void:
 	if _portrait_effect_layer == null or text == "":
 		return
 
+	var badge: PanelContainer = PanelContainer.new()
+	badge.name = "FloatingStatBadge"
+	badge.position = Vector2(14.0 + x_offset, 50.0)
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.z_index = 24
+	badge.add_theme_stylebox_override("panel", _make_floating_text_stylebox(color))
+	_portrait_effect_layer.add_child(badge)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 9)
+	margin.add_theme_constant_override("margin_top", 3)
+	margin.add_theme_constant_override("margin_right", 9)
+	margin.add_theme_constant_override("margin_bottom", 3)
+	badge.add_child(margin)
+
 	var label: Label = Label.new()
+	label.name = "FloatingStatLabel"
 	label.text = text
-	label.position = Vector2(22.0 + x_offset, 68.0)
-	label.add_theme_font_size_override("font_size", 19)
-	label.add_theme_color_override("font_color", color)
-	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.82))
-	label.add_theme_constant_override("shadow_offset_x", 1)
-	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.custom_minimum_size = Vector2(58.0, 0.0)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", FLOATING_TEXT_FONT_SIZE)
+	label.add_theme_color_override("font_color", color.lightened(0.12))
+	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.96))
+	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.80))
+	label.add_theme_constant_override("outline_size", 5)
+	label.add_theme_constant_override("shadow_offset_x", 2)
+	label.add_theme_constant_override("shadow_offset_y", 3)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_portrait_effect_layer.add_child(label)
+	margin.add_child(label)
 
 	var floating_text: FloatingStatText = FloatingStatText.new()
+	floating_text.control = badge
 	floating_text.label = label
-	floating_text.drift = Vector2(0.0, -34.0)
+	floating_text.drift = Vector2(0.0, -24.0)
 	_floating_texts.append(floating_text)
 
 
@@ -754,6 +787,28 @@ func _make_shield_fill_stylebox() -> StyleBoxFlat:
 	style.corner_radius_top_right = 8
 	style.corner_radius_bottom_left = 8
 	style.corner_radius_bottom_right = 8
+	return style
+
+
+func _make_floating_text_stylebox(accent_color: Color) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	var background_color: Color = accent_color.darkened(0.72)
+	background_color.a = 0.84
+	var border_color: Color = accent_color.lightened(0.20)
+	border_color.a = 1.0
+	style.bg_color = background_color
+	style.border_color = border_color
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
+	style.shadow_size = 5
+	style.shadow_offset = Vector2(0.0, 3.0)
 	return style
 
 
