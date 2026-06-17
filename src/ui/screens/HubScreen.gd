@@ -7,6 +7,7 @@ var _developer_panel: DeveloperPanel
 var _debug_enemy_option: OptionButton
 var _debug_starter_option: OptionButton
 var _debug_card_options: Array[OptionButton] = []
+var _debug_card_grade_options: Array[OptionButton] = []
 
 
 func _ready() -> void:
@@ -107,6 +108,7 @@ func _build_debug_battle_lab(parent: Control) -> void:
 	var card_entries: Array[Dictionary] = Game.get_debug_battle_card_entries()
 	var default_cards: Array[String] = ["quick_slash", "strike", "guard", "heavy_swing", "delay_step", "reload"]
 	_debug_card_options.clear()
+	_debug_card_grade_options.clear()
 	for slot_index in range(DEBUG_CARD_SLOT_COUNT):
 		var default_card_id: String = default_cards[slot_index] if slot_index < default_cards.size() else "quick_slash"
 		var option: OptionButton = _create_debug_option(
@@ -115,11 +117,14 @@ func _build_debug_battle_lab(parent: Control) -> void:
 			default_card_id,
 			true
 		)
+		var grade_option: OptionButton = _create_debug_grade_option("DebugCardGradeSlot%d" % slot_index)
 		_debug_card_options.append(option)
-		_add_option_row(
+		_debug_card_grade_options.append(grade_option)
+		_add_card_slot_row(
 			box,
 			Localization.get_textf("hub.debug_card_slot", "Card {index}", {"index": slot_index + 1}),
-			option
+			option,
+			grade_option
 		)
 
 	var start_button: Button = Button.new()
@@ -145,6 +150,31 @@ func _add_option_row(parent: Control, label_text: String, option: OptionButton) 
 	row.add_child(option)
 
 
+func _add_card_slot_row(parent: Control, label_text: String, card_option: OptionButton, grade_option: OptionButton) -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 8)
+	parent.add_child(row)
+
+	var label: Label = Label.new()
+	label.custom_minimum_size = Vector2(120.0, 0.0)
+	label.text = label_text
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(label)
+
+	card_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(card_option)
+
+	var grade_label: Label = Label.new()
+	grade_label.custom_minimum_size = Vector2(58.0, 0.0)
+	grade_label.text = Localization.get_text("hub.debug_grade", "Grade")
+	grade_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(grade_label)
+
+	grade_option.custom_minimum_size = Vector2(96.0, 0.0)
+	row.add_child(grade_option)
+
+
 func _create_debug_option(name: String, entries: Array[Dictionary], default_id: String, include_empty: bool) -> OptionButton:
 	var option: OptionButton = OptionButton.new()
 	option.name = name
@@ -161,6 +191,16 @@ func _create_debug_option(name: String, entries: Array[Dictionary], default_id: 
 	return option
 
 
+func _create_debug_grade_option(name: String, default_tier: int = 0) -> OptionButton:
+	var option: OptionButton = OptionButton.new()
+	option.name = name
+	for tier in range(CardUpgradeResolver.MAX_TIER + 1):
+		option.add_item(CardInfoFormatter.format_grade_label(tier))
+		option.set_item_metadata(option.item_count - 1, tier)
+	option.select(clampi(default_tier, 0, CardUpgradeResolver.MAX_TIER))
+	return option
+
+
 func _select_option_by_metadata(option: OptionButton, target_id: String) -> void:
 	for index in range(option.item_count):
 		if String(option.get_item_metadata(index)) == target_id:
@@ -174,11 +214,15 @@ func _on_dev_start_custom_battle() -> void:
 	var enemy_id: String = _get_selected_option_id(_debug_enemy_option)
 	var starter_id: String = _get_selected_option_id(_debug_starter_option)
 	var card_ids: Array[String] = []
-	for option in _debug_card_options:
+	var card_tiers: Dictionary = {}
+	for slot_index in range(_debug_card_options.size()):
+		var option: OptionButton = _debug_card_options[slot_index]
 		var card_id: String = _get_selected_option_id(option)
 		if card_id != "":
 			card_ids.append(card_id)
-	Game.developer_open_custom_battle(enemy_id, starter_id, card_ids)
+			var selected_tier: int = _get_selected_grade(_debug_card_grade_options[slot_index])
+			card_tiers[card_id] = maxi(int(card_tiers.get(card_id, 0)), selected_tier)
+	Game.developer_open_custom_battle(enemy_id, starter_id, card_ids, card_tiers)
 	SceneRouter.go_to_battle()
 
 
@@ -189,6 +233,15 @@ func _get_selected_option_id(option: OptionButton) -> String:
 	if selected_index < 0 or selected_index >= option.item_count:
 		return ""
 	return String(option.get_item_metadata(selected_index))
+
+
+func _get_selected_grade(option: OptionButton) -> int:
+	if option == null or option.item_count == 0:
+		return 0
+	var selected_index: int = option.selected
+	if selected_index < 0 or selected_index >= option.item_count:
+		return 0
+	return clampi(int(option.get_item_metadata(selected_index)), 0, CardUpgradeResolver.MAX_TIER)
 
 
 func _build_developer_panel() -> void:

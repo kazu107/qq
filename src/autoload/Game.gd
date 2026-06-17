@@ -671,7 +671,7 @@ func developer_open_battle(enemy_id: String = "scout", starter_id: String = "bal
 	SaveManager.save_game(current_screen_hint)
 
 
-func developer_open_custom_battle(enemy_id: String, starter_id: String, card_ids: Array[String]) -> void:
+func developer_open_custom_battle(enemy_id: String, starter_id: String, card_ids: Array[String], card_tiers: Dictionary = {}) -> void:
 	var resolved_enemy_id: String = enemy_id
 	if Database.get_enemy(resolved_enemy_id) == null:
 		resolved_enemy_id = "scout"
@@ -686,6 +686,11 @@ func developer_open_custom_battle(enemy_id: String, starter_id: String, card_ids
 		current_run.player_cards = valid_card_ids.duplicate()
 		current_run.loadout_limit = maxi(current_run.loadout_limit, RunState.get_total_loadout_cost(valid_card_ids))
 		current_run.equipped_cards = valid_card_ids.duplicate()
+		current_run.card_upgrades.clear()
+		for card_id in valid_card_ids:
+			var tier: int = clampi(int(card_tiers.get(card_id, 0)), 0, CardUpgradeResolver.MAX_TIER)
+			if tier > 0:
+				current_run.card_upgrades[card_id] = tier
 
 	pending_enemy_id = resolved_enemy_id
 	reward_options.clear()

@@ -71,6 +71,7 @@ var _status_item_nodes: Dictionary = {}
 var _status_icon_nodes: Dictionary = {}
 var _status_time_labels: Dictionary = {}
 var _status_darken_nodes: Dictionary = {}
+var _status_tooltip_texts: Dictionary = {}
 var _status_hovered_id: String = ""
 var _status_hovered_icon: TextureRect
 var _status_tooltip_popup: PanelContainer
@@ -320,16 +321,18 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		var icon: TextureRect = _get_or_create_status_icon(status_id)
 		var time_label: Label = _status_time_labels[status_id] as Label
 		var darken: ColorRect = _status_darken_nodes[status_id] as ColorRect
+		var tooltip_text: String = _build_status_tooltip(status_id, remaining)
 		icon.visible = true
 		icon.texture = _get_status_icon_texture(status_id)
 		icon.self_modulate = Color(brightness, brightness, brightness, 1.0)
-		icon.tooltip_text = _build_status_tooltip(status_id, remaining)
+		icon.tooltip_text = ""
+		_status_tooltip_texts[status_id] = tooltip_text
 		time_label.text = _format_status_remaining(remaining)
 		time_label.self_modulate = Color(brightness, brightness, brightness, 1.0)
 		darken.color = Color(0.0, 0.0, 0.0, darken_alpha)
 		if _status_hovered_id == status_id:
 			_status_hovered_icon = icon
-			_show_status_tooltip(icon.tooltip_text, icon)
+			_show_status_tooltip(tooltip_text, icon)
 		rendered_count += 1
 
 	_remove_inactive_status_icons(active_status_ids)
@@ -359,6 +362,7 @@ func _get_or_create_status_icon(status_id: String) -> TextureRect:
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_STOP
+	icon.tooltip_text = ""
 	icon.mouse_entered.connect(_on_status_icon_mouse_entered.bind(status_id, icon))
 	icon.mouse_exited.connect(_on_status_icon_mouse_exited.bind(status_id))
 
@@ -399,6 +403,7 @@ func _remove_inactive_status_icons(active_status_ids: Array[String]) -> void:
 		_status_icon_nodes.erase(status_id)
 		_status_time_labels.erase(status_id)
 		_status_darken_nodes.erase(status_id)
+		_status_tooltip_texts.erase(status_id)
 		if _status_hovered_id == status_id:
 			_hide_status_tooltip()
 		if item != null and is_instance_valid(item):
@@ -463,7 +468,7 @@ func _get_status_detail_text(status_id: String) -> String:
 func _on_status_icon_mouse_entered(status_id: String, icon: TextureRect) -> void:
 	_status_hovered_id = status_id
 	_status_hovered_icon = icon
-	_show_status_tooltip(icon.tooltip_text, icon)
+	_show_status_tooltip(String(_status_tooltip_texts.get(status_id, "")), icon)
 
 
 func _on_status_icon_mouse_exited(status_id: String) -> void:

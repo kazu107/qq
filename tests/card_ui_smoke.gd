@@ -471,8 +471,8 @@ func _run() -> void:
 		push_error("Card UI smoke failed: status icon should show remaining seconds to the right")
 		get_tree().quit(1)
 		return
-	if bleed_icon.tooltip_text.find("Remaining: 4.0s") == -1 or bleed_icon.tooltip_text.find("Takes 1 damage") == -1:
-		push_error("Card UI smoke failed: status icon hover should show remaining time and concrete details")
+	if bleed_icon.tooltip_text != "":
+		push_error("Card UI smoke failed: status icons should not use Godot's built-in tooltip")
 		get_tree().quit(1)
 		return
 	if bleed_icon.self_modulate.r >= slow_icon.self_modulate.r:
@@ -488,7 +488,11 @@ func _run() -> void:
 	var status_tooltip_text: Label = null
 	if status_tooltip_popup != null:
 		status_tooltip_text = status_tooltip_popup.find_child("StatusTooltipText", true, false) as Label
-	if status_tooltip_popup == null or status_tooltip_text == null or not status_tooltip_popup.visible or status_tooltip_text.text.find("Takes 1 damage") == -1:
+	if status_tooltip_popup == null \
+	or status_tooltip_text == null \
+	or not status_tooltip_popup.visible \
+	or status_tooltip_text.text.find("Remaining: 4.0s") == -1 \
+	or status_tooltip_text.text.find("Takes 1 damage") == -1:
 		push_error("Card UI smoke failed: status icon mouseover should show a visible detail popup")
 		get_tree().quit(1)
 		return
@@ -508,6 +512,10 @@ func _run() -> void:
 		return
 	if bleed_time_label == null or bleed_time_label.text != "2.0s":
 		push_error("Card UI smoke failed: status seconds should update as remaining time decreases")
+		get_tree().quit(1)
+		return
+	if status_tooltip_text.text.find("Remaining: 2.0s") == -1:
+		push_error("Card UI smoke failed: status tooltip should update while the icon remains hovered")
 		get_tree().quit(1)
 		return
 	if bleed_icon.self_modulate.r >= bleed_brightness_before:

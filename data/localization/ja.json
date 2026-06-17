@@ -34,6 +34,7 @@
   "hub.debug_starter": "開始セット",
   "hub.debug_loadout": "ロードアウト",
   "hub.debug_card_slot": "カード {index}",
+  "hub.debug_grade": "グレード",
   "hub.debug_empty_slot": "空き",
   "hub.debug_start_custom_battle": "カスタム戦闘開始",
   "run_setup.title": "開始ロードアウトを選択",
