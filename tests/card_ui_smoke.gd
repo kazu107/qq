@@ -623,22 +623,22 @@ func _run() -> void:
 	var floating_texts: Array[String] = []
 	for effect_label in floating_labels:
 		floating_texts.append(effect_label.text)
-		var label_parent: Node = effect_label.get_parent()
-		var badge: PanelContainer = null
-		if label_parent != null:
-			badge = label_parent.get_parent() as PanelContainer
-		var badge_style: StyleBoxFlat = null
-		if badge != null:
-			badge_style = badge.get_theme_stylebox("panel") as StyleBoxFlat
 		if effect_label.get_theme_font_size("font_size") < 30 \
 		or effect_label.get_theme_constant("outline_size") < 4 \
-		or badge_style == null \
-		or badge_style.bg_color.a < 0.7:
-			push_error("Card UI smoke failed: floating battle text should be larger and badge-backed")
+		or effect_label.get_parent() != effect_layer:
+			push_error("Card UI smoke failed: floating battle numbers should be large direct labels without badge backgrounds")
 			get_tree().quit(1)
 			return
-	if not floating_texts.has("-9") or not floating_texts.has("Shield +2"):
-		push_error("Card UI smoke failed: floating battle text should show damage and shield gain")
+		if effect_label.text.find("Shield") != -1:
+			push_error("Card UI smoke failed: floating shield changes should render as numbers only")
+			get_tree().quit(1)
+			return
+	if effect_layer.find_child("FloatingStatBadge", true, false) != null:
+		push_error("Card UI smoke failed: floating battle numbers should not use a background badge")
+		get_tree().quit(1)
+		return
+	if not floating_texts.has("-9") or not floating_texts.has("+2"):
+		push_error("Card UI smoke failed: floating battle numbers should show damage and shield gain as numbers only")
 		get_tree().quit(1)
 		return
 	unit_panel._process(1.0)

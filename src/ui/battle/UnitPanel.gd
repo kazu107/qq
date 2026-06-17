@@ -615,38 +615,19 @@ func _emit_delta_popups(current_hp: int, current_shield: int, suppressed_shield_
 		var visible_shield_loss: int = max(0, shield_loss - max(0, suppressed_shield_loss))
 		if visible_shield_loss <= 0:
 			return
-		_spawn_floating_text(Localization.get_textf("unit.shield_delta", "Shield {amount}", {
-			"amount": "-%d" % visible_shield_loss,
-		}), SHIELD_COLOR, 32.0)
+		_spawn_floating_text("-%d" % visible_shield_loss, SHIELD_COLOR, 32.0)
 	elif current_shield > _last_shield:
-		_spawn_floating_text(Localization.get_textf("unit.shield_delta", "Shield {amount}", {
-			"amount": "+%d" % (current_shield - _last_shield),
-		}), SHIELD_COLOR, -26.0)
+		_spawn_floating_text("+%d" % (current_shield - _last_shield), SHIELD_COLOR, -26.0)
 
 
 func _spawn_floating_text(text: String, color: Color, x_offset: float) -> void:
 	if _portrait_effect_layer == null or text == "":
 		return
 
-	var badge: PanelContainer = PanelContainer.new()
-	badge.name = "FloatingStatBadge"
-	badge.position = Vector2(14.0 + x_offset, 50.0)
-	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	badge.z_index = 24
-	badge.add_theme_stylebox_override("panel", _make_floating_text_stylebox(color))
-	_portrait_effect_layer.add_child(badge)
-
-	var margin: MarginContainer = MarginContainer.new()
-	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_theme_constant_override("margin_left", 9)
-	margin.add_theme_constant_override("margin_top", 3)
-	margin.add_theme_constant_override("margin_right", 9)
-	margin.add_theme_constant_override("margin_bottom", 3)
-	badge.add_child(margin)
-
 	var label: Label = Label.new()
 	label.name = "FloatingStatLabel"
 	label.text = text
+	label.position = Vector2(22.0 + x_offset, 58.0)
 	label.custom_minimum_size = Vector2(58.0, 0.0)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -658,10 +639,10 @@ func _spawn_floating_text(text: String, color: Color, x_offset: float) -> void:
 	label.add_theme_constant_override("shadow_offset_x", 2)
 	label.add_theme_constant_override("shadow_offset_y", 3)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_child(label)
+	_portrait_effect_layer.add_child(label)
 
 	var floating_text: FloatingStatText = FloatingStatText.new()
-	floating_text.control = badge
+	floating_text.control = label
 	floating_text.label = label
 	floating_text.drift = Vector2(0.0, -24.0)
 	_floating_texts.append(floating_text)
@@ -787,28 +768,6 @@ func _make_shield_fill_stylebox() -> StyleBoxFlat:
 	style.corner_radius_top_right = 8
 	style.corner_radius_bottom_left = 8
 	style.corner_radius_bottom_right = 8
-	return style
-
-
-func _make_floating_text_stylebox(accent_color: Color) -> StyleBoxFlat:
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	var background_color: Color = accent_color.darkened(0.72)
-	background_color.a = 0.84
-	var border_color: Color = accent_color.lightened(0.20)
-	border_color.a = 1.0
-	style.bg_color = background_color
-	style.border_color = border_color
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
-	style.corner_radius_top_left = 12
-	style.corner_radius_top_right = 12
-	style.corner_radius_bottom_left = 12
-	style.corner_radius_bottom_right = 12
-	style.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
-	style.shadow_size = 5
-	style.shadow_offset = Vector2(0.0, 3.0)
 	return style
 
 
