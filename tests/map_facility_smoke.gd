@@ -93,9 +93,71 @@ func _assert_map_scene() -> void:
 		_fail("Map/facility smoke failed: map scene did not render inventory rows")
 	elif relic_icon_row == null:
 		_fail("Map/facility smoke failed: map scene did not render relic icon row")
+	var first_node_button: MapNodeButton = _find_first_map_node_button(steps_box)
+	if first_node_button == null:
+		_fail("Map/facility smoke failed: map scene did not render node buttons")
+		return
+	var node_icon: TextureRect = first_node_button.find_child("MapNodeTypeIcon", true, false) as TextureRect
+	var node_name: Label = first_node_button.find_child("MapNodeName", true, false) as Label
+	if first_node_button.text != "" or node_icon == null or node_icon.texture == null or node_name == null or node_name.text == "":
+		_fail("Map/facility smoke failed: node map should render only area icon and area name")
+		return
+	if first_node_button.tooltip_text.find("Status:") != -1 or first_node_button.tooltip_text.find("Locked") != -1:
+		_fail("Map/facility smoke failed: node map should not expose lock status wording")
+		return
+	var locked_node_button: MapNodeButton = _find_first_locked_map_node_button(steps_box)
+	if locked_node_button == null:
+		_fail("Map/facility smoke failed: locked node should render a lock icon")
+		return
+	var lock_icon: TextureRect = locked_node_button.find_child("MapNodeLockIcon", true, false) as TextureRect
+	if lock_icon == null or lock_icon.texture == null:
+		_fail("Map/facility smoke failed: locked node lock icon was missing")
+		return
+	var locked_step_panel: PanelContainer = _get_step_panel_for_node(locked_node_button)
+	var locked_step_style: StyleBoxFlat = null
+	if locked_step_panel != null:
+		locked_step_style = locked_step_panel.get_theme_stylebox("panel") as StyleBoxFlat
+	if locked_step_style == null or locked_step_style.bg_color.a < 0.5:
+		_fail("Map/facility smoke failed: locked step frame should be dimmed")
+		return
 
 	map_scene.queue_free()
 	await get_tree().process_frame
+
+
+func _find_first_map_node_button(root: Node) -> MapNodeButton:
+	for child in root.get_children():
+		var child_node: Node = child as Node
+		if child_node is MapNodeButton:
+			return child_node as MapNodeButton
+		var nested_button: MapNodeButton = _find_first_map_node_button(child_node)
+		if nested_button != null:
+			return nested_button
+	return null
+
+
+func _find_first_locked_map_node_button(root: Node) -> MapNodeButton:
+	for child in root.get_children():
+		var child_node: Node = child as Node
+		if child_node is MapNodeButton:
+			var node_button: MapNodeButton = child_node as MapNodeButton
+			var lock_overlay: Control = node_button.find_child("MapNodeLockOverlay", true, false) as Control
+			if lock_overlay != null and lock_overlay.visible:
+				return node_button
+		var nested_button: MapNodeButton = _find_first_locked_map_node_button(child_node)
+		if nested_button != null:
+			return nested_button
+	return null
+
+
+func _get_step_panel_for_node(node_button: MapNodeButton) -> PanelContainer:
+	var row: Node = node_button.get_parent()
+	if row == null:
+		return null
+	var box: Node = row.get_parent()
+	if box == null:
+		return null
+	return box.get_parent() as PanelContainer
 
 
 func _exercise_loadout_editing() -> void:

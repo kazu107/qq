@@ -48,6 +48,8 @@ func _run() -> void:
 	if Array(elite_bundle.get("options", [])).size() != 3:
 		_fail("Reward progression smoke failed: elite preview should expose three reward options")
 		return
+	Game.current_run.gold = 25
+	Game.last_battle_summary["bonus_relic_id"] = "iron_plating"
 
 	var reward_scene: Control = load("res://scenes/reward/Reward.tscn").instantiate() as Control
 	add_child(reward_scene)
@@ -59,6 +61,23 @@ func _run() -> void:
 	var developer_panel: DeveloperPanel = reward_scene.find_child("DeveloperPanel", true, false) as DeveloperPanel
 	if developer_panel == null or reward_scene.find_child("DevPreviewEliteReward", true, false) == null:
 		_fail("Reward progression smoke failed: reward scene developer tools for preview were missing")
+		return
+	var reward_relic_row: RelicIconRow = reward_scene.find_child("RewardRelicIconRow", true, false) as RelicIconRow
+	if reward_relic_row == null or reward_relic_row.find_child("RelicIcon_iron_plating", true, false) == null:
+		_fail("Reward progression smoke failed: reward scene did not render bonus relic icon")
+		return
+	var reroll_button: Button = reward_scene.find_child("RewardRerollButton", true, false) as Button
+	if reroll_button == null or reroll_button.disabled:
+		_fail("Reward progression smoke failed: paid reward reroll button was missing or disabled")
+		return
+	var gold_before_reroll: int = Game.current_run.gold
+	reroll_button.emit_signal("pressed")
+	await get_tree().process_frame
+	if Game.current_run.gold != gold_before_reroll - Game.get_reward_reroll_cost():
+		_fail("Reward progression smoke failed: paid reward reroll did not spend gold")
+		return
+	if Game.reward_options.size() != 3 or reward_cards.get_child_count() != 3:
+		_fail("Reward progression smoke failed: paid reward reroll did not preserve three choices")
 		return
 
 	print("Reward progression smoke passed")

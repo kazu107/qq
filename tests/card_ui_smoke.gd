@@ -102,8 +102,8 @@ func _run() -> void:
 		push_error("Card UI smoke failed: tooltip should include concrete effect values")
 		get_tree().quit(1)
 		return
-	if first_button.tooltip_text.find("Grades:") == -1 or first_button.tooltip_text.find("Base | Cast") == -1 or first_button.tooltip_text.find("+3 |") == -1:
-		push_error("Card UI smoke failed: tooltip should include all grade info")
+	if first_button.tooltip_text.find("Grades:") != -1:
+		push_error("Card UI smoke failed: battle hand tooltip should omit grade info")
 		get_tree().quit(1)
 		return
 	var tooltip_run: RunState = RunState.from_starter(Database.get_starter("balanced"), 123)
@@ -123,6 +123,10 @@ func _run() -> void:
 	await get_tree().process_frame
 	if boosted_button.tooltip_text.find("Deal 6 (+2) damage") == -1:
 		push_error("Card UI smoke failed: boosted tooltip should show plain effect deltas")
+		get_tree().quit(1)
+		return
+	if boosted_button.tooltip_text.find("Grades:") == -1 or boosted_button.tooltip_text.find("Base | Cast") == -1 or boosted_button.tooltip_text.find("+3 |") == -1:
+		push_error("Card UI smoke failed: preview tooltip should keep all grade info")
 		get_tree().quit(1)
 		return
 	if boosted_button.tooltip_text.find("Cast: 3.0 (+1.2)s") == -1 or boosted_button.tooltip_text.find("Recast: 6.0 (-2.0)s") == -1:
@@ -312,6 +316,10 @@ func _run() -> void:
 		return
 	if earliest_button.tooltip_text.find("Owner: Enemy") == -1:
 		push_error("Card UI smoke failed: timeline tooltip text was not assigned")
+		get_tree().quit(1)
+		return
+	if earliest_button.tooltip_text.find("Grades:") != -1:
+		push_error("Card UI smoke failed: battle timeline tooltip should omit grade info")
 		get_tree().quit(1)
 		return
 	var timeline_style: StyleBoxFlat = earliest_button.get_theme_stylebox("normal") as StyleBoxFlat

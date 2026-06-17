@@ -181,8 +181,12 @@ func _rebuild_steps() -> void:
 	var current_step_index: int = Game.get_current_step_index()
 	for step_index in range(steps.size()):
 		var step_data: Dictionary = steps[step_index]
+		var nodes: Array = Array(step_data.get("nodes", []))
+		var step_locked: bool = _is_step_locked(nodes)
 		var panel: PanelContainer = PanelContainer.new()
+		panel.name = "MapStep_%d" % step_index
 		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		panel.add_theme_stylebox_override("panel", _make_step_stylebox(step_locked))
 		_steps_box.add_child(panel)
 
 		var box: VBoxContainer = VBoxContainer.new()
@@ -204,7 +208,6 @@ func _rebuild_steps() -> void:
 		row.add_theme_constant_override("v_separation", 12)
 		box.add_child(row)
 
-		var nodes: Array = Array(step_data.get("nodes", []))
 		for raw_node in nodes:
 			var node_data: Dictionary = Dictionary(raw_node)
 			var node_button: MapNodeButton = MapNodeButton.new()
@@ -212,6 +215,35 @@ func _rebuild_steps() -> void:
 			node_button.bind(node_data, Localization.get_step_label(step_data), step_index == current_step_index)
 			node_button.node_selected.connect(_on_node_selected)
 			row.add_child(node_button)
+
+
+func _is_step_locked(nodes: Array) -> bool:
+	if nodes.is_empty():
+		return false
+	for raw_node in nodes:
+		var node_data: Dictionary = Dictionary(raw_node)
+		if String(node_data.get("status", "locked")) != "locked":
+			return false
+	return true
+
+
+func _make_step_stylebox(locked: bool) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.04, 0.05, 0.07, 0.54) if locked else Color(0.08, 0.09, 0.12, 0.22)
+	style.border_color = Color(0.20, 0.22, 0.27, 0.72) if locked else Color(0.36, 0.39, 0.47, 0.50)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 14
+	style.corner_radius_top_right = 14
+	style.corner_radius_bottom_left = 14
+	style.corner_radius_bottom_right = 14
+	style.content_margin_left = 10.0
+	style.content_margin_top = 10.0
+	style.content_margin_right = 10.0
+	style.content_margin_bottom = 10.0
+	return style
 
 
 func _rebuild_loadout_rows() -> void:

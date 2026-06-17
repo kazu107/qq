@@ -165,6 +165,8 @@
   "reward.summary.bundle": "報酬 {reward_name} | エリア {area} | +{gold} ゴールド | +{hp} HP",
   "reward.summary.replay": "リプレイ JSON: {path}",
   "reward.choose_one": "カードを 1 枚選んでください。ホバーで詳細を確認できます。",
+  "reward.relic_bonus": "獲得遺物",
+  "reward.reroll": "リロール ({cost}G)",
   "reward.skip": "スキップ",
   "reward.view_replay": "リプレイを見る",
   "reward.key.normal": "通常",

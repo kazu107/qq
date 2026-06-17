@@ -5,6 +5,7 @@ const DEVELOPER_META_RESET_POINTS := 10
 const DEBUG_EVENT_NODE_ID := "__debug_event__"
 const DEFAULT_RESOLUTION := "1920x1080"
 const AVAILABLE_RESOLUTION_CODES := ["1280x720", "1600x900", "1920x1080", "2560x1440"]
+const REWARD_REROLL_COST: int = 10
 
 var current_run: RunState
 var meta_progress: Dictionary = {}
@@ -270,6 +271,35 @@ func skip_reward() -> void:
 	_complete_active_map_node_and_advance()
 	current_screen_hint = _get_post_progress_scene_hint()
 	SaveManager.save_game(current_screen_hint)
+
+
+func get_reward_reroll_cost() -> int:
+	return REWARD_REROLL_COST
+
+
+func can_reroll_rewards() -> bool:
+	if current_run == null or reward_options.is_empty():
+		return false
+	return current_run.gold >= REWARD_REROLL_COST
+
+
+func reroll_rewards_for_gold() -> bool:
+	if current_run == null or reward_options.is_empty():
+		AudioManager.play_sfx("ui_error")
+		return false
+	if current_run.gold < REWARD_REROLL_COST:
+		AudioManager.play_sfx("ui_error")
+		return false
+
+	var rerolled_options: Array[String] = _reroll_reward_options()
+	if rerolled_options.is_empty():
+		AudioManager.play_sfx("ui_error")
+		return false
+
+	current_run.gold = max(0, current_run.gold - REWARD_REROLL_COST)
+	AudioManager.play_sfx("shop_buy")
+	SaveManager.save_game(current_screen_hint)
+	return true
 
 
 func get_run_summary() -> Dictionary:
@@ -814,14 +844,13 @@ func developer_grant_random_relic() -> String:
 func developer_reroll_rewards() -> Array[String]:
 	if current_run == null:
 		return []
-	var reward_key: String = String(last_reward_bundle.get("reward_key", "normal"))
-	var area: int = int(last_reward_bundle.get("area", current_run.current_area))
-	var preview_bundle: Dictionary = preview_reward_package(reward_key, area)
-	reward_options = _to_string_array(preview_bundle.get("options", []))
-	last_reward_bundle = preview_bundle
+	var rerolled_options: Array[String] = _reroll_reward_options()
+	if rerolled_options.is_empty():
+		AudioManager.play_sfx("ui_error")
+		return []
 	AudioManager.play_sfx("ui_toggle")
 	SaveManager.save_game(current_screen_hint)
-	return reward_options.duplicate()
+	return rerolled_options
 
 
 func developer_open_reward_preview(reward_key: String, area: int = -1) -> Dictionary:
@@ -1464,11 +1493,13 @@ func _apply_reward_bundle(reward_bundle: Dictionary) -> void:
 
 
 func _grant_random_relic_note() -> String:
+	last_battle_summary.erase("bonus_relic_id")
 	var relic_id: String = _relic_service.roll_random_relic(current_run.relics, get_unlocked_relic_ids())
 	if relic_id == "":
 		return ""
 	if not _relic_service.grant_relic(current_run, relic_id):
 		return ""
+	last_battle_summary["bonus_relic_id"] = relic_id
 	var relic_def: RelicDef = Database.get_relic(relic_id)
 	if relic_def == null:
 		return Localization.get_relic_gained_text(relic_id)
@@ -1714,6 +1745,23 @@ func _get_post_progress_scene_hint() -> String:
 	if current_run != null and current_run.run_complete:
 		return "result"
 	return "map"
+
+
+func _reroll_reward_options() -> Array[String]:
+	if current_run == null:
+		return []
+
+	var reward_key: String = String(last_reward_bundle.get("reward_key", "normal"))
+	var area: int = int(last_reward_bundle.get("area", current_run.current_area))
+	var preview_bundle: Dictionary = preview_reward_package(reward_key, area)
+	var next_options: Array[String] = _to_string_array(preview_bundle.get("options", []))
+	if next_options.is_empty():
+		return []
+
+	reward_options = next_options
+	last_reward_bundle = preview_bundle
+	last_battle_summary["reward_options"] = reward_options.duplicate()
+	return reward_options.duplicate()
 
 
 func preview_reward_package(reward_key: String, area: int = -1) -> Dictionary:

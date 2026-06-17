@@ -1,6 +1,10 @@
 extends Control
 
+var _summary_label: Label
+var _reward_relic_label: Label
+var _reward_relic_icon_row: RelicIconRow
 var _reward_cards_panel: CardHandPanel
+var _reroll_button: Button
 var _developer_panel: DeveloperPanel
 
 
@@ -33,7 +37,60 @@ func _ready() -> void:
 	title.text = Localization.get_text("reward.title", "Reward")
 	root.add_child(title)
 
-	var summary := Label.new()
+	_summary_label = Label.new()
+	_summary_label.text = _build_summary_text()
+	root.add_child(_summary_label)
+
+	_reward_relic_label = Label.new()
+	_reward_relic_label.name = "RewardRelicLabel"
+	_reward_relic_label.text = Localization.get_text("reward.relic_bonus", "Bonus Relic")
+	root.add_child(_reward_relic_label)
+
+	_reward_relic_icon_row = RelicIconRow.new()
+	_reward_relic_icon_row.name = "RewardRelicIconRow"
+	_reward_relic_icon_row.set_icon_size(Vector2(56.0, 56.0))
+	root.add_child(_reward_relic_icon_row)
+
+	var info := Label.new()
+	info.text = Localization.get_text("reward.choose_one", "Choose one card. Hover to inspect details.")
+	root.add_child(info)
+
+	_reward_cards_panel = CardHandPanel.new()
+	_reward_cards_panel.name = "RewardCards"
+	_reward_cards_panel.set_interactive(true)
+	_reward_cards_panel.set_tile_size(Vector2(110.0, 110.0))
+	_reward_cards_panel.card_requested.connect(_on_reward_selected)
+	root.add_child(_reward_cards_panel)
+	_reward_cards_panel.refresh_card_ids(Game.reward_options, true, "PICK", Game.current_run)
+
+	var button_row: HBoxContainer = HBoxContainer.new()
+	button_row.add_theme_constant_override("separation", 10)
+	root.add_child(button_row)
+
+	_reroll_button = Button.new()
+	_reroll_button.name = "RewardRerollButton"
+	_reroll_button.pressed.connect(_on_paid_reroll)
+	button_row.add_child(_reroll_button)
+
+	var skip_button := Button.new()
+	skip_button.text = Localization.get_text("reward.skip", "Skip")
+	skip_button.pressed.connect(_on_skip)
+	button_row.add_child(skip_button)
+
+	var replay_button: Button = Button.new()
+	replay_button.name = "OpenReplayViewerButton"
+	replay_button.text = Localization.get_text("reward.view_replay", "View Replay")
+	replay_button.disabled = Game.get_last_replay_export_path() == ""
+	replay_button.pressed.connect(_on_open_replay_viewer)
+	button_row.add_child(replay_button)
+
+	_refresh_reward_ui()
+
+	if Game.is_developer_mode_enabled():
+		_build_developer_panel()
+
+
+func _build_summary_text() -> String:
 	var summary_lines: Array[String] = [
 		Localization.get_textf("reward.summary.victory", "Victory over {enemy_name} | HP {hp} | Gold {gold}", {
 			"enemy_name": Game.get_last_battle_enemy_name(),
@@ -59,39 +116,40 @@ func _ready() -> void:
 		summary_lines.append(Localization.get_textf("reward.summary.replay", "Replay JSON: {path}", {
 			"path": replay_path,
 		}))
-	summary.text = "\n".join(summary_lines)
-	root.add_child(summary)
+	return "\n".join(summary_lines)
 
-	var info := Label.new()
-	info.text = Localization.get_text("reward.choose_one", "Choose one card. Hover to inspect details.")
-	root.add_child(info)
 
-	_reward_cards_panel = CardHandPanel.new()
-	_reward_cards_panel.name = "RewardCards"
-	_reward_cards_panel.set_interactive(true)
-	_reward_cards_panel.set_tile_size(Vector2(110.0, 110.0))
-	_reward_cards_panel.card_requested.connect(_on_reward_selected)
-	root.add_child(_reward_cards_panel)
-	_reward_cards_panel.refresh_card_ids(Game.reward_options, true, "PICK", Game.current_run)
+func _refresh_reward_ui() -> void:
+	if _summary_label != null:
+		_summary_label.text = _build_summary_text()
+	if _reward_cards_panel != null:
+		_reward_cards_panel.refresh_card_ids(Game.reward_options, true, "PICK", Game.current_run)
+	_refresh_reward_relics()
+	_refresh_reroll_button()
 
-	var button_row: HBoxContainer = HBoxContainer.new()
-	button_row.add_theme_constant_override("separation", 10)
-	root.add_child(button_row)
 
-	var skip_button := Button.new()
-	skip_button.text = Localization.get_text("reward.skip", "Skip")
-	skip_button.pressed.connect(_on_skip)
-	button_row.add_child(skip_button)
+func _refresh_reward_relics() -> void:
+	if _reward_relic_icon_row == null or _reward_relic_label == null:
+		return
+	var relic_ids: Array[String] = _get_reward_relic_ids()
+	_reward_relic_label.visible = not relic_ids.is_empty()
+	_reward_relic_icon_row.visible = not relic_ids.is_empty()
+	_reward_relic_icon_row.refresh_relic_ids(relic_ids)
 
-	var replay_button: Button = Button.new()
-	replay_button.name = "OpenReplayViewerButton"
-	replay_button.text = Localization.get_text("reward.view_replay", "View Replay")
-	replay_button.disabled = Game.get_last_replay_export_path() == ""
-	replay_button.pressed.connect(_on_open_replay_viewer)
-	button_row.add_child(replay_button)
 
-	if Game.is_developer_mode_enabled():
-		_build_developer_panel()
+func _get_reward_relic_ids() -> Array[String]:
+	var relic_id: String = String(Game.last_battle_summary.get("bonus_relic_id", ""))
+	if relic_id == "":
+		return []
+	return [relic_id]
+
+
+func _refresh_reroll_button() -> void:
+	if _reroll_button == null:
+		return
+	var cost: int = Game.get_reward_reroll_cost()
+	_reroll_button.text = Localization.get_textf("reward.reroll", "Reroll ({cost}G)", {"cost": cost})
+	_reroll_button.disabled = not Game.can_reroll_rewards()
 
 
 func _on_reward_selected(card_id: String) -> void:
@@ -115,6 +173,13 @@ func _on_open_replay_viewer() -> void:
 		AudioManager.play_sfx("ui_error")
 		return
 	SceneRouter.go_to_replay_viewer()
+
+
+func _on_paid_reroll() -> void:
+	if Game.reroll_rewards_for_gold():
+		_refresh_reward_ui()
+		return
+	_refresh_reroll_button()
 
 
 func _build_developer_panel() -> void:
@@ -143,12 +208,12 @@ func _on_dev_take_first_reward() -> void:
 
 func _on_dev_reroll_rewards() -> void:
 	Game.developer_reroll_rewards()
-	_reward_cards_panel.refresh_card_ids(Game.reward_options, true, "PICK", Game.current_run)
+	_refresh_reward_ui()
 
 
 func _on_dev_preview_elite() -> void:
 	Game.developer_open_reward_preview("elite", Game.current_run.current_area)
-	_reward_cards_panel.refresh_card_ids(Game.reward_options, true, "PICK", Game.current_run)
+	_refresh_reward_ui()
 
 
 func _on_dev_export_replay() -> void:

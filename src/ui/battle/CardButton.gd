@@ -517,7 +517,6 @@ func _build_hand_tooltip(card_def: CardDef, tooltip_state: String, tooltip_block
 		}))
 	if tooltip_blocked != "":
 		lines.append(tooltip_blocked)
-	_append_grade_lines(lines, card_def.id)
 	return "\n".join(lines)
 
 
@@ -558,7 +557,6 @@ func _build_active_tooltip(card_def: CardDef, instance: ActiveCardInstance, rema
 	_append_effect_lines(lines, card_def, rich)
 	if instance.interruptible:
 		lines.append(Localization.get_text("card.tooltip.interruptible", "Interruptible"))
-	_append_grade_lines(lines, card_def.id)
 	return "\n".join(lines)
 
 
@@ -577,7 +575,6 @@ func _build_timeline_tooltip(card_def: CardDef, entry: TimelineEntry, remaining:
 	_append_effect_lines(lines, card_def, rich)
 	if entry.interruptible:
 		lines.append(Localization.get_text("card.tooltip.interruptible", "Interruptible"))
-	_append_grade_lines(lines, card_def.id)
 	return "\n".join(lines)
 
 
