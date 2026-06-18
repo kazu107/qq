@@ -2,6 +2,9 @@ extends Control
 
 const BOTTOM_PANEL_MIN_HEIGHT: float = 324.0
 const BATTLE_INFO_MIN_WIDTH: float = 280.0
+const BATTLE_CARD_TILE_SIZE: Vector2 = Vector2(100.0, 100.0)
+const BATTLE_LOADOUT_WIDTH: float = 320.0
+const BATTLE_SIDE_PANEL_WIDTH: float = BATTLE_LOADOUT_WIDTH + 34.0
 const TIMELINE_PREVIEW_INSTANCE_ID: int = 999999
 
 var _engine := RealtimeBattleEngine.new()
@@ -114,6 +117,7 @@ func _build_ui() -> void:
 
 	var left_panel := _create_section(main_split, Localization.get_text("battle.section.enemy", "Enemy"), false, true)
 	left_panel.name = "EnemySection"
+	_set_section_min_width(left_panel, BATTLE_SIDE_PANEL_WIDTH)
 	_enemy_panel = UnitPanel.new()
 	_enemy_panel.name = "EnemyUnitPanel"
 	left_panel.add_child(_enemy_panel)
@@ -126,7 +130,8 @@ func _build_ui() -> void:
 	_enemy_cards_panel = CardHandPanel.new()
 	_enemy_cards_panel.name = "EnemyLoadoutPanel"
 	_enemy_cards_panel.set_interactive(false)
-	_enemy_cards_panel.set_tile_size(Vector2(88.0, 88.0))
+	_enemy_cards_panel.custom_minimum_size = Vector2(BATTLE_LOADOUT_WIDTH, 0.0)
+	_enemy_cards_panel.set_tile_size(BATTLE_CARD_TILE_SIZE)
 	left_panel.add_child(_enemy_cards_panel)
 
 	var center_panel := _create_section(main_split, Localization.get_text("battle.section.battle", "Battle"), false, false)
@@ -144,6 +149,7 @@ func _build_ui() -> void:
 
 	var right_panel := _create_section(main_split, Localization.get_text("battle.section.player", "Player"), false, true)
 	right_panel.name = "PlayerSection"
+	_set_section_min_width(right_panel, BATTLE_SIDE_PANEL_WIDTH)
 	_player_panel = UnitPanel.new()
 	_player_panel.name = "PlayerUnitPanel"
 	right_panel.add_child(_player_panel)
@@ -156,7 +162,8 @@ func _build_ui() -> void:
 	_card_hand_panel = CardHandPanel.new()
 	_card_hand_panel.name = "PlayerHandPanel"
 	_card_hand_panel.set_interactive(true)
-	_card_hand_panel.set_tile_size(Vector2(100.0, 100.0))
+	_card_hand_panel.custom_minimum_size = Vector2(BATTLE_LOADOUT_WIDTH, 0.0)
+	_card_hand_panel.set_tile_size(BATTLE_CARD_TILE_SIZE)
 	_card_hand_panel.card_requested.connect(_on_card_requested)
 	_card_hand_panel.card_hovered.connect(_on_player_card_hovered)
 	_card_hand_panel.card_unhovered.connect(_on_player_card_unhovered)
@@ -223,6 +230,13 @@ func _create_section(parent: Control, title: String, expand_horizontal: bool = t
 		header.text = title
 		box.add_child(header)
 	return box
+
+
+func _set_section_min_width(section_box: Control, min_width: float) -> void:
+	section_box.custom_minimum_size = Vector2(min_width, section_box.custom_minimum_size.y)
+	var frame: Control = section_box.get_parent() as Control
+	if frame != null:
+		frame.custom_minimum_size = Vector2(min_width, frame.custom_minimum_size.y)
 
 
 func _refresh_ui(time_scale: float) -> void:

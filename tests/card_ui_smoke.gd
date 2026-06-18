@@ -719,6 +719,20 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle player hand panel was not rendered")
 		get_tree().quit(1)
 		return
+	var battle_enemy_loadout_panel: CardHandPanel = battle_scene.find_child("EnemyLoadoutPanel", true, false) as CardHandPanel
+	if battle_enemy_loadout_panel == null or battle_enemy_loadout_panel.get_child_count() < 1:
+		push_error("Card UI smoke failed: battle enemy loadout panel was not rendered")
+		get_tree().quit(1)
+		return
+	var battle_enemy_card: CardButton = battle_enemy_loadout_panel.get_child(0) as CardButton
+	if battle_enemy_card == null or battle_enemy_card.custom_minimum_size != Vector2(100.0, 100.0):
+		push_error("Card UI smoke failed: enemy loadout cards should match player card size")
+		get_tree().quit(1)
+		return
+	if battle_enemy_loadout_panel.custom_minimum_size.x < 320.0 or battle_player_hand_panel.custom_minimum_size.x < 320.0:
+		push_error("Card UI smoke failed: battle side loadouts should reserve three card columns")
+		get_tree().quit(1)
+		return
 	var battle_player_card: CardButton = battle_player_hand_panel.get_child(0) as CardButton
 	if battle_player_card == null:
 		push_error("Card UI smoke failed: battle player hand card was not rendered")
@@ -817,6 +831,10 @@ func _run() -> void:
 		player_frame = player_section.get_parent() as Control
 	if enemy_frame == null or player_frame == null or enemy_frame.size_flags_horizontal != Control.SIZE_SHRINK_CENTER or player_frame.size_flags_horizontal != Control.SIZE_SHRINK_CENTER:
 		push_error("Card UI smoke failed: player and enemy frames should move toward center")
+		get_tree().quit(1)
+		return
+	if enemy_frame.custom_minimum_size.x < 340.0 or player_frame.custom_minimum_size.x < 340.0:
+		push_error("Card UI smoke failed: player and enemy frames should fit three card columns")
 		get_tree().quit(1)
 		return
 	var battle_player_slots: Label = battle_scene.find_child("SlotLabel", true, false) as Label

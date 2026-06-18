@@ -93,6 +93,13 @@ func _assert_map_scene() -> void:
 		_fail("Map/facility smoke failed: map scene did not render inventory rows")
 	elif relic_icon_row == null:
 		_fail("Map/facility smoke failed: map scene did not render relic icon row")
+	var current_step_panel: PanelContainer = steps_box.find_child("MapStep_0", true, false) as PanelContainer
+	var current_step_style: StyleBoxFlat = null
+	if current_step_panel != null:
+		current_step_style = current_step_panel.get_theme_stylebox("panel") as StyleBoxFlat
+	if current_step_style == null or current_step_style.border_color.r < 0.95 or current_step_style.border_color.g < 0.65 or current_step_style.border_width_top < 3:
+		_fail("Map/facility smoke failed: current map step should have a yellow outline")
+		return
 	var first_node_button: MapNodeButton = _find_first_map_node_button(steps_box)
 	if first_node_button == null:
 		_fail("Map/facility smoke failed: map scene did not render node buttons")
