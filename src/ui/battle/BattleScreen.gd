@@ -1,6 +1,7 @@
 extends Control
 
 const BOTTOM_PANEL_MIN_HEIGHT: float = 324.0
+const BATTLE_INFO_MIN_WIDTH: float = 280.0
 const TIMELINE_PREVIEW_INSTANCE_ID: int = 999999
 
 var _engine := RealtimeBattleEngine.new()
@@ -130,10 +131,13 @@ func _build_ui() -> void:
 
 	var center_panel := _create_section(main_split, Localization.get_text("battle.section.battle", "Battle"), false, false)
 	center_panel.name = "BattleInfoSection"
+	center_panel.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH, 0.0)
 	_battle_info_label = RichTextLabel.new()
 	_battle_info_label.name = "BattleInfoLabel"
 	_battle_info_label.fit_content = true
 	_battle_info_label.scroll_active = false
+	_battle_info_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_battle_info_label.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH, 0.0)
 	_battle_info_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_battle_info_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	center_panel.add_child(_battle_info_label)

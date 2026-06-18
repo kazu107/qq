@@ -796,6 +796,10 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle info frame should fit its text")
 		get_tree().quit(1)
 		return
+	if battle_info.custom_minimum_size.x < 240.0 or battle_info.autowrap_mode != TextServer.AUTOWRAP_OFF:
+		push_error("Card UI smoke failed: battle info should keep enough width to avoid vertical text wrapping")
+		get_tree().quit(1)
+		return
 	var enemy_frame: Control = null
 	if enemy_section != null:
 		enemy_frame = enemy_section.get_parent() as Control
