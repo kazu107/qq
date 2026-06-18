@@ -514,7 +514,7 @@ func _resolve_due_entries() -> void:
 		var timeline_after := _snapshot_timeline()
 		for message in messages:
 			battle_state.add_log("%s" % message)
-		AudioManager.play_card_resolution(card_def)
+		AudioManager.play_card_resolution(card_def, _is_fully_blocked_by_shield(card_def, target_hp_before, target_unit.hp, target_shield_before, target_unit.shield))
 		_record_event(_build_basic_event(
 			"resolve_card",
 			unit.unit_id,
@@ -540,6 +540,20 @@ func _resolve_due_entries() -> void:
 		_check_victory()
 		if battle_state.winner != "":
 			return
+
+
+func _is_fully_blocked_by_shield(card_def: CardDef, hp_before: int, hp_after: int, shield_before: int, shield_after: int) -> bool:
+	if card_def == null:
+		return false
+	if hp_after < hp_before:
+		return false
+	if shield_after >= shield_before:
+		return false
+	for raw_effect in card_def.effects:
+		var effect_data: Dictionary = Dictionary(raw_effect)
+		if String(effect_data.get("type", "")) == "deal_damage":
+			return true
+	return false
 
 
 func _snapshot_timeline() -> Array[Dictionary]:

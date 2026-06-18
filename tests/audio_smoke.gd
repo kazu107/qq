@@ -55,6 +55,10 @@ func _run() -> void:
 	if _failed:
 		return
 
+	_assert_shield_block_resolution_sfx()
+	if _failed:
+		return
+
 	Game.start_new_run("balanced")
 	_assert_last_sfx("run_start", "Audio smoke failed: start_new_run should play the run start SFX")
 	if _failed:
@@ -183,6 +187,18 @@ func _assert_sfx_playback() -> void:
 	if AudioManager.get_play_history().size() != EXPECTED_SFX_IDS.size():
 		_fail("Audio smoke failed: AudioManager did not record all playback requests")
 		return
+
+
+func _assert_shield_block_resolution_sfx() -> void:
+	var card_def: CardDef = Database.get_card("quick_slash")
+	if card_def == null:
+		_fail("Audio smoke failed: quick_slash was missing for block SFX verification")
+		return
+	AudioManager.clear_play_history()
+	if not AudioManager.play_card_resolution(card_def, true):
+		_fail("Audio smoke failed: blocked damage resolution SFX could not play")
+		return
+	_assert_last_sfx("battle_guard", "Audio smoke failed: fully shielded damage should play the guard SFX")
 
 
 func _find_available_battle_node() -> Dictionary:

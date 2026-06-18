@@ -16,6 +16,7 @@ const SCHEDULE_CHANGE_EPSILON: float = 0.001
 
 var _title_label: Label
 var _summary_label: Label
+var _header_row: HBoxContainer
 var _scale_row: HBoxContainer
 var _cards_scroll: Control
 var _cards_track: Control
@@ -38,13 +39,22 @@ func _ready() -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	custom_minimum_size = Vector2(0.0, TIMELINE_PANEL_MIN_HEIGHT)
 
+	_header_row = HBoxContainer.new()
+	_header_row.name = "TimelineHeader"
+	_header_row.add_theme_constant_override("separation", 12)
+	add_child(_header_row)
+
 	_title_label = Label.new()
+	_title_label.name = "TimelineTitle"
 	_title_label.text = Localization.get_text("battle.timeline", "Timeline")
-	add_child(_title_label)
+	_header_row.add_child(_title_label)
 
 	_summary_label = Label.new()
-	_summary_label.text = Localization.get_text("timeline.summary", "Soonest cast resolves first")
-	add_child(_summary_label)
+	_summary_label.name = "TimelineQueuedLabel"
+	_summary_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_summary_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_summary_label.text = Localization.get_textf("timeline.queued", "Queued {count}", {"count": 0})
+	_header_row.add_child(_summary_label)
 
 	_scale_row = HBoxContainer.new()
 	_scale_row.name = "TimelineScale"

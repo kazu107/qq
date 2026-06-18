@@ -107,10 +107,11 @@ func _build_ui() -> void:
 	main_split.name = "MainSplit"
 	main_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_split.alignment = BoxContainer.ALIGNMENT_CENTER
 	main_split.add_theme_constant_override("separation", 16)
 	outer.add_child(main_split)
 
-	var left_panel := _create_section(main_split, Localization.get_text("battle.section.enemy", "Enemy"))
+	var left_panel := _create_section(main_split, Localization.get_text("battle.section.enemy", "Enemy"), false, true)
 	left_panel.name = "EnemySection"
 	_enemy_panel = UnitPanel.new()
 	_enemy_panel.name = "EnemyUnitPanel"
@@ -127,13 +128,17 @@ func _build_ui() -> void:
 	_enemy_cards_panel.set_tile_size(Vector2(88.0, 88.0))
 	left_panel.add_child(_enemy_cards_panel)
 
-	var center_panel := _create_section(main_split, Localization.get_text("battle.section.battle", "Battle"))
+	var center_panel := _create_section(main_split, Localization.get_text("battle.section.battle", "Battle"), false, false)
 	center_panel.name = "BattleInfoSection"
 	_battle_info_label = RichTextLabel.new()
+	_battle_info_label.name = "BattleInfoLabel"
 	_battle_info_label.fit_content = true
+	_battle_info_label.scroll_active = false
+	_battle_info_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_battle_info_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	center_panel.add_child(_battle_info_label)
 
-	var right_panel := _create_section(main_split, Localization.get_text("battle.section.player", "Player"))
+	var right_panel := _create_section(main_split, Localization.get_text("battle.section.player", "Player"), false, true)
 	right_panel.name = "PlayerSection"
 	_player_panel = UnitPanel.new()
 	_player_panel.name = "PlayerUnitPanel"
@@ -160,7 +165,7 @@ func _build_ui() -> void:
 	bottom_split.add_theme_constant_override("separation", 16)
 	outer.add_child(bottom_split)
 
-	var timeline_section := _create_section(bottom_split, Localization.get_text("battle.timeline", "Timeline"))
+	var timeline_section := _create_section(bottom_split, Localization.get_text("battle.timeline", "Timeline"), true, true, false)
 	timeline_section.name = "TimelineSection"
 	timeline_section.custom_minimum_size = Vector2(0.0, BOTTOM_PANEL_MIN_HEIGHT)
 	_timeline_panel = TimelinePanel.new()
@@ -198,20 +203,21 @@ func _build_log_popup() -> void:
 	popup_margin.add_child(_log_panel)
 
 
-func _create_section(parent: Control, title: String) -> VBoxContainer:
+func _create_section(parent: Control, title: String, expand_horizontal: bool = true, expand_vertical: bool = true, show_header: bool = true) -> VBoxContainer:
 	var panel := PanelContainer.new()
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL if expand_horizontal else Control.SIZE_SHRINK_CENTER
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL if expand_vertical else Control.SIZE_SHRINK_CENTER
 	parent.add_child(panel)
 
 	var box := VBoxContainer.new()
-	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL if expand_horizontal else Control.SIZE_SHRINK_CENTER
+	box.size_flags_vertical = Control.SIZE_EXPAND_FILL if expand_vertical else Control.SIZE_SHRINK_CENTER
 	panel.add_child(box)
 
-	var header := Label.new()
-	header.text = title
-	box.add_child(header)
+	if show_header:
+		var header := Label.new()
+		header.text = title
+		box.add_child(header)
 	return box
 
 
@@ -247,14 +253,6 @@ func _refresh_ui(time_scale: float) -> void:
 			"total": total_steps,
 		}),
 		Localization.get_textf("battle.info.current_enemy", "Current Enemy: {value}", {"value": battle_state.enemy.display_name}),
-		Localization.get_textf("battle.info.timeline_entries", "Timeline Entries: {value}", {
-			"value": battle_state.timeline.size(),
-		}),
-		"",
-		Localization.get_text("battle.info.controls", "Controls:"),
-		Localization.get_text("battle.info.click_card", "- Click a player card to commit it"),
-		Localization.get_text("battle.info.hover_card", "- Hover any card for details"),
-		Localization.get_text("battle.info.slow_mode", "- Hold Space to slow time to 30%"),
 	])
 
 

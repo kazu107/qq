@@ -762,9 +762,48 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle timeline scale markers were not rendered")
 		get_tree().quit(1)
 		return
-	var battle_info: RichTextLabel = battle_scene.find_child("RichTextLabel", true, false) as RichTextLabel
-	if battle_info != null and (battle_info.text.find("Player Slots") != -1 or battle_info.text.find("Enemy Slots") != -1):
-		push_error("Card UI smoke failed: active slots should move out of battle info")
+	var battle_info: RichTextLabel = battle_scene.find_child("BattleInfoLabel", true, false) as RichTextLabel
+	if battle_info == null:
+		push_error("Card UI smoke failed: battle info label should be named for layout checks")
+		get_tree().quit(1)
+		return
+	var forbidden_battle_info_parts: Array[String] = [
+		"Player Slots",
+		"Enemy Slots",
+		Localization.get_textf("battle.info.timeline_entries", "Timeline Entries: {value}", {"value": 0}).replace("0", ""),
+		Localization.get_text("battle.info.controls", "Controls:").replace(":", ""),
+		Localization.get_text("battle.info.click_card", "- Click a player card to commit it").replace("-", "").strip_edges(),
+		Localization.get_text("battle.info.hover_card", "- Hover any card for details").replace("-", "").strip_edges(),
+		Localization.get_text("battle.info.slow_mode", "- Hold Space to slow time to 30%").replace("-", "").strip_edges(),
+	]
+	for forbidden_text in forbidden_battle_info_parts:
+		if forbidden_text != "" and battle_info.text.find(forbidden_text) != -1:
+			push_error("Card UI smoke failed: battle info should omit controls and timeline count")
+			get_tree().quit(1)
+			return
+	var main_split: HBoxContainer = battle_scene.find_child("MainSplit", true, false) as HBoxContainer
+	var battle_info_section: VBoxContainer = battle_scene.find_child("BattleInfoSection", true, false) as VBoxContainer
+	var enemy_section: VBoxContainer = battle_scene.find_child("EnemySection", true, false) as VBoxContainer
+	var player_section: VBoxContainer = battle_scene.find_child("PlayerSection", true, false) as VBoxContainer
+	if main_split == null or main_split.alignment != BoxContainer.ALIGNMENT_CENTER:
+		push_error("Card UI smoke failed: battle sections should be centered together")
+		get_tree().quit(1)
+		return
+	var battle_info_frame: Control = null
+	if battle_info_section != null:
+		battle_info_frame = battle_info_section.get_parent() as Control
+	if battle_info_frame == null or battle_info_frame.size_flags_horizontal != Control.SIZE_SHRINK_CENTER or battle_info_frame.size_flags_vertical != Control.SIZE_SHRINK_CENTER:
+		push_error("Card UI smoke failed: battle info frame should fit its text")
+		get_tree().quit(1)
+		return
+	var enemy_frame: Control = null
+	if enemy_section != null:
+		enemy_frame = enemy_section.get_parent() as Control
+	var player_frame: Control = null
+	if player_section != null:
+		player_frame = player_section.get_parent() as Control
+	if enemy_frame == null or player_frame == null or enemy_frame.size_flags_horizontal != Control.SIZE_SHRINK_CENTER or player_frame.size_flags_horizontal != Control.SIZE_SHRINK_CENTER:
+		push_error("Card UI smoke failed: player and enemy frames should move toward center")
 		get_tree().quit(1)
 		return
 	var battle_player_slots: Label = battle_scene.find_child("SlotLabel", true, false) as Label
@@ -775,6 +814,23 @@ func _run() -> void:
 	var battle_max_marker: Label = battle_timeline_scale.get_child(battle_timeline_scale.get_child_count() - 1) as Label
 	if battle_max_marker == null or battle_max_marker.text != "+3.6s":
 		push_error("Card UI smoke failed: battle timeline scale should use both loadouts' max cast time")
+		get_tree().quit(1)
+		return
+	var timeline_header: HBoxContainer = battle_timeline_panel.get_node("TimelineHeader") as HBoxContainer
+	var timeline_title: Label = battle_timeline_panel.get_node("TimelineHeader/TimelineTitle") as Label
+	var timeline_queued: Label = battle_timeline_panel.get_node("TimelineHeader/TimelineQueuedLabel") as Label
+	if timeline_header == null or timeline_title == null or timeline_queued == null:
+		push_error("Card UI smoke failed: timeline title and queued count should share a header row")
+		get_tree().quit(1)
+		return
+	var expected_timeline_title: String = Localization.get_text("battle.timeline", "Timeline")
+	var expected_queued_prefix: String = Localization.get_textf("timeline.queued", "Queued {count}", {"count": 0}).replace("0", "")
+	if timeline_title.text != expected_timeline_title or timeline_queued.text.find(expected_queued_prefix) == -1:
+		push_error("Card UI smoke failed: timeline header should show title and queued count")
+		get_tree().quit(1)
+		return
+	if timeline_section == null or _count_labels_with_text(timeline_section, expected_timeline_title) != 1:
+		push_error("Card UI smoke failed: timeline section should not render a duplicate title")
 		get_tree().quit(1)
 		return
 	if log_panel.custom_minimum_size.y < 180.0:
@@ -937,6 +993,17 @@ func _collect_floating_text_labels(effect_layer: Control) -> Array[Label]:
 		if nested_label != null:
 			labels.append(nested_label)
 	return labels
+
+
+func _count_labels_with_text(root: Node, text: String) -> int:
+	var count: int = 0
+	for child in root.get_children():
+		var child_node: Node = child as Node
+		var label: Label = child_node as Label
+		if label != null and label.text == text:
+			count += 1
+		count += _count_labels_with_text(child_node, text)
+	return count
 
 
 func _expected_timeline_x(timeline_panel: TimelinePanel, remaining: float, horizon: float) -> float:

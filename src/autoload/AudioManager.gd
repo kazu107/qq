@@ -79,9 +79,11 @@ func play_sfx(sfx_id: String, pitch_scale: float = 1.0, volume_boost_db: float =
 	return true
 
 
-func play_card_resolution(card_def: CardDef) -> bool:
+func play_card_resolution(card_def: CardDef, fully_blocked_by_shield: bool = false) -> bool:
 	if card_def == null:
 		return false
+	if fully_blocked_by_shield:
+		return play_sfx("battle_guard", 0.92)
 	return play_sfx(_resolve_card_resolution_sfx(card_def))
 
 
