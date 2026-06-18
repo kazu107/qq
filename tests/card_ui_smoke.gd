@@ -26,6 +26,15 @@ func _run() -> void:
 	probe_button.bind(strike_def, cooldown_state, false, false)
 	await get_tree().process_frame
 
+	var scene_root: Control = get_tree().current_scene as Control
+	var atmosphere_background: Control = null
+	if scene_root != null:
+		atmosphere_background = scene_root.find_child("GameAtmosphereBackground", false, false) as Control
+	if scene_root == null or scene_root.theme == null or atmosphere_background == null or atmosphere_background.z_index > -1000:
+		push_error("Card UI smoke failed: global rich UI theme/background was not applied")
+		get_tree().quit(1)
+		return
+
 	var cooldown_shade: ColorRect = probe_button.get_node("CooldownShade") as ColorRect
 	if cooldown_shade == null or cooldown_shade.size.x <= 0.0 or cooldown_shade.size.x >= probe_button.size.x:
 		push_error("Card UI smoke failed: cooldown overlay was not positioned correctly")
