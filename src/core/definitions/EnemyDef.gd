@@ -5,7 +5,6 @@ var id: String = ""
 var name: String = ""
 var max_hp: int = 1
 var attack: int = 0
-var defense: int = 0
 var speed: int = 0
 var cards: Array[String] = []
 var role: String = ""
@@ -18,7 +17,6 @@ static func from_dict(data: Dictionary) -> EnemyDef:
 	enemy_def.name = String(data.get("name", enemy_def.id))
 	enemy_def.max_hp = int(data.get("max_hp", 1))
 	enemy_def.attack = int(data.get("attack", 0))
-	enemy_def.defense = int(data.get("defense", 0))
 	enemy_def.speed = int(data.get("speed", 0))
 	enemy_def.cards = _to_string_array(data.get("cards", []))
 	enemy_def.role = String(data.get("role", ""))

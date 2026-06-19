@@ -9,7 +9,6 @@ var hp: int = 1
 var max_hp: int = 1
 var shield: int = 0
 var attack: int = 0
-var defense: int = 0
 var speed: int = 0
 var statuses: Dictionary = {}
 var active_slots_used: int = 0
@@ -31,10 +30,6 @@ func get_attack_value() -> int:
 	if has_status("weak"):
 		base_attack -= 2
 	return max(0, base_attack)
-
-
-func get_defense_value() -> int:
-	return max(0, defense)
 
 
 func get_cast_time_multiplier() -> float:

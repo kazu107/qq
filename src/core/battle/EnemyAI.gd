@@ -80,7 +80,7 @@ func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, 
 					score += 2.0
 			"reduce_recast":
 				score += 3.0
-			"modify_attack", "modify_defense", "modify_speed":
+			"modify_attack", "modify_speed":
 				score += 3.5
 			"remove_status":
 				if enemy.has_status(String(effect.get("status", ""))):
@@ -100,7 +100,7 @@ func _role_bonus(enemy: UnitState, card_def: CardDef) -> float:
 			if card_def.tags.has("bleed") or card_def.tags.has("attack"):
 				return 2.0
 		"medic_drone":
-			if card_def.tags.has("heal") or card_def.tags.has("defense"):
+			if card_def.tags.has("heal") or card_def.tags.has("shield"):
 				return 2.5
 		"chronoguard", "boss_timekeeper":
 			if card_def.tags.has("control") or card_def.tags.has("delay") or card_def.tags.has("haste"):

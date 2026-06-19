@@ -98,11 +98,6 @@ static func _describe_effect(effect: Dictionary, compact: bool, comparison_effec
 				"target": _target_label(effect),
 				"amount": _format_compared_signed_int(effect, comparison_effect, "amount", true, rich),
 			})
-		"modify_defense":
-			return Localization.get_textf("effect.modify_defense", "Modify defense of {target} by {amount}", {
-				"target": _target_label(effect),
-				"amount": _format_compared_signed_int(effect, comparison_effect, "amount", true, rich),
-			})
 		"modify_speed":
 			return Localization.get_textf("effect.modify_speed", "Modify speed of {target} by {amount}", {
 				"target": _target_label(effect),
@@ -378,8 +373,6 @@ static func _modifier_stat_label(stat: String) -> String:
 			return Localization.get_text("effect.stat.cooldown", "cooldown")
 		"attack_mod":
 			return Localization.get_text("effect.stat.attack_mod", "attack modifier")
-		"defense_mod":
-			return Localization.get_text("effect.stat.defense_mod", "defense modifier")
 		"speed_mod":
 			return Localization.get_text("effect.stat.speed_mod", "speed modifier")
 		"timeline_duration":

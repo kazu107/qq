@@ -167,8 +167,8 @@ func _assert_relic_and_enemy_content() -> void:
 	if battle_state.player.attack != run_state.attack + 2:
 		_fail("Event system smoke failed: war banner did not apply attack bonus in battle")
 		return
-	if battle_state.player.defense != run_state.defense + 2:
-		_fail("Event system smoke failed: aegis matrix did not apply defense bonus in battle")
+	if battle_state.player.shield != 8:
+		_fail("Event system smoke failed: aegis matrix did not apply shield bonus in battle")
 		return
 	if battle_state.player.speed != run_state.speed + 1:
 		_fail("Event system smoke failed: surge gimbal did not apply speed bonus in battle")

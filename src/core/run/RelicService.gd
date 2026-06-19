@@ -49,7 +49,7 @@ func apply_battle_modifiers(unit: UnitState, run_state: RunState) -> void:
 	if run_state.relics.has("war_banner"):
 		unit.attack += 2
 	if run_state.relics.has("aegis_matrix"):
-		unit.defense += 2
+		unit.add_shield(8)
 	if run_state.relics.has("surge_gimbal"):
 		unit.speed += 1
 

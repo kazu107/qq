@@ -454,12 +454,35 @@ func _run() -> void:
 	player_unit.hp = 48
 	player_unit.shield = 3
 	player_unit.attack = 3
-	player_unit.defense = 1
 	player_unit.speed = 5
 	player_unit.active_slot_max = 4
 	player_unit.active_slots_used = 2
 	unit_panel.refresh_unit(player_unit)
 	await get_tree().process_frame
+	var obsolete_stats_label: Label = unit_panel.find_child("StatsLabel", true, false) as Label
+	var stats_icon_row: HBoxContainer = unit_panel.get_node("BodyRow/InfoColumn/StatsIconRow") as HBoxContainer
+	var attack_icon: TextureRect = null
+	var speed_icon: TextureRect = null
+	var attack_value: Label = null
+	var speed_value: Label = null
+	if stats_icon_row != null:
+		attack_icon = stats_icon_row.find_child("AttackIcon", true, false) as TextureRect
+		speed_icon = stats_icon_row.find_child("SpeedIcon", true, false) as TextureRect
+		attack_value = stats_icon_row.find_child("AttackValue", true, false) as Label
+		speed_value = stats_icon_row.find_child("SpeedValue", true, false) as Label
+	if obsolete_stats_label != null \
+	or stats_icon_row == null \
+	or attack_icon == null \
+	or speed_icon == null \
+	or attack_icon.texture == null \
+	or speed_icon.texture == null \
+	or attack_value == null \
+	or speed_value == null \
+	or attack_value.text != "3" \
+	or speed_value.text != "5":
+		push_error("Card UI smoke failed: unit attack/speed stats should render as icons and values without the old text line")
+		get_tree().quit(1)
+		return
 	player_unit.add_status("bleed", 10.0)
 	player_unit.tick_statuses(6.0)
 	player_unit.add_status("slow", 5.0)
@@ -788,6 +811,10 @@ func _run() -> void:
 	var battle_info: RichTextLabel = battle_scene.find_child("BattleInfoLabel", true, false) as RichTextLabel
 	if battle_info == null:
 		push_error("Card UI smoke failed: battle info label should be named for layout checks")
+		get_tree().quit(1)
+		return
+	if not battle_info.bbcode_enabled or not battle_info.text.begins_with("[center]") or not battle_info.text.ends_with("[/center]"):
+		push_error("Card UI smoke failed: battle info text should be centered inside the section")
 		get_tree().quit(1)
 		return
 	var forbidden_battle_info_parts: Array[String] = [

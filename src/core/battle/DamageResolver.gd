@@ -4,7 +4,7 @@ class_name DamageResolver
 
 static func apply_damage(attacker: UnitState, defender: UnitState, base_amount: int) -> Dictionary:
 	var raw: int = max(0, base_amount) + attacker.get_attack_value()
-	var mitigated: int = max(1, raw - defender.get_defense_value())
+	var mitigated: int = max(1, raw)
 	mitigated += defender.get_incoming_damage_bonus()
 	var shield_absorb: int = min(defender.shield, mitigated)
 	defender.shield -= shield_absorb

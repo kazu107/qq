@@ -11,7 +11,6 @@ const DEFAULT_ACHIEVEMENT_STATS := {
 const DEFAULT_PERMANENT_BONUSES := {
 	"max_hp": 0,
 	"attack": 0,
-	"defense": 0,
 	"speed": 0,
 	"loadout_limit": 0,
 }
@@ -351,11 +350,9 @@ func _reward_text(reward_data: Dictionary) -> String:
 				"max_hp":
 					return Localization.get_textf("achievement.reward.max_hp", "Permanent HP +{amount}", {"amount": amount})
 				"attack":
-					return Localization.get_textf("achievement.reward.attack", "Permanent ATK +{amount}", {"amount": amount})
-				"defense":
-					return Localization.get_textf("achievement.reward.defense", "Permanent DEF +{amount}", {"amount": amount})
+					return Localization.get_textf("achievement.reward.attack", "Permanent Attack +{amount}", {"amount": amount})
 				"speed":
-					return Localization.get_textf("achievement.reward.speed", "Permanent SPD +{amount}", {"amount": amount})
+					return Localization.get_textf("achievement.reward.speed", "Permanent Speed +{amount}", {"amount": amount})
 				"loadout_limit":
 					return Localization.get_textf("achievement.reward.loadout_limit", "Permanent Loadout +{amount}", {"amount": amount})
 		"meta_points":

@@ -7,7 +7,6 @@ var current_area: int = 1
 var player_hp: int = 1
 var max_hp: int = 1
 var attack: int = 0
-var defense: int = 0
 var speed: int = 0
 var map_state: Dictionary = {}
 var player_cards: Array[String] = []
@@ -33,7 +32,6 @@ static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> Ru
 	run_state.max_hp = int(starter_data.get("max_hp", 1))
 	run_state.player_hp = run_state.max_hp
 	run_state.attack = int(starter_data.get("attack", 0))
-	run_state.defense = int(starter_data.get("defense", 0))
 	run_state.speed = int(starter_data.get("speed", 0))
 	run_state.map_state = {}
 	run_state.player_cards = _to_string_array(starter_data.get("cards", []))
@@ -54,7 +52,6 @@ static func from_dict(data: Dictionary) -> RunState:
 	run_state.player_hp = int(data.get("player_hp", 1))
 	run_state.max_hp = int(data.get("max_hp", 1))
 	run_state.attack = int(data.get("attack", 0))
-	run_state.defense = int(data.get("defense", 0))
 	run_state.speed = int(data.get("speed", 0))
 	run_state.map_state = Dictionary(data.get("map_state", {}))
 	run_state.player_cards = _to_string_array(data.get("player_cards", []))
@@ -80,7 +77,6 @@ func to_dict() -> Dictionary:
 		"player_hp": player_hp,
 		"max_hp": max_hp,
 		"attack": attack,
-		"defense": defense,
 		"speed": speed,
 		"map_state": map_state,
 		"player_cards": player_cards,

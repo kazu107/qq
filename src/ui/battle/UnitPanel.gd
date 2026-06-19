@@ -24,10 +24,11 @@ const SLOT_PREVIEW_ALPHA_CYCLE_SECONDS: float = 1.0
 const DAMAGE_COLOR := Color(1.0, 0.40, 0.35, 1.0)
 const HEAL_COLOR := Color(0.48, 0.95, 0.58, 1.0)
 const SHIELD_COLOR := Color(0.47, 0.82, 1.0, 1.0)
-const FLOATING_TEXT_LIFETIME: float = 1.25
+const FLOATING_TEXT_LIFETIME: float = 1.75
 const FLOATING_TEXT_FADE_START: float = 0.58
 const FLOATING_TEXT_FONT_SIZE: int = 32
 const STATUS_ICON_SIZE: Vector2 = Vector2(26.0, 26.0)
+const STAT_ICON_SIZE: Vector2 = Vector2(22.0, 22.0)
 const STATUS_BRIGHTNESS_MIN: float = 0.08
 const STATUS_BRIGHTNESS_MAX: float = 1.0
 const STATUS_DARKEN_ALPHA_MAX: float = 0.78
@@ -63,7 +64,9 @@ var _shield_label: Label
 var _slots_label: Label
 var _slot_bars: HBoxContainer
 var _slot_cells: Array[Panel] = []
-var _stats_label: Label
+var _stats_row: HBoxContainer
+var _attack_value_label: Label
+var _speed_value_label: Label
 var _status_label: Label
 var _status_icons_box: HBoxContainer
 var _status_none_label: Label
@@ -222,10 +225,12 @@ func _ready() -> void:
 	_slot_bars.add_theme_constant_override("separation", 4)
 	slot_battery.add_child(_slot_bars)
 
-	_stats_label = Label.new()
-	_stats_label.name = "StatsLabel"
-	_stats_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	info_column.add_child(_stats_label)
+	_stats_row = HBoxContainer.new()
+	_stats_row.name = "StatsIconRow"
+	_stats_row.add_theme_constant_override("separation", 14)
+	info_column.add_child(_stats_row)
+	_attack_value_label = _add_stat_icon_item("Attack", "attack")
+	_speed_value_label = _add_stat_icon_item("Speed", "speed")
 
 	_status_label = Label.new()
 	_status_label.name = "StatusLabel"
@@ -244,6 +249,33 @@ func _ready() -> void:
 	_status_icons_box.add_child(_status_none_label)
 
 	set_process(true)
+
+
+func _add_stat_icon_item(node_prefix: String, stat_id: String) -> Label:
+	var item: HBoxContainer = HBoxContainer.new()
+	item.name = "%sStatItem" % node_prefix
+	item.add_theme_constant_override("separation", 5)
+	item.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var icon_rect: TextureRect = TextureRect.new()
+	icon_rect.name = "%sIcon" % node_prefix
+	icon_rect.custom_minimum_size = STAT_ICON_SIZE
+	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_rect.texture = StatIconFactory.get_icon(stat_id)
+	icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	item.add_child(icon_rect)
+
+	var value_label: Label = Label.new()
+	value_label.name = "%sValue" % node_prefix
+	value_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	value_label.add_theme_font_size_override("font_size", 16)
+	value_label.add_theme_color_override("font_color", TEXT_LIGHT)
+	value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	item.add_child(value_label)
+
+	_stats_row.add_child(item)
+	return value_label
 
 
 func _exit_tree() -> void:
@@ -269,11 +301,6 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0, suppressed_shield
 	var hp_value: int = max(0, unit.hp)
 	var max_hp_value: int = max(1, unit.max_hp)
 	var shield_value: int = max(0, unit.shield)
-	var stat_line: String = Localization.get_textf("unit.stats_line", "ATK {attack} | DEF {defense} | SPD {speed}", {
-		"attack": unit.attack,
-		"defense": unit.defense,
-		"speed": unit.speed,
-	})
 	var status_line: String = unit.get_status_summary()
 
 	if _has_previous_snapshot:
@@ -291,13 +318,14 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0, suppressed_shield
 		"total": unit.active_slot_max,
 	})
 	_refresh_slot_battery(unit.active_slots_used, unit.active_slot_max, preview_slot_cost)
-	_stats_label.text = stat_line
+	_attack_value_label.text = "%d" % unit.get_attack_value()
+	_speed_value_label.text = "%d" % max(0, unit.speed)
 	_status_label.text = Localization.get_text("unit.status_icons", "Status")
 	_refresh_status_icons(unit.statuses)
 
 	_last_hp = hp_value
 	_last_shield = shield_value
-	_last_stat_line = stat_line
+	_last_stat_line = "%d:%d" % [unit.get_attack_value(), max(0, unit.speed)]
 	_last_status_line = status_line
 	_has_previous_snapshot = true
 
@@ -456,7 +484,7 @@ func _get_status_detail_text(status_id: String) -> String:
 				"interval": "%.1f" % UnitState.BLEED_TICK_INTERVAL,
 			})
 		"weak":
-			return Localization.get_textf("status.detail.weak", "ATK -{amount} while active.", {"amount": 2})
+			return Localization.get_textf("status.detail.weak", "Attack -{amount} while active.", {"amount": 2})
 		"slow":
 			return Localization.get_textf("status.detail.slow", "Cast time +{percent}% while active.", {"percent": 10})
 		"vulnerable":

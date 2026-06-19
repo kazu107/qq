@@ -139,6 +139,7 @@ func _build_ui() -> void:
 	center_panel.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH, 0.0)
 	_battle_info_label = RichTextLabel.new()
 	_battle_info_label.name = "BattleInfoLabel"
+	_battle_info_label.bbcode_enabled = true
 	_battle_info_label.fit_content = true
 	_battle_info_label.scroll_active = false
 	_battle_info_label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -264,7 +265,7 @@ func _refresh_ui(time_scale: float) -> void:
 	_log_panel.refresh_logs(battle_state.logs)
 	var total_steps: int = max(1, Game.get_map_step_count())
 	var display_step: int = min(total_steps, Game.get_current_step_index() + 1)
-	_battle_info_label.text = "\n".join([
+	var battle_info_text: String = "\n".join([
 		Localization.get_textf("battle.info.time", "Battle Time {value}s", {"value": "%.1f" % battle_state.battle_time}),
 		Localization.get_textf("battle.info.map_step", "Map Step {current} / {total}", {
 			"current": display_step,
@@ -272,6 +273,7 @@ func _refresh_ui(time_scale: float) -> void:
 		}),
 		Localization.get_textf("battle.info.current_enemy", "Current Enemy: {value}", {"value": battle_state.enemy.display_name}),
 	])
+	_battle_info_label.text = "[center]%s[/center]" % battle_info_text
 
 
 func _consume_suppressed_shield_decay_losses(battle_state: BattleState) -> Dictionary:

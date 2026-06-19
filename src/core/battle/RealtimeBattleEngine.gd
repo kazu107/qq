@@ -8,6 +8,8 @@ var _boss_passive_timer: float = 0.0
 var _timeline_flows: Array[Dictionary] = []
 var _player_run: RunState
 var _relic_service: RelicService = RelicService.new()
+var _battle_started: bool = false
+var _enemy_name: String = ""
 
 
 func setup(player_run: RunState, enemy_id: String) -> void:
@@ -17,33 +19,22 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 		return
 
 	_player_run = player_run
+	_battle_started = false
+	_enemy_name = enemy_def.name
 	battle_state = BattleState.new()
 	battle_state.player = _build_player_unit(player_run)
 	battle_state.enemy = _build_enemy_unit(enemy_def)
-	battle_state.add_log(Localization.get_textf("battle.log.started_against", "Battle started against {enemy_name}", {
-		"enemy_name": enemy_def.name,
-	}))
-	_record_event(_build_basic_event(
-		"battle_start",
-		battle_state.player.unit_id,
-		"",
-		battle_state.enemy.unit_id,
-		{
-			"enemy_name": enemy_def.name,
-			"player": _snapshot_unit(battle_state.player),
-			"enemy": _snapshot_unit(battle_state.enemy),
-		}
-	))
 	_enemy_ai.reset()
 	_boss_passive_timer = float(enemy_def.passive.get("interval", 0.0))
 	_timeline_flows.clear()
-	AudioManager.play_sfx("battle_start")
 
 
 func update(delta: float) -> void:
 	if battle_state == null or battle_state.winner != "":
 		return
 	if delta <= 0.0:
+		return
+	if not _battle_started:
 		return
 
 	battle_state.battle_time += delta
@@ -71,6 +62,9 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 		return false
 	if unit.active_slots_used + card_def.active_slot_cost > unit.active_slot_max:
 		return false
+
+	if not _battle_started:
+		_start_battle()
 
 	runtime_state.begin_prepare()
 	unit.previous_used_runtime_id = unit.last_used_runtime_id
@@ -117,6 +111,10 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 		_snapshot_timeline()
 	))
 	return true
+
+
+func has_battle_started() -> bool:
+	return _battle_started
 
 
 func delay_active_cards(side: String, amount: float, scope: String) -> int:
@@ -320,7 +318,6 @@ func _build_player_unit(run_state: RunState) -> UnitState:
 	unit.hp = max(1, run_state.player_hp)
 	unit.shield = 0
 	unit.attack = run_state.attack
-	unit.defense = run_state.defense
 	unit.speed = run_state.speed
 	unit.active_slot_max = 3
 	unit.temporary_card_modifiers = run_state.temporary_card_modifiers
@@ -337,7 +334,6 @@ func _build_enemy_unit(enemy_def: EnemyDef) -> UnitState:
 	unit.hp = enemy_def.max_hp
 	unit.shield = 0
 	unit.attack = enemy_def.attack
-	unit.defense = enemy_def.defense
 	unit.speed = enemy_def.speed
 	unit.active_slot_max = 3
 	unit.set_runtime_states(_create_runtime_states("enemy", enemy_def.cards))
@@ -359,6 +355,27 @@ func _tick_cooldowns(delta: float) -> void:
 	for unit in [battle_state.player, battle_state.enemy]:
 		for runtime_state in unit.card_runtime_states:
 			runtime_state.tick(delta)
+
+
+func _start_battle() -> void:
+	if _battle_started or battle_state == null:
+		return
+	_battle_started = true
+	battle_state.add_log(Localization.get_textf("battle.log.started_against", "Battle started against {enemy_name}", {
+		"enemy_name": _enemy_name,
+	}))
+	_record_event(_build_basic_event(
+		"battle_start",
+		battle_state.player.unit_id,
+		"",
+		battle_state.enemy.unit_id,
+		{
+			"enemy_name": _enemy_name,
+			"player": _snapshot_unit(battle_state.player),
+			"enemy": _snapshot_unit(battle_state.enemy),
+		}
+	))
+	AudioManager.play_sfx("battle_start")
 
 
 func _tick_shields(delta: float) -> void:
@@ -792,7 +809,6 @@ func _snapshot_unit(unit: UnitState) -> Dictionary:
 		"max_hp": unit.max_hp,
 		"shield": unit.shield,
 		"attack": unit.attack,
-		"defense": unit.defense,
 		"speed": unit.speed,
 		"statuses": unit.statuses.duplicate(true),
 		"active_slots_used": unit.active_slots_used,

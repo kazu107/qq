@@ -87,13 +87,6 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 					"card_name": card_def.name,
 					"target_name": attack_target.display_name,
 				}))
-			"modify_defense":
-				var defense_target := _resolve_target_unit(actor, target, effect)
-				defense_target.defense += int(effect.get("amount", 0))
-				messages.append(Localization.get_textf("battle.log.card_modify_defense", "{card_name} modified defense of {target_name}", {
-					"card_name": card_def.name,
-					"target_name": defense_target.display_name,
-				}))
 			"modify_speed":
 				var speed_target := _resolve_target_unit(actor, target, effect)
 				speed_target.speed += int(effect.get("amount", 0))

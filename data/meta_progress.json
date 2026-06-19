@@ -29,7 +29,6 @@
   "permanent_bonuses": {
     "max_hp": 0,
     "attack": 0,
-    "defense": 0,
     "speed": 0,
     "loadout_limit": 0
   }

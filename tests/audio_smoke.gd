@@ -99,13 +99,20 @@ func _run() -> void:
 	AudioManager.clear_play_history()
 	var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
 	engine.setup(Game.current_run, String(battle_node.get("enemy_id", "scout")))
-	if not AudioManager.has_played_sfx("battle_start"):
-		_fail("Audio smoke failed: battle setup should play the battle start SFX")
+	if AudioManager.has_played_sfx("battle_start") or engine.has_battle_started():
+		_fail("Audio smoke failed: battle setup should wait for the first committed card")
+		return
+	engine.update(1.0)
+	if not is_zero_approx(engine.battle_state.battle_time):
+		_fail("Audio smoke failed: battle time should not advance before the first committed card")
 		return
 
 	var requested: bool = _request_first_card(engine)
 	if not requested:
 		_fail("Audio smoke failed: could not request a player card for battle audio verification")
+		return
+	if not AudioManager.has_played_sfx("battle_start") or not engine.has_battle_started():
+		_fail("Audio smoke failed: first committed card should start the battle")
 		return
 	if not AudioManager.has_played_sfx("card_commit"):
 		_fail("Audio smoke failed: request_use_card should play the card commit SFX")

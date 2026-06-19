@@ -134,7 +134,7 @@ func _resolve_choice_effects(
 		var effect_data: Dictionary = Dictionary(raw_effect).duplicate(true)
 		var effect_type: String = String(effect_data.get("type", ""))
 		match effect_type:
-			"grant_gold", "lose_gold", "heal", "lose_hp", "modify_attack", "modify_defense", "modify_speed", "modify_loadout_limit":
+			"grant_gold", "lose_gold", "heal", "lose_hp", "modify_attack", "modify_speed", "modify_max_hp", "modify_loadout_limit":
 				effect_data["amount"] = _resolve_scalar(effect_data.get("amount", 0), area, context)
 				if effect_type == "lose_gold" and run_state != null:
 					var gold_cost: int = int(effect_data.get("amount", 0))

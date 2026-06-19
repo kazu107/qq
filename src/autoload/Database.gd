@@ -133,7 +133,7 @@ func _load_cards() -> void:
 func _load_enemies() -> void:
 	for raw_enemy in _load_json_array(ENEMIES_PATH):
 		var enemy_data: Dictionary = Dictionary(raw_enemy)
-		if not _has_required_keys(enemy_data, ENEMIES_PATH, ["id", "name", "max_hp", "attack", "defense", "speed", "cards"]):
+		if not _has_required_keys(enemy_data, ENEMIES_PATH, ["id", "name", "max_hp", "attack", "speed", "cards"]):
 			continue
 		var enemy_def: EnemyDef = EnemyDef.from_dict(enemy_data)
 		enemies[enemy_def.id] = enemy_def

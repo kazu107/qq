@@ -68,7 +68,7 @@
     "description": "Generate a sturdy shield.",
     "rarity": "common",
     "tags": [
-      "defense"
+      "shield"
     ],
     "loadout_cost": 2,
     "recast_time": 12,
@@ -271,7 +271,7 @@
     "description": "Very fast shield response.",
     "rarity": "common",
     "tags": [
-      "defense",
+      "shield",
       "fast"
     ],
     "loadout_cost": 1,
@@ -363,10 +363,10 @@
   {
     "id": "barrier_deploy",
     "name": "Barrier Deploy",
-    "description": "Large shield and defense boost.",
+    "description": "Large shield burst for emergency cover.",
     "rarity": "rare",
     "tags": [
-      "defense",
+      "shield",
       "buff"
     ],
     "loadout_cost": 3,
@@ -379,12 +379,7 @@
     "effects": [
       {
         "type": "gain_shield",
-        "amount": 18,
-        "target": "self"
-      },
-      {
-        "type": "modify_defense",
-        "amount": 1,
+        "amount": 22,
         "target": "self"
       }
     ],
@@ -529,10 +524,10 @@
   {
     "id": "fortify",
     "name": "Fortify",
-    "description": "Massive shield and defense gain.",
+    "description": "Massive shield gain for long casts.",
     "rarity": "epic",
     "tags": [
-      "defense",
+      "shield",
       "buff"
     ],
     "loadout_cost": 5,
@@ -545,12 +540,7 @@
     "effects": [
       {
         "type": "gain_shield",
-        "amount": 30,
-        "target": "self"
-      },
-      {
-        "type": "modify_defense",
-        "amount": 3,
+        "amount": 42,
         "target": "self"
       }
     ],
@@ -673,7 +663,7 @@
     "description": "Restore HP while patching on fresh plating.",
     "rarity": "common",
     "tags": [
-      "defense",
+      "shield",
       "heal"
     ],
     "loadout_cost": 2,
@@ -839,7 +829,7 @@
     "description": "Raise a wall of shield and brace the frame.",
     "rarity": "rare",
     "tags": [
-      "defense",
+      "shield",
       "buff"
     ],
     "loadout_cost": 3,
@@ -852,27 +842,16 @@
     "effects": [
       {
         "type": "gain_shield",
-        "amount": 10,
-        "target": "self"
-      },
-      {
-        "type": "modify_defense",
-        "amount": 1,
+        "amount": 14,
         "target": "self"
       }
     ],
     "upgrade_profile": {
       "shield": [
         0,
-        2,
-        4,
-        6
-      ],
-      "defense_mod": [
-        0,
-        0,
-        1,
-        1
+        3,
+        6,
+        9
       ]
     }
   },
@@ -1329,10 +1308,10 @@
   {
     "id": "crisis_drone_swarm",
     "name": "Crisis Drone Swarm",
-    "description": "Launches more defensive drones as HP drops, automatically queueing Quick Guard copies.",
+    "description": "Launches more shield drones as HP drops, automatically queueing Quick Guard copies.",
     "rarity": "epic",
     "tags": [
-      "defense",
+      "shield",
       "chain",
       "special"
     ],

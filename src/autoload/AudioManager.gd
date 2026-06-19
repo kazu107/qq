@@ -182,7 +182,7 @@ func _resolve_card_resolution_sfx(card_def: CardDef) -> String:
 				has_timeline = true
 			"interrupt_card":
 				has_interrupt = true
-			"apply_status", "remove_status", "modify_attack", "modify_defense", "modify_speed", "empower_card":
+			"apply_status", "remove_status", "modify_attack", "modify_speed", "empower_card":
 				has_status = true
 
 	if has_interrupt:

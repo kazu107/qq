@@ -42,8 +42,8 @@
     "rewards": [
       {
         "type": "permanent_bonus",
-        "stat": "defense",
-        "amount": 1
+        "stat": "max_hp",
+        "amount": 4
       }
     ]
   },

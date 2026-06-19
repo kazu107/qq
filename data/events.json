@@ -156,14 +156,14 @@
       {
         "id": "reinforce",
         "label": "Reinforce Hull",
-        "description": "Gain +1 defense for the rest of the run.",
+        "description": "Gain +6 max HP for the rest of the run.",
         "effects": [
           {
-            "type": "modify_defense",
-            "amount": 1
+            "type": "modify_max_hp",
+            "amount": 6
           }
         ],
-        "result": "Defense increased by 1."
+        "result": "Maximum HP increased by 6."
       }
     ]
   },
@@ -297,18 +297,18 @@
       {
         "id": "stabilize_frame",
         "label": "Stabilize Frame",
-        "description": "Gain +1 defense and recover a little HP.",
+        "description": "Gain +4 max HP and recover a little HP.",
         "effects": [
           {
-            "type": "modify_defense",
-            "amount": 1
+            "type": "modify_max_hp",
+            "amount": 4
           },
           {
             "type": "heal",
             "amount": 6
           }
         ],
-        "result": "Defense increased by 1 and some HP was restored."
+        "result": "Maximum HP increased by 4 and some HP was restored."
       }
     ]
   },

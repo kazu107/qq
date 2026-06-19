@@ -418,19 +418,16 @@ func get_permanent_bonus_summary() -> String:
 	var parts: Array[String] = []
 	var max_hp_bonus: int = int(bonuses.get("max_hp", 0))
 	var attack_bonus: int = int(bonuses.get("attack", 0))
-	var defense_bonus: int = int(bonuses.get("defense", 0))
 	var speed_bonus: int = int(bonuses.get("speed", 0))
 	var loadout_bonus: int = int(bonuses.get("loadout_limit", 0))
 	if max_hp_bonus != 0:
-		parts.append("HP +%d" % max_hp_bonus)
+		parts.append(Localization.get_textf("stat.summary.max_hp", "HP +{amount}", {"amount": max_hp_bonus}))
 	if attack_bonus != 0:
-		parts.append("ATK +%d" % attack_bonus)
-	if defense_bonus != 0:
-		parts.append("DEF +%d" % defense_bonus)
+		parts.append(Localization.get_textf("stat.summary.attack", "Attack +{amount}", {"amount": attack_bonus}))
 	if speed_bonus != 0:
-		parts.append("SPD +%d" % speed_bonus)
+		parts.append(Localization.get_textf("stat.summary.speed", "Speed +{amount}", {"amount": speed_bonus}))
 	if loadout_bonus != 0:
-		parts.append("Loadout +%d" % loadout_bonus)
+		parts.append(Localization.get_textf("stat.summary.loadout", "Loadout +{amount}", {"amount": loadout_bonus}))
 	if parts.is_empty():
 		return Localization.get_text("meta.bonus_none", "None")
 	return ", ".join(parts)
@@ -1337,7 +1334,6 @@ func _apply_permanent_bonuses_to_run(run_state: RunState) -> void:
 	var bonuses: Dictionary = _meta_progress_service.get_permanent_bonuses(meta_progress)
 	var max_hp_bonus: int = int(bonuses.get("max_hp", 0))
 	var attack_bonus: int = int(bonuses.get("attack", 0))
-	var defense_bonus: int = int(bonuses.get("defense", 0))
 	var speed_bonus: int = int(bonuses.get("speed", 0))
 	var loadout_bonus: int = int(bonuses.get("loadout_limit", 0))
 	if max_hp_bonus != 0:
@@ -1345,8 +1341,6 @@ func _apply_permanent_bonuses_to_run(run_state: RunState) -> void:
 		run_state.player_hp = run_state.max_hp
 	if attack_bonus != 0:
 		run_state.attack += attack_bonus
-	if defense_bonus != 0:
-		run_state.defense += defense_bonus
 	if speed_bonus != 0:
 		run_state.speed += speed_bonus
 	if loadout_bonus != 0:
@@ -1543,10 +1537,12 @@ func _apply_event_effect(effect_data: Dictionary) -> bool:
 			current_run.player_hp = max(1, current_run.player_hp - int(effect_data.get("amount", 0)))
 		"modify_attack":
 			current_run.attack += int(effect_data.get("amount", 0))
-		"modify_defense":
-			current_run.defense += int(effect_data.get("amount", 0))
 		"modify_speed":
 			current_run.speed += int(effect_data.get("amount", 0))
+		"modify_max_hp":
+			var hp_delta: int = int(effect_data.get("amount", 0))
+			current_run.max_hp = max(1, current_run.max_hp + hp_delta)
+			current_run.player_hp = clampi(current_run.player_hp + max(0, hp_delta), 1, current_run.max_hp)
 		"modify_loadout_limit":
 			current_run.loadout_limit = max(1, current_run.loadout_limit + int(effect_data.get("amount", 0)))
 		"grant_random_card":

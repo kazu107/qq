@@ -5,6 +5,10 @@ var _details_label: RichTextLabel
 var _start_button: Button
 var _starter_cards_panel: CardHandPanel
 var _developer_panel: DeveloperPanel
+var _starter_stats_row: HBoxContainer
+var _hp_value_label: Label
+var _attack_value_label: Label
+var _speed_value_label: Label
 
 
 func _ready() -> void:
@@ -48,6 +52,14 @@ func _ready() -> void:
 	_details_label.fit_content = true
 	right.add_child(_details_label)
 
+	_starter_stats_row = HBoxContainer.new()
+	_starter_stats_row.name = "StarterStatsIconRow"
+	_starter_stats_row.add_theme_constant_override("separation", 16)
+	right.add_child(_starter_stats_row)
+	_hp_value_label = _add_text_stat_item("HP")
+	_attack_value_label = _add_icon_stat_item("Attack", "attack")
+	_speed_value_label = _add_icon_stat_item("Speed", "speed")
+
 	var cards_title := Label.new()
 	cards_title.text = Localization.get_text("run_setup.starter_cards", "Starter Cards")
 	right.add_child(cards_title)
@@ -89,6 +101,7 @@ func _refresh_details() -> void:
 	var starter: Dictionary = Database.get_starter(_selected_starter_id)
 	if starter.is_empty():
 		_details_label.text = Localization.get_text("run_setup.none_selected", "No starter selected.")
+		_starter_stats_row.visible = false
 		_starter_cards_panel.refresh_card_ids([], false, "KIT")
 		_start_button.disabled = true
 		return
@@ -96,16 +109,52 @@ func _refresh_details() -> void:
 	_details_label.text = "\n".join([
 		String(starter.get("name", "")),
 		String(starter.get("description", "")),
-		"",
-		Localization.get_textf("run_setup.stats", "HP {hp} | ATK {attack} | DEF {defense} | SPD {speed}", {
-			"hp": int(starter.get("max_hp", 0)),
-			"attack": int(starter.get("attack", 0)),
-			"defense": int(starter.get("defense", 0)),
-			"speed": int(starter.get("speed", 0)),
-		}),
 	])
+	_starter_stats_row.visible = true
+	_hp_value_label.text = "%d" % int(starter.get("max_hp", 0))
+	_attack_value_label.text = "%d" % int(starter.get("attack", 0))
+	_speed_value_label.text = "%d" % int(starter.get("speed", 0))
 	_starter_cards_panel.refresh_card_ids(cards, false, "KIT")
 	_start_button.disabled = false
+
+
+func _add_text_stat_item(label_text: String) -> Label:
+	var item: HBoxContainer = HBoxContainer.new()
+	item.name = "%sStatItem" % label_text
+	item.add_theme_constant_override("separation", 5)
+	_starter_stats_row.add_child(item)
+
+	var text_label: Label = Label.new()
+	text_label.name = "%sLabel" % label_text
+	text_label.text = label_text
+	item.add_child(text_label)
+
+	var value_label: Label = Label.new()
+	value_label.name = "%sValue" % label_text
+	item.add_child(value_label)
+	return value_label
+
+
+func _add_icon_stat_item(node_prefix: String, stat_id: String) -> Label:
+	var item: HBoxContainer = HBoxContainer.new()
+	item.name = "%sStatItem" % node_prefix
+	item.add_theme_constant_override("separation", 5)
+	_starter_stats_row.add_child(item)
+
+	var icon_rect: TextureRect = TextureRect.new()
+	icon_rect.name = "%sIcon" % node_prefix
+	icon_rect.custom_minimum_size = Vector2(22.0, 22.0)
+	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_rect.texture = StatIconFactory.get_icon(stat_id)
+	icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	item.add_child(icon_rect)
+
+	var value_label: Label = Label.new()
+	value_label.name = "%sValue" % node_prefix
+	value_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	item.add_child(value_label)
+	return value_label
 
 
 func _to_string_array(value: Variant) -> Array[String]:

@@ -55,7 +55,6 @@ static func _apply_upgrades(card_def: CardDef, tier: int) -> void:
 	var cast_time_delta: float = float(_get_profile_value(card_def.upgrade_profile, "cast_time", tier))
 	var timing_bonus: float = float(_get_profile_value(card_def.upgrade_profile, "timing", tier))
 	var attack_mod_bonus: int = int(_get_profile_value(card_def.upgrade_profile, "attack_mod", tier))
-	var defense_mod_bonus: int = int(_get_profile_value(card_def.upgrade_profile, "defense_mod", tier))
 	var speed_mod_bonus: int = int(_get_profile_value(card_def.upgrade_profile, "speed_mod", tier))
 	var empower_bonus: float = float(_get_profile_value(card_def.upgrade_profile, "empower", tier))
 
@@ -97,9 +96,6 @@ static func _apply_upgrades(card_def: CardDef, tier: int) -> void:
 			"modify_attack":
 				if attack_mod_bonus != 0:
 					effect_data["amount"] = int(effect_data.get("amount", 0)) + attack_mod_bonus
-			"modify_defense":
-				if defense_mod_bonus != 0:
-					effect_data["amount"] = int(effect_data.get("amount", 0)) + defense_mod_bonus
 			"modify_speed":
 				if speed_mod_bonus != 0:
 					effect_data["amount"] = int(effect_data.get("amount", 0)) + speed_mod_bonus
@@ -132,7 +128,6 @@ static func apply_modifier_totals(card_def: CardDef, modifier_totals: Dictionary
 	var haste_bonus: float = float(modifier_totals.get("haste", 0.0))
 	var cooldown_bonus: float = float(modifier_totals.get("cooldown", 0.0))
 	var attack_mod_bonus: int = int(round(float(modifier_totals.get("attack_mod", 0.0))))
-	var defense_mod_bonus: int = int(round(float(modifier_totals.get("defense_mod", 0.0))))
 	var speed_mod_bonus: int = int(round(float(modifier_totals.get("speed_mod", 0.0))))
 	var empower_bonus: float = float(modifier_totals.get("empower", 0.0))
 	var timeline_duration_bonus: float = float(modifier_totals.get("timeline_duration", 0.0))
@@ -158,8 +153,6 @@ static func apply_modifier_totals(card_def: CardDef, modifier_totals: Dictionary
 				_add_float_delta(effect_data, "amount", cooldown_bonus, 0.0)
 			"modify_attack":
 				_add_int_delta(effect_data, "amount", attack_mod_bonus, -999)
-			"modify_defense":
-				_add_int_delta(effect_data, "amount", defense_mod_bonus, -999)
 			"modify_speed":
 				_add_int_delta(effect_data, "amount", speed_mod_bonus, -999)
 			"empower_card":
