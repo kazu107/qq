@@ -16,6 +16,7 @@ var _timeline_panel: TimelinePanel
 var _log_button: Button
 var _log_popup: PanelContainer
 var _log_panel: LogPanel
+var _start_battle_button: Button
 var _battle_info_label: RichTextLabel
 var _slow_mode_label: Label
 var _result_label: Label
@@ -137,6 +138,14 @@ func _build_ui() -> void:
 	var center_panel := _create_section(main_split, Localization.get_text("battle.section.battle", "Battle"), false, false)
 	center_panel.name = "BattleInfoSection"
 	center_panel.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH, 0.0)
+	_start_battle_button = Button.new()
+	_start_battle_button.name = "BattleStartButton"
+	_start_battle_button.text = Localization.get_text("battle.start_button", "START")
+	_start_battle_button.tooltip_text = Localization.get_text("battle.start_button_tooltip", "Start battle without committing a card")
+	_start_battle_button.custom_minimum_size = Vector2(150.0, 34.0)
+	_start_battle_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_start_battle_button.pressed.connect(_on_start_battle_pressed)
+	center_panel.add_child(_start_battle_button)
 	_battle_info_label = RichTextLabel.new()
 	_battle_info_label.name = "BattleInfoLabel"
 	_battle_info_label.bbcode_enabled = true
@@ -251,6 +260,10 @@ func _refresh_ui(time_scale: float) -> void:
 		})
 	else:
 		_slow_mode_label.text = Localization.get_text("battle.slow_mode_hold", "Hold Space for Slow Mode")
+	if _start_battle_button != null:
+		var can_start: bool = not _engine.has_battle_started() and battle_state.winner == ""
+		_start_battle_button.visible = can_start
+		_start_battle_button.disabled = not can_start
 
 	var preview_runtime_state: CardRuntimeState = _get_hovered_player_runtime_state(battle_state)
 	var preview_card_def: CardDef = _get_hover_preview_card_def(preview_runtime_state)
@@ -302,6 +315,13 @@ func _on_card_requested(runtime_id: String) -> void:
 		AudioManager.play_sfx("ui_error")
 	elif _hovered_player_runtime_id == runtime_id:
 		_hovered_player_runtime_id = ""
+	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
+
+
+func _on_start_battle_pressed() -> void:
+	if not _engine.start_battle():
+		AudioManager.play_sfx("ui_error")
+		return
 	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
 
 

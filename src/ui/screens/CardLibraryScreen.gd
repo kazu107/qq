@@ -47,7 +47,6 @@ func _build_ui() -> void:
 	meta_button.text = Localization.get_text("library.open_meta", "Open Meta Progress")
 	meta_button.pressed.connect(func() -> void:
 		Game.current_screen_hint = "meta"
-		SaveManager.save_game("meta")
 		SceneRouter.go_to_meta_progress()
 	)
 	action_row.add_child(meta_button)
@@ -175,5 +174,4 @@ func _on_dev_reset_meta() -> void:
 
 func _on_dev_open_meta() -> void:
 	Game.current_screen_hint = "meta"
-	SaveManager.save_game("meta")
 	SceneRouter.go_to_meta_progress()

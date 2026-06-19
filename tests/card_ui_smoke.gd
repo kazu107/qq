@@ -813,6 +813,22 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle info label should be named for layout checks")
 		get_tree().quit(1)
 		return
+	var battle_start_button: Button = battle_scene.find_child("BattleStartButton", true, false) as Button
+	var battle_engine: RealtimeBattleEngine = battle_scene.get("_engine") as RealtimeBattleEngine
+	if battle_start_button == null or battle_engine == null:
+		push_error("Card UI smoke failed: battle start button should exist above the battle info")
+		get_tree().quit(1)
+		return
+	if battle_engine.has_battle_started() or not battle_start_button.visible or battle_start_button.disabled:
+		push_error("Card UI smoke failed: battle should wait with a visible start button before any card is committed")
+		get_tree().quit(1)
+		return
+	battle_start_button.emit_signal("pressed")
+	await get_tree().process_frame
+	if not battle_engine.has_battle_started() or battle_start_button.visible:
+		push_error("Card UI smoke failed: battle start button should start the fight and hide itself")
+		get_tree().quit(1)
+		return
 	if not battle_info.bbcode_enabled or not battle_info.text.begins_with("[center]") or not battle_info.text.ends_with("[/center]"):
 		push_error("Card UI smoke failed: battle info text should be centered inside the section")
 		get_tree().quit(1)

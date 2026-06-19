@@ -117,6 +117,13 @@ func has_battle_started() -> bool:
 	return _battle_started
 
 
+func start_battle() -> bool:
+	if _battle_started or battle_state == null or battle_state.winner != "":
+		return false
+	_start_battle()
+	return true
+
+
 func delay_active_cards(side: String, amount: float, scope: String) -> int:
 	return _shift_active_cards(side, absf(amount), scope, -1)
 

@@ -308,7 +308,6 @@ func _on_dev_turn_off() -> void:
 
 func _on_open_meta_progress() -> void:
 	Game.current_screen_hint = "meta"
-	SaveManager.save_game("meta")
 	SceneRouter.go_to_meta_progress()
 
 

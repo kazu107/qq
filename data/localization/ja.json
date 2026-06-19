@@ -280,6 +280,8 @@
   "battle.log": "戦闘ログ",
   "battle.log_button": "LOG",
   "battle.log_button_tooltip": "戦闘ログを表示",
+  "battle.start_button": "戦闘開始",
+  "battle.start_button_tooltip": "カードを投入せずに戦闘を開始",
   "battle.slow_mode_hold": "Space 長押しで Slow Mode",
   "battle.slow_mode_rate": "Slow Mode {rate}%",
   "battle.result.victory": "勝利",

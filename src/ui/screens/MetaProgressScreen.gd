@@ -109,42 +109,53 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 
 
 func _refresh_ui() -> void:
-	var summary: Dictionary = Game.get_meta_summary()
+	var starter_entries: Array[Dictionary] = Game.get_meta_starter_entries()
+	var card_entries: Array[Dictionary] = Game.get_meta_card_entries()
+	var relic_entries: Array[Dictionary] = Game.get_meta_relic_entries()
+	var achievement_entries: Array[Dictionary] = Game.get_meta_achievement_entries()
 	_summary_label.text = "\n".join([
-		Localization.get_textf("meta.summary.points", "Points: {value}", {"value": int(summary.get("points", 0))}),
-		Localization.get_textf("meta.summary.best_clear", "Best Clear: {value}", {"value": int(summary.get("best_clear", 0))}),
+		Localization.get_textf("meta.summary.points", "Points: {value}", {"value": Game.get_meta_points()}),
+		Localization.get_textf("meta.summary.best_clear", "Best Clear: {value}", {"value": Game.get_best_clear()}),
 		Localization.get_textf("meta.summary.starters", "Starters: {current} / {total}", {
-			"current": int(summary.get("starter_unlocked", 0)),
-			"total": int(summary.get("starter_total", 0)),
+			"current": _count_bool_entries(starter_entries, "unlocked"),
+			"total": starter_entries.size(),
 		}),
 		Localization.get_textf("meta.summary.cards", "Cards: {current} / {total}", {
-			"current": int(summary.get("card_unlocked", 0)),
-			"total": int(summary.get("card_total", 0)),
+			"current": _count_bool_entries(card_entries, "unlocked"),
+			"total": card_entries.size(),
 		}),
 		Localization.get_textf("meta.summary.relics", "Relics: {current} / {total}", {
-			"current": int(summary.get("relic_unlocked", 0)),
-			"total": int(summary.get("relic_total", 0)),
+			"current": _count_bool_entries(relic_entries, "unlocked"),
+			"total": relic_entries.size(),
 		}),
 		Localization.get_textf("meta.summary.achievements", "Achievements: {current} / {total}", {
-			"current": int(summary.get("achievement_claimed", 0)),
-			"total": int(summary.get("achievement_total", 0)),
+			"current": _count_bool_entries(achievement_entries, "claimed"),
+			"total": achievement_entries.size(),
 		}),
 		Localization.get_textf("meta.summary.claimable", "Achievement Rewards Ready: {value}", {
-			"value": int(summary.get("achievement_claimable", 0)),
+			"value": _count_bool_entries(achievement_entries, "claimable"),
 		}),
 		Localization.get_textf("meta.summary.permanent_bonuses", "Permanent Bonuses: {value}", {
-			"value": String(summary.get("permanent_bonus_text", "")),
+			"value": Game.get_permanent_bonus_summary(),
 		}),
 	])
-	_rebuild_achievements()
-	_rebuild_starters()
-	_rebuild_cards()
-	_rebuild_relics()
+	_rebuild_achievements(achievement_entries)
+	_rebuild_starters(starter_entries)
+	_rebuild_cards(card_entries)
+	_rebuild_relics(relic_entries)
 
 
-func _rebuild_achievements() -> void:
+func _count_bool_entries(entries: Array[Dictionary], key: String) -> int:
+	var count: int = 0
+	for entry in entries:
+		if bool(entry.get(key, false)):
+			count += 1
+	return count
+
+
+func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 	_clear_box(_achievement_box)
-	for entry in Game.get_meta_achievement_entries():
+	for entry in entries:
 		var achievement_id: String = String(entry.get("id", ""))
 
 		var row: HBoxContainer = HBoxContainer.new()
@@ -198,9 +209,10 @@ func _rebuild_achievements() -> void:
 		row.add_child(claim_button)
 
 
-func _rebuild_starters() -> void:
+func _rebuild_starters(entries: Array[Dictionary]) -> void:
 	_clear_box(_starter_box)
-	for entry in Game.get_meta_starter_entries():
+	var meta_points: int = Game.get_meta_points()
+	for entry in entries:
 		var starter_id: String = String(entry.get("id", ""))
 
 		var row: HBoxContainer = HBoxContainer.new()
@@ -232,20 +244,21 @@ func _rebuild_starters() -> void:
 		var unlock_button: Button = Button.new()
 		unlock_button.name = "UnlockStarter_%s" % starter_id
 		unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
-		unlock_button.disabled = bool(entry.get("unlocked", false)) or Game.get_meta_points() < int(entry.get("cost", 0))
+		unlock_button.disabled = bool(entry.get("unlocked", false)) or meta_points < int(entry.get("cost", 0))
 		unlock_button.pressed.connect(_on_unlock_starter.bind(starter_id))
 		row.add_child(unlock_button)
 
 
-func _rebuild_cards() -> void:
+func _rebuild_cards(entries: Array[Dictionary]) -> void:
 	_clear_box(_card_box)
 	var rarity_order: Array[String] = ["common", "rare", "epic"]
+	var meta_points: int = Game.get_meta_points()
 	for rarity in rarity_order:
 		var section_label: Label = Label.new()
 		section_label.text = Localization.get_rarity_name(rarity)
 		_card_box.add_child(section_label)
 
-		for entry in Game.get_meta_card_entries():
+		for entry in entries:
 			if String(entry.get("rarity", "")) != rarity:
 				continue
 			var card_id: String = String(entry.get("id", ""))
@@ -256,23 +269,24 @@ func _rebuild_cards() -> void:
 			var row: HBoxContainer = HBoxContainer.new()
 			row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_theme_constant_override("separation", 10)
+			row.name = "MetaCardRow_%s" % card_id
 			_card_box.add_child(row)
-
-			var preview: CardButton = CardButton.new()
-			preview.name = "MetaCard_%s" % card_id
-			preview.set_tile_size(Vector2(92.0, 92.0))
-			preview.bind_preview(card_def, card_id, false, "META")
-			row.add_child(preview)
 
 			var info: VBoxContainer = VBoxContainer.new()
 			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			row.add_child(info)
 
 			var name_label: Label = Label.new()
+			name_label.name = "MetaCard_%s" % card_id
 			name_label.text = Localization.get_textf("meta.cost_line", "{name} | Cost {cost}", {
 				"name": card_def.name,
 				"cost": int(entry.get("cost", 0)),
 			})
+			name_label.tooltip_text = "%s\n%s\n%s" % [
+				card_def.name,
+				card_def.description,
+				CardInfoFormatter.build_effect_summary(card_def),
+			]
 			info.add_child(name_label)
 
 			var desc_label: Label = Label.new()
@@ -288,14 +302,15 @@ func _rebuild_cards() -> void:
 			var unlock_button: Button = Button.new()
 			unlock_button.name = "UnlockCard_%s" % card_id
 			unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
-			unlock_button.disabled = bool(entry.get("unlocked", false)) or Game.get_meta_points() < int(entry.get("cost", 0))
+			unlock_button.disabled = bool(entry.get("unlocked", false)) or meta_points < int(entry.get("cost", 0))
 			unlock_button.pressed.connect(_on_unlock_card.bind(card_id))
 			row.add_child(unlock_button)
 
 
-func _rebuild_relics() -> void:
+func _rebuild_relics(entries: Array[Dictionary]) -> void:
 	_clear_box(_relic_box)
-	for entry in Game.get_meta_relic_entries():
+	var meta_points: int = Game.get_meta_points()
+	for entry in entries:
 		var relic_id: String = String(entry.get("id", ""))
 
 		var row: HBoxContainer = HBoxContainer.new()
@@ -333,7 +348,7 @@ func _rebuild_relics() -> void:
 		var unlock_button: Button = Button.new()
 		unlock_button.name = "UnlockRelic_%s" % relic_id
 		unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
-		unlock_button.disabled = bool(entry.get("unlocked", false)) or Game.get_meta_points() < int(entry.get("cost", 0))
+		unlock_button.disabled = bool(entry.get("unlocked", false)) or meta_points < int(entry.get("cost", 0))
 		unlock_button.pressed.connect(_on_unlock_relic.bind(relic_id))
 		row.add_child(unlock_button)
 
