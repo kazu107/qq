@@ -1475,5 +1475,193 @@
       "damage": [0, 2, 4, 6],
       "empower": [0, 1, 1, 2]
     }
+  },
+  {
+    "id": "rift_volley",
+    "name": "Rift Volley",
+    "description": "Fire through a spatial tear, damaging and delaying one enemy cast.",
+    "rarity": "rare",
+    "tags": ["attack", "control", "rift"],
+    "loadout_cost": 3,
+    "recast_time": 28,
+    "cast_time": 4.8,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 11,
+        "target": "enemy"
+      },
+      {
+        "type": "delay_enemy_active_card",
+        "amount": 3.0,
+        "scope": "single"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [0, 3, 6, 9],
+      "delay": [0, 0.9, 1.8, 2.7]
+    }
+  },
+  {
+    "id": "entropy_armor",
+    "name": "Entropy Armor",
+    "description": "Build an adaptive shield that permanently improves its own shielding for this run.",
+    "rarity": "rare",
+    "tags": ["shield", "empower", "rift"],
+    "loadout_cost": 3,
+    "recast_time": 34,
+    "cast_time": 6.0,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 16,
+        "target": "self"
+      },
+      {
+        "type": "empower_card",
+        "scope": "self",
+        "stat": "shield",
+        "amount": 2
+      }
+    ],
+    "upgrade_profile": {
+      "shield": [0, 4, 8, 12],
+      "empower": [0, 1, 1, 2]
+    }
+  },
+  {
+    "id": "axiom_sever",
+    "name": "Axiom Sever",
+    "description": "Cut through a combat axiom with heavy damage and interrupt every vulnerable cast.",
+    "rarity": "epic",
+    "tags": ["attack", "interrupt", "rift"],
+    "loadout_cost": 4,
+    "recast_time": 46,
+    "cast_time": 10.2,
+    "active_slot_cost": 2,
+    "priority_modifier": -0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 18,
+        "target": "enemy"
+      },
+      {
+        "type": "interrupt_card",
+        "scope": "all_interruptible"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [0, 4, 8, 12],
+      "recast_time": [0, -2.4, -4.8, -7.2]
+    }
+  },
+  {
+    "id": "omega_ray",
+    "name": "Omega Ray",
+    "description": "Focus an end-state beam that deals severe damage and exposes the target.",
+    "rarity": "epic",
+    "tags": ["attack", "debuff", "omega"],
+    "loadout_cost": 4,
+    "recast_time": 42,
+    "cast_time": 8.4,
+    "active_slot_cost": 2,
+    "priority_modifier": -0.05,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 22,
+        "target": "enemy"
+      },
+      {
+        "type": "apply_status",
+        "status": "vulnerable",
+        "duration": 30,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [0, 5, 10, 15],
+      "duration": [0, 6, 12, 18]
+    }
+  },
+  {
+    "id": "grave_protocol",
+    "name": "Grave Protocol",
+    "description": "Restore the frame, raise a dense shield, and automatically queue Guard.",
+    "rarity": "epic",
+    "tags": ["shield", "heal", "chain", "omega"],
+    "loadout_cost": 4,
+    "recast_time": 44,
+    "cast_time": 7.2,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 22,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 6,
+        "target": "self"
+      },
+      {
+        "type": "auto_queue_card",
+        "card_id": "guard",
+        "delay": 0.8,
+        "max_depth": 1
+      }
+    ],
+    "upgrade_profile": {
+      "shield": [0, 5, 10, 15],
+      "heal": [0, 2, 4, 6]
+    }
+  },
+  {
+    "id": "zero_hour",
+    "name": "Zero Hour",
+    "description": "Strike once, then reverse the enemy timeline for a short interval.",
+    "rarity": "epic",
+    "tags": ["attack", "control", "timeline", "omega"],
+    "loadout_cost": 4,
+    "recast_time": 52,
+    "cast_time": 9.0,
+    "active_slot_cost": 2,
+    "priority_modifier": -0.05,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 8,
+        "target": "enemy"
+      },
+      {
+        "type": "timeline_flow",
+        "mode": "reverse",
+        "target_side": "enemy",
+        "duration": 9.0
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [0, 3, 6, 9],
+      "duration": [0, 1.5, 3.0, 4.5]
+    }
   }
 ]

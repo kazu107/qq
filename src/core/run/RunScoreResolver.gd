@@ -22,6 +22,12 @@ const ENEMY_PAR_TIMES: Dictionary = {
 	"void_bastion": 112.0,
 	"echo_revenant": 86.0,
 	"boss_paradox_core": 145.0,
+	"rift_predator": 98.0,
+	"entropy_colossus": 138.0,
+	"boss_axiom_breaker": 190.0,
+	"omega_seraph": 118.0,
+	"grave_architect": 168.0,
+	"boss_eternity_zero": 240.0,
 }
 
 

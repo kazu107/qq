@@ -190,5 +190,107 @@
       "interval": 30.0,
       "amount": 7.2
     }
+  },
+  {
+    "id": "rift_predator",
+    "name": "Rift Predator",
+    "max_hp": 118,
+    "attack": 8,
+    "speed": 9,
+    "cards": [
+      "rift_volley",
+      "phase_lance",
+      "tripwire",
+      "adrenaline_link"
+    ],
+    "role": "rift_hunter",
+    "passive": {}
+  },
+  {
+    "id": "entropy_colossus",
+    "name": "Entropy Colossus",
+    "max_hp": 165,
+    "attack": 9,
+    "speed": 4,
+    "cards": [
+      "entropy_armor",
+      "null_cascade",
+      "heavy_swing",
+      "fortify"
+    ],
+    "role": "entropy_tank",
+    "passive": {}
+  },
+  {
+    "id": "boss_axiom_breaker",
+    "name": "Axiom Breaker",
+    "max_hp": 320,
+    "attack": 10,
+    "speed": 8,
+    "cards": [
+      "axiom_sever",
+      "rift_volley",
+      "entropy_armor",
+      "entropy_reversal",
+      "chronostasis",
+      "meteor_crash"
+    ],
+    "role": "axiom_boss",
+    "passive": {
+      "type": "periodic_delay_enemy_active",
+      "interval": 27.0,
+      "amount": 8.4
+    }
+  },
+  {
+    "id": "omega_seraph",
+    "name": "Omega Seraph",
+    "max_hp": 175,
+    "attack": 11,
+    "speed": 10,
+    "cards": [
+      "omega_ray",
+      "axiom_sever",
+      "adrenaline_link",
+      "quick_slash"
+    ],
+    "role": "omega_executioner",
+    "passive": {}
+  },
+  {
+    "id": "grave_architect",
+    "name": "Grave Architect",
+    "max_hp": 245,
+    "attack": 9,
+    "speed": 5,
+    "cards": [
+      "grave_protocol",
+      "zero_hour",
+      "mirror_aegis",
+      "stasis_field"
+    ],
+    "role": "eternity_control",
+    "passive": {}
+  },
+  {
+    "id": "boss_eternity_zero",
+    "name": "Eternity Zero",
+    "max_hp": 460,
+    "attack": 13,
+    "speed": 9,
+    "cards": [
+      "zero_hour",
+      "omega_ray",
+      "grave_protocol",
+      "axiom_sever",
+      "paradox_loop",
+      "null_cascade"
+    ],
+    "role": "eternity_boss",
+    "passive": {
+      "type": "periodic_delay_enemy_active",
+      "interval": 24.0,
+      "amount": 9.6
+    }
   }
 ]

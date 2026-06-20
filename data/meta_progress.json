@@ -32,7 +32,13 @@
     "rank_s_tier_1": 0,
     "rank_b_tier_2": 0,
     "rank_a_tier_2": 0,
-    "rank_s_tier_2": 0
+    "rank_s_tier_2": 0,
+    "rank_b_tier_3": 0,
+    "rank_a_tier_3": 0,
+    "rank_s_tier_3": 0,
+    "rank_b_tier_4": 0,
+    "rank_a_tier_4": 0,
+    "rank_s_tier_4": 0
   },
   "permanent_bonuses": {
     "max_hp": 0,

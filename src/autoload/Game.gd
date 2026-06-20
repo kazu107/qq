@@ -927,6 +927,15 @@ func developer_unlock_step_tier(tier: int = 2) -> bool:
 	return unlocked
 
 
+func developer_unlock_infinite_mode() -> bool:
+	ensure_meta_initialized()
+	var unlocked: bool = _meta_progress_service.unlock_infinite_mode(meta_progress)
+	if unlocked:
+		AudioManager.play_sfx("meta_unlock")
+		SaveManager.save_game(current_screen_hint)
+	return unlocked
+
+
 func developer_reset_meta_progress() -> void:
 	meta_progress = _meta_progress_service.reset({}, Database.meta_progress_template)
 	meta_progress["points"] = DEVELOPER_META_RESET_POINTS
@@ -1632,8 +1641,12 @@ func _build_hazard_node(area: int) -> Dictionary:
 		queue = ["raider", "guardian"]
 	elif area <= 3:
 		queue = ["chronoguard", "disruptor", "brute"]
-	else:
+	elif area <= 6:
 		queue = ["phase_stalker", "echo_revenant", "void_bastion"]
+	elif area <= 9:
+		queue = ["rift_predator", "entropy_colossus", "rift_predator"]
+	else:
+		queue = ["omega_seraph", "grave_architect", "omega_seraph"]
 	return {
 		"hazard_title": Localization.get_text("hazard.title", "Hazard Zone"),
 		"hazard_description": Localization.get_text("hazard.description", "Push through chained battles. Each cleared wave pays immediately."),

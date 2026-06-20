@@ -5,7 +5,11 @@ const AREA_ONE_POOL := ["scout", "brute", "raider", "medic_drone"]
 const AREA_THREE_POOL := ["brute", "guardian", "chronoguard", "raider"]
 const AREA_FOUR_POOL := ["phase_stalker", "echo_revenant"]
 const AREA_SIX_POOL := ["phase_stalker", "void_bastion", "echo_revenant"]
-const MAX_IMPLEMENTED_STEP_TIER: int = 2
+const AREA_SEVEN_POOL := ["rift_predator", "entropy_colossus"]
+const AREA_NINE_POOL := ["rift_predator", "entropy_colossus"]
+const AREA_TEN_POOL := ["omega_seraph", "grave_architect"]
+const AREA_TWELVE_POOL := ["omega_seraph", "grave_architect"]
+const MAX_IMPLEMENTED_STEP_TIER: int = 4
 
 
 func generate_run(seed: int, unlocked_step_tier: int = 1) -> Dictionary:
@@ -40,11 +44,14 @@ func generate_run(seed: int, unlocked_step_tier: int = 1) -> Dictionary:
 		]),
 	]
 	if unlocked_step_tier >= 2:
-		var timekeeper_step: Dictionary = Dictionary(steps[6])
-		timekeeper_step["label_key"] = "map.step.timekeeper_gate"
-		timekeeper_step["label"] = "Timekeeper Gate"
-		steps[6] = timekeeper_step
+		_mark_step_as_gate(steps, 6, "map.step.timekeeper_gate", "Timekeeper Gate")
 		steps.append_array(_build_tier_two_steps(rng))
+	if unlocked_step_tier >= 3:
+		_mark_step_as_gate(steps, 13, "map.step.paradox_gate", "Paradox Gate")
+		steps.append_array(_build_tier_three_steps(rng))
+	if unlocked_step_tier >= 4:
+		_mark_step_as_gate(steps, 20, "map.step.axiom_gate", "Axiom Gate")
+		steps.append_array(_build_tier_four_steps(rng))
 	_unlock_step_nodes(steps, 0)
 	return {
 		"current_step": 0,
@@ -81,6 +88,75 @@ func _build_tier_two_steps(rng: RandomNumberGenerator) -> Array:
 			_build_battle_node(13, 0, 6, "boss", "boss_paradox_core", "map.node.boss_enemy", "Paradox Core"),
 		]),
 	]
+
+
+func _build_tier_three_steps(rng: RandomNumberGenerator) -> Array:
+	return [
+		_build_step(14, 7, "map.step.area7_rift", "Area 7 Rift Pursuit", _build_normal_battle_choices(rng, AREA_SEVEN_POOL, 7, 2, 14)),
+		_build_step(15, 7, "map.step.area7_support", "Area 7 Rift Anchorage", [
+			_build_non_battle_node(15, 0, 7, "shop", "map.node.rift_exchange", "Rift Exchange"),
+			_build_non_battle_node(15, 1, 7, "event", "map.node.fractured_beacon", "Fractured Beacon"),
+		]),
+		_build_step(16, 8, "map.step.area8_trial", "Area 8 Entropy Trial", [
+			_build_battle_node(16, 0, 8, "elite_battle", "entropy_colossus", "map.node.elite_enemy", "Elite Entropy Colossus"),
+			_build_non_battle_node(16, 1, 8, "hazard", "map.node.entropy_surge", "Entropy Surge"),
+		]),
+		_build_step(17, 8, "map.step.area8_support", "Area 8 Axiom Refit", [
+			_build_non_battle_node(17, 0, 8, "forge", "map.node.axiom_forge", "Axiom Forge"),
+			_build_non_battle_node(17, 1, 8, "heal", "map.node.rift_shelter", "Rift Shelter"),
+		]),
+		_build_step(18, 9, "map.step.area9_clash", "Area 9 Broken Axiom", [
+			_build_battle_node(18, 0, 9, "normal_battle", _pick_enemy(rng, AREA_NINE_POOL), "map.node.enemy_name", "Broken Axiom"),
+			_build_battle_node(18, 1, 9, "elite_battle", "rift_predator", "map.node.elite_enemy", "Elite Rift Predator"),
+		]),
+		_build_step(19, 9, "map.step.area9_recovery", "Area 9 Final Proof", [
+			_build_non_battle_node(19, 0, 9, "shop", "map.node.axiom_market", "Axiom Market"),
+			_build_non_battle_node(19, 1, 9, "event", "map.node.proof_archive", "Proof Archive"),
+			_build_non_battle_node(19, 2, 9, "heal", "map.node.last_theorem", "Last Theorem"),
+		]),
+		_build_step(20, 9, "map.step.axiom_breaker", "Axiom Breaker", [
+			_build_battle_node(20, 0, 9, "boss", "boss_axiom_breaker", "map.node.boss_enemy", "Axiom Breaker"),
+		]),
+	]
+
+
+func _build_tier_four_steps(rng: RandomNumberGenerator) -> Array:
+	return [
+		_build_step(21, 10, "map.step.area10_omega", "Area 10 Omega Descent", _build_normal_battle_choices(rng, AREA_TEN_POOL, 10, 2, 21)),
+		_build_step(22, 10, "map.step.area10_support", "Area 10 Omega Anchorage", [
+			_build_non_battle_node(22, 0, 10, "shop", "map.node.omega_exchange", "Omega Exchange"),
+			_build_non_battle_node(22, 1, 10, "event", "map.node.seraph_signal", "Seraph Signal"),
+		]),
+		_build_step(23, 11, "map.step.area11_trial", "Area 11 Grave Trial", [
+			_build_battle_node(23, 0, 11, "elite_battle", "grave_architect", "map.node.elite_enemy", "Elite Grave Architect"),
+			_build_non_battle_node(23, 1, 11, "hazard", "map.node.zero_storm", "Zero Storm"),
+		]),
+		_build_step(24, 11, "map.step.area11_support", "Area 11 Eternity Refit", [
+			_build_non_battle_node(24, 0, 11, "forge", "map.node.eternity_forge", "Eternity Forge"),
+			_build_non_battle_node(24, 1, 11, "heal", "map.node.omega_shelter", "Omega Shelter"),
+		]),
+		_build_step(25, 12, "map.step.area12_clash", "Area 12 End of Time", [
+			_build_battle_node(25, 0, 12, "normal_battle", _pick_enemy(rng, AREA_TWELVE_POOL), "map.node.enemy_name", "End of Time"),
+			_build_battle_node(25, 1, 12, "elite_battle", "omega_seraph", "map.node.elite_enemy", "Elite Omega Seraph"),
+		]),
+		_build_step(26, 12, "map.step.area12_recovery", "Area 12 Final Continuum", [
+			_build_non_battle_node(26, 0, 12, "shop", "map.node.eternity_market", "Eternity Market"),
+			_build_non_battle_node(26, 1, 12, "event", "map.node.zero_archive", "Zero Archive"),
+			_build_non_battle_node(26, 2, 12, "heal", "map.node.last_continuum", "Last Continuum"),
+		]),
+		_build_step(27, 12, "map.step.eternity_zero", "Eternity Zero", [
+			_build_battle_node(27, 0, 12, "boss", "boss_eternity_zero", "map.node.boss_enemy", "Eternity Zero"),
+		]),
+	]
+
+
+func _mark_step_as_gate(steps: Array, step_index: int, label_key: String, label: String) -> void:
+	if step_index < 0 or step_index >= steps.size():
+		return
+	var gate_step: Dictionary = Dictionary(steps[step_index])
+	gate_step["label_key"] = label_key
+	gate_step["label"] = label
+	steps[step_index] = gate_step
 
 
 func _build_step(step_index: int, area: int, label_key: String, label: String, nodes: Array) -> Dictionary:

@@ -13,6 +13,12 @@ const DEFAULT_ACHIEVEMENT_STATS := {
 	"rank_b_tier_2": 0,
 	"rank_a_tier_2": 0,
 	"rank_s_tier_2": 0,
+	"rank_b_tier_3": 0,
+	"rank_a_tier_3": 0,
+	"rank_s_tier_3": 0,
+	"rank_b_tier_4": 0,
+	"rank_a_tier_4": 0,
+	"rank_s_tier_4": 0,
 }
 const DEFAULT_PERMANENT_BONUSES := {
 	"max_hp": 0,
@@ -118,10 +124,18 @@ func is_infinite_mode_unlocked(meta_progress: Dictionary) -> bool:
 func unlock_step_tier(meta_progress: Dictionary, tier: int) -> bool:
 	ensure_defaults(meta_progress)
 	var current_tier: int = get_unlocked_step_tier(meta_progress)
-	var next_tier: int = maxi(1, tier)
+	var next_tier: int = clampi(tier, 1, MapGenerator.MAX_IMPLEMENTED_STEP_TIER)
 	if next_tier <= current_tier:
 		return false
 	meta_progress["unlocked_step_tier"] = next_tier
+	return true
+
+
+func unlock_infinite_mode(meta_progress: Dictionary) -> bool:
+	ensure_defaults(meta_progress)
+	if bool(meta_progress.get("infinite_mode_unlocked", false)):
+		return false
+	meta_progress["infinite_mode_unlocked"] = true
 	return true
 
 
@@ -208,6 +222,7 @@ func unlock_all(meta_progress: Dictionary) -> void:
 	meta_progress["unlocked_cards"] = Database.get_all_card_ids()
 	meta_progress["unlocked_relics"] = Database.get_all_relic_ids()
 	meta_progress["unlocked_step_tier"] = MapGenerator.MAX_IMPLEMENTED_STEP_TIER
+	meta_progress["infinite_mode_unlocked"] = true
 
 
 func reset(meta_progress: Dictionary, template: Dictionary) -> Dictionary:

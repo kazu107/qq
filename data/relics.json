@@ -68,5 +68,25 @@
     "id": "paradox_prism",
     "name": "Paradox Prism",
     "description": "Your cast times are 8% faster and you start each battle with +1 speed."
+  },
+  {
+    "id": "rift_compass",
+    "name": "Rift Compass",
+    "description": "Start each battle with +2 speed."
+  },
+  {
+    "id": "entropy_battery",
+    "name": "Entropy Battery",
+    "description": "Recover 8 HP after every victory."
+  },
+  {
+    "id": "omega_crown",
+    "name": "Omega Crown",
+    "description": "Start each battle with +3 attack."
+  },
+  {
+    "id": "eternity_engine",
+    "name": "Eternity Engine",
+    "description": "Your cast times are 15% faster and you start each battle with 10 shield."
   }
 ]

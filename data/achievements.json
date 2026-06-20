@@ -177,6 +177,105 @@
       {
         "type": "meta_points",
         "amount": 3
+      },
+      {
+        "type": "unlock_step_tier",
+        "tier": 3
+      }
+    ]
+  },
+  {
+    "id": "rank_b_tier_3",
+    "name": "Rift Route B Rank",
+    "description": "Clear Steps 1-21 with rank B or higher.",
+    "condition": {
+      "stat": "rank_b_tier_3",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "meta_points",
+        "amount": 3
+      }
+    ]
+  },
+  {
+    "id": "rank_a_tier_3",
+    "name": "Rift Route A Rank",
+    "description": "Clear Steps 1-21 with rank A or higher.",
+    "condition": {
+      "stat": "rank_a_tier_3",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "permanent_bonus",
+        "stat": "speed",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "id": "rank_s_tier_3",
+    "name": "Rift Route S Rank",
+    "description": "Clear Steps 1-21 with rank S.",
+    "condition": {
+      "stat": "rank_s_tier_3",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "unlock_step_tier",
+        "tier": 4
+      }
+    ]
+  },
+  {
+    "id": "rank_b_tier_4",
+    "name": "Eternity Route B Rank",
+    "description": "Clear Steps 1-28 with rank B or higher.",
+    "condition": {
+      "stat": "rank_b_tier_4",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "meta_points",
+        "amount": 4
+      }
+    ]
+  },
+  {
+    "id": "rank_a_tier_4",
+    "name": "Eternity Route A Rank",
+    "description": "Clear Steps 1-28 with rank A or higher.",
+    "condition": {
+      "stat": "rank_a_tier_4",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "permanent_bonus",
+        "stat": "max_hp",
+        "amount": 8
+      }
+    ]
+  },
+  {
+    "id": "rank_s_tier_4",
+    "name": "Eternity Route S Rank",
+    "description": "Clear Steps 1-28 with rank S.",
+    "condition": {
+      "stat": "rank_s_tier_4",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "unlock_infinite_mode"
+      },
+      {
+        "type": "meta_points",
+        "amount": 5
       }
     ]
   }

@@ -196,7 +196,12 @@ func _test_timeline_reverse() -> bool:
 
 
 func _test_special_card_descriptions() -> bool:
-	for card_id in ["self_tuning_edge", "sequence_loader", "chronostasis", "entropy_reversal", "auto_turret", "crisis_drone_swarm", "phase_lance", "mirror_aegis", "null_cascade", "paradox_loop"]:
+	for card_id in [
+		"self_tuning_edge", "sequence_loader", "chronostasis", "entropy_reversal",
+		"auto_turret", "crisis_drone_swarm", "phase_lance", "mirror_aegis",
+		"null_cascade", "paradox_loop", "rift_volley", "entropy_armor",
+		"axiom_sever", "omega_ray", "grave_protocol", "zero_hour",
+	]:
 		var card_def: CardDef = Database.get_card(card_id)
 		if card_def == null:
 			_fail("Special card smoke failed: missing special card %s" % card_id)
