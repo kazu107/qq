@@ -189,16 +189,17 @@ func complete_battle(summary: Dictionary) -> void:
 		return
 	ensure_meta_initialized()
 
+	var active_node: Dictionary = get_active_map_node()
 	last_battle_summary = summary.duplicate(true)
 	current_run.player_hp = int(summary.get("player_hp", current_run.player_hp))
 	AudioManager.play_battle_outcome(String(summary.get("winner", "")))
 	last_battle_summary["starter_id"] = current_run.starter_id
 	last_battle_summary["run_seed"] = current_run.seed
 	last_battle_summary["encounters_cleared_before_reward"] = current_run.encounters_cleared + (1 if String(summary.get("winner", "")) == "player" else 0)
-	last_battle_summary["area"] = int(get_active_map_node().get("area", current_run.current_area))
+	last_battle_summary["area"] = int(active_node.get("area", current_run.current_area))
+	_record_run_battle(summary, active_node)
 	last_replay_export_path = ""
 
-	var active_node: Dictionary = get_active_map_node()
 	var node_type: String = String(active_node.get("type", ""))
 	pending_enemy_id = ""
 
@@ -780,6 +781,14 @@ func developer_open_result(starter_id: String = "balanced") -> void:
 	current_run.defeated = false
 	current_run.current_area = max(current_run.current_area, 3)
 	current_run.encounters_cleared = max(current_run.encounters_cleared, 4)
+	current_run.map_state["current_step"] = Array(current_run.map_state.get("steps", [])).size()
+	current_run.battle_history = [
+		{"enemy_id": "scout", "node_type": "normal_battle", "battle_time": 32.0, "winner": "player"},
+		{"enemy_id": "guardian", "node_type": "elite_battle", "battle_time": 97.0, "winner": "player"},
+		{"enemy_id": "chronoguard", "node_type": "elite_battle", "battle_time": 57.0, "winner": "player"},
+		{"enemy_id": "boss_timekeeper", "node_type": "boss", "battle_time": 80.0, "winner": "player"},
+	]
+	current_run.player_hp = current_run.max_hp
 	pending_enemy_id = ""
 	reward_options.clear()
 	last_battle_summary = {
@@ -789,6 +798,27 @@ func developer_open_result(starter_id: String = "balanced") -> void:
 	last_reward_bundle.clear()
 	current_screen_hint = "result"
 	SaveManager.save_game(current_screen_hint)
+
+
+func _record_run_battle(summary: Dictionary, active_node: Dictionary) -> void:
+	if current_run == null:
+		return
+	var battle_time: float = float(summary.get("battle_time", 0.0))
+	if battle_time > 0.0:
+		current_run.battle_history.append({
+			"enemy_id": String(summary.get("enemy_id", "")),
+			"node_type": String(active_node.get("type", "normal_battle")),
+			"battle_time": battle_time,
+			"winner": String(summary.get("winner", "")),
+		})
+
+	for raw_event in Array(summary.get("battle_events", [])):
+		var event_data: Dictionary = Dictionary(raw_event)
+		if String(event_data.get("target_id", "")) != "player":
+			continue
+		var hp_delta: int = int(event_data.get("hp_delta", 0))
+		if hp_delta < 0:
+			current_run.hp_damage_taken += -hp_delta
 
 
 func developer_add_gold(amount: int = 50) -> int:

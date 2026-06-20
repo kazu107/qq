@@ -54,7 +54,7 @@ function Invoke-GodotCheck([string]$Label, [string]$ExePath, [string[]]$Argument
     }
 }
 
-Write-Host "[1/21] Validating JSON files"
+Write-Host "[1/22] Validating JSON files"
 $jsonFiles = Get-ChildItem -Path (Join-Path $root "data") -Filter *.json -File
 foreach ($file in $jsonFiles) {
     try {
@@ -65,7 +65,7 @@ foreach ($file in $jsonFiles) {
     }
 }
 
-Write-Host "[2/21] Validating scene script references"
+Write-Host "[2/22] Validating scene script references"
 $sceneFiles = Get-ChildItem -Path (Join-Path $root "scenes") -Filter *.tscn -Recurse -File
 foreach ($scene in $sceneFiles) {
     $content = Get-Content $scene.FullName -Raw
@@ -79,7 +79,7 @@ foreach ($scene in $sceneFiles) {
     }
 }
 
-Write-Host "[3/21] Scanning for likely Variant inference traps"
+Write-Host "[3/22] Scanning for likely Variant inference traps"
 $gdFiles = Get-ChildItem -Path (Join-Path $root "src") -Filter *.gd -Recurse -File
 $dangerPatterns = @(
     ':\=\s*[A-Za-z0-9_\.]+\s*\.get\(',
@@ -102,114 +102,120 @@ foreach ($gdFile in $gdFiles) {
 
 $godotExe = Resolve-GodotExecutable $GodotPath
 if ($godotExe) {
-    Invoke-GodotCheck "[4/21] Loading project in headless editor mode" $godotExe @(
+    Invoke-GodotCheck "[4/22] Loading project in headless editor mode" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--editor",
         "--quit"
     )
-    Invoke-GodotCheck "[5/21] Running main scene startup smoke" $godotExe @(
+    Invoke-GodotCheck "[5/22] Running main scene startup smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--quit-after", "120"
     )
-    Invoke-GodotCheck "[6/21] Running battle engine smoke" $godotExe @(
+    Invoke-GodotCheck "[6/22] Running battle engine smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/BattleEngineSmoke.tscn"
     )
-    Invoke-GodotCheck "[7/21] Running special card effects smoke" $godotExe @(
+    Invoke-GodotCheck "[7/22] Running special card effects smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/SpecialCardEffectsSmoke.tscn"
     )
-    Invoke-GodotCheck "[8/21] Running battle flow smoke" $godotExe @(
+    Invoke-GodotCheck "[8/22] Running battle flow smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/FlowSmoke.tscn"
     )
-    Invoke-GodotCheck "[9/21] Running card UI smoke" $godotExe @(
+    Invoke-GodotCheck "[9/22] Running card UI smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/CardUiSmoke.tscn"
     )
-    Invoke-GodotCheck "[10/21] Running map/facility smoke" $godotExe @(
+    Invoke-GodotCheck "[10/22] Running map/facility smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/MapFacilitySmoke.tscn"
     )
-    Invoke-GodotCheck "[11/21] Running hazard flow smoke" $godotExe @(
+    Invoke-GodotCheck "[11/22] Running hazard flow smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/HazardFlowSmoke.tscn"
     )
-    Invoke-GodotCheck "[12/21] Running save/continue smoke" $godotExe @(
+    Invoke-GodotCheck "[12/22] Running save/continue smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/SaveContinueSmoke.tscn"
     )
-    Invoke-GodotCheck "[13/21] Running developer mode smoke" $godotExe @(
+    Invoke-GodotCheck "[13/22] Running developer mode smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/DeveloperModeSmoke.tscn"
     )
-    Invoke-GodotCheck "[14/21] Running meta progress smoke" $godotExe @(
+    Invoke-GodotCheck "[14/22] Running meta progress smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/MetaProgressSmoke.tscn"
     )
-    Invoke-GodotCheck "[15/21] Running replay export smoke" $godotExe @(
+    Invoke-GodotCheck "[15/22] Running replay export smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/ReplayExportSmoke.tscn"
     )
-    Invoke-GodotCheck "[16/21] Running reward progression smoke" $godotExe @(
+    Invoke-GodotCheck "[16/22] Running reward progression smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/RewardProgressionSmoke.tscn"
     )
-    Invoke-GodotCheck "[17/21] Running settings smoke" $godotExe @(
+    Invoke-GodotCheck "[17/22] Running settings smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/SettingsSmoke.tscn"
     )
-    Invoke-GodotCheck "[18/21] Running audio smoke" $godotExe @(
+    Invoke-GodotCheck "[18/22] Running audio smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/AudioSmoke.tscn"
     )
-    Invoke-GodotCheck "[19/21] Running event system smoke" $godotExe @(
+    Invoke-GodotCheck "[19/22] Running event system smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/EventSystemSmoke.tscn"
     )
-    Invoke-GodotCheck "[20/21] Running replay viewer smoke" $godotExe @(
+    Invoke-GodotCheck "[20/22] Running replay viewer smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/ReplayViewerSmoke.tscn"
     )
-    Invoke-GodotCheck "[21/21] Running localization smoke" $godotExe @(
+    Invoke-GodotCheck "[21/22] Running localization smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/LocalizationSmoke.tscn"
+    )
+    Invoke-GodotCheck "[22/22] Running run score smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/RunScoreSmoke.tscn"
     )
 }
 

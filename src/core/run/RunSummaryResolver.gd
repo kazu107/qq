@@ -6,7 +6,7 @@ func summarize(run_state: RunState, last_battle_summary: Dictionary) -> Dictiona
 	var starter_id: String = run_state.starter_id
 	var starter_name: String = Localization.get_starter_name(starter_id)
 	var enemy_id: String = String(last_battle_summary.get("enemy_id", ""))
-	return {
+	var summary: Dictionary = {
 		"starter_id": starter_id,
 		"starter_name": starter_name,
 		"seed": run_state.seed,
@@ -17,9 +17,20 @@ func summarize(run_state: RunState, last_battle_summary: Dictionary) -> Dictiona
 		"relic_count": run_state.relics.size(),
 		"relic_ids": run_state.relics.duplicate(),
 		"relic_names": RelicService.new().get_relic_names(run_state.relics),
+		"total_battle_time": _sum_battle_time(run_state.battle_history),
+		"hp_damage_taken": run_state.hp_damage_taken,
 		"defeated": run_state.defeated,
 		"run_complete": run_state.run_complete,
 		"last_enemy_id": enemy_id,
 		"last_enemy": Localization.get_enemy_name(enemy_id, String(last_battle_summary.get("enemy_name", ""))),
 		"last_winner": String(last_battle_summary.get("winner", "")),
 	}
+	summary.merge(RunScoreResolver.new().calculate(run_state), true)
+	return summary
+
+
+func _sum_battle_time(battle_history: Array[Dictionary]) -> float:
+	var total: float = 0.0
+	for battle: Dictionary in battle_history:
+		total += maxf(0.0, float(battle.get("battle_time", 0.0)))
+	return total

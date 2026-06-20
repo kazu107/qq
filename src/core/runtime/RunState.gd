@@ -17,6 +17,8 @@ var temporary_card_modifiers: Dictionary = {}
 var relics: Array[String] = []
 var gold: int = 0
 var encounters_cleared: int = 0
+var battle_history: Array[Dictionary] = []
+var hp_damage_taken: int = 0
 var run_complete: bool = false
 var defeated: bool = false
 
@@ -41,6 +43,8 @@ static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> Ru
 	run_state.temporary_card_modifiers = {}
 	run_state.relics = []
 	run_state.gold = 0
+	run_state.battle_history = []
+	run_state.hp_damage_taken = 0
 	return run_state
 
 
@@ -64,6 +68,8 @@ static func from_dict(data: Dictionary) -> RunState:
 	run_state.relics = _to_string_array(data.get("relics", []))
 	run_state.gold = int(data.get("gold", 0))
 	run_state.encounters_cleared = int(data.get("encounters_cleared", 0))
+	run_state.battle_history = _to_dictionary_array(data.get("battle_history", []))
+	run_state.hp_damage_taken = int(data.get("hp_damage_taken", 0))
 	run_state.run_complete = bool(data.get("run_complete", false))
 	run_state.defeated = bool(data.get("defeated", false))
 	return run_state
@@ -87,6 +93,8 @@ func to_dict() -> Dictionary:
 		"relics": relics,
 		"gold": gold,
 		"encounters_cleared": encounters_cleared,
+		"battle_history": battle_history,
+		"hp_damage_taken": hp_damage_taken,
 		"run_complete": run_complete,
 		"defeated": defeated,
 	}
@@ -96,6 +104,13 @@ static func _to_string_array(value: Variant) -> Array[String]:
 	var result: Array[String] = []
 	for item in value:
 		result.append(String(item))
+	return result
+
+
+static func _to_dictionary_array(value: Variant) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for item in Array(value):
+		result.append(Dictionary(item).duplicate(true))
 	return result
 
 
