@@ -94,6 +94,11 @@ func _assert_map_scene() -> void:
 	elif relic_icon_row == null:
 		_fail("Map/facility smoke failed: map scene did not render relic icon row")
 	var current_step_panel: PanelContainer = steps_box.find_child("MapStep_0", true, false) as PanelContainer
+	var first_step_header: Label = steps_box.find_child("MapStepHeader_0", true, false) as Label
+	var area_one_text: String = Localization.get_textf("map.summary.area", "Area {value}", {"value": 1})
+	if first_step_header == null or first_step_header.text.count(area_one_text) != 1:
+		_fail("Map/facility smoke failed: step header should show the area label only once")
+		return
 	var current_step_style: StyleBoxFlat = null
 	if current_step_panel != null:
 		current_step_style = current_step_panel.get_theme_stylebox("panel") as StyleBoxFlat
@@ -127,6 +132,18 @@ func _assert_map_scene() -> void:
 	if locked_step_style == null or locked_step_style.bg_color.a < 0.5:
 		_fail("Map/facility smoke failed: locked step frame should be dimmed")
 		return
+
+	Game.current_run.map_state["current_step"] = 4
+	map_scene.call("_refresh_ui")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var steps_scroll: ScrollContainer = map_scene.find_child("MapStepsScroll", true, false) as ScrollContainer
+	var advanced_step_panel: PanelContainer = map_scene.find_child("MapStep_4", true, false) as PanelContainer
+	if steps_scroll == null or advanced_step_panel == null or absf(float(steps_scroll.scroll_vertical) - advanced_step_panel.position.y) > 3.0:
+		_fail("Map/facility smoke failed: map should scroll the current step to the top")
+		return
+	Game.current_run.map_state["current_step"] = 0
 
 	map_scene.queue_free()
 	await get_tree().process_frame

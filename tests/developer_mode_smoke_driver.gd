@@ -70,6 +70,21 @@ func _run() -> void:
 	if map_panel.mouse_filter != Control.MOUSE_FILTER_IGNORE:
 		_fail("Developer mode smoke failed: developer panel background should not block covered UI")
 		return
+	var panel_toggle: Button = map_panel.find_child("DeveloperPanelToggle", true, false) as Button
+	var panel_content: Control = map_panel.find_child("DeveloperPanelContent", true, false) as Control
+	if panel_toggle == null or panel_content == null:
+		_fail("Developer mode smoke failed: developer panel collapse controls were missing")
+		return
+	panel_toggle.emit_signal("pressed")
+	await get_tree().process_frame
+	if not map_panel.is_collapsed() or panel_content.visible:
+		_fail("Developer mode smoke failed: developer panel did not collapse")
+		return
+	panel_toggle.emit_signal("pressed")
+	await get_tree().process_frame
+	if map_panel.is_collapsed() or not panel_content.visible:
+		_fail("Developer mode smoke failed: developer panel did not expand")
+		return
 
 	var gold_before: int = Game.current_run.gold
 	var add_gold_button: Button = map_panel.find_child("DevAddGold", true, false) as Button

@@ -5,6 +5,8 @@ var _help_label: Label
 var _relics_label: Label
 var _relics_icon_row: RelicIconRow
 var _steps_box: VBoxContainer
+var _steps_scroll: ScrollContainer
+var _steps_scroll_tail: Control
 var _equipped_summary_label: Label
 var _equipped_panel: CardHandPanel
 var _inventory_box: VBoxContainer
@@ -67,16 +69,17 @@ func _build_ui() -> void:
 	var map_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.node_map", "Node Map"))
 	map_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	map_panel.add_child(scroll)
+	_steps_scroll = ScrollContainer.new()
+	_steps_scroll.name = "MapStepsScroll"
+	_steps_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_steps_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	map_panel.add_child(_steps_scroll)
 
 	_steps_box = VBoxContainer.new()
 	_steps_box.name = "MapSteps"
 	_steps_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_steps_box.add_theme_constant_override("separation", 14)
-	scroll.add_child(_steps_box)
+	_steps_scroll.add_child(_steps_box)
 
 	var loadout_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.loadout", "Loadout"))
 	loadout_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -196,7 +199,8 @@ func _rebuild_steps() -> void:
 		panel.add_child(box)
 
 		var header: Label = Label.new()
-		header.text = Localization.get_textf("map.step_header", "Step {step} | Area {area} | {label}", {
+		header.name = "MapStepHeader_%d" % step_index
+		header.text = Localization.get_textf("map.step_header", "Step {step} | {label}", {
 			"step": step_index + 1,
 			"area": int(step_data.get("area", 1)),
 			"label": Localization.get_step_label(step_data),
@@ -216,6 +220,30 @@ func _rebuild_steps() -> void:
 			node_button.bind(node_data, Localization.get_step_label(step_data), is_current_step)
 			node_button.node_selected.connect(_on_node_selected)
 			row.add_child(node_button)
+
+	_steps_scroll_tail = Control.new()
+	_steps_scroll_tail.name = "MapStepsScrollTail"
+	_steps_box.add_child(_steps_scroll_tail)
+	call_deferred("_scroll_to_current_step", current_step_index)
+
+
+func _scroll_to_current_step(step_index: int) -> void:
+	if _steps_scroll == null or _steps_box == null:
+		return
+	var scene_tree: SceneTree = get_tree()
+	if scene_tree == null:
+		return
+	await scene_tree.process_frame
+	if not is_inside_tree():
+		return
+	var current_panel: Control = _steps_box.find_child("MapStep_%d" % step_index, false, false) as Control
+	if current_panel == null or _steps_scroll_tail == null:
+		return
+	_steps_scroll_tail.custom_minimum_size.y = maxf(0.0, _steps_scroll.size.y - current_panel.size.y - 14.0)
+	await scene_tree.process_frame
+	if not is_inside_tree():
+		return
+	_steps_scroll.scroll_vertical = maxi(0, roundi(current_panel.position.y))
 
 
 func _is_step_locked(nodes: Array) -> bool:

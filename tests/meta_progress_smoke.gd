@@ -46,6 +46,19 @@ func _run() -> void:
 	if relic_box == null or relic_box.get_child_count() == 0:
 		_fail("Meta progress smoke failed: relic unlock section did not render")
 		return
+	for frame_name: String in [
+		"MetaAchievementFrame_first_victory",
+		"MetaStarterFrame_balanced",
+		"MetaCardFrame_quick_slash",
+		"MetaRelicFrame_iron_plating",
+	]:
+		var entry_frame: PanelContainer = meta_scene.find_child(frame_name, true, false) as PanelContainer
+		var entry_style: StyleBoxFlat = null
+		if entry_frame != null:
+			entry_style = entry_frame.get_theme_stylebox("panel") as StyleBoxFlat
+		if entry_style == null or entry_style.border_width_top < 1:
+			_fail("Meta progress smoke failed: entry frame %s did not render a visible divider" % frame_name)
+			return
 	var iron_relic_icon: RelicIcon = meta_scene.find_child("MetaRelic_iron_plating", true, false) as RelicIcon
 	if iron_relic_icon == null or iron_relic_icon.tooltip_text.find("Iron Plating") == -1:
 		_fail("Meta progress smoke failed: relic unlock section should render relic icons with tooltips")

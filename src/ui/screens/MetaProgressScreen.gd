@@ -104,8 +104,42 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 
 	var label: Label = Label.new()
 	label.text = title
+	label.add_theme_font_size_override("font_size", 20)
 	box.add_child(label)
+
+	var divider: HSeparator = HSeparator.new()
+	box.add_child(divider)
 	return box
+
+
+func _create_entry_row(parent: VBoxContainer, frame_name: String, row_name: String) -> HBoxContainer:
+	var frame: PanelContainer = PanelContainer.new()
+	frame.name = frame_name
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.07, 0.085, 0.11, 0.82)
+	style.border_color = Color(0.30, 0.34, 0.42, 0.78)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 9
+	style.corner_radius_top_right = 9
+	style.corner_radius_bottom_left = 9
+	style.corner_radius_bottom_right = 9
+	style.content_margin_left = 12.0
+	style.content_margin_top = 10.0
+	style.content_margin_right = 12.0
+	style.content_margin_bottom = 10.0
+	frame.add_theme_stylebox_override("panel", style)
+	parent.add_child(frame)
+
+	var row: HBoxContainer = HBoxContainer.new()
+	row.name = row_name
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 12)
+	frame.add_child(row)
+	return row
 
 
 func _refresh_ui() -> void:
@@ -162,10 +196,11 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 	for entry in entries:
 		var achievement_id: String = String(entry.get("id", ""))
 
-		var row: HBoxContainer = HBoxContainer.new()
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_theme_constant_override("separation", 10)
-		_achievement_box.add_child(row)
+		var row: HBoxContainer = _create_entry_row(
+			_achievement_box,
+			"MetaAchievementFrame_%s" % achievement_id,
+			"MetaAchievementRow_%s" % achievement_id
+		)
 
 		var info: VBoxContainer = VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -219,10 +254,11 @@ func _rebuild_starters(entries: Array[Dictionary]) -> void:
 	for entry in entries:
 		var starter_id: String = String(entry.get("id", ""))
 
-		var row: HBoxContainer = HBoxContainer.new()
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_theme_constant_override("separation", 10)
-		_starter_box.add_child(row)
+		var row: HBoxContainer = _create_entry_row(
+			_starter_box,
+			"MetaStarterFrame_%s" % starter_id,
+			"MetaStarterRow_%s" % starter_id
+		)
 
 		var info: VBoxContainer = VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -257,9 +293,16 @@ func _rebuild_cards(entries: Array[Dictionary]) -> void:
 	_clear_box(_card_box)
 	var rarity_order: Array[String] = ["common", "rare", "epic"]
 	var meta_points: int = Game.get_meta_points()
-	for rarity in rarity_order:
+	for rarity_index in range(rarity_order.size()):
+		var rarity: String = rarity_order[rarity_index]
+		if rarity_index > 0:
+			var rarity_divider: HSeparator = HSeparator.new()
+			_card_box.add_child(rarity_divider)
 		var section_label: Label = Label.new()
+		section_label.name = "MetaCardRarity_%s" % rarity
 		section_label.text = Localization.get_rarity_name(rarity)
+		section_label.add_theme_font_size_override("font_size", 18)
+		section_label.add_theme_color_override("font_color", Color(0.92, 0.78, 0.40, 1.0))
 		_card_box.add_child(section_label)
 
 		for entry in entries:
@@ -270,11 +313,11 @@ func _rebuild_cards(entries: Array[Dictionary]) -> void:
 			if card_def == null:
 				continue
 
-			var row: HBoxContainer = HBoxContainer.new()
-			row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			row.add_theme_constant_override("separation", 10)
-			row.name = "MetaCardRow_%s" % card_id
-			_card_box.add_child(row)
+			var row: HBoxContainer = _create_entry_row(
+				_card_box,
+				"MetaCardFrame_%s" % card_id,
+				"MetaCardRow_%s" % card_id
+			)
 
 			var info: VBoxContainer = VBoxContainer.new()
 			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -317,10 +360,11 @@ func _rebuild_relics(entries: Array[Dictionary]) -> void:
 	for entry in entries:
 		var relic_id: String = String(entry.get("id", ""))
 
-		var row: HBoxContainer = HBoxContainer.new()
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_theme_constant_override("separation", 10)
-		_relic_box.add_child(row)
+		var row: HBoxContainer = _create_entry_row(
+			_relic_box,
+			"MetaRelicFrame_%s" % relic_id,
+			"MetaRelicRow_%s" % relic_id
+		)
 
 		var relic_icon: RelicIcon = RelicIcon.new()
 		relic_icon.set_icon_size(Vector2(72.0, 72.0))

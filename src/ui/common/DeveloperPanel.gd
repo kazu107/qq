@@ -1,10 +1,17 @@
 extends PanelContainer
 class_name DeveloperPanel
 
-var _title_label: Label
+const EXPANDED_HEIGHT: float = 440.0
+const COLLAPSED_HEIGHT: float = 54.0
+
+var _title_button: Button
 var _status_label: Label
 var _actions_box: VBoxContainer
 var _scroll: ScrollContainer
+var _content_root: VBoxContainer
+var _title_text: String = ""
+var _collapsed: bool = false
+var _is_pinned: bool = false
 
 
 func _init() -> void:
@@ -19,7 +26,8 @@ func _ready() -> void:
 func configure(title: String, actions: Array, status_text: String = "") -> void:
 	if _actions_box == null:
 		_build_ui()
-	_title_label.text = title
+	_title_text = title
+	_refresh_title()
 	set_status_text(status_text)
 	set_actions(actions)
 
@@ -57,16 +65,29 @@ func set_actions(actions: Array) -> void:
 
 
 func pin_top_right(offset_top: float = 16.0, offset_right: float = 16.0) -> void:
+	_is_pinned = true
 	anchor_left = 1.0
 	anchor_top = 0.0
 	anchor_right = 1.0
 	anchor_bottom = 0.0
 	offset_left = -276.0 - offset_right
-	offset_top = offset_top
-	offset_right = -offset_right
-	offset_bottom = offset_top + 440.0
+	self.offset_top = offset_top
+	self.offset_right = -offset_right
 	size_flags_horizontal = Control.SIZE_FILL
 	z_index = 50
+	_update_pinned_height()
+
+
+func set_collapsed(collapsed: bool) -> void:
+	_collapsed = collapsed
+	if _content_root != null:
+		_content_root.visible = not _collapsed
+	_refresh_title()
+	_update_pinned_height()
+
+
+func is_collapsed() -> bool:
+	return _collapsed
 
 
 func _build_ui() -> void:
@@ -87,25 +108,56 @@ func _build_ui() -> void:
 	root.add_theme_constant_override("separation", 8)
 	margin.add_child(root)
 
-	_title_label = Label.new()
-	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(_title_label)
+	_title_button = Button.new()
+	_title_button.name = "DeveloperPanelToggle"
+	_title_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_title_button.focus_mode = Control.FOCUS_NONE
+	_title_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	_title_button.pressed.connect(_on_toggle_pressed)
+	root.add_child(_title_button)
+
+	_content_root = VBoxContainer.new()
+	_content_root.name = "DeveloperPanelContent"
+	_content_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_content_root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_content_root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_content_root.add_theme_constant_override("separation", 8)
+	root.add_child(_content_root)
 
 	_status_label = Label.new()
 	_status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	root.add_child(_status_label)
+	_content_root.add_child(_status_label)
 
 	_scroll = ScrollContainer.new()
 	_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(_scroll)
+	_content_root.add_child(_scroll)
 
 	_actions_box = VBoxContainer.new()
 	_actions_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_actions_box.add_theme_constant_override("separation", 6)
 	_scroll.add_child(_actions_box)
+	set_collapsed(_collapsed)
+
+
+func _on_toggle_pressed() -> void:
+	AudioManager.play_sfx("ui_toggle")
+	set_collapsed(not _collapsed)
+
+
+func _refresh_title() -> void:
+	if _title_button == null:
+		return
+	_title_button.text = "%s  [%s]" % [_title_text, "+" if _collapsed else "-"]
+	_title_button.tooltip_text = Localization.get_text("developer.expand", "Expand") if _collapsed else Localization.get_text("developer.collapse", "Collapse")
+
+
+func _update_pinned_height() -> void:
+	if not _is_pinned:
+		return
+	offset_bottom = offset_top + (COLLAPSED_HEIGHT if _collapsed else EXPANDED_HEIGHT)
 
 
 func _on_action_pressed(callback: Callable) -> void:
