@@ -15,6 +15,7 @@ var settings: Dictionary = {
 	"language": Localization.DEFAULT_LANGUAGE,
 	"resolution": DEFAULT_RESOLUTION,
 	"developer_mode": false,
+	"developer_panel_collapsed": false,
 	"replay_auto_export": true,
 	"settings_return_hint": "title",
 	"replay_view_path": "",
@@ -63,6 +64,7 @@ func ensure_meta_initialized() -> void:
 			"language": Localization.DEFAULT_LANGUAGE,
 			"resolution": DEFAULT_RESOLUTION,
 			"developer_mode": false,
+			"developer_panel_collapsed": false,
 			"replay_auto_export": true,
 			"settings_return_hint": "title",
 			"replay_view_path": "",
@@ -81,6 +83,8 @@ func ensure_meta_initialized() -> void:
 	settings["resolution"] = _normalize_resolution_code(String(settings.get("resolution", DEFAULT_RESOLUTION)))
 	if not settings.has("developer_mode"):
 		settings["developer_mode"] = false
+	if not settings.has("developer_panel_collapsed"):
+		settings["developer_panel_collapsed"] = false
 	if not settings.has("replay_auto_export"):
 		settings["replay_auto_export"] = true
 	if not settings.has("settings_return_hint"):
@@ -688,6 +692,17 @@ func is_developer_mode_enabled() -> bool:
 func set_developer_mode_enabled(enabled: bool) -> void:
 	ensure_meta_initialized()
 	settings["developer_mode"] = enabled
+	SaveManager.save_game(current_screen_hint)
+
+
+func is_developer_panel_collapsed() -> bool:
+	ensure_meta_initialized()
+	return bool(settings.get("developer_panel_collapsed", false))
+
+
+func set_developer_panel_collapsed(collapsed: bool) -> void:
+	ensure_meta_initialized()
+	settings["developer_panel_collapsed"] = collapsed
 	SaveManager.save_game(current_screen_hint)
 
 

@@ -4,7 +4,8 @@ class_name DeveloperPanel
 const EXPANDED_HEIGHT: float = 440.0
 const COLLAPSED_HEIGHT: float = 54.0
 
-var _title_button: Button
+var _title_label: Label
+var _toggle_button: Button
 var _status_label: Label
 var _actions_box: VBoxContainer
 var _scroll: ScrollContainer
@@ -78,12 +79,14 @@ func pin_top_right(offset_top: float = 16.0, offset_right: float = 16.0) -> void
 	_update_pinned_height()
 
 
-func set_collapsed(collapsed: bool) -> void:
+func set_collapsed(collapsed: bool, persist: bool = true) -> void:
 	_collapsed = collapsed
 	if _content_root != null:
 		_content_root.visible = not _collapsed
 	_refresh_title()
 	_update_pinned_height()
+	if persist:
+		Game.set_developer_panel_collapsed(_collapsed)
 
 
 func is_collapsed() -> bool:
@@ -108,13 +111,28 @@ func _build_ui() -> void:
 	root.add_theme_constant_override("separation", 8)
 	margin.add_child(root)
 
-	_title_button = Button.new()
-	_title_button.name = "DeveloperPanelToggle"
-	_title_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_title_button.focus_mode = Control.FOCUS_NONE
-	_title_button.mouse_filter = Control.MOUSE_FILTER_STOP
-	_title_button.pressed.connect(_on_toggle_pressed)
-	root.add_child(_title_button)
+	var header: HBoxContainer = HBoxContainer.new()
+	header.name = "DeveloperPanelHeader"
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.add_theme_constant_override("separation", 6)
+	root.add_child(header)
+
+	_title_label = Label.new()
+	_title_label.name = "DeveloperPanelTitle"
+	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	header.add_child(_title_label)
+
+	_toggle_button = Button.new()
+	_toggle_button.name = "DeveloperPanelToggle"
+	_toggle_button.custom_minimum_size = Vector2(30.0, 28.0)
+	_toggle_button.size_flags_horizontal = Control.SIZE_SHRINK_END
+	_toggle_button.focus_mode = Control.FOCUS_NONE
+	_toggle_button.flat = true
+	_toggle_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	_toggle_button.pressed.connect(_on_toggle_pressed)
+	header.add_child(_toggle_button)
 
 	_content_root = VBoxContainer.new()
 	_content_root.name = "DeveloperPanelContent"
@@ -139,19 +157,20 @@ func _build_ui() -> void:
 	_actions_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_actions_box.add_theme_constant_override("separation", 6)
 	_scroll.add_child(_actions_box)
-	set_collapsed(_collapsed)
+	set_collapsed(Game.is_developer_panel_collapsed(), false)
 
 
 func _on_toggle_pressed() -> void:
 	AudioManager.play_sfx("ui_toggle")
-	set_collapsed(not _collapsed)
+	set_collapsed(not _collapsed, true)
 
 
 func _refresh_title() -> void:
-	if _title_button == null:
+	if _title_label == null or _toggle_button == null:
 		return
-	_title_button.text = "%s  [%s]" % [_title_text, "+" if _collapsed else "-"]
-	_title_button.tooltip_text = Localization.get_text("developer.expand", "Expand") if _collapsed else Localization.get_text("developer.collapse", "Collapse")
+	_title_label.text = _title_text
+	_toggle_button.text = "+" if _collapsed else "-"
+	_toggle_button.tooltip_text = Localization.get_text("developer.expand", "Expand") if _collapsed else Localization.get_text("developer.collapse", "Collapse")
 
 
 func _update_pinned_height() -> void:

@@ -25,6 +25,7 @@ func _run() -> void:
 	if not Game.is_developer_mode_enabled():
 		_fail("Developer mode smoke failed: title toggle did not enable developer mode")
 		return
+	Game.set_developer_panel_collapsed(false)
 
 	get_tree().change_scene_to_file("res://scenes/hub/Hub.tscn")
 	var hub_scene: Node = await _wait_for_scene("Hub")
@@ -71,18 +72,22 @@ func _run() -> void:
 		_fail("Developer mode smoke failed: developer panel background should not block covered UI")
 		return
 	var panel_toggle: Button = map_panel.find_child("DeveloperPanelToggle", true, false) as Button
+	var panel_title: Label = map_panel.find_child("DeveloperPanelTitle", true, false) as Label
 	var panel_content: Control = map_panel.find_child("DeveloperPanelContent", true, false) as Control
-	if panel_toggle == null or panel_content == null:
+	if panel_toggle == null or panel_title == null or panel_content == null:
 		_fail("Developer mode smoke failed: developer panel collapse controls were missing")
+		return
+	if panel_toggle.custom_minimum_size.x > 36.0 or panel_toggle.get_index() <= panel_title.get_index():
+		_fail("Developer mode smoke failed: collapse button should be small and placed at the header's right edge")
 		return
 	panel_toggle.emit_signal("pressed")
 	await get_tree().process_frame
-	if not map_panel.is_collapsed() or panel_content.visible:
+	if not map_panel.is_collapsed() or panel_content.visible or not Game.is_developer_panel_collapsed():
 		_fail("Developer mode smoke failed: developer panel did not collapse")
 		return
 	panel_toggle.emit_signal("pressed")
 	await get_tree().process_frame
-	if map_panel.is_collapsed() or not panel_content.visible:
+	if map_panel.is_collapsed() or not panel_content.visible or Game.is_developer_panel_collapsed():
 		_fail("Developer mode smoke failed: developer panel did not expand")
 		return
 
@@ -168,6 +173,33 @@ func _run() -> void:
 	var reward_panel: DeveloperPanel = reward_scene.find_child("DeveloperPanel", true, false) as DeveloperPanel
 	if reward_panel == null:
 		_fail("Developer mode smoke failed: reward scene did not render the developer panel")
+		return
+	var reward_toggle: Button = reward_panel.find_child("DeveloperPanelToggle", true, false) as Button
+	if reward_toggle == null:
+		_fail("Developer mode smoke failed: reward panel collapse button was missing")
+		return
+	reward_toggle.emit_signal("pressed")
+	await get_tree().process_frame
+	if not Game.is_developer_panel_collapsed():
+		_fail("Developer mode smoke failed: collapsed state was not saved")
+		return
+
+	get_tree().change_scene_to_file("res://scenes/settings/Settings.tscn")
+	var settings_scene: Node = await _wait_for_scene("Settings")
+	if _failed or settings_scene == null:
+		return
+	var settings_panel: DeveloperPanel = settings_scene.find_child("DeveloperPanel", true, false) as DeveloperPanel
+	if settings_panel == null or not settings_panel.is_collapsed():
+		_fail("Developer mode smoke failed: collapsed state did not survive a screen transition")
+		return
+	var settings_toggle: Button = settings_panel.find_child("DeveloperPanelToggle", true, false) as Button
+	if settings_toggle == null:
+		_fail("Developer mode smoke failed: settings panel collapse button was missing")
+		return
+	settings_toggle.emit_signal("pressed")
+	await get_tree().process_frame
+	if Game.is_developer_panel_collapsed():
+		_fail("Developer mode smoke failed: expanded state was not saved")
 		return
 
 	print("Developer mode smoke passed")
