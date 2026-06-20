@@ -6,8 +6,7 @@ const PROGRESS_MAX: int = 6000
 const SURVIVAL_MAX: int = 1500
 const EFFICIENCY_MAX: int = 1500
 const CHALLENGE_MAX: int = 1000
-const PRE_BOSS_STEP_SCORE: int = 700
-const PRE_BOSS_STEP_COUNT: int = 6
+const PRE_BOSS_PROGRESS_MAX: int = 4200
 const BOSS_CLEAR_SCORE: int = 1800
 
 const ENEMY_PAR_TIMES: Dictionary = {
@@ -19,6 +18,10 @@ const ENEMY_PAR_TIMES: Dictionary = {
 	"medic_drone": 90.0,
 	"chronoguard": 57.0,
 	"boss_timekeeper": 80.0,
+	"phase_stalker": 72.0,
+	"void_bastion": 112.0,
+	"echo_revenant": 86.0,
+	"boss_paradox_core": 145.0,
 }
 
 
@@ -54,12 +57,14 @@ func calculate(run_state: RunState) -> Dictionary:
 
 
 func _calculate_progress(run_state: RunState, cleared: bool) -> int:
+	var total_steps: int = maxi(1, Array(run_state.map_state.get("steps", [])).size())
+	var pre_boss_step_count: int = maxi(1, total_steps - 1)
 	var completed_steps: int = clampi(
 		int(run_state.map_state.get("current_step", 0)),
 		0,
-		PRE_BOSS_STEP_COUNT
+		pre_boss_step_count
 	)
-	var score: int = completed_steps * PRE_BOSS_STEP_SCORE
+	var score: int = roundi(float(PRE_BOSS_PROGRESS_MAX * completed_steps) / float(pre_boss_step_count))
 	if cleared:
 		score += BOSS_CLEAR_SCORE
 	return mini(score, PROGRESS_MAX)

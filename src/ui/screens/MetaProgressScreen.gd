@@ -116,6 +116,7 @@ func _refresh_ui() -> void:
 	_summary_label.text = "\n".join([
 		Localization.get_textf("meta.summary.points", "Points: {value}", {"value": Game.get_meta_points()}),
 		Localization.get_textf("meta.summary.best_clear", "Best Clear: {value}", {"value": Game.get_best_clear()}),
+		Localization.get_textf("meta.summary.steps", "Unlocked Steps: 1-{end}", {"end": Game.get_unlocked_step_tier() * 7}),
 		Localization.get_textf("meta.summary.starters", "Starters: {current} / {total}", {
 			"current": _count_bool_entries(starter_entries, "unlocked"),
 			"total": starter_entries.size(),
@@ -387,6 +388,7 @@ func _build_developer_panel() -> void:
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
 			{"id": "DevMetaAddPoints", "label": Localization.get_text("hub.dev.add_points", "Add 5 Points"), "callback": Callable(self, "_on_dev_add_points")},
+			{"id": "DevMetaUnlockTier2", "label": Localization.get_text("meta.dev.unlock_tier_2", "Unlock Steps 8-14"), "callback": Callable(self, "_on_dev_unlock_tier_2")},
 			{"id": "DevMetaUnlockAll", "label": Localization.get_text("meta.dev.unlock_all", "Unlock All"), "callback": Callable(self, "_on_dev_unlock_all")},
 			{"id": "DevMetaReset", "label": Localization.get_text("hub.dev.reset_meta", "Reset Meta"), "callback": Callable(self, "_on_dev_reset_meta")},
 			{"id": "DevMetaLibrary", "label": Localization.get_text("meta.dev.open_library", "Open Library"), "callback": Callable(self, "_on_dev_open_library")},
@@ -397,6 +399,11 @@ func _build_developer_panel() -> void:
 
 func _on_dev_add_points() -> void:
 	Game.developer_add_points(5)
+	_refresh_ui()
+
+
+func _on_dev_unlock_tier_2() -> void:
+	Game.developer_unlock_step_tier(2)
 	_refresh_ui()
 
 

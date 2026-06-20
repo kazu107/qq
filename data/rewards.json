@@ -10,7 +10,10 @@
     "rarity_pool_by_area": {
       "1": ["common", "common", "common", "rare"],
       "2": ["common", "common", "rare", "rare"],
-      "3": ["common", "rare", "rare", "epic"]
+      "3": ["common", "rare", "rare", "epic"],
+      "4": ["rare", "rare", "epic", "epic"],
+      "5": ["rare", "epic", "epic"],
+      "6": ["rare", "epic", "epic", "epic"]
     }
   },
   "elite": {
@@ -24,7 +27,10 @@
     "rarity_pool_by_area": {
       "1": ["common", "rare", "rare", "epic"],
       "2": ["rare", "rare", "epic"],
-      "3": ["rare", "epic", "epic"]
+      "3": ["rare", "epic", "epic"],
+      "4": ["rare", "epic", "epic"],
+      "5": ["epic", "epic", "rare"],
+      "6": ["epic", "epic", "epic"]
     }
   },
   "hazard": {
@@ -38,7 +44,10 @@
     "rarity_pool_by_area": {
       "1": ["common", "common", "rare", "rare"],
       "2": ["common", "rare", "rare", "epic"],
-      "3": ["rare", "rare", "epic", "epic"]
+      "3": ["rare", "rare", "epic", "epic"],
+      "4": ["rare", "epic", "epic"],
+      "5": ["rare", "epic", "epic", "epic"],
+      "6": ["epic", "epic", "epic"]
     }
   },
   "boss": {
@@ -52,7 +61,10 @@
     "rarity_pool_by_area": {
       "1": ["rare", "rare", "epic"],
       "2": ["rare", "rare", "epic", "epic"],
-      "3": ["rare", "epic", "epic"]
+      "3": ["rare", "epic", "epic"],
+      "4": ["rare", "epic", "epic"],
+      "5": ["epic", "epic", "rare"],
+      "6": ["epic", "epic", "epic"]
     }
   }
 }

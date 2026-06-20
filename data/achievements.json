@@ -82,5 +82,102 @@
         "amount": 2
       }
     ]
+  },
+  {
+    "id": "rank_b_tier_1",
+    "name": "Core Route B Rank",
+    "description": "Clear Steps 1-7 with rank B or higher.",
+    "condition": {
+      "stat": "rank_b_tier_1",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "meta_points",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "id": "rank_a_tier_1",
+    "name": "Core Route A Rank",
+    "description": "Clear Steps 1-7 with rank A or higher.",
+    "condition": {
+      "stat": "rank_a_tier_1",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "permanent_bonus",
+        "stat": "loadout_limit",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "id": "rank_s_tier_1",
+    "name": "Core Route S Rank",
+    "description": "Clear Steps 1-7 with rank S.",
+    "condition": {
+      "stat": "rank_s_tier_1",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "unlock_step_tier",
+        "tier": 2
+      }
+    ]
+  },
+  {
+    "id": "rank_b_tier_2",
+    "name": "Extended Route B Rank",
+    "description": "Clear Steps 1-14 with rank B or higher.",
+    "condition": {
+      "stat": "rank_b_tier_2",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "meta_points",
+        "amount": 2
+      }
+    ]
+  },
+  {
+    "id": "rank_a_tier_2",
+    "name": "Extended Route A Rank",
+    "description": "Clear Steps 1-14 with rank A or higher.",
+    "condition": {
+      "stat": "rank_a_tier_2",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "permanent_bonus",
+        "stat": "max_hp",
+        "amount": 5
+      }
+    ]
+  },
+  {
+    "id": "rank_s_tier_2",
+    "name": "Extended Route S Rank",
+    "description": "Clear Steps 1-14 with rank S.",
+    "condition": {
+      "stat": "rank_s_tier_2",
+      "value": 1
+    },
+    "rewards": [
+      {
+        "type": "permanent_bonus",
+        "stat": "attack",
+        "amount": 1
+      },
+      {
+        "type": "meta_points",
+        "amount": 3
+      }
+    ]
   }
 ]

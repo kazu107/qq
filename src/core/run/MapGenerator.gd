@@ -3,9 +3,12 @@ class_name MapGenerator
 
 const AREA_ONE_POOL := ["scout", "brute", "raider", "medic_drone"]
 const AREA_THREE_POOL := ["brute", "guardian", "chronoguard", "raider"]
+const AREA_FOUR_POOL := ["phase_stalker", "echo_revenant"]
+const AREA_SIX_POOL := ["phase_stalker", "void_bastion", "echo_revenant"]
+const MAX_IMPLEMENTED_STEP_TIER: int = 2
 
 
-func generate_run(seed: int) -> Dictionary:
+func generate_run(seed: int, unlocked_step_tier: int = 1) -> Dictionary:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = seed
 
@@ -36,12 +39,48 @@ func generate_run(seed: int) -> Dictionary:
 			_build_battle_node(6, 0, 3, "boss", "boss_timekeeper", "map.node.boss_enemy", "Timekeeper"),
 		]),
 	]
+	if unlocked_step_tier >= 2:
+		var timekeeper_step: Dictionary = Dictionary(steps[6])
+		timekeeper_step["label_key"] = "map.step.timekeeper_gate"
+		timekeeper_step["label"] = "Timekeeper Gate"
+		steps[6] = timekeeper_step
+		steps.append_array(_build_tier_two_steps(rng))
 	_unlock_step_nodes(steps, 0)
 	return {
 		"current_step": 0,
 		"active_node_id": "",
 		"steps": steps,
 	}
+
+
+func _build_tier_two_steps(rng: RandomNumberGenerator) -> Array:
+	return [
+		_build_step(7, 4, "map.step.area4_breach", "Area 4 Phase Breach", _build_normal_battle_choices(rng, AREA_FOUR_POOL, 4, 2, 7)),
+		_build_step(8, 4, "map.step.area4_support", "Area 4 Recovery", [
+			_build_non_battle_node(8, 0, 4, "shop", "map.node.phase_exchange", "Phase Exchange"),
+			_build_non_battle_node(8, 1, 4, "event", "map.node.echo_signal", "Echo Signal"),
+		]),
+		_build_step(9, 5, "map.step.area5_trial", "Area 5 Void Trial", [
+			_build_battle_node(9, 0, 5, "elite_battle", "void_bastion", "map.node.elite_enemy", "Elite Void Bastion"),
+			_build_non_battle_node(9, 1, 5, "hazard", "map.node.paradox_storm", "Paradox Storm"),
+		]),
+		_build_step(10, 5, "map.step.area5_support", "Area 5 Refit", [
+			_build_non_battle_node(10, 0, 5, "forge", "map.node.void_forge", "Void Forge"),
+			_build_non_battle_node(10, 1, 5, "heal", "map.node.phase_shelter", "Phase Shelter"),
+		]),
+		_build_step(11, 6, "map.step.area6_clash", "Area 6 Paradox Front", [
+			_build_battle_node(11, 0, 6, "normal_battle", _pick_enemy(rng, AREA_SIX_POOL), "map.node.enemy_name", "Paradox Front"),
+			_build_battle_node(11, 1, 6, "elite_battle", "echo_revenant", "map.node.elite_enemy", "Elite Echo Revenant"),
+		]),
+		_build_step(12, 6, "map.step.area6_recovery", "Area 6 Final Calibration", [
+			_build_non_battle_node(12, 0, 6, "shop", "map.node.paradox_market", "Paradox Market"),
+			_build_non_battle_node(12, 1, 6, "event", "map.node.core_memory", "Core Memory"),
+			_build_non_battle_node(12, 2, 6, "heal", "map.node.last_anchor", "Last Anchor"),
+		]),
+		_build_step(13, 6, "map.step.paradox_core", "Paradox Core", [
+			_build_battle_node(13, 0, 6, "boss", "boss_paradox_core", "map.node.boss_enemy", "Paradox Core"),
+		]),
+	]
 
 
 func _build_step(step_index: int, area: int, label_key: String, label: String, nodes: Array) -> Dictionary:
@@ -54,7 +93,7 @@ func _build_step(step_index: int, area: int, label_key: String, label: String, n
 	}
 
 
-func _build_normal_battle_choices(rng: RandomNumberGenerator, pool: Array, area: int, count: int) -> Array:
+func _build_normal_battle_choices(rng: RandomNumberGenerator, pool: Array, area: int, count: int, seed_offset: int = -1) -> Array:
 	var picked_enemies: Array[String] = []
 	var bag: Array = pool.duplicate()
 	while picked_enemies.size() < count and not bag.is_empty():
@@ -63,9 +102,10 @@ func _build_normal_battle_choices(rng: RandomNumberGenerator, pool: Array, area:
 		bag.remove_at(pick_index)
 
 	var nodes: Array = []
+	var resolved_seed_offset: int = area if seed_offset < 0 else seed_offset
 	for node_index in range(picked_enemies.size()):
 		var enemy_id: String = picked_enemies[node_index]
-		nodes.append(_build_battle_node(area, node_index, area, "normal_battle", enemy_id, "map.node.enemy_name", _enemy_label(enemy_id)))
+		nodes.append(_build_battle_node(resolved_seed_offset, node_index, area, "normal_battle", enemy_id, "map.node.enemy_name", _enemy_label(enemy_id)))
 	return nodes
 
 

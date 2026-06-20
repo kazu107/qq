@@ -53,5 +53,20 @@
     "id": "surge_gimbal",
     "name": "Surge Gimbal",
     "description": "Start each battle with +1 speed."
+  },
+  {
+    "id": "phase_capacitor",
+    "name": "Phase Capacitor",
+    "description": "Start each battle with 12 shield."
+  },
+  {
+    "id": "echo_coil",
+    "name": "Echo Coil",
+    "description": "Gain 15 gold after every victory."
+  },
+  {
+    "id": "paradox_prism",
+    "name": "Paradox Prism",
+    "description": "Your cast times are 8% faster and you start each battle with +1 speed."
   }
 ]

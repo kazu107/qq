@@ -14,6 +14,8 @@ func _run() -> void:
 		return
 	if not _test_auto_queue_card():
 		return
+	if not _test_paradox_loop_depth():
+		return
 	if not _test_unlimited_auto_turret():
 		return
 	if not _test_hp_scaled_auto_queue():
@@ -71,6 +73,23 @@ func _test_auto_queue_card() -> bool:
 	engine.update(6.2)
 	if _count_active_auto_instances(engine, "player", "recursive_protocol") > 0:
 		_fail("Special card smoke failed: recursive_protocol exceeded its auto-queue depth")
+		return false
+	return true
+
+
+func _test_paradox_loop_depth() -> bool:
+	var engine: RealtimeBattleEngine = _setup_engine(["paradox_loop"])
+	if not _request_card(engine, "player", "paradox_loop"):
+		_fail("Special card smoke failed: paradox_loop could not be requested")
+		return false
+	engine.update(6.1)
+	engine.update(7.3)
+	if _max_auto_depth(engine, "player", "paradox_loop") != 2:
+		_fail("Special card smoke failed: paradox_loop should create a second-depth echo")
+		return false
+	engine.update(7.3)
+	if _count_active_auto_instances(engine, "player", "paradox_loop") > 0:
+		_fail("Special card smoke failed: paradox_loop exceeded its two-echo depth")
 		return false
 	return true
 
@@ -177,7 +196,7 @@ func _test_timeline_reverse() -> bool:
 
 
 func _test_special_card_descriptions() -> bool:
-	for card_id in ["self_tuning_edge", "sequence_loader", "chronostasis", "entropy_reversal", "auto_turret", "crisis_drone_swarm"]:
+	for card_id in ["self_tuning_edge", "sequence_loader", "chronostasis", "entropy_reversal", "auto_turret", "crisis_drone_swarm", "phase_lance", "mirror_aegis", "null_cascade", "paradox_loop"]:
 		var card_def: CardDef = Database.get_card(card_id)
 		if card_def == null:
 			_fail("Special card smoke failed: missing special card %s" % card_id)

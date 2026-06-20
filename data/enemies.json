@@ -124,5 +124,71 @@
       "interval": 42.0,
       "amount": 6.0
     }
+  },
+  {
+    "id": "phase_stalker",
+    "name": "Phase Stalker",
+    "max_hp": 78,
+    "attack": 6,
+    "speed": 8,
+    "cards": [
+      "phase_lance",
+      "quick_slash",
+      "tripwire",
+      "adrenaline_link"
+    ],
+    "role": "phase_assassin",
+    "passive": {}
+  },
+  {
+    "id": "void_bastion",
+    "name": "Void Bastion",
+    "max_hp": 112,
+    "attack": 5,
+    "speed": 4,
+    "cards": [
+      "mirror_aegis",
+      "barrier_deploy",
+      "null_cascade",
+      "purge_pulse"
+    ],
+    "role": "void_shield",
+    "passive": {}
+  },
+  {
+    "id": "echo_revenant",
+    "name": "Echo Revenant",
+    "max_hp": 90,
+    "attack": 7,
+    "speed": 7,
+    "cards": [
+      "paradox_loop",
+      "rupture_strike",
+      "weak_shot",
+      "quick_guard"
+    ],
+    "role": "recursive_aggression",
+    "passive": {}
+  },
+  {
+    "id": "boss_paradox_core",
+    "name": "Paradox Core",
+    "max_hp": 220,
+    "attack": 8,
+    "speed": 7,
+    "cards": [
+      "null_cascade",
+      "paradox_loop",
+      "entropy_reversal",
+      "chronostasis",
+      "meteor_crash",
+      "mirror_aegis"
+    ],
+    "role": "paradox_boss",
+    "passive": {
+      "type": "periodic_delay_enemy_active",
+      "interval": 30.0,
+      "amount": 7.2
+    }
   }
 ]

@@ -1347,5 +1347,133 @@
         3
       ]
     }
+  },
+  {
+    "id": "phase_lance",
+    "name": "Phase Lance",
+    "description": "Pierce the target and expose it to follow-up attacks.",
+    "rarity": "rare",
+    "tags": ["attack", "debuff", "phase"],
+    "loadout_cost": 3,
+    "recast_time": 26,
+    "cast_time": 5.4,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 9,
+        "target": "enemy"
+      },
+      {
+        "type": "apply_status",
+        "status": "vulnerable",
+        "duration": 24,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [0, 2, 4, 6],
+      "duration": [0, 6, 12, 18]
+    }
+  },
+  {
+    "id": "mirror_aegis",
+    "name": "Mirror Aegis",
+    "description": "Raise a reflective barrier and answer with an automatic slash.",
+    "rarity": "rare",
+    "tags": ["shield", "chain", "phase"],
+    "loadout_cost": 3,
+    "recast_time": 28,
+    "cast_time": 4.2,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 12,
+        "target": "self"
+      },
+      {
+        "type": "auto_queue_card",
+        "card_id": "quick_slash",
+        "delay": 0.8,
+        "max_depth": 1
+      }
+    ],
+    "upgrade_profile": {
+      "shield": [0, 3, 6, 9]
+    }
+  },
+  {
+    "id": "null_cascade",
+    "name": "Null Cascade",
+    "description": "Detonate a null pulse that damages and delays the entire enemy timeline.",
+    "rarity": "epic",
+    "tags": ["attack", "control", "phase"],
+    "loadout_cost": 4,
+    "recast_time": 38,
+    "cast_time": 7.2,
+    "active_slot_cost": 2,
+    "priority_modifier": -0.05,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 10,
+        "target": "enemy"
+      },
+      {
+        "type": "delay_enemy_active_card",
+        "amount": 4.5,
+        "scope": "all"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [0, 3, 6, 9],
+      "delay": [0, 0.9, 1.8, 2.7]
+    }
+  },
+  {
+    "id": "paradox_loop",
+    "name": "Paradox Loop",
+    "description": "Improve itself and recursively queue two temporary echoes.",
+    "rarity": "epic",
+    "tags": ["attack", "chain", "special", "phase"],
+    "loadout_cost": 4,
+    "recast_time": 42,
+    "cast_time": 6.0,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 6,
+        "target": "enemy"
+      },
+      {
+        "type": "empower_card",
+        "scope": "self",
+        "stat": "damage",
+        "amount": 1
+      },
+      {
+        "type": "auto_queue_card",
+        "card_id": "self",
+        "delay": 1.2,
+        "max_depth": 2
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [0, 2, 4, 6],
+      "empower": [0, 1, 1, 2]
+    }
   }
 ]

@@ -156,7 +156,7 @@ func start_new_run(starter_id: String, seed_override: int = 0) -> void:
 		return
 	current_run = RunState.from_starter(starter, seed_override)
 	_apply_permanent_bonuses_to_run(current_run)
-	current_run.map_state = _map_generator.generate_run(current_run.seed)
+	current_run.map_state = _map_generator.generate_run(current_run.seed, get_unlocked_step_tier())
 	pending_enemy_id = ""
 	reward_options.clear()
 	last_battle_summary.clear()
@@ -240,7 +240,7 @@ func complete_battle(summary: Dictionary) -> void:
 
 	match node_type:
 		"boss":
-			_handle_battle_reward("boss", true)
+			_handle_battle_reward("boss", _is_active_node_final_step())
 		"elite_battle":
 			_handle_battle_reward("elite")
 		"hazard":
@@ -343,6 +343,16 @@ func get_unlocked_relic_ids() -> Array[String]:
 	return _meta_progress_service.get_unlocked_relics(meta_progress)
 
 
+func get_unlocked_step_tier() -> int:
+	ensure_meta_initialized()
+	return _meta_progress_service.get_unlocked_step_tier(meta_progress)
+
+
+func is_infinite_mode_unlocked() -> bool:
+	ensure_meta_initialized()
+	return _meta_progress_service.is_infinite_mode_unlocked(meta_progress)
+
+
 func is_card_meta_unlocked(card_id: String) -> bool:
 	ensure_meta_initialized()
 	return _meta_progress_service.is_card_unlocked(meta_progress, card_id)
@@ -376,6 +386,9 @@ func get_meta_summary() -> Dictionary:
 	return {
 		"points": get_meta_points(),
 		"best_clear": get_best_clear(),
+		"unlocked_step_tier": get_unlocked_step_tier(),
+		"unlocked_step_end": get_unlocked_step_tier() * 7,
+		"infinite_mode_unlocked": is_infinite_mode_unlocked(),
 		"starter_unlocked": get_unlocked_starters().size(),
 		"starter_total": starter_entries.size(),
 		"card_unlocked": unlocked_card_count,
@@ -905,6 +918,15 @@ func developer_unlock_all_meta() -> void:
 	SaveManager.save_game(current_screen_hint)
 
 
+func developer_unlock_step_tier(tier: int = 2) -> bool:
+	ensure_meta_initialized()
+	var unlocked: bool = _meta_progress_service.unlock_step_tier(meta_progress, tier)
+	if unlocked:
+		AudioManager.play_sfx("meta_unlock")
+		SaveManager.save_game(current_screen_hint)
+	return unlocked
+
+
 func developer_reset_meta_progress() -> void:
 	meta_progress = _meta_progress_service.reset({}, Database.meta_progress_template)
 	meta_progress["points"] = DEVELOPER_META_RESET_POINTS
@@ -1390,7 +1412,7 @@ func _ensure_map_state() -> void:
 	if current_run == null:
 		return
 	if current_run.map_state.is_empty():
-		current_run.map_state = _map_generator.generate_run(current_run.seed)
+		current_run.map_state = _map_generator.generate_run(current_run.seed, get_unlocked_step_tier())
 
 
 func _prepare_non_battle_node(step_index: int, node_index: int) -> void:
@@ -1440,12 +1462,16 @@ func _prepare_non_battle_node(step_index: int, node_index: int) -> void:
 
 func _handle_battle_reward(reward_key: String, finish_run: bool = false) -> void:
 	last_reward_bundle = preview_reward_package(reward_key, current_run.current_area)
+	if reward_key == "boss" and not finish_run:
+		var elite_bundle: Dictionary = preview_reward_package("elite", current_run.current_area)
+		last_reward_bundle["options"] = _to_string_array(elite_bundle.get("options", []))
+		last_reward_bundle["option_count"] = int(elite_bundle.get("option_count", 3))
 	_apply_reward_bundle(last_reward_bundle)
 
 	var reward_note: String = ""
-	if reward_key == "elite":
+	if reward_key == "elite" or (reward_key == "boss" and not finish_run):
 		reward_note = _grant_random_relic_note()
-	elif reward_key == "boss":
+	elif reward_key == "boss" and finish_run:
 		current_run.run_complete = true
 		_add_clear_rewards()
 
@@ -1456,6 +1482,7 @@ func _handle_battle_reward(reward_key: String, finish_run: bool = false) -> void
 
 	if finish_run:
 		_complete_active_map_node_and_advance()
+		_record_completed_run_rank()
 		reward_options.clear()
 		last_reward_bundle.clear()
 		current_screen_hint = "result"
@@ -1603,8 +1630,10 @@ func _build_hazard_node(area: int) -> Dictionary:
 	var queue: Array[String] = []
 	if area <= 2:
 		queue = ["raider", "guardian"]
-	else:
+	elif area <= 3:
 		queue = ["chronoguard", "disruptor", "brute"]
+	else:
+		queue = ["phase_stalker", "echo_revenant", "void_bastion"]
 	return {
 		"hazard_title": Localization.get_text("hazard.title", "Hazard Zone"),
 		"hazard_description": Localization.get_text("hazard.description", "Push through chained battles. Each cleared wave pays immediately."),
@@ -1641,6 +1670,34 @@ func _get_shop_rarity_pool(area: int) -> Array[String]:
 			return ["common", "rare", "rare"]
 		_:
 			return ["rare", "rare", "epic"]
+
+
+func _is_active_node_final_step() -> bool:
+	if current_run == null:
+		return true
+	var location: Dictionary = _get_active_node_location()
+	var steps: Array = Array(current_run.map_state.get("steps", []))
+	if location.is_empty() or steps.is_empty():
+		return true
+	return int(location.get("step_index", -1)) == steps.size() - 1
+
+
+func _record_completed_run_rank() -> void:
+	if current_run == null or current_run.defeated or not current_run.run_complete:
+		return
+	var score_data: Dictionary = RunScoreResolver.new().calculate(current_run)
+	var rank: String = String(score_data.get("rank", "E"))
+	var step_count: int = Array(current_run.map_state.get("steps", [])).size()
+	var tier: int = maxi(1, ceili(float(step_count) / 7.0))
+	if ["B", "A", "S"].has(rank):
+		_meta_progress_service.increment_achievement_stat(meta_progress, "rank_b_tier_%d" % tier)
+	if ["A", "S"].has(rank):
+		_meta_progress_service.increment_achievement_stat(meta_progress, "rank_a_tier_%d" % tier)
+	if rank == "S":
+		_meta_progress_service.increment_achievement_stat(meta_progress, "rank_s_tier_%d" % tier)
+	last_battle_summary["run_score"] = int(score_data.get("total_score", 0))
+	last_battle_summary["run_rank"] = rank
+	last_battle_summary["run_step_tier"] = tier
 
 
 func _complete_active_map_node_and_advance() -> void:

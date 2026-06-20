@@ -7,6 +7,12 @@ const DEFAULT_ACHIEVEMENT_STATS := {
 	"runs_started": 0,
 	"victories": 0,
 	"boss_wins": 0,
+	"rank_b_tier_1": 0,
+	"rank_a_tier_1": 0,
+	"rank_s_tier_1": 0,
+	"rank_b_tier_2": 0,
+	"rank_a_tier_2": 0,
+	"rank_s_tier_2": 0,
 }
 const DEFAULT_PERMANENT_BONUSES := {
 	"max_hp": 0,
@@ -25,6 +31,11 @@ func ensure_defaults(meta_progress: Dictionary) -> void:
 		meta_progress["points"] = 0
 	if not meta_progress.has("best_clear"):
 		meta_progress["best_clear"] = 0
+	if not meta_progress.has("unlocked_step_tier"):
+		meta_progress["unlocked_step_tier"] = 1
+	meta_progress["unlocked_step_tier"] = maxi(1, int(meta_progress.get("unlocked_step_tier", 1)))
+	if not meta_progress.has("infinite_mode_unlocked"):
+		meta_progress["infinite_mode_unlocked"] = false
 
 	var starters: Array[String] = _to_string_array(meta_progress.get("unlocked_starters", []))
 	if starters.is_empty():
@@ -92,6 +103,26 @@ func get_achievement_stats(meta_progress: Dictionary) -> Dictionary:
 func get_permanent_bonuses(meta_progress: Dictionary) -> Dictionary:
 	ensure_defaults(meta_progress)
 	return Dictionary(meta_progress.get("permanent_bonuses", {})).duplicate(true)
+
+
+func get_unlocked_step_tier(meta_progress: Dictionary) -> int:
+	ensure_defaults(meta_progress)
+	return maxi(1, int(meta_progress.get("unlocked_step_tier", 1)))
+
+
+func is_infinite_mode_unlocked(meta_progress: Dictionary) -> bool:
+	ensure_defaults(meta_progress)
+	return bool(meta_progress.get("infinite_mode_unlocked", false))
+
+
+func unlock_step_tier(meta_progress: Dictionary, tier: int) -> bool:
+	ensure_defaults(meta_progress)
+	var current_tier: int = get_unlocked_step_tier(meta_progress)
+	var next_tier: int = maxi(1, tier)
+	if next_tier <= current_tier:
+		return false
+	meta_progress["unlocked_step_tier"] = next_tier
+	return true
 
 
 func is_starter_unlocked(meta_progress: Dictionary, starter_id: String) -> bool:
@@ -176,6 +207,7 @@ func unlock_all(meta_progress: Dictionary) -> void:
 	meta_progress["unlocked_starters"] = all_starters
 	meta_progress["unlocked_cards"] = Database.get_all_card_ids()
 	meta_progress["unlocked_relics"] = Database.get_all_relic_ids()
+	meta_progress["unlocked_step_tier"] = MapGenerator.MAX_IMPLEMENTED_STEP_TIER
 
 
 func reset(meta_progress: Dictionary, template: Dictionary) -> Dictionary:
@@ -313,6 +345,10 @@ func _get_condition_value(meta_progress: Dictionary, stat_id: String) -> int:
 			return get_unlocked_relics(meta_progress).size()
 		"unlocked_starters":
 			return get_unlocked_starters(meta_progress).size()
+		"unlocked_step_tier":
+			return get_unlocked_step_tier(meta_progress)
+		"infinite_mode_unlocked":
+			return 1 if is_infinite_mode_unlocked(meta_progress) else 0
 		_:
 			var stats: Dictionary = Dictionary(meta_progress.get("achievement_stats", {}))
 			return int(stats.get(stat_id, 0))
@@ -331,6 +367,11 @@ func _apply_achievement_reward(meta_progress: Dictionary, reward_data: Dictionar
 			meta_progress["permanent_bonuses"] = bonuses
 		"meta_points":
 			meta_progress["points"] = int(meta_progress.get("points", 0)) + int(reward_data.get("amount", 0))
+		"unlock_step_tier":
+			var tier: int = maxi(1, int(reward_data.get("tier", 1)))
+			meta_progress["unlocked_step_tier"] = maxi(get_unlocked_step_tier(meta_progress), tier)
+		"unlock_infinite_mode":
+			meta_progress["infinite_mode_unlocked"] = true
 
 
 func _build_reward_text(rewards: Array) -> String:
@@ -357,6 +398,14 @@ func _reward_text(reward_data: Dictionary) -> String:
 					return Localization.get_textf("achievement.reward.loadout_limit", "Permanent Loadout +{amount}", {"amount": amount})
 		"meta_points":
 			return Localization.get_textf("achievement.reward.meta_points", "Meta Points +{amount}", {"amount": amount})
+		"unlock_step_tier":
+			var tier: int = maxi(1, int(reward_data.get("tier", 1)))
+			return Localization.get_textf("achievement.reward.step_tier", "Unlock Steps {start}-{end}", {
+				"start": (tier - 1) * 7 + 1,
+				"end": tier * 7,
+			})
+		"unlock_infinite_mode":
+			return Localization.get_text("achievement.reward.infinite_mode", "Unlock Infinite Mode")
 	return ""
 
 

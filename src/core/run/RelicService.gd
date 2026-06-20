@@ -52,6 +52,11 @@ func apply_battle_modifiers(unit: UnitState, run_state: RunState) -> void:
 		unit.add_shield(8)
 	if run_state.relics.has("surge_gimbal"):
 		unit.speed += 1
+	if run_state.relics.has("phase_capacitor"):
+		unit.add_shield(12)
+	if run_state.relics.has("paradox_prism"):
+		unit.cast_time_modifier *= 0.92
+		unit.speed += 1
 
 
 func apply_victory_bonuses(run_state: RunState) -> Dictionary:
@@ -65,6 +70,8 @@ func apply_victory_bonuses(run_state: RunState) -> Dictionary:
 		bonus["gold"] = int(bonus.get("gold", 0)) + 10
 	if run_state.relics.has("repair_nanites"):
 		bonus["heal"] = int(bonus.get("heal", 0)) + 5
+	if run_state.relics.has("echo_coil"):
+		bonus["gold"] = int(bonus.get("gold", 0)) + 15
 	run_state.gold += int(bonus.get("gold", 0))
 	run_state.player_hp = min(run_state.max_hp, run_state.player_hp + int(bonus.get("heal", 0)))
 	return bonus
