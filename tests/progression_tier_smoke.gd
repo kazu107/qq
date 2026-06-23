@@ -14,6 +14,9 @@ func _run() -> void:
 	_test_new_content_database()
 	if _failed:
 		return
+	_test_enemy_hp_balance()
+	if _failed:
+		return
 	_test_new_relic_effects()
 	if _failed:
 		return
@@ -35,6 +38,37 @@ func _run() -> void:
 	Game.developer_reset_meta_progress()
 	print("Progression tier smoke passed: rank achievements, Steps 8-28, midboss flow, infinite unlock, and new content")
 	get_tree().quit(0)
+
+
+func _test_enemy_hp_balance() -> void:
+	var expected_hp: Dictionary = {
+		"scout": 21,
+		"brute": 33,
+		"disruptor": 25,
+		"guardian": 39,
+		"raider": 28,
+		"medic_drone": 30,
+		"chronoguard": 35,
+		"boss_timekeeper": 77,
+		"phase_stalker": 47,
+		"void_bastion": 67,
+		"echo_revenant": 54,
+		"boss_paradox_core": 132,
+		"rift_predator": 71,
+		"entropy_colossus": 99,
+		"boss_axiom_breaker": 192,
+		"omega_seraph": 105,
+		"grave_architect": 147,
+		"boss_eternity_zero": 276,
+	}
+	if Database.enemies.size() != expected_hp.size():
+		_fail("Progression tier smoke failed: enemy HP balance table does not cover every enemy")
+		return
+	for enemy_id: String in expected_hp:
+		var enemy_def: EnemyDef = Database.get_enemy(enemy_id)
+		if enemy_def == null or enemy_def.max_hp != int(expected_hp[enemy_id]):
+			_fail("Progression tier smoke failed: unexpected max HP for %s" % enemy_id)
+			return
 
 
 func _test_new_content_database() -> void:

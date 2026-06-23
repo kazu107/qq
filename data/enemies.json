@@ -2,7 +2,7 @@
   {
     "id": "scout",
     "name": "Scout",
-    "max_hp": 35,
+    "max_hp": 21,
     "attack": 2,
     "speed": 8,
     "cards": [
@@ -17,7 +17,7 @@
   {
     "id": "brute",
     "name": "Brute",
-    "max_hp": 55,
+    "max_hp": 33,
     "attack": 5,
     "speed": 3,
     "cards": [
@@ -32,7 +32,7 @@
   {
     "id": "disruptor",
     "name": "Disruptor",
-    "max_hp": 42,
+    "max_hp": 25,
     "attack": 2,
     "speed": 6,
     "cards": [
@@ -47,7 +47,7 @@
   {
     "id": "guardian",
     "name": "Guardian",
-    "max_hp": 65,
+    "max_hp": 39,
     "attack": 3,
     "speed": 3,
     "cards": [
@@ -62,7 +62,7 @@
   {
     "id": "raider",
     "name": "Raider",
-    "max_hp": 46,
+    "max_hp": 28,
     "attack": 4,
     "speed": 6,
     "cards": [
@@ -77,7 +77,7 @@
   {
     "id": "medic_drone",
     "name": "Medic Drone",
-    "max_hp": 50,
+    "max_hp": 30,
     "attack": 2,
     "speed": 4,
     "cards": [
@@ -92,7 +92,7 @@
   {
     "id": "chronoguard",
     "name": "Chronoguard",
-    "max_hp": 58,
+    "max_hp": 35,
     "attack": 3,
     "speed": 5,
     "cards": [
@@ -107,7 +107,7 @@
   {
     "id": "boss_timekeeper",
     "name": "Timekeeper",
-    "max_hp": 128,
+    "max_hp": 77,
     "attack": 6,
     "speed": 6,
     "cards": [
@@ -128,7 +128,7 @@
   {
     "id": "phase_stalker",
     "name": "Phase Stalker",
-    "max_hp": 78,
+    "max_hp": 47,
     "attack": 6,
     "speed": 8,
     "cards": [
@@ -143,7 +143,7 @@
   {
     "id": "void_bastion",
     "name": "Void Bastion",
-    "max_hp": 112,
+    "max_hp": 67,
     "attack": 5,
     "speed": 4,
     "cards": [
@@ -158,7 +158,7 @@
   {
     "id": "echo_revenant",
     "name": "Echo Revenant",
-    "max_hp": 90,
+    "max_hp": 54,
     "attack": 7,
     "speed": 7,
     "cards": [
@@ -173,7 +173,7 @@
   {
     "id": "boss_paradox_core",
     "name": "Paradox Core",
-    "max_hp": 220,
+    "max_hp": 132,
     "attack": 8,
     "speed": 7,
     "cards": [
@@ -194,7 +194,7 @@
   {
     "id": "rift_predator",
     "name": "Rift Predator",
-    "max_hp": 118,
+    "max_hp": 71,
     "attack": 8,
     "speed": 9,
     "cards": [
@@ -209,7 +209,7 @@
   {
     "id": "entropy_colossus",
     "name": "Entropy Colossus",
-    "max_hp": 165,
+    "max_hp": 99,
     "attack": 9,
     "speed": 4,
     "cards": [
@@ -224,7 +224,7 @@
   {
     "id": "boss_axiom_breaker",
     "name": "Axiom Breaker",
-    "max_hp": 320,
+    "max_hp": 192,
     "attack": 10,
     "speed": 8,
     "cards": [
@@ -245,7 +245,7 @@
   {
     "id": "omega_seraph",
     "name": "Omega Seraph",
-    "max_hp": 175,
+    "max_hp": 105,
     "attack": 11,
     "speed": 10,
     "cards": [
@@ -260,7 +260,7 @@
   {
     "id": "grave_architect",
     "name": "Grave Architect",
-    "max_hp": 245,
+    "max_hp": 147,
     "attack": 9,
     "speed": 5,
     "cards": [
@@ -275,7 +275,7 @@
   {
     "id": "boss_eternity_zero",
     "name": "Eternity Zero",
-    "max_hp": 460,
+    "max_hp": 276,
     "attack": 13,
     "speed": 9,
     "cards": [
