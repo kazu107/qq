@@ -33,6 +33,8 @@ func update(engine: RealtimeBattleEngine, delta: float) -> void:
 			continue
 		if enemy.active_slots_used + card_def.active_slot_cost > enemy.active_slot_max:
 			continue
+		if not CardEffectResolver.can_pay_shield_cost(enemy, card_def):
+			continue
 		var score := _score_card(engine, runtime_state, card_def)
 		if score > best_score:
 			best_score = score
@@ -49,6 +51,8 @@ func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, 
 	for effect in card_def.effects:
 		var effect_type := String(effect.get("type", ""))
 		match effect_type:
+			"consume_shield":
+				score -= float(effect.get("amount", 0)) * 0.25
 			"deal_damage":
 				score += float(effect.get("amount", 0))
 				if float(player.hp) / max(1.0, float(player.max_hp)) < 0.4:
@@ -102,6 +106,11 @@ func _role_bonus(enemy: UnitState, card_def: CardDef) -> float:
 		"medic_drone":
 			if card_def.tags.has("heal") or card_def.tags.has("shield"):
 				return 2.5
+		"guardian":
+			if card_def.tags.has("shield_spend"):
+				return 3.0
+			if card_def.tags.has("shield"):
+				return 2.0
 		"chronoguard", "boss_timekeeper":
 			if card_def.tags.has("control") or card_def.tags.has("delay") or card_def.tags.has("haste"):
 				return 2.5

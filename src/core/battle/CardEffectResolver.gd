@@ -2,6 +2,21 @@ extends RefCounted
 class_name CardEffectResolver
 
 
+static func get_shield_cost(card_def: CardDef) -> int:
+	if card_def == null:
+		return 0
+	var total_cost: int = 0
+	for raw_effect in card_def.effects:
+		var effect: Dictionary = Dictionary(raw_effect)
+		if String(effect.get("type", "")) == "consume_shield":
+			total_cost += maxi(0, int(effect.get("amount", 0)))
+	return total_cost
+
+
+static func can_pay_shield_cost(unit: UnitState, card_def: CardDef) -> bool:
+	return unit != null and unit.shield >= get_shield_cost(card_def)
+
+
 static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, instance: ActiveCardInstance, card_def: CardDef) -> Array[String]:
 	var messages: Array[String] = []
 	var actor := battle_state.get_unit(instance.owner_side)
@@ -10,6 +25,11 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 		var effect := Dictionary(raw_effect)
 		var effect_type := String(effect.get("type", ""))
 		match effect_type:
+			"consume_shield":
+				messages.append(Localization.get_textf("battle.log.card_consume_shield", "{card_name} consumed {amount} shield", {
+					"card_name": card_def.name,
+					"amount": int(effect.get("amount", 0)),
+				}))
 			"deal_damage":
 				var amount := int(effect.get("amount", 0))
 				if effect.has("bonus_if_target_hp_below_ratio"):

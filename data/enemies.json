@@ -53,7 +53,9 @@
     "cards": [
       "guard",
       "barrier_deploy",
-      "strike",
+      "aegis_ram",
+      "barrier_overdrive",
+      "bulwark_cannon",
       "fortify"
     ],
     "role": "shield",

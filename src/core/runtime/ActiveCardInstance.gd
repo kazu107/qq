@@ -17,6 +17,7 @@ var created_at: float = 0.0
 var is_auto_queued: bool = false
 var auto_depth: int = 0
 var source_instance_id: int = 0
+var shield_cost_paid: int = 0
 var continuous_shift_battle_time: float = -1.0
 var continuous_shift_amount: float = 0.0
 

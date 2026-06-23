@@ -19,6 +19,15 @@
 - `effects`
 - `upgrade_profile`
 
+### Shield-cost effects
+
+`consume_shield` declares shield paid immediately when a card is committed.
+
+- `type`: `consume_shield`
+- `amount`: required shield amount
+
+The card cannot be committed when its owner has less shield than the total cost.
+
 ## enemies.json
 
 配列形式。各要素は以下のキーを持つ。

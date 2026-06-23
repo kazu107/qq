@@ -10,6 +10,10 @@ func _ready() -> void:
 
 
 func _run() -> void:
+	if not _test_shield_spend_cards():
+		return
+	if not _test_guardian_shield_cycle():
+		return
 	if not _test_empower_card():
 		return
 	if not _test_auto_queue_card():
@@ -28,6 +32,96 @@ func _run() -> void:
 		return
 	print("Special card effects smoke passed")
 	get_tree().quit()
+
+
+func _test_shield_spend_cards() -> bool:
+	var ram_engine: RealtimeBattleEngine = _setup_engine(["aegis_ram"])
+	ram_engine.battle_state.player.shield = 3
+	if _request_card(ram_engine, "player", "aegis_ram"):
+		_fail("Special card smoke failed: Aegis Ram should require 4 shield")
+		return false
+	if ram_engine.has_battle_started() or ram_engine.battle_state.player.shield != 3:
+		_fail("Special card smoke failed: rejected shield cost should not start battle or spend shield")
+		return false
+
+	ram_engine.battle_state.player.shield = 10
+	var enemy_hp_before: int = ram_engine.battle_state.enemy.hp
+	if not _request_card(ram_engine, "player", "aegis_ram"):
+		_fail("Special card smoke failed: Aegis Ram could not be requested with enough shield")
+		return false
+	if ram_engine.battle_state.player.shield != 6:
+		_fail("Special card smoke failed: Aegis Ram did not immediately consume 4 shield")
+		return false
+	var ram_instance: ActiveCardInstance = _find_active_instance(ram_engine, "player", "aegis_ram", false)
+	if ram_instance == null or ram_instance.shield_cost_paid != 4:
+		_fail("Special card smoke failed: Aegis Ram did not record its paid shield cost")
+		return false
+	ram_engine.update(2.5)
+	if ram_engine.battle_state.enemy.hp >= enemy_hp_before:
+		_fail("Special card smoke failed: Aegis Ram did not deal damage after paying shield")
+		return false
+	var expected_consume_log: String = Localization.get_textf("battle.log.card_consume_shield", "{card_name} consumed {amount} shield", {
+		"card_name": Database.get_card("aegis_ram").name,
+		"amount": 4,
+	})
+	if not _has_log_fragment(ram_engine, expected_consume_log):
+		_fail("Special card smoke failed: shield consumption was not written to the battle log")
+		return false
+
+	var expected_costs: Dictionary = {
+		"aegis_ram": 4,
+		"barrier_overdrive": 7,
+		"bulwark_cannon": 12,
+	}
+	for card_id: String in expected_costs:
+		var card_def: CardDef = Database.get_card(card_id)
+		if card_def == null or CardEffectResolver.get_shield_cost(card_def) != int(expected_costs[card_id]):
+			_fail("Special card smoke failed: invalid shield cost for %s" % card_id)
+			return false
+		if not ResourceLoader.exists("res://assets/icons/cards/%s.png" % card_id):
+			_fail("Special card smoke failed: missing shield-spend card art for %s" % card_id)
+			return false
+		for tier in range(CardUpgradeResolver.MAX_TIER + 1):
+			var tier_card: CardDef = CardUpgradeResolver.build_card_at_tier(card_id, tier)
+			if tier_card == null or CardInfoFormatter.build_effect_summary(tier_card).find("consume_shield") >= 0:
+				_fail("Special card smoke failed: shield-spend grade data was not formatted for %s tier %d" % [card_id, tier])
+				return false
+
+	var guardian: EnemyDef = Database.get_enemy("guardian")
+	if guardian == null:
+		_fail("Special card smoke failed: Guardian is missing")
+		return false
+	for card_id: String in expected_costs:
+		if not guardian.cards.has(card_id):
+			_fail("Special card smoke failed: Guardian does not carry %s" % card_id)
+			return false
+	return true
+
+
+func _test_guardian_shield_cycle() -> bool:
+	Game.start_new_run("balanced")
+	Game.current_run.player_cards = ["guard"]
+	Game.current_run.equipped_cards = ["guard"]
+	var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	engine.setup(Game.current_run, "guardian")
+	engine.start_battle()
+	var used_shield_spend: bool = false
+	for _step in range(120):
+		engine.update(0.1)
+		for raw_event in engine.battle_state.battle_events:
+			var event_data: Dictionary = Dictionary(raw_event)
+			if String(event_data.get("actor_id", "")) != "guardian":
+				continue
+			var card_id: String = String(event_data.get("card_id", ""))
+			if card_id in ["aegis_ram", "barrier_overdrive", "bulwark_cannon"]:
+				used_shield_spend = true
+				break
+		if used_shield_spend:
+			break
+	if not used_shield_spend:
+		_fail("Special card smoke failed: Guardian AI did not cycle shield into a shield-spend card")
+		return false
+	return true
 
 
 func _test_empower_card() -> bool:
@@ -272,6 +366,13 @@ func _effect_amount(card_def: CardDef, effect_type: String) -> float:
 		if String(effect_data.get("type", "")) == effect_type:
 			return float(effect_data.get("amount", 0.0))
 	return 0.0
+
+
+func _has_log_fragment(engine: RealtimeBattleEngine, fragment: String) -> bool:
+	for log_line: String in engine.battle_state.logs:
+		if log_line.find(fragment) >= 0:
+			return true
+	return false
 
 
 func _fail(message: String) -> void:

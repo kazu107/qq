@@ -63,7 +63,7 @@ func set_bleach_enabled(enabled: bool, amount: float = BLEACH_COLOR.a) -> void:
 		move_child(_bleach_overlay, get_child_count() - 1)
 
 
-func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, click_enabled: bool = true) -> void:
+func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, click_enabled: bool = true, blocked_reason: String = "") -> void:
 	_ensure_visuals()
 	runtime_id = runtime_state.runtime_id
 	_click_enabled = click_enabled
@@ -84,7 +84,9 @@ func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, cli
 				meta_text = Localization.get_text("card.meta.ready", "ready")
 			elif click_enabled:
 				tooltip_state = Localization.get_text("card.state.ready", "Ready")
-				tooltip_blocked = Localization.get_text("card.blocked_slots", "Blocked: active slots full")
+				tooltip_blocked = blocked_reason
+				if tooltip_blocked == "":
+					tooltip_blocked = Localization.get_text("card.blocked_slots", "Blocked: active slots full")
 				modulate_color = Color(0.84, 0.84, 0.84, 1.0)
 		CardRuntimeState.CardState.PREPARING:
 			meta_text = Localization.get_text("card.meta.casting", "casting")

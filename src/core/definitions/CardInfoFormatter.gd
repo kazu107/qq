@@ -49,6 +49,10 @@ static func format_grade_label(tier: int) -> String:
 static func _describe_effect(effect: Dictionary, compact: bool, comparison_effect: Dictionary = {}, rich: bool = false) -> String:
 	var effect_type: String = String(effect.get("type", ""))
 	match effect_type:
+		"consume_shield":
+			return Localization.get_textf("effect.consume_shield", "Consume {amount} shield", {
+				"amount": _format_compared_int(effect, comparison_effect, "amount", false, rich),
+			})
 		"deal_damage":
 			var damage_text: String = Localization.get_textf("effect.deal_damage", "Deal {amount} damage", {
 				"amount": _format_compared_int(effect, comparison_effect, "amount", true, rich),

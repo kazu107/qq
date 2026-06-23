@@ -1663,5 +1663,101 @@
       "damage": [0, 3, 6, 9],
       "duration": [0, 1.5, 3.0, 4.5]
     }
+  },
+  {
+    "id": "aegis_ram",
+    "name": "Aegis Ram",
+    "description": "Convert a small portion of shield into a fast kinetic impact.",
+    "rarity": "common",
+    "tags": ["attack", "shield", "shield_spend"],
+    "loadout_cost": 2,
+    "recast_time": 16,
+    "cast_time": 2.4,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "consume_shield",
+        "amount": 4
+      },
+      {
+        "type": "deal_damage",
+        "amount": 8,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [0, 2, 4, 6],
+      "cast_time": [0, -0.2, -0.4, -0.6]
+    }
+  },
+  {
+    "id": "barrier_overdrive",
+    "name": "Barrier Overdrive",
+    "description": "Drain shield power to accelerate every active card and cooldown.",
+    "rarity": "rare",
+    "tags": ["shield", "shield_spend", "haste", "cooldown"],
+    "loadout_cost": 3,
+    "recast_time": 30,
+    "cast_time": 3.6,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "consume_shield",
+        "amount": 7
+      },
+      {
+        "type": "haste_own_active_card",
+        "amount": 2.4,
+        "scope": "all"
+      },
+      {
+        "type": "reduce_recast",
+        "amount": 2.4,
+        "scope": "all"
+      }
+    ],
+    "upgrade_profile": {
+      "haste": [0, 0.6, 1.2, 1.8],
+      "cooldown": [0, 1.2, 2.4, 3.6]
+    }
+  },
+  {
+    "id": "bulwark_cannon",
+    "name": "Bulwark Cannon",
+    "description": "Collapse a massive shield reserve into a cannon blast that interrupts the target.",
+    "rarity": "epic",
+    "tags": ["attack", "shield", "shield_spend", "interrupt", "finisher"],
+    "loadout_cost": 4,
+    "recast_time": 40,
+    "cast_time": 7.2,
+    "active_slot_cost": 2,
+    "priority_modifier": -0.05,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "consume_shield",
+        "amount": 12
+      },
+      {
+        "type": "deal_damage",
+        "amount": 16,
+        "target": "enemy"
+      },
+      {
+        "type": "interrupt_card",
+        "scope": "single_interruptible"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [0, 4, 8, 12],
+      "recast_reduction": [0, 2, 4, 6]
+    }
   }
 ]

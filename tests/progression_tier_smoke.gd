@@ -87,6 +87,7 @@ func _test_new_content_database() -> void:
 		"phase_lance", "mirror_aegis", "null_cascade", "paradox_loop",
 		"rift_volley", "entropy_armor", "axiom_sever",
 		"omega_ray", "grave_protocol", "zero_hour",
+		"aegis_ram", "barrier_overdrive", "bulwark_cannon",
 	]:
 		var card_def: CardDef = Database.get_card(card_id)
 		if card_def == null or card_def.effects.is_empty():

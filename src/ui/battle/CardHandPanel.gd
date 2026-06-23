@@ -45,9 +45,16 @@ func refresh_cards(unit: UnitState, run_state: RunState = null, owner_side: Stri
 			button.visible = false
 			continue
 
-		var can_use: bool = runtime_state.can_use() and unit.active_slots_used + card_def.active_slot_cost <= unit.active_slot_max
+		var has_slots: bool = unit.active_slots_used + card_def.active_slot_cost <= unit.active_slot_max
+		var has_shield: bool = CardEffectResolver.can_pay_shield_cost(unit, card_def)
+		var can_use: bool = runtime_state.can_use() and has_slots and has_shield
+		var blocked_reason: String = ""
+		if runtime_state.can_use() and not has_slots:
+			blocked_reason = Localization.get_text("card.blocked_slots", "Blocked: active slots full")
+		elif runtime_state.can_use() and not has_shield:
+			blocked_reason = Localization.get_text("card.blocked_shield", "Blocked: not enough shield")
 		button.visible = true
-		button.bind(card_def, runtime_state, can_use, _interactive)
+		button.bind(card_def, runtime_state, can_use, _interactive, blocked_reason)
 
 
 func refresh_card_ids(card_ids: Array[String], interactive: bool = false, badge_text: String = "CARD", run_state: RunState = null) -> void:

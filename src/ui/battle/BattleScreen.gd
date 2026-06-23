@@ -354,6 +354,8 @@ func _get_hover_preview_slot_cost(runtime_state: CardRuntimeState, card_def: Car
 		return 0
 	if not runtime_state.can_use():
 		return 0
+	if _engine.battle_state == null or not CardEffectResolver.can_pay_shield_cost(_engine.battle_state.player, card_def):
+		return 0
 	return card_def.active_slot_cost
 
 
@@ -367,6 +369,8 @@ func _build_hover_preview_entry(
 	if not runtime_state.can_use():
 		return null
 	if battle_state.player.active_slots_used + card_def.active_slot_cost > battle_state.player.active_slot_max:
+		return null
+	if not CardEffectResolver.can_pay_shield_cost(battle_state.player, card_def):
 		return null
 
 	var entry: TimelineEntry = TimelineEntry.new()

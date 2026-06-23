@@ -62,9 +62,12 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 		return false
 	if unit.active_slots_used + card_def.active_slot_cost > unit.active_slot_max:
 		return false
+	if not CardEffectResolver.can_pay_shield_cost(unit, card_def):
+		return false
 
 	if not _battle_started:
 		_start_battle()
+	var shield_cost: int = _pay_shield_cost(unit, card_def)
 
 	runtime_state.begin_prepare()
 	unit.previous_used_runtime_id = unit.last_used_runtime_id
@@ -86,6 +89,7 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 	instance.created_at = battle_state.battle_time
 	instance.scheduled_time = battle_state.battle_time + card_def.cast_time * unit.get_cast_time_multiplier()
 	instance.sort_key = instance.scheduled_time - card_def.priority_modifier
+	instance.shield_cost_paid = shield_cost
 
 	battle_state.active_instances.append(instance)
 	_timeline_resolver.rebuild_timeline(battle_state)
@@ -102,6 +106,7 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 		{
 			"card_name": card_def.name,
 			"scheduled_time": instance.scheduled_time,
+			"shield_cost": shield_cost,
 			"player": _snapshot_unit(battle_state.player),
 			"enemy": _snapshot_unit(battle_state.enemy),
 		},
@@ -238,6 +243,9 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 	var queue_spacing: float = maxf(0.0, float(effect.get("queue_spacing", 0.0)))
 	var queued_count: int = 0
 	for queue_index in range(queue_count):
+		if not CardEffectResolver.can_pay_shield_cost(unit, card_def):
+			break
+		var shield_cost: int = _pay_shield_cost(unit, card_def)
 		var instance: ActiveCardInstance = ActiveCardInstance.new()
 		instance.instance_id = battle_state.next_instance_id
 		battle_state.next_instance_id += 1
@@ -256,6 +264,7 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 		instance.is_auto_queued = true
 		instance.auto_depth = source_instance.auto_depth + 1
 		instance.source_instance_id = source_instance.instance_id
+		instance.shield_cost_paid = shield_cost
 		battle_state.active_instances.append(instance)
 		queued_count += 1
 	_timeline_resolver.rebuild_timeline(battle_state)
@@ -275,6 +284,14 @@ func _resolve_auto_queue_count(unit: UnitState, effect: Dictionary) -> int:
 	if max_count > 0:
 		queue_count = mini(queue_count, max_count)
 	return clampi(queue_count, 0, 12)
+
+
+func _pay_shield_cost(unit: UnitState, card_def: CardDef) -> int:
+	var shield_cost: int = CardEffectResolver.get_shield_cost(card_def)
+	if shield_cost <= 0:
+		return 0
+	unit.shield = maxi(0, unit.shield - shield_cost)
+	return shield_cost
 
 
 func apply_timeline_flow(side: String, effect: Dictionary) -> int:
