@@ -379,16 +379,16 @@
     "effects": [
       {
         "type": "gain_shield",
-        "amount": 22,
+        "amount": 18,
         "target": "self"
       }
     ],
     "upgrade_profile": {
       "shield": [
         0,
-        3,
-        5,
-        7
+        2,
+        4,
+        5
       ]
     }
   },
@@ -540,16 +540,16 @@
     "effects": [
       {
         "type": "gain_shield",
-        "amount": 42,
+        "amount": 34,
         "target": "self"
       }
     ],
     "upgrade_profile": {
       "shield": [
         0,
-        5,
-        8,
-        12
+        4,
+        6,
+        9
       ]
     }
   },
@@ -842,7 +842,7 @@
     "effects": [
       {
         "type": "gain_shield",
-        "amount": 14,
+        "amount": 11,
         "target": "self"
       }
     ],
@@ -850,8 +850,8 @@
       "shield": [
         0,
         3,
-        6,
-        9
+        5,
+        7
       ]
     }
   },
@@ -1522,7 +1522,7 @@
     "effects": [
       {
         "type": "gain_shield",
-        "amount": 16,
+        "amount": 13,
         "target": "self"
       },
       {
@@ -1533,7 +1533,7 @@
       }
     ],
     "upgrade_profile": {
-      "shield": [0, 4, 8, 12],
+      "shield": [0, 3, 6, 9],
       "empower": [0, 1, 1, 2]
     }
   },
@@ -1613,7 +1613,7 @@
     "effects": [
       {
         "type": "gain_shield",
-        "amount": 22,
+        "amount": 18,
         "target": "self"
       },
       {
@@ -1629,7 +1629,7 @@
       }
     ],
     "upgrade_profile": {
-      "shield": [0, 5, 10, 15],
+      "shield": [0, 4, 8, 12],
       "heal": [0, 2, 4, 6]
     }
   },

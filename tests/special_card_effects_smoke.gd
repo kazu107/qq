@@ -10,6 +10,8 @@ func _ready() -> void:
 
 
 func _run() -> void:
+	if not _test_large_shield_balance():
+		return
 	if not _test_shield_spend_cards():
 		return
 	if not _test_guardian_shield_cycle():
@@ -32,6 +34,28 @@ func _run() -> void:
 		return
 	print("Special card effects smoke passed")
 	get_tree().quit()
+
+
+func _test_large_shield_balance() -> bool:
+	var expected_shield_by_card: Dictionary = {
+		"barrier_deploy": [18, 20, 22, 23],
+		"fortify": [34, 38, 40, 43],
+		"bastion_drive": [11, 14, 16, 18],
+		"entropy_armor": [13, 16, 19, 22],
+		"grave_protocol": [18, 22, 26, 30],
+	}
+	for card_id: String in expected_shield_by_card:
+		var expected_values: Array = Array(expected_shield_by_card[card_id])
+		for tier in range(CardUpgradeResolver.MAX_TIER + 1):
+			var tier_card: CardDef = CardUpgradeResolver.build_card_at_tier(card_id, tier)
+			var actual_shield: int = int(_effect_amount(tier_card, "gain_shield"))
+			if actual_shield != int(expected_values[tier]):
+				_fail("Special card smoke failed: unexpected shield balance for %s tier %d" % [card_id, tier])
+				return false
+	if int(_effect_amount(Database.get_card("omega_ray"), "deal_damage")) != 22:
+		_fail("Special card smoke failed: shield balance changed an unrelated damage card")
+		return false
+	return true
 
 
 func _test_shield_spend_cards() -> bool:
