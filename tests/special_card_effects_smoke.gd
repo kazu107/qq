@@ -12,6 +12,8 @@ func _ready() -> void:
 func _run() -> void:
 	if not _test_large_shield_balance():
 		return
+	if not _test_delay_card_balance():
+		return
 	if not _test_shield_spend_cards():
 		return
 	if not _test_guardian_shield_cycle():
@@ -55,6 +57,32 @@ func _test_large_shield_balance() -> bool:
 	if int(_effect_amount(Database.get_card("omega_ray"), "deal_damage")) != 22:
 		_fail("Special card smoke failed: shield balance changed an unrelated damage card")
 		return false
+	return true
+
+
+func _test_delay_card_balance() -> bool:
+	var expected_delay_by_card: Dictionary = {
+		"delay_step": [6.6, 7.9, 9.2, 10.6],
+		"time_buy": [3.3, 4.3, 5.3, 6.3],
+		"time_flow_control": [6.6, 7.9, 9.2, 10.6],
+		"stasis_field": [5.3, 6.6, 7.9, 9.2],
+		"null_cascade": [5.0, 5.9, 6.9, 7.9],
+		"rift_volley": [3.3, 4.3, 5.3, 6.3],
+	}
+	for card_id: String in expected_delay_by_card:
+		var expected_values: Array = Array(expected_delay_by_card[card_id])
+		for tier in range(CardUpgradeResolver.MAX_TIER + 1):
+			var tier_card: CardDef = CardUpgradeResolver.build_card_at_tier(card_id, tier)
+			var actual_delay: float = _effect_amount(tier_card, "delay_enemy_active_card")
+			if absf(actual_delay - float(expected_values[tier])) > 0.01:
+				_fail("Special card smoke failed: unexpected delay balance for %s tier %d" % [card_id, tier])
+				return false
+	var expected_haste: Array[float] = [6.0, 7.2, 8.4, 9.6]
+	for tier in range(CardUpgradeResolver.MAX_TIER + 1):
+		var flow_card: CardDef = CardUpgradeResolver.build_card_at_tier("time_flow_control", tier)
+		if absf(_effect_amount(flow_card, "haste_own_active_card") - expected_haste[tier]) > 0.01:
+			_fail("Special card smoke failed: delay buff changed Time Flow Control haste at tier %d" % tier)
+			return false
 	return true
 
 
