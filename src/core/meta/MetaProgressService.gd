@@ -233,6 +233,7 @@ func reset(meta_progress: Dictionary, template: Dictionary) -> Dictionary:
 
 func build_starter_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
+	var unlocked_ids: Array[String] = get_unlocked_starters(meta_progress)
 	for starter in Database.starters:
 		var starter_id: String = String(starter.get("id", ""))
 		entries.append({
@@ -240,7 +241,7 @@ func build_starter_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 			"name": String(starter.get("name", starter_id)),
 			"description": String(starter.get("description", "")),
 			"cost": get_starter_unlock_cost(starter_id),
-			"unlocked": is_starter_unlocked(meta_progress, starter_id),
+			"unlocked": unlocked_ids.has(starter_id),
 			"type": "starter",
 		})
 	return entries
@@ -248,6 +249,7 @@ func build_starter_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 
 func build_card_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
+	var unlocked_ids: Array[String] = get_unlocked_cards(meta_progress)
 	for card_id in Database.get_all_card_ids():
 		var card_def: CardDef = Database.get_card(card_id)
 		if card_def == null:
@@ -257,7 +259,7 @@ func build_card_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 			"name": card_def.name,
 			"description": card_def.description,
 			"cost": get_card_unlock_cost(card_id),
-			"unlocked": is_card_unlocked(meta_progress, card_id),
+			"unlocked": unlocked_ids.has(card_id),
 			"type": "card",
 			"rarity": card_def.rarity,
 		})
@@ -266,6 +268,7 @@ func build_card_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 
 func build_relic_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
+	var unlocked_ids: Array[String] = get_unlocked_relics(meta_progress)
 	for relic_id in Database.get_all_relic_ids():
 		var relic_def: RelicDef = Database.get_relic(relic_id)
 		if relic_def == null:
@@ -275,7 +278,7 @@ func build_relic_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 			"name": relic_def.name,
 			"description": relic_def.description,
 			"cost": get_relic_unlock_cost(relic_id),
-			"unlocked": is_relic_unlocked(meta_progress, relic_id),
+			"unlocked": unlocked_ids.has(relic_id),
 			"type": "relic",
 		})
 	return entries

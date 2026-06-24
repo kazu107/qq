@@ -1,21 +1,33 @@
 extends Control
 
+const BUILD_BATCH_SIZE := 10
+
 var _summary_label: RichTextLabel
 var _achievement_box: VBoxContainer
 var _starter_box: VBoxContainer
 var _card_box: VBoxContainer
 var _relic_box: VBoxContainer
 var _developer_panel: DeveloperPanel
+var _content_ready: bool = false
+var _content_building: bool = false
+var _achievement_widgets: Dictionary = {}
+var _starter_widgets: Dictionary = {}
+var _card_widgets: Dictionary = {}
+var _relic_widgets: Dictionary = {}
 
 
 func _ready() -> void:
 	Game.current_screen_hint = "meta"
-	SaveManager.save_game("meta")
+	SaveManager.request_save("meta")
 
 	_build_ui()
 	_refresh_ui()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+
+
+func is_content_ready() -> bool:
+	return _content_ready
 
 
 func _build_ui() -> void:
@@ -43,7 +55,7 @@ func _build_ui() -> void:
 	back_button.text = Localization.get_text("meta.return_hub", "Return to Hub")
 	back_button.pressed.connect(func() -> void:
 		Game.current_screen_hint = "hub"
-		SaveManager.save_game("hub")
+		SaveManager.request_save("hub")
 		SceneRouter.go_to_hub()
 	)
 	summary_panel.add_child(back_button)
@@ -52,7 +64,7 @@ func _build_ui() -> void:
 	library_button.text = Localization.get_text("meta.open_library", "Open Card Library")
 	library_button.pressed.connect(func() -> void:
 		Game.current_screen_hint = "library"
-		SaveManager.save_game("library")
+		SaveManager.request_save("library")
 		SceneRouter.go_to_card_library()
 	)
 	summary_panel.add_child(library_button)
@@ -177,10 +189,33 @@ func _refresh_ui() -> void:
 			"value": Game.get_permanent_bonus_summary(),
 		}),
 	])
-	_rebuild_achievements(achievement_entries)
-	_rebuild_starters(starter_entries)
-	_rebuild_cards(card_entries)
-	_rebuild_relics(relic_entries)
+	if not _content_ready:
+		if not _content_building:
+			_content_building = true
+			_build_content_batched.call_deferred()
+		return
+	_update_achievement_rows(achievement_entries)
+	_update_starter_rows(starter_entries)
+	_update_card_rows(card_entries)
+	_update_relic_rows(relic_entries)
+
+
+func _build_content_batched() -> void:
+	await _rebuild_achievements(Game.get_meta_achievement_entries())
+	if not is_inside_tree():
+		return
+	await _rebuild_starters(Game.get_meta_starter_entries())
+	if not is_inside_tree():
+		return
+	await _rebuild_cards(Game.get_meta_card_entries())
+	if not is_inside_tree():
+		return
+	await _rebuild_relics(Game.get_meta_relic_entries())
+	if not is_inside_tree():
+		return
+	_content_building = false
+	_content_ready = true
+	_refresh_ui()
 
 
 func _count_bool_entries(entries: Array[Dictionary], key: String) -> int:
@@ -193,6 +228,8 @@ func _count_bool_entries(entries: Array[Dictionary], key: String) -> int:
 
 func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 	_clear_box(_achievement_box)
+	_achievement_widgets.clear()
+	var built_count: int = 0
 	for entry in entries:
 		var achievement_id: String = String(entry.get("id", ""))
 
@@ -246,11 +283,22 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		claim_button.disabled = not bool(entry.get("claimable", false))
 		claim_button.pressed.connect(_on_claim_achievement.bind(achievement_id))
 		row.add_child(claim_button)
+		_achievement_widgets[achievement_id] = {
+			"progress": progress_label,
+			"reward": reward_label,
+			"status": status_label,
+			"button": claim_button,
+		}
+		built_count += 1
+		if built_count % BUILD_BATCH_SIZE == 0:
+			await get_tree().process_frame
 
 
 func _rebuild_starters(entries: Array[Dictionary]) -> void:
 	_clear_box(_starter_box)
+	_starter_widgets.clear()
 	var meta_points: int = Game.get_meta_points()
+	var built_count: int = 0
 	for entry in entries:
 		var starter_id: String = String(entry.get("id", ""))
 
@@ -287,12 +335,21 @@ func _rebuild_starters(entries: Array[Dictionary]) -> void:
 		unlock_button.disabled = bool(entry.get("unlocked", false)) or meta_points < int(entry.get("cost", 0))
 		unlock_button.pressed.connect(_on_unlock_starter.bind(starter_id))
 		row.add_child(unlock_button)
+		_starter_widgets[starter_id] = {
+			"status": status_label,
+			"button": unlock_button,
+		}
+		built_count += 1
+		if built_count % BUILD_BATCH_SIZE == 0:
+			await get_tree().process_frame
 
 
 func _rebuild_cards(entries: Array[Dictionary]) -> void:
 	_clear_box(_card_box)
+	_card_widgets.clear()
 	var rarity_order: Array[String] = ["common", "rare", "epic"]
 	var meta_points: int = Game.get_meta_points()
+	var built_count: int = 0
 	for rarity_index in range(rarity_order.size()):
 		var rarity: String = rarity_order[rarity_index]
 		if rarity_index > 0:
@@ -352,11 +409,20 @@ func _rebuild_cards(entries: Array[Dictionary]) -> void:
 			unlock_button.disabled = bool(entry.get("unlocked", false)) or meta_points < int(entry.get("cost", 0))
 			unlock_button.pressed.connect(_on_unlock_card.bind(card_id))
 			row.add_child(unlock_button)
+			_card_widgets[card_id] = {
+				"status": status_label,
+				"button": unlock_button,
+			}
+			built_count += 1
+			if built_count % BUILD_BATCH_SIZE == 0:
+				await get_tree().process_frame
 
 
 func _rebuild_relics(entries: Array[Dictionary]) -> void:
 	_clear_box(_relic_box)
+	_relic_widgets.clear()
 	var meta_points: int = Game.get_meta_points()
+	var built_count: int = 0
 	for entry in entries:
 		var relic_id: String = String(entry.get("id", ""))
 
@@ -399,6 +465,85 @@ func _rebuild_relics(entries: Array[Dictionary]) -> void:
 		unlock_button.disabled = bool(entry.get("unlocked", false)) or meta_points < int(entry.get("cost", 0))
 		unlock_button.pressed.connect(_on_unlock_relic.bind(relic_id))
 		row.add_child(unlock_button)
+		_relic_widgets[relic_id] = {
+			"icon": relic_icon,
+			"status": status_label,
+			"button": unlock_button,
+		}
+		built_count += 1
+		if built_count % BUILD_BATCH_SIZE == 0:
+			await get_tree().process_frame
+
+
+func _update_achievement_rows(entries: Array[Dictionary]) -> void:
+	for entry in entries:
+		var achievement_id: String = String(entry.get("id", ""))
+		var widgets: Dictionary = Dictionary(_achievement_widgets.get(achievement_id, {}))
+		if widgets.is_empty():
+			continue
+		var progress_label: Label = widgets.get("progress") as Label
+		var reward_label: Label = widgets.get("reward") as Label
+		var status_label: Label = widgets.get("status") as Label
+		var claim_button: Button = widgets.get("button") as Button
+		progress_label.text = Localization.get_textf("meta.achievement_progress", "Progress: {current} / {target}", {
+			"current": int(entry.get("current", 0)),
+			"target": int(entry.get("target", 0)),
+		})
+		reward_label.text = Localization.get_textf("meta.achievement_reward", "Reward: {value}", {
+			"value": String(entry.get("reward_text", "")),
+		})
+		if bool(entry.get("claimed", false)):
+			status_label.text = Localization.get_text("meta.claimed", "Claimed")
+		elif bool(entry.get("claimable", false)):
+			status_label.text = Localization.get_text("meta.ready", "Ready")
+		else:
+			status_label.text = Localization.get_text("meta.locked", "Locked")
+		claim_button.disabled = not bool(entry.get("claimable", false))
+
+
+func _update_starter_rows(entries: Array[Dictionary]) -> void:
+	var meta_points: int = Game.get_meta_points()
+	for entry in entries:
+		var starter_id: String = String(entry.get("id", ""))
+		var widgets: Dictionary = Dictionary(_starter_widgets.get(starter_id, {}))
+		if widgets.is_empty():
+			continue
+		var unlocked: bool = bool(entry.get("unlocked", false))
+		var status_label: Label = widgets.get("status") as Label
+		var unlock_button: Button = widgets.get("button") as Button
+		status_label.text = Localization.get_text("meta.%s" % ("unlocked" if unlocked else "locked"), "Unlocked" if unlocked else "Locked")
+		unlock_button.disabled = unlocked or meta_points < int(entry.get("cost", 0))
+
+
+func _update_card_rows(entries: Array[Dictionary]) -> void:
+	var meta_points: int = Game.get_meta_points()
+	for entry in entries:
+		var card_id: String = String(entry.get("id", ""))
+		var widgets: Dictionary = Dictionary(_card_widgets.get(card_id, {}))
+		if widgets.is_empty():
+			continue
+		var unlocked: bool = bool(entry.get("unlocked", false))
+		var status_label: Label = widgets.get("status") as Label
+		var unlock_button: Button = widgets.get("button") as Button
+		status_label.text = Localization.get_text("meta.%s" % ("unlocked" if unlocked else "locked"), "Unlocked" if unlocked else "Locked")
+		unlock_button.disabled = unlocked or meta_points < int(entry.get("cost", 0))
+
+
+func _update_relic_rows(entries: Array[Dictionary]) -> void:
+	var meta_points: int = Game.get_meta_points()
+	for entry in entries:
+		var relic_id: String = String(entry.get("id", ""))
+		var widgets: Dictionary = Dictionary(_relic_widgets.get(relic_id, {}))
+		if widgets.is_empty():
+			continue
+		var unlocked: bool = bool(entry.get("unlocked", false))
+		var relic_icon: RelicIcon = widgets.get("icon") as RelicIcon
+		var status_label: Label = widgets.get("status") as Label
+		var unlock_button: Button = widgets.get("button") as Button
+		relic_icon.bind_relic_id(relic_id, not unlocked)
+		relic_icon.name = "MetaRelic_%s" % relic_id
+		status_label.text = Localization.get_text("meta.%s" % ("unlocked" if unlocked else "locked"), "Unlocked" if unlocked else "Locked")
+		unlock_button.disabled = unlocked or meta_points < int(entry.get("cost", 0))
 
 
 func _clear_box(box: VBoxContainer) -> void:
@@ -484,5 +629,5 @@ func _on_dev_reset_meta() -> void:
 
 func _on_dev_open_library() -> void:
 	Game.current_screen_hint = "library"
-	SaveManager.save_game("library")
+	SaveManager.request_save("library")
 	SceneRouter.go_to_card_library()

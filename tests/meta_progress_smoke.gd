@@ -29,6 +29,12 @@ func _run() -> void:
 	var meta_scene: Control = load("res://scenes/meta/MetaProgress.tscn").instantiate() as Control
 	add_child(meta_scene)
 	await get_tree().process_frame
+	if bool(meta_scene.call("is_content_ready")):
+		_fail("Meta progress smoke failed: meta content should be built across multiple frames")
+		return
+	if not await _wait_for_content_ready(meta_scene, "meta progress"):
+		return
+	SaveManager.flush_requested_save()
 
 	var starter_box: VBoxContainer = meta_scene.find_child("MetaStarterBox", true, false) as VBoxContainer
 	var card_box: VBoxContainer = meta_scene.find_child("MetaCardBox", true, false) as VBoxContainer
@@ -71,8 +77,18 @@ func _run() -> void:
 	if first_victory_button == null or first_victory_button.disabled:
 		_fail("Meta progress smoke failed: first victory achievement should become claimable")
 		return
+	SaveManager.flush_requested_save()
+	var first_victory_row: Control = meta_scene.find_child("MetaAchievementRow_first_victory", true, false) as Control
+	var first_victory_row_id: int = first_victory_row.get_instance_id()
 	first_victory_button.emit_signal("pressed")
+	if not SaveManager.has_pending_save():
+		_fail("Meta progress smoke failed: achievement claim did not request a deferred save")
+		return
 	await get_tree().process_frame
+	var current_first_victory_row: Control = meta_scene.find_child("MetaAchievementRow_first_victory", true, false) as Control
+	if current_first_victory_row == null or current_first_victory_row.get_instance_id() != first_victory_row_id:
+		_fail("Meta progress smoke failed: achievement claim rebuilt the whole achievement list")
+		return
 	if int(Game.get_permanent_bonuses().get("max_hp", 0)) != 5:
 		_fail("Meta progress smoke failed: achievement claim should grant a permanent HP bonus")
 		return
@@ -93,14 +109,22 @@ func _run() -> void:
 		return
 
 	var tempo_button: Button = meta_scene.find_child("UnlockStarter_tempo", true, false) as Button
+	var tempo_row_id: int = meta_scene.find_child("MetaStarterRow_tempo", true, false).get_instance_id()
 	tempo_button.emit_signal("pressed")
 	await get_tree().process_frame
 	var assault_button: Button = meta_scene.find_child("UnlockCard_assault", true, false) as Button
+	var assault_row_id: int = meta_scene.find_child("MetaCardRow_assault", true, false).get_instance_id()
 	assault_button.emit_signal("pressed")
 	await get_tree().process_frame
 	var chrono_button: Button = meta_scene.find_child("UnlockRelic_chrono_shard", true, false) as Button
+	var chrono_row_id: int = meta_scene.find_child("MetaRelicRow_chrono_shard", true, false).get_instance_id()
 	chrono_button.emit_signal("pressed")
 	await get_tree().process_frame
+	if meta_scene.find_child("MetaStarterRow_tempo", true, false).get_instance_id() != tempo_row_id \
+	or meta_scene.find_child("MetaCardRow_assault", true, false).get_instance_id() != assault_row_id \
+	or meta_scene.find_child("MetaRelicRow_chrono_shard", true, false).get_instance_id() != chrono_row_id:
+		_fail("Meta progress smoke failed: unlock action rebuilt meta entry rows")
+		return
 
 	if not _has_starter_id(Game.get_unlocked_starters(), "tempo"):
 		_fail("Meta progress smoke failed: starter unlock did not apply")
@@ -133,6 +157,11 @@ func _run() -> void:
 	var library_scene: Control = load("res://scenes/library/CardLibrary.tscn").instantiate() as Control
 	add_child(library_scene)
 	await get_tree().process_frame
+	if bool(library_scene.call("is_content_ready")):
+		_fail("Meta progress smoke failed: card library should be built across multiple frames")
+		return
+	if not await _wait_for_content_ready(library_scene, "card library"):
+		return
 	var assault_status: Label = library_scene.find_child("LibraryStatus_assault", true, false) as Label
 	var execution_status: Label = library_scene.find_child("LibraryStatus_execution", true, false) as Label
 	if assault_status == null or assault_status.text != "Unlocked":
@@ -141,6 +170,18 @@ func _run() -> void:
 	if execution_status == null or execution_status.text.find("Locked") == -1:
 		_fail("Meta progress smoke failed: card library should still show locked epic cards")
 		return
+	var execution_row: Control = library_scene.find_child("LibraryRow_execution", true, false) as Control
+	var execution_row_id: int = execution_row.get_instance_id()
+	Game.developer_unlock_all_meta()
+	library_scene.call("_refresh_ui")
+	await get_tree().process_frame
+	execution_row = library_scene.find_child("LibraryRow_execution", true, false) as Control
+	execution_status = library_scene.find_child("LibraryStatus_execution", true, false) as Label
+	if execution_row == null or execution_row.get_instance_id() != execution_row_id or execution_status.text != "Unlocked":
+		_fail("Meta progress smoke failed: library refresh rebuilt rows instead of updating them")
+		return
+	library_scene.queue_free()
+	await get_tree().process_frame
 
 	Game.developer_reset_meta_progress()
 	if Game.get_meta_points() != Game.DEVELOPER_META_RESET_POINTS:
@@ -155,7 +196,8 @@ func _run() -> void:
 
 	meta_scene = load("res://scenes/meta/MetaProgress.tscn").instantiate() as Control
 	add_child(meta_scene)
-	await get_tree().process_frame
+	if not await _wait_for_content_ready(meta_scene, "reset meta progress"):
+		return
 	var reset_assault_button: Button = meta_scene.find_child("UnlockCard_assault", true, false) as Button
 	if reset_assault_button == null or reset_assault_button.disabled:
 		_fail("Meta progress smoke failed: developer reset should allow cards to be unlocked again immediately")
@@ -185,6 +227,17 @@ func _assert_default_meta() -> void:
 		_fail("Meta progress smoke failed: chrono shard should be locked by default")
 	if Game.get_meta_points() != Game.DEVELOPER_META_RESET_POINTS:
 		_fail("Meta progress smoke failed: developer reset should seed debug points")
+
+
+func _wait_for_content_ready(scene: Control, label: String) -> bool:
+	for _frame in range(180):
+		await get_tree().process_frame
+		if not is_instance_valid(scene):
+			break
+		if scene.has_method("is_content_ready") and bool(scene.call("is_content_ready")):
+			return true
+	_fail("Meta progress smoke failed: %s content did not finish building" % label)
+	return false
 
 
 func _has_starter_id(starters: Array[Dictionary], starter_id: String) -> bool:

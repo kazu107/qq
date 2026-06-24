@@ -456,7 +456,7 @@ func unlock_meta_starter(starter_id: String) -> bool:
 	var unlocked: bool = _meta_progress_service.unlock_starter(meta_progress, starter_id)
 	if unlocked:
 		AudioManager.play_sfx("meta_unlock")
-		SaveManager.save_game(current_screen_hint)
+		SaveManager.request_save(current_screen_hint)
 	return unlocked
 
 
@@ -465,7 +465,7 @@ func unlock_meta_card(card_id: String) -> bool:
 	var unlocked: bool = _meta_progress_service.unlock_card(meta_progress, card_id)
 	if unlocked:
 		AudioManager.play_sfx("meta_unlock")
-		SaveManager.save_game(current_screen_hint)
+		SaveManager.request_save(current_screen_hint)
 	return unlocked
 
 
@@ -474,7 +474,7 @@ func unlock_meta_relic(relic_id: String) -> bool:
 	var unlocked: bool = _meta_progress_service.unlock_relic(meta_progress, relic_id)
 	if unlocked:
 		AudioManager.play_sfx("meta_unlock")
-		SaveManager.save_game(current_screen_hint)
+		SaveManager.request_save(current_screen_hint)
 	return unlocked
 
 
@@ -483,7 +483,7 @@ func claim_meta_achievement(achievement_id: String) -> bool:
 	var claimed: bool = _meta_progress_service.claim_achievement(meta_progress, achievement_id)
 	if claimed:
 		AudioManager.play_sfx("meta_unlock")
-		SaveManager.save_game(current_screen_hint)
+		SaveManager.request_save(current_screen_hint)
 	return claimed
 
 
@@ -862,14 +862,14 @@ func developer_add_points(amount: int = 5) -> int:
 	ensure_meta_initialized()
 	meta_progress["points"] = int(meta_progress.get("points", 0)) + amount
 	AudioManager.play_sfx("meta_points")
-	SaveManager.save_game(current_screen_hint)
+	SaveManager.request_save(current_screen_hint)
 	return int(meta_progress.get("points", 0))
 
 
 func developer_add_achievement_stat(stat_id: String, amount: int = 1) -> int:
 	ensure_meta_initialized()
 	var next_value: int = _meta_progress_service.increment_achievement_stat(meta_progress, stat_id, amount)
-	SaveManager.save_game(current_screen_hint)
+	SaveManager.request_save(current_screen_hint)
 	return next_value
 
 
@@ -930,7 +930,7 @@ func developer_unlock_all_meta() -> void:
 	ensure_meta_initialized()
 	_meta_progress_service.unlock_all(meta_progress)
 	AudioManager.play_sfx("meta_unlock")
-	SaveManager.save_game(current_screen_hint)
+	SaveManager.request_save(current_screen_hint)
 
 
 func developer_unlock_step_tier(tier: int = 2) -> bool:
@@ -938,7 +938,7 @@ func developer_unlock_step_tier(tier: int = 2) -> bool:
 	var unlocked: bool = _meta_progress_service.unlock_step_tier(meta_progress, tier)
 	if unlocked:
 		AudioManager.play_sfx("meta_unlock")
-		SaveManager.save_game(current_screen_hint)
+		SaveManager.request_save(current_screen_hint)
 	return unlocked
 
 
@@ -947,7 +947,7 @@ func developer_unlock_infinite_mode() -> bool:
 	var unlocked: bool = _meta_progress_service.unlock_infinite_mode(meta_progress)
 	if unlocked:
 		AudioManager.play_sfx("meta_unlock")
-		SaveManager.save_game(current_screen_hint)
+		SaveManager.request_save(current_screen_hint)
 	return unlocked
 
 
@@ -955,7 +955,7 @@ func developer_reset_meta_progress() -> void:
 	meta_progress = _meta_progress_service.reset({}, Database.meta_progress_template)
 	meta_progress["points"] = DEVELOPER_META_RESET_POINTS
 	AudioManager.play_sfx("meta_points")
-	SaveManager.save_game(current_screen_hint)
+	SaveManager.request_save(current_screen_hint)
 
 
 func developer_select_available_node(node_type: String) -> String:

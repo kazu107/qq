@@ -2,8 +2,16 @@ extends Node
 
 const SAVE_PATH := "user://save.json"
 const REPLAY_DIR := "user://replays"
+const REQUEST_SAVE_DELAY_SECONDS := 0.12
 
 var current_save := SaveData.new()
+var _pending_scene_hint: String = ""
+var _save_request_scheduled: bool = false
+var _save_timer: Timer
+
+
+func _ready() -> void:
+	_ensure_save_timer()
 
 
 func has_save() -> bool:
@@ -34,6 +42,10 @@ func load_save() -> SaveData:
 
 
 func save_game(scene_hint: String = "title") -> bool:
+	if _save_timer != null:
+		_save_timer.stop()
+	_pending_scene_hint = ""
+	_save_request_scheduled = false
 	var save_data := Game.build_save_data(scene_hint)
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -43,6 +55,40 @@ func save_game(scene_hint: String = "title") -> bool:
 	file.store_string(JSON.stringify(save_data.to_dict(), "\t"))
 	current_save = save_data
 	return true
+
+
+func request_save(scene_hint: String = "title") -> void:
+	_pending_scene_hint = scene_hint
+	_ensure_save_timer()
+	_save_request_scheduled = true
+	_save_timer.start()
+
+
+func has_pending_save() -> bool:
+	return _save_request_scheduled or _pending_scene_hint != ""
+
+
+func flush_requested_save() -> bool:
+	if _save_timer != null:
+		_save_timer.stop()
+	if _pending_scene_hint == "":
+		_save_request_scheduled = false
+		return true
+	var scene_hint: String = _pending_scene_hint
+	_pending_scene_hint = ""
+	_save_request_scheduled = false
+	return save_game(scene_hint)
+
+
+func _ensure_save_timer() -> void:
+	if _save_timer != null:
+		return
+	_save_timer = Timer.new()
+	_save_timer.name = "DeferredSaveTimer"
+	_save_timer.one_shot = true
+	_save_timer.wait_time = REQUEST_SAVE_DELAY_SECONDS
+	_save_timer.timeout.connect(flush_requested_save)
+	add_child(_save_timer)
 
 
 func export_replay(replay_data: ReplayData, battle_id: String = "") -> String:

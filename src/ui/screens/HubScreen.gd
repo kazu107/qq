@@ -313,5 +313,5 @@ func _on_open_meta_progress() -> void:
 
 func _on_open_card_library() -> void:
 	Game.current_screen_hint = "library"
-	SaveManager.save_game("library")
+	SaveManager.request_save("library")
 	SceneRouter.go_to_card_library()

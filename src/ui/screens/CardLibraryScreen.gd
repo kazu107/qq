@@ -1,18 +1,27 @@
 extends Control
 
+const BUILD_BATCH_SIZE := 6
+
 var _summary_label: Label
 var _cards_box: VBoxContainer
 var _developer_panel: DeveloperPanel
+var _content_ready: bool = false
+var _content_building: bool = false
+var _card_widgets: Dictionary = {}
 
 
 func _ready() -> void:
 	Game.current_screen_hint = "library"
-	SaveManager.save_game("library")
+	SaveManager.request_save("library")
 
 	_build_ui()
 	_refresh_ui()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+
+
+func is_content_ready() -> bool:
+	return _content_ready
 
 
 func _build_ui() -> void:
@@ -55,7 +64,7 @@ func _build_ui() -> void:
 	hub_button.text = Localization.get_text("library.return_hub", "Return to Hub")
 	hub_button.pressed.connect(func() -> void:
 		Game.current_screen_hint = "hub"
-		SaveManager.save_game("hub")
+		SaveManager.request_save("hub")
 		SceneRouter.go_to_hub()
 	)
 	action_row.add_child(hub_button)
@@ -72,30 +81,42 @@ func _build_ui() -> void:
 
 
 func _refresh_ui() -> void:
-	var summary: Dictionary = Game.get_meta_summary()
+	var entries: Array[Dictionary] = Game.get_meta_card_entries()
+	var unlocked_count: int = 0
+	for entry in entries:
+		if bool(entry.get("unlocked", false)):
+			unlocked_count += 1
 	_summary_label.text = Localization.get_textf(
 		"library.summary",
 		"Unlocked {current} / {total} cards. Locked cards stay visible here so you can plan purchases.",
 		{
-			"current": int(summary.get("card_unlocked", 0)),
-			"total": int(summary.get("card_total", 0)),
+			"current": unlocked_count,
+			"total": entries.size(),
 		}
 	)
-	_rebuild_card_rows()
+	if not _content_ready:
+		if not _content_building:
+			_content_building = true
+			_rebuild_card_rows.call_deferred()
+		return
+	_update_card_rows(entries)
 
 
 func _rebuild_card_rows() -> void:
 	for child in _cards_box.get_children():
 		_cards_box.remove_child(child)
 		child.queue_free()
+	_card_widgets.clear()
 
 	var rarity_order: Array[String] = ["common", "rare", "epic"]
+	var entries: Array[Dictionary] = Game.get_meta_card_entries()
+	var built_count: int = 0
 	for rarity in rarity_order:
 		var section_label: Label = Label.new()
 		section_label.text = Localization.get_rarity_name(rarity)
 		_cards_box.add_child(section_label)
 
-		for entry in Game.get_meta_card_entries():
+		for entry in entries:
 			if String(entry.get("rarity", "")) != rarity:
 				continue
 			var card_id: String = String(entry.get("id", ""))
@@ -139,6 +160,36 @@ func _rebuild_card_rows() -> void:
 			desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			desc_label.text = "%s\n%s" % [card_def.description, CardInfoFormatter.build_effect_summary(card_def)]
 			info.add_child(desc_label)
+			_card_widgets[card_id] = {
+				"preview": preview,
+				"status": status_label,
+			}
+			built_count += 1
+			if built_count % BUILD_BATCH_SIZE == 0:
+				await get_tree().process_frame
+				if not is_inside_tree():
+					return
+	_content_building = false
+	_content_ready = true
+	_refresh_ui()
+
+
+func _update_card_rows(entries: Array[Dictionary]) -> void:
+	for entry in entries:
+		var card_id: String = String(entry.get("id", ""))
+		var widgets: Dictionary = Dictionary(_card_widgets.get(card_id, {}))
+		if widgets.is_empty():
+			continue
+		var unlocked: bool = bool(entry.get("unlocked", false))
+		var preview: CardButton = widgets.get("preview") as CardButton
+		var status_label: Label = widgets.get("status") as Label
+		preview.modulate = Color(1.0, 1.0, 1.0, 1.0) if unlocked else Color(0.55, 0.55, 0.55, 1.0)
+		if unlocked:
+			status_label.text = Localization.get_text("meta.unlocked", "Unlocked")
+		else:
+			status_label.text = Localization.get_textf("library.locked_cost", "Locked | Unlock cost {cost}", {
+				"cost": int(entry.get("cost", 0)),
+			})
 
 
 func _build_developer_panel() -> void:
