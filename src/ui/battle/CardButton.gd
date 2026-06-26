@@ -23,6 +23,7 @@ const ACTIVE_PLAYER_BORDER := Color(0.24, 0.56, 1.0, 1.0)
 const ACTIVE_ENEMY_BORDER := Color(0.95, 0.28, 0.25, 1.0)
 const TOOLTIP_BUFF_COLOR := "#72d36f"
 const TOOLTIP_NERF_COLOR := "#ff6868"
+const TOOLTIP_STATUS_COLOR := "#ffd45a"
 const NAME_FONT_MAX_SIZE: int = 15
 const NAME_FONT_MIN_SIZE: int = 10
 
@@ -562,31 +563,10 @@ func _compute_timeline_ratio(entry: TimelineEntry, battle_time: float) -> float:
 	return clampf(elapsed / total_duration, 0.0, 1.0)
 
 
-func _build_hand_tooltip(card_def: CardDef, tooltip_state: String, tooltip_blocked: String, runtime_state: CardRuntimeState, rich: bool = false) -> String:
-	var comparison_card: CardDef = _get_comparison_card(card_def)
-	var base_cast_time: float = card_def.cast_time
-	var base_recast_time: float = card_def.recast_time
-	if comparison_card != null:
-		base_cast_time = comparison_card.cast_time
-		base_recast_time = comparison_card.recast_time
-	var lines: Array[String] = [
-		card_def.name,
-		card_def.description,
-		"",
-		Localization.get_textf("card.tooltip.rarity", "Rarity: {value}", {"value": Localization.get_rarity_name(card_def.rarity)}),
-		Localization.get_textf("card.tooltip.tags", "Tags: {value}", {"value": _build_tags_text(card_def.tags)}),
-		Localization.get_textf("card.tooltip.cast", "Cast: {value}s", {"value": _format_compared_float(card_def.cast_time, base_cast_time, 1, false, rich)}),
-		Localization.get_textf("card.tooltip.recast", "Recast: {value}s", {"value": _format_compared_float(card_def.recast_time, base_recast_time, 1, false, rich)}),
-		Localization.get_textf("card.tooltip.slots", "Slots: {value}", {"value": card_def.active_slot_cost}),
-		Localization.get_textf("card.tooltip.target", "Target: {value}", {"value": Localization.get_target_name(card_def.target_type)}),
-		Localization.get_textf("card.tooltip.state", "State: {value}", {"value": tooltip_state}),
-	]
-	_append_effect_lines(lines, card_def, rich)
-	if runtime_state.state == CardRuntimeState.CardState.COOLDOWN:
-		lines.append(Localization.get_textf("card.tooltip.recovery", "Recovery: {value}%", {
-			"value": int(round(_compute_cooldown_ratio(card_def, runtime_state) * 100.0)),
-		}))
+func _build_hand_tooltip(card_def: CardDef, _tooltip_state: String, tooltip_blocked: String, _runtime_state: CardRuntimeState, rich: bool = false) -> String:
+	var lines: Array[String] = _build_battle_tooltip_lines(card_def, rich)
 	if tooltip_blocked != "":
+		lines.append("")
 		lines.append(tooltip_blocked)
 	return "\n".join(lines)
 
@@ -614,39 +594,32 @@ func _build_preview_tooltip(card_def: CardDef, rich: bool = false) -> String:
 	return "\n".join(lines)
 
 
-func _build_active_tooltip(card_def: CardDef, instance: ActiveCardInstance, remaining: float, rich: bool = false) -> String:
-	var lines: Array[String] = [
-		card_def.name,
-		card_def.description,
-		"",
-		Localization.get_textf("card.tooltip.owner", "Owner: {value}", {"value": Localization.get_owner_name(instance.owner_side)}),
-		Localization.get_textf("card.tooltip.rarity", "Rarity: {value}", {"value": Localization.get_rarity_name(card_def.rarity)}),
-		Localization.get_textf("card.tooltip.tags", "Tags: {value}", {"value": _build_tags_text(card_def.tags)}),
-		Localization.get_textf("card.tooltip.resolves_in", "Resolves in: {value}s", {"value": "%.1f" % remaining}),
-		Localization.get_textf("card.tooltip.slots_used", "Slots Used: {value}", {"value": instance.slot_cost}),
-	]
-	_append_effect_lines(lines, card_def, rich)
-	if instance.interruptible:
-		lines.append(Localization.get_text("card.tooltip.interruptible", "Interruptible"))
-	return "\n".join(lines)
+func _build_active_tooltip(card_def: CardDef, _instance: ActiveCardInstance, _remaining: float, rich: bool = false) -> String:
+	return "\n".join(_build_battle_tooltip_lines(card_def, rich))
 
 
-func _build_timeline_tooltip(card_def: CardDef, entry: TimelineEntry, remaining: float, rich: bool = false) -> String:
-	var lines: Array[String] = [
-		card_def.name,
-		card_def.description,
-		"",
-		Localization.get_textf("card.tooltip.owner", "Owner: {value}", {"value": Localization.get_owner_name(entry.owner_side)}),
-		Localization.get_textf("card.tooltip.rarity", "Rarity: {value}", {"value": Localization.get_rarity_name(card_def.rarity)}),
-		Localization.get_textf("card.tooltip.tags", "Tags: {value}", {"value": _build_tags_text(card_def.tags)}),
-		Localization.get_textf("card.tooltip.resolves_in", "Resolves in: {value}s", {"value": "%.1f" % remaining}),
-		Localization.get_textf("card.tooltip.cast_window", "Cast Window: {value}s", {"value": "%.1f" % max(0.0, entry.scheduled_time - entry.created_at)}),
-		Localization.get_textf("card.tooltip.slots_used", "Slots Used: {value}", {"value": entry.slot_cost}),
-	]
-	_append_effect_lines(lines, card_def, rich)
-	if entry.interruptible:
-		lines.append(Localization.get_text("card.tooltip.interruptible", "Interruptible"))
-	return "\n".join(lines)
+func _build_timeline_tooltip(card_def: CardDef, _entry: TimelineEntry, _remaining: float, rich: bool = false) -> String:
+	return "\n".join(_build_battle_tooltip_lines(card_def, rich))
+
+
+func _build_battle_tooltip_lines(card_def: CardDef, rich: bool = false) -> Array[String]:
+	var comparison_card: CardDef = _get_comparison_card(card_def)
+	var base_cast_time: float = card_def.cast_time
+	var base_recast_time: float = card_def.recast_time
+	if comparison_card != null:
+		base_cast_time = comparison_card.cast_time
+		base_recast_time = comparison_card.recast_time
+
+	var lines: Array[String] = [card_def.name]
+	_append_battle_effect_lines(lines, card_def, rich)
+	lines.append(Localization.get_textf("card.tooltip.cast", "Cast: {value}s", {
+		"value": _format_compared_float(card_def.cast_time, base_cast_time, 1, false, rich),
+	}))
+	lines.append(Localization.get_textf("card.tooltip.recast", "Recast: {value}s", {
+		"value": _format_compared_float(card_def.recast_time, base_recast_time, 1, false, rich),
+	}))
+	_append_status_detail_lines(lines, card_def, rich)
+	return lines
 
 
 func _build_tags_text(tags: Array[String]) -> String:
@@ -701,6 +674,75 @@ func _append_effect_lines(lines: Array[String], card_def: CardDef, rich: bool = 
 	lines.append(Localization.get_text("card.tooltip.effects", "Effects:"))
 	for effect_line in effect_lines:
 		lines.append("- %s" % effect_line)
+
+
+func _append_battle_effect_lines(lines: Array[String], card_def: CardDef, rich: bool = false) -> void:
+	var effect_lines: Array[String] = CardInfoFormatter.build_effect_lines(card_def, _get_comparison_card(card_def), rich)
+	if effect_lines.is_empty():
+		if card_def.description != "":
+			lines.append("%s %s" % [
+				Localization.get_text("card.tooltip.effects", "Effects:"),
+				_highlight_status_names(card_def.description, card_def, rich),
+			])
+		return
+
+	for effect_index in range(effect_lines.size()):
+		var highlighted_line: String = _highlight_status_names(effect_lines[effect_index], card_def, rich)
+		if effect_index == 0:
+			lines.append("%s %s" % [Localization.get_text("card.tooltip.effects", "Effects:"), highlighted_line])
+		else:
+			lines.append("- %s" % highlighted_line)
+
+
+func _highlight_status_names(text: String, card_def: CardDef, rich: bool) -> String:
+	if not rich:
+		return text
+	var highlighted_text: String = text
+	for status_id in _get_applied_status_ids(card_def):
+		var status_name: String = Localization.get_status_name(status_id)
+		highlighted_text = highlighted_text.replace(status_name, "[color=%s]%s[/color]" % [TOOLTIP_STATUS_COLOR, status_name])
+	return highlighted_text
+
+
+func _append_status_detail_lines(lines: Array[String], card_def: CardDef, rich: bool = false) -> void:
+	var status_ids: Array[String] = _get_applied_status_ids(card_def)
+	if status_ids.is_empty():
+		return
+	lines.append("")
+	lines.append(Localization.get_text("card.tooltip.status_details", "Status Details:"))
+	for status_id in status_ids:
+		var status_name: String = Localization.get_status_name(status_id)
+		if rich:
+			status_name = "[color=%s]%s[/color]" % [TOOLTIP_STATUS_COLOR, status_name]
+		lines.append("%s: %s" % [status_name, _get_status_detail_text(status_id)])
+
+
+func _get_applied_status_ids(card_def: CardDef) -> Array[String]:
+	var status_ids: Array[String] = []
+	for effect in card_def.effects:
+		if String(effect.get("type", "")) != "apply_status":
+			continue
+		var status_id: String = String(effect.get("status", ""))
+		if status_id != "" and not status_ids.has(status_id):
+			status_ids.append(status_id)
+	return status_ids
+
+
+func _get_status_detail_text(status_id: String) -> String:
+	match status_id:
+		"bleed":
+			return Localization.get_textf("status.detail.bleed", "Takes {amount} damage every {interval}s.", {
+				"amount": 1,
+				"interval": "%.1f" % UnitState.BLEED_TICK_INTERVAL,
+			})
+		"weak":
+			return Localization.get_textf("status.detail.weak", "Attack -{amount} while active.", {"amount": 2})
+		"slow":
+			return Localization.get_textf("status.detail.slow", "Cast time +{percent}% while active.", {"percent": 10})
+		"vulnerable":
+			return Localization.get_textf("status.detail.vulnerable", "Incoming damage +{amount} while active.", {"amount": 3})
+		_:
+			return Localization.get_text("status.detail.unknown", "Temporary status effect.")
 
 
 func _append_grade_lines(lines: Array[String], card_id: String) -> void:

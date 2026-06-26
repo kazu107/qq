@@ -468,8 +468,8 @@ func _exercise_event_node() -> void:
 
 	var event_data: Dictionary = Game.get_active_event_data()
 	var choices: Array = Array(event_data.get("choices", []))
-	if choices.is_empty():
-		_fail("Map/facility smoke failed: event node did not produce any choices")
+	if choices.size() != 3:
+		_fail("Map/facility smoke failed: event node should produce exactly three choices")
 		facility_scene.queue_free()
 		await get_tree().process_frame
 		return
@@ -513,7 +513,20 @@ func _assert_facility_scene(expected_type: String) -> Control:
 	var relic_icon_row: RelicIconRow = facility_scene.find_child("FacilityRelicIconRow", true, false) as RelicIconRow
 	if options_box == null or options_box.get_child_count() == 0:
 		_fail("Map/facility smoke failed: %s scene did not render options" % expected_type)
-	elif facility_deck == null or facility_deck.get_child_count() == 0:
+		return facility_scene
+	if expected_type == "event":
+		var choice_list: VBoxContainer = facility_scene.find_child("EventChoiceList", true, false) as VBoxContainer
+		var deck_frame: Control = null
+		if facility_deck != null and facility_deck.get_parent() != null:
+			deck_frame = facility_deck.get_parent().get_parent() as Control
+		if choice_list == null or choice_list.get_child_count() != 3:
+			_fail("Map/facility smoke failed: event scene should render three large choice buttons")
+		elif deck_frame == null or deck_frame.visible:
+			_fail("Map/facility smoke failed: event scene should hide the battle loadout frame")
+		elif relic_icon_row == null or relic_icon_row.visible:
+			_fail("Map/facility smoke failed: event scene should hide node summary relics")
+		return facility_scene
+	if facility_deck == null or facility_deck.get_child_count() == 0:
 		_fail("Map/facility smoke failed: %s scene did not render loadout cards" % expected_type)
 	elif relic_icon_row == null:
 		_fail("Map/facility smoke failed: %s scene did not render relic icon row" % expected_type)

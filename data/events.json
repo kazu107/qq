@@ -7,6 +7,30 @@
     "weight": 3,
     "choices": [
       {
+        "id": "dangerous_salvage",
+        "label": "Lose {hp_cost} HP to extract {relic_name}",
+        "description": "Force open the unstable core and claim the best salvage.",
+        "values": {
+          "hp_cost": {
+            "base": 7,
+            "per_area": 2
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_hp",
+            "amount": {
+              "ref": "hp_cost"
+            }
+          },
+          {
+            "type": "grant_random_relic",
+            "relic_name_key": "relic_name"
+          }
+        ],
+        "result": "Lost {hp_cost} HP and extracted {relic_name}."
+      },
+      {
         "id": "take_gold",
         "label": "Take {gold_reward} Gold",
         "description": "Strip the crate and move on.",
@@ -49,6 +73,34 @@
     "areas": [1, 2, 3],
     "weight": 3,
     "choices": [
+      {
+        "id": "brutal_drill",
+        "label": "Lose {hp_cost} HP for full combat tuning",
+        "description": "Run the unsafe program and harden both output and timing.",
+        "values": {
+          "hp_cost": {
+            "base": 6,
+            "per_area": 2
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_hp",
+            "amount": {
+              "ref": "hp_cost"
+            }
+          },
+          {
+            "type": "modify_attack",
+            "amount": 1
+          },
+          {
+            "type": "modify_speed",
+            "amount": 1
+          }
+        ],
+        "result": "Lost {hp_cost} HP and improved attack and speed."
+      },
       {
         "id": "attack_up",
         "label": "Sharpen Offense",
@@ -107,6 +159,30 @@
         "result": "Lost {hp_cost} HP and claimed {relic_name}."
       },
       {
+        "id": "blood_tithe",
+        "label": "Lose {hp_cost} HP to raise max HP",
+        "description": "Offer vitality now for a stronger frame later.",
+        "values": {
+          "hp_cost": {
+            "base": 5,
+            "per_area": 2
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_hp",
+            "amount": {
+              "ref": "hp_cost"
+            }
+          },
+          {
+            "type": "modify_max_hp",
+            "amount": 8
+          }
+        ],
+        "result": "Lost {hp_cost} HP and increased maximum HP."
+      },
+      {
         "id": "recover",
         "label": "Recover {heal_amount} HP",
         "description": "Leave the relic and stabilize instead.",
@@ -135,6 +211,34 @@
     "areas": [1, 2, 3],
     "weight": 2,
     "choices": [
+      {
+        "id": "experimental_rebuild",
+        "label": "Spend {gold_cost} Gold on a rebuild",
+        "description": "Install risky parts for immediate repair and more maximum HP.",
+        "values": {
+          "gold_cost": {
+            "base": 18,
+            "per_area": 5
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_gold",
+            "amount": {
+              "ref": "gold_cost"
+            }
+          },
+          {
+            "type": "modify_max_hp",
+            "amount": 8
+          },
+          {
+            "type": "heal",
+            "amount": 12
+          }
+        ],
+        "result": "Spent {gold_cost} gold and rebuilt the frame."
+      },
       {
         "id": "full_repair",
         "label": "Full Repair",
@@ -225,6 +329,18 @@
           }
         ],
         "result": "Lost {hp_cost} HP and escaped with {card_name}."
+      },
+      {
+        "id": "quick_job",
+        "label": "Run a quick courier job",
+        "description": "Do a small favor and leave with some gold.",
+        "effects": [
+          {
+            "type": "grant_gold",
+            "amount": 16
+          }
+        ],
+        "result": "Earned a small courier payment."
       }
     ]
   },
@@ -235,6 +351,36 @@
     "areas": [1, 2, 3],
     "weight": 2,
     "choices": [
+      {
+        "id": "risky_recalibration",
+        "label": "Lose {hp_cost} HP for a risky recalibration",
+        "description": "Overload the rig to upgrade a card and improve speed.",
+        "values": {
+          "hp_cost": {
+            "base": 6,
+            "per_area": 2
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_hp",
+            "amount": {
+              "ref": "hp_cost"
+            }
+          },
+          {
+            "type": "upgrade_random_card",
+            "scope": "equipped",
+            "card_name_key": "card_name",
+            "grade_key": "next_grade"
+          },
+          {
+            "type": "modify_speed",
+            "amount": 1
+          }
+        ],
+        "result": "Lost {hp_cost} HP, upgraded {card_name} to {next_grade}, and gained speed."
+      },
       {
         "id": "upgrade_card",
         "label": "Tune {card_name} to {next_grade}",
@@ -270,6 +416,34 @@
     "areas": [1, 2, 3],
     "weight": 2,
     "choices": [
+      {
+        "id": "meltdown_overclock",
+        "label": "Lose {hp_cost} HP for a meltdown overclock",
+        "description": "Force every limiter open for attack and speed.",
+        "values": {
+          "hp_cost": {
+            "base": 9,
+            "per_area": 3
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_hp",
+            "amount": {
+              "ref": "hp_cost"
+            }
+          },
+          {
+            "type": "modify_attack",
+            "amount": 1
+          },
+          {
+            "type": "modify_speed",
+            "amount": 1
+          }
+        ],
+        "result": "Lost {hp_cost} HP and pushed output beyond safety limits."
+      },
       {
         "id": "push_output",
         "label": "Push Output",
@@ -320,6 +494,40 @@
     "weight": 2,
     "choices": [
       {
+        "id": "experimental_surgery",
+        "label": "Spend {gold_cost} Gold on experimental surgery",
+        "description": "Pay for a risky treatment that heals and expands maximum HP.",
+        "values": {
+          "gold_cost": {
+            "base": 18,
+            "per_area": 4
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_gold",
+            "amount": {
+              "ref": "gold_cost"
+            }
+          },
+          {
+            "type": "heal",
+            "amount": {
+              "by_area": {
+                "1": 18,
+                "2": 22,
+                "3": 26
+              }
+            }
+          },
+          {
+            "type": "modify_max_hp",
+            "amount": 5
+          }
+        ],
+        "result": "Spent {gold_cost} gold on experimental treatment."
+      },
+      {
         "id": "long_repair",
         "label": "Long Repair",
         "description": "Take the full treatment and recover a large amount of HP.",
@@ -365,20 +573,6 @@
     "weight": 1,
     "choices": [
       {
-        "id": "decode_card",
-        "label": "Decode {card_name}",
-        "description": "Reconstruct one high-value tactical card.",
-        "effects": [
-          {
-            "type": "grant_random_card",
-            "rarity_pool": ["rare", "rare", "epic"],
-            "guarantee_new": true,
-            "card_name_key": "card_name"
-          }
-        ],
-        "result": "Decoded {card_name} from the archive."
-      },
-      {
         "id": "trace_relic",
         "label": "Trace {relic_name} for {gold_cost} Gold",
         "description": "Spend gold to follow the signal to a relic cache.",
@@ -401,6 +595,32 @@
           }
         ],
         "result": "Spent {gold_cost} gold and traced {relic_name}."
+      },
+      {
+        "id": "decode_card",
+        "label": "Decode {card_name}",
+        "description": "Reconstruct one high-value tactical card.",
+        "effects": [
+          {
+            "type": "grant_random_card",
+            "rarity_pool": ["rare", "rare", "epic"],
+            "guarantee_new": true,
+            "card_name_key": "card_name"
+          }
+        ],
+        "result": "Decoded {card_name} from the archive."
+      },
+      {
+        "id": "extract_gold",
+        "label": "Extract archived account keys",
+        "description": "Cash out safe but limited financial traces.",
+        "effects": [
+          {
+            "type": "grant_gold",
+            "amount": 22
+          }
+        ],
+        "result": "Extracted a small gold cache from the archive."
       }
     ]
   },
@@ -411,6 +631,36 @@
     "areas": [3],
     "weight": 1,
     "choices": [
+      {
+        "id": "solemn_oath",
+        "label": "Lose {hp_cost} HP and swear a solemn oath",
+        "description": "Take on the battlefield's burden for lasting strength.",
+        "values": {
+          "hp_cost": {
+            "base": 10,
+            "per_area": 2
+          }
+        },
+        "effects": [
+          {
+            "type": "lose_hp",
+            "amount": {
+              "ref": "hp_cost"
+            }
+          },
+          {
+            "type": "upgrade_random_card",
+            "scope": "owned",
+            "card_name_key": "card_name",
+            "grade_key": "next_grade"
+          },
+          {
+            "type": "modify_max_hp",
+            "amount": 6
+          }
+        ],
+        "result": "Lost {hp_cost} HP, upgraded {card_name} to {next_grade}, and gained maximum HP."
+      },
       {
         "id": "honor_fallen",
         "label": "Honor the Fallen",

@@ -1,10 +1,15 @@
 extends Control
 
 var _title_label: Label
+var _facility_frame: PanelContainer
+var _facility_header_label: Label
 var _summary_label: RichTextLabel
 var _status_label: Label
 var _relics_icon_row: RelicIconRow
 var _options_box: VBoxContainer
+var _leave_button: Button
+var _deck_frame: PanelContainer
+var _deck_header_label: Label
 var _deck_summary_label: Label
 var _deck_panel: CardHandPanel
 var _run_info_banner: RunInfoBanner
@@ -52,6 +57,8 @@ func _build_ui() -> void:
 
 	var facility_panel: VBoxContainer = _create_panel(root, Localization.get_text("facility.panel.node_detail", "Node Detail"))
 	facility_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_facility_frame = facility_panel.get_parent() as PanelContainer
+	_facility_header_label = facility_panel.get_child(0) as Label
 
 	_title_label = Label.new()
 	facility_panel.add_child(_title_label)
@@ -84,9 +91,12 @@ func _build_ui() -> void:
 	leave_button.text = Localization.get_text("facility.leave_node", "Leave Node")
 	leave_button.pressed.connect(_on_leave_facility)
 	facility_panel.add_child(leave_button)
+	_leave_button = leave_button
 
 	var deck_box: VBoxContainer = _create_panel(root, Localization.get_text("facility.panel.battle_loadout", "Battle Loadout"))
 	deck_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_deck_frame = deck_box.get_parent() as PanelContainer
+	_deck_header_label = deck_box.get_child(0) as Label
 
 	_deck_summary_label = Label.new()
 	deck_box.add_child(_deck_summary_label)
@@ -116,33 +126,72 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 	return box
 
 
+func _apply_facility_layout_state(is_event_node: bool) -> void:
+	if _facility_header_label != null:
+		_facility_header_label.visible = not is_event_node
+	if _summary_label != null:
+		_summary_label.visible = not is_event_node
+	if _status_label != null:
+		_status_label.visible = not is_event_node
+	if _relics_icon_row != null:
+		_relics_icon_row.visible = not is_event_node
+	if _leave_button != null:
+		_leave_button.visible = not is_event_node
+	if _deck_frame != null:
+		_deck_frame.visible = not is_event_node
+	if _deck_header_label != null:
+		_deck_header_label.visible = not is_event_node
+	if _options_box != null:
+		_options_box.alignment = BoxContainer.ALIGNMENT_CENTER if is_event_node else BoxContainer.ALIGNMENT_BEGIN
+	if _title_label != null:
+		_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if is_event_node else HORIZONTAL_ALIGNMENT_LEFT
+		_title_label.add_theme_font_size_override("font_size", 34 if is_event_node else 18)
+		_title_label.add_theme_color_override("font_color", Color(0.96, 0.91, 0.78, 1.0) if is_event_node else Color(0.96, 0.96, 0.96, 1.0))
+	if _facility_frame == null:
+		return
+	if is_event_node:
+		_facility_frame.custom_minimum_size = Vector2(780.0, 0.0)
+		_facility_frame.add_theme_stylebox_override("panel", _make_event_panel_stylebox())
+	else:
+		_facility_frame.custom_minimum_size = Vector2.ZERO
+		_facility_frame.remove_theme_stylebox_override("panel")
+
+
 func _refresh_ui() -> void:
 	var current_run: RunState = Game.current_run
 	if _run_info_banner != null:
 		_run_info_banner.refresh()
 	var active_node: Dictionary = Game.get_active_map_node()
 	var node_type: String = Game.get_active_facility_type()
+	var is_event_node: bool = node_type == "event"
+	_apply_facility_layout_state(is_event_node)
 
-	_title_label.text = Localization.get_textf("facility.title", "{title} | Area {area}", {
-		"title": _facility_title(node_type),
-		"area": int(active_node.get("area", current_run.current_area)),
-	})
-	_summary_label.text = "\n".join([
-		Localization.get_textf("map.summary.gold", "Gold {value}", {"value": current_run.gold}),
-		Localization.get_textf("map.summary.hp", "HP {current} / {max}", {
-			"current": current_run.player_hp,
-			"max": current_run.max_hp,
-		}),
-		Localization.get_textf("facility.summary.selected_node", "Selected Node: {label}", {
-			"label": Localization.get_node_label(active_node),
-		}),
-		Localization.get_textf("map.relics_text", "Relics: {value}", {"value": _relic_text()}),
-	])
-	_deck_summary_label.text = Localization.get_textf("map.loadout_cost", "Loadout Cost {used} / {limit}", {
-		"used": Game.get_current_loadout_cost(),
-		"limit": Game.get_loadout_limit(),
-	})
-	_relics_icon_row.refresh_relic_ids(current_run.relics)
+	if is_event_node:
+		var event_data: Dictionary = Game.get_active_event_data()
+		_title_label.text = String(event_data.get("title", Localization.get_text("event.default_title", "Event")))
+		_summary_label.text = ""
+		_status_label.text = ""
+	else:
+		_title_label.text = Localization.get_textf("facility.title", "{title} | Area {area}", {
+			"title": _facility_title(node_type),
+			"area": int(active_node.get("area", current_run.current_area)),
+		})
+		_summary_label.text = "\n".join([
+			Localization.get_textf("map.summary.gold", "Gold {value}", {"value": current_run.gold}),
+			Localization.get_textf("map.summary.hp", "HP {current} / {max}", {
+				"current": current_run.player_hp,
+				"max": current_run.max_hp,
+			}),
+			Localization.get_textf("facility.summary.selected_node", "Selected Node: {label}", {
+				"label": Localization.get_node_label(active_node),
+			}),
+			Localization.get_textf("map.relics_text", "Relics: {value}", {"value": _relic_text()}),
+		])
+		_deck_summary_label.text = Localization.get_textf("map.loadout_cost", "Loadout Cost {used} / {limit}", {
+			"used": Game.get_current_loadout_cost(),
+			"limit": Game.get_loadout_limit(),
+		})
+		_relics_icon_row.refresh_relic_ids(current_run.relics)
 
 	for child in _options_box.get_children():
 		_options_box.remove_child(child)
@@ -159,7 +208,6 @@ func _refresh_ui() -> void:
 			_status_label.text = Localization.get_text("facility.status.heal", "Recover HP, then move on.")
 			_render_heal_option(int(active_node.get("heal_amount", 0)))
 		"event":
-			_status_label.text = Localization.get_text("facility.status.event", "Resolve the event by choosing one outcome.")
 			_render_event_options()
 		"hazard":
 			_status_label.text = Localization.get_text("facility.status.hazard", "Each cleared wave pays immediately. You can withdraw between waves.")
@@ -167,7 +215,8 @@ func _refresh_ui() -> void:
 		_:
 			_status_label.text = Localization.get_text("facility.status.none", "No facility data.")
 
-	_deck_panel.refresh_card_ids(Game.get_equipped_cards(), false, "EQUIP", current_run)
+	if not is_event_node:
+		_deck_panel.refresh_card_ids(Game.get_equipped_cards(), false, "EQUIP", current_run)
 	_refresh_developer_panel()
 
 
@@ -293,48 +342,229 @@ func _render_heal_option(heal_amount: int) -> void:
 
 func _render_event_options() -> void:
 	var event_data: Dictionary = Game.get_active_event_data()
-	var title_label: Label = Label.new()
-	title_label.text = String(event_data.get("title", Localization.get_text("event.default_title", "Event")))
-	_options_box.add_child(title_label)
-
-	var description_label: Label = Label.new()
-	description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description_label.text = String(event_data.get("description", ""))
-	_options_box.add_child(description_label)
-
 	var choices: Array = Array(event_data.get("choices", []))
+
+	var choice_list: VBoxContainer = VBoxContainer.new()
+	choice_list.name = "EventChoiceList"
+	choice_list.custom_minimum_size = Vector2(680.0, 0.0)
+	choice_list.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	choice_list.add_theme_constant_override("separation", 14)
+	_options_box.add_child(choice_list)
+
 	for raw_choice in choices:
 		var choice_data: Dictionary = Dictionary(raw_choice)
-		var choice_id: String = String(choice_data.get("id", ""))
-		var button: Button = Button.new()
-		button.name = "EventChoiceButton_%s" % choice_id
-		button.text = "%s | %s" % [
-			String(choice_data.get("label", "")),
-			String(choice_data.get("description", "")),
-		]
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.disabled = not bool(choice_data.get("enabled", true))
-		button.tooltip_text = String(choice_data.get("disabled_reason", ""))
-		if not button.disabled:
-			button.pressed.connect(_on_resolve_event.bind(choice_id))
+		choice_list.add_child(_build_event_choice_button(choice_data))
 
-		var relic_ids: Array[String] = _get_choice_relic_ids(choice_data)
-		if relic_ids.is_empty():
-			_options_box.add_child(button)
-			continue
 
-		var row: HBoxContainer = HBoxContainer.new()
-		row.name = "EventChoiceRow_%s" % choice_id
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_theme_constant_override("separation", 8)
-		_options_box.add_child(row)
-		row.add_child(button)
-		for relic_id in relic_ids:
+func _build_event_choice_button(choice_data: Dictionary) -> Button:
+	var choice_id: String = String(choice_data.get("id", ""))
+	var disabled: bool = not bool(choice_data.get("enabled", true))
+	var button: Button = Button.new()
+	button.name = "EventChoiceButton_%s" % choice_id
+	button.text = ""
+	button.custom_minimum_size = Vector2(0.0, 94.0)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.clip_contents = true
+	button.disabled = disabled
+	button.tooltip_text = String(choice_data.get("disabled_reason", ""))
+	button.focus_mode = Control.FOCUS_NONE
+	button.add_theme_stylebox_override("normal", _make_event_choice_stylebox(false, false))
+	button.add_theme_stylebox_override("hover", _make_event_choice_stylebox(false, true))
+	button.add_theme_stylebox_override("pressed", _make_event_choice_stylebox(false, true))
+	button.add_theme_stylebox_override("disabled", _make_event_choice_stylebox(true, false))
+	if not disabled:
+		button.pressed.connect(_on_resolve_event.bind(choice_id))
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.offset_left = 18.0
+	margin.offset_top = 10.0
+	margin.offset_right = -18.0
+	margin.offset_bottom = -10.0
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(margin)
+
+	var content: VBoxContainer = VBoxContainer.new()
+	content.alignment = BoxContainer.ALIGNMENT_CENTER
+	content.add_theme_constant_override("separation", 6)
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(content)
+
+	var title_label: Label = Label.new()
+	title_label.text = String(choice_data.get("label", ""))
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title_label.add_theme_font_size_override("font_size", 18)
+	title_label.add_theme_color_override("font_color", Color(0.88, 0.82, 0.63, 1.0) if not disabled else Color(0.48, 0.48, 0.48, 1.0))
+	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(title_label)
+
+	_add_event_effect_chips(content, choice_data, choice_id, disabled)
+	return button
+
+
+func _make_event_panel_stylebox() -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.025, 0.034, 0.050, 0.96)
+	style.border_color = Color(0.72, 0.64, 0.45, 0.88)
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(4)
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.45)
+	style.shadow_size = 18
+	style.shadow_offset = Vector2(0.0, 8.0)
+	style.content_margin_left = 24.0
+	style.content_margin_top = 24.0
+	style.content_margin_right = 24.0
+	style.content_margin_bottom = 24.0
+	return style
+
+
+func _make_event_choice_stylebox(disabled: bool, highlighted: bool) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	if disabled:
+		style.bg_color = Color(0.08, 0.08, 0.075, 0.82)
+		style.border_color = Color(0.30, 0.30, 0.28, 0.80)
+	elif highlighted:
+		style.bg_color = Color(0.16, 0.145, 0.105, 0.96)
+		style.border_color = Color(0.95, 0.82, 0.52, 0.92)
+	else:
+		style.bg_color = Color(0.105, 0.105, 0.090, 0.94)
+		style.border_color = Color(0.70, 0.67, 0.58, 0.86)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(3)
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.28)
+	style.shadow_size = 6
+	style.shadow_offset = Vector2(0.0, 3.0)
+	return style
+
+
+func _add_event_effect_chips(parent: Control, choice_data: Dictionary, choice_id: String, disabled: bool) -> void:
+	var effects_row: HBoxContainer = HBoxContainer.new()
+	effects_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	effects_row.add_theme_constant_override("separation", 12)
+	effects_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(effects_row)
+
+	var added_chip: bool = false
+	for raw_effect in Array(choice_data.get("effects", [])):
+		var effect_data: Dictionary = Dictionary(raw_effect)
+		if _add_event_effect_chip(effects_row, effect_data, choice_id, disabled):
+			added_chip = true
+
+	if added_chip:
+		return
+
+	var description_label: Label = Label.new()
+	description_label.text = String(choice_data.get("description", ""))
+	description_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	description_label.add_theme_color_override("font_color", Color(0.68, 0.64, 0.54, 1.0) if not disabled else Color(0.40, 0.40, 0.40, 1.0))
+	description_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	effects_row.add_child(description_label)
+
+
+func _add_event_effect_chip(parent: Control, effect_data: Dictionary, choice_id: String, disabled: bool) -> bool:
+	var effect_type: String = String(effect_data.get("type", ""))
+	var chip: HBoxContainer = HBoxContainer.new()
+	chip.add_theme_constant_override("separation", 4)
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var text: String = ""
+
+	match effect_type:
+		"grant_gold":
+			_add_event_stat_icon(chip, "gold")
+			text = "+%d" % _get_event_effect_amount(effect_data)
+		"lose_gold":
+			_add_event_stat_icon(chip, "gold")
+			text = "-%d" % _get_event_effect_amount(effect_data)
+		"heal":
+			_add_event_stat_icon(chip, "hp")
+			text = "+%d" % _get_event_effect_amount(effect_data)
+		"lose_hp":
+			_add_event_stat_icon(chip, "hp")
+			text = "-%d" % _get_event_effect_amount(effect_data)
+		"modify_max_hp":
+			_add_event_stat_icon(chip, "hp")
+			text = Localization.get_textf("event.effect.max_hp", "Max +{amount}", {"amount": _get_signed_amount_text(effect_data)})
+		"modify_attack":
+			_add_event_stat_icon(chip, "attack")
+			text = _get_signed_amount_text(effect_data)
+		"modify_speed":
+			_add_event_stat_icon(chip, "speed")
+			text = _get_signed_amount_text(effect_data)
+		"modify_loadout_limit":
+			_add_event_stat_icon(chip, "card")
+			text = Localization.get_textf("event.effect.loadout", "Loadout {amount}", {"amount": _get_signed_amount_text(effect_data)})
+		"grant_random_card":
+			_add_event_stat_icon(chip, "card")
+			text = _get_effect_card_name(effect_data)
+		"upgrade_random_card":
+			_add_event_stat_icon(chip, "card")
+			text = "%s -> %s" % [
+				_get_effect_card_name(effect_data),
+				CardInfoFormatter.format_grade_label(int(effect_data.get("next_tier", 0))),
+			]
+		"grant_random_relic":
+			var relic_id: String = String(effect_data.get("relic_id", ""))
+			if relic_id == "":
+				return false
 			var relic_icon: RelicIcon = RelicIcon.new()
-			relic_icon.set_icon_size(Vector2(44.0, 44.0))
-			relic_icon.bind_relic_id(relic_id, button.disabled)
+			relic_icon.set_icon_size(Vector2(30.0, 30.0))
+			relic_icon.bind_relic_id(relic_id, disabled)
 			relic_icon.name = "EventChoiceRelicIcon_%s_%s" % [choice_id, relic_id]
-			row.add_child(relic_icon)
+			relic_icon.mouse_filter = Control.MOUSE_FILTER_PASS
+			chip.add_child(relic_icon)
+			text = _get_relic_name(relic_id)
+		_:
+			return false
+
+	var text_label: Label = Label.new()
+	text_label.text = text
+	text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text_label.add_theme_font_size_override("font_size", 15)
+	text_label.add_theme_color_override("font_color", Color(0.78, 0.74, 0.62, 1.0) if not disabled else Color(0.42, 0.42, 0.42, 1.0))
+	text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.add_child(text_label)
+	parent.add_child(chip)
+	return true
+
+
+func _add_event_stat_icon(parent: Control, icon_id: String) -> void:
+	var icon: TextureRect = TextureRect.new()
+	icon.custom_minimum_size = Vector2(24.0, 24.0)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.texture = StatIconFactory.get_icon(icon_id)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(icon)
+
+
+func _get_event_effect_amount(effect_data: Dictionary) -> int:
+	return int(effect_data.get("amount", 0))
+
+
+func _get_signed_amount_text(effect_data: Dictionary) -> String:
+	var amount: int = _get_event_effect_amount(effect_data)
+	if amount >= 0:
+		return "+%d" % amount
+	return "%d" % amount
+
+
+func _get_effect_card_name(effect_data: Dictionary) -> String:
+	var card_id: String = String(effect_data.get("card_id", ""))
+	var card_def: CardDef = Database.get_card(card_id)
+	if card_def != null:
+		return card_def.name
+	if card_id != "":
+		return card_id
+	return Localization.get_text("event.effect.card", "Card")
+
+
+func _get_relic_name(relic_id: String) -> String:
+	var relic_def: RelicDef = Database.get_relic(relic_id)
+	if relic_def != null:
+		return relic_def.name
+	return relic_id
 
 
 func _render_hazard_options() -> void:
@@ -399,18 +629,6 @@ func _on_continue_hazard() -> void:
 func _on_withdraw_hazard() -> void:
 	Game.withdraw_hazard()
 	SceneRouter.go_to_map()
-
-
-func _get_choice_relic_ids(choice_data: Dictionary) -> Array[String]:
-	var relic_ids: Array[String] = []
-	for raw_effect in Array(choice_data.get("effects", [])):
-		var effect_data: Dictionary = Dictionary(raw_effect)
-		if String(effect_data.get("type", "")) != "grant_random_relic":
-			continue
-		var relic_id: String = String(effect_data.get("relic_id", ""))
-		if relic_id != "" and not relic_ids.has(relic_id):
-			relic_ids.append(relic_id)
-	return relic_ids
 
 
 func _apply_forge_preview_state(preview: CardButton, tier_label: Label, details_label: Label, card_id: String, tier: int) -> void:

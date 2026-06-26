@@ -126,6 +126,28 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle hand tooltip should omit grade info")
 		get_tree().quit(1)
 		return
+	var weak_def: CardDef = Database.get_card("weak_shot")
+	var weak_state: CardRuntimeState = CardRuntimeState.new()
+	weak_state.runtime_id = "weak_probe"
+	weak_state.card_id = "weak_shot"
+	var weak_button: CardButton = CardButton.new()
+	weak_button.set_tile_size(Vector2(120.0, 120.0))
+	weak_button.size = Vector2(120.0, 120.0)
+	add_child(weak_button)
+	weak_button.bind(weak_def, weak_state, false, false)
+	await get_tree().process_frame
+	var weak_status_name: String = Localization.get_status_name("weak")
+	if weak_button.tooltip_text.find("Status Details:") == -1 or weak_button.tooltip_text.find(weak_status_name) == -1:
+		push_error("Card UI smoke failed: battle tooltip should append applied status details")
+		get_tree().quit(1)
+		return
+	var weak_rich_tooltip: Control = weak_button._make_custom_tooltip(weak_button.tooltip_text) as Control
+	var weak_rich_label: RichTextLabel = weak_rich_tooltip.find_child("CardTooltipText", true, false) as RichTextLabel
+	if weak_rich_label == null or weak_rich_label.text.find("[color=#ffd45a]%s[/color]" % weak_status_name) == -1:
+		push_error("Card UI smoke failed: battle tooltip should highlight applied status names")
+		get_tree().quit(1)
+		return
+	weak_rich_tooltip.free()
 	var tooltip_run: RunState = RunState.from_starter(Database.get_starter("balanced"), 123)
 	tooltip_run.temporary_card_modifiers = {
 		"quick_slash": {
@@ -324,18 +346,27 @@ func _run() -> void:
 		push_error("Card UI smoke failed: timeline scale markers were not rendered")
 		get_tree().quit(1)
 		return
-	var now_marker: Label = timeline_scale.get_child(0) as Label
-	if now_marker == null or now_marker.text != "NOW":
-		push_error("Card UI smoke failed: timeline scale should start with NOW")
+	var zero_marker: Label = timeline_scale.get_child(0) as Label
+	if zero_marker == null or zero_marker.text != "0s":
+		push_error("Card UI smoke failed: timeline scale should start at 0s")
+		get_tree().quit(1)
+		return
+	var quarter_marker: Label = timeline_scale.get_child(1) as Label
+	if quarter_marker == null or quarter_marker.text != "1.5s":
+		push_error("Card UI smoke failed: timeline scale should render quarter steps from the ceiling max")
 		get_tree().quit(1)
 		return
 	var max_marker: Label = timeline_scale.get_child(timeline_scale.get_child_count() - 1) as Label
-	if max_marker == null or max_marker.text != "+6s":
+	if max_marker == null or max_marker.text != "6s":
 		push_error("Card UI smoke failed: timeline scale should use fixed max cast time")
 		get_tree().quit(1)
 		return
-	if earliest_button.tooltip_text.find("Owner: Enemy") == -1:
+	if earliest_button.tooltip_text.find("Cast:") == -1 or earliest_button.tooltip_text.find("Recast:") == -1:
 		push_error("Card UI smoke failed: timeline tooltip text was not assigned")
+		get_tree().quit(1)
+		return
+	if earliest_button.tooltip_text.find("Owner:") != -1:
+		push_error("Card UI smoke failed: battle timeline tooltip should omit owner metadata")
 		get_tree().quit(1)
 		return
 	if earliest_button.tooltip_text.find("Grades:") != -1:
@@ -605,7 +636,7 @@ func _run() -> void:
 		push_error("Card UI smoke failed: shield icon should overlap the left side of the HP bar")
 		get_tree().quit(1)
 		return
-	if shield_label.get_theme_font_size("font_size") < 19 or shield_label.get_theme_constant("outline_size") < 5:
+	if shield_label.get_theme_font_size("font_size") < 21 or shield_label.get_theme_constant("outline_size") < 6:
 		push_error("Card UI smoke failed: shield value should be larger with a stronger outline")
 		get_tree().quit(1)
 		return
@@ -920,7 +951,7 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	var battle_max_marker: Label = battle_timeline_scale.get_child(battle_timeline_scale.get_child_count() - 1) as Label
-	if battle_max_marker == null or battle_max_marker.text != "+3.6s":
+	if battle_max_marker == null or battle_max_marker.text != "4s":
 		push_error("Card UI smoke failed: battle timeline scale should use both loadouts' max cast time")
 		get_tree().quit(1)
 		return

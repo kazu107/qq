@@ -15,6 +15,11 @@ func _run() -> void:
 	if Database.get_all_event_ids().size() < 10:
 		_fail("Event system smoke failed: expected expanded event database")
 		return
+	for event_id in Database.get_all_event_ids():
+		var event_template: Dictionary = Database.get_event(event_id)
+		if Array(event_template.get("choices", [])).size() != 3:
+			_fail("Event system smoke failed: event %s should define exactly three choices" % event_id)
+			return
 
 	var base_step: int = Game.get_current_step_index()
 

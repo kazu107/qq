@@ -178,9 +178,9 @@ func _ready() -> void:
 
 	var shield_anchor: Control = Control.new()
 	shield_anchor.name = "ShieldBadgeAnchor"
-	shield_anchor.offset_left = -10.0
+	shield_anchor.offset_left = -16.0
 	shield_anchor.offset_top = -5.0
-	shield_anchor.offset_right = SHIELD_ICON_SIZE.x - 10.0
+	shield_anchor.offset_right = SHIELD_ICON_SIZE.x - 16.0
 	shield_anchor.offset_bottom = SHIELD_ICON_SIZE.y - 5.0
 	shield_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hp_stack.add_child(shield_anchor)
@@ -203,8 +203,8 @@ func _ready() -> void:
 	_shield_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_shield_label.add_theme_color_override("font_color", TEXT_LIGHT)
 	_shield_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.90))
-	_shield_label.add_theme_constant_override("outline_size", 5)
-	_shield_label.add_theme_font_size_override("font_size", 19)
+	_shield_label.add_theme_constant_override("outline_size", 6)
+	_shield_label.add_theme_font_size_override("font_size", 21)
 	_shield_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	shield_anchor.add_child(_shield_label)
 

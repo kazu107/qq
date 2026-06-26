@@ -151,16 +151,14 @@ func _refresh_scale(horizon: float) -> void:
 		child.queue_free()
 
 	var resolved_horizon: float = maxf(0.1, horizon)
+	var scale_horizon: float = float(ceili(resolved_horizon))
 
 	for scale_index in range(TIMELINE_SCALE_MARK_COUNT):
 		var label: Label = Label.new()
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		if scale_index == 0:
-			label.text = Localization.get_text("timeline.now", "NOW")
-		else:
-			var seconds: float = resolved_horizon * float(scale_index) / float(TIMELINE_SCALE_MARK_COUNT - 1)
-			label.text = "+%s" % _format_scale_seconds(seconds)
+		var seconds: float = scale_horizon * float(scale_index) / float(TIMELINE_SCALE_MARK_COUNT - 1)
+		label.text = _format_scale_seconds(seconds)
 		_scale_row.add_child(label)
 
 
