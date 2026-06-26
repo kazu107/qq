@@ -7,8 +7,6 @@ const PANEL_FILL := Color(0.08, 0.10, 0.13, 0.92)
 const PANEL_STROKE := Color(0.28, 0.34, 0.42, 1.0)
 const HP_BAR_FILL := Color(0.77, 0.19, 0.22, 1.0)
 const HP_BAR_BG := Color(0.18, 0.05, 0.06, 0.96)
-const SHIELD_BADGE_FILL := Color(0.03, 0.10, 0.15, 0.78)
-const SHIELD_BADGE_STROKE := Color(0.32, 0.78, 0.94, 0.86)
 const TEXT_LIGHT := Color(0.95, 0.95, 0.93, 1.0)
 const STATUS_TIME_COLOR := Color(0.36, 1.0, 0.46, 1.0)
 const SLOT_USED_FILL := Color(0.38, 0.93, 0.72, 1.0)
@@ -29,7 +27,7 @@ const FLOATING_TEXT_FADE_START: float = 0.58
 const FLOATING_TEXT_FONT_SIZE: int = 32
 const STATUS_ICON_SIZE: Vector2 = Vector2(26.0, 26.0)
 const STAT_ICON_SIZE: Vector2 = Vector2(22.0, 22.0)
-const SHIELD_ICON_SIZE: Vector2 = Vector2(40.0, 40.0)
+const SHIELD_ICON_SIZE: Vector2 = Vector2(44.0, 44.0)
 const STATUS_FALLBACK_DURATIONS: Dictionary = {
 	"bleed": 36.0,
 	"weak": 30.0,
@@ -178,23 +176,14 @@ func _ready() -> void:
 	_hp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hp_stack.add_child(_hp_label)
 
-	var shield_stack: HBoxContainer = HBoxContainer.new()
-	shield_stack.name = "ShieldStack"
-	shield_stack.custom_minimum_size = Vector2(0.0, 40.0)
-	shield_stack.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	shield_stack.add_theme_constant_override("separation", 6)
-	info_column.add_child(shield_stack)
-
-	var shield_badge: PanelContainer = PanelContainer.new()
-	shield_badge.name = "ShieldBadge"
-	shield_badge.custom_minimum_size = SHIELD_ICON_SIZE
-	shield_badge.add_theme_stylebox_override("panel", _make_shield_badge_stylebox())
-	shield_stack.add_child(shield_badge)
-
 	var shield_anchor: Control = Control.new()
 	shield_anchor.name = "ShieldBadgeAnchor"
-	shield_anchor.custom_minimum_size = SHIELD_ICON_SIZE
-	shield_badge.add_child(shield_anchor)
+	shield_anchor.offset_left = -10.0
+	shield_anchor.offset_top = -5.0
+	shield_anchor.offset_right = SHIELD_ICON_SIZE.x - 10.0
+	shield_anchor.offset_bottom = SHIELD_ICON_SIZE.y - 5.0
+	shield_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hp_stack.add_child(shield_anchor)
 
 	_shield_icon_rect = TextureRect.new()
 	_shield_icon_rect.name = "ShieldIcon"
@@ -214,8 +203,8 @@ func _ready() -> void:
 	_shield_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_shield_label.add_theme_color_override("font_color", TEXT_LIGHT)
 	_shield_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.90))
-	_shield_label.add_theme_constant_override("outline_size", 4)
-	_shield_label.add_theme_font_size_override("font_size", 17)
+	_shield_label.add_theme_constant_override("outline_size", 5)
+	_shield_label.add_theme_font_size_override("font_size", 19)
 	_shield_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	shield_anchor.add_child(_shield_label)
 
@@ -763,26 +752,6 @@ func _make_hp_fill_stylebox() -> StyleBoxFlat:
 	style.corner_radius_bottom_left = 10
 	style.corner_radius_bottom_right = 10
 	return style
-
-
-func _make_shield_badge_stylebox() -> StyleBoxFlat:
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = SHIELD_BADGE_FILL
-	style.border_color = SHIELD_BADGE_STROKE
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 9
-	style.corner_radius_top_right = 9
-	style.corner_radius_bottom_left = 9
-	style.corner_radius_bottom_right = 9
-	style.content_margin_left = 0
-	style.content_margin_top = 0
-	style.content_margin_right = 0
-	style.content_margin_bottom = 0
-	return style
-
 
 func _make_slot_cell_stylebox(is_filled: bool, is_preview: bool = false, is_overflow: bool = false) -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()

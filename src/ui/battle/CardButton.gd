@@ -351,10 +351,10 @@ func _ensure_visuals() -> void:
 
 	_cost_badge = ColorRect.new()
 	_cost_badge.name = "CostBadge"
-	_cost_badge.offset_left = 8.0
-	_cost_badge.offset_top = 8.0
-	_cost_badge.offset_right = 34.0
-	_cost_badge.offset_bottom = 34.0
+	_cost_badge.offset_left = -5.0
+	_cost_badge.offset_top = -5.0
+	_cost_badge.offset_right = 25.0
+	_cost_badge.offset_bottom = 25.0
 	_cost_badge.color = COST_BADGE_COLOR
 	_configure_overlay(_cost_badge)
 	add_child(_cost_badge)

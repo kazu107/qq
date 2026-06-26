@@ -70,7 +70,9 @@ func _run() -> void:
 	if ready_cost_badge == null \
 	or ready_cost == null \
 	or ready_cost.text != str(strike_def.active_slot_cost) \
-	or ready_cost_badge.color.g < 0.6:
+	or ready_cost_badge.color.g < 0.6 \
+	or ready_cost_badge.offset_left >= 0.0 \
+	or ready_cost_badge.offset_top >= 0.0:
 		push_error("Card UI smoke failed: card cost should render in a green top-left badge")
 		get_tree().quit(1)
 		return
@@ -589,14 +591,30 @@ func _run() -> void:
 		push_error("Card UI smoke failed: HP bar and HP label should match the unit state")
 		get_tree().quit(1)
 		return
-	var shield_icon: TextureRect = unit_panel.get_node("BodyRow/InfoColumn/ShieldStack/ShieldBadge/ShieldBadgeAnchor/ShieldIcon") as TextureRect
-	var shield_label: Label = unit_panel.get_node("BodyRow/InfoColumn/ShieldStack/ShieldBadge/ShieldBadgeAnchor/ShieldLabel") as Label
+	var shield_anchor: Control = unit_panel.get_node("BodyRow/InfoColumn/HpStack/ShieldBadgeAnchor") as Control
+	var shield_icon: TextureRect = unit_panel.get_node("BodyRow/InfoColumn/HpStack/ShieldBadgeAnchor/ShieldIcon") as TextureRect
+	var shield_label: Label = unit_panel.get_node("BodyRow/InfoColumn/HpStack/ShieldBadgeAnchor/ShieldLabel") as Label
 	if shield_icon == null or shield_icon.texture == null or shield_label == null or shield_label.text != "3":
 		push_error("Card UI smoke failed: shield icon badge and shield value should match the unit state")
 		get_tree().quit(1)
 		return
+	if shield_anchor == null \
+	or shield_anchor.get_parent() != hp_bar.get_parent() \
+	or shield_anchor.offset_left >= 0.0 \
+	or shield_anchor.offset_top >= 0.0:
+		push_error("Card UI smoke failed: shield icon should overlap the left side of the HP bar")
+		get_tree().quit(1)
+		return
+	if shield_label.get_theme_font_size("font_size") < 19 or shield_label.get_theme_constant("outline_size") < 5:
+		push_error("Card UI smoke failed: shield value should be larger with a stronger outline")
+		get_tree().quit(1)
+		return
 	if unit_panel.find_child("ShieldBar", true, false) != null:
 		push_error("Card UI smoke failed: shield should no longer render as a bar")
+		get_tree().quit(1)
+		return
+	if unit_panel.find_child("ShieldBadge", true, false) != null or unit_panel.find_child("ShieldStack", true, false) != null:
+		push_error("Card UI smoke failed: shield should render without a square background frame")
 		get_tree().quit(1)
 		return
 	var unit_slot_label: Label = unit_panel.get_node("BodyRow/InfoColumn/SlotBattery/SlotLabel") as Label
