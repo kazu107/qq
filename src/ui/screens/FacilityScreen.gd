@@ -7,6 +7,7 @@ var _relics_icon_row: RelicIconRow
 var _options_box: VBoxContainer
 var _deck_summary_label: Label
 var _deck_panel: CardHandPanel
+var _run_info_banner: RunInfoBanner
 var _developer_panel: DeveloperPanel
 
 
@@ -34,11 +35,20 @@ func _build_ui() -> void:
 	margin.offset_bottom = -34.0
 	add_child(margin)
 
+	var screen_root: VBoxContainer = VBoxContainer.new()
+	screen_root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	screen_root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	screen_root.add_theme_constant_override("separation", 14)
+	margin.add_child(screen_root)
+
+	_run_info_banner = RunInfoBanner.new()
+	screen_root.add_child(_run_info_banner)
+
 	var root: HBoxContainer = HBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 20)
-	margin.add_child(root)
+	screen_root.add_child(root)
 
 	var facility_panel: VBoxContainer = _create_panel(root, Localization.get_text("facility.panel.node_detail", "Node Detail"))
 	facility_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -108,6 +118,8 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 
 func _refresh_ui() -> void:
 	var current_run: RunState = Game.current_run
+	if _run_info_banner != null:
+		_run_info_banner.refresh()
 	var active_node: Dictionary = Game.get_active_map_node()
 	var node_type: String = Game.get_active_facility_type()
 

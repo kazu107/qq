@@ -5,6 +5,7 @@ var _reward_relic_label: Label
 var _reward_relic_icon_row: RelicIconRow
 var _reward_cards_panel: CardHandPanel
 var _reroll_button: Button
+var _run_info_banner: RunInfoBanner
 var _developer_panel: DeveloperPanel
 
 
@@ -31,7 +32,11 @@ func _ready() -> void:
 	var root := VBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_theme_constant_override("separation", 14)
 	margin.add_child(root)
+
+	_run_info_banner = RunInfoBanner.new()
+	root.add_child(_run_info_banner)
 
 	var title := Label.new()
 	title.text = Localization.get_text("reward.title", "Reward")
@@ -122,6 +127,8 @@ func _build_summary_text() -> String:
 func _refresh_reward_ui() -> void:
 	if _summary_label != null:
 		_summary_label.text = _build_summary_text()
+	if _run_info_banner != null:
+		_run_info_banner.refresh()
 	if _reward_cards_panel != null:
 		_reward_cards_panel.refresh_card_ids(Game.reward_options, true, "PICK", Game.current_run)
 	_refresh_reward_relics()

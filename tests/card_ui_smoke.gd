@@ -65,6 +65,15 @@ func _run() -> void:
 		push_error("Card UI smoke failed: usable card should show ready text")
 		get_tree().quit(1)
 		return
+	var ready_cost_badge: ColorRect = ready_button.get_node("CostBadge") as ColorRect
+	var ready_cost: Label = ready_button.get_node("CostBadge/Cost") as Label
+	if ready_cost_badge == null \
+	or ready_cost == null \
+	or ready_cost.text != str(strike_def.active_slot_cost) \
+	or ready_cost_badge.color.g < 0.6:
+		push_error("Card UI smoke failed: card cost should render in a green top-left badge")
+		get_tree().quit(1)
+		return
 
 	var preparing_state: CardRuntimeState = CardRuntimeState.new()
 	preparing_state.runtime_id = "prep_probe"
@@ -493,17 +502,14 @@ func _run() -> void:
 	var bleed_icon: TextureRect = null
 	var slow_icon: TextureRect = null
 	var bleed_time_label: Label = null
-	var bleed_darken: ColorRect = null
 	if status_icon_row != null:
 		bleed_icon = status_icon_row.find_child("StatusIcon_bleed", true, false) as TextureRect
 		slow_icon = status_icon_row.find_child("StatusIcon_slow", true, false) as TextureRect
 		bleed_time_label = status_icon_row.find_child("StatusTime_bleed", true, false) as Label
-		bleed_darken = status_icon_row.find_child("StatusDarken_bleed", true, false) as ColorRect
 	if status_icon_row == null \
 	or bleed_icon == null \
 	or slow_icon == null \
-	or bleed_time_label == null \
-	or bleed_darken == null:
+	or bleed_time_label == null:
 		push_error("Card UI smoke failed: unit statuses should render as icon/time groups")
 		get_tree().quit(1)
 		return
@@ -511,17 +517,19 @@ func _run() -> void:
 		push_error("Card UI smoke failed: status icon should show remaining seconds to the right")
 		get_tree().quit(1)
 		return
+	if bleed_time_label.self_modulate.g < 0.9:
+		push_error("Card UI smoke failed: status seconds should use the bright green timer style")
+		get_tree().quit(1)
+		return
 	if bleed_icon.tooltip_text != "":
 		push_error("Card UI smoke failed: status icons should not use Godot's built-in tooltip")
 		get_tree().quit(1)
 		return
-	if bleed_icon.self_modulate.r >= slow_icon.self_modulate.r:
-		push_error("Card UI smoke failed: status icon brightness should reflect remaining duration")
+	if bleed_icon.self_modulate != Color.WHITE or slow_icon.self_modulate != Color.WHITE:
+		push_error("Card UI smoke failed: status icons should not darken by remaining duration")
 		get_tree().quit(1)
 		return
 	var bleed_icon_before_refresh: TextureRect = bleed_icon
-	var bleed_brightness_before: float = bleed_icon.self_modulate.r
-	var bleed_darken_before: float = bleed_darken.color.a
 	bleed_icon.emit_signal("mouse_entered")
 	await get_tree().process_frame
 	var status_tooltip_popup: PanelContainer = find_child("StatusTooltipPopup", true, false) as PanelContainer
@@ -545,7 +553,6 @@ func _run() -> void:
 	await get_tree().process_frame
 	bleed_icon = status_icon_row.find_child("StatusIcon_bleed", true, false) as TextureRect
 	bleed_time_label = status_icon_row.find_child("StatusTime_bleed", true, false) as Label
-	bleed_darken = status_icon_row.find_child("StatusDarken_bleed", true, false) as ColorRect
 	if bleed_icon != bleed_icon_before_refresh:
 		push_error("Card UI smoke failed: status icons should be reused across refreshes so hover can remain active")
 		get_tree().quit(1)
@@ -558,12 +565,8 @@ func _run() -> void:
 		push_error("Card UI smoke failed: status tooltip should update while the icon remains hovered")
 		get_tree().quit(1)
 		return
-	if bleed_icon.self_modulate.r >= bleed_brightness_before:
-		push_error("Card UI smoke failed: status icon should visibly darken as remaining time decreases")
-		get_tree().quit(1)
-		return
-	if bleed_darken == null or bleed_darken.color.a <= bleed_darken_before:
-		push_error("Card UI smoke failed: status darken overlay should increase as remaining time decreases")
+	if status_icon_row.find_child("StatusDarken_bleed", true, false) != null:
+		push_error("Card UI smoke failed: status icon darken overlay should be removed")
 		get_tree().quit(1)
 		return
 	bleed_icon.emit_signal("mouse_exited")
@@ -586,19 +589,19 @@ func _run() -> void:
 		push_error("Card UI smoke failed: HP bar and HP label should match the unit state")
 		get_tree().quit(1)
 		return
-	var shield_bar: ProgressBar = unit_panel.get_node("BodyRow/InfoColumn/ShieldStack/ShieldBar") as ProgressBar
-	var shield_label: Label = unit_panel.get_node("BodyRow/InfoColumn/ShieldStack/ShieldLabel") as Label
-	if shield_bar == null or shield_label == null or int(shield_bar.value) != 3 or shield_label.text != "Shield 3":
-		push_error("Card UI smoke failed: shield bar and shield label should match the unit state")
+	var shield_icon: TextureRect = unit_panel.get_node("BodyRow/InfoColumn/ShieldStack/ShieldBadge/ShieldBadgeAnchor/ShieldIcon") as TextureRect
+	var shield_label: Label = unit_panel.get_node("BodyRow/InfoColumn/ShieldStack/ShieldBadge/ShieldBadgeAnchor/ShieldLabel") as Label
+	if shield_icon == null or shield_icon.texture == null or shield_label == null or shield_label.text != "3":
+		push_error("Card UI smoke failed: shield icon badge and shield value should match the unit state")
 		get_tree().quit(1)
 		return
-	if shield_bar.get_parent().custom_minimum_size.y >= hp_bar.get_parent().custom_minimum_size.y:
-		push_error("Card UI smoke failed: shield bar should be smaller than the HP bar")
+	if unit_panel.find_child("ShieldBar", true, false) != null:
+		push_error("Card UI smoke failed: shield should no longer render as a bar")
 		get_tree().quit(1)
 		return
 	var unit_slot_label: Label = unit_panel.get_node("BodyRow/InfoColumn/SlotBattery/SlotLabel") as Label
-	if unit_slot_label == null or unit_slot_label.text != "Slots 2 / 4":
-		push_error("Card UI smoke failed: unit panel should render active slots")
+	if unit_slot_label == null or unit_slot_label.visible or unit_slot_label.text != "":
+		push_error("Card UI smoke failed: unit panel should hide active slot text")
 		get_tree().quit(1)
 		return
 	var slot_bars: HBoxContainer = unit_panel.get_node("BodyRow/InfoColumn/SlotBattery/SlotBatteryBars") as HBoxContainer
@@ -881,8 +884,21 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	var battle_player_slots: Label = battle_scene.find_child("SlotLabel", true, false) as Label
-	if battle_player_slots == null or battle_player_slots.text.find("Slots") == -1:
-		push_error("Card UI smoke failed: player unit panel should show active slots")
+	if battle_player_slots == null or battle_player_slots.visible or battle_player_slots.text != "":
+		push_error("Card UI smoke failed: player unit panel should hide active slot text")
+		get_tree().quit(1)
+		return
+	var battle_banner: RunInfoBanner = battle_scene.find_child("RunInfoBanner", true, false) as RunInfoBanner
+	var battle_banner_hp: Label = null
+	var battle_banner_gold: Label = null
+	if battle_banner != null:
+		battle_banner_hp = battle_banner.find_child("RunHpValue", true, false) as Label
+		battle_banner_gold = battle_banner.find_child("RunGoldValue", true, false) as Label
+	if battle_banner == null \
+	or battle_banner_hp == null \
+	or battle_banner_gold == null \
+	or battle_banner_hp.text.find("/") == -1:
+		push_error("Card UI smoke failed: battle scene should render the shared run info banner")
 		get_tree().quit(1)
 		return
 	var battle_max_marker: Label = battle_timeline_scale.get_child(battle_timeline_scale.get_child_count() - 1) as Label

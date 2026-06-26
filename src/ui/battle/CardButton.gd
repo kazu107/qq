@@ -10,6 +10,7 @@ const FRAME_FILL := Color(0.09, 0.10, 0.13, 0.96)
 const NAME_BAR_COLOR := Color(0.03, 0.04, 0.06, 0.84)
 const BADGE_DARK := Color(0.07, 0.08, 0.10, 0.88)
 const BADGE_ACTIVE := Color(0.16, 0.44, 0.70, 0.92)
+const COST_BADGE_COLOR := Color(0.12, 0.72, 0.32, 0.96)
 const TEXT_LIGHT := Color(0.97, 0.96, 0.93, 1.0)
 const COOLDOWN_SHADE := Color(0.01, 0.02, 0.03, 0.70)
 const PROGRESS_EDGE := Color(1.0, 0.95, 0.72, 0.38)
@@ -22,6 +23,8 @@ const ACTIVE_PLAYER_BORDER := Color(0.24, 0.56, 1.0, 1.0)
 const ACTIVE_ENEMY_BORDER := Color(0.95, 0.28, 0.25, 1.0)
 const TOOLTIP_BUFF_COLOR := "#72d36f"
 const TOOLTIP_NERF_COLOR := "#ff6868"
+const NAME_FONT_MAX_SIZE: int = 15
+const NAME_FONT_MIN_SIZE: int = 10
 
 static var _texture_cache: Dictionary = {}
 
@@ -40,6 +43,8 @@ var _name_bar: ColorRect
 var _name_label: Label
 var _state_badge: ColorRect
 var _state_label: Label
+var _cost_badge: ColorRect
+var _cost_label: Label
 var _meta_badge: ColorRect
 var _meta_label: Label
 var _timeline_next_badge: ColorRect
@@ -70,7 +75,8 @@ func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, cli
 	_can_use = can_use and click_enabled
 	text = ""
 	_art_rect.texture = _get_card_texture(card_def.id)
-	_name_label.text = card_def.name
+	_set_card_name(card_def.name)
+	_set_cost_value(card_def.active_slot_cost)
 
 	var meta_text: String = "%dS" % card_def.active_slot_cost
 	var tooltip_state: String = Localization.get_text("card.state.ready", "Ready")
@@ -110,6 +116,7 @@ func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, cli
 	_state_badge.visible = false
 	_set_timeline_indicators(false, false)
 	_meta_label.text = meta_text
+	_meta_badge.visible = true
 	_meta_badge.color = BADGE_DARK
 	modulate = modulate_color
 	set_bleach_enabled(false)
@@ -128,11 +135,13 @@ func bind_preview(card_def: CardDef, preview_id: String, click_enabled: bool = f
 	text = ""
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	_art_rect.texture = _get_card_texture(card_def.id)
-	_name_label.text = card_def.name
+	_set_card_name(card_def.name)
+	_set_cost_value(card_def.active_slot_cost)
 	_state_label.text = ""
 	_state_badge.visible = false
 	_set_timeline_indicators(false, false)
-	_meta_label.text = "%dS" % card_def.active_slot_cost
+	_meta_label.text = ""
+	_meta_badge.visible = false
 	_meta_badge.color = BADGE_DARK
 	set_bleach_enabled(false)
 	_apply_frame(_get_rarity_border(card_def.rarity))
@@ -150,13 +159,15 @@ func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: f
 	text = ""
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	_art_rect.texture = _get_card_texture(card_def.id)
-	_name_label.text = card_def.name
+	_set_card_name(card_def.name)
+	_set_cost_value(card_def.active_slot_cost)
 	_state_label.text = ""
 	_state_badge.visible = false
 	_set_timeline_indicators(false, false)
 
 	var remaining: float = instance.get_remaining(battle_time)
 	_meta_label.text = Localization.get_text("card.meta.casting", "casting")
+	_meta_badge.visible = true
 	_meta_badge.color = BADGE_DARK
 	set_bleach_enabled(false)
 	_apply_frame(_get_active_border(instance.owner_side))
@@ -174,12 +185,14 @@ func bind_timeline(card_def: CardDef, entry: TimelineEntry, battle_time: float, 
 	text = ""
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	_art_rect.texture = _get_card_texture(card_def.id)
-	_name_label.text = card_def.name
+	_set_card_name(card_def.name)
+	_set_cost_value(card_def.active_slot_cost)
 	_state_label.text = ""
 	_state_badge.visible = false
 
 	var remaining: float = maxf(0.0, entry.scheduled_time - battle_time)
 	_meta_label.text = "%.1fs" % remaining
+	_meta_badge.visible = true
 	_meta_badge.color = BADGE_ACTIVE if is_next else BADGE_DARK
 	set_bleach_enabled(false)
 	_apply_frame(_get_active_border(entry.owner_side), 4 if is_next else 2, 8 if is_next else 4)
@@ -251,6 +264,8 @@ func _ensure_visuals() -> void:
 		pressed.connect(_on_pressed)
 	if not resized.is_connected(_update_cooldown_mask):
 		resized.connect(_update_cooldown_mask)
+	if not resized.is_connected(_fit_name_label_to_text):
+		resized.connect(_fit_name_label_to_text)
 	if not mouse_entered.is_connected(_on_mouse_entered):
 		mouse_entered.connect(_on_mouse_entered)
 	if not mouse_exited.is_connected(_on_mouse_exited):
@@ -334,6 +349,29 @@ func _ensure_visuals() -> void:
 	_configure_overlay(_state_label)
 	_state_badge.add_child(_state_label)
 
+	_cost_badge = ColorRect.new()
+	_cost_badge.name = "CostBadge"
+	_cost_badge.offset_left = 8.0
+	_cost_badge.offset_top = 8.0
+	_cost_badge.offset_right = 34.0
+	_cost_badge.offset_bottom = 34.0
+	_cost_badge.color = COST_BADGE_COLOR
+	_configure_overlay(_cost_badge)
+	add_child(_cost_badge)
+
+	_cost_label = Label.new()
+	_cost_label.name = "Cost"
+	_cost_label.anchor_right = 1.0
+	_cost_label.anchor_bottom = 1.0
+	_cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_cost_label.add_theme_color_override("font_color", Color(0.95, 1.0, 0.88, 1.0))
+	_cost_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.88))
+	_cost_label.add_theme_constant_override("outline_size", 3)
+	_cost_label.add_theme_font_size_override("font_size", 16)
+	_configure_overlay(_cost_label)
+	_cost_badge.add_child(_cost_label)
+
 	_meta_badge = ColorRect.new()
 	_meta_badge.name = "MetaBadge"
 	_meta_badge.anchor_left = 1.0
@@ -358,9 +396,9 @@ func _ensure_visuals() -> void:
 	_timeline_next_badge = ColorRect.new()
 	_timeline_next_badge.name = "TimelineNextBadge"
 	_timeline_next_badge.visible = false
-	_timeline_next_badge.offset_left = 8.0
+	_timeline_next_badge.offset_left = 38.0
 	_timeline_next_badge.offset_top = 8.0
-	_timeline_next_badge.offset_right = 64.0
+	_timeline_next_badge.offset_right = 94.0
 	_timeline_next_badge.offset_bottom = 30.0
 	_timeline_next_badge.color = TIMELINE_NEXT_BADGE
 	_configure_overlay(_timeline_next_badge)
@@ -383,6 +421,37 @@ func _ensure_visuals() -> void:
 
 func _configure_overlay(control: Control) -> void:
 	control.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _set_card_name(card_name: String) -> void:
+	if _name_label == null:
+		return
+	_name_label.text = card_name
+	_fit_name_label_to_text()
+	call_deferred("_fit_name_label_to_text")
+
+
+func _fit_name_label_to_text() -> void:
+	if _name_label == null:
+		return
+	var available_width: float = maxf(24.0, (size.x if size.x > 1.0 else custom_minimum_size.x) - 16.0)
+	var font: Font = _name_label.get_theme_font("font")
+	var chosen_size: int = NAME_FONT_MAX_SIZE
+	if font != null and _name_label.text != "":
+		chosen_size = NAME_FONT_MIN_SIZE
+		for candidate_size: int in range(NAME_FONT_MAX_SIZE, NAME_FONT_MIN_SIZE - 1, -1):
+			var measured_size: Vector2 = font.get_string_size(_name_label.text, HORIZONTAL_ALIGNMENT_CENTER, -1.0, candidate_size)
+			if measured_size.x <= available_width:
+				chosen_size = candidate_size
+				break
+	_name_label.add_theme_font_size_override("font_size", chosen_size)
+
+
+func _set_cost_value(cost: int) -> void:
+	if _cost_badge == null or _cost_label == null:
+		return
+	_cost_badge.visible = true
+	_cost_label.text = "%d" % maxi(0, cost)
 
 
 func _apply_frame(border_color: Color, border_width: int = 2, overlay_width: int = 4) -> void:

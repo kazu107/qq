@@ -7,10 +7,10 @@ const PANEL_FILL := Color(0.08, 0.10, 0.13, 0.92)
 const PANEL_STROKE := Color(0.28, 0.34, 0.42, 1.0)
 const HP_BAR_FILL := Color(0.77, 0.19, 0.22, 1.0)
 const HP_BAR_BG := Color(0.18, 0.05, 0.06, 0.96)
-const SHIELD_BAR_FILL := Color(0.26, 0.63, 0.92, 1.0)
-const SHIELD_BAR_BG := Color(0.04, 0.11, 0.18, 0.96)
-const SHIELD_BAR_SOFT_MAX: float = 12.0
+const SHIELD_BADGE_FILL := Color(0.03, 0.10, 0.15, 0.78)
+const SHIELD_BADGE_STROKE := Color(0.32, 0.78, 0.94, 0.86)
 const TEXT_LIGHT := Color(0.95, 0.95, 0.93, 1.0)
+const STATUS_TIME_COLOR := Color(0.36, 1.0, 0.46, 1.0)
 const SLOT_USED_FILL := Color(0.38, 0.93, 0.72, 1.0)
 const SLOT_EMPTY_FILL := Color(0.05, 0.09, 0.12, 0.46)
 const SLOT_BORDER := Color(0.53, 0.69, 0.74, 1.0)
@@ -29,9 +29,7 @@ const FLOATING_TEXT_FADE_START: float = 0.58
 const FLOATING_TEXT_FONT_SIZE: int = 32
 const STATUS_ICON_SIZE: Vector2 = Vector2(26.0, 26.0)
 const STAT_ICON_SIZE: Vector2 = Vector2(22.0, 22.0)
-const STATUS_BRIGHTNESS_MIN: float = 0.08
-const STATUS_BRIGHTNESS_MAX: float = 1.0
-const STATUS_DARKEN_ALPHA_MAX: float = 0.78
+const SHIELD_ICON_SIZE: Vector2 = Vector2(40.0, 40.0)
 const STATUS_FALLBACK_DURATIONS: Dictionary = {
 	"bleed": 36.0,
 	"weak": 30.0,
@@ -59,7 +57,7 @@ var _portrait_rect: TextureRect
 var _portrait_effect_layer: Control
 var _hp_bar: ProgressBar
 var _hp_label: Label
-var _shield_bar: ProgressBar
+var _shield_icon_rect: TextureRect
 var _shield_label: Label
 var _slots_label: Label
 var _slot_bars: HBoxContainer
@@ -73,7 +71,6 @@ var _status_none_label: Label
 var _status_item_nodes: Dictionary = {}
 var _status_icon_nodes: Dictionary = {}
 var _status_time_labels: Dictionary = {}
-var _status_darken_nodes: Dictionary = {}
 var _status_tooltip_texts: Dictionary = {}
 var _status_hovered_id: String = ""
 var _status_hovered_icon: TextureRect
@@ -98,6 +95,7 @@ func _ready() -> void:
 	size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_title_label = Label.new()
 	_title_label.text = Localization.get_text("unit.title", "Unit")
+	_title_label.visible = false
 	add_child(_title_label)
 
 	var body_row: HBoxContainer = HBoxContainer.new()
@@ -180,24 +178,33 @@ func _ready() -> void:
 	_hp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hp_stack.add_child(_hp_label)
 
-	var shield_stack: Control = Control.new()
+	var shield_stack: HBoxContainer = HBoxContainer.new()
 	shield_stack.name = "ShieldStack"
-	shield_stack.custom_minimum_size = Vector2(0.0, 25.0)
-	shield_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	shield_stack.custom_minimum_size = Vector2(0.0, 40.0)
+	shield_stack.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	shield_stack.add_theme_constant_override("separation", 6)
 	info_column.add_child(shield_stack)
 
-	_shield_bar = ProgressBar.new()
-	_shield_bar.name = "ShieldBar"
-	_shield_bar.anchor_right = 1.0
-	_shield_bar.anchor_bottom = 1.0
-	_shield_bar.show_percentage = false
-	_shield_bar.min_value = 0.0
-	_shield_bar.max_value = SHIELD_BAR_SOFT_MAX
-	_shield_bar.value = 0.0
-	_shield_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_shield_bar.add_theme_stylebox_override("background", _make_shield_background_stylebox())
-	_shield_bar.add_theme_stylebox_override("fill", _make_shield_fill_stylebox())
-	shield_stack.add_child(_shield_bar)
+	var shield_badge: PanelContainer = PanelContainer.new()
+	shield_badge.name = "ShieldBadge"
+	shield_badge.custom_minimum_size = SHIELD_ICON_SIZE
+	shield_badge.add_theme_stylebox_override("panel", _make_shield_badge_stylebox())
+	shield_stack.add_child(shield_badge)
+
+	var shield_anchor: Control = Control.new()
+	shield_anchor.name = "ShieldBadgeAnchor"
+	shield_anchor.custom_minimum_size = SHIELD_ICON_SIZE
+	shield_badge.add_child(shield_anchor)
+
+	_shield_icon_rect = TextureRect.new()
+	_shield_icon_rect.name = "ShieldIcon"
+	_shield_icon_rect.anchor_right = 1.0
+	_shield_icon_rect.anchor_bottom = 1.0
+	_shield_icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_shield_icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_shield_icon_rect.texture = StatIconFactory.get_icon("shield")
+	_shield_icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shield_anchor.add_child(_shield_icon_rect)
 
 	_shield_label = Label.new()
 	_shield_label.name = "ShieldLabel"
@@ -206,8 +213,11 @@ func _ready() -> void:
 	_shield_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_shield_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_shield_label.add_theme_color_override("font_color", TEXT_LIGHT)
+	_shield_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.90))
+	_shield_label.add_theme_constant_override("outline_size", 4)
+	_shield_label.add_theme_font_size_override("font_size", 17)
 	_shield_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	shield_stack.add_child(_shield_label)
+	shield_anchor.add_child(_shield_label)
 
 	var slot_battery: HBoxContainer = HBoxContainer.new()
 	slot_battery.name = "SlotBattery"
@@ -218,6 +228,7 @@ func _ready() -> void:
 	_slots_label = Label.new()
 	_slots_label.name = "SlotLabel"
 	_slots_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_slots_label.visible = false
 	slot_battery.add_child(_slots_label)
 
 	_slot_bars = HBoxContainer.new()
@@ -310,13 +321,8 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0, suppressed_shield
 	_hp_bar.max_value = float(max_hp_value)
 	_hp_bar.value = float(hp_value)
 	_hp_label.text = "%d / %d" % [hp_value, max_hp_value]
-	_shield_bar.max_value = maxf(SHIELD_BAR_SOFT_MAX, float(shield_value))
-	_shield_bar.value = float(shield_value)
-	_shield_label.text = Localization.get_textf("unit.shield", "Shield {value}", {"value": shield_value})
-	_slots_label.text = Localization.get_textf("unit.slots", "Slots {used} / {total}", {
-		"used": unit.active_slots_used,
-		"total": unit.active_slot_max,
-	})
+	_shield_label.text = "%d" % shield_value
+	_slots_label.text = ""
 	_refresh_slot_battery(unit.active_slots_used, unit.active_slot_max, preview_slot_cost)
 	_attack_value_label.text = "%d" % unit.get_attack_value()
 	_speed_value_label.text = "%d" % max(0, unit.speed)
@@ -343,21 +349,16 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		if remaining <= 0.0:
 			continue
 		active_status_ids.append(status_id)
-		var reference_duration: float = _get_status_reference_duration(status_id, status_data, remaining)
-		var brightness: float = _get_status_brightness(remaining, reference_duration)
-		var darken_alpha: float = _get_status_darken_alpha(remaining, reference_duration)
 		var icon: TextureRect = _get_or_create_status_icon(status_id)
 		var time_label: Label = _status_time_labels[status_id] as Label
-		var darken: ColorRect = _status_darken_nodes[status_id] as ColorRect
 		var tooltip_text: String = _build_status_tooltip(status_id, remaining)
 		icon.visible = true
 		icon.texture = _get_status_icon_texture(status_id)
-		icon.self_modulate = Color(brightness, brightness, brightness, 1.0)
+		icon.self_modulate = Color.WHITE
 		icon.tooltip_text = ""
 		_status_tooltip_texts[status_id] = tooltip_text
 		time_label.text = _format_status_remaining(remaining)
-		time_label.self_modulate = Color(brightness, brightness, brightness, 1.0)
-		darken.color = Color(0.0, 0.0, 0.0, darken_alpha)
+		time_label.self_modulate = STATUS_TIME_COLOR
 		if _status_hovered_id == status_id:
 			_status_hovered_icon = icon
 			_show_status_tooltip(tooltip_text, icon)
@@ -394,16 +395,13 @@ func _get_or_create_status_icon(status_id: String) -> TextureRect:
 	icon.mouse_entered.connect(_on_status_icon_mouse_entered.bind(status_id, icon))
 	icon.mouse_exited.connect(_on_status_icon_mouse_exited.bind(status_id))
 
-	var darken: ColorRect = ColorRect.new()
-	darken.name = "StatusDarken_%s" % status_id
-	darken.anchor_right = 1.0
-	darken.anchor_bottom = 1.0
-	darken.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.add_child(darken)
-
 	var time_label: Label = Label.new()
 	time_label.name = "StatusTime_%s" % status_id
 	time_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	time_label.add_theme_color_override("font_color", STATUS_TIME_COLOR)
+	time_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.86))
+	time_label.add_theme_constant_override("outline_size", 3)
+	time_label.add_theme_font_size_override("font_size", 15)
 	time_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var item: HBoxContainer = HBoxContainer.new()
@@ -417,7 +415,6 @@ func _get_or_create_status_icon(status_id: String) -> TextureRect:
 	_status_item_nodes[status_id] = item
 	_status_icon_nodes[status_id] = icon
 	_status_time_labels[status_id] = time_label
-	_status_darken_nodes[status_id] = darken
 	return icon
 
 
@@ -430,7 +427,6 @@ func _remove_inactive_status_icons(active_status_ids: Array[String]) -> void:
 		_status_item_nodes.erase(status_id)
 		_status_icon_nodes.erase(status_id)
 		_status_time_labels.erase(status_id)
-		_status_darken_nodes.erase(status_id)
 		_status_tooltip_texts.erase(status_id)
 		if _status_hovered_id == status_id:
 			_hide_status_tooltip()
@@ -444,17 +440,6 @@ func _get_status_reference_duration(status_id: String, status_data: Dictionary, 
 	if reference_duration <= 0.0:
 		reference_duration = float(STATUS_FALLBACK_DURATIONS.get(status_id, remaining))
 	return maxf(reference_duration, 0.1)
-
-
-func _get_status_brightness(remaining: float, reference_duration: float) -> float:
-	var remaining_ratio: float = clampf(remaining / maxf(reference_duration, 0.1), 0.0, 1.0)
-	var eased_ratio: float = pow(remaining_ratio, 2.2)
-	return lerpf(STATUS_BRIGHTNESS_MIN, STATUS_BRIGHTNESS_MAX, eased_ratio)
-
-
-func _get_status_darken_alpha(remaining: float, reference_duration: float) -> float:
-	var remaining_ratio: float = clampf(remaining / maxf(reference_duration, 0.1), 0.0, 1.0)
-	return lerpf(STATUS_DARKEN_ALPHA_MAX, 0.0, pow(remaining_ratio, 1.25))
 
 
 func _format_status_remaining(remaining: float) -> String:
@@ -780,27 +765,22 @@ func _make_hp_fill_stylebox() -> StyleBoxFlat:
 	return style
 
 
-func _make_shield_background_stylebox() -> StyleBoxFlat:
+func _make_shield_badge_stylebox() -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = SHIELD_BAR_BG
+	style.bg_color = SHIELD_BADGE_FILL
+	style.border_color = SHIELD_BADGE_STROKE
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
 	style.corner_radius_top_left = 9
 	style.corner_radius_top_right = 9
 	style.corner_radius_bottom_left = 9
 	style.corner_radius_bottom_right = 9
-	style.content_margin_left = 3
-	style.content_margin_top = 3
-	style.content_margin_right = 3
-	style.content_margin_bottom = 3
-	return style
-
-
-func _make_shield_fill_stylebox() -> StyleBoxFlat:
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = SHIELD_BAR_FILL
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
+	style.content_margin_left = 0
+	style.content_margin_top = 0
+	style.content_margin_right = 0
+	style.content_margin_bottom = 0
 	return style
 
 

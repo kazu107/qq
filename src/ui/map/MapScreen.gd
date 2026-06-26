@@ -10,6 +10,7 @@ var _steps_scroll_tail: Control
 var _equipped_summary_label: Label
 var _equipped_panel: CardHandPanel
 var _inventory_box: VBoxContainer
+var _run_info_banner: RunInfoBanner
 var _developer_panel: DeveloperPanel
 
 
@@ -37,11 +38,20 @@ func _build_ui() -> void:
 	margin.offset_bottom = -20.0
 	add_child(margin)
 
+	var screen_root: VBoxContainer = VBoxContainer.new()
+	screen_root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	screen_root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	screen_root.add_theme_constant_override("separation", 14)
+	margin.add_child(screen_root)
+
+	_run_info_banner = RunInfoBanner.new()
+	screen_root.add_child(_run_info_banner)
+
 	var root: HBoxContainer = HBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 20)
-	margin.add_child(root)
+	screen_root.add_child(root)
 
 	var info_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.run_status", "Run Status"))
 	_summary_label = RichTextLabel.new()
@@ -134,6 +144,8 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 
 func _refresh_ui() -> void:
 	var current_run: RunState = Game.current_run
+	if _run_info_banner != null:
+		_run_info_banner.refresh()
 	var step_count: int = Game.get_map_step_count()
 	var step_index: int = Game.get_current_step_index()
 	var current_step: Dictionary = Game.get_current_step_data()

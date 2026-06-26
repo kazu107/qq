@@ -13,6 +13,7 @@ var _enemy_cards_panel: CardHandPanel
 var _player_panel: UnitPanel
 var _card_hand_panel: CardHandPanel
 var _timeline_panel: TimelinePanel
+var _run_info_banner: RunInfoBanner
 var _log_button: Button
 var _log_popup: PanelContainer
 var _log_panel: LogPanel
@@ -84,7 +85,11 @@ func _build_ui() -> void:
 
 	var outer := VBoxContainer.new()
 	outer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	outer.add_theme_constant_override("separation", 12)
 	margin.add_child(outer)
+
+	_run_info_banner = RunInfoBanner.new()
+	outer.add_child(_run_info_banner)
 
 	var top_bar := HBoxContainer.new()
 	outer.add_child(top_bar)
@@ -116,7 +121,7 @@ func _build_ui() -> void:
 	main_split.add_theme_constant_override("separation", 16)
 	outer.add_child(main_split)
 
-	var left_panel := _create_section(main_split, Localization.get_text("battle.section.enemy", "Enemy"), false, true)
+	var left_panel := _create_section(main_split, Localization.get_text("battle.section.enemy", "Enemy"), false, true, false)
 	left_panel.name = "EnemySection"
 	_set_section_min_width(left_panel, BATTLE_SIDE_PANEL_WIDTH)
 	_enemy_panel = UnitPanel.new()
@@ -157,7 +162,7 @@ func _build_ui() -> void:
 	_battle_info_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	center_panel.add_child(_battle_info_label)
 
-	var right_panel := _create_section(main_split, Localization.get_text("battle.section.player", "Player"), false, true)
+	var right_panel := _create_section(main_split, Localization.get_text("battle.section.player", "Player"), false, true, false)
 	right_panel.name = "PlayerSection"
 	_set_section_min_width(right_panel, BATTLE_SIDE_PANEL_WIDTH)
 	_player_panel = UnitPanel.new()
@@ -269,6 +274,8 @@ func _refresh_ui(time_scale: float) -> void:
 	var preview_card_def: CardDef = _get_hover_preview_card_def(preview_runtime_state)
 	var preview_slot_cost: int = _get_hover_preview_slot_cost(preview_runtime_state, preview_card_def)
 	var suppressed_shield_losses: Dictionary = _consume_suppressed_shield_decay_losses(battle_state)
+	if _run_info_banner != null:
+		_run_info_banner.refresh(battle_state.player.hp, battle_state.player.max_hp)
 	_enemy_panel.refresh_unit(battle_state.enemy, 0, int(suppressed_shield_losses.get(battle_state.enemy.unit_id, 0)))
 	_player_panel.refresh_unit(battle_state.player, preview_slot_cost, int(suppressed_shield_losses.get(battle_state.player.unit_id, 0)))
 	_enemy_cards_panel.refresh_cards(battle_state.enemy, null, "enemy")

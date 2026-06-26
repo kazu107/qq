@@ -26,6 +26,7 @@ var _skip_hint: Label
 var _score_tween: Tween
 var _animation_complete: bool = false
 var _rank_revealed: bool = false
+var _run_info_banner: RunInfoBanner
 var _developer_panel: DeveloperPanel
 
 
@@ -94,6 +95,10 @@ func _build_ui() -> void:
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 18)
 	margin.add_child(root)
+
+	_run_info_banner = RunInfoBanner.new()
+	root.add_child(_run_info_banner)
+	_run_info_banner.refresh()
 
 	_build_header(root)
 
