@@ -28,12 +28,17 @@ const NAME_FONT_MAX_SIZE: int = 15
 const NAME_FONT_MIN_SIZE: int = 10
 
 static var _texture_cache: Dictionary = {}
+static var _use_legacy_tooltips: bool = false
 
 var runtime_id: String = ""
 var _can_use: bool = false
 var _click_enabled: bool = true
 var _recovery_ratio: float = 1.0
 var _tooltip_bbcode: String = ""
+var _simple_tooltip_text: String = ""
+var _simple_tooltip_bbcode: String = ""
+var _legacy_tooltip_text: String = ""
+var _legacy_tooltip_bbcode: String = ""
 
 var _art_rect: TextureRect
 var _bleach_overlay: ColorRect
@@ -124,8 +129,12 @@ func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, cli
 	_set_mouse_cursor(_can_use)
 	_apply_frame(_get_rarity_border(card_def.rarity))
 	_set_recovery_ratio(recovery_ratio)
-	tooltip_text = _build_hand_tooltip(card_def, tooltip_state, tooltip_blocked, runtime_state, false)
-	_tooltip_bbcode = _build_hand_tooltip(card_def, tooltip_state, tooltip_blocked, runtime_state, true)
+	_set_tooltip_variants(
+		_build_hand_tooltip(card_def, tooltip_state, tooltip_blocked, runtime_state, false),
+		_build_hand_tooltip(card_def, tooltip_state, tooltip_blocked, runtime_state, true),
+		_build_legacy_tooltip(card_def, tooltip_blocked, false),
+		_build_legacy_tooltip(card_def, tooltip_blocked, true)
+	)
 
 
 func bind_preview(card_def: CardDef, preview_id: String, click_enabled: bool = false, badge_text: String = "CARD") -> void:
@@ -148,8 +157,12 @@ func bind_preview(card_def: CardDef, preview_id: String, click_enabled: bool = f
 	_apply_frame(_get_rarity_border(card_def.rarity))
 	_set_mouse_cursor(_can_use)
 	_set_recovery_ratio(1.0)
-	tooltip_text = _build_preview_tooltip(card_def, false)
-	_tooltip_bbcode = _build_preview_tooltip(card_def, true)
+	_set_tooltip_variants(
+		_build_preview_simple_tooltip(card_def, false),
+		_build_preview_simple_tooltip(card_def, true),
+		_build_legacy_tooltip(card_def, "", false),
+		_build_legacy_tooltip(card_def, "", true)
+	)
 
 
 func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: float) -> void:
@@ -174,8 +187,12 @@ func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: f
 	_apply_frame(_get_active_border(instance.owner_side))
 	_set_mouse_cursor(false)
 	_set_recovery_ratio(_compute_active_ratio(instance, battle_time))
-	tooltip_text = _build_active_tooltip(card_def, instance, remaining, false)
-	_tooltip_bbcode = _build_active_tooltip(card_def, instance, remaining, true)
+	_set_tooltip_variants(
+		_build_active_tooltip(card_def, instance, remaining, false),
+		_build_active_tooltip(card_def, instance, remaining, true),
+		_build_legacy_tooltip(card_def, "", false),
+		_build_legacy_tooltip(card_def, "", true)
+	)
 
 
 func bind_timeline(card_def: CardDef, entry: TimelineEntry, battle_time: float, is_next: bool = false) -> void:
@@ -200,8 +217,12 @@ func bind_timeline(card_def: CardDef, entry: TimelineEntry, battle_time: float, 
 	_set_mouse_cursor(false)
 	_set_recovery_ratio(1.0)
 	_set_timeline_indicators(true, is_next)
-	tooltip_text = _build_timeline_tooltip(card_def, entry, remaining, false)
-	_tooltip_bbcode = _build_timeline_tooltip(card_def, entry, remaining, true)
+	_set_tooltip_variants(
+		_build_timeline_tooltip(card_def, entry, remaining, false),
+		_build_timeline_tooltip(card_def, entry, remaining, true),
+		_build_legacy_tooltip(card_def, "", false),
+		_build_legacy_tooltip(card_def, "", true)
+	)
 
 
 func _on_pressed() -> void:
@@ -220,6 +241,17 @@ func _on_mouse_exited() -> void:
 	if runtime_id == "":
 		return
 	card_unhovered.emit(runtime_id)
+
+
+func _on_gui_input(event: InputEvent) -> void:
+	var mouse_button_event: InputEventMouseButton = event as InputEventMouseButton
+	if mouse_button_event == null:
+		return
+	if mouse_button_event.button_index != MOUSE_BUTTON_RIGHT or not mouse_button_event.pressed:
+		return
+	_use_legacy_tooltips = not _use_legacy_tooltips
+	get_tree().call_group("CardButtons", "_apply_stored_tooltip_mode")
+	accept_event()
 
 
 func _make_custom_tooltip(for_text: String) -> Object:
@@ -271,6 +303,10 @@ func _ensure_visuals() -> void:
 		mouse_entered.connect(_on_mouse_entered)
 	if not mouse_exited.is_connected(_on_mouse_exited):
 		mouse_exited.connect(_on_mouse_exited)
+	if not gui_input.is_connected(_on_gui_input):
+		gui_input.connect(_on_gui_input)
+	if not is_in_group("CardButtons"):
+		add_to_group("CardButtons")
 
 	_art_rect = TextureRect.new()
 	_art_rect.name = "Art"
@@ -571,6 +607,10 @@ func _build_hand_tooltip(card_def: CardDef, _tooltip_state: String, tooltip_bloc
 	return "\n".join(lines)
 
 
+func _build_preview_simple_tooltip(card_def: CardDef, rich: bool = false) -> String:
+	return "\n".join(_build_battle_tooltip_lines(card_def, rich))
+
+
 func _build_preview_tooltip(card_def: CardDef, rich: bool = false) -> String:
 	var comparison_card: CardDef = _get_comparison_card(card_def)
 	var base_cast_time: float = card_def.cast_time
@@ -591,6 +631,16 @@ func _build_preview_tooltip(card_def: CardDef, rich: bool = false) -> String:
 	]
 	_append_effect_lines(lines, card_def, rich)
 	_append_grade_lines(lines, card_def.id)
+	return "\n".join(lines)
+
+
+func _build_legacy_tooltip(card_def: CardDef, extra_note: String = "", rich: bool = false) -> String:
+	var lines: Array[String] = []
+	for raw_line in _build_preview_tooltip(card_def, rich).split("\n"):
+		lines.append(String(raw_line))
+	if extra_note != "":
+		lines.append("")
+		lines.append(extra_note)
 	return "\n".join(lines)
 
 
@@ -624,6 +674,23 @@ func _build_battle_tooltip_lines(card_def: CardDef, rich: bool = false) -> Array
 
 func _build_tags_text(tags: Array[String]) -> String:
 	return Localization.get_tags_text(tags)
+
+
+func _set_tooltip_variants(simple_text: String, simple_bbcode: String, legacy_text: String, legacy_bbcode: String) -> void:
+	_simple_tooltip_text = simple_text
+	_simple_tooltip_bbcode = simple_bbcode
+	_legacy_tooltip_text = legacy_text
+	_legacy_tooltip_bbcode = legacy_bbcode
+	_apply_stored_tooltip_mode()
+
+
+func _apply_stored_tooltip_mode() -> void:
+	if _use_legacy_tooltips:
+		tooltip_text = _legacy_tooltip_text
+		_tooltip_bbcode = _legacy_tooltip_bbcode
+	else:
+		tooltip_text = _simple_tooltip_text
+		_tooltip_bbcode = _simple_tooltip_bbcode
 
 
 func _get_comparison_card(card_def: CardDef) -> CardDef:

@@ -151,7 +151,7 @@ func _refresh_scale(horizon: float) -> void:
 		child.queue_free()
 
 	var resolved_horizon: float = maxf(0.1, horizon)
-	var scale_horizon: float = float(ceili(resolved_horizon))
+	var scale_horizon: float = _ceil_to_multiple(resolved_horizon, 4)
 
 	for scale_index in range(TIMELINE_SCALE_MARK_COUNT):
 		var label: Label = Label.new()
@@ -337,6 +337,11 @@ func _format_scale_seconds(seconds: float) -> String:
 	if is_equal_approx(seconds, roundf(seconds)):
 		return "%ds" % int(roundf(seconds))
 	return "%.1fs" % seconds
+
+
+func _ceil_to_multiple(value: float, multiple: int) -> float:
+	var safe_multiple: int = maxi(1, multiple)
+	return float(ceili(value / float(safe_multiple)) * safe_multiple)
 
 
 func _compare_entries(a: TimelineEntry, b: TimelineEntry) -> bool:

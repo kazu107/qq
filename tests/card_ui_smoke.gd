@@ -167,8 +167,8 @@ func _run() -> void:
 		push_error("Card UI smoke failed: boosted tooltip should show plain effect deltas")
 		get_tree().quit(1)
 		return
-	if boosted_button.tooltip_text.find("Grades:") == -1 or boosted_button.tooltip_text.find("Base | Cast") == -1 or boosted_button.tooltip_text.find("+3 |") == -1:
-		push_error("Card UI smoke failed: preview tooltip should keep all grade info")
+	if boosted_button.tooltip_text.find("Grades:") != -1:
+		push_error("Card UI smoke failed: preview tooltip should use the compact battle tooltip by default")
 		get_tree().quit(1)
 		return
 	if boosted_button.tooltip_text.find("Cast: 3.0 (+1.2)s") == -1 or boosted_button.tooltip_text.find("Recast: 6.0 (-2.0)s") == -1:
@@ -185,6 +185,21 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	rich_tooltip.free()
+	var tooltip_toggle_event: InputEventMouseButton = InputEventMouseButton.new()
+	tooltip_toggle_event.button_index = MOUSE_BUTTON_RIGHT
+	tooltip_toggle_event.pressed = true
+	boosted_button.call("_on_gui_input", tooltip_toggle_event)
+	await get_tree().process_frame
+	if boosted_button.tooltip_text.find("Grades:") == -1 or boosted_button.tooltip_text.find("Base | Cast") == -1 or boosted_button.tooltip_text.find("+3 |") == -1:
+		push_error("Card UI smoke failed: right-click should switch cards to the legacy detailed tooltip")
+		get_tree().quit(1)
+		return
+	boosted_button.call("_on_gui_input", tooltip_toggle_event)
+	await get_tree().process_frame
+	if boosted_button.tooltip_text.find("Grades:") != -1:
+		push_error("Card UI smoke failed: right-click should toggle card tooltips back to compact mode")
+		get_tree().quit(1)
+		return
 	if absf(first_button.size.x - first_button.size.y) > 0.1:
 		push_error("Card UI smoke failed: battle hand tile is not square")
 		get_tree().quit(1)
@@ -352,13 +367,13 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	var quarter_marker: Label = timeline_scale.get_child(1) as Label
-	if quarter_marker == null or quarter_marker.text != "1.5s":
-		push_error("Card UI smoke failed: timeline scale should render quarter steps from the ceiling max")
+	if quarter_marker == null or quarter_marker.text != "2s":
+		push_error("Card UI smoke failed: timeline scale should render quarter steps from the four-second multiple max")
 		get_tree().quit(1)
 		return
 	var max_marker: Label = timeline_scale.get_child(timeline_scale.get_child_count() - 1) as Label
-	if max_marker == null or max_marker.text != "6s":
-		push_error("Card UI smoke failed: timeline scale should use fixed max cast time")
+	if max_marker == null or max_marker.text != "8s":
+		push_error("Card UI smoke failed: timeline scale should use a four-second multiple max cast time")
 		get_tree().quit(1)
 		return
 	if earliest_button.tooltip_text.find("Cast:") == -1 or earliest_button.tooltip_text.find("Recast:") == -1:

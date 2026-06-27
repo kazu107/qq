@@ -1095,11 +1095,234 @@ func get_shop_offers() -> Array[Dictionary]:
 	return result
 
 
+func get_shop_service_choices() -> Array[Dictionary]:
+	var active_node: Dictionary = get_active_map_node()
+	if String(active_node.get("type", "")) != "shop":
+		return []
+	var area: int = int(active_node.get("area", current_run.current_area if current_run != null else 1))
+	return [
+		_build_shop_service_choice(active_node, "buy_repair_kit", 12 + area * 4, 8 + area * 4, 0, 0),
+		_build_shop_service_choice(active_node, "buy_loadout_rail", 28 + area * 6, 0, 1, 0),
+		_build_shop_service_choice(active_node, "courier_job", 0, 0, 0, 12 + area * 4),
+	]
+
+
 func get_forge_options() -> Array[String]:
 	var active_node: Dictionary = get_active_map_node()
 	if String(active_node.get("type", "")) != "forge":
 		return []
 	return _to_string_array(active_node.get("forge_options", []))
+
+
+func get_forge_service_choices() -> Array[Dictionary]:
+	var active_node: Dictionary = get_active_map_node()
+	if String(active_node.get("type", "")) != "forge":
+		return []
+	var area: int = int(active_node.get("area", current_run.current_area if current_run != null else 1))
+	var forge_used: bool = bool(active_node.get("forge_used", false))
+	return [
+		_build_forge_service_choice("attack_tune", 18 + area * 5, 1, 0, forge_used),
+		_build_forge_service_choice("rail_work", 22 + area * 5, 0, 1, forge_used),
+	]
+
+
+func get_heal_node_choices() -> Array[Dictionary]:
+	var active_node: Dictionary = get_active_map_node()
+	if String(active_node.get("type", "")) != "heal":
+		return []
+	var area: int = int(active_node.get("area", current_run.current_area if current_run != null else 1))
+	var heal_amount: int = int(active_node.get("heal_amount", 0))
+	return [
+		_build_heal_choice("full_treatment", 14 + area * 5, heal_amount + 8, 4),
+		_build_heal_choice("standard_repair", 0, heal_amount, 0),
+		_build_heal_choice("field_patch", 0, maxi(4, int(ceil(float(heal_amount) * 0.5))), 0, 8 + area * 2),
+	]
+
+
+func _build_shop_service_choice(active_node: Dictionary, choice_id: String, gold_cost: int, heal_amount: int, loadout_gain: int, gold_gain: int) -> Dictionary:
+	var used: bool = bool(active_node.get("shop_service_%s_used" % choice_id, false))
+	var enabled: bool = not used and current_run != null and current_run.gold >= gold_cost
+	var disabled_reason: String = ""
+	if used:
+		disabled_reason = Localization.get_text("facility.choice.used", "Already used.")
+	elif current_run != null and current_run.gold < gold_cost:
+		disabled_reason = Localization.get_text("event.disabled.not_enough_gold", "Not enough gold.")
+
+	var effects: Array[Dictionary] = []
+	if gold_cost > 0:
+		effects.append({"type": "lose_gold", "amount": gold_cost})
+	if heal_amount > 0:
+		effects.append({"type": "heal", "amount": heal_amount})
+	if loadout_gain != 0:
+		effects.append({"type": "modify_loadout_limit", "amount": loadout_gain})
+	if gold_gain > 0:
+		effects.append({"type": "grant_gold", "amount": gold_gain})
+
+	var label_key: String = "shop.choice.%s.label" % choice_id
+	var description_key: String = "shop.choice.%s.description" % choice_id
+	return {
+		"id": choice_id,
+		"label": Localization.get_textf(label_key, _get_shop_choice_fallback_label(choice_id), {
+			"cost": gold_cost,
+			"heal": heal_amount,
+			"gold": gold_gain,
+			"loadout": loadout_gain,
+		}),
+		"description": Localization.get_textf(description_key, _get_shop_choice_fallback_description(choice_id), {
+			"cost": gold_cost,
+			"heal": heal_amount,
+			"gold": gold_gain,
+			"loadout": loadout_gain,
+		}),
+		"effects": effects,
+		"enabled": enabled,
+		"disabled_reason": disabled_reason,
+	}
+
+
+func _build_forge_service_choice(choice_id: String, gold_cost: int, attack_gain: int, loadout_gain: int, forge_used: bool) -> Dictionary:
+	var enabled: bool = not forge_used and current_run != null and current_run.gold >= gold_cost
+	var disabled_reason: String = ""
+	if forge_used:
+		disabled_reason = Localization.get_text("forge.used", "Forge already used for this visit.")
+	elif current_run != null and current_run.gold < gold_cost:
+		disabled_reason = Localization.get_text("event.disabled.not_enough_gold", "Not enough gold.")
+
+	var effects: Array[Dictionary] = []
+	if gold_cost > 0:
+		effects.append({"type": "lose_gold", "amount": gold_cost})
+	if attack_gain != 0:
+		effects.append({"type": "modify_attack", "amount": attack_gain})
+	if loadout_gain != 0:
+		effects.append({"type": "modify_loadout_limit", "amount": loadout_gain})
+
+	return {
+		"id": choice_id,
+		"label": Localization.get_textf("forge.choice.%s.label" % choice_id, _get_forge_choice_fallback_label(choice_id), {
+			"cost": gold_cost,
+			"attack": attack_gain,
+			"loadout": loadout_gain,
+		}),
+		"description": Localization.get_textf("forge.choice.%s.description" % choice_id, _get_forge_choice_fallback_description(choice_id), {
+			"cost": gold_cost,
+			"attack": attack_gain,
+			"loadout": loadout_gain,
+		}),
+		"effects": effects,
+		"enabled": enabled,
+		"disabled_reason": disabled_reason,
+	}
+
+
+func _build_heal_choice(choice_id: String, gold_cost: int, heal_amount: int, max_hp_gain: int, gold_gain: int = 0) -> Dictionary:
+	var enabled: bool = current_run != null and current_run.gold >= gold_cost
+	var disabled_reason: String = ""
+	if current_run != null and current_run.gold < gold_cost:
+		disabled_reason = Localization.get_text("event.disabled.not_enough_gold", "Not enough gold.")
+
+	var effects: Array[Dictionary] = []
+	if gold_cost > 0:
+		effects.append({"type": "lose_gold", "amount": gold_cost})
+	if heal_amount > 0:
+		effects.append({"type": "heal", "amount": heal_amount})
+	if max_hp_gain != 0:
+		effects.append({"type": "modify_max_hp", "amount": max_hp_gain})
+	if gold_gain > 0:
+		effects.append({"type": "grant_gold", "amount": gold_gain})
+
+	return {
+		"id": choice_id,
+		"label": Localization.get_textf("heal.choice.%s.label" % choice_id, _get_heal_choice_fallback_label(choice_id), {
+			"cost": gold_cost,
+			"heal": heal_amount,
+			"max_hp": max_hp_gain,
+			"gold": gold_gain,
+		}),
+		"description": Localization.get_textf("heal.choice.%s.description" % choice_id, _get_heal_choice_fallback_description(choice_id), {
+			"cost": gold_cost,
+			"heal": heal_amount,
+			"max_hp": max_hp_gain,
+			"gold": gold_gain,
+		}),
+		"effects": effects,
+		"enabled": enabled,
+		"disabled_reason": disabled_reason,
+	}
+
+
+func _get_shop_choice_fallback_label(choice_id: String) -> String:
+	match choice_id:
+		"buy_repair_kit":
+			return "Buy repair kit ({cost}G)"
+		"buy_loadout_rail":
+			return "Buy loadout rail ({cost}G)"
+		"courier_job":
+			return "Take a courier job"
+		_:
+			return choice_id.capitalize()
+
+
+func _get_shop_choice_fallback_description(choice_id: String) -> String:
+	match choice_id:
+		"buy_repair_kit":
+			return "Recover {heal} HP without leaving the shop."
+		"buy_loadout_rail":
+			return "Increase loadout capacity by {loadout}."
+		"courier_job":
+			return "Gain {gold} gold once."
+		_:
+			return ""
+
+
+func _get_forge_choice_fallback_label(choice_id: String) -> String:
+	match choice_id:
+		"attack_tune":
+			return "Tune weapon output ({cost}G)"
+		"rail_work":
+			return "Machine loadout rails ({cost}G)"
+		_:
+			return choice_id.capitalize()
+
+
+func _get_forge_choice_fallback_description(choice_id: String) -> String:
+	match choice_id:
+		"attack_tune":
+			return "Gain +{attack} attack for the rest of the run."
+		"rail_work":
+			return "Increase loadout capacity by {loadout}."
+		_:
+			return ""
+
+
+func _get_heal_choice_fallback_label(choice_id: String) -> String:
+	match choice_id:
+		"full_treatment":
+			return "Full treatment ({cost}G)"
+		"standard_repair":
+			return "Standard repair"
+		"field_patch":
+			return "Field patch and supplies"
+		_:
+			return choice_id.capitalize()
+
+
+func _get_heal_choice_fallback_description(choice_id: String) -> String:
+	match choice_id:
+		"full_treatment":
+			return "Recover {heal} HP and gain +{max_hp} max HP."
+		"standard_repair":
+			return "Recover {heal} HP."
+		"field_patch":
+			return "Recover {heal} HP and gain {gold} gold."
+		_:
+			return ""
+
+
+func _find_choice_data(choices: Array[Dictionary], choice_id: String) -> Dictionary:
+	for choice_data in choices:
+		if String(choice_data.get("id", "")) == choice_id:
+			return choice_data
+	return {}
 
 
 func get_active_event_data() -> Dictionary:
@@ -1292,6 +1515,46 @@ func buy_shop_offer(offer_index: int) -> bool:
 	return true
 
 
+func use_shop_service_choice(choice_id: String) -> bool:
+	if current_run == null:
+		return false
+
+	var location: Dictionary = _get_active_node_location()
+	if location.is_empty():
+		return false
+
+	var step_index: int = int(location.get("step_index", -1))
+	var node_index: int = int(location.get("node_index", -1))
+	var node_data: Dictionary = _get_node(step_index, node_index)
+	if String(node_data.get("type", "")) != "shop":
+		return false
+
+	var choices: Array[Dictionary] = get_shop_service_choices()
+	var selected_choice: Dictionary = _find_choice_data(choices, choice_id)
+	if selected_choice.is_empty() or not bool(selected_choice.get("enabled", true)):
+		return false
+
+	for raw_effect in Array(selected_choice.get("effects", [])):
+		var effect_data: Dictionary = Dictionary(raw_effect)
+		match String(effect_data.get("type", "")):
+			"lose_gold":
+				current_run.gold = max(0, current_run.gold - int(effect_data.get("amount", 0)))
+			"grant_gold":
+				current_run.gold += int(effect_data.get("amount", 0))
+			"heal":
+				current_run.player_hp = min(current_run.max_hp, current_run.player_hp + int(effect_data.get("amount", 0)))
+			"modify_loadout_limit":
+				current_run.loadout_limit = max(1, current_run.loadout_limit + int(effect_data.get("amount", 0)))
+			_:
+				pass
+
+	node_data["shop_service_%s_used" % choice_id] = true
+	_set_node(step_index, node_index, node_data)
+	AudioManager.play_sfx("shop_buy")
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
 func upgrade_forge_card(card_id: String) -> int:
 	if current_run == null:
 		return 0
@@ -1320,15 +1583,73 @@ func upgrade_forge_card(card_id: String) -> int:
 	return new_tier
 
 
+func use_forge_service_choice(choice_id: String) -> bool:
+	if current_run == null:
+		return false
+
+	var location: Dictionary = _get_active_node_location()
+	if location.is_empty():
+		return false
+
+	var step_index: int = int(location.get("step_index", -1))
+	var node_index: int = int(location.get("node_index", -1))
+	var node_data: Dictionary = _get_node(step_index, node_index)
+	if String(node_data.get("type", "")) != "forge" or bool(node_data.get("forge_used", false)):
+		return false
+
+	var choices: Array[Dictionary] = get_forge_service_choices()
+	var selected_choice: Dictionary = _find_choice_data(choices, choice_id)
+	if selected_choice.is_empty() or not bool(selected_choice.get("enabled", true)):
+		return false
+
+	for raw_effect in Array(selected_choice.get("effects", [])):
+		var effect_data: Dictionary = Dictionary(raw_effect)
+		match String(effect_data.get("type", "")):
+			"lose_gold":
+				current_run.gold = max(0, current_run.gold - int(effect_data.get("amount", 0)))
+			"modify_attack":
+				current_run.attack += int(effect_data.get("amount", 0))
+			"modify_loadout_limit":
+				current_run.loadout_limit = max(1, current_run.loadout_limit + int(effect_data.get("amount", 0)))
+			_:
+				pass
+
+	node_data["forge_used"] = true
+	_set_node(step_index, node_index, node_data)
+	AudioManager.play_sfx("forge_upgrade")
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
 func use_heal_node() -> int:
+	return use_heal_node_choice("standard_repair")
+
+
+func use_heal_node_choice(choice_id: String) -> int:
 	if current_run == null:
 		return 0
 	var active_node: Dictionary = get_active_map_node()
 	if String(active_node.get("type", "")) != "heal":
 		return 0
-	var heal_amount: int = int(active_node.get("heal_amount", 0))
+	var selected_choice: Dictionary = _find_choice_data(get_heal_node_choices(), choice_id)
+	if selected_choice.is_empty() or not bool(selected_choice.get("enabled", true)):
+		return 0
 	var before_hp: int = current_run.player_hp
-	current_run.player_hp = min(current_run.max_hp, current_run.player_hp + heal_amount)
+	for raw_effect in Array(selected_choice.get("effects", [])):
+		var effect_data: Dictionary = Dictionary(raw_effect)
+		match String(effect_data.get("type", "")):
+			"lose_gold":
+				current_run.gold = max(0, current_run.gold - int(effect_data.get("amount", 0)))
+			"grant_gold":
+				current_run.gold += int(effect_data.get("amount", 0))
+			"heal":
+				current_run.player_hp = min(current_run.max_hp, current_run.player_hp + int(effect_data.get("amount", 0)))
+			"modify_max_hp":
+				var hp_delta: int = int(effect_data.get("amount", 0))
+				current_run.max_hp = max(1, current_run.max_hp + hp_delta)
+				current_run.player_hp = clampi(current_run.player_hp + max(0, hp_delta), 1, current_run.max_hp)
+			_:
+				pass
 	_complete_active_map_node_and_advance()
 	current_screen_hint = _get_post_progress_scene_hint()
 	AudioManager.play_sfx("heal_use")

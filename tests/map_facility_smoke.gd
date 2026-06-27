@@ -290,52 +290,21 @@ func _exercise_forge_node() -> void:
 		await get_tree().process_frame
 		return
 
-	var options_box: VBoxContainer = facility_scene.find_child("FacilityOptions", true, false) as VBoxContainer
-	var forge_row: HBoxContainer = _find_first_hbox(options_box)
-	if forge_row == null or forge_row.get_child_count() < 3:
-		_fail("Map/facility smoke failed: forge row layout was not created")
+	var forge_choice_list: VBoxContainer = facility_scene.find_child("ForgeChoiceList", true, false) as VBoxContainer
+	if forge_choice_list == null or forge_choice_list.get_child_count() < forge_options.size() + 3:
+		_fail("Map/facility smoke failed: forge should render upgrade, service, and leave choices")
 		facility_scene.queue_free()
 		await get_tree().process_frame
 		return
 
-	var forge_preview: CardButton = forge_row.get_child(0) as CardButton
-	var forge_text_box: VBoxContainer = forge_row.get_child(1) as VBoxContainer
-	var forge_button: Button = forge_row.get_child(2) as Button
-	if forge_preview == null or forge_text_box == null or forge_text_box.get_child_count() < 2 or forge_button == null:
-		_fail("Map/facility smoke failed: forge preview controls were not created")
-		facility_scene.queue_free()
-		await get_tree().process_frame
-		return
-
-	var preview_name: Label = forge_preview.get_node("NameBar/Name") as Label
-	var tier_label: Label = forge_text_box.get_child(0) as Label
-	var details_label: Label = forge_text_box.get_child(1) as Label
-	if preview_name == null or tier_label == null or details_label == null:
-		_fail("Map/facility smoke failed: forge preview labels were not created")
+	if Game.get_forge_service_choices().size() < 2:
+		_fail("Map/facility smoke failed: forge should expose additional service choices")
 		facility_scene.queue_free()
 		await get_tree().process_frame
 		return
 
 	var card_id: String = forge_options[0]
 	var current_tier: int = CardUpgradeResolver.get_tier(Game.current_run, card_id)
-	var base_name: String = preview_name.text
-	var base_details: String = details_label.text
-	forge_button.emit_signal("mouse_entered")
-	await get_tree().process_frame
-	if preview_name.text == base_name or details_label.text == base_details:
-		_fail("Map/facility smoke failed: forge hover did not preview upgraded info")
-		facility_scene.queue_free()
-		await get_tree().process_frame
-		return
-
-	facility_scene.call("_apply_forge_preview_state", forge_preview, tier_label, details_label, card_id, current_tier)
-	await get_tree().process_frame
-	if preview_name.text != base_name or details_label.text != base_details:
-		_fail("Map/facility smoke failed: forge hover did not restore current info")
-		facility_scene.queue_free()
-		await get_tree().process_frame
-		return
-
 	var tier_after: int = Game.upgrade_forge_card(card_id)
 	if tier_after != current_tier + 1:
 		_fail("Map/facility smoke failed: forge upgrade did not advance card tier")
@@ -370,9 +339,27 @@ func _exercise_shop_node() -> void:
 		facility_scene.queue_free()
 		await get_tree().process_frame
 		return
+	var shop_choice_list: VBoxContainer = facility_scene.find_child("ShopChoiceList", true, false) as VBoxContainer
+	if shop_choice_list == null or shop_choice_list.get_child_count() < offers.size() + 4:
+		_fail("Map/facility smoke failed: shop should render card offers, service choices, and leave choice")
+		facility_scene.queue_free()
+		await get_tree().process_frame
+		return
+	if Game.get_shop_service_choices().size() < 3:
+		_fail("Map/facility smoke failed: shop should expose additional service choices")
+		facility_scene.queue_free()
+		await get_tree().process_frame
+		return
 
 	var deck_before: int = Game.current_run.player_cards.size()
 	var bought: bool = false
+	Game.current_run.gold = max(Game.current_run.gold, 200)
+	var gold_before_service: int = Game.current_run.gold
+	if not Game.use_shop_service_choice("courier_job") or Game.current_run.gold <= gold_before_service:
+		_fail("Map/facility smoke failed: shop courier service choice did not grant gold")
+		facility_scene.queue_free()
+		await get_tree().process_frame
+		return
 	for offer_index in range(offers.size()):
 		var offer_data: Dictionary = offers[offer_index]
 		if bool(offer_data.get("bought", false)):
@@ -514,17 +501,25 @@ func _assert_facility_scene(expected_type: String) -> Control:
 	if options_box == null or options_box.get_child_count() == 0:
 		_fail("Map/facility smoke failed: %s scene did not render options" % expected_type)
 		return facility_scene
-	if expected_type == "event":
-		var choice_list: VBoxContainer = facility_scene.find_child("EventChoiceList", true, false) as VBoxContainer
+	if ["shop", "forge", "heal", "event"].has(expected_type):
+		var choice_list_name: String = "%sChoiceList" % expected_type.capitalize()
+		if expected_type == "event":
+			choice_list_name = "EventChoiceList"
+		var choice_list: VBoxContainer = facility_scene.find_child(choice_list_name, true, false) as VBoxContainer
 		var deck_frame: Control = null
 		if facility_deck != null and facility_deck.get_parent() != null:
 			deck_frame = facility_deck.get_parent().get_parent() as Control
-		if choice_list == null or choice_list.get_child_count() != 3:
-			_fail("Map/facility smoke failed: event scene should render three large choice buttons")
+		var expected_min_choices: int = 3
+		if expected_type == "shop":
+			expected_min_choices = 7
+		elif expected_type == "forge":
+			expected_min_choices = 4
+		if choice_list == null or choice_list.get_child_count() < expected_min_choices:
+			_fail("Map/facility smoke failed: %s scene should render large choice buttons" % expected_type)
 		elif deck_frame == null or deck_frame.visible:
-			_fail("Map/facility smoke failed: event scene should hide the battle loadout frame")
+			_fail("Map/facility smoke failed: %s scene should hide the battle loadout frame" % expected_type)
 		elif relic_icon_row == null or relic_icon_row.visible:
-			_fail("Map/facility smoke failed: event scene should hide node summary relics")
+			_fail("Map/facility smoke failed: %s scene should hide node summary relics" % expected_type)
 		return facility_scene
 	if facility_deck == null or facility_deck.get_child_count() == 0:
 		_fail("Map/facility smoke failed: %s scene did not render loadout cards" % expected_type)

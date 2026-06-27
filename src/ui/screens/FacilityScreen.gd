@@ -126,30 +126,34 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 	return box
 
 
-func _apply_facility_layout_state(is_event_node: bool) -> void:
+func _uses_choice_layout(node_type: String) -> bool:
+	return ["shop", "forge", "heal", "event"].has(node_type)
+
+
+func _apply_facility_layout_state(uses_choice_layout: bool) -> void:
 	if _facility_header_label != null:
-		_facility_header_label.visible = not is_event_node
+		_facility_header_label.visible = not uses_choice_layout
 	if _summary_label != null:
-		_summary_label.visible = not is_event_node
+		_summary_label.visible = not uses_choice_layout
 	if _status_label != null:
-		_status_label.visible = not is_event_node
+		_status_label.visible = not uses_choice_layout
 	if _relics_icon_row != null:
-		_relics_icon_row.visible = not is_event_node
+		_relics_icon_row.visible = not uses_choice_layout
 	if _leave_button != null:
-		_leave_button.visible = not is_event_node
+		_leave_button.visible = not uses_choice_layout
 	if _deck_frame != null:
-		_deck_frame.visible = not is_event_node
+		_deck_frame.visible = not uses_choice_layout
 	if _deck_header_label != null:
-		_deck_header_label.visible = not is_event_node
+		_deck_header_label.visible = not uses_choice_layout
 	if _options_box != null:
-		_options_box.alignment = BoxContainer.ALIGNMENT_CENTER if is_event_node else BoxContainer.ALIGNMENT_BEGIN
+		_options_box.alignment = BoxContainer.ALIGNMENT_CENTER if uses_choice_layout else BoxContainer.ALIGNMENT_BEGIN
 	if _title_label != null:
-		_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if is_event_node else HORIZONTAL_ALIGNMENT_LEFT
-		_title_label.add_theme_font_size_override("font_size", 34 if is_event_node else 18)
-		_title_label.add_theme_color_override("font_color", Color(0.96, 0.91, 0.78, 1.0) if is_event_node else Color(0.96, 0.96, 0.96, 1.0))
+		_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if uses_choice_layout else HORIZONTAL_ALIGNMENT_LEFT
+		_title_label.add_theme_font_size_override("font_size", 34 if uses_choice_layout else 18)
+		_title_label.add_theme_color_override("font_color", Color(0.96, 0.91, 0.78, 1.0) if uses_choice_layout else Color(0.96, 0.96, 0.96, 1.0))
 	if _facility_frame == null:
 		return
-	if is_event_node:
+	if uses_choice_layout:
 		_facility_frame.custom_minimum_size = Vector2(780.0, 0.0)
 		_facility_frame.add_theme_stylebox_override("panel", _make_event_panel_stylebox())
 	else:
@@ -163,12 +167,15 @@ func _refresh_ui() -> void:
 		_run_info_banner.refresh()
 	var active_node: Dictionary = Game.get_active_map_node()
 	var node_type: String = Game.get_active_facility_type()
-	var is_event_node: bool = node_type == "event"
-	_apply_facility_layout_state(is_event_node)
+	var uses_choice_layout: bool = _uses_choice_layout(node_type)
+	_apply_facility_layout_state(uses_choice_layout)
 
-	if is_event_node:
+	if uses_choice_layout:
 		var event_data: Dictionary = Game.get_active_event_data()
-		_title_label.text = String(event_data.get("title", Localization.get_text("event.default_title", "Event")))
+		if node_type == "event":
+			_title_label.text = String(event_data.get("title", Localization.get_text("event.default_title", "Event")))
+		else:
+			_title_label.text = _facility_title(node_type)
 		_summary_label.text = ""
 		_status_label.text = ""
 	else:
@@ -215,18 +222,14 @@ func _refresh_ui() -> void:
 		_:
 			_status_label.text = Localization.get_text("facility.status.none", "No facility data.")
 
-	if not is_event_node:
+	if not uses_choice_layout:
 		_deck_panel.refresh_card_ids(Game.get_equipped_cards(), false, "EQUIP", current_run)
 	_refresh_developer_panel()
 
 
 func _render_shop_offers() -> void:
 	var offers: Array[Dictionary] = Game.get_shop_offers()
-	if offers.is_empty():
-		var empty_label: Label = Label.new()
-		empty_label.text = Localization.get_text("shop.none", "No shop offers available.")
-		_options_box.add_child(empty_label)
-		return
+	var choice_list: VBoxContainer = _create_choice_list("ShopChoiceList")
 
 	for offer_index in range(offers.size()):
 		var offer_data: Dictionary = offers[offer_index]
@@ -234,133 +237,127 @@ func _render_shop_offers() -> void:
 		var card_def: CardDef = Database.get_card(card_id)
 		if card_def == null:
 			continue
-
-		var row: HBoxContainer = HBoxContainer.new()
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_theme_constant_override("separation", 12)
-		_options_box.add_child(row)
-
-		var preview: CardButton = CardButton.new()
-		preview.set_tile_size(Vector2(100.0, 100.0))
-		preview.bind_preview(card_def, card_id, false, "SHOP")
-		row.add_child(preview)
-
-		var text_box: VBoxContainer = VBoxContainer.new()
-		text_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(text_box)
-
-		var name_label: Label = Label.new()
-		name_label.text = "%s | %s" % [card_def.name, Localization.get_rarity_name(card_def.rarity)]
-		text_box.add_child(name_label)
-
-		var effect_label: Label = Label.new()
-		effect_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		effect_label.text = CardInfoFormatter.build_effect_summary(card_def)
-		text_box.add_child(effect_label)
-
-		var action_button: Button = Button.new()
 		var price: int = int(offer_data.get("price", 0))
 		var bought: bool = bool(offer_data.get("bought", false))
+		var choice_data: Dictionary = {
+			"id": "offer_%d" % offer_index,
+			"name_prefix": "ShopChoiceButton",
+			"label": Localization.get_textf("shop.choice.buy_card.label", "Buy {card_name} ({price}G)", {
+				"card_name": card_def.name,
+				"price": price,
+			}),
+			"description": CardInfoFormatter.build_effect_summary(card_def),
+			"effects": [
+				{"type": "lose_gold", "amount": price},
+				{"type": "grant_random_card", "card_id": card_id},
+			],
+			"enabled": not bought and Game.current_run.gold >= price,
+			"disabled_reason": Localization.get_text("shop.sold", "Sold") if bought else Localization.get_text("event.disabled.not_enough_gold", "Not enough gold."),
+		}
 		if bought:
-			action_button.text = Localization.get_text("shop.sold", "Sold")
-			action_button.disabled = true
-		else:
-			action_button.text = Localization.get_textf("shop.buy", "Buy {price}g", {"price": price})
-			action_button.disabled = Game.current_run.gold < price
-			action_button.pressed.connect(_on_buy_offer.bind(offer_index))
-		row.add_child(action_button)
+			choice_data["effects"] = [{"type": "grant_random_card", "card_id": card_id}]
+		choice_list.add_child(_build_event_choice_button(choice_data, Callable(self, "_on_buy_offer").bind(offer_index)))
+
+	for service_choice in Game.get_shop_service_choices():
+		var choice_data: Dictionary = Dictionary(service_choice)
+		choice_data["name_prefix"] = "ShopChoiceButton"
+		choice_list.add_child(_build_event_choice_button(choice_data, Callable(self, "_on_use_shop_service").bind(String(choice_data.get("id", "")))))
+
+	choice_list.add_child(_build_event_choice_button({
+		"id": "leave_shop",
+		"name_prefix": "ShopChoiceButton",
+		"label": Localization.get_text("facility.leave_node", "Leave Node"),
+		"description": Localization.get_text("shop.choice.leave.description", "Leave the shop and continue the run."),
+		"effects": [],
+		"enabled": true,
+		"disabled_reason": "",
+	}, Callable(self, "_on_leave_facility")))
 
 
 func _render_forge_options(forge_used: bool) -> void:
 	var options: Array[String] = Game.get_forge_options()
-	if options.is_empty():
-		var empty_label: Label = Label.new()
-		empty_label.text = Localization.get_text("forge.none", "No upgradable cards in this collection.")
-		_options_box.add_child(empty_label)
-		return
+	var choice_list: VBoxContainer = _create_choice_list("ForgeChoiceList")
 
 	if forge_used:
 		var done_label: Label = Label.new()
 		done_label.text = Localization.get_text("forge.used", "Forge already used for this visit.")
-		_options_box.add_child(done_label)
+		done_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		choice_list.add_child(done_label)
 
 	for card_id in options:
 		var card_def: CardDef = CardUpgradeResolver.build_effective_card(card_id, Game.current_run)
 		if card_def == null:
 			continue
-
-		var row: HBoxContainer = HBoxContainer.new()
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_theme_constant_override("separation", 12)
-		_options_box.add_child(row)
-
-		var preview: CardButton = CardButton.new()
-		preview.set_tile_size(Vector2(100.0, 100.0))
-		preview.bind_preview(card_def, card_id, false, "FORGE")
-		row.add_child(preview)
-
-		var text_box: VBoxContainer = VBoxContainer.new()
-		text_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(text_box)
-
 		var current_tier: int = CardUpgradeResolver.get_tier(Game.current_run, card_id)
-		var tier_label: Label = Label.new()
-		text_box.add_child(tier_label)
+		var next_tier: int = current_tier + 1
+		var choice_data: Dictionary = {
+			"id": "upgrade_%s" % card_id,
+			"name_prefix": "ForgeChoiceButton",
+			"label": Localization.get_textf("forge.choice.upgrade_card.label", "Upgrade {card_name} to {grade}", {
+				"card_name": card_def.name,
+				"grade": CardInfoFormatter.format_grade_label(next_tier),
+			}),
+			"description": CardInfoFormatter.build_effect_summary(CardUpgradeResolver.build_card_at_tier(card_id, next_tier)),
+			"effects": [
+				{"type": "upgrade_random_card", "card_id": card_id, "next_tier": next_tier},
+			],
+			"enabled": not forge_used and current_tier < CardUpgradeResolver.MAX_TIER,
+			"disabled_reason": Localization.get_text("forge.used", "Forge already used for this visit.") if forge_used else Localization.get_text("forge.unavailable", "Unavailable"),
+		}
+		choice_list.add_child(_build_event_choice_button(choice_data, Callable(self, "_on_upgrade_card").bind(card_id)))
 
-		var details_label: Label = Label.new()
-		details_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		text_box.add_child(details_label)
-		_apply_forge_preview_state(preview, tier_label, details_label, card_id, current_tier)
+	for service_choice in Game.get_forge_service_choices():
+		var choice_data: Dictionary = Dictionary(service_choice)
+		choice_data["name_prefix"] = "ForgeChoiceButton"
+		choice_list.add_child(_build_event_choice_button(choice_data, Callable(self, "_on_use_forge_service").bind(String(choice_data.get("id", "")))))
 
-		var upgrade_button: Button = Button.new()
-		if forge_used or current_tier >= CardUpgradeResolver.MAX_TIER:
-			upgrade_button.text = Localization.get_text("forge.unavailable", "Unavailable")
-			upgrade_button.disabled = true
-		else:
-			upgrade_button.text = Localization.get_textf("forge.upgrade_to", "Upgrade to {grade}", {
-				"grade": CardInfoFormatter.format_grade_label(current_tier + 1),
-			})
-			upgrade_button.tooltip_text = Localization.get_textf("forge.preview", "Preview {grade} while hovering", {
-				"grade": CardInfoFormatter.format_grade_label(current_tier + 1),
-			})
-			upgrade_button.pressed.connect(_on_upgrade_card.bind(card_id))
-			upgrade_button.mouse_entered.connect(func() -> void:
-				_apply_forge_preview_state(preview, tier_label, details_label, card_id, current_tier + 1)
-			)
-			upgrade_button.mouse_exited.connect(func() -> void:
-				_apply_forge_preview_state(preview, tier_label, details_label, card_id, current_tier)
-			)
-		row.add_child(upgrade_button)
+	choice_list.add_child(_build_event_choice_button({
+		"id": "leave_forge",
+		"name_prefix": "ForgeChoiceButton",
+		"label": Localization.get_text("facility.leave_node", "Leave Node"),
+		"description": Localization.get_text("forge.choice.leave.description", "Leave without using more forge services."),
+		"effects": [],
+		"enabled": true,
+		"disabled_reason": "",
+	}, Callable(self, "_on_leave_facility")))
 
 
 func _render_heal_option(heal_amount: int) -> void:
-	var heal_button: Button = Button.new()
-	heal_button.text = Localization.get_textf("heal.recover", "Recover {amount} HP", {"amount": heal_amount})
-	heal_button.pressed.connect(_on_use_heal_node)
-	_options_box.add_child(heal_button)
+	var _unused_heal_amount: int = heal_amount
+	var choice_list: VBoxContainer = _create_choice_list("HealChoiceList")
+	for heal_choice in Game.get_heal_node_choices():
+		var choice_data: Dictionary = Dictionary(heal_choice)
+		choice_data["name_prefix"] = "HealChoiceButton"
+		choice_list.add_child(_build_event_choice_button(choice_data, Callable(self, "_on_use_heal_choice").bind(String(choice_data.get("id", "")))))
 
 
 func _render_event_options() -> void:
 	var event_data: Dictionary = Game.get_active_event_data()
 	var choices: Array = Array(event_data.get("choices", []))
 
+	var choice_list: VBoxContainer = _create_choice_list("EventChoiceList")
+
+	for raw_choice in choices:
+		var choice_data: Dictionary = Dictionary(raw_choice)
+		choice_list.add_child(_build_event_choice_button(choice_data, Callable(self, "_on_resolve_event").bind(String(choice_data.get("id", "")))))
+
+
+func _create_choice_list(list_name: String) -> VBoxContainer:
 	var choice_list: VBoxContainer = VBoxContainer.new()
-	choice_list.name = "EventChoiceList"
+	choice_list.name = list_name
 	choice_list.custom_minimum_size = Vector2(680.0, 0.0)
 	choice_list.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	choice_list.add_theme_constant_override("separation", 14)
 	_options_box.add_child(choice_list)
-
-	for raw_choice in choices:
-		var choice_data: Dictionary = Dictionary(raw_choice)
-		choice_list.add_child(_build_event_choice_button(choice_data))
+	return choice_list
 
 
-func _build_event_choice_button(choice_data: Dictionary) -> Button:
+func _build_event_choice_button(choice_data: Dictionary, pressed_callback: Callable = Callable()) -> Button:
 	var choice_id: String = String(choice_data.get("id", ""))
 	var disabled: bool = not bool(choice_data.get("enabled", true))
 	var button: Button = Button.new()
-	button.name = "EventChoiceButton_%s" % choice_id
+	var name_prefix: String = String(choice_data.get("name_prefix", "EventChoiceButton"))
+	button.name = "%s_%s" % [name_prefix, choice_id]
 	button.text = ""
 	button.custom_minimum_size = Vector2(0.0, 94.0)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -372,8 +369,8 @@ func _build_event_choice_button(choice_data: Dictionary) -> Button:
 	button.add_theme_stylebox_override("hover", _make_event_choice_stylebox(false, true))
 	button.add_theme_stylebox_override("pressed", _make_event_choice_stylebox(false, true))
 	button.add_theme_stylebox_override("disabled", _make_event_choice_stylebox(true, false))
-	if not disabled:
-		button.pressed.connect(_on_resolve_event.bind(choice_id))
+	if not disabled and pressed_callback.is_valid():
+		button.pressed.connect(pressed_callback)
 
 	var margin: MarginContainer = MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -606,13 +603,28 @@ func _on_buy_offer(offer_index: int) -> void:
 		_refresh_ui()
 
 
+func _on_use_shop_service(choice_id: String) -> void:
+	if Game.use_shop_service_choice(choice_id):
+		_refresh_ui()
+
+
 func _on_upgrade_card(card_id: String) -> void:
 	Game.upgrade_forge_card(card_id)
 	_refresh_ui()
 
 
+func _on_use_forge_service(choice_id: String) -> void:
+	if Game.use_forge_service_choice(choice_id):
+		_refresh_ui()
+
+
 func _on_use_heal_node() -> void:
 	Game.use_heal_node()
+	SceneRouter.go_to_map()
+
+
+func _on_use_heal_choice(choice_id: String) -> void:
+	Game.use_heal_node_choice(choice_id)
 	SceneRouter.go_to_map()
 
 
