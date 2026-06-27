@@ -3,6 +3,7 @@ extends Node
 var _elapsed: float = 0.0
 var _input_interval: float = 0.0
 var _last_scene_name: String = ""
+var _saw_first_wave_reward: bool = false
 
 
 func _ready() -> void:
@@ -42,6 +43,9 @@ func _process(delta: float) -> void:
 		"Battle":
 			_process_battle(scene)
 		"Facility":
+			if not _saw_first_wave_reward:
+				_fail("Hazard flow smoke failed: first hazard wave returned to facility before showing reward")
+				return
 			var hazard_status: Dictionary = Game.get_hazard_status()
 			if Game.get_active_facility_type() != "hazard" or int(hazard_status.get("waves_cleared", 0)) != 1:
 				_fail("Hazard flow smoke failed: battle did not return to hazard facility after the first wave")
@@ -49,7 +53,18 @@ func _process(delta: float) -> void:
 			print("Hazard flow smoke passed: returned to facility after wave 1")
 			get_tree().quit()
 		"Reward":
-			_fail("Hazard flow smoke failed: hazard wave 1 should not route to reward")
+			if _saw_first_wave_reward:
+				_fail("Hazard flow smoke failed: duplicate reward after hazard wave 1")
+				return
+			if Game.reward_options.is_empty():
+				_fail("Hazard flow smoke failed: hazard wave 1 reward has no card options")
+				return
+			_saw_first_wave_reward = true
+			Game.skip_reward()
+			if Game.current_screen_hint != "facility":
+				_fail("Hazard flow smoke failed: skipping hazard wave 1 reward should return to hazard facility")
+				return
+			SceneRouter.go_to_facility()
 		"RunResult":
 			_fail("Hazard flow smoke failed: player lost the hazard battle")
 

@@ -199,18 +199,25 @@ func _make_modal_stylebox() -> StyleBoxFlat:
 
 func _on_reward_selected(card_id: String) -> void:
 	Game.choose_reward(card_id)
-	if Game.current_run != null and Game.current_run.run_complete:
-		SceneRouter.go_to_result()
-	else:
-		SceneRouter.go_to_map()
+	_route_after_reward()
 
 
 func _on_skip() -> void:
 	Game.skip_reward()
+	_route_after_reward()
+
+
+func _route_after_reward() -> void:
 	if Game.current_run != null and Game.current_run.run_complete:
 		SceneRouter.go_to_result()
 	else:
-		SceneRouter.go_to_map()
+		match Game.current_screen_hint:
+			"facility":
+				SceneRouter.go_to_facility()
+			"result":
+				SceneRouter.go_to_result()
+			_:
+				SceneRouter.go_to_map()
 
 
 func _on_open_replay_viewer() -> void:

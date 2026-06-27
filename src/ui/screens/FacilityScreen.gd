@@ -127,7 +127,7 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 
 
 func _uses_choice_layout(node_type: String) -> bool:
-	return ["shop", "forge", "heal", "event"].has(node_type)
+	return ["shop", "forge", "heal", "event", "hazard"].has(node_type)
 
 
 func _apply_facility_layout_state(uses_choice_layout: bool) -> void:
@@ -239,6 +239,12 @@ func _render_shop_offers() -> void:
 			continue
 		var price: int = int(offer_data.get("price", 0))
 		var bought: bool = bool(offer_data.get("bought", false))
+		var enabled: bool = not bought and Game.current_run.gold >= price
+		var disabled_reason: String = ""
+		if bought:
+			disabled_reason = Localization.get_text("shop.sold", "Sold")
+		elif not enabled:
+			disabled_reason = Localization.get_text("event.disabled.not_enough_gold", "Not enough gold.")
 		var choice_data: Dictionary = {
 			"id": "offer_%d" % offer_index,
 			"name_prefix": "ShopChoiceButton",
@@ -251,8 +257,8 @@ func _render_shop_offers() -> void:
 				{"type": "lose_gold", "amount": price},
 				{"type": "grant_random_card", "card_id": card_id},
 			],
-			"enabled": not bought and Game.current_run.gold >= price,
-			"disabled_reason": Localization.get_text("shop.sold", "Sold") if bought else Localization.get_text("event.disabled.not_enough_gold", "Not enough gold."),
+			"enabled": enabled,
+			"disabled_reason": disabled_reason,
 		}
 		if bought:
 			choice_data["effects"] = [{"type": "grant_random_card", "card_id": card_id}]
@@ -381,11 +387,21 @@ func _build_event_choice_button(choice_data: Dictionary, pressed_callback: Calla
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	button.add_child(margin)
 
+	var body_row: HBoxContainer = HBoxContainer.new()
+	body_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	body_row.add_theme_constant_override("separation", 12)
+	body_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(body_row)
+
 	var content: VBoxContainer = VBoxContainer.new()
 	content.alignment = BoxContainer.ALIGNMENT_CENTER
 	content.add_theme_constant_override("separation", 6)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_child(content)
+	body_row.add_child(content)
 
 	var title_label: Label = Label.new()
 	title_label.text = String(choice_data.get("label", ""))
@@ -397,6 +413,17 @@ func _build_event_choice_button(choice_data: Dictionary, pressed_callback: Calla
 	content.add_child(title_label)
 
 	_add_event_effect_chips(content, choice_data, choice_id, disabled)
+	var preview_card_id: String = _get_choice_card_id(choice_data)
+	if preview_card_id != "":
+		var card_def: CardDef = Database.get_card(preview_card_id)
+		if card_def != null:
+			var preview: CardButton = CardButton.new()
+			preview.name = "ChoiceCardPreview_%s_%s" % [choice_id, preview_card_id]
+			preview.set_tile_size(Vector2(74.0, 74.0))
+			preview.custom_minimum_size = Vector2(74.0, 74.0)
+			preview.mouse_filter = Control.MOUSE_FILTER_PASS
+			preview.bind_preview(card_def, preview_card_id, false, "CARD")
+			body_row.add_child(preview)
 	return button
 
 
@@ -564,38 +591,53 @@ func _get_relic_name(relic_id: String) -> String:
 	return relic_id
 
 
+func _get_choice_card_id(choice_data: Dictionary) -> String:
+	for raw_effect in Array(choice_data.get("effects", [])):
+		var effect_data: Dictionary = Dictionary(raw_effect)
+		var card_id: String = String(effect_data.get("card_id", ""))
+		if card_id != "" and Database.get_card(card_id) != null:
+			return card_id
+	return ""
+
+
 func _render_hazard_options() -> void:
 	var hazard_status: Dictionary = Game.get_hazard_status()
-	var progress_label: Label = Label.new()
-	progress_label.text = Localization.get_textf("hazard.progress", "{description}\nWaves {current} / {total} | Next: {next_enemy}", {
-		"description": String(hazard_status.get("description", "")),
-		"current": int(hazard_status.get("waves_cleared", 0)),
-		"total": int(hazard_status.get("waves_total", 0)),
-		"next_enemy": String(hazard_status.get("next_enemy", Localization.get_text("hazard.cleared", "Cleared"))),
-	})
-	progress_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_options_box.add_child(progress_label)
+	var choice_list: VBoxContainer = _create_choice_list("HazardChoiceList")
+	var cleared_waves: int = int(hazard_status.get("waves_cleared", 0))
+	var total_waves: int = int(hazard_status.get("waves_total", 0))
+	var next_enemy: String = String(hazard_status.get("next_enemy", Localization.get_text("hazard.cleared", "Cleared")))
+	var continue_label: String = Localization.get_text("hazard.enter", "Enter Hazard")
+	if cleared_waves > 0:
+		continue_label = Localization.get_text("hazard.continue", "Continue Hazard")
+	var can_continue: bool = cleared_waves < total_waves
 
-	var reward_label: Label = Label.new()
-	reward_label.text = Localization.get_textf("hazard.per_wave", "Per Wave: +{gold} gold, +{hp} HP", {
-		"gold": int(hazard_status.get("wave_gold", 0)),
-		"hp": int(hazard_status.get("wave_heal", 0)),
-	})
-	_options_box.add_child(reward_label)
+	choice_list.add_child(_build_event_choice_button({
+		"id": "continue_hazard",
+		"name_prefix": "HazardChoiceButton",
+		"label": continue_label,
+		"description": Localization.get_textf("hazard.choice.continue.description", "Wave {current} / {total}. Next: {next_enemy}", {
+			"current": min(cleared_waves + 1, total_waves),
+			"total": total_waves,
+			"next_enemy": next_enemy,
+		}),
+		"effects": [
+			{"type": "grant_gold", "amount": int(hazard_status.get("wave_gold", 0))},
+			{"type": "heal", "amount": int(hazard_status.get("wave_heal", 0))},
+		],
+		"enabled": can_continue,
+		"disabled_reason": "" if can_continue else Localization.get_text("hazard.cleared", "Cleared"),
+	}, Callable(self, "_on_continue_hazard")))
 
-	var continue_button: Button = Button.new()
-	if int(hazard_status.get("waves_cleared", 0)) <= 0:
-		continue_button.text = Localization.get_text("hazard.enter", "Enter Hazard")
-	else:
-		continue_button.text = Localization.get_text("hazard.continue", "Continue Hazard")
-	continue_button.pressed.connect(_on_continue_hazard)
-	_options_box.add_child(continue_button)
-
-	if int(hazard_status.get("waves_cleared", 0)) > 0:
-		var withdraw_button: Button = Button.new()
-		withdraw_button.text = Localization.get_text("hazard.withdraw", "Withdraw With Current Rewards")
-		withdraw_button.pressed.connect(_on_withdraw_hazard)
-		_options_box.add_child(withdraw_button)
+	if cleared_waves > 0:
+		choice_list.add_child(_build_event_choice_button({
+			"id": "withdraw_hazard",
+			"name_prefix": "HazardChoiceButton",
+			"label": Localization.get_text("hazard.withdraw", "Withdraw With Current Rewards"),
+			"description": Localization.get_text("hazard.choice.withdraw.description", "Leave the hazard zone and keep the rewards already earned."),
+			"effects": [],
+			"enabled": true,
+			"disabled_reason": "",
+		}, Callable(self, "_on_withdraw_hazard")))
 
 
 func _on_buy_offer(offer_index: int) -> void:

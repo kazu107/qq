@@ -345,6 +345,11 @@ func _exercise_shop_node() -> void:
 		facility_scene.queue_free()
 		await get_tree().process_frame
 		return
+	if not _has_named_child_prefix(facility_scene, "ChoiceCardPreview_"):
+		_fail("Map/facility smoke failed: shop choices should render card previews")
+		facility_scene.queue_free()
+		await get_tree().process_frame
+		return
 	if Game.get_shop_service_choices().size() < 3:
 		_fail("Map/facility smoke failed: shop should expose additional service choices")
 		facility_scene.queue_free()
@@ -409,16 +414,17 @@ func _exercise_hazard_node() -> void:
 
 	var first_enemy_id: String = Game.pending_enemy_id
 	Game.complete_battle(_build_victory_summary(first_enemy_id))
-	if Game.current_screen_hint != "facility":
-		_fail("Map/facility smoke failed: clearing the first hazard wave should return to facility")
+	if Game.current_screen_hint != "reward" or Game.reward_options.is_empty():
+		_fail("Map/facility smoke failed: clearing the first hazard wave should open rewards")
 		return
 
 	var hazard_status: Dictionary = Game.get_hazard_status()
 	if int(hazard_status.get("waves_cleared", 0)) != 1:
 		_fail("Map/facility smoke failed: hazard did not record the cleared wave")
 		return
-	if not Game.reward_options.is_empty():
-		_fail("Map/facility smoke failed: hazard should not open rewards before the final wave")
+	Game.skip_reward()
+	if Game.current_screen_hint != "facility":
+		_fail("Map/facility smoke failed: skipping an interim hazard reward should return to facility")
 		return
 
 	var relics_before: int = Game.current_run.relics.size()
@@ -501,7 +507,7 @@ func _assert_facility_scene(expected_type: String) -> Control:
 	if options_box == null or options_box.get_child_count() == 0:
 		_fail("Map/facility smoke failed: %s scene did not render options" % expected_type)
 		return facility_scene
-	if ["shop", "forge", "heal", "event"].has(expected_type):
+	if ["shop", "forge", "heal", "event", "hazard"].has(expected_type):
 		var choice_list_name: String = "%sChoiceList" % expected_type.capitalize()
 		if expected_type == "event":
 			choice_list_name = "EventChoiceList"
@@ -514,6 +520,8 @@ func _assert_facility_scene(expected_type: String) -> Control:
 			expected_min_choices = 7
 		elif expected_type == "forge":
 			expected_min_choices = 4
+		elif expected_type == "hazard":
+			expected_min_choices = 1
 		if choice_list == null or choice_list.get_child_count() < expected_min_choices:
 			_fail("Map/facility smoke failed: %s scene should render large choice buttons" % expected_type)
 		elif deck_frame == null or deck_frame.visible:
@@ -556,6 +564,15 @@ func _find_first_hbox(parent: Control) -> HBoxContainer:
 		if child is HBoxContainer:
 			return child as HBoxContainer
 	return null
+
+
+func _has_named_child_prefix(root: Node, prefix: String) -> bool:
+	if String(root.name).begins_with(prefix):
+		return true
+	for child in root.get_children():
+		if _has_named_child_prefix(child, prefix):
+			return true
+	return false
 
 
 func _fail(message: String) -> void:

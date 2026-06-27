@@ -264,8 +264,11 @@ func choose_reward(card_id: String) -> void:
 		AudioManager.play_sfx("reward_pick")
 	reward_options.clear()
 	last_reward_bundle.clear()
-	_complete_active_map_node_and_advance()
-	current_screen_hint = _get_post_progress_scene_hint()
+	if _should_return_to_hazard_after_reward():
+		current_screen_hint = "facility"
+	else:
+		_complete_active_map_node_and_advance()
+		current_screen_hint = _get_post_progress_scene_hint()
 	SaveManager.save_game(current_screen_hint)
 
 
@@ -273,8 +276,11 @@ func skip_reward() -> void:
 	AudioManager.play_sfx("reward_skip")
 	reward_options.clear()
 	last_reward_bundle.clear()
-	_complete_active_map_node_and_advance()
-	current_screen_hint = _get_post_progress_scene_hint()
+	if _should_return_to_hazard_after_reward():
+		current_screen_hint = "facility"
+	else:
+		_complete_active_map_node_and_advance()
+		current_screen_hint = _get_post_progress_scene_hint()
 	SaveManager.save_game(current_screen_hint)
 
 
@@ -1851,9 +1857,10 @@ func _handle_hazard_victory() -> void:
 	node_data["hazard_cleared_waves"] = cleared_waves
 	_set_node(step_index, node_index, node_data)
 
-	current_run.gold += int(node_data.get("hazard_wave_gold", 0))
-	current_run.player_hp = min(current_run.max_hp, current_run.player_hp + int(node_data.get("hazard_wave_heal", 0)))
-
+	last_reward_bundle = preview_reward_package("hazard", current_run.current_area)
+	last_reward_bundle["gold"] = int(last_reward_bundle.get("gold", 0)) + int(node_data.get("hazard_wave_gold", 0))
+	last_reward_bundle["heal"] = int(last_reward_bundle.get("heal", 0)) + int(node_data.get("hazard_wave_heal", 0))
+	_apply_reward_bundle(last_reward_bundle)
 	if cleared_waves < queue.size():
 		last_battle_summary["bonus_text"] = Localization.get_textf(
 			"game.hazard_wave_cleared",
@@ -1863,19 +1870,26 @@ func _handle_hazard_victory() -> void:
 				"total": queue.size(),
 			}
 		)
-		reward_options.clear()
-		last_reward_bundle.clear()
-		current_screen_hint = "facility"
-		return
-
-	last_reward_bundle = preview_reward_package("hazard", current_run.current_area)
-	_apply_reward_bundle(last_reward_bundle)
-	var reward_note: String = _grant_random_relic_note()
-	if reward_note != "":
-		last_battle_summary["bonus_text"] = reward_note
+	else:
+		var reward_note: String = _grant_random_relic_note()
+		if reward_note != "":
+			last_battle_summary["bonus_text"] = reward_note
+		else:
+			last_battle_summary.erase("bonus_text")
 
 	reward_options = _to_string_array(last_reward_bundle.get("options", []))
 	current_screen_hint = "reward"
+
+
+func _should_return_to_hazard_after_reward() -> bool:
+	var active_node: Dictionary = get_active_map_node()
+	if String(active_node.get("type", "")) != "hazard":
+		return false
+	var queue: Array[String] = _to_string_array(active_node.get("hazard_queue", []))
+	if queue.is_empty():
+		return false
+	var cleared_waves: int = int(active_node.get("hazard_cleared_waves", 0))
+	return cleared_waves > 0 and cleared_waves < queue.size()
 
 
 func _apply_reward_bundle(reward_bundle: Dictionary) -> void:
