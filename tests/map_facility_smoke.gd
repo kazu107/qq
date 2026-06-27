@@ -93,6 +93,11 @@ func _assert_map_scene() -> void:
 		_fail("Map/facility smoke failed: map scene did not render inventory rows")
 	elif relic_icon_row == null:
 		_fail("Map/facility smoke failed: map scene did not render relic icon row")
+	if _failed:
+		return
+	_assert_map_loadout_inventory(map_scene)
+	if _failed:
+		return
 	var current_step_panel: PanelContainer = steps_box.find_child("MapStep_0", true, false) as PanelContainer
 	var first_step_header: Label = steps_box.find_child("MapStepHeader_0", true, false) as Label
 	var area_one_text: String = Localization.get_textf("map.summary.area", "Area {value}", {"value": 1})
@@ -147,6 +152,49 @@ func _assert_map_scene() -> void:
 
 	map_scene.queue_free()
 	await get_tree().process_frame
+
+
+func _assert_map_loadout_inventory(map_scene: Control) -> void:
+	var entries: Array[Dictionary] = Game.get_loadout_entries()
+	if entries.is_empty():
+		_fail("Map/facility smoke failed: loadout entries were empty")
+		return
+	var entry: Dictionary = entries[0]
+	var card_id: String = String(entry.get("card_id", ""))
+	var frame: PanelContainer = map_scene.find_child("LoadoutCardFrame_%s" % card_id, true, false) as PanelContainer
+	var info_box: VBoxContainer = map_scene.find_child("LoadoutCardInfo_%s" % card_id, true, false) as VBoxContainer
+	var count_row: HBoxContainer = map_scene.find_child("LoadoutCountRow_%s" % card_id, true, false) as HBoxContainer
+	var owned_icon: TextureRect = map_scene.find_child("OwnedCount_%sIcon" % card_id, true, false) as TextureRect
+	var equipped_icon: TextureRect = map_scene.find_child("EquippedCount_%sIcon" % card_id, true, false) as TextureRect
+	var owned_value: Label = map_scene.find_child("OwnedCount_%sValue" % card_id, true, false) as Label
+	var equipped_value: Label = map_scene.find_child("EquippedCount_%sValue" % card_id, true, false) as Label
+	var actions: HBoxContainer = map_scene.find_child("LoadoutActions_%s" % card_id, true, false) as HBoxContainer
+	if frame == null or info_box == null or count_row == null:
+		_fail("Map/facility smoke failed: map loadout card frame should render count-only info")
+		return
+	if owned_icon == null or owned_icon.texture == null or equipped_icon == null or equipped_icon.texture == null:
+		_fail("Map/facility smoke failed: map loadout counts should render icons")
+		return
+	if owned_value == null or owned_value.text != str(int(entry.get("owned_count", 0))):
+		_fail("Map/facility smoke failed: map loadout owned count should render as a number")
+		return
+	if equipped_value == null or equipped_value.text != str(int(entry.get("equipped_count", 0))):
+		_fail("Map/facility smoke failed: map loadout equipped count should render as a number")
+		return
+	if actions == null or actions.get_child_count() != 2:
+		_fail("Map/facility smoke failed: map loadout actions should render equip and unequip buttons")
+		return
+	if actions.get_parent() != info_box or actions.get_index() <= count_row.get_index():
+		_fail("Map/facility smoke failed: map loadout actions should sit below the count row")
+		return
+	if actions.visible:
+		_fail("Map/facility smoke failed: map loadout actions should be hidden before hover")
+		return
+	map_scene.call("_set_loadout_actions_visible", actions, true)
+	if not actions.visible:
+		_fail("Map/facility smoke failed: map loadout actions should appear on frame hover")
+		return
+	map_scene.call("_set_loadout_actions_visible", actions, false)
 
 
 func _find_first_map_node_button(root: Node) -> MapNodeButton:

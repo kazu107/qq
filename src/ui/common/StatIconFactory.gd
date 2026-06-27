@@ -29,6 +29,10 @@ static func _build_icon(stat_id: String) -> Texture2D:
 			return _build_step_icon()
 		"relic":
 			return _build_relic_icon()
+		"card_owned":
+			return _build_card_owned_icon()
+		"card_equipped":
+			return _build_card_equipped_icon()
 		_:
 			return _build_generic_icon(stat_id)
 
@@ -140,6 +144,38 @@ static func _build_relic_icon() -> Texture2D:
 	_draw_diamond(image, Vector2i(31, 30), 12, bright)
 	image.fill_rect(Rect2i(29, 12, 4, 39), amber.darkened(0.24))
 	image.fill_rect(Rect2i(14, 30, 35, 4), bright)
+	return ImageTexture.create_from_image(image)
+
+
+static func _build_card_owned_icon() -> Texture2D:
+	var image: Image = Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var shadow: Color = Color(0.02, 0.04, 0.08, 0.95)
+	var blue: Color = Color(0.24, 0.66, 1.0, 1.0)
+	var bright: Color = Color(0.78, 0.94, 1.0, 1.0)
+	image.fill_rect(Rect2i(19, 11, 28, 40), shadow)
+	image.fill_rect(Rect2i(14, 16, 28, 40), blue.darkened(0.18))
+	image.fill_rect(Rect2i(20, 10, 28, 40), blue)
+	image.fill_rect(Rect2i(24, 15, 20, 6), bright)
+	image.fill_rect(Rect2i(24, 26, 20, 4), bright.darkened(0.08))
+	image.fill_rect(Rect2i(24, 36, 16, 4), bright.darkened(0.18))
+	return ImageTexture.create_from_image(image)
+
+
+static func _build_card_equipped_icon() -> Texture2D:
+	var image: Image = Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var shadow: Color = Color(0.04, 0.07, 0.05, 0.95)
+	var green: Color = Color(0.28, 0.92, 0.52, 1.0)
+	var bright: Color = Color(0.84, 1.0, 0.78, 1.0)
+	image.fill_rect(Rect2i(17, 12, 30, 40), shadow)
+	image.fill_rect(Rect2i(15, 10, 30, 40), green.darkened(0.12))
+	image.fill_rect(Rect2i(20, 16, 20, 6), bright)
+	image.fill_rect(Rect2i(20, 28, 20, 4), bright.darkened(0.10))
+	image.fill_rect(Rect2i(26, 38, 8, 8), shadow)
+	image.fill_rect(Rect2i(38, 37, 14, 7), shadow)
+	image.fill_rect(Rect2i(25, 35, 8, 8), green)
+	image.fill_rect(Rect2i(33, 39, 16, 5), green)
 	return ImageTexture.create_from_image(image)
 
 

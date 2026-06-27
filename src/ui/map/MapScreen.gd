@@ -1,5 +1,8 @@
 extends Control
 
+const LOADOUT_PREVIEW_SIZE: Vector2 = Vector2(92.0, 92.0)
+const LOADOUT_COUNT_ICON_SIZE: Vector2 = Vector2(22.0, 22.0)
+
 var _summary_label: RichTextLabel
 var _help_label: Label
 var _relics_label: Label
@@ -302,48 +305,104 @@ func _rebuild_loadout_rows() -> void:
 		if card_def == null:
 			continue
 
+		var frame: PanelContainer = PanelContainer.new()
+		frame.name = "LoadoutCardFrame_%s" % card_id
+		frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		frame.mouse_filter = Control.MOUSE_FILTER_PASS
+		frame.add_theme_stylebox_override("panel", _make_loadout_card_stylebox())
+		_inventory_box.add_child(frame)
+
 		var row: HBoxContainer = HBoxContainer.new()
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_theme_constant_override("separation", 10)
-		_inventory_box.add_child(row)
+		frame.add_child(row)
 
 		var preview: CardButton = CardButton.new()
-		preview.set_tile_size(Vector2(92.0, 92.0))
+		preview.set_tile_size(LOADOUT_PREVIEW_SIZE)
 		preview.bind_preview(card_def, card_id, false, "LOAD")
 		row.add_child(preview)
 
 		var info_box: VBoxContainer = VBoxContainer.new()
+		info_box.name = "LoadoutCardInfo_%s" % card_id
 		info_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info_box.alignment = BoxContainer.ALIGNMENT_CENTER
+		info_box.add_theme_constant_override("separation", 8)
 		row.add_child(info_box)
 
-		var count_label: Label = Label.new()
-		count_label.text = Localization.get_textf("map.inventory_counts", "{name} | Owned {owned} | Equipped {equipped} | Cost {cost}", {
-			"name": card_def.name,
-			"owned": int(entry.get("owned_count", 0)),
-			"equipped": int(entry.get("equipped_count", 0)),
-			"cost": int(entry.get("loadout_cost", 0)),
-		})
-		info_box.add_child(count_label)
+		var counts_row: HBoxContainer = HBoxContainer.new()
+		counts_row.name = "LoadoutCountRow_%s" % card_id
+		counts_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		counts_row.add_theme_constant_override("separation", 10)
+		info_box.add_child(counts_row)
+		counts_row.add_child(_build_loadout_count_pill("card_owned", int(entry.get("owned_count", 0)), "OwnedCount_%s" % card_id))
+		counts_row.add_child(_build_loadout_count_pill("card_equipped", int(entry.get("equipped_count", 0)), "EquippedCount_%s" % card_id))
 
-		var effect_label: Label = Label.new()
-		effect_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		effect_label.text = CardInfoFormatter.build_effect_summary(card_def)
-		info_box.add_child(effect_label)
-
-		var actions: VBoxContainer = VBoxContainer.new()
-		row.add_child(actions)
+		var actions: HBoxContainer = HBoxContainer.new()
+		actions.name = "LoadoutActions_%s" % card_id
+		actions.alignment = BoxContainer.ALIGNMENT_CENTER
+		actions.add_theme_constant_override("separation", 8)
+		actions.visible = false
+		info_box.add_child(actions)
 
 		var equip_button: Button = Button.new()
+		equip_button.name = "EquipButton_%s" % card_id
 		equip_button.text = Localization.get_text("map.equip", "Equip")
 		equip_button.disabled = not bool(entry.get("can_equip", false))
 		equip_button.pressed.connect(_on_equip_card.bind(card_id))
 		actions.add_child(equip_button)
 
 		var unequip_button: Button = Button.new()
+		unequip_button.name = "UnequipButton_%s" % card_id
 		unequip_button.text = Localization.get_text("map.unequip", "Unequip")
 		unequip_button.disabled = not bool(entry.get("can_unequip", false))
 		unequip_button.pressed.connect(_on_unequip_card.bind(card_id))
 		actions.add_child(unequip_button)
+		frame.mouse_entered.connect(_set_loadout_actions_visible.bind(actions, true))
+		frame.mouse_exited.connect(_set_loadout_actions_visible.bind(actions, false))
+
+
+func _build_loadout_count_pill(icon_id: String, count: int, node_name: String) -> HBoxContainer:
+	var pill: HBoxContainer = HBoxContainer.new()
+	pill.name = node_name
+	pill.alignment = BoxContainer.ALIGNMENT_CENTER
+	pill.add_theme_constant_override("separation", 4)
+	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var icon: TextureRect = TextureRect.new()
+	icon.name = "%sIcon" % node_name
+	icon.custom_minimum_size = LOADOUT_COUNT_ICON_SIZE
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.texture = StatIconFactory.get_icon(icon_id)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(icon)
+
+	var value_label: Label = Label.new()
+	value_label.name = "%sValue" % node_name
+	value_label.text = str(count)
+	value_label.add_theme_font_size_override("font_size", 18)
+	value_label.add_theme_color_override("font_color", Color(0.92, 0.94, 0.88, 1.0))
+	value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(value_label)
+	return pill
+
+
+func _set_loadout_actions_visible(actions: HBoxContainer, visible: bool) -> void:
+	if actions != null:
+		actions.visible = visible
+
+
+func _make_loadout_card_stylebox() -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.07, 0.09, 0.54)
+	style.border_color = Color(0.28, 0.33, 0.40, 0.76)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = 8.0
+	style.content_margin_top = 8.0
+	style.content_margin_right = 8.0
+	style.content_margin_bottom = 8.0
+	return style
 
 
 func _on_node_selected(node_id: String) -> void:
