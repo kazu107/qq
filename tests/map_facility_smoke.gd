@@ -528,6 +528,14 @@ func _assert_facility_scene(expected_type: String) -> Control:
 			_fail("Map/facility smoke failed: %s scene should hide the battle loadout frame" % expected_type)
 		elif relic_icon_row == null or relic_icon_row.visible:
 			_fail("Map/facility smoke failed: %s scene should hide node summary relics" % expected_type)
+		if _failed:
+			return facility_scene
+		if expected_type == "hazard":
+			_assert_hazard_choice_description(facility_scene)
+		elif expected_type == "shop":
+			_assert_choice_title_width(facility_scene, "ChoiceTitle_leave_shop", expected_type)
+		elif expected_type == "forge":
+			_assert_choice_title_width(facility_scene, "ChoiceTitle_leave_forge", expected_type)
 		return facility_scene
 	if facility_deck == null or facility_deck.get_child_count() == 0:
 		_fail("Map/facility smoke failed: %s scene did not render loadout cards" % expected_type)
@@ -564,6 +572,24 @@ func _find_first_hbox(parent: Control) -> HBoxContainer:
 		if child is HBoxContainer:
 			return child as HBoxContainer
 	return null
+
+
+func _assert_hazard_choice_description(facility_scene: Control) -> void:
+	var description_label: Label = facility_scene.find_child("ChoiceDescription_continue_hazard", true, false) as Label
+	if description_label == null:
+		_fail("Map/facility smoke failed: hazard choice should render current wave description")
+		return
+	if description_label.text.find("/") == -1 or description_label.text.find("\n") == -1:
+		_fail("Map/facility smoke failed: hazard choice description should include wave progress and description")
+
+
+func _assert_choice_title_width(facility_scene: Control, title_name: String, expected_type: String) -> void:
+	var title_label: Label = facility_scene.find_child(title_name, true, false) as Label
+	if title_label == null:
+		_fail("Map/facility smoke failed: %s leave choice title was missing" % expected_type)
+		return
+	if title_label.custom_minimum_size.x < 300.0:
+		_fail("Map/facility smoke failed: %s leave choice title width is too narrow" % expected_type)
 
 
 func _has_named_child_prefix(root: Node, prefix: String) -> bool:

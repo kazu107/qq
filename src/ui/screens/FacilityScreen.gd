@@ -1,5 +1,10 @@
 extends Control
 
+const CHOICE_LIST_WIDTH: float = 700.0
+const CHOICE_TEXT_MIN_WIDTH: float = 360.0
+const CHOICE_DEFAULT_HEIGHT: float = 94.0
+const CHOICE_WITH_DESCRIPTION_HEIGHT: float = 126.0
+
 var _title_label: Label
 var _facility_frame: PanelContainer
 var _facility_header_label: Label
@@ -351,8 +356,8 @@ func _render_event_options() -> void:
 func _create_choice_list(list_name: String) -> VBoxContainer:
 	var choice_list: VBoxContainer = VBoxContainer.new()
 	choice_list.name = list_name
-	choice_list.custom_minimum_size = Vector2(680.0, 0.0)
-	choice_list.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	choice_list.custom_minimum_size = Vector2(CHOICE_LIST_WIDTH, 0.0)
+	choice_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	choice_list.add_theme_constant_override("separation", 14)
 	_options_box.add_child(choice_list)
 	return choice_list
@@ -365,7 +370,10 @@ func _build_event_choice_button(choice_data: Dictionary, pressed_callback: Calla
 	var name_prefix: String = String(choice_data.get("name_prefix", "EventChoiceButton"))
 	button.name = "%s_%s" % [name_prefix, choice_id]
 	button.text = ""
-	button.custom_minimum_size = Vector2(0.0, 94.0)
+	var button_height: float = float(choice_data.get("min_height", CHOICE_DEFAULT_HEIGHT))
+	if bool(choice_data.get("show_description", false)) and button_height < CHOICE_WITH_DESCRIPTION_HEIGHT:
+		button_height = CHOICE_WITH_DESCRIPTION_HEIGHT
+	button.custom_minimum_size = Vector2(0.0, button_height)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.clip_contents = true
 	button.disabled = disabled
@@ -398,13 +406,17 @@ func _build_event_choice_button(choice_data: Dictionary, pressed_callback: Calla
 	var content: VBoxContainer = VBoxContainer.new()
 	content.alignment = BoxContainer.ALIGNMENT_CENTER
 	content.add_theme_constant_override("separation", 6)
+	content.custom_minimum_size = Vector2(CHOICE_TEXT_MIN_WIDTH, 0.0)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body_row.add_child(content)
 
 	var title_label: Label = Label.new()
+	title_label.name = "ChoiceTitle_%s" % choice_id
 	title_label.text = String(choice_data.get("label", ""))
+	title_label.custom_minimum_size = Vector2(CHOICE_TEXT_MIN_WIDTH, 0.0)
+	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title_label.add_theme_font_size_override("font_size", 18)
@@ -412,6 +424,8 @@ func _build_event_choice_button(choice_data: Dictionary, pressed_callback: Calla
 	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.add_child(title_label)
 
+	if bool(choice_data.get("show_description", false)):
+		_add_event_description_label(content, String(choice_data.get("description", "")), choice_id, disabled)
 	_add_event_effect_chips(content, choice_data, choice_id, disabled)
 	var preview_card_id: String = _get_choice_card_id(choice_data)
 	if preview_card_id != "":
@@ -466,6 +480,7 @@ func _add_event_effect_chips(parent: Control, choice_data: Dictionary, choice_id
 	var effects_row: HBoxContainer = HBoxContainer.new()
 	effects_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	effects_row.add_theme_constant_override("separation", 12)
+	effects_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	effects_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(effects_row)
 
@@ -478,13 +493,22 @@ func _add_event_effect_chips(parent: Control, choice_data: Dictionary, choice_id
 	if added_chip:
 		return
 
+	_add_event_description_label(effects_row, String(choice_data.get("description", "")), choice_id, disabled)
+
+
+func _add_event_description_label(parent: Control, text: String, choice_id: String, disabled: bool) -> void:
+	if text == "":
+		return
 	var description_label: Label = Label.new()
-	description_label.text = String(choice_data.get("description", ""))
+	description_label.name = "ChoiceDescription_%s" % choice_id
+	description_label.text = text
+	description_label.custom_minimum_size = Vector2(CHOICE_TEXT_MIN_WIDTH, 0.0)
+	description_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	description_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description_label.add_theme_color_override("font_color", Color(0.68, 0.64, 0.54, 1.0) if not disabled else Color(0.40, 0.40, 0.40, 1.0))
 	description_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	effects_row.add_child(description_label)
+	parent.add_child(description_label)
 
 
 func _add_event_effect_chip(parent: Control, effect_data: Dictionary, choice_id: String, disabled: bool) -> bool:
@@ -615,11 +639,13 @@ func _render_hazard_options() -> void:
 		"id": "continue_hazard",
 		"name_prefix": "HazardChoiceButton",
 		"label": continue_label,
-		"description": Localization.get_textf("hazard.choice.continue.description", "Wave {current} / {total}. Next: {next_enemy}", {
+		"description": Localization.get_textf("hazard.choice.continue.description", "Wave {current} / {total}. Next: {next_enemy}\n{description}", {
 			"current": min(cleared_waves + 1, total_waves),
 			"total": total_waves,
 			"next_enemy": next_enemy,
+			"description": String(hazard_status.get("description", "")),
 		}),
+		"show_description": true,
 		"effects": [
 			{"type": "grant_gold", "amount": int(hazard_status.get("wave_gold", 0))},
 			{"type": "heal", "amount": int(hazard_status.get("wave_heal", 0))},

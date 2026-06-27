@@ -204,7 +204,7 @@
   "hazard.enter": "危険地帯へ入る",
   "hazard.continue": "危険地帯を続行",
   "hazard.withdraw": "現在の報酬で撤退",
-  "hazard.choice.continue.description": "ウェーブ {current} / {total}。次: {next_enemy}",
+  "hazard.choice.continue.description": "現在ウェーブ {current} / {total}。次: {next_enemy}\n{description}",
   "hazard.choice.withdraw.description": "危険地帯を離れ、ここまでの報酬を保持する。",
   "hazard.cleared": "クリア済み",
   "event.default_title": "イベント",
