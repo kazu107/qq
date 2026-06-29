@@ -822,6 +822,11 @@ func _run() -> void:
 		push_error("Card UI smoke failed: card resolution VFX should cover damage, heal, and shield changes")
 		get_tree().quit(1)
 		return
+	if battle_vfx_layer.find_child("ResolveBeam", true, false) != null \
+	or battle_vfx_layer.find_child("DamageProjectile", true, false) != null:
+		push_error("Card UI smoke failed: card resolution VFX should not render trajectory effects")
+		get_tree().quit(1)
+		return
 	if obsolete_log_section != null:
 		push_error("Card UI smoke failed: bottom log section should be replaced by a timeline section")
 		get_tree().quit(1)

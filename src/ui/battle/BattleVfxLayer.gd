@@ -15,7 +15,6 @@ class VfxShape:
 	var color: Color = Color.WHITE
 	var radius: float = 16.0
 	var thickness: float = 3.0
-	var points: PackedVector2Array = PackedVector2Array()
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -32,10 +31,6 @@ class VfxShape:
 			"slash":
 				draw_line(Vector2(-radius, radius * 0.55), Vector2(radius, -radius * 0.55), color, thickness, true)
 				draw_line(Vector2(-radius * 0.72, radius * 0.18), Vector2(radius * 0.72, -radius * 0.92), color.lightened(0.28), maxf(1.0, thickness * 0.42), true)
-			"beam":
-				if points.size() >= 2:
-					draw_line(points[0], points[1], color.darkened(0.25), thickness + 5.0, true)
-					draw_line(points[0], points[1], color.lightened(0.18), thickness, true)
 			_:
 				draw_circle(Vector2.ZERO, radius, color)
 
@@ -75,7 +70,7 @@ func play_resolution(
 		fallback_target = actor_panel
 	var target_point: Vector2 = _get_panel_center(fallback_target)
 	var card_id: String = String(event_data.get("card_id", ""))
-	_spawn_resolve_flash(actor_point, target_point, card_id)
+	_spawn_resolve_flash(actor_point, card_id)
 
 	var result: Dictionary = Dictionary(event_data.get("result", {}))
 	_play_unit_delta("player", result, player_panel, actor_point)
@@ -113,7 +108,7 @@ func _play_unit_delta(unit_key: String, result: Dictionary, unit_panel: UnitPane
 	var hp_delta: int = int(after_data.get("hp", 0)) - int(before_data.get("hp", 0))
 	var shield_delta: int = int(after_data.get("shield", 0)) - int(before_data.get("shield", 0))
 	if hp_delta < 0:
-		_spawn_damage(actor_point, unit_point)
+		_spawn_damage(unit_point)
 	elif hp_delta > 0:
 		_spawn_heal(unit_point)
 	if shield_delta > 0:
@@ -122,16 +117,12 @@ func _play_unit_delta(unit_key: String, result: Dictionary, unit_panel: UnitPane
 		_spawn_shield_hit(unit_point)
 
 
-func _spawn_resolve_flash(actor_point: Vector2, target_point: Vector2, card_id: String) -> void:
+func _spawn_resolve_flash(actor_point: Vector2, card_id: String) -> void:
 	var tint: Color = _resolve_card_color(card_id)
 	_spawn_ring("ResolveFlash", actor_point, tint, 14.0, 3.0, 0.34, Vector2(0.45, 0.45), Vector2(1.35, 1.35))
-	if actor_point.distance_to(target_point) > 8.0:
-		_spawn_beam(actor_point, target_point, tint, 0.20, 3.0)
 
 
-func _spawn_damage(actor_point: Vector2, target_point: Vector2) -> void:
-	_spawn_beam(actor_point, target_point, DAMAGE_COLOR, 0.18, 5.0)
-	_spawn_disc("DamageProjectile", actor_point, DAMAGE_COLOR.lightened(0.18), 7.0, 0.22, (target_point - actor_point) / 0.22)
+func _spawn_damage(target_point: Vector2) -> void:
 	_spawn_shape("DamageSlash", "slash", target_point, DAMAGE_COLOR, 28.0, 7.0, 0.34, Vector2(0.70, 0.70), Vector2(1.12, 1.12), Vector2.ZERO, -0.25)
 	_spawn_burst("DamageImpact", target_point, DAMAGE_COLOR, 8, 0.52, 140.0)
 
@@ -161,19 +152,6 @@ func _spawn_burst(prefix: String, center: Vector2, color: Color, count: int, lif
 		var direction: Vector2 = Vector2(cos(angle), sin(angle))
 		var radius: float = 5.0 + float(index % 3) * 2.0
 		_spawn_shape(prefix, "spark", center + direction * 8.0, color, radius, 3.0, lifetime, Vector2(0.8, 0.8), Vector2(0.2, 0.2), direction * speed, angle)
-
-
-func _spawn_beam(from_point: Vector2, to_point: Vector2, color: Color, lifetime: float, thickness: float) -> void:
-	var shape: VfxShape = VfxShape.new()
-	shape.name = "ResolveBeam"
-	shape.shape_type = "beam"
-	shape.color = color
-	shape.thickness = thickness
-	shape.points = PackedVector2Array([from_point, to_point])
-	shape.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(shape)
-	shape.queue_redraw()
-	_track_particle(shape, lifetime, Vector2.ZERO, 0.0, Vector2.ONE, Vector2.ONE, 0.10)
 
 
 func _spawn_ring(
