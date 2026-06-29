@@ -358,7 +358,7 @@ func _rebuild_loadout_rows() -> void:
 		unequip_button.pressed.connect(_on_unequip_card.bind(card_id))
 		actions.add_child(unequip_button)
 		frame.mouse_entered.connect(_set_loadout_actions_visible.bind(actions, true))
-		frame.mouse_exited.connect(_set_loadout_actions_visible.bind(actions, false))
+		frame.mouse_exited.connect(_on_loadout_frame_mouse_exited.bind(frame, actions))
 
 
 func _build_loadout_count_pill(icon_id: String, count: int, node_name: String) -> HBoxContainer:
@@ -390,6 +390,26 @@ func _build_loadout_count_pill(icon_id: String, count: int, node_name: String) -
 func _set_loadout_actions_visible(actions: HBoxContainer, visible: bool) -> void:
 	if actions != null:
 		actions.visible = visible
+
+
+func _on_loadout_frame_mouse_exited(frame: PanelContainer, actions: HBoxContainer) -> void:
+	call_deferred("_update_loadout_actions_for_current_hover_point", frame, actions)
+
+
+func _update_loadout_actions_for_current_hover_point(frame: PanelContainer, actions: HBoxContainer) -> void:
+	_update_loadout_actions_for_hover_point(frame, actions, get_global_mouse_position())
+
+
+func _update_loadout_actions_for_hover_point(frame: PanelContainer, actions: HBoxContainer, global_point: Vector2) -> void:
+	if frame == null or actions == null or not is_instance_valid(frame) or not is_instance_valid(actions):
+		return
+	actions.visible = _is_point_inside_loadout_frame(frame, global_point)
+
+
+func _is_point_inside_loadout_frame(frame: PanelContainer, global_point: Vector2) -> bool:
+	if frame == null or not is_instance_valid(frame):
+		return false
+	return frame.get_global_rect().grow(4.0).has_point(global_point)
 
 
 func _make_loadout_card_stylebox() -> StyleBoxFlat:

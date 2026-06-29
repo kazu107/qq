@@ -194,7 +194,14 @@ func _assert_map_loadout_inventory(map_scene: Control) -> void:
 	if not actions.visible:
 		_fail("Map/facility smoke failed: map loadout actions should appear on frame hover")
 		return
-	map_scene.call("_set_loadout_actions_visible", actions, false)
+	map_scene.call("_update_loadout_actions_for_hover_point", frame, actions, frame.get_global_rect().get_center())
+	if not actions.visible:
+		_fail("Map/facility smoke failed: map loadout actions should stay visible while hovering inside the frame")
+		return
+	map_scene.call("_update_loadout_actions_for_hover_point", frame, actions, frame.get_global_rect().position - Vector2(32.0, 32.0))
+	if actions.visible:
+		_fail("Map/facility smoke failed: map loadout actions should hide only after leaving the frame")
+		return
 
 
 func _find_first_map_node_button(root: Node) -> MapNodeButton:
