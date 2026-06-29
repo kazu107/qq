@@ -13,6 +13,7 @@ var _enemy_cards_panel: CardHandPanel
 var _player_panel: UnitPanel
 var _card_hand_panel: CardHandPanel
 var _timeline_panel: TimelinePanel
+var _vfx_layer: BattleVfxLayer
 var _run_info_banner: RunInfoBanner
 var _log_button: Button
 var _log_popup: PanelContainer
@@ -26,6 +27,7 @@ var _transition_timer: float = -1.0
 var _handled_finish: bool = false
 var _hovered_player_runtime_id: String = ""
 var _processed_battle_event_count: int = 0
+var _processed_vfx_event_count: int = 0
 
 
 func _ready() -> void:
@@ -37,6 +39,7 @@ func _ready() -> void:
 	var enemy_id: String = Game.prepare_next_battle()
 	_engine.setup(Game.current_run, enemy_id)
 	_processed_battle_event_count = 0
+	_processed_vfx_event_count = 0
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
 	_player_panel.configure_visual("player", Game.current_run.starter_id)
 	_enemy_panel.configure_visual("enemy", enemy_id)
@@ -200,6 +203,13 @@ func _build_ui() -> void:
 
 	_build_log_popup()
 
+	_vfx_layer = BattleVfxLayer.new()
+	_vfx_layer.name = "BattleVfxLayer"
+	_vfx_layer.z_index = 70
+	_vfx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_vfx_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_vfx_layer)
+
 
 func _build_log_popup() -> void:
 	_log_popup = PanelContainer.new()
@@ -294,6 +304,7 @@ func _refresh_ui(time_scale: float) -> void:
 		Localization.get_textf("battle.info.current_enemy", "Current Enemy: {value}", {"value": battle_state.enemy.display_name}),
 	])
 	_battle_info_label.text = "[center]%s[/center]" % battle_info_text
+	_process_resolution_vfx(battle_state)
 
 
 func _consume_suppressed_shield_decay_losses(battle_state: BattleState) -> Dictionary:
@@ -314,6 +325,32 @@ func _consume_suppressed_shield_decay_losses(battle_state: BattleState) -> Dicti
 		suppressed_by_unit[target_id] = int(suppressed_by_unit.get(target_id, 0)) + shield_loss
 	_processed_battle_event_count = battle_events.size()
 	return suppressed_by_unit
+
+
+func _process_resolution_vfx(battle_state: BattleState) -> void:
+	if battle_state == null or _vfx_layer == null:
+		return
+
+	var battle_events: Array[Dictionary] = battle_state.battle_events
+	var start_index: int = clampi(_processed_vfx_event_count, 0, battle_events.size())
+	for event_index in range(start_index, battle_events.size()):
+		var event_data: Dictionary = Dictionary(battle_events[event_index])
+		if String(event_data.get("event_type", "")) != "resolve_card":
+			continue
+		var actor_panel: UnitPanel = _resolve_unit_panel(String(event_data.get("actor_id", "")), battle_state)
+		var target_panel: UnitPanel = _resolve_unit_panel(String(event_data.get("target_id", "")), battle_state)
+		_vfx_layer.play_resolution(event_data, actor_panel, target_panel, _player_panel, _enemy_panel)
+	_processed_vfx_event_count = battle_events.size()
+
+
+func _resolve_unit_panel(unit_id: String, battle_state: BattleState) -> UnitPanel:
+	if unit_id == "player":
+		return _player_panel
+	if battle_state != null and unit_id == battle_state.enemy.unit_id:
+		return _enemy_panel
+	if unit_id == "enemy":
+		return _enemy_panel
+	return null
 
 
 func _on_card_requested(runtime_id: String) -> void:

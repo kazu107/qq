@@ -784,8 +784,42 @@ func _run() -> void:
 	var log_button: Button = battle_scene.find_child("BattleLogButton", true, false) as Button
 	var log_popup: PanelContainer = battle_scene.find_child("BattleLogPopup", true, false) as PanelContainer
 	var log_panel: LogPanel = battle_scene.find_child("BattleLogPanel", true, false) as LogPanel
-	if bottom_split == null or timeline_section == null or battle_timeline_panel == null or log_button == null or log_popup == null or log_panel == null:
+	var battle_vfx_layer: BattleVfxLayer = battle_scene.find_child("BattleVfxLayer", true, false) as BattleVfxLayer
+	var battle_player_unit_panel: UnitPanel = battle_scene.find_child("PlayerUnitPanel", true, false) as UnitPanel
+	var battle_enemy_unit_panel: UnitPanel = battle_scene.find_child("EnemyUnitPanel", true, false) as UnitPanel
+	if bottom_split == null or timeline_section == null or battle_timeline_panel == null or log_button == null or log_popup == null or log_panel == null or battle_vfx_layer == null:
 		push_error("Card UI smoke failed: battle scene layout sections were not created")
+		get_tree().quit(1)
+		return
+	if battle_player_unit_panel == null or battle_enemy_unit_panel == null:
+		push_error("Card UI smoke failed: battle unit panels should be available for resolution VFX")
+		get_tree().quit(1)
+		return
+	var resolution_vfx_event: Dictionary = {
+		"event_type": "resolve_card",
+		"actor_id": "player",
+		"target_id": "scout",
+		"card_id": "strike",
+		"hp_delta": -6,
+		"shield_delta": -3,
+		"result": {
+			"player_before": {"hp": 40, "shield": 0},
+			"player_after": {"hp": 44, "shield": 3},
+			"enemy_before": {"hp": 30, "shield": 5},
+			"enemy_after": {"hp": 24, "shield": 2},
+		},
+	}
+	battle_vfx_layer.play_resolution(resolution_vfx_event, battle_player_unit_panel, battle_enemy_unit_panel, battle_player_unit_panel, battle_enemy_unit_panel)
+	await get_tree().process_frame
+	if battle_vfx_layer.get_child_count() < 6:
+		push_error("Card UI smoke failed: card resolution VFX should spawn multiple rich effect nodes")
+		get_tree().quit(1)
+		return
+	if battle_vfx_layer.find_child("DamageImpact", true, false) == null \
+	or battle_vfx_layer.find_child("HealRing", true, false) == null \
+	or battle_vfx_layer.find_child("ShieldRing", true, false) == null \
+	or battle_vfx_layer.find_child("ShieldHit", true, false) == null:
+		push_error("Card UI smoke failed: card resolution VFX should cover damage, heal, and shield changes")
 		get_tree().quit(1)
 		return
 	if obsolete_log_section != null:
