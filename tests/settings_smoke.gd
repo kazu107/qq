@@ -38,12 +38,18 @@ func _run() -> void:
 	var sfx_slider: HSlider = settings_scene.find_child("SfxVolumeSlider", true, false) as HSlider
 	var resolution_option: OptionButton = settings_scene.find_child("ResolutionOptionButton", true, false) as OptionButton
 	var replay_toggle: CheckButton = settings_scene.find_child("ReplayAutoExportToggle", true, false) as CheckButton
+	var developer_toggle: CheckButton = settings_scene.find_child("DeveloperModeToggle", true, false) as CheckButton
 	var back_button: Button = settings_scene.find_child("SettingsBackButton", true, false) as Button
-	if volume_slider == null or sfx_slider == null or resolution_option == null or replay_toggle == null or back_button == null:
+	if volume_slider == null or sfx_slider == null or resolution_option == null or replay_toggle == null or developer_toggle == null or back_button == null:
 		_fail("Settings smoke failed: one or more settings controls were missing")
 		return
 	if resolution_option.item_count < 3:
 		_fail("Settings smoke failed: resolution options were not populated")
+		return
+	await get_tree().process_frame
+	if not _check_hover_pressed_style_visible(replay_toggle, "replay auto export"):
+		return
+	if not _check_hover_pressed_style_visible(developer_toggle, "developer mode"):
 		return
 
 	AudioManager.clear_play_history()
@@ -132,6 +138,25 @@ func _find_resolution_index(resolution_code: String) -> int:
 		if String(resolution_entry.get("code", "")) == resolution_code:
 			return resolution_index
 	return -1
+
+
+func _check_hover_pressed_style_visible(toggle: CheckButton, label: String) -> bool:
+	toggle.set_pressed_no_signal(true)
+	var hover_pressed_style: StyleBoxFlat = toggle.get_theme_stylebox("hover_pressed") as StyleBoxFlat
+	if hover_pressed_style == null:
+		_fail("Settings smoke failed: %s toggle has no visible hover-pressed style" % label)
+		return false
+	if hover_pressed_style.bg_color.a < 0.10 or hover_pressed_style.border_color.a < 0.10:
+		_fail("Settings smoke failed: %s toggle hover-pressed style is transparent" % label)
+		return false
+	if hover_pressed_style.border_width_left <= 0 or hover_pressed_style.border_width_top <= 0:
+		_fail("Settings smoke failed: %s toggle hover-pressed border is missing" % label)
+		return false
+	var checked_icon: Texture2D = toggle.get_theme_icon("checked")
+	if checked_icon == null or checked_icon.get_width() <= 0 or checked_icon.get_height() <= 0:
+		_fail("Settings smoke failed: %s toggle checked icon is missing" % label)
+		return false
+	return true
 
 
 func _wait_for_scene(scene_name: String) -> Node:

@@ -112,10 +112,40 @@ func _apply_button_theme(theme: Theme, theme_type: String) -> void:
 func _apply_check_theme(theme: Theme) -> void:
 	var check_theme_types: Array[String] = ["CheckButton", "CheckBox"]
 	for theme_type: String in check_theme_types:
+		theme.set_stylebox("normal", theme_type, _make_check_style(Color(0.070, 0.085, 0.105, 0.78), Color(0.18, 0.26, 0.32, 0.80), 1, 12))
+		theme.set_stylebox("hover", theme_type, _make_check_style(Color(0.095, 0.130, 0.155, 0.92), ACCENT_BLUE, 2, 12))
+		theme.set_stylebox("pressed", theme_type, _make_check_style(Color(0.125, 0.160, 0.175, 0.96), ACCENT_GOLD, 2, 12))
+		theme.set_stylebox("hover_pressed", theme_type, _make_check_style(Color(0.135, 0.185, 0.205, 0.98), Color(1.0, 0.78, 0.38, 1.0), 2, 12))
+		theme.set_stylebox("disabled", theme_type, _make_check_style(Color(0.055, 0.060, 0.070, 0.70), Color(0.12, 0.13, 0.15, 0.70), 1, 12))
+		theme.set_stylebox("focus", theme_type, _make_check_style(Color(0.10, 0.16, 0.20, 0.25), ACCENT_GOLD, 2, 12))
 		theme.set_color("font_color", theme_type, TEXT_MAIN)
 		theme.set_color("font_hover_color", theme_type, Color(0.98, 1.0, 0.98, 1.0))
+		theme.set_color("font_pressed_color", theme_type, Color(1.0, 0.88, 0.62, 1.0))
+		theme.set_color("font_hover_pressed_color", theme_type, Color(1.0, 0.92, 0.70, 1.0))
 		theme.set_color("font_disabled_color", theme_type, TEXT_DISABLED)
 		theme.set_font_size("font_size", theme_type, 17)
+		theme.set_constant("h_separation", theme_type, 10)
+		theme.set_constant("check_v_offset", theme_type, 0)
+		if theme_type == "CheckButton":
+			_apply_check_button_icons(theme, theme_type)
+		else:
+			_apply_check_box_icons(theme, theme_type)
+
+
+func _apply_check_button_icons(theme: Theme, theme_type: String) -> void:
+	theme.set_icon("checked", theme_type, _make_switch_texture(true, ACCENT_BLUE, Color(0.82, 0.94, 1.0, 1.0), Color(0.95, 0.80, 0.48, 1.0)))
+	theme.set_icon("checked_mirrored", theme_type, _make_switch_texture(true, ACCENT_BLUE, Color(0.82, 0.94, 1.0, 1.0), Color(0.95, 0.80, 0.48, 1.0)))
+	theme.set_icon("unchecked", theme_type, _make_switch_texture(false, Color(0.12, 0.16, 0.19, 1.0), Color(0.34, 0.42, 0.48, 1.0), Color(0.70, 0.74, 0.76, 1.0)))
+	theme.set_icon("unchecked_mirrored", theme_type, _make_switch_texture(false, Color(0.12, 0.16, 0.19, 1.0), Color(0.34, 0.42, 0.48, 1.0), Color(0.70, 0.74, 0.76, 1.0)))
+	theme.set_icon("checked_disabled", theme_type, _make_switch_texture(true, Color(0.12, 0.16, 0.18, 0.95), Color(0.25, 0.30, 0.33, 0.95), TEXT_DISABLED))
+	theme.set_icon("unchecked_disabled", theme_type, _make_switch_texture(false, Color(0.08, 0.09, 0.10, 0.92), Color(0.18, 0.20, 0.22, 0.92), TEXT_DISABLED))
+
+
+func _apply_check_box_icons(theme: Theme, theme_type: String) -> void:
+	theme.set_icon("checked", theme_type, _make_checkbox_texture(true, ACCENT_BLUE, Color(0.82, 0.94, 1.0, 1.0), Color(0.98, 0.86, 0.48, 1.0)))
+	theme.set_icon("unchecked", theme_type, _make_checkbox_texture(false, Color(0.10, 0.13, 0.16, 1.0), Color(0.34, 0.42, 0.48, 1.0), TEXT_MAIN))
+	theme.set_icon("checked_disabled", theme_type, _make_checkbox_texture(true, Color(0.10, 0.12, 0.14, 0.92), Color(0.22, 0.25, 0.28, 0.92), TEXT_DISABLED))
+	theme.set_icon("unchecked_disabled", theme_type, _make_checkbox_texture(false, Color(0.08, 0.09, 0.10, 0.92), Color(0.18, 0.20, 0.22, 0.92), TEXT_DISABLED))
 
 
 func _apply_panel_theme(theme: Theme) -> void:
@@ -146,6 +176,17 @@ func _make_button_style(fill_color: Color, border_color: Color, border_width: in
 	style.content_margin_bottom = 9.0
 	style.shadow_size = 5
 	style.shadow_color = Color(0.0, 0.0, 0.0, 0.28)
+	return style
+
+
+func _make_check_style(fill_color: Color, border_color: Color, border_width: int, radius: int) -> StyleBoxFlat:
+	var style: StyleBoxFlat = _make_flat_style(fill_color, border_color, border_width, radius)
+	style.content_margin_left = 12.0
+	style.content_margin_top = 8.0
+	style.content_margin_right = 12.0
+	style.content_margin_bottom = 8.0
+	style.shadow_size = 3
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.22)
 	return style
 
 
@@ -182,3 +223,34 @@ func _make_grabber_texture(color: Color) -> Texture2D:
 	image.fill_rect(Rect2i(6, 2, 10, 18), color)
 	image.fill_rect(Rect2i(3, 6, 16, 10), color.lightened(0.12))
 	return ImageTexture.create_from_image(image)
+
+
+func _make_switch_texture(checked: bool, fill_color: Color, border_color: Color, knob_color: Color) -> Texture2D:
+	var image: Image = Image.create(48, 26, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	_draw_rect_border(image, Rect2i(1, 4, 46, 18), fill_color, border_color, 2)
+	var knob_rect: Rect2i = Rect2i(27, 7, 14, 12) if checked else Rect2i(7, 7, 14, 12)
+	image.fill_rect(knob_rect, knob_color)
+	image.fill_rect(Rect2i(knob_rect.position + Vector2i(2, 2), knob_rect.size - Vector2i(4, 4)), knob_color.lightened(0.10))
+	return ImageTexture.create_from_image(image)
+
+
+func _make_checkbox_texture(checked: bool, fill_color: Color, border_color: Color, mark_color: Color) -> Texture2D:
+	var image: Image = Image.create(24, 24, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	_draw_rect_border(image, Rect2i(2, 2, 20, 20), fill_color, border_color, 2)
+	if checked:
+		image.fill_rect(Rect2i(6, 12, 4, 4), mark_color)
+		image.fill_rect(Rect2i(9, 15, 4, 4), mark_color)
+		image.fill_rect(Rect2i(12, 10, 4, 4), mark_color)
+		image.fill_rect(Rect2i(15, 6, 4, 4), mark_color)
+	return ImageTexture.create_from_image(image)
+
+
+func _draw_rect_border(image: Image, rect: Rect2i, fill_color: Color, border_color: Color, border_width: int) -> void:
+	image.fill_rect(rect, border_color)
+	var inner_rect: Rect2i = Rect2i(
+		rect.position + Vector2i(border_width, border_width),
+		rect.size - Vector2i(border_width * 2, border_width * 2)
+	)
+	image.fill_rect(inner_rect, fill_color)
