@@ -39,6 +39,9 @@ func _run() -> void:
 		_fail("Developer mode smoke failed: custom battle lab controls were missing")
 		return
 	var card_slot_grid: GridContainer = hub_scene.find_child("DebugCardSlotGrid", true, false) as GridContainer
+	if first_card_picker.get_grid_column_count() == 0:
+		_fail("Developer mode smoke failed: custom battle card picker did not build choices on demand")
+		return
 	var card_picker_grid: GridContainer = first_card_picker.find_child("CardIconPickerGrid", true, false) as GridContainer
 	var meteor_choice: CardButton = first_card_picker.find_child("CardIconChoice_meteor_crash", true, false) as CardButton
 	var selected_icon: Texture2D = first_card_picker.icon

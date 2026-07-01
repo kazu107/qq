@@ -164,6 +164,15 @@ func _run() -> void:
 		return
 	var assault_status: Label = library_scene.find_child("LibraryStatus_assault", true, false) as Label
 	var execution_status: Label = library_scene.find_child("LibraryStatus_execution", true, false) as Label
+	var library_grid: GridContainer = library_scene.find_child("LibraryCards", true, false) as GridContainer
+	var rarity_filter: OptionButton = library_scene.find_child("LibraryRarityFilter", true, false) as OptionButton
+	var type_filter: OptionButton = library_scene.find_child("LibraryTypeFilter", true, false) as OptionButton
+	if library_grid == null or library_grid.columns != 3:
+		_fail("Meta progress smoke failed: card library should render cards in a three-column grid")
+		return
+	if rarity_filter == null or type_filter == null:
+		_fail("Meta progress smoke failed: card library filters were missing")
+		return
 	if assault_status == null or assault_status.text != "Unlocked":
 		_fail("Meta progress smoke failed: card library did not reflect the unlocked rare card")
 		return
@@ -171,6 +180,36 @@ func _run() -> void:
 		_fail("Meta progress smoke failed: card library should still show locked epic cards")
 		return
 	var execution_row: Control = library_scene.find_child("LibraryRow_execution", true, false) as Control
+	var assault_row: Control = library_scene.find_child("LibraryRow_assault", true, false) as Control
+	var guard_row: Control = library_scene.find_child("LibraryRow_guard", true, false) as Control
+	if execution_row == null or assault_row == null or guard_row == null:
+		_fail("Meta progress smoke failed: card library grid rows were missing")
+		return
+	if not _select_option_by_metadata(rarity_filter, "rare"):
+		_fail("Meta progress smoke failed: rarity filter did not contain rare")
+		return
+	rarity_filter.emit_signal("item_selected", rarity_filter.selected)
+	await get_tree().process_frame
+	if not assault_row.visible or execution_row.visible:
+		_fail("Meta progress smoke failed: rarity filter did not hide non-matching cards")
+		return
+	if not _select_option_by_metadata(rarity_filter, "all"):
+		_fail("Meta progress smoke failed: rarity filter did not contain all")
+		return
+	rarity_filter.emit_signal("item_selected", rarity_filter.selected)
+	if not _select_option_by_metadata(type_filter, "shield"):
+		_fail("Meta progress smoke failed: type filter did not contain shield")
+		return
+	type_filter.emit_signal("item_selected", type_filter.selected)
+	await get_tree().process_frame
+	if not guard_row.visible or assault_row.visible:
+		_fail("Meta progress smoke failed: type filter did not hide non-matching cards")
+		return
+	if not _select_option_by_metadata(type_filter, "all"):
+		_fail("Meta progress smoke failed: type filter did not contain all")
+		return
+	type_filter.emit_signal("item_selected", type_filter.selected)
+	await get_tree().process_frame
 	var execution_row_id: int = execution_row.get_instance_id()
 	Game.developer_unlock_all_meta()
 	library_scene.call("_refresh_ui")
@@ -243,6 +282,14 @@ func _wait_for_content_ready(scene: Control, label: String) -> bool:
 func _has_starter_id(starters: Array[Dictionary], starter_id: String) -> bool:
 	for starter in starters:
 		if String(starter.get("id", "")) == starter_id:
+			return true
+	return false
+
+
+func _select_option_by_metadata(option: OptionButton, target_id: String) -> bool:
+	for index in range(option.item_count):
+		if String(option.get_item_metadata(index)) == target_id:
+			option.select(index)
 			return true
 	return false
 

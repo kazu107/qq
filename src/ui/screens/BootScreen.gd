@@ -19,6 +19,7 @@ func _boot() -> void:
 	Game.ensure_meta_initialized()
 	var save_data := SaveManager.load_save()
 	Game.apply_loaded_save(save_data)
+	SceneRouter.warm_scene_cache()
 	_label.text = Localization.get_textf("boot.loaded", "Loaded {cards} cards / {enemies} enemies", {
 		"cards": Database.cards.size(),
 		"enemies": Database.enemies.size(),

@@ -16,6 +16,22 @@ const TRANSITION_COVER_NAME := "SceneTransitionCover"
 
 var _transition_layer: CanvasLayer
 var _transition_cover: ColorRect
+var _scene_cache: Dictionary = {}
+
+
+func warm_scene_cache() -> void:
+	var scene_paths: Array[String] = [
+		HUB_SCENE,
+		META_SCENE,
+		CARD_LIBRARY_SCENE,
+	]
+	for scene_path in scene_paths:
+		if _scene_cache.has(scene_path):
+			continue
+		var resource: Resource = ResourceLoader.load(scene_path)
+		var packed_scene: PackedScene = resource as PackedScene
+		if packed_scene != null:
+			_scene_cache[scene_path] = packed_scene
 
 func go_to_title() -> void:
 	_change_scene(TITLE_SCENE)
@@ -99,8 +115,17 @@ func _change_scene(scene_path: String) -> void:
 	var current_scene: CanvasItem = get_tree().current_scene as CanvasItem
 	if current_scene != null:
 		current_scene.visible = false
-	get_tree().change_scene_to_file(scene_path)
+	var packed_scene: PackedScene = _get_preloaded_scene(scene_path)
+	if packed_scene != null:
+		get_tree().change_scene_to_packed(packed_scene)
+	else:
+		get_tree().change_scene_to_file(scene_path)
 	call_deferred("_release_transition_cover")
+
+
+func _get_preloaded_scene(scene_path: String) -> PackedScene:
+	var cached_scene: Variant = _scene_cache.get(scene_path, null)
+	return cached_scene as PackedScene
 
 
 func _show_transition_cover() -> void:

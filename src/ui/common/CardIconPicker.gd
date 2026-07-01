@@ -15,6 +15,7 @@ var _include_empty: bool = false
 var _selected_card_id: String = ""
 var _popup: PopupPanel
 var _grid: GridContainer
+var _grid_built: bool = false
 
 
 func _ready() -> void:
@@ -22,15 +23,13 @@ func _ready() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	clip_text = true
 	pressed.connect(_on_pressed)
-	_ensure_popup()
 	_refresh_button()
 
 
 func setup(entries: Array[Dictionary], default_id: String, include_empty: bool) -> void:
 	_entries = entries.duplicate(true)
 	_include_empty = include_empty
-	_ensure_popup()
-	_rebuild_grid()
+	_grid_built = false
 	set_selected_card_id(default_id)
 
 
@@ -70,6 +69,8 @@ func _on_pressed() -> void:
 
 func _ensure_popup() -> void:
 	if _popup != null and is_instance_valid(_popup):
+		if not _grid_built:
+			_rebuild_grid()
 		return
 
 	_popup = PopupPanel.new()
@@ -98,6 +99,7 @@ func _ensure_popup() -> void:
 	_grid.add_theme_constant_override("h_separation", 8)
 	_grid.add_theme_constant_override("v_separation", 8)
 	scroll.add_child(_grid)
+	_rebuild_grid()
 
 
 func _rebuild_grid() -> void:
@@ -129,6 +131,7 @@ func _rebuild_grid() -> void:
 		card_button.pressed.connect(_choose_card.bind(card_id))
 		_grid.add_child(card_button)
 
+	_grid_built = true
 	_update_choice_selection_frames()
 
 
