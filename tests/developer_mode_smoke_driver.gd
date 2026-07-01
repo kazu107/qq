@@ -38,10 +38,18 @@ func _run() -> void:
 	if enemy_option == null or first_card_picker == null or first_grade_option == null or custom_battle_button == null:
 		_fail("Developer mode smoke failed: custom battle lab controls were missing")
 		return
+	var card_slot_grid: GridContainer = hub_scene.find_child("DebugCardSlotGrid", true, false) as GridContainer
 	var card_picker_grid: GridContainer = first_card_picker.find_child("CardIconPickerGrid", true, false) as GridContainer
 	var meteor_choice: CardButton = first_card_picker.find_child("CardIconChoice_meteor_crash", true, false) as CardButton
-	if card_picker_grid == null or card_picker_grid.columns < 4 or meteor_choice == null:
-		_fail("Developer mode smoke failed: custom battle card picker should render card icons in a multi-column grid")
+	var selected_icon: Texture2D = first_card_picker.icon
+	if card_slot_grid == null or card_slot_grid.columns != 3:
+		_fail("Developer mode smoke failed: custom battle loadout slots should be arranged in three columns")
+		return
+	if card_picker_grid == null or card_picker_grid.columns != 3 or meteor_choice == null:
+		_fail("Developer mode smoke failed: custom battle card picker should render card icons in a three-column grid")
+		return
+	if selected_icon == null or selected_icon.get_width() > 64 or selected_icon.get_height() > 64:
+		_fail("Developer mode smoke failed: selected card picker icon should stay compact")
 		return
 	if not _select_option_by_metadata(enemy_option, "brute") \
 	or not _select_card_picker(first_card_picker, "meteor_crash") \

@@ -105,6 +105,14 @@ func _build_debug_battle_lab(parent: Control) -> void:
 	cards_label.text = Localization.get_text("hub.debug_loadout", "Loadout")
 	box.add_child(cards_label)
 
+	var card_grid: GridContainer = GridContainer.new()
+	card_grid.name = "DebugCardSlotGrid"
+	card_grid.columns = 3
+	card_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card_grid.add_theme_constant_override("h_separation", 10)
+	card_grid.add_theme_constant_override("v_separation", 10)
+	box.add_child(card_grid)
+
 	var card_entries: Array[Dictionary] = Game.get_debug_battle_card_entries()
 	var default_cards: Array[String] = ["quick_slash", "strike", "guard", "heavy_swing", "delay_step", "reload"]
 	_debug_card_options.clear()
@@ -121,7 +129,7 @@ func _build_debug_battle_lab(parent: Control) -> void:
 		_debug_card_options.append(option)
 		_debug_card_grade_options.append(grade_option)
 		_add_card_slot_row(
-			box,
+			card_grid,
 			Localization.get_textf("hub.debug_card_slot", "Card {index}", {"index": slot_index + 1}),
 			option,
 			grade_option
@@ -151,28 +159,33 @@ func _add_option_row(parent: Control, label_text: String, option: OptionButton) 
 
 
 func _add_card_slot_row(parent: Control, label_text: String, card_option: CardIconPicker, grade_option: OptionButton) -> void:
-	var row: HBoxContainer = HBoxContainer.new()
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_theme_constant_override("separation", 8)
-	parent.add_child(row)
+	var slot_box: VBoxContainer = VBoxContainer.new()
+	slot_box.name = "DebugCardSlotCell_%s" % card_option.name
+	slot_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot_box.add_theme_constant_override("separation", 5)
+	parent.add_child(slot_box)
 
 	var label: Label = Label.new()
-	label.custom_minimum_size = Vector2(120.0, 0.0)
 	label.text = label_text
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(label)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	slot_box.add_child(label)
 
 	card_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(card_option)
+	slot_box.add_child(card_option)
+
+	var grade_row: HBoxContainer = HBoxContainer.new()
+	grade_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grade_row.add_theme_constant_override("separation", 6)
+	slot_box.add_child(grade_row)
 
 	var grade_label: Label = Label.new()
-	grade_label.custom_minimum_size = Vector2(58.0, 0.0)
 	grade_label.text = Localization.get_text("hub.debug_grade", "Grade")
 	grade_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(grade_label)
+	grade_row.add_child(grade_label)
 
-	grade_option.custom_minimum_size = Vector2(96.0, 0.0)
-	row.add_child(grade_option)
+	grade_option.custom_minimum_size = Vector2(86.0, 0.0)
+	grade_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grade_row.add_child(grade_option)
 
 
 func _create_debug_option(name: String, entries: Array[Dictionary], default_id: String, include_empty: bool) -> OptionButton:

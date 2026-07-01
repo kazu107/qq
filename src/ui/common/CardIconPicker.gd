@@ -4,8 +4,11 @@ class_name CardIconPicker
 signal selection_changed(card_id: String)
 
 const CARD_TILE_SIZE: Vector2 = Vector2(82.0, 82.0)
-const POPUP_SIZE: Vector2i = Vector2i(560, 370)
-const GRID_COLUMNS: int = 5
+const SELECTED_ICON_SIZE: Vector2i = Vector2i(42, 42)
+const POPUP_SIZE: Vector2i = Vector2i(340, 430)
+const GRID_COLUMNS: int = 3
+
+static var _button_icon_cache: Dictionary = {}
 
 var _entries: Array[Dictionary] = []
 var _include_empty: bool = false
@@ -15,7 +18,7 @@ var _grid: GridContainer
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(260.0, 44.0)
+	custom_minimum_size = Vector2(150.0, 52.0)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	clip_text = true
 	pressed.connect(_on_pressed)
@@ -138,11 +141,13 @@ func _choose_card(card_id: String) -> void:
 func _refresh_button() -> void:
 	var selected_name: String = Localization.get_text("hub.debug_empty_slot", "空き")
 	icon = null
+	tooltip_text = ""
 	if _selected_card_id != "":
 		var card_def: CardDef = Database.get_card(_selected_card_id)
 		if card_def != null:
-			selected_name = "%s [%s]" % [card_def.name, card_def.id]
-			icon = _load_card_icon(card_def.id)
+			selected_name = card_def.name
+			tooltip_text = "%s [%s]" % [card_def.name, card_def.id]
+			icon = _load_button_icon(card_def.id)
 	text = selected_name
 
 
@@ -169,9 +174,20 @@ func _has_card_id(card_id: String) -> bool:
 	return false
 
 
-func _load_card_icon(card_id: String) -> Texture2D:
+func _load_button_icon(card_id: String) -> Texture2D:
+	if _button_icon_cache.has(card_id):
+		return _button_icon_cache[card_id] as Texture2D
 	var path: String = CardButton.ART_PATH_TEMPLATE % card_id
 	if not ResourceLoader.exists(path):
 		return null
 	var resource: Resource = load(path)
-	return resource as Texture2D
+	var texture: Texture2D = resource as Texture2D
+	if texture == null:
+		return null
+	var image: Image = texture.get_image()
+	if image == null or image.is_empty():
+		return texture
+	image.resize(SELECTED_ICON_SIZE.x, SELECTED_ICON_SIZE.y, Image.INTERPOLATE_LANCZOS)
+	var icon_texture: Texture2D = ImageTexture.create_from_image(image)
+	_button_icon_cache[card_id] = icon_texture
+	return icon_texture
