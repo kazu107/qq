@@ -6,7 +6,7 @@ var _info_label: Label
 var _developer_panel: DeveloperPanel
 var _debug_enemy_option: OptionButton
 var _debug_starter_option: OptionButton
-var _debug_card_options: Array[OptionButton] = []
+var _debug_card_options: Array[CardIconPicker] = []
 var _debug_card_grade_options: Array[OptionButton] = []
 
 
@@ -111,7 +111,7 @@ func _build_debug_battle_lab(parent: Control) -> void:
 	_debug_card_grade_options.clear()
 	for slot_index in range(DEBUG_CARD_SLOT_COUNT):
 		var default_card_id: String = default_cards[slot_index] if slot_index < default_cards.size() else "quick_slash"
-		var option: OptionButton = _create_debug_option(
+		var option: CardIconPicker = _create_debug_card_picker(
 			"DebugCardSlot%d" % slot_index,
 			card_entries,
 			default_card_id,
@@ -150,7 +150,7 @@ func _add_option_row(parent: Control, label_text: String, option: OptionButton) 
 	row.add_child(option)
 
 
-func _add_card_slot_row(parent: Control, label_text: String, card_option: OptionButton, grade_option: OptionButton) -> void:
+func _add_card_slot_row(parent: Control, label_text: String, card_option: CardIconPicker, grade_option: OptionButton) -> void:
 	var row: HBoxContainer = HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("separation", 8)
@@ -191,6 +191,13 @@ func _create_debug_option(name: String, entries: Array[Dictionary], default_id: 
 	return option
 
 
+func _create_debug_card_picker(name: String, entries: Array[Dictionary], default_id: String, include_empty: bool) -> CardIconPicker:
+	var picker: CardIconPicker = CardIconPicker.new()
+	picker.name = name
+	picker.setup(entries, default_id, include_empty)
+	return picker
+
+
 func _create_debug_grade_option(name: String, default_tier: int = 0) -> OptionButton:
 	var option: OptionButton = OptionButton.new()
 	option.name = name
@@ -216,8 +223,8 @@ func _on_dev_start_custom_battle() -> void:
 	var card_ids: Array[String] = []
 	var card_tiers: Dictionary = {}
 	for slot_index in range(_debug_card_options.size()):
-		var option: OptionButton = _debug_card_options[slot_index]
-		var card_id: String = _get_selected_option_id(option)
+		var option: CardIconPicker = _debug_card_options[slot_index]
+		var card_id: String = option.get_selected_card_id()
 		if card_id != "":
 			card_ids.append(card_id)
 			var selected_tier: int = _get_selected_grade(_debug_card_grade_options[slot_index])

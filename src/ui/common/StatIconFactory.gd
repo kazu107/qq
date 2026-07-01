@@ -27,6 +27,8 @@ static func _build_icon(stat_id: String) -> Texture2D:
 			return _build_gold_icon()
 		"step":
 			return _build_step_icon()
+		"time":
+			return _build_time_icon()
 		"relic":
 			return _build_relic_icon()
 		"card_owned":
@@ -144,6 +146,22 @@ static func _build_relic_icon() -> Texture2D:
 	_draw_diamond(image, Vector2i(31, 30), 12, bright)
 	image.fill_rect(Rect2i(29, 12, 4, 39), amber.darkened(0.24))
 	image.fill_rect(Rect2i(14, 30, 35, 4), bright)
+	return ImageTexture.create_from_image(image)
+
+
+static func _build_time_icon() -> Texture2D:
+	var image: Image = Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var shadow: Color = Color(0.03, 0.05, 0.09, 0.94)
+	var blue: Color = Color(0.38, 0.78, 1.0, 1.0)
+	var bright: Color = Color(0.86, 1.0, 1.0, 1.0)
+	_draw_diamond(image, Vector2i(34, 34), 27, shadow)
+	_draw_diamond(image, Vector2i(32, 32), 26, blue.darkened(0.08))
+	_draw_diamond(image, Vector2i(32, 32), 20, Color(0.04, 0.10, 0.16, 0.92))
+	image.fill_rect(Rect2i(30, 14, 5, 20), bright)
+	image.fill_rect(Rect2i(32, 30, 16, 5), bright)
+	image.fill_rect(Rect2i(18, 30, 9, 4), blue)
+	image.fill_rect(Rect2i(37, 44, 8, 4), blue)
 	return ImageTexture.create_from_image(image)
 
 

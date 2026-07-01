@@ -43,6 +43,10 @@ func _exercise_run_a() -> void:
 	if _failed:
 		return
 
+	await _assert_map_battle_summary_with_history()
+	if _failed:
+		return
+
 	await _exercise_heal_node()
 	if _failed:
 		return
@@ -84,16 +88,20 @@ func _assert_map_scene() -> void:
 	var steps_box: VBoxContainer = map_scene.find_child("MapSteps", true, false) as VBoxContainer
 	var equipped_deck: CardHandPanel = map_scene.find_child("EquippedDeck", true, false) as CardHandPanel
 	var inventory_box: VBoxContainer = map_scene.find_child("LoadoutInventory", true, false) as VBoxContainer
-	var relic_icon_row: RelicIconRow = map_scene.find_child("MapRelicIconRow", true, false) as RelicIconRow
+	var battle_summary_box: VBoxContainer = map_scene.find_child("RunBattleSummary", true, false) as VBoxContainer
 	if steps_box == null or steps_box.get_child_count() == 0:
 		_fail("Map/facility smoke failed: map scene did not render step nodes")
 	elif equipped_deck == null or equipped_deck.get_child_count() == 0:
 		_fail("Map/facility smoke failed: map scene did not render equipped loadout")
 	elif inventory_box == null or inventory_box.get_child_count() == 0:
 		_fail("Map/facility smoke failed: map scene did not render inventory rows")
-	elif relic_icon_row == null:
-		_fail("Map/facility smoke failed: map scene did not render relic icon row")
+	elif battle_summary_box == null:
+		_fail("Map/facility smoke failed: map scene did not render the run battle summary")
 	if _failed:
+		return
+	var empty_summary: Label = map_scene.find_child("RunBattleSummaryEmpty", true, false) as Label
+	if empty_summary == null:
+		_fail("Map/facility smoke failed: a fresh map should show an empty battle summary")
 		return
 	_assert_map_loadout_inventory(map_scene)
 	if _failed:
@@ -202,6 +210,32 @@ func _assert_map_loadout_inventory(map_scene: Control) -> void:
 	if actions.visible:
 		_fail("Map/facility smoke failed: map loadout actions should hide only after leaving the frame")
 		return
+
+
+func _assert_map_battle_summary_with_history() -> void:
+	var map_scene: Control = load("res://scenes/map/Map.tscn").instantiate() as Control
+	add_child(map_scene)
+	await get_tree().process_frame
+
+	var summary_total: HBoxContainer = map_scene.find_child("RunBattleSummaryTotal", true, false) as HBoxContainer
+	var first_summary: PanelContainer = map_scene.find_child("RunBattleSummaryStep_0", true, false) as PanelContainer
+	var first_gain: HBoxContainer = map_scene.find_child("RunBattleSummaryGain_0", true, false) as HBoxContainer
+	if summary_total == null or first_summary == null or first_gain == null:
+		_fail("Map/facility smoke failed: map should render previous battle summaries")
+		return
+	if Game.current_run.battle_history.is_empty():
+		_fail("Map/facility smoke failed: battle history should persist after a completed battle")
+		return
+	var latest_battle: Dictionary = Game.current_run.battle_history[0]
+	if int(latest_battle.get("reward_gold", 0)) <= 0 or String(latest_battle.get("selected_reward_card_id", "")) == "":
+		_fail("Map/facility smoke failed: battle history should retain reward gains for the map summary")
+		return
+	if first_gain.get_child_count() < 3:
+		_fail("Map/facility smoke failed: battle summary gains should mix labels with reward icons")
+		return
+
+	map_scene.queue_free()
+	await get_tree().process_frame
 
 
 func _find_first_map_node_button(root: Node) -> MapNodeButton:
@@ -609,6 +643,7 @@ func _build_victory_summary(enemy_id: String) -> Dictionary:
 		"enemy_id": enemy_id,
 		"enemy_name": enemy_name,
 		"player_hp": max(1, Game.current_run.player_hp - 1),
+		"battle_time": 24.5,
 	}
 
 

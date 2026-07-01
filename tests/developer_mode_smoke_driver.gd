@@ -32,14 +32,19 @@ func _run() -> void:
 	if _failed or hub_scene == null:
 		return
 	var enemy_option: OptionButton = hub_scene.find_child("DebugEnemyOption", true, false) as OptionButton
-	var first_card_option: OptionButton = hub_scene.find_child("DebugCardSlot0", true, false) as OptionButton
+	var first_card_picker: CardIconPicker = hub_scene.find_child("DebugCardSlot0", true, false) as CardIconPicker
 	var first_grade_option: OptionButton = hub_scene.find_child("DebugCardGradeSlot0", true, false) as OptionButton
 	var custom_battle_button: Button = hub_scene.find_child("DevCustomBattleStart", true, false) as Button
-	if enemy_option == null or first_card_option == null or first_grade_option == null or custom_battle_button == null:
+	if enemy_option == null or first_card_picker == null or first_grade_option == null or custom_battle_button == null:
 		_fail("Developer mode smoke failed: custom battle lab controls were missing")
 		return
+	var card_picker_grid: GridContainer = first_card_picker.find_child("CardIconPickerGrid", true, false) as GridContainer
+	var meteor_choice: CardButton = first_card_picker.find_child("CardIconChoice_meteor_crash", true, false) as CardButton
+	if card_picker_grid == null or card_picker_grid.columns < 4 or meteor_choice == null:
+		_fail("Developer mode smoke failed: custom battle card picker should render card icons in a multi-column grid")
+		return
 	if not _select_option_by_metadata(enemy_option, "brute") \
-	or not _select_option_by_metadata(first_card_option, "meteor_crash") \
+	or not _select_card_picker(first_card_picker, "meteor_crash") \
 	or not _select_option_by_metadata(first_grade_option, "3"):
 		_fail("Developer mode smoke failed: custom battle lab could not select requested options")
 		return
@@ -224,6 +229,13 @@ func _select_option_by_metadata(option: OptionButton, target_id: String) -> bool
 			option.select(index)
 			return true
 	return false
+
+
+func _select_card_picker(picker: CardIconPicker, target_id: String) -> bool:
+	if picker == null:
+		return false
+	picker.set_selected_card_id(target_id)
+	return picker.get_selected_card_id() == target_id
 
 
 func _fail(message: String) -> void:

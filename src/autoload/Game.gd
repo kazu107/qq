@@ -261,6 +261,7 @@ func choose_reward(card_id: String) -> void:
 	if card_id != "":
 		current_run.player_cards.append(card_id)
 		_auto_equip_card_if_room(card_id)
+		_update_latest_battle_history({"selected_reward_card_id": card_id})
 		AudioManager.play_sfx("reward_pick")
 	reward_options.clear()
 	last_reward_bundle.clear()
@@ -853,6 +854,17 @@ func _record_run_battle(summary: Dictionary, active_node: Dictionary) -> void:
 		var hp_delta: int = int(event_data.get("hp_delta", 0))
 		if hp_delta < 0:
 			current_run.hp_damage_taken += -hp_delta
+
+
+func _update_latest_battle_history(values: Dictionary) -> void:
+	if current_run == null or current_run.battle_history.is_empty():
+		return
+	var latest_index: int = current_run.battle_history.size() - 1
+	var latest_entry: Dictionary = Dictionary(current_run.battle_history[latest_index]).duplicate(true)
+	for raw_key in values.keys():
+		var key: String = String(raw_key)
+		latest_entry[key] = values[raw_key]
+	current_run.battle_history[latest_index] = latest_entry
 
 
 func developer_add_gold(amount: int = 50) -> int:
@@ -1900,6 +1912,12 @@ func _apply_reward_bundle(reward_bundle: Dictionary) -> void:
 	last_battle_summary["reward_key"] = String(reward_bundle.get("reward_key", ""))
 	last_battle_summary["reward_area"] = int(reward_bundle.get("area", current_run.current_area))
 	last_battle_summary["reward_options"] = _to_string_array(reward_bundle.get("options", []))
+	_update_latest_battle_history({
+		"reward_gold": int(reward_bundle.get("gold", 0)),
+		"reward_heal": int(reward_bundle.get("heal", 0)),
+		"reward_key": String(reward_bundle.get("reward_key", "")),
+		"reward_options": _to_string_array(reward_bundle.get("options", [])),
+	})
 
 
 func _grant_random_relic_note() -> String:
@@ -1910,6 +1928,7 @@ func _grant_random_relic_note() -> String:
 	if not _relic_service.grant_relic(current_run, relic_id):
 		return ""
 	last_battle_summary["bonus_relic_id"] = relic_id
+	_update_latest_battle_history({"bonus_relic_id": relic_id})
 	var relic_def: RelicDef = Database.get_relic(relic_id)
 	if relic_def == null:
 		return Localization.get_relic_gained_text(relic_id)

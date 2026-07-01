@@ -2,11 +2,9 @@ extends Control
 
 const LOADOUT_PREVIEW_SIZE: Vector2 = Vector2(92.0, 92.0)
 const LOADOUT_COUNT_ICON_SIZE: Vector2 = Vector2(22.0, 22.0)
+const RUN_SUMMARY_ICON_SIZE: Vector2 = Vector2(22.0, 22.0)
 
-var _summary_label: RichTextLabel
-var _help_label: Label
-var _relics_label: Label
-var _relics_icon_row: RelicIconRow
+var _run_history_box: VBoxContainer
 var _steps_box: VBoxContainer
 var _steps_scroll: ScrollContainer
 var _steps_scroll_tail: Control
@@ -56,30 +54,26 @@ func _build_ui() -> void:
 	root.add_theme_constant_override("separation", 20)
 	screen_root.add_child(root)
 
-	var info_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.run_status", "Run Status"))
-	_summary_label = RichTextLabel.new()
-	_summary_label.fit_content = true
-	info_panel.add_child(_summary_label)
+	var info_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.run_status", "ラン状況"))
 
-	_help_label = Label.new()
-	_help_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	info_panel.add_child(_help_label)
+	var history_scroll: ScrollContainer = ScrollContainer.new()
+	history_scroll.name = "RunBattleSummaryScroll"
+	history_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	history_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	info_panel.add_child(history_scroll)
 
-	_relics_label = Label.new()
-	_relics_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	info_panel.add_child(_relics_label)
-
-	_relics_icon_row = RelicIconRow.new()
-	_relics_icon_row.name = "MapRelicIconRow"
-	_relics_icon_row.set_icon_size(Vector2(42.0, 42.0))
-	info_panel.add_child(_relics_icon_row)
+	_run_history_box = VBoxContainer.new()
+	_run_history_box.name = "RunBattleSummary"
+	_run_history_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_run_history_box.add_theme_constant_override("separation", 8)
+	history_scroll.add_child(_run_history_box)
 
 	var back_button: Button = Button.new()
 	back_button.text = Localization.get_text("map.return_hub", "Return to Hub")
 	back_button.pressed.connect(_on_return_to_hub)
 	info_panel.add_child(back_button)
 
-	var map_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.node_map", "Node Map"))
+	var map_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.node_map", "マップ"))
 	map_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	_steps_scroll = ScrollContainer.new()
@@ -149,36 +143,7 @@ func _refresh_ui() -> void:
 	var current_run: RunState = Game.current_run
 	if _run_info_banner != null:
 		_run_info_banner.refresh()
-	var step_count: int = Game.get_map_step_count()
-	var step_index: int = Game.get_current_step_index()
-	var current_step: Dictionary = Game.get_current_step_data()
-	var next_label: String = Localization.get_step_label(current_step)
-	if next_label == "":
-		next_label = Localization.get_text("map.run_complete", "Run Complete")
-	var relic_names: Array[String] = Game.get_relic_names()
-	var relic_text: String = Localization.get_text("map.relics_none", "Relics: None")
-	if not relic_names.is_empty():
-		relic_text = Localization.get_textf("map.relics_text", "Relics: {value}", {
-			"value": ", ".join(relic_names),
-		})
-
-	_summary_label.text = "\n".join([
-		Localization.get_textf("map.summary.hp", "HP {current} / {max}", {
-			"current": current_run.player_hp,
-			"max": current_run.max_hp,
-		}),
-		Localization.get_textf("map.summary.gold", "Gold {value}", {"value": current_run.gold}),
-		Localization.get_textf("map.summary.area", "Area {value}", {"value": current_run.current_area}),
-		Localization.get_textf("map.summary.progress", "Progress {current} / {total}", {
-			"current": min(step_count, step_index + 1),
-			"total": max(1, step_count),
-		}),
-	])
-	_help_label.text = Localization.get_textf("map.help_choose", "Choose one available node.\nNext: {next_label}", {
-		"next_label": next_label,
-	})
-	_relics_label.text = relic_text
-	_relics_icon_row.refresh_relic_ids(current_run.relics)
+	_rebuild_run_history_summary(current_run)
 	_equipped_summary_label.text = Localization.get_textf("map.loadout_cost", "Loadout Cost {used} / {limit}", {
 		"used": Game.get_current_loadout_cost(),
 		"limit": Game.get_loadout_limit(),
@@ -240,6 +205,171 @@ func _rebuild_steps() -> void:
 	_steps_scroll_tail.name = "MapStepsScrollTail"
 	_steps_box.add_child(_steps_scroll_tail)
 	call_deferred("_scroll_to_current_step", current_step_index)
+
+
+func _rebuild_run_history_summary(current_run: RunState) -> void:
+	for child in _run_history_box.get_children():
+		_run_history_box.remove_child(child)
+		child.queue_free()
+
+	var battle_history: Array[Dictionary] = current_run.battle_history
+	if battle_history.is_empty():
+		var empty_label: Label = Label.new()
+		empty_label.name = "RunBattleSummaryEmpty"
+		empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty_label.text = Localization.get_text("map.battle_summary.empty", "まだ戦闘履歴はありません")
+		_run_history_box.add_child(empty_label)
+		return
+
+	_run_history_box.add_child(_build_summary_total_row(battle_history))
+	for battle_index in range(battle_history.size()):
+		_run_history_box.add_child(_build_battle_summary_row(battle_index, battle_history[battle_index]))
+
+
+func _build_summary_total_row(battle_history: Array[Dictionary]) -> HBoxContainer:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.name = "RunBattleSummaryTotal"
+	row.add_theme_constant_override("separation", 8)
+	row.add_child(_build_icon_value("step", Localization.get_textf("map.battle_summary.count", "{count} 戦", {
+		"count": battle_history.size(),
+	})))
+	row.add_child(_build_icon_value("time", Localization.get_textf("map.battle_summary.total_time", "合計 {time}s", {
+		"time": "%.1f" % _get_total_battle_time(battle_history),
+	})))
+	return row
+
+
+func _build_battle_summary_row(battle_index: int, battle_data: Dictionary) -> PanelContainer:
+	var panel: PanelContainer = PanelContainer.new()
+	panel.name = "RunBattleSummaryStep_%d" % battle_index
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override("panel", _make_battle_summary_stylebox())
+
+	var box: VBoxContainer = VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 6)
+	panel.add_child(box)
+
+	var title_row: HBoxContainer = HBoxContainer.new()
+	title_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_row.add_theme_constant_override("separation", 8)
+	box.add_child(title_row)
+
+	title_row.add_child(_build_icon_value("step", "%02d" % (battle_index + 1)))
+	var enemy_label: Label = Label.new()
+	enemy_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	enemy_label.clip_text = true
+	enemy_label.text = "%s / %s" % [
+		_get_node_type_label(String(battle_data.get("node_type", "normal_battle"))),
+		Localization.get_enemy_name(String(battle_data.get("enemy_id", ""))),
+	]
+	title_row.add_child(enemy_label)
+	title_row.add_child(_build_icon_value("time", "%.1fs" % float(battle_data.get("battle_time", 0.0))))
+
+	var gain_row: HBoxContainer = HBoxContainer.new()
+	gain_row.name = "RunBattleSummaryGain_%d" % battle_index
+	gain_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gain_row.add_theme_constant_override("separation", 8)
+	box.add_child(gain_row)
+	gain_row.add_child(_build_gain_label())
+
+	var has_gain: bool = false
+	var reward_gold: int = int(battle_data.get("reward_gold", 0))
+	if reward_gold > 0:
+		gain_row.add_child(_build_icon_value("gold", "+%d" % reward_gold))
+		has_gain = true
+	var reward_heal: int = int(battle_data.get("reward_heal", 0))
+	if reward_heal > 0:
+		gain_row.add_child(_build_icon_value("hp", "+%d" % reward_heal))
+		has_gain = true
+	var selected_card_id: String = String(battle_data.get("selected_reward_card_id", ""))
+	if selected_card_id != "":
+		gain_row.add_child(_build_icon_value("card_owned", _get_card_display_name(selected_card_id)))
+		has_gain = true
+	var bonus_relic_id: String = String(battle_data.get("bonus_relic_id", ""))
+	if bonus_relic_id != "":
+		gain_row.add_child(_build_icon_value("relic", _get_relic_display_name(bonus_relic_id)))
+		has_gain = true
+	if not has_gain:
+		var none_label: Label = Label.new()
+		none_label.text = Localization.get_text("map.battle_summary.no_gain", "なし")
+		none_label.add_theme_color_override("font_color", Color(0.70, 0.72, 0.70, 1.0))
+		gain_row.add_child(none_label)
+	return panel
+
+
+func _build_icon_value(icon_id: String, value: String) -> HBoxContainer:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var icon_rect: TextureRect = TextureRect.new()
+	icon_rect.custom_minimum_size = RUN_SUMMARY_ICON_SIZE
+	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_rect.texture = StatIconFactory.get_icon(icon_id)
+	icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon_rect)
+
+	var label: Label = Label.new()
+	label.text = value
+	label.clip_text = true
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(label)
+	return row
+
+
+func _build_gain_label() -> Label:
+	var label: Label = Label.new()
+	label.text = Localization.get_text("map.battle_summary.gain", "獲得")
+	label.add_theme_color_override("font_color", Color(0.86, 0.80, 0.62, 1.0))
+	return label
+
+
+func _get_total_battle_time(battle_history: Array[Dictionary]) -> float:
+	var total: float = 0.0
+	for battle_data in battle_history:
+		total += maxf(0.0, float(battle_data.get("battle_time", 0.0)))
+	return total
+
+
+func _get_node_type_label(node_type: String) -> String:
+	match node_type:
+		"elite_battle":
+			return Localization.get_text("map.battle_summary.elite", "エリート")
+		"boss":
+			return Localization.get_text("map.battle_summary.boss", "ボス")
+		"hazard":
+			return Localization.get_text("map.battle_summary.hazard", "危険地帯")
+		_:
+			return Localization.get_text("map.battle_summary.normal", "戦闘")
+
+
+func _get_card_display_name(card_id: String) -> String:
+	var card_def: CardDef = Database.get_card(card_id)
+	if card_def == null:
+		return card_id
+	return card_def.name
+
+
+func _get_relic_display_name(relic_id: String) -> String:
+	var relic_def: RelicDef = Database.get_relic(relic_id)
+	if relic_def == null:
+		return relic_id
+	return relic_def.name
+
+
+func _make_battle_summary_stylebox() -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.04, 0.05, 0.07, 0.44)
+	style.border_color = Color(0.34, 0.38, 0.45, 0.54)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = 8.0
+	style.content_margin_top = 8.0
+	style.content_margin_right = 8.0
+	style.content_margin_bottom = 8.0
+	return style
 
 
 func _scroll_to_current_step(step_index: int) -> void:
@@ -434,7 +564,6 @@ func _on_node_selected(node_id: String) -> void:
 			SceneRouter.go_to_facility()
 		_:
 			AudioManager.play_sfx("ui_error")
-			_help_label.text = Localization.get_text("map.help_invalid_loadout", "Equip at least one valid loadout before entering battles.")
 			_refresh_ui()
 
 
