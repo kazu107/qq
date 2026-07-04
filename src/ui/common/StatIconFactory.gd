@@ -4,6 +4,34 @@ class_name StatIconFactory
 static var _texture_cache: Dictionary = {}
 
 
+static func warm_cache(extra_icon_ids: Array[String] = []) -> int:
+	var icon_ids: Array[String] = [
+		"attack",
+		"speed",
+		"shield",
+		"hp",
+		"gold",
+		"step",
+		"time",
+		"relic",
+		"card_owned",
+		"card_equipped",
+	]
+	for icon_id in extra_icon_ids:
+		if icon_id != "" and not icon_ids.has(icon_id):
+			icon_ids.append(icon_id)
+
+	var warmed_count: int = 0
+	for icon_id in icon_ids:
+		if get_icon(icon_id) != null:
+			warmed_count += 1
+	return warmed_count
+
+
+static func get_cached_icon_count() -> int:
+	return _texture_cache.size()
+
+
 static func get_icon(stat_id: String) -> Texture2D:
 	if _texture_cache.has(stat_id):
 		return _texture_cache[stat_id] as Texture2D

@@ -1,0 +1,75 @@
+extends Node
+
+const STARTUP_WARMUP_SERVICE: GDScript = preload("res://src/core/services/StartupWarmupService.gd")
+
+var _failed: bool = false
+
+
+func _ready() -> void:
+	Database.load_all()
+	Game.ensure_meta_initialized()
+	call_deferred("_run")
+
+
+func _run() -> void:
+	var summary: Dictionary = STARTUP_WARMUP_SERVICE.warm_all()
+	if _failed:
+		return
+
+	var expected_card_icons: int = _count_png_files("res://assets/icons/cards")
+	var expected_relic_icons: int = _count_png_files("res://assets/icons/relics")
+	var expected_portraits: int = _count_png_files("res://assets/portraits")
+	var expected_status_icons: int = _count_png_files("res://assets/icons/status")
+	var expected_sfx: int = AudioManager.get_available_sfx_ids().size()
+
+	if int(summary.get("scenes", 0)) < 12:
+		_fail("Startup cache smoke failed: scene cache did not include all major screens")
+		return
+	if CardButton.get_cached_texture_count() < expected_card_icons:
+		_fail("Startup cache smoke failed: card textures were not fully cached")
+		return
+	if CardIconPicker.get_cached_button_icon_count() < expected_card_icons:
+		_fail("Startup cache smoke failed: card picker icons were not fully cached")
+		return
+	if RelicIcon.get_cached_texture_count() < expected_relic_icons:
+		_fail("Startup cache smoke failed: relic textures were not fully cached")
+		return
+	if UnitPanel.get_cached_portrait_count() < expected_portraits:
+		_fail("Startup cache smoke failed: portraits were not fully cached")
+		return
+	if UnitPanel.get_cached_status_icon_count() < expected_status_icons:
+		_fail("Startup cache smoke failed: status icons were not fully cached")
+		return
+	if AudioManager.get_cached_sfx_count() < expected_sfx:
+		_fail("Startup cache smoke failed: SFX streams were not fully cached")
+		return
+	if StatIconFactory.get_cached_icon_count() < 10:
+		_fail("Startup cache smoke failed: generated stat icons were not cached")
+		return
+	if MapNodeButton.get_cached_type_icon_count() < 8 or not MapNodeButton.has_cached_lock_icon():
+		_fail("Startup cache smoke failed: map node icons were not cached")
+		return
+
+	print("Startup cache smoke passed: %s" % JSON.stringify(summary))
+	get_tree().quit()
+
+
+func _count_png_files(directory_path: String) -> int:
+	var directory: DirAccess = DirAccess.open(directory_path)
+	if directory == null:
+		return 0
+	var count: int = 0
+	directory.list_dir_begin()
+	var file_name: String = directory.get_next()
+	while file_name != "":
+		if not directory.current_is_dir() and file_name.ends_with(".png"):
+			count += 1
+		file_name = directory.get_next()
+	directory.list_dir_end()
+	return count
+
+
+func _fail(message: String) -> void:
+	_failed = true
+	push_error(message)
+	get_tree().quit(1)

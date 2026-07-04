@@ -10,6 +10,19 @@ const GRID_COLUMNS: int = 3
 
 static var _button_icon_cache: Dictionary = {}
 
+
+static func warm_button_icon_cache(card_ids: Array[String]) -> int:
+	var warmed_count: int = 0
+	for card_id in card_ids:
+		if _load_button_icon_texture(card_id) != null:
+			warmed_count += 1
+	return warmed_count
+
+
+static func get_cached_button_icon_count() -> int:
+	return _button_icon_cache.size()
+
+
 var _entries: Array[Dictionary] = []
 var _include_empty: bool = false
 var _selected_card_id: String = ""
@@ -178,6 +191,10 @@ func _has_card_id(card_id: String) -> bool:
 
 
 func _load_button_icon(card_id: String) -> Texture2D:
+	return CardIconPicker._load_button_icon_texture(card_id)
+
+
+static func _load_button_icon_texture(card_id: String) -> Texture2D:
 	if _button_icon_cache.has(card_id):
 		return _button_icon_cache[card_id] as Texture2D
 	var path: String = CardButton.ART_PATH_TEMPLATE % card_id

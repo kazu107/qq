@@ -25,6 +25,26 @@ const TYPE_TINTS := {
 static var _type_icon_cache: Dictionary = {}
 static var _lock_icon_texture: Texture2D
 
+
+static func warm_icon_cache() -> int:
+	var warmed_count: int = 0
+	for raw_node_type in TYPE_TINTS.keys():
+		var node_type: String = String(raw_node_type)
+		if _load_type_icon_texture(node_type) != null:
+			warmed_count += 1
+	if _load_lock_icon_texture() != null:
+		warmed_count += 1
+	return warmed_count
+
+
+static func get_cached_type_icon_count() -> int:
+	return _type_icon_cache.size()
+
+
+static func has_cached_lock_icon() -> bool:
+	return _lock_icon_texture != null
+
+
 var _node_id: String = ""
 var _visual_root: Control
 var _content_box: VBoxContainer
@@ -161,6 +181,10 @@ func _make_stylebox(fill_color: Color, border_color: Color, border_width: int) -
 
 
 func _get_type_icon_texture(node_type: String) -> Texture2D:
+	return MapNodeButton._load_type_icon_texture(node_type)
+
+
+static func _load_type_icon_texture(node_type: String) -> Texture2D:
 	if _type_icon_cache.has(node_type):
 		return _type_icon_cache[node_type] as Texture2D
 	var tint: Color = TYPE_TINTS.get(node_type, Color(0.55, 0.55, 0.60, 1.0))
@@ -169,7 +193,7 @@ func _get_type_icon_texture(node_type: String) -> Texture2D:
 	return texture
 
 
-func _build_type_icon_texture(node_type: String, tint: Color) -> Texture2D:
+static func _build_type_icon_texture(node_type: String, tint: Color) -> Texture2D:
 	var image: Image = Image.create(96, 96, false, Image.FORMAT_RGBA8)
 	image.fill(Color(0.0, 0.0, 0.0, 0.0))
 
@@ -220,13 +244,17 @@ func _build_type_icon_texture(node_type: String, tint: Color) -> Texture2D:
 
 
 func _get_lock_icon_texture() -> Texture2D:
+	return MapNodeButton._load_lock_icon_texture()
+
+
+static func _load_lock_icon_texture() -> Texture2D:
 	if _lock_icon_texture != null:
 		return _lock_icon_texture
 	_lock_icon_texture = _build_lock_icon_texture()
 	return _lock_icon_texture
 
 
-func _build_lock_icon_texture() -> Texture2D:
+static func _build_lock_icon_texture() -> Texture2D:
 	var image: Image = Image.create(96, 96, false, Image.FORMAT_RGBA8)
 	image.fill(Color(0.0, 0.0, 0.0, 0.0))
 

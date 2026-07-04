@@ -49,6 +49,34 @@ func apply_settings(settings: Dictionary) -> void:
 	set_sfx_volume(float(settings.get("sfx_volume", 1.0)))
 
 
+func warm_sfx_cache() -> int:
+	var warmed_count: int = 0
+	for sfx_id in get_available_sfx_ids():
+		if _get_sfx_stream(sfx_id) != null:
+			warmed_count += 1
+	return warmed_count
+
+
+func get_available_sfx_ids() -> Array[String]:
+	var ids: Array[String] = []
+	var directory: DirAccess = DirAccess.open("res://assets/audio/sfx")
+	if directory == null:
+		return ids
+	directory.list_dir_begin()
+	var file_name: String = directory.get_next()
+	while file_name != "":
+		if not directory.current_is_dir() and file_name.ends_with(".wav"):
+			ids.append(file_name.get_basename())
+		file_name = directory.get_next()
+	directory.list_dir_end()
+	ids.sort()
+	return ids
+
+
+func get_cached_sfx_count() -> int:
+	return _stream_cache.size()
+
+
 func play_sfx(sfx_id: String, pitch_scale: float = 1.0, volume_boost_db: float = 0.0) -> bool:
 	if sfx_id == "":
 		return false

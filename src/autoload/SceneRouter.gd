@@ -21,9 +21,18 @@ var _scene_cache: Dictionary = {}
 
 func warm_scene_cache() -> void:
 	var scene_paths: Array[String] = [
+		TITLE_SCENE,
 		HUB_SCENE,
+		RUN_SETUP_SCENE,
+		BATTLE_SCENE,
+		REWARD_SCENE,
+		RESULT_SCENE,
+		MAP_SCENE,
+		FACILITY_SCENE,
 		META_SCENE,
 		CARD_LIBRARY_SCENE,
+		SETTINGS_SCENE,
+		REPLAY_SCENE,
 	]
 	for scene_path in scene_paths:
 		if _scene_cache.has(scene_path):
@@ -32,6 +41,10 @@ func warm_scene_cache() -> void:
 		var packed_scene: PackedScene = resource as PackedScene
 		if packed_scene != null:
 			_scene_cache[scene_path] = packed_scene
+
+
+func get_cached_scene_count() -> int:
+	return _scene_cache.size()
 
 func go_to_title() -> void:
 	_change_scene(TITLE_SCENE)

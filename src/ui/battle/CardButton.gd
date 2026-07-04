@@ -30,6 +30,19 @@ const NAME_FONT_MIN_SIZE: int = 10
 static var _texture_cache: Dictionary = {}
 static var _use_legacy_tooltips: bool = false
 
+
+static func warm_texture_cache(card_ids: Array[String]) -> int:
+	var warmed_count: int = 0
+	for card_id in card_ids:
+		if _load_card_texture(card_id) != null:
+			warmed_count += 1
+	return warmed_count
+
+
+static func get_cached_texture_count() -> int:
+	return _texture_cache.size()
+
+
 var runtime_id: String = ""
 var _can_use: bool = false
 var _click_enabled: bool = true
@@ -838,6 +851,10 @@ func _get_active_border(owner_side: String) -> Color:
 
 
 func _get_card_texture(card_id: String) -> Texture2D:
+	return CardButton._load_card_texture(card_id)
+
+
+static func _load_card_texture(card_id: String) -> Texture2D:
 	if _texture_cache.has(card_id):
 		return _texture_cache[card_id] as Texture2D
 
@@ -852,7 +869,7 @@ func _get_card_texture(card_id: String) -> Texture2D:
 	return texture
 
 
-func _build_placeholder_texture(card_id: String) -> Texture2D:
+static func _build_placeholder_texture(card_id: String) -> Texture2D:
 	var image: Image = Image.create(256, 256, false, Image.FORMAT_RGBA8)
 	var hue: float = float(abs(card_id.hash()) % 1000) / 1000.0
 	var base_color: Color = Color.from_hsv(hue, 0.58, 0.78, 1.0)

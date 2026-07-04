@@ -9,6 +9,19 @@ const TOOLTIP_WIDTH: float = 340.0
 
 static var _texture_cache: Dictionary = {}
 
+
+static func warm_texture_cache(relic_ids: Array[String]) -> int:
+	var warmed_count: int = 0
+	for relic_id in relic_ids:
+		if _load_relic_texture(relic_id) != null:
+			warmed_count += 1
+	return warmed_count
+
+
+static func get_cached_texture_count() -> int:
+	return _texture_cache.size()
+
+
 var relic_id: String = ""
 var _icon_size: Vector2 = Vector2(48.0, 48.0)
 var _icon_rect: TextureRect
@@ -113,6 +126,10 @@ func _build_tooltip(relic_def: RelicDef) -> String:
 
 
 func _get_relic_texture(id: String) -> Texture2D:
+	return RelicIcon._load_relic_texture(id)
+
+
+static func _load_relic_texture(id: String) -> Texture2D:
 	if _texture_cache.has(id):
 		return _texture_cache[id] as Texture2D
 
@@ -127,7 +144,7 @@ func _get_relic_texture(id: String) -> Texture2D:
 	return texture
 
 
-func _build_placeholder_texture(id: String) -> Texture2D:
+static func _build_placeholder_texture(id: String) -> Texture2D:
 	var image: Image = Image.create(128, 128, false, Image.FORMAT_RGBA8)
 	var hue: float = float(abs(id.hash()) % 1000) / 1000.0
 	var base_color: Color = Color.from_hsv(hue, 0.52, 0.76, 1.0)

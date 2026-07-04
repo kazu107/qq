@@ -1,5 +1,7 @@
 extends Control
 
+const STARTUP_WARMUP_SERVICE: GDScript = preload("res://src/core/services/StartupWarmupService.gd")
+
 var _label: Label
 
 
@@ -19,10 +21,11 @@ func _boot() -> void:
 	Game.ensure_meta_initialized()
 	var save_data := SaveManager.load_save()
 	Game.apply_loaded_save(save_data)
-	SceneRouter.warm_scene_cache()
+	var warmup_summary: Dictionary = STARTUP_WARMUP_SERVICE.warm_all()
 	_label.text = Localization.get_textf("boot.loaded", "Loaded {cards} cards / {enemies} enemies", {
 		"cards": Database.cards.size(),
 		"enemies": Database.enemies.size(),
 	})
+	_label.tooltip_text = "Startup cache: %s" % JSON.stringify(warmup_summary)
 	await get_tree().create_timer(0.2).timeout
 	SceneRouter.go_to_title()

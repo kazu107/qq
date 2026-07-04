@@ -47,6 +47,32 @@ class FloatingStatText:
 static var _portrait_cache: Dictionary = {}
 static var _status_icon_cache: Dictionary = {}
 
+
+static func warm_visual_cache(portrait_keys: Array[String], status_ids: Array[String]) -> Dictionary:
+	var portrait_count: int = 0
+	for portrait_key in portrait_keys:
+		if _load_portrait_texture(portrait_key, "player") != null:
+			portrait_count += 1
+
+	var status_count: int = 0
+	for status_id in status_ids:
+		if _load_status_icon_texture(status_id) != null:
+			status_count += 1
+
+	return {
+		"portraits": portrait_count,
+		"statuses": status_count,
+	}
+
+
+static func get_cached_portrait_count() -> int:
+	return _portrait_cache.size()
+
+
+static func get_cached_status_icon_count() -> int:
+	return _status_icon_cache.size()
+
+
 var _title_label: Label
 var _portrait_key: String = ""
 var _unit_side: String = "player"
@@ -658,6 +684,10 @@ func _spawn_floating_text(text: String, color: Color, x_offset: float) -> void:
 func _get_portrait_texture(portrait_key: String) -> Texture2D:
 	if portrait_key == "":
 		return _build_placeholder_texture(_unit_side, "unknown")
+	return UnitPanel._load_portrait_texture(portrait_key, _unit_side)
+
+
+static func _load_portrait_texture(portrait_key: String, unit_side: String) -> Texture2D:
 	if _portrait_cache.has(portrait_key):
 		return _portrait_cache[portrait_key] as Texture2D
 
@@ -667,12 +697,16 @@ func _get_portrait_texture(portrait_key: String) -> Texture2D:
 		var resource: Resource = load(path)
 		texture = resource as Texture2D
 	if texture == null:
-		texture = _build_placeholder_texture(_unit_side, portrait_key)
+		texture = _build_placeholder_texture(unit_side, portrait_key)
 	_portrait_cache[portrait_key] = texture
 	return texture
 
 
 func _get_status_icon_texture(status_id: String) -> Texture2D:
+	return UnitPanel._load_status_icon_texture(status_id)
+
+
+static func _load_status_icon_texture(status_id: String) -> Texture2D:
 	if _status_icon_cache.has(status_id):
 		return _status_icon_cache[status_id] as Texture2D
 
@@ -687,7 +721,7 @@ func _get_status_icon_texture(status_id: String) -> Texture2D:
 	return texture
 
 
-func _build_placeholder_texture(unit_side: String, portrait_key: String) -> Texture2D:
+static func _build_placeholder_texture(unit_side: String, portrait_key: String) -> Texture2D:
 	var image: Image = Image.create(320, 320, false, Image.FORMAT_RGBA8)
 	var base_hue: float = float(abs(portrait_key.hash()) % 1000) / 1000.0
 	var base_color: Color = Color.from_hsv(base_hue, 0.52, 0.82, 1.0)
@@ -706,7 +740,7 @@ func _build_placeholder_texture(unit_side: String, portrait_key: String) -> Text
 	return ImageTexture.create_from_image(image)
 
 
-func _build_status_placeholder_texture(status_id: String) -> Texture2D:
+static func _build_status_placeholder_texture(status_id: String) -> Texture2D:
 	var image: Image = Image.create(96, 96, false, Image.FORMAT_RGBA8)
 	var base_hue: float = float(abs(status_id.hash()) % 1000) / 1000.0
 	image.fill(Color(0.02, 0.03, 0.04, 0.0))
