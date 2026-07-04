@@ -1,8 +1,8 @@
 [
   {
-    "id": "first_victory",
-    "name": "First Victory",
-    "description": "Win any battle once.",
+    "id": "victory_milestones",
+    "name": "Victory Milestones",
+    "description": "Win battles across runs.",
     "condition": {
       "stat": "victories",
       "value": 1
@@ -13,21 +13,39 @@
         "stat": "max_hp",
         "amount": 5
       }
-    ]
-  },
-  {
-    "id": "seasoned_pilot",
-    "name": "Seasoned Pilot",
-    "description": "Win three battles across runs.",
-    "condition": {
-      "stat": "victories",
-      "value": 3
-    },
-    "rewards": [
+    ],
+    "tiers": [
       {
-        "type": "permanent_bonus",
-        "stat": "attack",
-        "amount": 1
+        "legacy_id": "first_victory",
+        "name": "First Victory",
+        "description": "Win any battle once.",
+        "condition": {
+          "stat": "victories",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "permanent_bonus",
+            "stat": "max_hp",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "legacy_id": "seasoned_pilot",
+        "name": "Seasoned Pilot",
+        "description": "Win three battles across runs.",
+        "condition": {
+          "stat": "victories",
+          "value": 3
+        },
+        "rewards": [
+          {
+            "type": "permanent_bonus",
+            "stat": "attack",
+            "amount": 1
+          }
+        ]
       }
     ]
   },
@@ -84,9 +102,9 @@
     ]
   },
   {
-    "id": "rank_b_tier_1",
-    "name": "Core Route B Rank",
-    "description": "Clear Steps 1-7 with rank B or higher.",
+    "id": "rank_b_milestones",
+    "name": "B Rank Routes",
+    "description": "Clear the current unlocked route with rank B or higher.",
     "condition": {
       "stat": "rank_b_tier_1",
       "value": 1
@@ -96,12 +114,74 @@
         "type": "meta_points",
         "amount": 1
       }
+    ],
+    "tiers": [
+      {
+        "legacy_id": "rank_b_tier_1",
+        "name": "Core Route B Rank",
+        "description": "Clear Steps 1-7 with rank B or higher.",
+        "condition": {
+          "stat": "rank_b_tier_1",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "meta_points",
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "legacy_id": "rank_b_tier_2",
+        "name": "Extended Route B Rank",
+        "description": "Clear Steps 1-14 with rank B or higher.",
+        "condition": {
+          "stat": "rank_b_tier_2",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "meta_points",
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "legacy_id": "rank_b_tier_3",
+        "name": "Rift Route B Rank",
+        "description": "Clear Steps 1-21 with rank B or higher.",
+        "condition": {
+          "stat": "rank_b_tier_3",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "meta_points",
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "legacy_id": "rank_b_tier_4",
+        "name": "Eternity Route B Rank",
+        "description": "Clear Steps 1-28 with rank B or higher.",
+        "condition": {
+          "stat": "rank_b_tier_4",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "meta_points",
+            "amount": 4
+          }
+        ]
+      }
     ]
   },
   {
-    "id": "rank_a_tier_1",
-    "name": "Core Route A Rank",
-    "description": "Clear Steps 1-7 with rank A or higher.",
+    "id": "rank_a_milestones",
+    "name": "A Rank Routes",
+    "description": "Clear the current unlocked route with rank A or higher.",
     "condition": {
       "stat": "rank_a_tier_1",
       "value": 1
@@ -112,12 +192,78 @@
         "stat": "loadout_limit",
         "amount": 1
       }
+    ],
+    "tiers": [
+      {
+        "legacy_id": "rank_a_tier_1",
+        "name": "Core Route A Rank",
+        "description": "Clear Steps 1-7 with rank A or higher.",
+        "condition": {
+          "stat": "rank_a_tier_1",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "permanent_bonus",
+            "stat": "loadout_limit",
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "legacy_id": "rank_a_tier_2",
+        "name": "Extended Route A Rank",
+        "description": "Clear Steps 1-14 with rank A or higher.",
+        "condition": {
+          "stat": "rank_a_tier_2",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "permanent_bonus",
+            "stat": "max_hp",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "legacy_id": "rank_a_tier_3",
+        "name": "Rift Route A Rank",
+        "description": "Clear Steps 1-21 with rank A or higher.",
+        "condition": {
+          "stat": "rank_a_tier_3",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "permanent_bonus",
+            "stat": "speed",
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "legacy_id": "rank_a_tier_4",
+        "name": "Eternity Route A Rank",
+        "description": "Clear Steps 1-28 with rank A or higher.",
+        "condition": {
+          "stat": "rank_a_tier_4",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "permanent_bonus",
+            "stat": "max_hp",
+            "amount": 8
+          }
+        ]
+      }
     ]
   },
   {
-    "id": "rank_s_tier_1",
-    "name": "Core Route S Rank",
-    "description": "Clear Steps 1-7 with rank S.",
+    "id": "rank_s_milestones",
+    "name": "S Rank Routes",
+    "description": "Clear the current unlocked route with rank S.",
     "condition": {
       "stat": "rank_s_tier_1",
       "value": 1
@@ -127,155 +273,79 @@
         "type": "unlock_step_tier",
         "tier": 2
       }
-    ]
-  },
-  {
-    "id": "rank_b_tier_2",
-    "name": "Extended Route B Rank",
-    "description": "Clear Steps 1-14 with rank B or higher.",
-    "condition": {
-      "stat": "rank_b_tier_2",
-      "value": 1
-    },
-    "rewards": [
+    ],
+    "tiers": [
       {
-        "type": "meta_points",
-        "amount": 2
-      }
-    ]
-  },
-  {
-    "id": "rank_a_tier_2",
-    "name": "Extended Route A Rank",
-    "description": "Clear Steps 1-14 with rank A or higher.",
-    "condition": {
-      "stat": "rank_a_tier_2",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "permanent_bonus",
-        "stat": "max_hp",
-        "amount": 5
-      }
-    ]
-  },
-  {
-    "id": "rank_s_tier_2",
-    "name": "Extended Route S Rank",
-    "description": "Clear Steps 1-14 with rank S.",
-    "condition": {
-      "stat": "rank_s_tier_2",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "permanent_bonus",
-        "stat": "attack",
-        "amount": 1
+        "legacy_id": "rank_s_tier_1",
+        "name": "Core Route S Rank",
+        "description": "Clear Steps 1-7 with rank S.",
+        "condition": {
+          "stat": "rank_s_tier_1",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "unlock_step_tier",
+            "tier": 2
+          }
+        ]
       },
       {
-        "type": "meta_points",
-        "amount": 3
+        "legacy_id": "rank_s_tier_2",
+        "name": "Extended Route S Rank",
+        "description": "Clear Steps 1-14 with rank S.",
+        "condition": {
+          "stat": "rank_s_tier_2",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "permanent_bonus",
+            "stat": "attack",
+            "amount": 1
+          },
+          {
+            "type": "meta_points",
+            "amount": 3
+          },
+          {
+            "type": "unlock_step_tier",
+            "tier": 3
+          }
+        ]
       },
       {
-        "type": "unlock_step_tier",
-        "tier": 3
-      }
-    ]
-  },
-  {
-    "id": "rank_b_tier_3",
-    "name": "Rift Route B Rank",
-    "description": "Clear Steps 1-21 with rank B or higher.",
-    "condition": {
-      "stat": "rank_b_tier_3",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "meta_points",
-        "amount": 3
-      }
-    ]
-  },
-  {
-    "id": "rank_a_tier_3",
-    "name": "Rift Route A Rank",
-    "description": "Clear Steps 1-21 with rank A or higher.",
-    "condition": {
-      "stat": "rank_a_tier_3",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "permanent_bonus",
-        "stat": "speed",
-        "amount": 1
-      }
-    ]
-  },
-  {
-    "id": "rank_s_tier_3",
-    "name": "Rift Route S Rank",
-    "description": "Clear Steps 1-21 with rank S.",
-    "condition": {
-      "stat": "rank_s_tier_3",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "unlock_step_tier",
-        "tier": 4
-      }
-    ]
-  },
-  {
-    "id": "rank_b_tier_4",
-    "name": "Eternity Route B Rank",
-    "description": "Clear Steps 1-28 with rank B or higher.",
-    "condition": {
-      "stat": "rank_b_tier_4",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "meta_points",
-        "amount": 4
-      }
-    ]
-  },
-  {
-    "id": "rank_a_tier_4",
-    "name": "Eternity Route A Rank",
-    "description": "Clear Steps 1-28 with rank A or higher.",
-    "condition": {
-      "stat": "rank_a_tier_4",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "permanent_bonus",
-        "stat": "max_hp",
-        "amount": 8
-      }
-    ]
-  },
-  {
-    "id": "rank_s_tier_4",
-    "name": "Eternity Route S Rank",
-    "description": "Clear Steps 1-28 with rank S.",
-    "condition": {
-      "stat": "rank_s_tier_4",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "unlock_infinite_mode"
+        "legacy_id": "rank_s_tier_3",
+        "name": "Rift Route S Rank",
+        "description": "Clear Steps 1-21 with rank S.",
+        "condition": {
+          "stat": "rank_s_tier_3",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "unlock_step_tier",
+            "tier": 4
+          }
+        ]
       },
       {
-        "type": "meta_points",
-        "amount": 5
+        "legacy_id": "rank_s_tier_4",
+        "name": "Eternity Route S Rank",
+        "description": "Clear Steps 1-28 with rank S.",
+        "condition": {
+          "stat": "rank_s_tier_4",
+          "value": 1
+        },
+        "rewards": [
+          {
+            "type": "unlock_infinite_mode"
+          },
+          {
+            "type": "meta_points",
+            "amount": 5
+          }
+        ]
       }
     ]
   }

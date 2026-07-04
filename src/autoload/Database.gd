@@ -243,6 +243,21 @@ func _apply_localization() -> void:
 			continue
 		achievement_data["name"] = Localization.get_text("achievement.%s.name" % achievement_id, String(achievement_data.get("name", achievement_id)))
 		achievement_data["description"] = Localization.get_text("achievement.%s.description" % achievement_id, String(achievement_data.get("description", "")))
+		var tiers: Array = Array(achievement_data.get("tiers", []))
+		for tier_index in range(tiers.size()):
+			var tier_data: Dictionary = Dictionary(tiers[tier_index]).duplicate(true)
+			var tier_key: String = String(tier_data.get("legacy_id", "tier_%d" % tier_index))
+			tier_data["name"] = Localization.get_text(
+				"achievement.%s.tier.%s.name" % [achievement_id, tier_key],
+				String(tier_data.get("name", tier_key))
+			)
+			tier_data["description"] = Localization.get_text(
+				"achievement.%s.tier.%s.description" % [achievement_id, tier_key],
+				String(tier_data.get("description", ""))
+			)
+			tiers[tier_index] = tier_data
+		if not tiers.is_empty():
+			achievement_data["tiers"] = tiers
 		achievements[achievement_id] = achievement_data
 
 

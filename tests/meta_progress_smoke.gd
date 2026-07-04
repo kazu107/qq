@@ -46,16 +46,15 @@ func _run() -> void:
 	if starter_box == null or starter_box.get_child_count() == 0:
 		_fail("Meta progress smoke failed: starter unlock section did not render")
 		return
-	if card_box == null or card_box.get_child_count() == 0:
-		_fail("Meta progress smoke failed: card unlock section did not render")
+	if card_box != null:
+		_fail("Meta progress smoke failed: card unlock section should move to the card library")
 		return
 	if relic_box == null or relic_box.get_child_count() == 0:
 		_fail("Meta progress smoke failed: relic unlock section did not render")
 		return
 	for frame_name: String in [
-		"MetaAchievementFrame_first_victory",
+		"MetaAchievementFrame_victory_milestones",
 		"MetaStarterFrame_balanced",
-		"MetaCardFrame_quick_slash",
 		"MetaRelicFrame_iron_plating",
 	]:
 		var entry_frame: PanelContainer = meta_scene.find_child(frame_name, true, false) as PanelContainer
@@ -73,24 +72,41 @@ func _run() -> void:
 	Game.developer_add_achievement_stat("victories", 1)
 	meta_scene.call("_refresh_ui")
 	await get_tree().process_frame
-	var first_victory_button: Button = meta_scene.find_child("ClaimAchievement_first_victory", true, false) as Button
-	if first_victory_button == null or first_victory_button.disabled:
-		_fail("Meta progress smoke failed: first victory achievement should become claimable")
+	var victory_button: Button = meta_scene.find_child("ClaimAchievement_victory_milestones", true, false) as Button
+	var victory_progress_bar: ProgressBar = meta_scene.find_child("AchievementProgressBar_victory_milestones", true, false) as ProgressBar
+	if victory_button == null or victory_button.disabled or victory_progress_bar == null:
+		_fail("Meta progress smoke failed: victory milestone achievement should become claimable")
 		return
 	SaveManager.flush_requested_save()
-	var first_victory_row: Control = meta_scene.find_child("MetaAchievementRow_first_victory", true, false) as Control
-	var first_victory_row_id: int = first_victory_row.get_instance_id()
-	first_victory_button.emit_signal("pressed")
+	var victory_row: Control = meta_scene.find_child("MetaAchievementRow_victory_milestones", true, false) as Control
+	var victory_row_id: int = victory_row.get_instance_id()
+	victory_button.emit_signal("pressed")
 	if not SaveManager.has_pending_save():
 		_fail("Meta progress smoke failed: achievement claim did not request a deferred save")
 		return
 	await get_tree().process_frame
-	var current_first_victory_row: Control = meta_scene.find_child("MetaAchievementRow_first_victory", true, false) as Control
-	if current_first_victory_row == null or current_first_victory_row.get_instance_id() != first_victory_row_id:
+	var current_victory_row: Control = meta_scene.find_child("MetaAchievementRow_victory_milestones", true, false) as Control
+	if current_victory_row == null or current_victory_row.get_instance_id() != victory_row_id:
 		_fail("Meta progress smoke failed: achievement claim rebuilt the whole achievement list")
 		return
 	if int(Game.get_permanent_bonuses().get("max_hp", 0)) != 5:
 		_fail("Meta progress smoke failed: achievement claim should grant a permanent HP bonus")
+		return
+	Game.developer_add_achievement_stat("victories", 2)
+	meta_scene.call("_refresh_ui")
+	await get_tree().process_frame
+	victory_button = meta_scene.find_child("ClaimAchievement_victory_milestones", true, false) as Button
+	if victory_button == null or victory_button.disabled:
+		_fail("Meta progress smoke failed: victory milestone should become claimable for the next tier")
+		return
+	victory_button.emit_signal("pressed")
+	await get_tree().process_frame
+	current_victory_row = meta_scene.find_child("MetaAchievementRow_victory_milestones", true, false) as Control
+	if current_victory_row == null or current_victory_row.get_instance_id() != victory_row_id:
+		_fail("Meta progress smoke failed: repeatable achievement claim rebuilt the row")
+		return
+	if int(Game.get_permanent_bonuses().get("attack", 0)) != 1:
+		_fail("Meta progress smoke failed: second victory milestone should grant attack")
 		return
 	var base_hp: int = int(Database.get_starter("balanced").get("max_hp", 0))
 	Game.start_new_run("balanced")
@@ -103,25 +119,41 @@ func _run() -> void:
 	await get_tree().process_frame
 
 	if meta_scene.find_child("UnlockStarter_tempo", true, false) == null \
-	or meta_scene.find_child("UnlockCard_assault", true, false) == null \
 	or meta_scene.find_child("UnlockRelic_chrono_shard", true, false) == null:
 		_fail("Meta progress smoke failed: expected unlock buttons were not rendered")
+		return
+	if meta_scene.find_child("UnlockCard_assault", true, false) != null:
+		_fail("Meta progress smoke failed: card unlock buttons should not render on the meta progress screen")
 		return
 
 	var tempo_button: Button = meta_scene.find_child("UnlockStarter_tempo", true, false) as Button
 	var tempo_row_id: int = meta_scene.find_child("MetaStarterRow_tempo", true, false).get_instance_id()
 	tempo_button.emit_signal("pressed")
 	await get_tree().process_frame
-	var assault_button: Button = meta_scene.find_child("UnlockCard_assault", true, false) as Button
-	var assault_row_id: int = meta_scene.find_child("MetaCardRow_assault", true, false).get_instance_id()
+	var library_for_unlock: Control = load("res://scenes/library/CardLibrary.tscn").instantiate() as Control
+	add_child(library_for_unlock)
+	if not await _wait_for_content_ready(library_for_unlock, "card library unlock"):
+		return
+	var assault_button: Button = library_for_unlock.find_child("UnlockCard_assault", true, false) as Button
+	var unlock_assault_row: Control = library_for_unlock.find_child("LibraryRow_assault", true, false) as Control
+	if assault_button == null or unlock_assault_row == null or assault_button.disabled or not assault_button.visible:
+		_fail("Meta progress smoke failed: card library should render an enabled unlock button for assault")
+		return
+	var unlock_assault_row_id: int = unlock_assault_row.get_instance_id()
 	assault_button.emit_signal("pressed")
+	await get_tree().process_frame
+	assault_button = library_for_unlock.find_child("UnlockCard_assault", true, false) as Button
+	unlock_assault_row = library_for_unlock.find_child("LibraryRow_assault", true, false) as Control
+	if assault_button == null or assault_button.visible or unlock_assault_row == null or unlock_assault_row.get_instance_id() != unlock_assault_row_id:
+		_fail("Meta progress smoke failed: card library unlock should hide the button without rebuilding the row")
+		return
+	library_for_unlock.queue_free()
 	await get_tree().process_frame
 	var chrono_button: Button = meta_scene.find_child("UnlockRelic_chrono_shard", true, false) as Button
 	var chrono_row_id: int = meta_scene.find_child("MetaRelicRow_chrono_shard", true, false).get_instance_id()
 	chrono_button.emit_signal("pressed")
 	await get_tree().process_frame
 	if meta_scene.find_child("MetaStarterRow_tempo", true, false).get_instance_id() != tempo_row_id \
-	or meta_scene.find_child("MetaCardRow_assault", true, false).get_instance_id() != assault_row_id \
 	or meta_scene.find_child("MetaRelicRow_chrono_shard", true, false).get_instance_id() != chrono_row_id:
 		_fail("Meta progress smoke failed: unlock action rebuilt meta entry rows")
 		return
@@ -164,6 +196,8 @@ func _run() -> void:
 		return
 	var assault_status: Label = library_scene.find_child("LibraryStatus_assault", true, false) as Label
 	var execution_status: Label = library_scene.find_child("LibraryStatus_execution", true, false) as Label
+	var hidden_assault_button: Button = library_scene.find_child("UnlockCard_assault", true, false) as Button
+	var execution_button: Button = library_scene.find_child("UnlockCard_execution", true, false) as Button
 	var library_grid: GridContainer = library_scene.find_child("LibraryCards", true, false) as GridContainer
 	var rarity_filter: OptionButton = library_scene.find_child("LibraryRarityFilter", true, false) as OptionButton
 	var type_filter: OptionButton = library_scene.find_child("LibraryTypeFilter", true, false) as OptionButton
@@ -176,8 +210,14 @@ func _run() -> void:
 	if assault_status == null or assault_status.text != "Unlocked":
 		_fail("Meta progress smoke failed: card library did not reflect the unlocked rare card")
 		return
+	if hidden_assault_button == null or hidden_assault_button.visible:
+		_fail("Meta progress smoke failed: card library should hide unlock buttons for unlocked cards")
+		return
 	if execution_status == null or execution_status.text.find("Locked") == -1:
 		_fail("Meta progress smoke failed: card library should still show locked epic cards")
+		return
+	if execution_button == null or not execution_button.visible:
+		_fail("Meta progress smoke failed: card library should show unlock buttons for locked cards")
 		return
 	var execution_row: Control = library_scene.find_child("LibraryRow_execution", true, false) as Control
 	var assault_row: Control = library_scene.find_child("LibraryRow_assault", true, false) as Control
@@ -216,7 +256,8 @@ func _run() -> void:
 	await get_tree().process_frame
 	execution_row = library_scene.find_child("LibraryRow_execution", true, false) as Control
 	execution_status = library_scene.find_child("LibraryStatus_execution", true, false) as Label
-	if execution_row == null or execution_row.get_instance_id() != execution_row_id or execution_status.text != "Unlocked":
+	execution_button = library_scene.find_child("UnlockCard_execution", true, false) as Button
+	if execution_row == null or execution_row.get_instance_id() != execution_row_id or execution_status.text != "Unlocked" or execution_button == null or execution_button.visible:
 		_fail("Meta progress smoke failed: library refresh rebuilt rows instead of updating them")
 		return
 	library_scene.queue_free()
@@ -233,11 +274,11 @@ func _run() -> void:
 		_fail("Meta progress smoke failed: developer reset should clear claimed permanent bonuses")
 		return
 
-	meta_scene = load("res://scenes/meta/MetaProgress.tscn").instantiate() as Control
-	add_child(meta_scene)
-	if not await _wait_for_content_ready(meta_scene, "reset meta progress"):
+	library_scene = load("res://scenes/library/CardLibrary.tscn").instantiate() as Control
+	add_child(library_scene)
+	if not await _wait_for_content_ready(library_scene, "reset card library"):
 		return
-	var reset_assault_button: Button = meta_scene.find_child("UnlockCard_assault", true, false) as Button
+	var reset_assault_button: Button = library_scene.find_child("UnlockCard_assault", true, false) as Button
 	if reset_assault_button == null or reset_assault_button.disabled:
 		_fail("Meta progress smoke failed: developer reset should allow cards to be unlocked again immediately")
 		return

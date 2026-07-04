@@ -210,6 +210,15 @@ func _rebuild_card_rows() -> void:
 				})
 			info.add_child(status_label)
 
+			var unlock_button: Button = Button.new()
+			unlock_button.name = "UnlockCard_%s" % card_id
+			unlock_button.custom_minimum_size = Vector2(104.0, 38.0)
+			unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
+			unlock_button.visible = not bool(entry.get("unlocked", false))
+			unlock_button.disabled = Game.get_meta_points() < int(entry.get("cost", 0))
+			unlock_button.pressed.connect(_on_unlock_card.bind(card_id))
+			top_row.add_child(unlock_button)
+
 			var desc_label: Label = Label.new()
 			desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			desc_label.text = "%s\n%s" % [card_def.description, CardInfoFormatter.build_effect_summary(card_def)]
@@ -218,6 +227,7 @@ func _rebuild_card_rows() -> void:
 				"row": row,
 				"preview": preview,
 				"status": status_label,
+				"button": unlock_button,
 				"rarity": rarity,
 				"tags": card_def.tags.duplicate(),
 			}
@@ -232,6 +242,7 @@ func _rebuild_card_rows() -> void:
 
 
 func _update_card_rows(entries: Array[Dictionary]) -> void:
+	var meta_points: int = Game.get_meta_points()
 	for entry in entries:
 		var card_id: String = String(entry.get("id", ""))
 		var widgets: Dictionary = Dictionary(_card_widgets.get(card_id, {}))
@@ -240,7 +251,8 @@ func _update_card_rows(entries: Array[Dictionary]) -> void:
 		var unlocked: bool = bool(entry.get("unlocked", false))
 		var preview: CardButton = widgets.get("preview") as CardButton
 		var status_label: Label = widgets.get("status") as Label
-		if preview == null or status_label == null:
+		var unlock_button: Button = widgets.get("button") as Button
+		if preview == null or status_label == null or unlock_button == null:
 			continue
 		preview.modulate = Color(1.0, 1.0, 1.0, 1.0) if unlocked else Color(0.55, 0.55, 0.55, 1.0)
 		if unlocked:
@@ -249,6 +261,8 @@ func _update_card_rows(entries: Array[Dictionary]) -> void:
 			status_label.text = Localization.get_textf("library.locked_cost", "Locked | Unlock cost {cost}", {
 				"cost": int(entry.get("cost", 0)),
 			})
+		unlock_button.visible = not unlocked
+		unlock_button.disabled = unlocked or meta_points < int(entry.get("cost", 0))
 
 
 func _populate_filters() -> void:
@@ -324,6 +338,11 @@ func _make_card_cell_stylebox() -> StyleBoxFlat:
 	style.content_margin_right = 10.0
 	style.content_margin_bottom = 10.0
 	return style
+
+
+func _on_unlock_card(card_id: String) -> void:
+	if Game.unlock_meta_card(card_id):
+		_refresh_ui()
 
 
 func _build_developer_panel() -> void:

@@ -56,6 +56,10 @@ func ensure_defaults(meta_progress: Dictionary) -> void:
 		meta_progress["unlocked_relics"] = DEFAULT_UNLOCKED_RELICS.duplicate()
 
 	meta_progress["claimed_achievements"] = _to_string_array(meta_progress.get("claimed_achievements", []))
+	meta_progress["achievement_claim_counts"] = _normalized_achievement_claim_counts(
+		meta_progress.get("achievement_claim_counts", {}),
+		_to_string_array(meta_progress.get("claimed_achievements", []))
+	)
 	meta_progress["achievement_stats"] = _normalized_int_dictionary(
 		meta_progress.get("achievement_stats", {}),
 		DEFAULT_ACHIEVEMENT_STATS
@@ -294,14 +298,48 @@ func increment_achievement_stat(meta_progress: Dictionary, stat_id: String, amou
 
 
 func is_achievement_claimed(meta_progress: Dictionary, achievement_id: String) -> bool:
-	return get_claimed_achievement_ids(meta_progress).has(achievement_id)
+	ensure_defaults(meta_progress)
+	var target_data: Dictionary = _resolve_achievement_target(achievement_id)
+	if target_data.is_empty():
+		return false
+	var resolved_id: String = String(target_data.get("id", achievement_id))
+	var tier_index: int = int(target_data.get("tier_index", -1))
+	var achievement_data: Dictionary = Database.get_achievement(resolved_id)
+	var tiers: Array = _get_achievement_tiers(achievement_data)
+	if not tiers.is_empty():
+		var claimed_count: int = _get_claimed_tier_count(meta_progress, resolved_id, tiers.size())
+		if tier_index >= 0:
+			return claimed_count > tier_index
+		return claimed_count >= tiers.size()
+	return get_claimed_achievement_ids(meta_progress).has(resolved_id)
 
 
 func is_achievement_claimable(meta_progress: Dictionary, achievement_id: String) -> bool:
-	if is_achievement_claimed(meta_progress, achievement_id):
+	ensure_defaults(meta_progress)
+	var target_data: Dictionary = _resolve_achievement_target(achievement_id)
+	if target_data.is_empty():
 		return false
-	var achievement_data: Dictionary = Database.get_achievement(achievement_id)
+	var resolved_id: String = String(target_data.get("id", achievement_id))
+	var requested_tier_index: int = int(target_data.get("tier_index", -1))
+	var achievement_data: Dictionary = Database.get_achievement(resolved_id)
 	if achievement_data.is_empty():
+		return false
+	var tiers: Array = _get_achievement_tiers(achievement_data)
+	if not tiers.is_empty():
+		var claimed_count: int = _get_claimed_tier_count(meta_progress, resolved_id, tiers.size())
+		if claimed_count >= tiers.size():
+			return false
+		var next_tier_index: int = claimed_count
+		if requested_tier_index >= 0:
+			if requested_tier_index != next_tier_index:
+				return false
+			next_tier_index = requested_tier_index
+		var tier_data: Dictionary = Dictionary(tiers[next_tier_index])
+		var tier_condition: Dictionary = _get_tier_condition(achievement_data, tier_data)
+		var tier_stat_id: String = String(tier_condition.get("stat", ""))
+		var tier_target_value: int = int(tier_condition.get("value", 1))
+		return _get_condition_value(meta_progress, tier_stat_id) >= tier_target_value
+	if get_claimed_achievement_ids(meta_progress).has(resolved_id):
 		return false
 	var condition: Dictionary = Dictionary(achievement_data.get("condition", {}))
 	var stat_id: String = String(condition.get("stat", ""))
@@ -316,6 +354,32 @@ func build_achievement_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 	for achievement_id in Database.get_all_achievement_ids():
 		var achievement_data: Dictionary = Database.get_achievement(achievement_id)
 		if achievement_data.is_empty():
+			continue
+		var tiers: Array = _get_achievement_tiers(achievement_data)
+		if not tiers.is_empty():
+			var claimed_tier_count: int = _get_claimed_tier_count(meta_progress, achievement_id, tiers.size())
+			var achievement_complete: bool = claimed_tier_count >= tiers.size()
+			var active_tier_index: int = mini(claimed_tier_count, tiers.size() - 1)
+			var active_tier: Dictionary = Dictionary(tiers[active_tier_index])
+			var tier_condition: Dictionary = _get_tier_condition(achievement_data, active_tier)
+			var tier_stat_id: String = String(tier_condition.get("stat", ""))
+			var tier_target_value: int = int(tier_condition.get("value", 1))
+			var tier_current_value: int = _get_condition_value(meta_progress, tier_stat_id)
+			var tier_rewards: Array = _get_tier_rewards(achievement_data, active_tier)
+			entries.append({
+				"id": achievement_id,
+				"name": String(achievement_data.get("name", achievement_id)),
+				"description": String(active_tier.get("description", achievement_data.get("description", ""))),
+				"stat": tier_stat_id,
+				"current": tier_current_value,
+				"target": tier_target_value,
+				"claimed": achievement_complete,
+				"claimable": not achievement_complete and tier_current_value >= tier_target_value,
+				"reward_text": _build_reward_text(tier_rewards),
+				"claimed_count": claimed_tier_count,
+				"tier_count": tiers.size(),
+				"tier_index": active_tier_index,
+			})
 			continue
 		var condition: Dictionary = Dictionary(achievement_data.get("condition", {}))
 		var stat_id: String = String(condition.get("stat", ""))
@@ -333,6 +397,9 @@ func build_achievement_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 			"claimed": claimed,
 			"claimable": not claimed and current_value >= target_value,
 			"reward_text": _build_reward_text(rewards),
+			"claimed_count": 1 if claimed else 0,
+			"tier_count": 1,
+			"tier_index": 0,
 		})
 	return entries
 
@@ -341,15 +408,84 @@ func claim_achievement(meta_progress: Dictionary, achievement_id: String) -> boo
 	if not is_achievement_claimable(meta_progress, achievement_id):
 		return false
 
-	var claimed_ids: Array[String] = get_claimed_achievement_ids(meta_progress)
-	claimed_ids.append(achievement_id)
-	meta_progress["claimed_achievements"] = claimed_ids
-
-	var achievement_data: Dictionary = Database.get_achievement(achievement_id)
-	var rewards: Array = Array(achievement_data.get("rewards", []))
+	var target_data: Dictionary = _resolve_achievement_target(achievement_id)
+	if target_data.is_empty():
+		return false
+	var resolved_id: String = String(target_data.get("id", achievement_id))
+	var requested_tier_index: int = int(target_data.get("tier_index", -1))
+	var achievement_data: Dictionary = Database.get_achievement(resolved_id)
+	var tiers: Array = _get_achievement_tiers(achievement_data)
+	var rewards: Array = []
+	if not tiers.is_empty():
+		var claimed_count: int = _get_claimed_tier_count(meta_progress, resolved_id, tiers.size())
+		var next_tier_index: int = claimed_count
+		if requested_tier_index >= 0:
+			if requested_tier_index != next_tier_index:
+				return false
+			next_tier_index = requested_tier_index
+		var tier_data: Dictionary = Dictionary(tiers[next_tier_index])
+		rewards = _get_tier_rewards(achievement_data, tier_data)
+		_set_claimed_tier_count(meta_progress, resolved_id, claimed_count + 1, tiers.size())
+		if claimed_count + 1 >= tiers.size():
+			var completed_ids: Array[String] = get_claimed_achievement_ids(meta_progress)
+			if not completed_ids.has(resolved_id):
+				completed_ids.append(resolved_id)
+				meta_progress["claimed_achievements"] = completed_ids
+	else:
+		var claimed_ids: Array[String] = get_claimed_achievement_ids(meta_progress)
+		claimed_ids.append(resolved_id)
+		meta_progress["claimed_achievements"] = claimed_ids
+		rewards = Array(achievement_data.get("rewards", []))
 	for raw_reward in rewards:
 		_apply_achievement_reward(meta_progress, Dictionary(raw_reward))
 	return true
+
+
+func _resolve_achievement_target(achievement_id: String) -> Dictionary:
+	if not Database.get_achievement(achievement_id).is_empty():
+		return {
+			"id": achievement_id,
+			"tier_index": -1,
+		}
+	for base_id in Database.get_all_achievement_ids():
+		var base_achievement_id: String = String(base_id)
+		var achievement_data: Dictionary = Database.get_achievement(base_achievement_id)
+		var tiers: Array = _get_achievement_tiers(achievement_data)
+		for tier_index in range(tiers.size()):
+			var tier_data: Dictionary = Dictionary(tiers[tier_index])
+			if String(tier_data.get("legacy_id", "")) == achievement_id:
+				return {
+					"id": base_achievement_id,
+					"tier_index": tier_index,
+				}
+	return {}
+
+
+func _get_achievement_tiers(achievement_data: Dictionary) -> Array:
+	return Array(achievement_data.get("tiers", []))
+
+
+func _get_tier_condition(achievement_data: Dictionary, tier_data: Dictionary) -> Dictionary:
+	if tier_data.has("condition"):
+		return Dictionary(tier_data.get("condition", {}))
+	return Dictionary(achievement_data.get("condition", {}))
+
+
+func _get_tier_rewards(achievement_data: Dictionary, tier_data: Dictionary) -> Array:
+	if tier_data.has("rewards"):
+		return Array(tier_data.get("rewards", []))
+	return Array(achievement_data.get("rewards", []))
+
+
+func _get_claimed_tier_count(meta_progress: Dictionary, achievement_id: String, tier_count: int) -> int:
+	var claim_counts: Dictionary = Dictionary(meta_progress.get("achievement_claim_counts", {}))
+	return clampi(int(claim_counts.get(achievement_id, 0)), 0, tier_count)
+
+
+func _set_claimed_tier_count(meta_progress: Dictionary, achievement_id: String, next_count: int, tier_count: int) -> void:
+	var claim_counts: Dictionary = Dictionary(meta_progress.get("achievement_claim_counts", {})).duplicate(true)
+	claim_counts[achievement_id] = clampi(next_count, 0, tier_count)
+	meta_progress["achievement_claim_counts"] = claim_counts
 
 
 func _get_condition_value(meta_progress: Dictionary, stat_id: String) -> int:
@@ -425,6 +561,33 @@ func _reward_text(reward_data: Dictionary) -> String:
 		"unlock_infinite_mode":
 			return Localization.get_text("achievement.reward.infinite_mode", "Unlock Infinite Mode")
 	return ""
+
+
+func _normalized_achievement_claim_counts(value: Variant, claimed_ids: Array[String]) -> Dictionary:
+	var result: Dictionary = {}
+	if typeof(value) == TYPE_DICTIONARY:
+		var source: Dictionary = Dictionary(value)
+		for raw_key in source.keys():
+			var achievement_id: String = String(raw_key)
+			result[achievement_id] = maxi(0, int(source.get(raw_key, 0)))
+
+	for achievement_id in Database.get_all_achievement_ids():
+		var achievement_data: Dictionary = Database.get_achievement(achievement_id)
+		var tiers: Array = _get_achievement_tiers(achievement_data)
+		if tiers.is_empty():
+			if claimed_ids.has(achievement_id) and not result.has(achievement_id):
+				result[achievement_id] = 1
+			continue
+		var claimed_count: int = clampi(int(result.get(achievement_id, 0)), 0, tiers.size())
+		for tier_index in range(tiers.size()):
+			var tier_data: Dictionary = Dictionary(tiers[tier_index])
+			var legacy_id: String = String(tier_data.get("legacy_id", ""))
+			if legacy_id != "" and claimed_ids.has(legacy_id):
+				claimed_count = maxi(claimed_count, tier_index + 1)
+		if claimed_ids.has(achievement_id):
+			claimed_count = tiers.size()
+		result[achievement_id] = clampi(claimed_count, 0, tiers.size())
+	return result
 
 
 func _normalized_int_dictionary(value: Variant, defaults: Dictionary) -> Dictionary:

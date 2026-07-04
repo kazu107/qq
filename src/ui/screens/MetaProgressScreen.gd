@@ -5,14 +5,12 @@ const BUILD_BATCH_SIZE := 10
 var _summary_label: RichTextLabel
 var _achievement_box: VBoxContainer
 var _starter_box: VBoxContainer
-var _card_box: VBoxContainer
 var _relic_box: VBoxContainer
 var _developer_panel: DeveloperPanel
 var _content_ready: bool = false
 var _content_building: bool = false
 var _achievement_widgets: Dictionary = {}
 var _starter_widgets: Dictionary = {}
-var _card_widgets: Dictionary = {}
 var _relic_widgets: Dictionary = {}
 
 
@@ -90,12 +88,6 @@ func _build_ui() -> void:
 	_starter_box.name = "MetaStarterBox"
 	_starter_box.add_theme_constant_override("separation", 10)
 	starters_panel.add_child(_starter_box)
-
-	var cards_panel: VBoxContainer = _create_panel(content, Localization.get_text("meta.cards", "Card Unlocks"))
-	_card_box = VBoxContainer.new()
-	_card_box.name = "MetaCardBox"
-	_card_box.add_theme_constant_override("separation", 10)
-	cards_panel.add_child(_card_box)
 
 	var relics_panel: VBoxContainer = _create_panel(content, Localization.get_text("meta.relics", "Relic Unlocks"))
 	_relic_box = VBoxContainer.new()
@@ -196,7 +188,6 @@ func _refresh_ui() -> void:
 		return
 	_update_achievement_rows(achievement_entries)
 	_update_starter_rows(starter_entries)
-	_update_card_rows(card_entries)
 	_update_relic_rows(relic_entries)
 
 
@@ -205,9 +196,6 @@ func _build_content_batched() -> void:
 	if not is_inside_tree():
 		return
 	await _rebuild_starters(Game.get_meta_starter_entries())
-	if not is_inside_tree():
-		return
-	await _rebuild_cards(Game.get_meta_card_entries())
 	if not is_inside_tree():
 		return
 	await _rebuild_relics(Game.get_meta_relic_entries())
@@ -238,57 +226,66 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 			"MetaAchievementFrame_%s" % achievement_id,
 			"MetaAchievementRow_%s" % achievement_id
 		)
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
 
 		var info: VBoxContainer = VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.custom_minimum_size = Vector2(360.0, 0.0)
+		info.add_theme_constant_override("separation", 5)
 		row.add_child(info)
 
 		var name_label: Label = Label.new()
+		name_label.name = "AchievementName_%s" % achievement_id
 		name_label.text = String(entry.get("name", achievement_id))
+		name_label.add_theme_font_size_override("font_size", 17)
 		info.add_child(name_label)
 
 		var desc_label: Label = Label.new()
+		desc_label.name = "AchievementDescription_%s" % achievement_id
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		desc_label.text = String(entry.get("description", ""))
 		info.add_child(desc_label)
 
-		var progress_label: Label = Label.new()
-		progress_label.name = "AchievementProgress_%s" % achievement_id
-		progress_label.text = Localization.get_textf("meta.achievement_progress", "Progress: {current} / {target}", {
-			"current": int(entry.get("current", 0)),
-			"target": int(entry.get("target", 0)),
-		})
-		info.add_child(progress_label)
-
 		var reward_label: Label = Label.new()
 		reward_label.name = "AchievementReward_%s" % achievement_id
+		reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		reward_label.text = Localization.get_textf("meta.achievement_reward", "Reward: {value}", {
 			"value": String(entry.get("reward_text", "")),
 		})
 		info.add_child(reward_label)
 
-		var status_label: Label = Label.new()
-		status_label.name = "AchievementStatus_%s" % achievement_id
-		if bool(entry.get("claimed", false)):
-			status_label.text = Localization.get_text("meta.claimed", "Claimed")
-		elif bool(entry.get("claimable", false)):
-			status_label.text = Localization.get_text("meta.ready", "Ready")
-		else:
-			status_label.text = Localization.get_text("meta.locked", "Locked")
-		info.add_child(status_label)
+		var progress_box: VBoxContainer = VBoxContainer.new()
+		progress_box.custom_minimum_size = Vector2(220.0, 0.0)
+		progress_box.add_theme_constant_override("separation", 6)
+		row.add_child(progress_box)
+
+		var progress_label: Label = Label.new()
+		progress_label.name = "AchievementProgress_%s" % achievement_id
+		progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		progress_box.add_child(progress_label)
+
+		var progress_bar: ProgressBar = ProgressBar.new()
+		progress_bar.name = "AchievementProgressBar_%s" % achievement_id
+		progress_bar.custom_minimum_size = Vector2(220.0, 16.0)
+		progress_bar.show_percentage = false
+		progress_box.add_child(progress_bar)
 
 		var claim_button: Button = Button.new()
 		claim_button.name = "ClaimAchievement_%s" % achievement_id
+		claim_button.custom_minimum_size = Vector2(116.0, 38.0)
 		claim_button.text = Localization.get_text("meta.claim", "Claim")
 		claim_button.disabled = not bool(entry.get("claimable", false))
 		claim_button.pressed.connect(_on_claim_achievement.bind(achievement_id))
 		row.add_child(claim_button)
 		_achievement_widgets[achievement_id] = {
+			"name": name_label,
+			"description": desc_label,
 			"progress": progress_label,
+			"progress_bar": progress_bar,
 			"reward": reward_label,
-			"status": status_label,
 			"button": claim_button,
 		}
+		_update_achievement_row_widgets(achievement_id, entry)
 		built_count += 1
 		if built_count % BUILD_BATCH_SIZE == 0:
 			await get_tree().process_frame
@@ -342,80 +339,6 @@ func _rebuild_starters(entries: Array[Dictionary]) -> void:
 		built_count += 1
 		if built_count % BUILD_BATCH_SIZE == 0:
 			await get_tree().process_frame
-
-
-func _rebuild_cards(entries: Array[Dictionary]) -> void:
-	_clear_box(_card_box)
-	_card_widgets.clear()
-	var rarity_order: Array[String] = ["common", "rare", "epic"]
-	var meta_points: int = Game.get_meta_points()
-	var built_count: int = 0
-	for rarity_index in range(rarity_order.size()):
-		var rarity: String = rarity_order[rarity_index]
-		if rarity_index > 0:
-			var rarity_divider: HSeparator = HSeparator.new()
-			_card_box.add_child(rarity_divider)
-		var section_label: Label = Label.new()
-		section_label.name = "MetaCardRarity_%s" % rarity
-		section_label.text = Localization.get_rarity_name(rarity)
-		section_label.add_theme_font_size_override("font_size", 18)
-		section_label.add_theme_color_override("font_color", Color(0.92, 0.78, 0.40, 1.0))
-		_card_box.add_child(section_label)
-
-		for entry in entries:
-			if String(entry.get("rarity", "")) != rarity:
-				continue
-			var card_id: String = String(entry.get("id", ""))
-			var card_def: CardDef = Database.get_card(card_id)
-			if card_def == null:
-				continue
-
-			var row: HBoxContainer = _create_entry_row(
-				_card_box,
-				"MetaCardFrame_%s" % card_id,
-				"MetaCardRow_%s" % card_id
-			)
-
-			var info: VBoxContainer = VBoxContainer.new()
-			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			row.add_child(info)
-
-			var name_label: Label = Label.new()
-			name_label.name = "MetaCard_%s" % card_id
-			name_label.text = Localization.get_textf("meta.cost_line", "{name} | Cost {cost}", {
-				"name": card_def.name,
-				"cost": int(entry.get("cost", 0)),
-			})
-			name_label.tooltip_text = "%s\n%s\n%s" % [
-				card_def.name,
-				card_def.description,
-				CardInfoFormatter.build_effect_summary(card_def),
-			]
-			info.add_child(name_label)
-
-			var desc_label: Label = Label.new()
-			desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			desc_label.text = "%s\n%s" % [card_def.description, CardInfoFormatter.build_effect_summary(card_def)]
-			info.add_child(desc_label)
-
-			var status_label: Label = Label.new()
-			status_label.name = "StatusCard_%s" % card_id
-			status_label.text = Localization.get_text("meta.%s" % ("unlocked" if bool(entry.get("unlocked", false)) else "locked"), "Unlocked" if bool(entry.get("unlocked", false)) else "Locked")
-			info.add_child(status_label)
-
-			var unlock_button: Button = Button.new()
-			unlock_button.name = "UnlockCard_%s" % card_id
-			unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
-			unlock_button.disabled = bool(entry.get("unlocked", false)) or meta_points < int(entry.get("cost", 0))
-			unlock_button.pressed.connect(_on_unlock_card.bind(card_id))
-			row.add_child(unlock_button)
-			_card_widgets[card_id] = {
-				"status": status_label,
-				"button": unlock_button,
-			}
-			built_count += 1
-			if built_count % BUILD_BATCH_SIZE == 0:
-				await get_tree().process_frame
 
 
 func _rebuild_relics(entries: Array[Dictionary]) -> void:
@@ -478,27 +401,44 @@ func _rebuild_relics(entries: Array[Dictionary]) -> void:
 func _update_achievement_rows(entries: Array[Dictionary]) -> void:
 	for entry in entries:
 		var achievement_id: String = String(entry.get("id", ""))
-		var widgets: Dictionary = Dictionary(_achievement_widgets.get(achievement_id, {}))
-		if widgets.is_empty():
-			continue
-		var progress_label: Label = widgets.get("progress") as Label
-		var reward_label: Label = widgets.get("reward") as Label
-		var status_label: Label = widgets.get("status") as Label
-		var claim_button: Button = widgets.get("button") as Button
-		progress_label.text = Localization.get_textf("meta.achievement_progress", "Progress: {current} / {target}", {
-			"current": int(entry.get("current", 0)),
-			"target": int(entry.get("target", 0)),
+		_update_achievement_row_widgets(achievement_id, entry)
+
+
+func _update_achievement_row_widgets(achievement_id: String, entry: Dictionary) -> void:
+	var widgets: Dictionary = Dictionary(_achievement_widgets.get(achievement_id, {}))
+	if widgets.is_empty():
+		return
+	var name_label: Label = widgets.get("name") as Label
+	var desc_label: Label = widgets.get("description") as Label
+	var progress_label: Label = widgets.get("progress") as Label
+	var progress_bar: ProgressBar = widgets.get("progress_bar") as ProgressBar
+	var reward_label: Label = widgets.get("reward") as Label
+	var claim_button: Button = widgets.get("button") as Button
+	var current_value: int = int(entry.get("current", 0))
+	var target_value: int = maxi(1, int(entry.get("target", 1)))
+	var claimed_count: int = int(entry.get("claimed_count", 0))
+	var tier_count: int = maxi(1, int(entry.get("tier_count", 1)))
+	if name_label != null:
+		name_label.text = String(entry.get("name", achievement_id))
+	if desc_label != null:
+		desc_label.text = String(entry.get("description", ""))
+	if progress_label != null:
+		progress_label.text = Localization.get_textf("meta.achievement_stage_progress", "Stage {stage} / {stages} | {current} / {target}", {
+			"stage": mini(claimed_count + 1, tier_count),
+			"stages": tier_count,
+			"current": current_value,
+			"target": target_value,
 		})
+	if progress_bar != null:
+		progress_bar.max_value = float(target_value)
+		progress_bar.value = float(clampi(current_value, 0, target_value))
+	if reward_label != null:
 		reward_label.text = Localization.get_textf("meta.achievement_reward", "Reward: {value}", {
 			"value": String(entry.get("reward_text", "")),
 		})
-		if bool(entry.get("claimed", false)):
-			status_label.text = Localization.get_text("meta.claimed", "Claimed")
-		elif bool(entry.get("claimable", false)):
-			status_label.text = Localization.get_text("meta.ready", "Ready")
-		else:
-			status_label.text = Localization.get_text("meta.locked", "Locked")
+	if claim_button != null:
 		claim_button.disabled = not bool(entry.get("claimable", false))
+		claim_button.text = Localization.get_text("meta.claimed", "Claimed") if bool(entry.get("claimed", false)) else Localization.get_text("meta.claim", "Claim")
 
 
 func _update_starter_rows(entries: Array[Dictionary]) -> void:
@@ -506,20 +446,6 @@ func _update_starter_rows(entries: Array[Dictionary]) -> void:
 	for entry in entries:
 		var starter_id: String = String(entry.get("id", ""))
 		var widgets: Dictionary = Dictionary(_starter_widgets.get(starter_id, {}))
-		if widgets.is_empty():
-			continue
-		var unlocked: bool = bool(entry.get("unlocked", false))
-		var status_label: Label = widgets.get("status") as Label
-		var unlock_button: Button = widgets.get("button") as Button
-		status_label.text = Localization.get_text("meta.%s" % ("unlocked" if unlocked else "locked"), "Unlocked" if unlocked else "Locked")
-		unlock_button.disabled = unlocked or meta_points < int(entry.get("cost", 0))
-
-
-func _update_card_rows(entries: Array[Dictionary]) -> void:
-	var meta_points: int = Game.get_meta_points()
-	for entry in entries:
-		var card_id: String = String(entry.get("id", ""))
-		var widgets: Dictionary = Dictionary(_card_widgets.get(card_id, {}))
 		if widgets.is_empty():
 			continue
 		var unlocked: bool = bool(entry.get("unlocked", false))
@@ -554,11 +480,6 @@ func _clear_box(box: VBoxContainer) -> void:
 
 func _on_unlock_starter(starter_id: String) -> void:
 	if Game.unlock_meta_starter(starter_id):
-		_refresh_ui()
-
-
-func _on_unlock_card(card_id: String) -> void:
-	if Game.unlock_meta_card(card_id):
 		_refresh_ui()
 
 
