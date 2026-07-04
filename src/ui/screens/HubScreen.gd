@@ -45,6 +45,13 @@ func _ready() -> void:
 	)
 	root.add_child(start_button)
 
+	if Game.is_infinite_mode_unlocked():
+		var infinite_button: Button = Button.new()
+		infinite_button.name = "InfiniteModeStartButton"
+		infinite_button.text = Localization.get_text("hub.infinite_mode", "Infinite Mode")
+		infinite_button.pressed.connect(_on_start_infinite_mode)
+		root.add_child(infinite_button)
+
 	var meta_button: Button = Button.new()
 	meta_button.text = Localization.get_text("hub.meta_progress", "Meta Progress")
 	meta_button.pressed.connect(_on_open_meta_progress)
@@ -351,3 +358,8 @@ func _on_open_card_library() -> void:
 	Game.current_screen_hint = "library"
 	SaveManager.request_save("library")
 	SceneRouter.go_to_card_library()
+
+
+func _on_start_infinite_mode() -> void:
+	if Game.start_infinite_run():
+		SceneRouter.go_to_map()

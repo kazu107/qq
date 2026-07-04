@@ -21,6 +21,7 @@ var battle_history: Array[Dictionary] = []
 var hp_damage_taken: int = 0
 var run_complete: bool = false
 var defeated: bool = false
+var infinite_mode: bool = false
 
 
 static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> RunState:
@@ -45,6 +46,7 @@ static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> Ru
 	run_state.gold = 0
 	run_state.battle_history = []
 	run_state.hp_damage_taken = 0
+	run_state.infinite_mode = false
 	return run_state
 
 
@@ -72,6 +74,7 @@ static func from_dict(data: Dictionary) -> RunState:
 	run_state.hp_damage_taken = int(data.get("hp_damage_taken", 0))
 	run_state.run_complete = bool(data.get("run_complete", false))
 	run_state.defeated = bool(data.get("defeated", false))
+	run_state.infinite_mode = bool(data.get("infinite_mode", false))
 	return run_state
 
 
@@ -97,6 +100,7 @@ func to_dict() -> Dictionary:
 		"hp_damage_taken": hp_damage_taken,
 		"run_complete": run_complete,
 		"defeated": defeated,
+		"infinite_mode": infinite_mode,
 	}
 
 

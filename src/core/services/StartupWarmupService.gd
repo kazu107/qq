@@ -7,29 +7,98 @@ const PORTRAIT_DIR := "res://assets/portraits"
 const STATUS_ICON_DIR := "res://assets/icons/status"
 
 
+class WarmupData:
+	extends RefCounted
+
+	var card_ids: Array[String] = []
+	var relic_ids: Array[String] = []
+	var portrait_ids: Array[String] = []
+	var status_ids: Array[String] = []
+	var summary: Dictionary = {}
+
+
 static func warm_all() -> Dictionary:
-	var card_ids: Array[String] = _collect_card_ids()
-	var relic_ids: Array[String] = _collect_relic_ids()
-	var portrait_ids: Array[String] = _collect_portrait_ids()
-	var status_ids: Array[String] = _collect_status_ids()
+	var data: WarmupData = _collect_warmup_data()
 
 	SceneRouter.warm_scene_cache()
-	var unit_counts: Dictionary = UnitPanel.warm_visual_cache(portrait_ids, status_ids)
+	var unit_counts: Dictionary = UnitPanel.warm_visual_cache(data.portrait_ids, data.status_ids)
 	var stat_icon_count: int = StatIconFactory.warm_cache()
 	var map_icon_count: int = MapNodeButton.warm_icon_cache()
 
 	return {
 		"scenes": SceneRouter.get_cached_scene_count(),
 		"sfx": AudioManager.warm_sfx_cache(),
-		"cards": CardButton.warm_texture_cache(card_ids),
-		"card_picker_icons": CardIconPicker.warm_button_icon_cache(card_ids),
+		"cards": CardButton.warm_texture_cache(data.card_ids),
+		"card_picker_icons": CardIconPicker.warm_button_icon_cache(data.card_ids),
 		"card_picker_popup_icons": CardIconPicker.get_cached_popup_icon_count(),
-		"relics": RelicIcon.warm_texture_cache(relic_ids),
+		"relics": RelicIcon.warm_texture_cache(data.relic_ids),
 		"portraits": int(unit_counts.get("portraits", 0)),
 		"status_icons": int(unit_counts.get("statuses", 0)),
 		"stat_icons": stat_icon_count,
 		"map_icons": map_icon_count,
 	}
+
+
+static func warm_all_async(progress_callback: Callable = Callable()) -> Dictionary:
+	var data: WarmupData = _collect_warmup_data()
+	_report_progress(progress_callback, "boot.caching_scenes", 0.58)
+	await _next_frame()
+	SceneRouter.warm_scene_cache()
+	data.summary["scenes"] = SceneRouter.get_cached_scene_count()
+
+	_report_progress(progress_callback, "boot.caching_audio", 0.64)
+	await _next_frame()
+	data.summary["sfx"] = AudioManager.warm_sfx_cache()
+
+	_report_progress(progress_callback, "boot.caching_cards", 0.70)
+	await _next_frame()
+	data.summary["cards"] = CardButton.warm_texture_cache(data.card_ids)
+
+	_report_progress(progress_callback, "boot.caching_card_picker", 0.78)
+	await _next_frame()
+	data.summary["card_picker_icons"] = CardIconPicker.warm_button_icon_cache(data.card_ids)
+	data.summary["card_picker_popup_icons"] = CardIconPicker.get_cached_popup_icon_count()
+
+	_report_progress(progress_callback, "boot.caching_relics", 0.84)
+	await _next_frame()
+	data.summary["relics"] = RelicIcon.warm_texture_cache(data.relic_ids)
+
+	_report_progress(progress_callback, "boot.caching_units", 0.90)
+	await _next_frame()
+	var unit_counts: Dictionary = UnitPanel.warm_visual_cache(data.portrait_ids, data.status_ids)
+	data.summary["portraits"] = int(unit_counts.get("portraits", 0))
+	data.summary["status_icons"] = int(unit_counts.get("statuses", 0))
+
+	_report_progress(progress_callback, "boot.caching_ui", 0.96)
+	await _next_frame()
+	data.summary["stat_icons"] = StatIconFactory.warm_cache()
+	data.summary["map_icons"] = MapNodeButton.warm_icon_cache()
+
+	_report_progress(progress_callback, "boot.ready", 1.0)
+	await _next_frame()
+	return data.summary
+
+
+static func _collect_warmup_data() -> WarmupData:
+	var data: WarmupData = WarmupData.new()
+	data.card_ids = _collect_card_ids()
+	data.relic_ids = _collect_relic_ids()
+	data.portrait_ids = _collect_portrait_ids()
+	data.status_ids = _collect_status_ids()
+	return data
+
+
+static func _report_progress(progress_callback: Callable, text_key: String, progress: float) -> void:
+	if not progress_callback.is_valid():
+		return
+	progress_callback.call(Localization.get_text(text_key, text_key), progress)
+
+
+static func _next_frame() -> void:
+	var tree: SceneTree = Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	await tree.process_frame
 
 
 static func _collect_card_ids() -> Array[String]:

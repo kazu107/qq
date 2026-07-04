@@ -35,6 +35,9 @@ func _run() -> void:
 	await _test_eternity_midboss_and_final_rank()
 	if _failed:
 		return
+	await _test_infinite_mode_flow()
+	if _failed:
+		return
 	Game.developer_reset_meta_progress()
 	print("Progression tier smoke passed: rank achievements, Steps 8-28, midboss flow, infinite unlock, and new content")
 	get_tree().quit(0)
@@ -303,6 +306,60 @@ func _test_eternity_midboss_and_final_rank() -> void:
 		return
 	if not Game.is_infinite_mode_unlocked():
 		_fail("Progression tier smoke failed: tier 4 S reward did not unlock Infinite Mode")
+
+
+func _test_infinite_mode_flow() -> void:
+	var hub_scene: Control = load("res://scenes/hub/Hub.tscn").instantiate() as Control
+	add_child(hub_scene)
+	await get_tree().process_frame
+	var infinite_button: Button = hub_scene.find_child("InfiniteModeStartButton", true, false) as Button
+	if infinite_button == null:
+		_fail("Progression tier smoke failed: unlocked Infinite Mode should appear on the hub")
+		return
+	hub_scene.queue_free()
+	await get_tree().process_frame
+
+	if not Game.start_infinite_run("balanced", 46006):
+		_fail("Progression tier smoke failed: Infinite Mode did not start")
+		return
+	if not Game.current_run.infinite_mode or Game.get_map_step_count() != 28:
+		_fail("Progression tier smoke failed: Infinite Mode should start with one 28-step cycle")
+		return
+	if Game.current_run.gold < 30 or Game.current_run.attack < int(Database.get_starter("balanced").get("attack", 0)) + 2:
+		_fail("Progression tier smoke failed: Infinite Mode should start with boosted player stats")
+		return
+
+	var first_step: Dictionary = Game.get_current_step_data()
+	var first_nodes: Array = Array(first_step.get("nodes", []))
+	if first_nodes.is_empty():
+		_fail("Progression tier smoke failed: Infinite Mode first step had no nodes")
+		return
+	var first_node: Dictionary = Dictionary(first_nodes[0])
+	var enemy_id: String = String(first_node.get("enemy_id", ""))
+	if Game.select_map_node(String(first_node.get("id", ""))) != "battle":
+		_fail("Progression tier smoke failed: Infinite Mode first battle could not be selected")
+		return
+	var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	engine.setup(Game.current_run, enemy_id)
+	var base_enemy: EnemyDef = Database.get_enemy(enemy_id)
+	if base_enemy == null or engine.battle_state.enemy.max_hp <= base_enemy.max_hp or engine.battle_state.enemy.attack <= base_enemy.attack:
+		_fail("Progression tier smoke failed: Infinite Mode enemies should be stronger from cycle 1")
+		return
+	var enemy_card_id: String = engine.battle_state.enemy.card_runtime_states[0].card_id
+	var enemy_card_modifiers: Dictionary = Dictionary(engine.battle_state.enemy.temporary_card_modifiers.get(enemy_card_id, {}))
+	if int(enemy_card_modifiers.get("tier", 0)) < 1:
+		_fail("Progression tier smoke failed: Infinite Mode enemy cards should start upgraded")
+		return
+
+	_prepare_boss_step(27)
+	Game.complete_battle(_build_victory_summary("boss_eternity_zero", 240.0))
+	if Game.current_run.run_complete or Game.current_screen_hint != "reward":
+		_fail("Progression tier smoke failed: Infinite Mode cycle boss should not end the run")
+		return
+	Game.skip_reward()
+	if Game.current_run.run_complete or Game.get_map_step_count() != 56 or Game.get_current_step_index() != 28:
+		_fail("Progression tier smoke failed: Infinite Mode should append the next 28-step cycle")
+		return
 
 
 func _assert_map_renders_step(node_name: String, label: String) -> void:

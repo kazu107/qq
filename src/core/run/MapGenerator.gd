@@ -10,6 +10,8 @@ const AREA_NINE_POOL := ["rift_predator", "entropy_colossus"]
 const AREA_TEN_POOL := ["omega_seraph", "grave_architect"]
 const AREA_TWELVE_POOL := ["omega_seraph", "grave_architect"]
 const MAX_IMPLEMENTED_STEP_TIER: int = 4
+const INFINITE_AREA_SPAN: int = 12
+const INFINITE_STEP_SPAN: int = 28
 
 
 func generate_run(seed: int, unlocked_step_tier: int = 1) -> Dictionary:
@@ -58,6 +60,66 @@ func generate_run(seed: int, unlocked_step_tier: int = 1) -> Dictionary:
 		"active_node_id": "",
 		"steps": steps,
 	}
+
+
+func generate_infinite_run(seed: int) -> Dictionary:
+	var map_state: Dictionary = {
+		"current_step": 0,
+		"active_node_id": "",
+		"steps": [],
+		"infinite": true,
+		"cycle_count": 0,
+	}
+	append_infinite_cycle(map_state, seed)
+	var steps: Array = Array(map_state.get("steps", []))
+	_unlock_step_nodes(steps, 0)
+	map_state["steps"] = steps
+	return map_state
+
+
+func append_infinite_cycle(map_state: Dictionary, seed: int) -> void:
+	var cycle_index: int = int(map_state.get("cycle_count", 0))
+	var source_state: Dictionary = generate_run(seed + cycle_index * 7919, MAX_IMPLEMENTED_STEP_TIER)
+	var source_steps: Array = Array(source_state.get("steps", []))
+	var steps: Array = Array(map_state.get("steps", []))
+	var step_offset: int = steps.size()
+	var area_offset: int = cycle_index * INFINITE_AREA_SPAN
+	var cycle_number: int = cycle_index + 1
+	var infinite_power: int = cycle_number
+
+	for local_step_index in range(source_steps.size()):
+		var step_data: Dictionary = Dictionary(source_steps[local_step_index]).duplicate(true)
+		var step_index: int = step_offset + local_step_index
+		step_data["id"] = "infinite_cycle_%d_step_%d" % [cycle_number, local_step_index + 1]
+		step_data["cycle"] = cycle_number
+		step_data["infinite_power"] = infinite_power
+		step_data["area"] = int(step_data.get("area", 1)) + area_offset
+		step_data["label_key"] = ""
+		step_data["label"] = "∞%d / %s" % [cycle_number, Localization.get_step_label(Dictionary(source_steps[local_step_index]))]
+		step_data["nodes"] = _remap_infinite_nodes(Array(step_data.get("nodes", [])), cycle_number, step_index, area_offset, infinite_power)
+		steps.append(step_data)
+
+	map_state["steps"] = steps
+	map_state["cycle_count"] = cycle_index + 1
+	map_state["infinite"] = true
+
+
+func _remap_infinite_nodes(nodes: Array, cycle_number: int, step_index: int, area_offset: int, infinite_power: int) -> Array:
+	var remapped: Array = []
+	for node_index in range(nodes.size()):
+		var node_data: Dictionary = Dictionary(nodes[node_index]).duplicate(true)
+		node_data["id"] = "%s_c%d_s%d_n%d" % [
+			String(node_data.get("type", "node")),
+			cycle_number,
+			step_index + 1,
+			node_index,
+		]
+		node_data["cycle"] = cycle_number
+		node_data["infinite_power"] = infinite_power
+		node_data["area"] = int(node_data.get("area", 1)) + area_offset
+		node_data["status"] = "locked"
+		remapped.append(node_data)
+	return remapped
 
 
 func _build_tier_two_steps(rng: RandomNumberGenerator) -> Array:

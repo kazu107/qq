@@ -30,10 +30,13 @@ func refresh(live_hp: int = -1, live_max_hp: int = -1) -> void:
 	var max_hp_value: int = live_max_hp if live_max_hp > 0 else Game.current_run.max_hp
 	_hp_label.text = "%d/%d" % [maxi(0, hp_value), maxi(1, max_hp_value)]
 	_gold_label.text = "%d" % maxi(0, Game.current_run.gold)
-	_step_label.text = "%d/%d" % [
-		min(Game.get_map_step_count(), Game.get_current_step_index() + 1),
-		maxi(1, Game.get_map_step_count()),
-	]
+	if Game.current_run.infinite_mode:
+		_step_label.text = "%d/∞" % maxi(1, Game.get_current_step_index() + 1)
+	else:
+		_step_label.text = "%d/%d" % [
+			min(Game.get_map_step_count(), Game.get_current_step_index() + 1),
+			maxi(1, Game.get_map_step_count()),
+		]
 	_relic_row.refresh_relic_ids(Game.current_run.relics)
 
 

@@ -40,7 +40,7 @@ func refresh_cards(unit: UnitState, run_state: RunState = null, owner_side: Stri
 		var resolved_side: String = owner_side
 		if resolved_side == "":
 			resolved_side = unit.unit_id
-		var card_def: CardDef = _resolve_card_def(runtime_state.card_id, run_state, resolved_side)
+		var card_def: CardDef = _resolve_card_def(runtime_state.card_id, run_state, resolved_side, unit)
 		if card_def == null:
 			button.visible = false
 			continue
@@ -67,7 +67,7 @@ func refresh_card_ids(card_ids: Array[String], interactive: bool = false, badge_
 			continue
 
 		var card_id: String = card_ids[index]
-		var card_def: CardDef = _resolve_card_def(card_id, run_state, "player")
+		var card_def: CardDef = _resolve_card_def(card_id, run_state, "player", null)
 		if card_def == null:
 			button.visible = false
 			continue
@@ -76,9 +76,13 @@ func refresh_card_ids(card_ids: Array[String], interactive: bool = false, badge_
 		button.bind_preview(card_def, card_id, interactive, badge_text)
 
 
-func _resolve_card_def(card_id: String, run_state: RunState, owner_side: String) -> CardDef:
+func _resolve_card_def(card_id: String, run_state: RunState, owner_side: String, unit: UnitState) -> CardDef:
 	if owner_side == "player" and run_state != null:
 		return CardUpgradeResolver.build_effective_card(card_id, run_state)
+	if unit != null and unit.temporary_card_modifiers.has(card_id):
+		var modifier_totals: Dictionary = Dictionary(unit.temporary_card_modifiers.get(card_id, {}))
+		var tier: int = clampi(int(modifier_totals.get("tier", 0)), 0, CardUpgradeResolver.MAX_TIER)
+		return CardUpgradeResolver.build_card_with_modifiers(card_id, modifier_totals, tier)
 	return Database.get_card(card_id)
 
 

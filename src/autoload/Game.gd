@@ -173,6 +173,32 @@ func start_new_run(starter_id: String, seed_override: int = 0) -> void:
 	SaveManager.save_game(current_screen_hint)
 
 
+func start_infinite_run(starter_id: String = "", seed_override: int = 0) -> bool:
+	ensure_meta_initialized()
+	if not is_infinite_mode_unlocked():
+		return false
+	var resolved_starter_id: String = _resolve_infinite_starter_id(starter_id)
+	var starter: Dictionary = Database.get_starter(resolved_starter_id)
+	if starter.is_empty():
+		return false
+	current_run = RunState.from_starter(starter, seed_override)
+	current_run.infinite_mode = true
+	_apply_permanent_bonuses_to_run(current_run)
+	_apply_infinite_player_boost(current_run)
+	current_run.map_state = _map_generator.generate_infinite_run(current_run.seed)
+	pending_enemy_id = ""
+	reward_options.clear()
+	last_battle_summary.clear()
+	last_reward_bundle.clear()
+	_meta_progress_service.increment_achievement_stat(meta_progress, "runs_started")
+	settings["last_run_starter_id"] = current_run.starter_id
+	settings["last_run_seed"] = current_run.seed
+	current_screen_hint = "map"
+	AudioManager.play_sfx("run_start", 0.92)
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
 func prepare_next_battle() -> String:
 	if current_run == null:
 		return ""
@@ -1763,6 +1789,33 @@ func _apply_permanent_bonuses_to_run(run_state: RunState) -> void:
 		run_state.equipped_cards = RunState.build_default_equipped_cards(run_state.player_cards, run_state.loadout_limit)
 
 
+func _apply_infinite_player_boost(run_state: RunState) -> void:
+	if run_state == null:
+		return
+	run_state.max_hp += 18
+	run_state.player_hp = run_state.max_hp
+	run_state.attack += 2
+	run_state.speed += 2
+	run_state.gold += 30
+	run_state.loadout_limit += 2
+	run_state.equipped_cards = RunState.build_default_equipped_cards(run_state.player_cards, run_state.loadout_limit)
+
+
+func _resolve_infinite_starter_id(starter_id: String) -> String:
+	var requested_id: String = starter_id
+	if requested_id == "":
+		requested_id = String(settings.get("last_run_starter_id", ""))
+	var unlocked_starters: Array[Dictionary] = get_unlocked_starters()
+	for starter_data in unlocked_starters:
+		if String(starter_data.get("id", "")) == requested_id:
+			return requested_id
+	for starter_data in unlocked_starters:
+		var fallback_id: String = String(starter_data.get("id", ""))
+		if fallback_id != "":
+			return fallback_id
+	return "balanced"
+
+
 func _filter_valid_card_ids(card_ids: Array[String]) -> Array[String]:
 	var valid_card_ids: Array[String] = []
 	for card_id in card_ids:
@@ -1775,7 +1828,10 @@ func _ensure_map_state() -> void:
 	if current_run == null:
 		return
 	if current_run.map_state.is_empty():
-		current_run.map_state = _map_generator.generate_run(current_run.seed, get_unlocked_step_tier())
+		if current_run.infinite_mode:
+			current_run.map_state = _map_generator.generate_infinite_run(current_run.seed)
+		else:
+			current_run.map_state = _map_generator.generate_run(current_run.seed, get_unlocked_step_tier())
 
 
 func _prepare_non_battle_node(step_index: int, node_index: int) -> void:
@@ -2057,6 +2113,8 @@ func _get_shop_rarity_pool(area: int) -> Array[String]:
 func _is_active_node_final_step() -> bool:
 	if current_run == null:
 		return true
+	if current_run.infinite_mode:
+		return false
 	var location: Dictionary = _get_active_node_location()
 	var steps: Array = Array(current_run.map_state.get("steps", []))
 	if location.is_empty() or steps.is_empty():
@@ -2124,6 +2182,9 @@ func _complete_active_map_node_and_advance() -> void:
 
 	var next_step: int = step_index + 1
 	current_run.map_state["current_step"] = next_step
+	if next_step >= steps.size() and current_run.infinite_mode:
+		_map_generator.append_infinite_cycle(current_run.map_state, current_run.seed)
+		steps = Array(current_run.map_state.get("steps", []))
 	if next_step < steps.size():
 		_unlock_step_nodes(next_step)
 		var next_step_data: Dictionary = _get_step(next_step)

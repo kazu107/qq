@@ -73,7 +73,7 @@ func _boot() -> void:
 	Game.apply_loaded_save(save_data)
 	_set_loading_status(Localization.get_text("boot.caching", "Caching assets..."), 0.52)
 	await get_tree().process_frame
-	var warmup_summary: Dictionary = STARTUP_WARMUP_SERVICE.warm_all()
+	var warmup_summary: Dictionary = await STARTUP_WARMUP_SERVICE.warm_all_async(Callable(self, "_set_loading_status"))
 	_set_loading_status(Localization.get_text("boot.ready", "Ready"), 1.0)
 	_label.text = Localization.get_textf("boot.loaded", "Loaded {cards} cards / {enemies} enemies", {
 		"cards": Database.cards.size(),
