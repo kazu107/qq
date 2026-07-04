@@ -31,6 +31,9 @@ func _run() -> void:
 	if CardIconPicker.get_cached_button_icon_count() < expected_card_icons:
 		_fail("Startup cache smoke failed: card picker icons were not fully cached")
 		return
+	if CardIconPicker.get_cached_popup_icon_count() < expected_card_icons:
+		_fail("Startup cache smoke failed: card picker popup icons were not fully cached")
+		return
 	if RelicIcon.get_cached_texture_count() < expected_relic_icons:
 		_fail("Startup cache smoke failed: relic textures were not fully cached")
 		return
@@ -49,9 +52,30 @@ func _run() -> void:
 	if MapNodeButton.get_cached_type_icon_count() < 8 or not MapNodeButton.has_cached_lock_icon():
 		_fail("Startup cache smoke failed: map node icons were not cached")
 		return
+	if not _boot_loading_screen_has_progress_ui():
+		return
 
 	print("Startup cache smoke passed: %s" % JSON.stringify(summary))
 	get_tree().quit()
+
+
+func _boot_loading_screen_has_progress_ui() -> bool:
+	var boot_scene: PackedScene = load("res://scenes/boot/Boot.tscn") as PackedScene
+	if boot_scene == null:
+		_fail("Startup cache smoke failed: boot scene could not be loaded")
+		return false
+	var boot_screen: Control = boot_scene.instantiate() as Control
+	if boot_screen == null:
+		_fail("Startup cache smoke failed: boot scene is not a Control")
+		return false
+	boot_screen.call("_build_loading_screen")
+	var progress_bar: ProgressBar = boot_screen.find_child("BootLoadingProgress", true, false) as ProgressBar
+	var detail_label: Label = boot_screen.find_child("BootLoadingDetail", true, false) as Label
+	boot_screen.queue_free()
+	if progress_bar == null or detail_label == null:
+		_fail("Startup cache smoke failed: boot loading screen progress UI was missing")
+		return false
+	return true
 
 
 func _count_png_files(directory_path: String) -> int:

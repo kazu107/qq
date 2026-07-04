@@ -300,10 +300,13 @@ func _build_battle_summary_row(battle_index: int, battle_data: Dictionary) -> Pa
 
 func _build_icon_value(icon_id: String, value: String) -> HBoxContainer:
 	var row: HBoxContainer = HBoxContainer.new()
+	row.name = "RunSummaryIconValue_%s" % icon_id
+	row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	row.add_theme_constant_override("separation", 4)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var icon_rect: TextureRect = TextureRect.new()
+	icon_rect.name = "RunSummaryIcon_%s" % icon_id
 	icon_rect.custom_minimum_size = RUN_SUMMARY_ICON_SIZE
 	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -312,8 +315,10 @@ func _build_icon_value(icon_id: String, value: String) -> HBoxContainer:
 	row.add_child(icon_rect)
 
 	var label: Label = Label.new()
+	label.name = "RunSummaryValue_%s" % icon_id
 	label.text = value
-	label.clip_text = true
+	label.clip_text = false
+	label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(label)
 	return row

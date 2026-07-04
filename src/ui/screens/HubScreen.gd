@@ -67,6 +67,7 @@ func _ready() -> void:
 	if Game.is_developer_mode_enabled():
 		_build_debug_battle_lab(root)
 		_build_developer_panel()
+		call_deferred("_warm_debug_card_pickers")
 
 
 func _build_debug_battle_lab(parent: Control) -> void:
@@ -219,6 +220,21 @@ func _create_debug_grade_option(name: String, default_tier: int = 0) -> OptionBu
 		option.set_item_metadata(option.item_count - 1, tier)
 	option.select(clampi(default_tier, 0, CardUpgradeResolver.MAX_TIER))
 	return option
+
+
+func _warm_debug_card_pickers() -> void:
+	if not is_inside_tree():
+		return
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	for picker in _debug_card_options:
+		if picker == null or not is_instance_valid(picker):
+			continue
+		picker.warm_popup_choices()
+		if not is_inside_tree():
+			return
+		await get_tree().process_frame
 
 
 func _select_option_by_metadata(option: OptionButton, target_id: String) -> void:

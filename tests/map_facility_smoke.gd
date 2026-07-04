@@ -233,6 +233,16 @@ func _assert_map_battle_summary_with_history() -> void:
 	if first_gain.get_child_count() < 3:
 		_fail("Map/facility smoke failed: battle summary gains should mix labels with reward icons")
 		return
+	var expected_gold_text: String = "+%d" % int(latest_battle.get("reward_gold", 0))
+	var gold_label: Label = first_gain.find_child("RunSummaryValue_gold", true, false) as Label
+	_assert_summary_label_value(gold_label, expected_gold_text, "gold gain")
+	if _failed:
+		return
+	var selected_card_id: String = String(latest_battle.get("selected_reward_card_id", ""))
+	var card_label: Label = first_gain.find_child("RunSummaryValue_card_owned", true, false) as Label
+	_assert_summary_label_value(card_label, _get_test_card_name(selected_card_id), "card gain")
+	if _failed:
+		return
 
 	map_scene.queue_free()
 	await get_tree().process_frame
@@ -662,6 +672,28 @@ func _find_first_hbox(parent: Control) -> HBoxContainer:
 		if child is HBoxContainer:
 			return child as HBoxContainer
 	return null
+
+
+func _assert_summary_label_value(label: Label, expected_text: String, description: String) -> void:
+	if label == null:
+		_fail("Map/facility smoke failed: battle summary %s label was missing" % description)
+		return
+	if label.text != expected_text:
+		_fail("Map/facility smoke failed: battle summary %s label should show '%s' but was '%s'" % [
+			description,
+			expected_text,
+			label.text,
+		])
+		return
+	if label.clip_text or label.get_combined_minimum_size().x <= 1.0:
+		_fail("Map/facility smoke failed: battle summary %s label has no visible width" % description)
+
+
+func _get_test_card_name(card_id: String) -> String:
+	var card_def: CardDef = Database.get_card(card_id)
+	if card_def == null:
+		return card_id
+	return card_def.name
 
 
 func _assert_hazard_choice_description(facility_scene: Control) -> void:

@@ -43,7 +43,7 @@ func _run() -> void:
 		_fail("Developer mode smoke failed: custom battle card picker did not build choices on demand")
 		return
 	var card_picker_grid: GridContainer = first_card_picker.find_child("CardIconPickerGrid", true, false) as GridContainer
-	var meteor_choice: CardButton = first_card_picker.find_child("CardIconChoice_meteor_crash", true, false) as CardButton
+	var meteor_choice: Button = first_card_picker.find_child("CardIconChoice_meteor_crash", true, false) as Button
 	var selected_icon: Texture2D = first_card_picker.icon
 	if card_slot_grid == null or card_slot_grid.columns != 3:
 		_fail("Developer mode smoke failed: custom battle loadout slots should be arranged in three columns")
@@ -51,7 +51,7 @@ func _run() -> void:
 	if card_picker_grid == null or card_picker_grid.columns != 3 or meteor_choice == null:
 		_fail("Developer mode smoke failed: custom battle card picker should render card icons in a three-column grid")
 		return
-	if selected_icon == null or selected_icon.get_width() > 64 or selected_icon.get_height() > 64:
+	if selected_icon == null or not first_card_picker.expand_icon or first_card_picker.custom_minimum_size.x > 180.0:
 		_fail("Developer mode smoke failed: selected card picker icon should stay compact")
 		return
 	if not _select_option_by_metadata(enemy_option, "brute") \

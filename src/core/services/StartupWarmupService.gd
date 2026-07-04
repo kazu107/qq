@@ -23,6 +23,7 @@ static func warm_all() -> Dictionary:
 		"sfx": AudioManager.warm_sfx_cache(),
 		"cards": CardButton.warm_texture_cache(card_ids),
 		"card_picker_icons": CardIconPicker.warm_button_icon_cache(card_ids),
+		"card_picker_popup_icons": CardIconPicker.get_cached_popup_icon_count(),
 		"relics": RelicIcon.warm_texture_cache(relic_ids),
 		"portraits": int(unit_counts.get("portraits", 0)),
 		"status_icons": int(unit_counts.get("statuses", 0)),

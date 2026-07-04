@@ -1,6 +1,11 @@
 {
   "boot.loading": "データを読み込み中...",
   "boot.loaded": "{cards} 枚のカード / {enemies} 体の敵を読み込みました",
+  "boot.title": "ロード中",
+  "boot.loading_save": "セーブデータを読み込み中...",
+  "boot.caching": "画像・音声・画面をキャッシュ中...",
+  "boot.ready": "準備完了",
+  "boot.cache_loaded": "{cards} 枚のカード / {scenes} 画面 / {sfx} 効果音をキャッシュしました",
   "common.on": "ON",
   "common.off": "OFF",
   "developer.title": "開発者モード",

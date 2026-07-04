@@ -4,23 +4,29 @@ class_name CardIconPicker
 signal selection_changed(card_id: String)
 
 const CARD_TILE_SIZE: Vector2 = Vector2(82.0, 82.0)
-const SELECTED_ICON_SIZE: Vector2i = Vector2i(42, 42)
 const POPUP_SIZE: Vector2i = Vector2i(340, 430)
 const GRID_COLUMNS: int = 3
 
 static var _button_icon_cache: Dictionary = {}
+static var _popup_icon_cache: Dictionary = {}
 
 
 static func warm_button_icon_cache(card_ids: Array[String]) -> int:
 	var warmed_count: int = 0
 	for card_id in card_ids:
-		if _load_button_icon_texture(card_id) != null:
+		var button_icon: Texture2D = _load_button_icon_texture(card_id)
+		var popup_icon: Texture2D = _load_popup_icon_texture(card_id)
+		if button_icon != null and popup_icon != null:
 			warmed_count += 1
 	return warmed_count
 
 
 static func get_cached_button_icon_count() -> int:
 	return _button_icon_cache.size()
+
+
+static func get_cached_popup_icon_count() -> int:
+	return _popup_icon_cache.size()
 
 
 var _entries: Array[Dictionary] = []
@@ -35,6 +41,7 @@ func _ready() -> void:
 	custom_minimum_size = Vector2(150.0, 52.0)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	clip_text = true
+	expand_icon = true
 	pressed.connect(_on_pressed)
 	_refresh_button()
 
@@ -70,6 +77,10 @@ func get_grid_column_count() -> int:
 func get_choice_count() -> int:
 	_ensure_popup()
 	return _grid.get_child_count() if _grid != null else 0
+
+
+func warm_popup_choices() -> void:
+	_ensure_popup()
 
 
 func _on_pressed() -> void:
@@ -137,10 +148,14 @@ func _rebuild_grid() -> void:
 		var card_def: CardDef = Database.get_card(card_id)
 		if card_def == null:
 			continue
-		var card_button: CardButton = CardButton.new()
+		var card_button: Button = Button.new()
 		card_button.name = "CardIconChoice_%s" % card_id
-		card_button.set_tile_size(CARD_TILE_SIZE)
-		card_button.bind_preview(card_def, card_id, true, "")
+		card_button.custom_minimum_size = CARD_TILE_SIZE
+		card_button.text = ""
+		card_button.icon = _load_popup_icon(card_id)
+		card_button.tooltip_text = "%s [%s]" % [card_def.name, card_id]
+		card_button.expand_icon = true
+		card_button.clip_text = true
 		card_button.pressed.connect(_choose_card.bind(card_id))
 		_grid.add_child(card_button)
 
@@ -194,9 +209,21 @@ func _load_button_icon(card_id: String) -> Texture2D:
 	return CardIconPicker._load_button_icon_texture(card_id)
 
 
+func _load_popup_icon(card_id: String) -> Texture2D:
+	return CardIconPicker._load_popup_icon_texture(card_id)
+
+
 static func _load_button_icon_texture(card_id: String) -> Texture2D:
-	if _button_icon_cache.has(card_id):
-		return _button_icon_cache[card_id] as Texture2D
+	return _load_icon_texture(card_id, _button_icon_cache)
+
+
+static func _load_popup_icon_texture(card_id: String) -> Texture2D:
+	return _load_icon_texture(card_id, _popup_icon_cache)
+
+
+static func _load_icon_texture(card_id: String, cache: Dictionary) -> Texture2D:
+	if cache.has(card_id):
+		return cache[card_id] as Texture2D
 	var path: String = CardButton.ART_PATH_TEMPLATE % card_id
 	if not ResourceLoader.exists(path):
 		return null
@@ -204,10 +231,5 @@ static func _load_button_icon_texture(card_id: String) -> Texture2D:
 	var texture: Texture2D = resource as Texture2D
 	if texture == null:
 		return null
-	var image: Image = texture.get_image()
-	if image == null or image.is_empty():
-		return texture
-	image.resize(SELECTED_ICON_SIZE.x, SELECTED_ICON_SIZE.y, Image.INTERPOLATE_LANCZOS)
-	var icon_texture: Texture2D = ImageTexture.create_from_image(image)
-	_button_icon_cache[card_id] = icon_texture
-	return icon_texture
+	cache[card_id] = texture
+	return texture
