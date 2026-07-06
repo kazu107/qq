@@ -29,6 +29,10 @@ const DEFAULT_PERMANENT_BONUSES := {
 const STARTER_UNLOCK_COSTS := {
 	"tempo": 2,
 	"fortress": 2,
+	"vanguard": 3,
+	"aegis": 3,
+	"chrono": 4,
+	"turret": 4,
 }
 
 

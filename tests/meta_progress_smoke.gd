@@ -183,6 +183,9 @@ func _run() -> void:
 	if run_setup_scene.find_child("StarterButton_fortress", true, false) != null:
 		_fail("Meta progress smoke failed: RunSetup should keep locked starters hidden")
 		return
+	if run_setup_scene.find_child("StarterButton_vanguard", true, false) != null:
+		_fail("Meta progress smoke failed: RunSetup should keep newly added locked starters hidden")
+		return
 	run_setup_scene.queue_free()
 	await get_tree().process_frame
 
@@ -261,6 +264,30 @@ func _run() -> void:
 		_fail("Meta progress smoke failed: library refresh rebuilt rows instead of updating them")
 		return
 	library_scene.queue_free()
+	await get_tree().process_frame
+
+	var unlocked_setup_scene: Control = load("res://scenes/run_setup/RunSetup.tscn").instantiate() as Control
+	add_child(unlocked_setup_scene)
+	await get_tree().process_frame
+	for starter_id in ["vanguard", "aegis", "chrono", "turret"]:
+		if not ResourceLoader.exists("res://assets/portraits/%s.png" % starter_id):
+			_fail("Meta progress smoke failed: missing generated starter portrait for %s" % starter_id)
+			return
+		var starter_button: Button = unlocked_setup_scene.find_child("StarterButton_%s" % starter_id, true, false) as Button
+		if starter_button == null:
+			_fail("Meta progress smoke failed: unlocked starter %s did not appear in RunSetup" % starter_id)
+			return
+	var portrait_rect: TextureRect = unlocked_setup_scene.find_child("StarterPortrait", true, false) as TextureRect
+	if portrait_rect == null or portrait_rect.texture == null:
+		_fail("Meta progress smoke failed: RunSetup starter portrait did not render")
+		return
+	var vanguard_button: Button = unlocked_setup_scene.find_child("StarterButton_vanguard", true, false) as Button
+	vanguard_button.emit_signal("pressed")
+	await get_tree().process_frame
+	if portrait_rect.texture == null or portrait_rect.texture.resource_path != "res://assets/portraits/vanguard.png":
+		_fail("Meta progress smoke failed: selecting a starter should update the character portrait")
+		return
+	unlocked_setup_scene.queue_free()
 	await get_tree().process_frame
 
 	Game.developer_reset_meta_progress()

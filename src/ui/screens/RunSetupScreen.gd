@@ -1,11 +1,14 @@
 extends Control
 
+const PORTRAIT_PATH_TEMPLATE := "res://assets/portraits/%s.png"
+
 var _selected_starter_id: String = ""
 var _details_label: RichTextLabel
 var _start_button: Button
 var _starter_cards_panel: CardHandPanel
 var _developer_panel: DeveloperPanel
 var _starter_stats_row: HBoxContainer
+var _portrait_rect: TextureRect
 var _hp_value_label: Label
 var _attack_value_label: Label
 var _speed_value_label: Label
@@ -47,6 +50,19 @@ func _ready() -> void:
 		left.add_child(button)
 		if _selected_starter_id == "":
 			_selected_starter_id = starter_id
+
+	var portrait_frame: PanelContainer = PanelContainer.new()
+	portrait_frame.name = "StarterPortraitFrame"
+	portrait_frame.custom_minimum_size = Vector2(260.0, 260.0)
+	right.add_child(portrait_frame)
+
+	_portrait_rect = TextureRect.new()
+	_portrait_rect.name = "StarterPortrait"
+	_portrait_rect.custom_minimum_size = Vector2(252.0, 252.0)
+	_portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_portrait_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait_frame.add_child(_portrait_rect)
 
 	_details_label = RichTextLabel.new()
 	_details_label.fit_content = true
@@ -101,6 +117,7 @@ func _refresh_details() -> void:
 	var starter: Dictionary = Database.get_starter(_selected_starter_id)
 	if starter.is_empty():
 		_details_label.text = Localization.get_text("run_setup.none_selected", "No starter selected.")
+		_refresh_portrait("")
 		_starter_stats_row.visible = false
 		_starter_cards_panel.refresh_card_ids([], false, "KIT")
 		_start_button.disabled = true
@@ -110,6 +127,7 @@ func _refresh_details() -> void:
 		String(starter.get("name", "")),
 		String(starter.get("description", "")),
 	])
+	_refresh_portrait(_selected_starter_id)
 	_starter_stats_row.visible = true
 	_hp_value_label.text = "%d" % int(starter.get("max_hp", 0))
 	_attack_value_label.text = "%d" % int(starter.get("attack", 0))
@@ -164,6 +182,17 @@ func _to_string_array(value: Variant) -> Array[String]:
 	return result
 
 
+func _refresh_portrait(starter_id: String) -> void:
+	if _portrait_rect == null:
+		return
+	var portrait_path: String = PORTRAIT_PATH_TEMPLATE % starter_id
+	if not ResourceLoader.exists(portrait_path):
+		_portrait_rect.texture = null
+		return
+	var texture_resource: Resource = load(portrait_path)
+	_portrait_rect.texture = texture_resource as Texture2D
+
+
 func _on_start() -> void:
 	Game.start_new_run(_selected_starter_id)
 	SceneRouter.go_to_map()
@@ -173,27 +202,24 @@ func _build_developer_panel() -> void:
 	_developer_panel = DeveloperPanel.new()
 	add_child(_developer_panel)
 	_developer_panel.pin_top_right(20.0, 20.0)
+	var actions: Array = []
+	for starter in Database.starters:
+		var starter_id: String = String(starter.get("id", ""))
+		if starter_id == "":
+			continue
+		var starter_name: String = String(starter.get("name", starter_id))
+		actions.append({
+			"id": "DevStart_%s" % starter_id,
+			"label": Localization.get_textf("run_setup.dev.start_starter", "{name} Start", {"name": starter_name}),
+			"callback": Callable(self, "_on_dev_start_starter").bind(starter_id),
+		})
 	_developer_panel.configure(
 		Localization.get_text("developer.title", "Developer Mode"),
-		[
-			{"id": "DevStartBalanced", "label": Localization.get_text("run_setup.dev.start_balanced", "Start Balanced"), "callback": Callable(self, "_on_dev_start_balanced")},
-			{"id": "DevStartTempo", "label": Localization.get_text("run_setup.dev.start_tempo", "Start Tempo"), "callback": Callable(self, "_on_dev_start_tempo")},
-			{"id": "DevStartFortress", "label": Localization.get_text("run_setup.dev.start_fortress", "Start Fortress"), "callback": Callable(self, "_on_dev_start_fortress")},
-		],
+		actions,
 		Localization.get_text("run_setup.dev.summary", "Skip selection and start a test run immediately.")
 	)
 
 
-func _on_dev_start_balanced() -> void:
-	Game.developer_start_run("balanced")
-	SceneRouter.go_to_map()
-
-
-func _on_dev_start_tempo() -> void:
-	Game.developer_start_run("tempo")
-	SceneRouter.go_to_map()
-
-
-func _on_dev_start_fortress() -> void:
-	Game.developer_start_run("fortress")
+func _on_dev_start_starter(starter_id: String) -> void:
+	Game.developer_start_run(starter_id)
 	SceneRouter.go_to_map()

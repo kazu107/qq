@@ -25,5 +25,41 @@
     "attack": 1,
     "speed": 3,
     "cards": ["guard", "quick_guard", "strike", "heavy_swing", "reload"]
+  },
+  {
+    "id": "vanguard",
+    "name": "Vanguard Frame",
+    "description": "Aggressive assault deck built around direct pressure and burst damage.",
+    "max_hp": 58,
+    "attack": 5,
+    "speed": 5,
+    "cards": ["quick_slash", "strike", "assault", "rupture_strike"]
+  },
+  {
+    "id": "aegis",
+    "name": "Aegis Frame",
+    "description": "Defensive support deck that converts shielding into stable tempo.",
+    "max_hp": 72,
+    "attack": 2,
+    "speed": 3,
+    "cards": ["guard", "quick_guard", "barrier_deploy", "aegis_ram", "repair_burst"]
+  },
+  {
+    "id": "chrono",
+    "name": "Chrono Frame",
+    "description": "Time-control deck focused on delaying enemies and accelerating your line.",
+    "max_hp": 56,
+    "attack": 2,
+    "speed": 8,
+    "cards": ["delay_step", "haste_focus", "time_buy", "stasis_field"]
+  },
+  {
+    "id": "turret",
+    "name": "Turret Frame",
+    "description": "Automation deck that leans on self-deploying cards and reload loops.",
+    "max_hp": 62,
+    "attack": 3,
+    "speed": 4,
+    "cards": ["auto_turret", "reload", "sequence_loader", "tripwire"]
   }
 ]
