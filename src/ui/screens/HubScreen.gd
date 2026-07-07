@@ -49,7 +49,7 @@ func _ready() -> void:
 	arena_button.name = "ArenaStartButton"
 	arena_button.text = Localization.get_text("hub.arena_start", "Arena Progression")
 	arena_button.pressed.connect(func() -> void:
-		SceneRouter.go_to_run_setup()
+		SceneRouter.go_to_run_setup(Game.RUN_SETUP_MODE_ARENA)
 	)
 	root.add_child(arena_button)
 

@@ -56,7 +56,8 @@ func go_to_hub() -> void:
 	_change_scene(HUB_SCENE)
 
 
-func go_to_run_setup() -> void:
+func go_to_run_setup(mode: String = Game.RUN_SETUP_MODE_NORMAL) -> void:
+	Game.prepare_run_setup(mode)
 	_change_scene(RUN_SETUP_SCENE)
 
 

@@ -12,9 +12,11 @@ var _portrait_rect: TextureRect
 var _hp_value_label: Label
 var _attack_value_label: Label
 var _speed_value_label: Label
+var _is_arena_setup: bool = false
 
 
 func _ready() -> void:
+	_is_arena_setup = Game.get_run_setup_mode() == Game.RUN_SETUP_MODE_ARENA
 	var margin := MarginContainer.new()
 	margin.anchor_right = 1.0
 	margin.anchor_bottom = 1.0
@@ -89,10 +91,12 @@ func _ready() -> void:
 	var button_row := HBoxContainer.new()
 	right.add_child(button_row)
 
-	_start_button = Button.new()
-	_start_button.text = Localization.get_text("run_setup.start", "Start")
-	_start_button.pressed.connect(_on_start)
-	button_row.add_child(_start_button)
+	if not _is_arena_setup:
+		_start_button = Button.new()
+		_start_button.name = "RunStartSelectedButton"
+		_start_button.text = Localization.get_text("run_setup.start", "Start")
+		_start_button.pressed.connect(_on_start)
+		button_row.add_child(_start_button)
 
 	var arena_button: Button = Button.new()
 	arena_button.name = "ArenaStartSelectedButton"
@@ -126,7 +130,8 @@ func _refresh_details() -> void:
 		_refresh_portrait("")
 		_starter_stats_row.visible = false
 		_starter_cards_panel.refresh_card_ids([], false, "KIT")
-		_start_button.disabled = true
+		if _start_button != null:
+			_start_button.disabled = true
 		return
 	var cards: Array[String] = _to_string_array(starter.get("cards", []))
 	_details_label.text = "\n".join([
@@ -139,7 +144,8 @@ func _refresh_details() -> void:
 	_attack_value_label.text = "%d" % int(starter.get("attack", 0))
 	_speed_value_label.text = "%d" % int(starter.get("speed", 0))
 	_starter_cards_panel.refresh_card_ids(cards, false, "KIT")
-	_start_button.disabled = false
+	if _start_button != null:
+		_start_button.disabled = false
 
 
 func _add_text_stat_item(label_text: String) -> Label:

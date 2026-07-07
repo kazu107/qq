@@ -6,11 +6,14 @@ var _failed: bool = false
 func _ready() -> void:
 	Database.load_all()
 	Game.ensure_meta_initialized()
-	Game.developer_unlock_all_meta()
+	Game.developer_reset_meta_progress()
 	call_deferred("_run")
 
 
 func _run() -> void:
+	await _assert_arena_setup_has_only_arena_start()
+	if _failed:
+		return
 	if not Game.start_arena_run("balanced", 24680):
 		_fail("Arena flow smoke failed: arena run did not start")
 		return
@@ -19,6 +22,8 @@ func _run() -> void:
 		return
 	if Game.get_arena_card_offers().size() < 3 or Game.get_arena_relic_offers().is_empty():
 		_fail("Arena flow smoke failed: preparation shop did not roll card and relic offers")
+		return
+	if not _assert_arena_shop_can_surface_locked_content():
 		return
 
 	await _assert_arena_scene()
@@ -116,6 +121,61 @@ func _run() -> void:
 		Game.current_run.relics.size(),
 	])
 	get_tree().quit()
+
+
+func _assert_arena_setup_has_only_arena_start() -> void:
+	Game.prepare_run_setup(Game.RUN_SETUP_MODE_ARENA)
+	var run_setup_scene: Control = load("res://scenes/run_setup/RunSetup.tscn").instantiate() as Control
+	add_child(run_setup_scene)
+	await get_tree().process_frame
+	var normal_start_button: Button = run_setup_scene.find_child("RunStartSelectedButton", true, false) as Button
+	var arena_start_button: Button = run_setup_scene.find_child("ArenaStartSelectedButton", true, false) as Button
+	if normal_start_button != null:
+		_fail("Arena flow smoke failed: arena setup should not render the normal run start button")
+	elif arena_start_button == null:
+		_fail("Arena flow smoke failed: arena setup did not render the arena start button")
+	run_setup_scene.queue_free()
+	Game.prepare_run_setup(Game.RUN_SETUP_MODE_NORMAL)
+	await get_tree().process_frame
+
+
+func _assert_arena_shop_can_surface_locked_content() -> bool:
+	var unlocked_card_ids: Array[String] = Game.get_unlocked_card_ids()
+	var unlocked_relic_ids: Array[String] = Game.get_unlocked_relic_ids()
+	var saw_locked_card: bool = _card_offers_include_locked(Game.get_arena_card_offers(), unlocked_card_ids)
+	var saw_locked_relic: bool = _relic_offers_include_locked(Game.get_arena_relic_offers(), unlocked_relic_ids)
+	Game.current_run.gold = 9999
+	for _attempt_index in range(24):
+		if saw_locked_card and saw_locked_relic:
+			return true
+		if not Game.reroll_arena_shop_for_gold():
+			_fail("Arena flow smoke failed: arena shop reroll failed while checking full content pool")
+			return false
+		saw_locked_card = saw_locked_card or _card_offers_include_locked(Game.get_arena_card_offers(), unlocked_card_ids)
+		saw_locked_relic = saw_locked_relic or _relic_offers_include_locked(Game.get_arena_relic_offers(), unlocked_relic_ids)
+	if not saw_locked_card:
+		_fail("Arena flow smoke failed: arena card shop never surfaced a locked card")
+		return false
+	if not saw_locked_relic:
+		_fail("Arena flow smoke failed: arena relic shop never surfaced a locked relic")
+		return false
+	return true
+
+
+func _card_offers_include_locked(offers: Array[Dictionary], unlocked_card_ids: Array[String]) -> bool:
+	for offer_data in offers:
+		var card_id: String = String(offer_data.get("card_id", ""))
+		if card_id != "" and not unlocked_card_ids.has(card_id):
+			return true
+	return false
+
+
+func _relic_offers_include_locked(offers: Array[Dictionary], unlocked_relic_ids: Array[String]) -> bool:
+	for offer_data in offers:
+		var relic_id: String = String(offer_data.get("relic_id", ""))
+		if relic_id != "" and not unlocked_relic_ids.has(relic_id):
+			return true
+	return false
 
 
 func _assert_arena_scene() -> void:

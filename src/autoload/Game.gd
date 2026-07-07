@@ -7,6 +7,8 @@ const DEBUG_EVENT_NODE_ID := "__debug_event__"
 const DEFAULT_RESOLUTION := "1920x1080"
 const AVAILABLE_RESOLUTION_CODES := ["1280x720", "1600x900", "1920x1080", "2560x1440"]
 const REWARD_REROLL_COST: int = 10
+const RUN_SETUP_MODE_NORMAL := "normal"
+const RUN_SETUP_MODE_ARENA := "arena"
 
 var current_run: RunState
 var meta_progress: Dictionary = {}
@@ -30,6 +32,7 @@ var last_battle_summary: Dictionary = {}
 var last_reward_bundle: Dictionary = {}
 var last_replay_export_path: String = ""
 var current_screen_hint: String = "title"
+var run_setup_mode: String = RUN_SETUP_MODE_NORMAL
 var _map_generator: MapGenerator = MapGenerator.new()
 var _reward_resolver: RewardResolver = RewardResolver.new()
 var _shop_service: ShopService = ShopService.new()
@@ -155,6 +158,15 @@ func get_unlocked_starters() -> Array[Dictionary]:
 	return result
 
 
+func prepare_run_setup(mode: String = RUN_SETUP_MODE_NORMAL) -> void:
+	run_setup_mode = RUN_SETUP_MODE_ARENA if mode == RUN_SETUP_MODE_ARENA else RUN_SETUP_MODE_NORMAL
+	current_screen_hint = "run_setup"
+
+
+func get_run_setup_mode() -> String:
+	return run_setup_mode
+
+
 func start_new_run(starter_id: String, seed_override: int = 0) -> void:
 	ensure_meta_initialized()
 	var starter: Dictionary = Database.get_starter(starter_id)
@@ -208,7 +220,7 @@ func start_arena_run(starter_id: String, seed_override: int = 0) -> bool:
 		return false
 	current_run = RunState.from_starter(starter, seed_override)
 	_apply_permanent_bonuses_to_run(current_run)
-	_arena_service.configure_run(current_run, get_unlocked_card_ids(), get_unlocked_relic_ids())
+	_arena_service.configure_run(current_run, _get_arena_card_pool_ids(), _get_arena_relic_pool_ids())
 	pending_enemy_id = ""
 	reward_options.clear()
 	last_battle_summary.clear()
@@ -704,6 +716,14 @@ func get_arena_pending_rewards() -> Array[Dictionary]:
 	return _arena_service.get_pending_rewards(current_run)
 
 
+func _get_arena_card_pool_ids() -> Array[String]:
+	return Database.get_all_card_ids()
+
+
+func _get_arena_relic_pool_ids() -> Array[String]:
+	return Database.get_all_relic_ids()
+
+
 func has_pending_arena_reward() -> bool:
 	return not get_arena_pending_rewards().is_empty()
 
@@ -717,7 +737,7 @@ func can_reroll_arena_shop() -> bool:
 func reroll_arena_shop_for_gold() -> bool:
 	if current_run == null or not current_run.arena_mode:
 		return false
-	var rerolled: bool = _arena_service.reroll_shop(current_run, get_unlocked_card_ids(), get_unlocked_relic_ids())
+	var rerolled: bool = _arena_service.reroll_shop(current_run, _get_arena_card_pool_ids(), _get_arena_relic_pool_ids())
 	if not rerolled:
 		AudioManager.play_sfx("ui_error")
 		return false
@@ -2161,8 +2181,8 @@ func _handle_arena_battle_result(summary: Dictionary) -> void:
 	var arena_result: Dictionary = _arena_service.apply_battle_result(
 		current_run,
 		summary,
-		get_unlocked_card_ids(),
-		get_unlocked_relic_ids()
+		_get_arena_card_pool_ids(),
+		_get_arena_relic_pool_ids()
 	)
 	var relic_bonuses: Dictionary = {}
 	if winner == "player":
