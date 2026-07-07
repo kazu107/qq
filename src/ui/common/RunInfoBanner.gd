@@ -30,7 +30,12 @@ func refresh(live_hp: int = -1, live_max_hp: int = -1) -> void:
 	var max_hp_value: int = live_max_hp if live_max_hp > 0 else Game.current_run.max_hp
 	_hp_label.text = "%d/%d" % [maxi(0, hp_value), maxi(1, max_hp_value)]
 	_gold_label.text = "%d" % maxi(0, Game.current_run.gold)
-	if Game.current_run.infinite_mode:
+	if Game.current_run.arena_mode:
+		_step_label.text = "%d/%d" % [
+			maxi(0, Game.current_run.arena_wins),
+			maxi(1, Game.current_run.arena_target_wins),
+		]
+	elif Game.current_run.infinite_mode:
 		_step_label.text = "%d/∞" % maxi(1, Game.get_current_step_index() + 1)
 	else:
 		_step_label.text = "%d/%d" % [

@@ -3,6 +3,7 @@ extends Node
 const TITLE_SCENE := "res://scenes/title/Title.tscn"
 const HUB_SCENE := "res://scenes/hub/Hub.tscn"
 const RUN_SETUP_SCENE := "res://scenes/run_setup/RunSetup.tscn"
+const ARENA_SCENE := "res://scenes/arena/Arena.tscn"
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const REWARD_SCENE := "res://scenes/reward/Reward.tscn"
 const RESULT_SCENE := "res://scenes/result/RunResult.tscn"
@@ -24,6 +25,7 @@ func warm_scene_cache() -> void:
 		TITLE_SCENE,
 		HUB_SCENE,
 		RUN_SETUP_SCENE,
+		ARENA_SCENE,
 		BATTLE_SCENE,
 		REWARD_SCENE,
 		RESULT_SCENE,
@@ -56,6 +58,10 @@ func go_to_hub() -> void:
 
 func go_to_run_setup() -> void:
 	_change_scene(RUN_SETUP_SCENE)
+
+
+func go_to_arena() -> void:
+	_change_scene(ARENA_SCENE)
 
 
 func go_to_battle() -> void:
@@ -100,6 +106,8 @@ func go_to_continue_target() -> void:
 			go_to_hub()
 		"run_setup":
 			go_to_run_setup()
+		"arena":
+			go_to_arena()
 		"battle":
 			go_to_battle()
 		"reward":

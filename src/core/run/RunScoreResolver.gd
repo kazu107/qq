@@ -63,6 +63,12 @@ func calculate(run_state: RunState) -> Dictionary:
 
 
 func _calculate_progress(run_state: RunState, cleared: bool) -> int:
+	if run_state.arena_mode:
+		var target_wins: int = maxi(1, run_state.arena_target_wins)
+		var win_score: int = roundi(float(PROGRESS_MAX) * clampf(float(run_state.arena_wins) / float(target_wins), 0.0, 1.0))
+		if cleared:
+			return PROGRESS_MAX
+		return win_score
 	var total_steps: int = maxi(1, Array(run_state.map_state.get("steps", [])).size())
 	var pre_boss_step_count: int = maxi(1, total_steps - 1)
 	var completed_steps: int = clampi(
@@ -102,6 +108,8 @@ func _calculate_efficiency(battle_history: Array[Dictionary]) -> int:
 
 
 func _calculate_challenge(map_state: Dictionary) -> int:
+	if bool(map_state.get("arena", false)):
+		return 0
 	var score: int = 0
 	for raw_step in Array(map_state.get("steps", [])):
 		var step_data: Dictionary = Dictionary(raw_step)

@@ -471,6 +471,8 @@ func _advance_after_battle() -> void:
 			SceneRouter.go_to_facility()
 		"map":
 			SceneRouter.go_to_map()
+		"arena":
+			SceneRouter.go_to_arena()
 		"reward":
 			SceneRouter.go_to_reward()
 		_:

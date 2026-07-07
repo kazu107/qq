@@ -94,6 +94,12 @@ func _ready() -> void:
 	_start_button.pressed.connect(_on_start)
 	button_row.add_child(_start_button)
 
+	var arena_button: Button = Button.new()
+	arena_button.name = "ArenaStartSelectedButton"
+	arena_button.text = Localization.get_text("run_setup.start_arena", "Start Arena")
+	arena_button.pressed.connect(_on_start_arena)
+	button_row.add_child(arena_button)
+
 	var back_button := Button.new()
 	back_button.text = Localization.get_text("run_setup.back", "Back")
 	back_button.pressed.connect(func() -> void:
@@ -196,6 +202,11 @@ func _refresh_portrait(starter_id: String) -> void:
 func _on_start() -> void:
 	Game.start_new_run(_selected_starter_id)
 	SceneRouter.go_to_map()
+
+
+func _on_start_arena() -> void:
+	if Game.start_arena_run(_selected_starter_id):
+		SceneRouter.go_to_arena()
 
 
 func _build_developer_panel() -> void:

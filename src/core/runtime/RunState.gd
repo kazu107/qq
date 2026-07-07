@@ -22,6 +22,14 @@ var hp_damage_taken: int = 0
 var run_complete: bool = false
 var defeated: bool = false
 var infinite_mode: bool = false
+var arena_mode: bool = false
+var arena_round: int = 1
+var arena_wins: int = 0
+var arena_losses: int = 0
+var arena_target_wins: int = 12
+var arena_max_losses: int = 3
+var arena_next_enemy_id: String = ""
+var arena_shop: Dictionary = {}
 
 
 static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> RunState:
@@ -47,6 +55,14 @@ static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> Ru
 	run_state.battle_history = []
 	run_state.hp_damage_taken = 0
 	run_state.infinite_mode = false
+	run_state.arena_mode = false
+	run_state.arena_round = 1
+	run_state.arena_wins = 0
+	run_state.arena_losses = 0
+	run_state.arena_target_wins = 12
+	run_state.arena_max_losses = 3
+	run_state.arena_next_enemy_id = ""
+	run_state.arena_shop = {}
 	return run_state
 
 
@@ -75,6 +91,14 @@ static func from_dict(data: Dictionary) -> RunState:
 	run_state.run_complete = bool(data.get("run_complete", false))
 	run_state.defeated = bool(data.get("defeated", false))
 	run_state.infinite_mode = bool(data.get("infinite_mode", false))
+	run_state.arena_mode = bool(data.get("arena_mode", false))
+	run_state.arena_round = int(data.get("arena_round", 1))
+	run_state.arena_wins = int(data.get("arena_wins", 0))
+	run_state.arena_losses = int(data.get("arena_losses", 0))
+	run_state.arena_target_wins = int(data.get("arena_target_wins", 12))
+	run_state.arena_max_losses = int(data.get("arena_max_losses", 3))
+	run_state.arena_next_enemy_id = String(data.get("arena_next_enemy_id", ""))
+	run_state.arena_shop = Dictionary(data.get("arena_shop", {}))
 	return run_state
 
 
@@ -101,6 +125,14 @@ func to_dict() -> Dictionary:
 		"run_complete": run_complete,
 		"defeated": defeated,
 		"infinite_mode": infinite_mode,
+		"arena_mode": arena_mode,
+		"arena_round": arena_round,
+		"arena_wins": arena_wins,
+		"arena_losses": arena_losses,
+		"arena_target_wins": arena_target_wins,
+		"arena_max_losses": arena_max_losses,
+		"arena_next_enemy_id": arena_next_enemy_id,
+		"arena_shop": arena_shop,
 	}
 
 

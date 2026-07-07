@@ -45,6 +45,14 @@ func _ready() -> void:
 	)
 	root.add_child(start_button)
 
+	var arena_button: Button = Button.new()
+	arena_button.name = "ArenaStartButton"
+	arena_button.text = Localization.get_text("hub.arena_start", "Arena Progression")
+	arena_button.pressed.connect(func() -> void:
+		SceneRouter.go_to_run_setup()
+	)
+	root.add_child(arena_button)
+
 	if Game.is_infinite_mode_unlocked():
 		var infinite_button: Button = Button.new()
 		infinite_button.name = "InfiniteModeStartButton"
@@ -295,6 +303,7 @@ func _build_developer_panel() -> void:
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
 			{"id": "DevStartRun", "label": Localization.get_text("hub.dev.quick_run", "Quick Run"), "callback": Callable(self, "_on_dev_quick_run")},
+			{"id": "DevStartArena", "label": Localization.get_text("hub.dev.quick_arena", "Quick Arena"), "callback": Callable(self, "_on_dev_quick_arena")},
 			{"id": "DevOpenBattle", "label": Localization.get_text("hub.dev.open_battle", "Open Battle"), "callback": Callable(self, "_on_dev_open_battle")},
 			{"id": "DevOpenReward", "label": Localization.get_text("hub.dev.open_reward", "Open Reward"), "callback": Callable(self, "_on_dev_open_reward")},
 			{"id": "DevOpenResult", "label": Localization.get_text("hub.dev.open_result", "Open Result"), "callback": Callable(self, "_on_dev_open_result")},
@@ -310,6 +319,11 @@ func _build_developer_panel() -> void:
 func _on_dev_quick_run() -> void:
 	Game.developer_start_run("balanced")
 	SceneRouter.go_to_map()
+
+
+func _on_dev_quick_arena() -> void:
+	Game.developer_start_arena("balanced")
+	SceneRouter.go_to_arena()
 
 
 func _on_dev_open_battle() -> void:

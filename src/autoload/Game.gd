@@ -1,5 +1,6 @@
 extends Node
 
+const ARENA_SERVICE_SCRIPT: GDScript = preload("res://src/core/arena/ArenaService.gd")
 const NON_BATTLE_NODE_TYPES := ["shop", "forge", "heal", "event", "hazard"]
 const DEVELOPER_META_RESET_POINTS := 10
 const DEBUG_EVENT_NODE_ID := "__debug_event__"
@@ -35,6 +36,7 @@ var _shop_service: ShopService = ShopService.new()
 var _forge_service: ForgeService = ForgeService.new()
 var _relic_service: RelicService = RelicService.new()
 var _event_service: EventService = EventService.new()
+var _arena_service: Variant = ARENA_SERVICE_SCRIPT.new()
 var _meta_progress_service: MetaProgressService = MetaProgressService.new()
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _applied_resolution: String = ""
@@ -199,9 +201,36 @@ func start_infinite_run(starter_id: String = "", seed_override: int = 0) -> bool
 	return true
 
 
+func start_arena_run(starter_id: String, seed_override: int = 0) -> bool:
+	ensure_meta_initialized()
+	var starter: Dictionary = Database.get_starter(starter_id)
+	if starter.is_empty():
+		return false
+	current_run = RunState.from_starter(starter, seed_override)
+	_apply_permanent_bonuses_to_run(current_run)
+	_arena_service.configure_run(current_run, get_unlocked_card_ids(), get_unlocked_relic_ids())
+	pending_enemy_id = ""
+	reward_options.clear()
+	last_battle_summary.clear()
+	last_reward_bundle.clear()
+	_meta_progress_service.increment_achievement_stat(meta_progress, "runs_started")
+	settings["last_run_starter_id"] = current_run.starter_id
+	settings["last_run_seed"] = current_run.seed
+	current_screen_hint = "arena"
+	AudioManager.play_sfx("run_start", 0.98)
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
 func prepare_next_battle() -> String:
 	if current_run == null:
 		return ""
+	if current_run.arena_mode:
+		if pending_enemy_id == "":
+			pending_enemy_id = _arena_service.resolve_next_enemy_id(current_run)
+		current_screen_hint = "battle"
+		SaveManager.save_game(current_screen_hint)
+		return pending_enemy_id
 	_ensure_map_state()
 	if pending_enemy_id == "":
 		var active_node: Dictionary = get_active_map_node()
@@ -227,7 +256,11 @@ func complete_battle(summary: Dictionary) -> void:
 	last_battle_summary["run_seed"] = current_run.seed
 	last_battle_summary["encounters_cleared_before_reward"] = current_run.encounters_cleared + (1 if String(summary.get("winner", "")) == "player" else 0)
 	last_battle_summary["area"] = int(active_node.get("area", current_run.current_area))
-	_record_run_battle(summary, active_node)
+	var history_node: Dictionary = active_node
+	if current_run.arena_mode:
+		history_node = _arena_service.build_history_node(current_run)
+		last_battle_summary["area"] = int(history_node.get("area", current_run.current_area))
+	_record_run_battle(summary, history_node)
 	last_replay_export_path = ""
 
 	var node_type: String = String(active_node.get("type", ""))
@@ -235,6 +268,11 @@ func complete_battle(summary: Dictionary) -> void:
 
 	if is_replay_auto_export_enabled():
 		export_last_battle_replay()
+
+	if current_run.arena_mode:
+		_handle_arena_battle_result(summary)
+		SaveManager.save_game(current_screen_hint)
+		return
 
 	if String(summary.get("winner", "")) != "player":
 		current_run.defeated = true
@@ -638,6 +676,107 @@ func get_last_reward_bundle() -> Dictionary:
 	return last_reward_bundle.duplicate(true)
 
 
+func is_arena_run_active() -> bool:
+	return current_run != null and current_run.arena_mode and not current_run.run_complete
+
+
+func get_arena_status() -> Dictionary:
+	if current_run == null or not current_run.arena_mode:
+		return {}
+	return _arena_service.build_status(current_run)
+
+
+func get_arena_card_offers() -> Array[Dictionary]:
+	if current_run == null or not current_run.arena_mode:
+		return []
+	return _arena_service.get_card_offers(current_run)
+
+
+func get_arena_relic_offers() -> Array[Dictionary]:
+	if current_run == null or not current_run.arena_mode:
+		return []
+	return _arena_service.get_relic_offers(current_run)
+
+
+func can_reroll_arena_shop() -> bool:
+	if current_run == null or not current_run.arena_mode:
+		return false
+	return _arena_service.can_reroll(current_run)
+
+
+func reroll_arena_shop_for_gold() -> bool:
+	if current_run == null or not current_run.arena_mode:
+		return false
+	var rerolled: bool = _arena_service.reroll_shop(current_run, get_unlocked_card_ids(), get_unlocked_relic_ids())
+	if not rerolled:
+		AudioManager.play_sfx("ui_error")
+		return false
+	AudioManager.play_sfx("shop_buy", 0.96)
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
+func buy_arena_card_offer(offer_index: int) -> bool:
+	if current_run == null or not current_run.arena_mode:
+		return false
+	var card_id: String = _arena_service.buy_card_offer(current_run, offer_index)
+	if card_id == "":
+		AudioManager.play_sfx("ui_error")
+		return false
+	_auto_equip_card_if_room(card_id)
+	AudioManager.play_sfx("shop_buy")
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
+func buy_arena_relic_offer(offer_index: int) -> bool:
+	if current_run == null or not current_run.arena_mode:
+		return false
+	var relic_id: String = _arena_service.buy_relic_offer(current_run, offer_index, _relic_service)
+	if relic_id == "":
+		AudioManager.play_sfx("ui_error")
+		return false
+	AudioManager.play_sfx("relic_gain")
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
+func toggle_arena_card_hold(offer_index: int) -> bool:
+	if current_run == null or not current_run.arena_mode:
+		return false
+	var toggled: bool = _arena_service.toggle_hold(current_run, "card", offer_index)
+	if toggled:
+		AudioManager.play_sfx("ui_toggle")
+		SaveManager.save_game(current_screen_hint)
+	return toggled
+
+
+func toggle_arena_relic_hold(offer_index: int) -> bool:
+	if current_run == null or not current_run.arena_mode:
+		return false
+	var toggled: bool = _arena_service.toggle_hold(current_run, "relic", offer_index)
+	if toggled:
+		AudioManager.play_sfx("ui_toggle")
+		SaveManager.save_game(current_screen_hint)
+	return toggled
+
+
+func start_next_arena_battle() -> bool:
+	if current_run == null or not current_run.arena_mode or current_run.run_complete:
+		return false
+	if not _has_valid_loadout():
+		AudioManager.play_sfx("ui_error")
+		return false
+	pending_enemy_id = _arena_service.start_next_match(current_run)
+	if pending_enemy_id == "":
+		AudioManager.play_sfx("ui_error")
+		return false
+	current_screen_hint = "battle"
+	AudioManager.play_sfx("battle_start")
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
 func open_settings(return_hint: String) -> void:
 	ensure_meta_initialized()
 	settings["settings_return_hint"] = return_hint
@@ -747,6 +886,10 @@ func toggle_developer_mode() -> bool:
 
 func developer_start_run(starter_id: String = "balanced") -> void:
 	start_new_run(starter_id)
+
+
+func developer_start_arena(starter_id: String = "balanced") -> void:
+	start_arena_run(starter_id)
 
 
 func developer_open_battle(enemy_id: String = "scout", starter_id: String = "balanced") -> void:
@@ -1827,6 +1970,15 @@ func _filter_valid_card_ids(card_ids: Array[String]) -> Array[String]:
 func _ensure_map_state() -> void:
 	if current_run == null:
 		return
+	if current_run.arena_mode:
+		if current_run.map_state.is_empty():
+			current_run.map_state = {
+				"arena": true,
+				"current_step": 0,
+				"active_node_id": "",
+				"steps": [],
+			}
+		return
 	if current_run.map_state.is_empty():
 		if current_run.infinite_mode:
 			current_run.map_state = _map_generator.generate_infinite_run(current_run.seed)
@@ -1947,6 +2099,73 @@ func _handle_hazard_victory() -> void:
 
 	reward_options = _to_string_array(last_reward_bundle.get("options", []))
 	current_screen_hint = "reward"
+
+
+func _handle_arena_battle_result(summary: Dictionary) -> void:
+	var winner: String = String(summary.get("winner", ""))
+	if winner == "player":
+		_meta_progress_service.increment_achievement_stat(meta_progress, "victories")
+		var enemy_id: String = String(summary.get("enemy_id", ""))
+		if enemy_id.begins_with("boss_"):
+			_meta_progress_service.increment_achievement_stat(meta_progress, "boss_wins")
+
+	var arena_result: Dictionary = _arena_service.apply_battle_result(
+		current_run,
+		summary,
+		get_unlocked_card_ids(),
+		get_unlocked_relic_ids()
+	)
+	var relic_bonuses: Dictionary = {}
+	if winner == "player":
+		relic_bonuses = _relic_service.apply_victory_bonuses(current_run)
+	var relic_bonus_gold: int = int(relic_bonuses.get("gold", 0))
+	var relic_bonus_heal: int = int(relic_bonuses.get("heal", 0))
+	var reward_gold: int = int(arena_result.get("reward_gold", 0)) + relic_bonus_gold
+	var reward_heal: int = int(arena_result.get("reward_heal", 0)) + relic_bonus_heal
+
+	last_reward_bundle = {
+		"reward_key": "arena",
+		"area": current_run.current_area,
+		"gold": reward_gold,
+		"heal": reward_heal,
+		"option_count": 0,
+		"options": [],
+	}
+	last_battle_summary["reward_key"] = "arena"
+	last_battle_summary["reward_gold"] = reward_gold
+	last_battle_summary["reward_heal"] = reward_heal
+	last_battle_summary["arena_round"] = current_run.arena_round
+	last_battle_summary["arena_wins"] = current_run.arena_wins
+	last_battle_summary["arena_losses"] = current_run.arena_losses
+	_update_latest_battle_history({
+		"node_type": "arena",
+		"reward_gold": reward_gold,
+		"reward_heal": reward_heal,
+		"reward_key": "arena",
+		"arena_wins": current_run.arena_wins,
+		"arena_losses": current_run.arena_losses,
+	})
+
+	if winner == "player":
+		last_battle_summary["bonus_text"] = Localization.get_textf("arena.battle_won", "Arena win {wins} / {target}.", {
+			"wins": current_run.arena_wins,
+			"target": current_run.arena_target_wins,
+		})
+	else:
+		last_battle_summary["bonus_text"] = Localization.get_textf("arena.battle_lost", "Arena loss {losses} / {max_losses}.", {
+			"losses": current_run.arena_losses,
+			"max_losses": current_run.arena_max_losses,
+		})
+
+	reward_options.clear()
+	pending_enemy_id = ""
+	if current_run.run_complete:
+		if not current_run.defeated:
+			_add_clear_rewards()
+			_record_completed_run_rank()
+		current_screen_hint = "result"
+		return
+	current_screen_hint = "arena"
 
 
 func _should_return_to_hazard_after_reward() -> bool:
