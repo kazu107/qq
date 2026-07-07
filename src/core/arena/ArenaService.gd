@@ -9,6 +9,7 @@ const RELIC_OFFER_COUNT: int = 2
 const REROLL_COST: int = 8
 
 var _shop_service: ShopService = ShopService.new()
+var _forge_service: ForgeService = ForgeService.new()
 
 
 func configure_run(run_state: RunState, allowed_card_ids: Array[String], allowed_relic_ids: Array[String]) -> void:
@@ -25,6 +26,7 @@ func configure_run(run_state: RunState, allowed_card_ids: Array[String], allowed
 	run_state.arena_max_losses = MAX_LOSSES
 	run_state.arena_next_enemy_id = _pick_enemy_for_round(run_state)
 	run_state.arena_shop = {}
+	run_state.arena_pending_rewards = []
 	run_state.map_state = {
 		"arena": true,
 		"current_step": 0,
@@ -73,6 +75,12 @@ func get_relic_offers(run_state: RunState) -> Array[Dictionary]:
 	if run_state == null:
 		return []
 	return _to_dictionary_array(run_state.arena_shop.get("relics", []))
+
+
+func get_pending_rewards(run_state: RunState) -> Array[Dictionary]:
+	if run_state == null:
+		return []
+	return _to_dictionary_array(run_state.arena_pending_rewards)
 
 
 func can_reroll(run_state: RunState) -> bool:
@@ -198,9 +206,11 @@ func apply_battle_result(run_state: RunState, summary: Dictionary, allowed_card_
 		result["won"] = true
 		result["reward_gold"] = reward_gold
 		result["reward_heal"] = reward_heal
+		run_state.arena_pending_rewards = build_victory_rewards(run_state, allowed_card_ids, allowed_relic_ids)
 	else:
 		run_state.arena_losses += 1
 		run_state.player_hp = max(1, int(ceil(float(run_state.max_hp) * 0.42)))
+		run_state.arena_pending_rewards = []
 
 	if run_state.arena_wins >= run_state.arena_target_wins:
 		run_state.run_complete = true
@@ -218,6 +228,116 @@ func apply_battle_result(run_state: RunState, summary: Dictionary, allowed_card_
 	run_state.arena_next_enemy_id = _pick_enemy_for_round(run_state)
 	result["next_enemy_id"] = run_state.arena_next_enemy_id
 	refresh_shop(run_state, allowed_card_ids, allowed_relic_ids, true)
+	return result
+
+
+func build_victory_rewards(run_state: RunState, allowed_card_ids: Array[String], allowed_relic_ids: Array[String]) -> Array[Dictionary]:
+	var rewards: Array[Dictionary] = []
+	if run_state == null:
+		return rewards
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = int(run_state.seed + run_state.arena_round * 1543 + run_state.arena_wins * 3571)
+
+	var card_id: String = _pick_reward_card(run_state, allowed_card_ids, rng)
+	if card_id != "":
+		var card_def: CardDef = Database.get_card(card_id)
+		if card_def != null:
+			rewards.append({
+				"id": "arena_reward_card_%s" % card_id,
+				"kind": "card",
+				"card_id": card_id,
+				"label": card_def.name,
+				"description": CardInfoFormatter.build_effect_summary(card_def),
+			})
+
+	var gold_amount: int = 22 + run_state.current_area * 6 + run_state.arena_wins * 3
+	rewards.append({
+		"id": "arena_reward_gold",
+		"kind": "gold",
+		"amount": gold_amount,
+		"label": Localization.get_textf("arena.reward.gold.label", "{amount} Gold", {"amount": gold_amount}),
+		"description": Localization.get_text("arena.reward.gold.description", "Gain gold for future arena preparation."),
+	})
+
+	var relic_id: String = _pick_reward_relic(run_state, allowed_relic_ids, rng)
+	if relic_id != "":
+		var relic_def: RelicDef = Database.get_relic(relic_id)
+		if relic_def != null:
+			rewards.append({
+				"id": "arena_reward_relic_%s" % relic_id,
+				"kind": "relic",
+				"relic_id": relic_id,
+				"label": relic_def.name,
+				"description": relic_def.description,
+			})
+
+	var upgrade_card_id: String = _pick_upgrade_card(run_state, rng)
+	if upgrade_card_id != "":
+		var current_tier: int = CardUpgradeResolver.get_tier(run_state, upgrade_card_id)
+		var next_tier: int = mini(CardUpgradeResolver.MAX_TIER, current_tier + 1)
+		var upgraded_card_def: CardDef = CardUpgradeResolver.build_card_at_tier(upgrade_card_id, next_tier)
+		if upgraded_card_def != null:
+			rewards.append({
+				"id": "arena_reward_upgrade_%s" % upgrade_card_id,
+				"kind": "upgrade",
+				"card_id": upgrade_card_id,
+				"next_tier": next_tier,
+				"label": Localization.get_textf("arena.reward.upgrade.label", "Upgrade {card_name}", {"card_name": upgraded_card_def.name}),
+				"description": CardInfoFormatter.build_effect_summary(upgraded_card_def),
+			})
+	return rewards
+
+
+func apply_pending_reward(run_state: RunState, reward_id: String, relic_service: RelicService) -> Dictionary:
+	var result: Dictionary = {
+		"applied": false,
+	}
+	if run_state == null or reward_id == "":
+		return result
+	var rewards: Array[Dictionary] = get_pending_rewards(run_state)
+	var selected_reward: Dictionary = {}
+	for reward_data in rewards:
+		if String(reward_data.get("id", "")) == reward_id:
+			selected_reward = reward_data
+			break
+	if selected_reward.is_empty():
+		return result
+
+	var reward_kind: String = String(selected_reward.get("kind", ""))
+	match reward_kind:
+		"card":
+			var card_id: String = String(selected_reward.get("card_id", ""))
+			if Database.get_card(card_id) == null:
+				return result
+			run_state.player_cards.append(card_id)
+			result["selected_reward_card_id"] = card_id
+		"gold":
+			var amount: int = int(selected_reward.get("amount", 0))
+			if amount <= 0:
+				return result
+			run_state.gold += amount
+			result["reward_gold"] = amount
+		"relic":
+			var relic_id: String = String(selected_reward.get("relic_id", ""))
+			if relic_service == null or not relic_service.grant_relic(run_state, relic_id):
+				return result
+			result["bonus_relic_id"] = relic_id
+		"upgrade":
+			var upgrade_card_id: String = String(selected_reward.get("card_id", ""))
+			if not run_state.player_cards.has(upgrade_card_id):
+				return result
+			var before_tier: int = CardUpgradeResolver.get_tier(run_state, upgrade_card_id)
+			if before_tier >= CardUpgradeResolver.MAX_TIER:
+				return result
+			var next_tier: int = _forge_service.upgrade_card(run_state, upgrade_card_id)
+			result["upgraded_card_id"] = upgrade_card_id
+			result["upgraded_card_tier"] = next_tier
+		_:
+			return result
+
+	run_state.arena_pending_rewards = []
+	result["applied"] = true
+	result["kind"] = reward_kind
 	return result
 
 
@@ -302,6 +422,52 @@ func _build_card_pool(allowed_card_ids: Array[String], rarity_pool: Array[String
 	if pool.is_empty():
 		pool = Database.get_all_card_ids() if allowed_card_ids.is_empty() else allowed_card_ids.duplicate()
 	return pool
+
+
+func _pick_reward_card(run_state: RunState, allowed_card_ids: Array[String], rng: RandomNumberGenerator) -> String:
+	var pool: Array[String] = _build_card_pool(allowed_card_ids, _get_card_rarity_pool(run_state.arena_wins))
+	var preferred_pool: Array[String] = []
+	for card_id in pool:
+		if not run_state.player_cards.has(card_id) and not preferred_pool.has(card_id):
+			preferred_pool.append(card_id)
+	if preferred_pool.is_empty():
+		preferred_pool = _unique_strings(pool)
+	if preferred_pool.is_empty():
+		return ""
+	return preferred_pool[rng.randi_range(0, preferred_pool.size() - 1)]
+
+
+func _pick_reward_relic(run_state: RunState, allowed_relic_ids: Array[String], rng: RandomNumberGenerator) -> String:
+	var pool: Array[String] = _build_relic_pool(run_state, allowed_relic_ids)
+	if pool.is_empty():
+		return ""
+	return pool[rng.randi_range(0, pool.size() - 1)]
+
+
+func _pick_upgrade_card(run_state: RunState, rng: RandomNumberGenerator) -> String:
+	var candidates: Array[String] = []
+	var seen: Dictionary = {}
+	for card_id in run_state.player_cards:
+		if seen.has(card_id):
+			continue
+		seen[card_id] = true
+		if CardUpgradeResolver.get_tier(run_state, card_id) >= CardUpgradeResolver.MAX_TIER:
+			continue
+		if Database.get_card(card_id) == null:
+			continue
+		candidates.append(card_id)
+	if candidates.is_empty():
+		return ""
+	return candidates[rng.randi_range(0, candidates.size() - 1)]
+
+
+func _unique_strings(values: Array[String]) -> Array[String]:
+	var result: Array[String] = []
+	for value in values:
+		if result.has(value):
+			continue
+		result.append(value)
+	return result
 
 
 func _build_relic_pool(run_state: RunState, allowed_relic_ids: Array[String]) -> Array[String]:

@@ -698,6 +698,16 @@ func get_arena_relic_offers() -> Array[Dictionary]:
 	return _arena_service.get_relic_offers(current_run)
 
 
+func get_arena_pending_rewards() -> Array[Dictionary]:
+	if current_run == null or not current_run.arena_mode:
+		return []
+	return _arena_service.get_pending_rewards(current_run)
+
+
+func has_pending_arena_reward() -> bool:
+	return not get_arena_pending_rewards().is_empty()
+
+
 func can_reroll_arena_shop() -> bool:
 	if current_run == null or not current_run.arena_mode:
 		return false
@@ -764,6 +774,9 @@ func toggle_arena_relic_hold(offer_index: int) -> bool:
 func start_next_arena_battle() -> bool:
 	if current_run == null or not current_run.arena_mode or current_run.run_complete:
 		return false
+	if has_pending_arena_reward():
+		AudioManager.play_sfx("ui_error")
+		return false
 	if not _has_valid_loadout():
 		AudioManager.play_sfx("ui_error")
 		return false
@@ -773,6 +786,42 @@ func start_next_arena_battle() -> bool:
 		return false
 	current_screen_hint = "battle"
 	AudioManager.play_sfx("battle_start")
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
+func choose_arena_victory_reward(reward_id: String) -> bool:
+	if current_run == null or not current_run.arena_mode:
+		return false
+	var result: Dictionary = _arena_service.apply_pending_reward(current_run, reward_id, _relic_service)
+	if not bool(result.get("applied", false)):
+		AudioManager.play_sfx("ui_error")
+		return false
+
+	var history_update: Dictionary = {}
+	var reward_gold: int = int(result.get("reward_gold", 0))
+	if reward_gold > 0:
+		last_battle_summary["reward_gold"] = int(last_battle_summary.get("reward_gold", 0)) + reward_gold
+		history_update["reward_gold"] = int(last_battle_summary.get("reward_gold", 0))
+	var selected_card_id: String = String(result.get("selected_reward_card_id", ""))
+	if selected_card_id != "":
+		_auto_equip_card_if_room(selected_card_id)
+		last_battle_summary["selected_reward_card_id"] = selected_card_id
+		history_update["selected_reward_card_id"] = selected_card_id
+	var bonus_relic_id: String = String(result.get("bonus_relic_id", ""))
+	if bonus_relic_id != "":
+		last_battle_summary["bonus_relic_id"] = bonus_relic_id
+		history_update["bonus_relic_id"] = bonus_relic_id
+	var upgraded_card_id: String = String(result.get("upgraded_card_id", ""))
+	if upgraded_card_id != "":
+		last_battle_summary["upgraded_card_id"] = upgraded_card_id
+		last_battle_summary["upgraded_card_tier"] = int(result.get("upgraded_card_tier", 0))
+		history_update["upgraded_card_id"] = upgraded_card_id
+		history_update["upgraded_card_tier"] = int(result.get("upgraded_card_tier", 0))
+
+	if not history_update.is_empty():
+		_update_latest_battle_history(history_update)
+	AudioManager.play_sfx("reward_pick")
 	SaveManager.save_game(current_screen_hint)
 	return true
 

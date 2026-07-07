@@ -45,6 +45,16 @@ func _run() -> void:
 	if Game.current_run.player_cards.size() <= owned_before or not Game.current_run.player_cards.has(held_card_id):
 		_fail("Arena flow smoke failed: bought arena card was not added")
 		return
+	await _assert_arena_loadout_contains(held_card_id)
+	if _failed:
+		return
+	Game.current_run.loadout_limit = 99
+	if not Game.equip_card(held_card_id):
+		_fail("Arena flow smoke failed: bought arena card could not be equipped from arena loadout")
+		return
+	if not Game.unequip_card(held_card_id):
+		_fail("Arena flow smoke failed: bought arena card could not be unequipped from arena loadout")
+		return
 
 	var relic_offers: Array[Dictionary] = Game.get_arena_relic_offers()
 	if relic_offers.is_empty():
@@ -80,6 +90,22 @@ func _run() -> void:
 	if Game.current_screen_hint != "arena" or Game.current_run.arena_wins != 1:
 		_fail("Arena flow smoke failed: victory did not return to arena preparation")
 		return
+	if Game.get_arena_pending_rewards().is_empty():
+		_fail("Arena flow smoke failed: victory did not create arena reward choices")
+		return
+	if Game.start_next_arena_battle():
+		_fail("Arena flow smoke failed: arena allowed next battle before choosing victory reward")
+		return
+	await _assert_arena_reward_modal()
+	if _failed:
+		return
+	var reward_id: String = String(Game.get_arena_pending_rewards()[0].get("id", ""))
+	if not Game.choose_arena_victory_reward(reward_id):
+		_fail("Arena flow smoke failed: arena victory reward could not be chosen")
+		return
+	if not Game.get_arena_pending_rewards().is_empty():
+		_fail("Arena flow smoke failed: chosen arena reward did not clear pending rewards")
+		return
 	if Game.get_arena_card_offers().is_empty() or Game.get_arena_relic_offers().is_empty():
 		_fail("Arena flow smoke failed: post-victory preparation shop was not available")
 		return
@@ -112,6 +138,41 @@ func _assert_arena_scene() -> void:
 		_fail("Arena flow smoke failed: arena scene start button was unavailable")
 	elif reroll_button == null:
 		_fail("Arena flow smoke failed: arena scene reroll button was missing")
+	arena_scene.queue_free()
+	await get_tree().process_frame
+
+
+func _assert_arena_loadout_contains(card_id: String) -> void:
+	var arena_scene: Control = load("res://scenes/arena/Arena.tscn").instantiate() as Control
+	add_child(arena_scene)
+	await get_tree().process_frame
+	var inventory_box: VBoxContainer = arena_scene.find_child("ArenaLoadoutInventory", true, false) as VBoxContainer
+	var card_frame: PanelContainer = arena_scene.find_child("ArenaLoadoutCardFrame_%s" % card_id, true, false) as PanelContainer
+	var equip_button: Button = arena_scene.find_child("ArenaEquipButton_%s" % card_id, true, false) as Button
+	var unequip_button: Button = arena_scene.find_child("ArenaUnequipButton_%s" % card_id, true, false) as Button
+	if inventory_box == null:
+		_fail("Arena flow smoke failed: arena loadout inventory did not render")
+	elif card_frame == null:
+		_fail("Arena flow smoke failed: bought arena card did not render in loadout inventory")
+	elif equip_button == null or unequip_button == null:
+		_fail("Arena flow smoke failed: arena loadout did not render equip and unequip buttons")
+	arena_scene.queue_free()
+	await get_tree().process_frame
+
+
+func _assert_arena_reward_modal() -> void:
+	var arena_scene: Control = load("res://scenes/arena/Arena.tscn").instantiate() as Control
+	add_child(arena_scene)
+	await get_tree().process_frame
+	var reward_modal: PanelContainer = arena_scene.find_child("ArenaRewardModal", true, false) as PanelContainer
+	var reward_options: HBoxContainer = arena_scene.find_child("ArenaRewardOptions", true, false) as HBoxContainer
+	var start_button: Button = arena_scene.find_child("ArenaStartBattleButton", true, false) as Button
+	if reward_modal == null or not reward_modal.visible:
+		_fail("Arena flow smoke failed: pending victory reward did not show a modal")
+	elif reward_options == null or reward_options.get_child_count() < 3:
+		_fail("Arena flow smoke failed: victory reward modal did not render reward choices")
+	elif start_button == null or not start_button.disabled:
+		_fail("Arena flow smoke failed: next battle should be blocked while reward is pending")
 	arena_scene.queue_free()
 	await get_tree().process_frame
 

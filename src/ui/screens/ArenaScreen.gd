@@ -3,6 +3,9 @@ extends Control
 const PORTRAIT_PATH_TEMPLATE := "res://assets/portraits/%s.png"
 const OFFER_CARD_SIZE: Vector2 = Vector2(104.0, 104.0)
 const OFFER_RELIC_SIZE: Vector2 = Vector2(72.0, 72.0)
+const LOADOUT_PREVIEW_SIZE: Vector2 = Vector2(76.0, 76.0)
+const LOADOUT_COUNT_ICON_SIZE: Vector2 = Vector2(20.0, 20.0)
+const REWARD_MODAL_WIDTH: float = 760.0
 
 var _run_info_banner: RunInfoBanner
 var _status_label: Label
@@ -10,10 +13,15 @@ var _next_enemy_label: Label
 var _enemy_portrait: TextureRect
 var _card_offers_box: VBoxContainer
 var _relic_offers_box: VBoxContainer
+var _loadout_summary_label: Label
 var _deck_panel: CardHandPanel
+var _inventory_box: VBoxContainer
 var _relic_row: RelicIconRow
 var _reroll_button: Button
 var _start_battle_button: Button
+var _reward_overlay: ColorRect
+var _reward_modal: PanelContainer
+var _reward_options_box: HBoxContainer
 var _developer_panel: DeveloperPanel
 
 
@@ -92,6 +100,7 @@ func _build_ui() -> void:
 	_build_status_panel(body)
 	_build_shop_panel(body)
 	_build_loadout_panel(body)
+	_build_reward_modal()
 
 
 func _build_status_panel(parent: Control) -> void:
@@ -174,11 +183,32 @@ func _build_loadout_panel(parent: Control) -> void:
 	var box: VBoxContainer = _create_panel(parent, Localization.get_text("arena.panel.loadout", "Arena Loadout"), Vector2(360.0, 0.0))
 	box.add_theme_constant_override("separation", 12)
 
+	_loadout_summary_label = Label.new()
+	_loadout_summary_label.name = "ArenaLoadoutSummary"
+	_loadout_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(_loadout_summary_label)
+
 	_deck_panel = CardHandPanel.new()
 	_deck_panel.name = "ArenaEquippedDeck"
 	_deck_panel.set_interactive(false)
 	_deck_panel.set_tile_size(Vector2(86.0, 86.0))
 	box.add_child(_deck_panel)
+
+	var inventory_title: Label = Label.new()
+	inventory_title.text = Localization.get_text("arena.card_inventory", "Card Inventory")
+	box.add_child(inventory_title)
+
+	var inventory_scroll: ScrollContainer = ScrollContainer.new()
+	inventory_scroll.name = "ArenaLoadoutInventoryScroll"
+	inventory_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	inventory_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_child(inventory_scroll)
+
+	_inventory_box = VBoxContainer.new()
+	_inventory_box.name = "ArenaLoadoutInventory"
+	_inventory_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_inventory_box.add_theme_constant_override("separation", 8)
+	inventory_scroll.add_child(_inventory_box)
 
 	var relic_title: Label = Label.new()
 	relic_title.text = Localization.get_text("arena.owned_relics", "Owned Relics")
@@ -223,6 +253,64 @@ func _create_panel(parent: Control, title: String, min_size: Vector2) -> VBoxCon
 	return box
 
 
+func _build_reward_modal() -> void:
+	_reward_overlay = ColorRect.new()
+	_reward_overlay.name = "ArenaRewardOverlay"
+	_reward_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_reward_overlay.color = Color(0.0, 0.0, 0.0, 0.62)
+	_reward_overlay.visible = false
+	_reward_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_reward_overlay.z_index = 120
+	add_child(_reward_overlay)
+
+	_reward_modal = PanelContainer.new()
+	_reward_modal.name = "ArenaRewardModal"
+	_reward_modal.custom_minimum_size = Vector2(REWARD_MODAL_WIDTH, 0.0)
+	_reward_modal.anchor_left = 0.5
+	_reward_modal.anchor_top = 0.5
+	_reward_modal.anchor_right = 0.5
+	_reward_modal.anchor_bottom = 0.5
+	_reward_modal.offset_left = -REWARD_MODAL_WIDTH * 0.5
+	_reward_modal.offset_right = REWARD_MODAL_WIDTH * 0.5
+	_reward_modal.offset_top = -230.0
+	_reward_modal.offset_bottom = 230.0
+	_reward_modal.visible = false
+	_reward_modal.z_index = 130
+	_reward_modal.add_theme_stylebox_override("panel", _make_panel_style(Color(0.030, 0.038, 0.050, 0.98), Color(0.95, 0.76, 0.38, 0.90), 2))
+	add_child(_reward_modal)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_top", 22)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_bottom", 22)
+	_reward_modal.add_child(margin)
+
+	var root: VBoxContainer = VBoxContainer.new()
+	root.add_theme_constant_override("separation", 16)
+	margin.add_child(root)
+
+	var title: Label = Label.new()
+	title.name = "ArenaRewardTitle"
+	title.text = Localization.get_text("arena.reward.title", "Victory Reward")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_color_override("font_color", Color(1.0, 0.86, 0.48, 1.0))
+	root.add_child(title)
+
+	var hint: Label = Label.new()
+	hint.text = Localization.get_text("arena.reward.hint", "Choose one reward before the next match.")
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_color_override("font_color", Color(0.74, 0.80, 0.86, 1.0))
+	root.add_child(hint)
+
+	_reward_options_box = HBoxContainer.new()
+	_reward_options_box.name = "ArenaRewardOptions"
+	_reward_options_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	_reward_options_box.add_theme_constant_override("separation", 12)
+	root.add_child(_reward_options_box)
+
+
 func _refresh_ui() -> void:
 	if Game.current_run == null or not Game.current_run.arena_mode:
 		return
@@ -244,12 +332,18 @@ func _refresh_ui() -> void:
 		"cost": int(status.get("reroll_cost", 0)),
 	})
 	_reroll_button.disabled = not bool(status.get("can_reroll", false))
-	_start_battle_button.disabled = Game.get_equipped_cards().is_empty()
+	_start_battle_button.disabled = Game.get_equipped_cards().is_empty() or Game.has_pending_arena_reward()
 
 	_refresh_offer_list(_card_offers_box, Game.get_arena_card_offers(), true)
 	_refresh_offer_list(_relic_offers_box, Game.get_arena_relic_offers(), false)
+	_loadout_summary_label.text = Localization.get_textf("map.loadout_cost", "Loadout Cost {used} / {limit}", {
+		"used": Game.get_current_loadout_cost(),
+		"limit": Game.get_loadout_limit(),
+	})
 	_deck_panel.refresh_card_ids(Game.get_equipped_cards(), false, "EQUIP", Game.current_run)
+	_rebuild_loadout_rows()
 	_relic_row.refresh_relic_ids(Game.current_run.relics, Localization.get_text("status.none", "None"))
+	_refresh_reward_modal()
 	_refresh_developer_panel()
 
 
@@ -392,6 +486,219 @@ func _add_stat_icon(parent: Control, icon_id: String) -> void:
 	parent.add_child(icon)
 
 
+func _rebuild_loadout_rows() -> void:
+	if _inventory_box == null:
+		return
+	for child in _inventory_box.get_children():
+		_inventory_box.remove_child(child)
+		child.queue_free()
+
+	for entry in Game.get_loadout_entries():
+		var card_id: String = String(entry.get("card_id", ""))
+		var card_def: CardDef = CardUpgradeResolver.build_effective_card(card_id, Game.current_run)
+		if card_def == null:
+			continue
+		_inventory_box.add_child(_build_loadout_row(entry, card_def))
+
+
+func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
+	var card_id: String = String(entry.get("card_id", ""))
+	var frame: PanelContainer = PanelContainer.new()
+	frame.name = "ArenaLoadoutCardFrame_%s" % card_id
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.mouse_filter = Control.MOUSE_FILTER_PASS
+	frame.add_theme_stylebox_override("panel", _make_offer_style(false, false))
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	frame.add_child(margin)
+
+	var row: HBoxContainer = HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 8)
+	margin.add_child(row)
+
+	var preview: CardButton = CardButton.new()
+	preview.set_tile_size(LOADOUT_PREVIEW_SIZE)
+	preview.bind_preview(card_def, card_id, false, "LOAD")
+	row.add_child(preview)
+
+	var info_box: VBoxContainer = VBoxContainer.new()
+	info_box.name = "ArenaLoadoutCardInfo_%s" % card_id
+	info_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	info_box.add_theme_constant_override("separation", 7)
+	row.add_child(info_box)
+
+	var counts_row: HBoxContainer = HBoxContainer.new()
+	counts_row.name = "ArenaLoadoutCountRow_%s" % card_id
+	counts_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	counts_row.add_theme_constant_override("separation", 8)
+	info_box.add_child(counts_row)
+	counts_row.add_child(_build_loadout_count_pill("card_owned", int(entry.get("owned_count", 0)), "ArenaOwnedCount_%s" % card_id))
+	counts_row.add_child(_build_loadout_count_pill("card_equipped", int(entry.get("equipped_count", 0)), "ArenaEquippedCount_%s" % card_id))
+
+	var actions: HBoxContainer = HBoxContainer.new()
+	actions.name = "ArenaLoadoutActions_%s" % card_id
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	actions.add_theme_constant_override("separation", 7)
+	info_box.add_child(actions)
+
+	var equip_button: Button = Button.new()
+	equip_button.name = "ArenaEquipButton_%s" % card_id
+	equip_button.text = Localization.get_text("map.equip", "Equip")
+	equip_button.disabled = not bool(entry.get("can_equip", false))
+	equip_button.pressed.connect(_on_equip_card.bind(card_id))
+	actions.add_child(equip_button)
+
+	var unequip_button: Button = Button.new()
+	unequip_button.name = "ArenaUnequipButton_%s" % card_id
+	unequip_button.text = Localization.get_text("map.unequip", "Unequip")
+	unequip_button.disabled = not bool(entry.get("can_unequip", false))
+	unequip_button.pressed.connect(_on_unequip_card.bind(card_id))
+	actions.add_child(unequip_button)
+	return frame
+
+
+func _build_loadout_count_pill(icon_id: String, count: int, node_name: String) -> HBoxContainer:
+	var pill: HBoxContainer = HBoxContainer.new()
+	pill.name = node_name
+	pill.alignment = BoxContainer.ALIGNMENT_CENTER
+	pill.add_theme_constant_override("separation", 4)
+	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var icon: TextureRect = TextureRect.new()
+	icon.name = "%sIcon" % node_name
+	icon.custom_minimum_size = LOADOUT_COUNT_ICON_SIZE
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.texture = StatIconFactory.get_icon(icon_id)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(icon)
+
+	var value_label: Label = Label.new()
+	value_label.name = "%sValue" % node_name
+	value_label.text = str(count)
+	value_label.add_theme_font_size_override("font_size", 17)
+	value_label.add_theme_color_override("font_color", Color(0.92, 0.94, 0.88, 1.0))
+	value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(value_label)
+	return pill
+
+
+func _refresh_reward_modal() -> void:
+	if _reward_overlay == null or _reward_modal == null or _reward_options_box == null:
+		return
+	var rewards: Array[Dictionary] = Game.get_arena_pending_rewards()
+	var show_modal: bool = not rewards.is_empty()
+	_reward_overlay.visible = show_modal
+	_reward_modal.visible = show_modal
+	for child in _reward_options_box.get_children():
+		_reward_options_box.remove_child(child)
+		child.queue_free()
+	if not show_modal:
+		return
+	for reward_data in rewards:
+		_reward_options_box.add_child(_build_reward_choice(reward_data))
+
+
+func _build_reward_choice(reward_data: Dictionary) -> Button:
+	var reward_id: String = String(reward_data.get("id", ""))
+	var reward_kind: String = String(reward_data.get("kind", ""))
+	var button: Button = Button.new()
+	button.name = "ArenaRewardChoice_%s" % reward_id
+	button.text = ""
+	button.custom_minimum_size = Vector2(164.0, 244.0)
+	button.focus_mode = Control.FOCUS_NONE
+	button.add_theme_stylebox_override("normal", _make_offer_style(false, false))
+	button.add_theme_stylebox_override("hover", _make_offer_style(true, false))
+	button.pressed.connect(_on_choose_reward.bind(reward_id))
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(margin)
+
+	var box: VBoxContainer = VBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 8)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(box)
+
+	_add_reward_visual(box, reward_data, reward_kind)
+
+	var title: Label = Label.new()
+	title.text = String(reward_data.get("label", reward_id))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.add_theme_font_size_override("font_size", 17)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(title)
+
+	var description: Label = Label.new()
+	description.text = String(reward_data.get("description", ""))
+	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	description.add_theme_font_size_override("font_size", 13)
+	description.add_theme_color_override("font_color", Color(0.68, 0.74, 0.78, 1.0))
+	description.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(description)
+	return button
+
+
+func _add_reward_visual(parent: Control, reward_data: Dictionary, reward_kind: String) -> void:
+	match reward_kind:
+		"card":
+			var card_id: String = String(reward_data.get("card_id", ""))
+			var card_def: CardDef = Database.get_card(card_id)
+			if card_def == null:
+				return
+			var preview: CardButton = CardButton.new()
+			preview.set_tile_size(Vector2(96.0, 96.0))
+			preview.bind_preview(card_def, card_id, false, "GET")
+			preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			parent.add_child(preview)
+		"relic":
+			var relic_icon: RelicIcon = RelicIcon.new()
+			relic_icon.set_icon_size(Vector2(82.0, 82.0))
+			relic_icon.bind_relic_id(String(reward_data.get("relic_id", "")))
+			relic_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			parent.add_child(relic_icon)
+		"upgrade":
+			var upgrade_card_id: String = String(reward_data.get("card_id", ""))
+			var next_tier: int = int(reward_data.get("next_tier", 0))
+			var upgraded_def: CardDef = CardUpgradeResolver.build_card_at_tier(upgrade_card_id, next_tier)
+			if upgraded_def == null:
+				return
+			var upgrade_preview: CardButton = CardButton.new()
+			upgrade_preview.set_tile_size(Vector2(96.0, 96.0))
+			upgrade_preview.bind_preview(upgraded_def, upgrade_card_id, false, CardInfoFormatter.format_grade_label(next_tier))
+			upgrade_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			parent.add_child(upgrade_preview)
+		"gold":
+			var gold_group: VBoxContainer = VBoxContainer.new()
+			gold_group.alignment = BoxContainer.ALIGNMENT_CENTER
+			gold_group.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			parent.add_child(gold_group)
+			_add_stat_icon(gold_group, "gold")
+			var amount_label: Label = Label.new()
+			amount_label.text = "+%d" % int(reward_data.get("amount", 0))
+			amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			amount_label.add_theme_font_size_override("font_size", 24)
+			amount_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.34, 1.0))
+			amount_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			gold_group.add_child(amount_label)
+		_:
+			pass
+
+
 func _refresh_enemy_portrait(enemy_id: String) -> void:
 	if _enemy_portrait == null:
 		return
@@ -454,6 +761,21 @@ func _on_reroll_shop() -> void:
 	if Game.reroll_arena_shop_for_gold():
 		_refresh_ui()
 	else:
+		_refresh_ui()
+
+
+func _on_equip_card(card_id: String) -> void:
+	if Game.equip_card(card_id):
+		_refresh_ui()
+
+
+func _on_unequip_card(card_id: String) -> void:
+	if Game.unequip_card(card_id):
+		_refresh_ui()
+
+
+func _on_choose_reward(reward_id: String) -> void:
+	if Game.choose_arena_victory_reward(reward_id):
 		_refresh_ui()
 
 

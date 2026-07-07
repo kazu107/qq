@@ -936,6 +936,7 @@
   "arena.panel.match": "次の試合",
   "arena.panel.prep_shop": "準備ショップ",
   "arena.panel.loadout": "アリーナロードアウト",
+  "arena.card_inventory": "カード所持一覧",
   "arena.status": "ラウンド {round} | 勝利 {wins}/{target} | 敗北 {losses}/{max_losses}",
   "arena.next_enemy": "次の相手: {enemy}",
   "arena.rules": "敗北上限に達する前に目標勝利数を目指します。準備ゴールドでカードや遺物を購入し、デッキを調整してください。",
@@ -953,6 +954,11 @@
   "arena.unhold": "保留解除",
   "arena.battle_won": "アリーナ勝利 {wins} / {target}。",
   "arena.battle_lost": "アリーナ敗北 {losses} / {max_losses}。",
+  "arena.reward.title": "勝利報酬",
+  "arena.reward.hint": "次の試合の前に報酬を1つ選んでください。",
+  "arena.reward.gold.label": "{amount} ゴールド",
+  "arena.reward.gold.description": "以降のアリーナ準備で使えるゴールドを得る。",
+  "arena.reward.upgrade.label": "{card_name} を強化",
   "arena.dev.start_battle": "戦闘開始",
   "arena.dev.summary": "アリーナ準備と進行確認用のショートカットです。"
 }
