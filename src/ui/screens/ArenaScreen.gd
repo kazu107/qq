@@ -18,6 +18,7 @@ var _deck_panel: CardHandPanel
 var _inventory_box: VBoxContainer
 var _relic_row: RelicIconRow
 var _reroll_button: Button
+var _abandon_button: Button
 var _start_battle_button: Button
 var _reward_overlay: ColorRect
 var _reward_modal: PanelContainer
@@ -64,6 +65,7 @@ func _build_ui() -> void:
 	root.add_child(_run_info_banner)
 
 	var header: HBoxContainer = HBoxContainer.new()
+	header.name = "ArenaHeader"
 	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_theme_constant_override("separation", 16)
 	root.add_child(header)
@@ -84,12 +86,12 @@ func _build_ui() -> void:
 	_status_label.add_theme_color_override("font_color", Color(0.70, 0.82, 0.90, 1.0))
 	title_box.add_child(_status_label)
 
-	_start_battle_button = Button.new()
-	_start_battle_button.name = "ArenaStartBattleButton"
-	_start_battle_button.text = Localization.get_text("arena.start_battle", "Start Next Battle")
-	_start_battle_button.custom_minimum_size = Vector2(190.0, 42.0)
-	_start_battle_button.pressed.connect(_on_start_battle)
-	header.add_child(_start_battle_button)
+	_abandon_button = Button.new()
+	_abandon_button.name = "ArenaAbandonButton"
+	_abandon_button.text = Localization.get_text("arena.abandon", "Abandon To Hub")
+	_abandon_button.custom_minimum_size = Vector2(190.0, 42.0)
+	_abandon_button.pressed.connect(_on_abandon)
+	header.add_child(_abandon_button)
 
 	var body: HBoxContainer = HBoxContainer.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -181,6 +183,7 @@ func _build_shop_panel(parent: Control) -> void:
 
 func _build_loadout_panel(parent: Control) -> void:
 	var box: VBoxContainer = _create_panel(parent, Localization.get_text("arena.panel.loadout", "Arena Loadout"), Vector2(420.0, 0.0))
+	box.name = "ArenaLoadoutPanelBody"
 	box.add_theme_constant_override("separation", 12)
 
 	_loadout_summary_label = Label.new()
@@ -221,10 +224,13 @@ func _build_loadout_panel(parent: Control) -> void:
 	_relic_row.set_icon_size(Vector2(42.0, 42.0))
 	box.add_child(_relic_row)
 
-	var back_button: Button = Button.new()
-	back_button.text = Localization.get_text("arena.abandon", "Abandon To Hub")
-	back_button.pressed.connect(_on_abandon)
-	box.add_child(back_button)
+	_start_battle_button = Button.new()
+	_start_battle_button.name = "ArenaStartBattleButton"
+	_start_battle_button.text = Localization.get_text("arena.start_battle", "Start Next Battle")
+	_start_battle_button.custom_minimum_size = Vector2(0.0, 44.0)
+	_start_battle_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_start_battle_button.pressed.connect(_on_start_battle)
+	box.add_child(_start_battle_button)
 
 
 func _create_panel(parent: Control, title: String, min_size: Vector2) -> VBoxContainer:
@@ -334,7 +340,8 @@ func _refresh_ui() -> void:
 		"cost": int(status.get("reroll_cost", 0)),
 	})
 	_reroll_button.disabled = not bool(status.get("can_reroll", false))
-	_start_battle_button.disabled = Game.get_equipped_cards().is_empty() or Game.has_pending_arena_reward()
+	if _start_battle_button != null:
+		_start_battle_button.disabled = Game.get_equipped_cards().is_empty() or Game.has_pending_arena_reward()
 
 	_refresh_offer_list(_card_offers_box, Game.get_arena_card_offers(), true)
 	_refresh_offer_list(_relic_offers_box, Game.get_arena_relic_offers(), false)
@@ -524,8 +531,10 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	margin.add_child(row)
 
 	var preview: CardButton = CardButton.new()
+	preview.name = "ArenaLoadoutPreview_%s" % card_id
 	preview.set_tile_size(LOADOUT_PREVIEW_SIZE)
 	preview.bind_preview(card_def, card_id, false, "LOAD")
+	_append_loadout_cost_tooltip(preview, card_def)
 	row.add_child(preview)
 
 	var info_box: VBoxContainer = VBoxContainer.new()
@@ -598,6 +607,15 @@ func _build_loadout_count_pill(icon_id: String, count: int, node_name: String) -
 	value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pill.add_child(value_label)
 	return pill
+
+
+func _append_loadout_cost_tooltip(preview: CardButton, card_def: CardDef) -> void:
+	if preview == null or card_def == null:
+		return
+	var cost_text: String = Localization.get_textf("card.tooltip.loadout_cost", "Loadout Cost: {cost}", {
+		"cost": card_def.loadout_cost,
+	})
+	preview.append_tooltip_line(cost_text)
 
 
 func _refresh_reward_modal() -> void:

@@ -14,11 +14,20 @@ func _run() -> void:
 	await _assert_arena_setup_has_only_arena_start()
 	if _failed:
 		return
+	var baseline_run: RunState = RunState.from_starter(Database.get_starter("balanced"), 24680)
+	Game.meta_progress["permanent_bonuses"] = {
+		"max_hp": 24,
+		"attack": 5,
+		"speed": 4,
+		"loadout_limit": 7,
+	}
 	if not Game.start_arena_run("balanced", 24680):
 		_fail("Arena flow smoke failed: arena run did not start")
 		return
 	if Game.current_run == null or not Game.current_run.arena_mode or Game.current_screen_hint != "arena":
 		_fail("Arena flow smoke failed: arena state was not initialized")
+		return
+	if not _assert_arena_ignores_permanent_bonuses(baseline_run):
 		return
 	if Game.get_arena_card_offers().size() < 3 or Game.get_arena_relic_offers().is_empty():
 		_fail("Arena flow smoke failed: preparation shop did not roll card and relic offers")
@@ -177,6 +186,25 @@ func _assert_arena_shop_can_surface_locked_content() -> bool:
 	return true
 
 
+func _assert_arena_ignores_permanent_bonuses(baseline_run: RunState) -> bool:
+	if Game.current_run == null or baseline_run == null:
+		_fail("Arena flow smoke failed: arena bonus isolation could not compare runs")
+		return false
+	if Game.current_run.max_hp != baseline_run.max_hp or Game.current_run.player_hp != baseline_run.player_hp:
+		_fail("Arena flow smoke failed: arena should ignore permanent HP bonuses")
+		return false
+	if Game.current_run.attack != baseline_run.attack:
+		_fail("Arena flow smoke failed: arena should ignore permanent attack bonuses")
+		return false
+	if Game.current_run.speed != baseline_run.speed:
+		_fail("Arena flow smoke failed: arena should ignore permanent speed bonuses")
+		return false
+	if Game.current_run.loadout_limit != baseline_run.loadout_limit:
+		_fail("Arena flow smoke failed: arena should ignore permanent loadout bonuses")
+		return false
+	return true
+
+
 func _card_offers_include_locked(offers: Array[Dictionary], unlocked_card_ids: Array[String]) -> bool:
 	for offer_data in offers:
 		var card_id: String = String(offer_data.get("card_id", ""))
@@ -201,7 +229,10 @@ func _assert_arena_scene() -> void:
 	var status_label: Label = arena_scene.find_child("ArenaStatusLabel", true, false) as Label
 	var card_offers: VBoxContainer = arena_scene.find_child("ArenaCardOffers", true, false) as VBoxContainer
 	var relic_offers: VBoxContainer = arena_scene.find_child("ArenaRelicOffers", true, false) as VBoxContainer
+	var header: HBoxContainer = arena_scene.find_child("ArenaHeader", true, false) as HBoxContainer
+	var loadout_panel: VBoxContainer = arena_scene.find_child("ArenaLoadoutPanelBody", true, false) as VBoxContainer
 	var start_button: Button = arena_scene.find_child("ArenaStartBattleButton", true, false) as Button
+	var abandon_button: Button = arena_scene.find_child("ArenaAbandonButton", true, false) as Button
 	var reroll_button: Button = arena_scene.find_child("ArenaRerollShopButton", true, false) as Button
 	if status_label == null or status_label.text == "":
 		_fail("Arena flow smoke failed: arena scene did not render status")
@@ -211,6 +242,12 @@ func _assert_arena_scene() -> void:
 		_fail("Arena flow smoke failed: arena scene did not render relic offers")
 	elif start_button == null or start_button.disabled:
 		_fail("Arena flow smoke failed: arena scene start button was unavailable")
+	elif abandon_button == null:
+		_fail("Arena flow smoke failed: arena scene abandon button was missing")
+	elif header == null or abandon_button.get_parent() != header:
+		_fail("Arena flow smoke failed: arena abandon button should be in the header")
+	elif loadout_panel == null or not _is_descendant_of(start_button, loadout_panel):
+		_fail("Arena flow smoke failed: arena start button should be in the loadout panel")
 	elif reroll_button == null:
 		_fail("Arena flow smoke failed: arena scene reroll button was missing")
 	arena_scene.queue_free()
@@ -224,6 +261,7 @@ func _assert_arena_loadout_contains(card_id: String) -> void:
 	var inventory_scroll: ScrollContainer = arena_scene.find_child("ArenaLoadoutInventoryScroll", true, false) as ScrollContainer
 	var inventory_box: VBoxContainer = arena_scene.find_child("ArenaLoadoutInventory", true, false) as VBoxContainer
 	var card_frame: PanelContainer = arena_scene.find_child("ArenaLoadoutCardFrame_%s" % card_id, true, false) as PanelContainer
+	var preview: CardButton = arena_scene.find_child("ArenaLoadoutPreview_%s" % card_id, true, false) as CardButton
 	var equip_button: Button = arena_scene.find_child("ArenaEquipButton_%s" % card_id, true, false) as Button
 	var unequip_button: Button = arena_scene.find_child("ArenaUnequipButton_%s" % card_id, true, false) as Button
 	var sell_button: Button = arena_scene.find_child("ArenaSellButton_%s" % card_id, true, false) as Button
@@ -233,6 +271,8 @@ func _assert_arena_loadout_contains(card_id: String) -> void:
 		_fail("Arena flow smoke failed: arena loadout inventory did not render")
 	elif card_frame == null:
 		_fail("Arena flow smoke failed: bought arena card did not render in loadout inventory")
+	elif preview == null or not _tooltip_mentions_loadout_cost(preview.tooltip_text):
+		_fail("Arena flow smoke failed: arena loadout card tooltip should include loadout cost")
 	elif equip_button == null or unequip_button == null:
 		_fail("Arena flow smoke failed: arena loadout did not render equip and unequip buttons")
 	elif sell_button == null or sell_button.icon == null or sell_button.text == "":
@@ -273,3 +313,16 @@ func _has_gold_delta_popup(expected_text: String) -> bool:
 		if value_label != null and value_label.text == expected_text:
 			return true
 	return false
+
+
+func _is_descendant_of(node: Node, ancestor: Node) -> bool:
+	var current: Node = node
+	while current != null:
+		if current == ancestor:
+			return true
+		current = current.get_parent()
+	return false
+
+
+func _tooltip_mentions_loadout_cost(text: String) -> bool:
+	return text.find("ロードアウトコスト") != -1 or text.find("Loadout Cost") != -1

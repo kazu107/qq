@@ -238,6 +238,18 @@ func bind_timeline(card_def: CardDef, entry: TimelineEntry, battle_time: float, 
 	)
 
 
+func append_tooltip_line(line_text: String, line_bbcode: String = "") -> void:
+	if line_text == "":
+		return
+	if line_bbcode == "":
+		line_bbcode = _escape_bbcode(line_text)
+	_simple_tooltip_text = _append_tooltip_text(_simple_tooltip_text, line_text)
+	_simple_tooltip_bbcode = _append_tooltip_text(_simple_tooltip_bbcode, line_bbcode)
+	_legacy_tooltip_text = _append_tooltip_text(_legacy_tooltip_text, line_text)
+	_legacy_tooltip_bbcode = _append_tooltip_text(_legacy_tooltip_bbcode, line_bbcode)
+	_apply_stored_tooltip_mode()
+
+
 func _on_pressed() -> void:
 	if not _click_enabled or not _can_use or runtime_id == "":
 		return
@@ -695,6 +707,12 @@ func _set_tooltip_variants(simple_text: String, simple_bbcode: String, legacy_te
 	_legacy_tooltip_text = legacy_text
 	_legacy_tooltip_bbcode = legacy_bbcode
 	_apply_stored_tooltip_mode()
+
+
+func _append_tooltip_text(base_text: String, line_text: String) -> String:
+	if base_text == "":
+		return line_text
+	return "%s\n%s" % [base_text, line_text]
 
 
 func _apply_stored_tooltip_mode() -> void:

@@ -170,6 +170,7 @@ func _assert_map_loadout_inventory(map_scene: Control) -> void:
 	var entry: Dictionary = entries[0]
 	var card_id: String = String(entry.get("card_id", ""))
 	var frame: PanelContainer = map_scene.find_child("LoadoutCardFrame_%s" % card_id, true, false) as PanelContainer
+	var preview: CardButton = map_scene.find_child("LoadoutPreview_%s" % card_id, true, false) as CardButton
 	var info_box: VBoxContainer = map_scene.find_child("LoadoutCardInfo_%s" % card_id, true, false) as VBoxContainer
 	var count_row: HBoxContainer = map_scene.find_child("LoadoutCountRow_%s" % card_id, true, false) as HBoxContainer
 	var owned_icon: TextureRect = map_scene.find_child("OwnedCount_%sIcon" % card_id, true, false) as TextureRect
@@ -180,6 +181,9 @@ func _assert_map_loadout_inventory(map_scene: Control) -> void:
 	var sell_button: Button = map_scene.find_child("SellButton_%s" % card_id, true, false) as Button
 	if frame == null or info_box == null or count_row == null:
 		_fail("Map/facility smoke failed: map loadout card frame should render count-only info")
+		return
+	if preview == null or not _tooltip_mentions_loadout_cost(preview.tooltip_text):
+		_fail("Map/facility smoke failed: map loadout card tooltip should include loadout cost")
 		return
 	if owned_icon == null or owned_icon.texture == null or equipped_icon == null or equipped_icon.texture == null:
 		_fail("Map/facility smoke failed: map loadout counts should render icons")
@@ -209,6 +213,10 @@ func _assert_map_loadout_inventory(map_scene: Control) -> void:
 	map_scene.call("_update_loadout_actions_for_hover_point", frame, actions, frame.get_global_rect().get_center())
 	if not actions.visible:
 		_fail("Map/facility smoke failed: map loadout actions should stay visible while hovering inside the frame")
+		return
+	map_scene.call("_update_loadout_actions_for_hover_point", frame, actions, actions.get_global_rect().get_center())
+	if not actions.visible:
+		_fail("Map/facility smoke failed: map loadout actions should stay visible while hovering over the buttons")
 		return
 	map_scene.call("_update_loadout_actions_for_hover_point", frame, actions, frame.get_global_rect().position - Vector2(32.0, 32.0))
 	if actions.visible:
@@ -725,6 +733,10 @@ func _has_named_child_prefix(root: Node, prefix: String) -> bool:
 		if _has_named_child_prefix(child, prefix):
 			return true
 	return false
+
+
+func _tooltip_mentions_loadout_cost(text: String) -> bool:
+	return text.find("ロードアウトコスト") != -1 or text.find("Loadout Cost") != -1
 
 
 func _fail(message: String) -> void:

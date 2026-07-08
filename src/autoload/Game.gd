@@ -219,7 +219,6 @@ func start_arena_run(starter_id: String, seed_override: int = 0) -> bool:
 	if starter.is_empty():
 		return false
 	current_run = RunState.from_starter(starter, seed_override)
-	_apply_permanent_bonuses_to_run(current_run)
 	_arena_service.configure_run(current_run, _get_arena_card_pool_ids(), _get_arena_relic_pool_ids())
 	pending_enemy_id = ""
 	reward_options.clear()

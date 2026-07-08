@@ -453,8 +453,10 @@ func _rebuild_loadout_rows() -> void:
 		frame.add_child(row)
 
 		var preview: CardButton = CardButton.new()
+		preview.name = "LoadoutPreview_%s" % card_id
 		preview.set_tile_size(LOADOUT_PREVIEW_SIZE)
 		preview.bind_preview(card_def, card_id, false, "LOAD")
+		_append_loadout_cost_tooltip(preview, card_def)
 		row.add_child(preview)
 
 		var info_box: VBoxContainer = VBoxContainer.new()
@@ -503,6 +505,8 @@ func _rebuild_loadout_rows() -> void:
 		actions.add_child(sell_button)
 		frame.mouse_entered.connect(_set_loadout_actions_visible.bind(actions, true))
 		frame.mouse_exited.connect(_on_loadout_frame_mouse_exited.bind(frame, actions))
+		actions.mouse_entered.connect(_set_loadout_actions_visible.bind(actions, true))
+		actions.mouse_exited.connect(_on_loadout_frame_mouse_exited.bind(frame, actions))
 
 
 func _build_loadout_count_pill(icon_id: String, count: int, node_name: String) -> HBoxContainer:
@@ -532,7 +536,7 @@ func _build_loadout_count_pill(icon_id: String, count: int, node_name: String) -
 
 
 func _set_loadout_actions_visible(actions: HBoxContainer, visible: bool) -> void:
-	if actions != null:
+	if actions != null and is_instance_valid(actions):
 		actions.visible = visible
 
 
@@ -547,13 +551,27 @@ func _update_loadout_actions_for_current_hover_point(frame: PanelContainer, acti
 func _update_loadout_actions_for_hover_point(frame: PanelContainer, actions: HBoxContainer, global_point: Vector2) -> void:
 	if frame == null or actions == null or not is_instance_valid(frame) or not is_instance_valid(actions):
 		return
-	actions.visible = _is_point_inside_loadout_frame(frame, global_point)
+	actions.visible = _is_point_inside_loadout_hover_area(frame, actions, global_point)
 
 
-func _is_point_inside_loadout_frame(frame: PanelContainer, global_point: Vector2) -> bool:
+func _is_point_inside_loadout_hover_area(frame: PanelContainer, actions: HBoxContainer, global_point: Vector2) -> bool:
 	if frame == null or not is_instance_valid(frame):
 		return false
-	return frame.get_global_rect().grow(4.0).has_point(global_point)
+	var frame_rect: Rect2 = frame.get_global_rect().grow(2.0)
+	if frame_rect.has_point(global_point):
+		return true
+	if actions != null and is_instance_valid(actions):
+		return actions.get_global_rect().grow(2.0).has_point(global_point)
+	return false
+
+
+func _append_loadout_cost_tooltip(preview: CardButton, card_def: CardDef) -> void:
+	if preview == null or card_def == null:
+		return
+	var cost_text: String = Localization.get_textf("card.tooltip.loadout_cost", "Loadout Cost: {cost}", {
+		"cost": card_def.loadout_cost,
+	})
+	preview.append_tooltip_line(cost_text)
 
 
 func _make_loadout_card_stylebox() -> StyleBoxFlat:

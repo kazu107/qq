@@ -103,6 +103,7 @@
   "map.battle_summary.boss": "ボス",
   "map.battle_summary.hazard": "危険地帯",
   "map.loadout_cost": "ロードアウトコスト {used} / {limit}",
+  "card.tooltip.loadout_cost": "ロードアウトコスト: {cost}",
   "map.step_header": "ステップ {step} | {label}",
   "map.inventory_counts": "{name} | 所持 {owned} | 装備 {equipped} | コスト {cost}",
   "map.equip": "装備",
