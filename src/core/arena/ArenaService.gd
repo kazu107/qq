@@ -499,9 +499,16 @@ func _get_card_price(card_id: String, wins: int) -> int:
 
 func _get_relic_price(relic_id: String, wins: int) -> int:
 	var price: int = 42 + wins * 3
-	if ["omega_crown", "eternity_engine", "paradox_prism", "rift_compass"].has(relic_id):
+	if [
+		"omega_crown", "eternity_engine", "paradox_prism", "rift_compass",
+		"overclock_key", "chrono_metronome", "prism_furnace", "emergency_foam",
+	].has(relic_id):
 		price += 18
-	elif ["reactive_barrier", "aegis_matrix", "phase_capacitor", "entropy_battery"].has(relic_id):
+	elif [
+		"reactive_barrier", "aegis_matrix", "phase_capacitor", "entropy_battery",
+		"signal_lens", "pulse_injector", "barrier_seed", "stasis_clock",
+		"scavenger_contract", "blood_pump", "armor_garden", "bounty_drone",
+	].has(relic_id):
 		price += 10
 	return price
 

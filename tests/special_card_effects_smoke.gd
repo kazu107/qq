@@ -34,6 +34,8 @@ func _run() -> void:
 		return
 	if not _test_special_card_descriptions():
 		return
+	if not _test_new_relic_effects():
+		return
 	print("Special card effects smoke passed")
 	get_tree().quit()
 
@@ -347,6 +349,12 @@ func _test_special_card_descriptions() -> bool:
 		"auto_turret", "crisis_drone_swarm", "phase_lance", "mirror_aegis",
 		"null_cascade", "paradox_loop", "rift_volley", "entropy_armor",
 		"axiom_sever", "omega_ray", "grave_protocol", "zero_hour",
+		"spark_jab", "brace_patch", "marking_dart", "timer_hook",
+		"blood_siphon", "capacitor_step", "grit_reload", "rust_cloud",
+		"hammer_feint", "prism_guard", "rupture_mark", "phase_zip",
+		"recycler_claw", "reactor_leech", "drone_foundry", "tactical_mirror",
+		"gravity_snare", "field_medic", "singularity_guard", "blood_moon_protocol",
+		"chrono_blackout", "recursive_battery", "execution_matrix", "final_archive",
 	]:
 		var card_def: CardDef = Database.get_card(card_id)
 		if card_def == null:
@@ -356,6 +364,68 @@ func _test_special_card_descriptions() -> bool:
 		if summary == "" or summary.find("timeline_flow") >= 0 or summary.find("empower_card") >= 0 or summary.find("auto_queue_card") >= 0:
 			_fail("Special card smoke failed: special card effect summary was not formatted for %s" % card_id)
 			return false
+	return true
+
+
+func _test_new_relic_effects() -> bool:
+	var run_state: RunState = RunState.from_starter(Database.get_starter("balanced"), 20260708)
+	var base_max_hp: int = run_state.max_hp
+	var base_loadout_limit: int = run_state.loadout_limit
+	var base_attack: int = run_state.attack
+	var base_speed: int = run_state.speed
+	var relic_service: RelicService = RelicService.new()
+	var new_relic_ids: Array[String] = [
+		"titanium_rib", "loadout_harness", "war_cache", "signal_lens",
+		"pulse_injector", "barrier_seed", "stasis_clock", "blood_pump",
+		"scavenger_contract", "emergency_foam", "overclock_key", "chrono_metronome",
+		"armor_garden", "bounty_drone", "prism_furnace", "archive_compass",
+	]
+	for relic_id in new_relic_ids:
+		if Database.get_relic(relic_id) == null:
+			_fail("Special card smoke failed: missing new relic %s" % relic_id)
+			return false
+		if not relic_service.grant_relic(run_state, relic_id):
+			_fail("Special card smoke failed: could not grant new relic %s" % relic_id)
+			return false
+	if run_state.max_hp != base_max_hp + 10:
+		_fail("Special card smoke failed: new relic max HP grants did not stack")
+		return false
+	if run_state.loadout_limit != base_loadout_limit + 4:
+		_fail("Special card smoke failed: new relic loadout grants did not stack")
+		return false
+	if run_state.gold != 35:
+		_fail("Special card smoke failed: new relic immediate gold grant did not apply")
+		return false
+
+	var unit: UnitState = UnitState.new()
+	unit.attack = base_attack
+	unit.speed = base_speed
+	unit.max_hp = run_state.max_hp
+	unit.hp = run_state.max_hp
+	relic_service.apply_battle_modifiers(unit, run_state)
+	if unit.attack != base_attack + 5:
+		_fail("Special card smoke failed: new relic battle attack modifiers did not stack")
+		return false
+	if unit.speed != base_speed + 5:
+		_fail("Special card smoke failed: new relic battle speed modifiers did not stack")
+		return false
+	if unit.shield != 33:
+		_fail("Special card smoke failed: new relic battle shield modifiers did not stack")
+		return false
+	if unit.cast_time_modifier > 0.79:
+		_fail("Special card smoke failed: new relic cast time modifiers did not stack")
+		return false
+
+	var gold_before: int = run_state.gold
+	run_state.player_hp = max(1, run_state.max_hp - 10)
+	var hp_before: int = run_state.player_hp
+	var bonus: Dictionary = relic_service.apply_victory_bonuses(run_state)
+	if int(bonus.get("gold", 0)) != 40 or run_state.gold != gold_before + 40:
+		_fail("Special card smoke failed: new relic victory gold bonuses did not stack")
+		return false
+	if int(bonus.get("heal", 0)) != 9 or run_state.player_hp != min(run_state.max_hp, hp_before + 9):
+		_fail("Special card smoke failed: new relic victory heal bonuses did not stack")
+		return false
 	return true
 
 

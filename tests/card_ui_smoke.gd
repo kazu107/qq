@@ -1054,19 +1054,7 @@ func _run() -> void:
 	battle_scene.queue_free()
 	await get_tree().process_frame
 
-	var new_card_ids: Array[String] = [
-		"repair_burst",
-		"tripwire",
-		"stasis_field",
-		"rupture_strike",
-		"bastion_drive",
-		"adrenaline_link",
-		"purge_pulse",
-		"meteor_crash",
-		"auto_turret",
-		"crisis_drone_swarm",
-	]
-	for card_id in new_card_ids:
+	for card_id in Database.get_all_card_ids():
 		if not ResourceLoader.exists("res://assets/icons/cards/%s.png" % card_id):
 			push_error("Card UI smoke failed: missing generated art for %s" % card_id)
 			get_tree().quit(1)

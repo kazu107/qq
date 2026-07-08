@@ -89,4 +89,85 @@
     "name": "Eternity Engine",
     "description": "Your cast times are 15% faster and you start each battle with 10 shield."
   }
+,
+  {
+    "id": "titanium_rib",
+    "name": "Titanium Rib",
+    "description": "Gain +6 max HP and heal 6 when acquired."
+  },
+  {
+    "id": "loadout_harness",
+    "name": "Loadout Harness",
+    "description": "Increase loadout capacity by 3."
+  },
+  {
+    "id": "war_cache",
+    "name": "War Cache",
+    "description": "Gain 35 gold when acquired."
+  },
+  {
+    "id": "signal_lens",
+    "name": "Signal Lens",
+    "description": "Start each battle with +1 attack and 3% faster casts."
+  },
+  {
+    "id": "pulse_injector",
+    "name": "Pulse Injector",
+    "description": "Start each battle with +2 speed."
+  },
+  {
+    "id": "barrier_seed",
+    "name": "Barrier Seed",
+    "description": "Start each battle with 5 shield and +1 speed."
+  },
+  {
+    "id": "stasis_clock",
+    "name": "Stasis Clock",
+    "description": "Your cast times are 6% faster."
+  },
+  {
+    "id": "blood_pump",
+    "name": "Blood Pump",
+    "description": "Start each battle with +1 attack and recover 4 HP after every victory."
+  },
+  {
+    "id": "scavenger_contract",
+    "name": "Scavenger Contract",
+    "description": "Gain 20 gold after every victory."
+  },
+  {
+    "id": "emergency_foam",
+    "name": "Emergency Foam",
+    "description": "Start each battle with 16 shield."
+  },
+  {
+    "id": "overclock_key",
+    "name": "Overclock Key",
+    "description": "Start each battle with +2 attack and +1 speed."
+  },
+  {
+    "id": "chrono_metronome",
+    "name": "Chrono Metronome",
+    "description": "Your cast times are 12% faster."
+  },
+  {
+    "id": "armor_garden",
+    "name": "Armor Garden",
+    "description": "Gain +4 max HP, start each battle with 4 shield, and recover 3 HP after every victory."
+  },
+  {
+    "id": "bounty_drone",
+    "name": "Bounty Drone",
+    "description": "Start each battle with +1 speed and gain 12 gold after every victory."
+  },
+  {
+    "id": "prism_furnace",
+    "name": "Prism Furnace",
+    "description": "Start each battle with +1 attack, 8 shield, and 4% faster casts."
+  },
+  {
+    "id": "archive_compass",
+    "name": "Archive Compass",
+    "description": "Increase loadout capacity by 1, then gain 8 gold and recover 2 HP after every victory."
+  }
 ]

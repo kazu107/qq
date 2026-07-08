@@ -36,6 +36,18 @@ func grant_relic(run_state: RunState, relic_id: String) -> bool:
 			run_state.speed += 1
 		"auxiliary_core":
 			run_state.loadout_limit += 2
+		"titanium_rib":
+			run_state.max_hp += 6
+			run_state.player_hp = min(run_state.max_hp, run_state.player_hp + 6)
+		"loadout_harness":
+			run_state.loadout_limit += 3
+		"war_cache":
+			run_state.gold += 35
+		"armor_garden":
+			run_state.max_hp += 4
+			run_state.player_hp = min(run_state.max_hp, run_state.player_hp + 4)
+		"archive_compass":
+			run_state.loadout_limit += 1
 	return true
 
 
@@ -64,6 +76,33 @@ func apply_battle_modifiers(unit: UnitState, run_state: RunState) -> void:
 	if run_state.relics.has("eternity_engine"):
 		unit.cast_time_modifier *= 0.85
 		unit.add_shield(10)
+	if run_state.relics.has("signal_lens"):
+		unit.attack += 1
+		unit.cast_time_modifier *= 0.97
+	if run_state.relics.has("pulse_injector"):
+		unit.speed += 2
+	if run_state.relics.has("barrier_seed"):
+		unit.add_shield(5)
+		unit.speed += 1
+	if run_state.relics.has("stasis_clock"):
+		unit.cast_time_modifier *= 0.94
+	if run_state.relics.has("blood_pump"):
+		unit.attack += 1
+	if run_state.relics.has("emergency_foam"):
+		unit.add_shield(16)
+	if run_state.relics.has("overclock_key"):
+		unit.attack += 2
+		unit.speed += 1
+	if run_state.relics.has("chrono_metronome"):
+		unit.cast_time_modifier *= 0.88
+	if run_state.relics.has("armor_garden"):
+		unit.add_shield(4)
+	if run_state.relics.has("bounty_drone"):
+		unit.speed += 1
+	if run_state.relics.has("prism_furnace"):
+		unit.attack += 1
+		unit.add_shield(8)
+		unit.cast_time_modifier *= 0.96
 
 
 func apply_victory_bonuses(run_state: RunState) -> Dictionary:
@@ -81,6 +120,17 @@ func apply_victory_bonuses(run_state: RunState) -> Dictionary:
 		bonus["gold"] = int(bonus.get("gold", 0)) + 15
 	if run_state.relics.has("entropy_battery"):
 		bonus["heal"] = int(bonus.get("heal", 0)) + 8
+	if run_state.relics.has("blood_pump"):
+		bonus["heal"] = int(bonus.get("heal", 0)) + 4
+	if run_state.relics.has("scavenger_contract"):
+		bonus["gold"] = int(bonus.get("gold", 0)) + 20
+	if run_state.relics.has("armor_garden"):
+		bonus["heal"] = int(bonus.get("heal", 0)) + 3
+	if run_state.relics.has("bounty_drone"):
+		bonus["gold"] = int(bonus.get("gold", 0)) + 12
+	if run_state.relics.has("archive_compass"):
+		bonus["gold"] = int(bonus.get("gold", 0)) + 8
+		bonus["heal"] = int(bonus.get("heal", 0)) + 2
 	run_state.gold += int(bonus.get("gold", 0))
 	run_state.player_hp = min(run_state.max_hp, run_state.player_hp + int(bonus.get("heal", 0)))
 	return bonus
