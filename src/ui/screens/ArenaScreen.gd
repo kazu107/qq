@@ -560,6 +560,15 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	unequip_button.disabled = not bool(entry.get("can_unequip", false))
 	unequip_button.pressed.connect(_on_unequip_card.bind(card_id))
 	actions.add_child(unequip_button)
+
+	var sell_value: int = int(entry.get("sell_value", 0))
+	var sell_button: Button = Button.new()
+	sell_button.name = "ArenaSellButton_%s" % card_id
+	sell_button.icon = StatIconFactory.get_icon("gold")
+	sell_button.text = Localization.get_textf("map.sell_for", "Sell {amount}", {"amount": sell_value})
+	sell_button.disabled = not bool(entry.get("can_sell", false))
+	sell_button.pressed.connect(_on_sell_card.bind(card_id))
+	actions.add_child(sell_button)
 	return frame
 
 
@@ -771,6 +780,11 @@ func _on_equip_card(card_id: String) -> void:
 
 func _on_unequip_card(card_id: String) -> void:
 	if Game.unequip_card(card_id):
+		_refresh_ui()
+
+
+func _on_sell_card(card_id: String) -> void:
+	if Game.sell_loadout_card(card_id):
 		_refresh_ui()
 
 

@@ -177,6 +177,7 @@ func _assert_map_loadout_inventory(map_scene: Control) -> void:
 	var owned_value: Label = map_scene.find_child("OwnedCount_%sValue" % card_id, true, false) as Label
 	var equipped_value: Label = map_scene.find_child("EquippedCount_%sValue" % card_id, true, false) as Label
 	var actions: HBoxContainer = map_scene.find_child("LoadoutActions_%s" % card_id, true, false) as HBoxContainer
+	var sell_button: Button = map_scene.find_child("SellButton_%s" % card_id, true, false) as Button
 	if frame == null or info_box == null or count_row == null:
 		_fail("Map/facility smoke failed: map loadout card frame should render count-only info")
 		return
@@ -189,8 +190,11 @@ func _assert_map_loadout_inventory(map_scene: Control) -> void:
 	if equipped_value == null or equipped_value.text != str(int(entry.get("equipped_count", 0))):
 		_fail("Map/facility smoke failed: map loadout equipped count should render as a number")
 		return
-	if actions == null or actions.get_child_count() != 2:
-		_fail("Map/facility smoke failed: map loadout actions should render equip and unequip buttons")
+	if actions == null or actions.get_child_count() != 3:
+		_fail("Map/facility smoke failed: map loadout actions should render equip, unequip, and sell buttons")
+		return
+	if sell_button == null or sell_button.icon == null or sell_button.text == "":
+		_fail("Map/facility smoke failed: map loadout sell button should render a gold icon and value")
 		return
 	if actions.get_parent() != info_box or actions.get_index() <= count_row.get_index():
 		_fail("Map/facility smoke failed: map loadout actions should sit below the count row")

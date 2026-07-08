@@ -60,6 +60,21 @@ func _run() -> void:
 	if not Game.unequip_card(held_card_id):
 		_fail("Arena flow smoke failed: bought arena card could not be unequipped from arena loadout")
 		return
+	var sell_value: int = Game.get_card_sell_value(held_card_id)
+	var gold_before_sell: int = Game.current_run.gold
+	var owned_before_sell: int = Game.current_run.player_cards.size()
+	if not Game.sell_loadout_card(held_card_id):
+		_fail("Arena flow smoke failed: bought arena card could not be sold from arena loadout")
+		return
+	if Game.current_run.player_cards.size() != owned_before_sell - 1:
+		_fail("Arena flow smoke failed: selling an arena card should remove one owned copy")
+		return
+	if Game.current_run.gold != gold_before_sell + sell_value:
+		_fail("Arena flow smoke failed: selling an arena card did not grant half value")
+		return
+	if not _has_gold_delta_popup("+%d" % sell_value):
+		_fail("Arena flow smoke failed: selling an arena card did not show a gold popup")
+		return
 
 	var relic_offers: Array[Dictionary] = Game.get_arena_relic_offers()
 	if relic_offers.is_empty():
@@ -210,12 +225,15 @@ func _assert_arena_loadout_contains(card_id: String) -> void:
 	var card_frame: PanelContainer = arena_scene.find_child("ArenaLoadoutCardFrame_%s" % card_id, true, false) as PanelContainer
 	var equip_button: Button = arena_scene.find_child("ArenaEquipButton_%s" % card_id, true, false) as Button
 	var unequip_button: Button = arena_scene.find_child("ArenaUnequipButton_%s" % card_id, true, false) as Button
+	var sell_button: Button = arena_scene.find_child("ArenaSellButton_%s" % card_id, true, false) as Button
 	if inventory_box == null:
 		_fail("Arena flow smoke failed: arena loadout inventory did not render")
 	elif card_frame == null:
 		_fail("Arena flow smoke failed: bought arena card did not render in loadout inventory")
 	elif equip_button == null or unequip_button == null:
 		_fail("Arena flow smoke failed: arena loadout did not render equip and unequip buttons")
+	elif sell_button == null or sell_button.icon == null or sell_button.text == "":
+		_fail("Arena flow smoke failed: arena loadout did not render a priced sell button")
 	arena_scene.queue_free()
 	await get_tree().process_frame
 
@@ -241,3 +259,14 @@ func _fail(message: String) -> void:
 	_failed = true
 	push_error(message)
 	get_tree().quit(1)
+
+
+func _has_gold_delta_popup(expected_text: String) -> bool:
+	for popup in get_tree().root.find_children("*GoldDeltaPopup*", "", true, false):
+		var popup_control: Control = popup as Control
+		if popup_control == null:
+			continue
+		var value_label: Label = popup_control.find_child("GoldDeltaValue", true, false) as Label
+		if value_label != null and value_label.text == expected_text:
+			return true
+	return false

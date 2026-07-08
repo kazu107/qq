@@ -14,9 +14,12 @@ const CARD_LIBRARY_SCENE := "res://scenes/library/CardLibrary.tscn"
 const SETTINGS_SCENE := "res://scenes/settings/Settings.tscn"
 const REPLAY_SCENE := "res://scenes/replay/ReplayViewer.tscn"
 const TRANSITION_COVER_NAME := "SceneTransitionCover"
+const GOLD_DELTA_POPUP_NAME := "GoldDeltaPopup"
 
 var _transition_layer: CanvasLayer
 var _transition_cover: ColorRect
+var _gold_popup_layer: CanvasLayer
+var _gold_popup_index: int = 0
 var _scene_cache: Dictionary = {}
 
 
@@ -131,6 +134,64 @@ func go_to_continue_target() -> void:
 			go_to_title()
 
 
+func show_gold_delta(amount: int) -> void:
+	if amount == 0:
+		return
+	_ensure_gold_popup_layer()
+	_gold_popup_index += 1
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var popup: PanelContainer = PanelContainer.new()
+	popup.name = "%s_%d" % [GOLD_DELTA_POPUP_NAME, _gold_popup_index]
+	popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	popup.custom_minimum_size = Vector2(132.0, 44.0)
+	popup.position = Vector2(maxf(18.0, viewport_size.x * 0.5 - 66.0), 74.0 + float((_gold_popup_index % 3) * 18))
+	popup.add_theme_stylebox_override("panel", _make_gold_popup_style(amount > 0))
+	_gold_popup_layer.add_child(popup)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 7)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 7)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	popup.add_child(margin)
+
+	var row: HBoxContainer = HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 7)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(row)
+
+	var icon: TextureRect = TextureRect.new()
+	icon.name = "GoldDeltaIcon"
+	icon.custom_minimum_size = Vector2(28.0, 28.0)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.texture = StatIconFactory.get_icon("gold")
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon)
+
+	var label: Label = Label.new()
+	label.name = "GoldDeltaValue"
+	label.text = "%+d" % amount
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 25)
+	label.add_theme_color_override("font_color", Color(1.0, 0.82, 0.30, 1.0) if amount > 0 else Color(1.0, 0.42, 0.28, 1.0))
+	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.92))
+	label.add_theme_constant_override("outline_size", 5)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(label)
+
+	var start_position: Vector2 = popup.position
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(popup, "position", start_position + Vector2(0.0, -42.0), 1.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(popup, "scale", Vector2(1.08, 1.08), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(popup, "scale", Vector2.ONE, 0.24).set_delay(0.16).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(popup, "modulate:a", 0.0, 0.32).set_delay(0.92).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.finished.connect(popup.queue_free)
+
+
 func _change_scene(scene_path: String) -> void:
 	AudioManager.play_sfx("ui_page")
 	_show_transition_cover()
@@ -177,3 +238,30 @@ func _ensure_transition_cover() -> void:
 	_transition_cover.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_transition_cover.visible = false
 	_transition_layer.add_child(_transition_cover)
+
+
+func _ensure_gold_popup_layer() -> void:
+	if _gold_popup_layer != null:
+		return
+	_gold_popup_layer = CanvasLayer.new()
+	_gold_popup_layer.name = "GoldDeltaPopupLayer"
+	_gold_popup_layer.layer = 4095
+	add_child(_gold_popup_layer)
+
+
+func _make_gold_popup_style(positive: bool) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.035, 0.012, 0.92) if positive else Color(0.06, 0.018, 0.014, 0.92)
+	style.border_color = Color(1.0, 0.78, 0.26, 0.92) if positive else Color(1.0, 0.36, 0.26, 0.92)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 16
+	style.corner_radius_top_right = 16
+	style.corner_radius_bottom_left = 16
+	style.corner_radius_bottom_right = 16
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.42)
+	style.shadow_size = 10
+	style.shadow_offset = Vector2(0.0, 4.0)
+	return style

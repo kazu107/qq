@@ -385,6 +385,7 @@ func reroll_rewards_for_gold() -> bool:
 		return false
 
 	current_run.gold = max(0, current_run.gold - REWARD_REROLL_COST)
+	_show_gold_delta(-REWARD_REROLL_COST)
 	AudioManager.play_sfx("shop_buy")
 	SaveManager.save_game(current_screen_hint)
 	return true
@@ -737,10 +738,12 @@ func can_reroll_arena_shop() -> bool:
 func reroll_arena_shop_for_gold() -> bool:
 	if current_run == null or not current_run.arena_mode:
 		return false
+	var gold_before: int = current_run.gold
 	var rerolled: bool = _arena_service.reroll_shop(current_run, _get_arena_card_pool_ids(), _get_arena_relic_pool_ids())
 	if not rerolled:
 		AudioManager.play_sfx("ui_error")
 		return false
+	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("shop_buy", 0.96)
 	SaveManager.save_game(current_screen_hint)
 	return true
@@ -749,11 +752,13 @@ func reroll_arena_shop_for_gold() -> bool:
 func buy_arena_card_offer(offer_index: int) -> bool:
 	if current_run == null or not current_run.arena_mode:
 		return false
+	var gold_before: int = current_run.gold
 	var card_id: String = _arena_service.buy_card_offer(current_run, offer_index)
 	if card_id == "":
 		AudioManager.play_sfx("ui_error")
 		return false
 	_auto_equip_card_if_room(card_id)
+	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("shop_buy")
 	SaveManager.save_game(current_screen_hint)
 	return true
@@ -762,10 +767,12 @@ func buy_arena_card_offer(offer_index: int) -> bool:
 func buy_arena_relic_offer(offer_index: int) -> bool:
 	if current_run == null or not current_run.arena_mode:
 		return false
+	var gold_before: int = current_run.gold
 	var relic_id: String = _arena_service.buy_relic_offer(current_run, offer_index, _relic_service)
 	if relic_id == "":
 		AudioManager.play_sfx("ui_error")
 		return false
+	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("relic_gain")
 	SaveManager.save_game(current_screen_hint)
 	return true
@@ -823,6 +830,7 @@ func choose_arena_victory_reward(reward_id: String) -> bool:
 	if reward_gold > 0:
 		last_battle_summary["reward_gold"] = int(last_battle_summary.get("reward_gold", 0)) + reward_gold
 		history_update["reward_gold"] = int(last_battle_summary.get("reward_gold", 0))
+		_show_gold_delta(reward_gold)
 	var selected_card_id: String = String(result.get("selected_reward_card_id", ""))
 	if selected_card_id != "":
 		_auto_equip_card_if_room(selected_card_id)
@@ -1109,6 +1117,7 @@ func developer_add_gold(amount: int = 50) -> int:
 	if current_run == null:
 		return 0
 	current_run.gold += amount
+	_show_gold_delta(amount)
 	AudioManager.play_sfx("gold_gain")
 	SaveManager.save_game(current_screen_hint)
 	return current_run.gold
@@ -1661,6 +1670,8 @@ func get_loadout_entries() -> Array[Dictionary]:
 			"loadout_cost": loadout_cost,
 			"can_equip": equipped_count < owned_count and current_cost + loadout_cost <= current_run.loadout_limit,
 			"can_unequip": equipped_count > 0 and current_run.equipped_cards.size() > 1,
+			"can_sell": _can_sell_loadout_card(card_id),
+			"sell_value": get_card_sell_value(card_id),
 		})
 	return result
 
@@ -1697,6 +1708,33 @@ func unequip_card(card_id: String) -> bool:
 			SaveManager.save_game(current_screen_hint)
 			return true
 	return false
+
+
+func get_card_sell_value(card_id: String) -> int:
+	if Database.get_card(card_id) == null:
+		return 0
+	return maxi(1, int(floor(float(_shop_service.get_price(card_id)) * 0.5)))
+
+
+func sell_loadout_card(card_id: String) -> bool:
+	if current_run == null or not _can_sell_loadout_card(card_id):
+		AudioManager.play_sfx("ui_error")
+		return false
+	var sell_value: int = get_card_sell_value(card_id)
+	if sell_value <= 0:
+		AudioManager.play_sfx("ui_error")
+		return false
+	var owned_count_before: int = _count_card_occurrences(current_run.player_cards, card_id)
+	if not _remove_card_occurrence(current_run.player_cards, card_id):
+		AudioManager.play_sfx("ui_error")
+		return false
+	if _count_card_occurrences(current_run.equipped_cards, card_id) >= owned_count_before:
+		_remove_card_occurrence(current_run.equipped_cards, card_id)
+	current_run.gold += sell_value
+	_show_gold_delta(sell_value)
+	AudioManager.play_sfx("gold_gain", 0.92)
+	SaveManager.save_game(current_screen_hint)
+	return true
 
 
 func select_map_node(node_id: String) -> String:
@@ -1737,6 +1775,7 @@ func select_map_node(node_id: String) -> String:
 func buy_shop_offer(offer_index: int) -> bool:
 	if current_run == null:
 		return false
+	var gold_before: int = current_run.gold
 
 	var location: Dictionary = _get_active_node_location()
 	if location.is_empty():
@@ -1766,6 +1805,7 @@ func buy_shop_offer(offer_index: int) -> bool:
 	node_data["shop_offers"] = offers
 	_set_node(step_index, node_index, node_data)
 	_auto_equip_card_if_room(card_id)
+	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("shop_buy")
 	SaveManager.save_game(current_screen_hint)
 	return true
@@ -1774,6 +1814,7 @@ func buy_shop_offer(offer_index: int) -> bool:
 func use_shop_service_choice(choice_id: String) -> bool:
 	if current_run == null:
 		return false
+	var gold_before: int = current_run.gold
 
 	var location: Dictionary = _get_active_node_location()
 	if location.is_empty():
@@ -1806,6 +1847,7 @@ func use_shop_service_choice(choice_id: String) -> bool:
 
 	node_data["shop_service_%s_used" % choice_id] = true
 	_set_node(step_index, node_index, node_data)
+	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("shop_buy")
 	SaveManager.save_game(current_screen_hint)
 	return true
@@ -1842,6 +1884,7 @@ func upgrade_forge_card(card_id: String) -> int:
 func use_forge_service_choice(choice_id: String) -> bool:
 	if current_run == null:
 		return false
+	var gold_before: int = current_run.gold
 
 	var location: Dictionary = _get_active_node_location()
 	if location.is_empty():
@@ -1872,6 +1915,7 @@ func use_forge_service_choice(choice_id: String) -> bool:
 
 	node_data["forge_used"] = true
 	_set_node(step_index, node_index, node_data)
+	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("forge_upgrade")
 	SaveManager.save_game(current_screen_hint)
 	return true
@@ -1884,6 +1928,7 @@ func use_heal_node() -> int:
 func use_heal_node_choice(choice_id: String) -> int:
 	if current_run == null:
 		return 0
+	var gold_before: int = current_run.gold
 	var active_node: Dictionary = get_active_map_node()
 	if String(active_node.get("type", "")) != "heal":
 		return 0
@@ -1908,6 +1953,7 @@ func use_heal_node_choice(choice_id: String) -> int:
 				pass
 	_complete_active_map_node_and_advance()
 	current_screen_hint = _get_post_progress_scene_hint()
+	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("heal_use")
 	SaveManager.save_game(current_screen_hint)
 	return current_run.player_hp - before_hp
@@ -1916,6 +1962,7 @@ func use_heal_node_choice(choice_id: String) -> int:
 func resolve_event_choice(choice_id: String) -> String:
 	if current_run == null:
 		return ""
+	var gold_before: int = current_run.gold
 	var active_node: Dictionary = get_active_map_node()
 	if String(active_node.get("type", "")) != "event":
 		return ""
@@ -1929,6 +1976,7 @@ func resolve_event_choice(choice_id: String) -> String:
 
 	_complete_active_map_node_and_advance()
 	current_screen_hint = _get_post_progress_scene_hint()
+	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("event_resolve")
 	SaveManager.save_game(current_screen_hint)
 	return result_text
@@ -2249,15 +2297,17 @@ func _should_return_to_hazard_after_reward() -> bool:
 
 
 func _apply_reward_bundle(reward_bundle: Dictionary) -> void:
-	current_run.gold += int(reward_bundle.get("gold", 0))
+	var reward_gold: int = int(reward_bundle.get("gold", 0))
+	current_run.gold += reward_gold
+	_show_gold_delta(reward_gold)
 	current_run.player_hp = min(current_run.max_hp, current_run.player_hp + int(reward_bundle.get("heal", 0)))
-	last_battle_summary["reward_gold"] = int(reward_bundle.get("gold", 0))
+	last_battle_summary["reward_gold"] = reward_gold
 	last_battle_summary["reward_heal"] = int(reward_bundle.get("heal", 0))
 	last_battle_summary["reward_key"] = String(reward_bundle.get("reward_key", ""))
 	last_battle_summary["reward_area"] = int(reward_bundle.get("area", current_run.current_area))
 	last_battle_summary["reward_options"] = _to_string_array(reward_bundle.get("options", []))
 	_update_latest_battle_history({
-		"reward_gold": int(reward_bundle.get("gold", 0)),
+		"reward_gold": reward_gold,
 		"reward_heal": int(reward_bundle.get("heal", 0)),
 		"reward_key": String(reward_bundle.get("reward_key", "")),
 		"reward_options": _to_string_array(reward_bundle.get("options", [])),
@@ -2616,6 +2666,31 @@ func _auto_equip_card_if_room(card_id: String) -> void:
 	if get_current_loadout_cost() + card_def.loadout_cost > current_run.loadout_limit:
 		return
 	current_run.equipped_cards.append(card_id)
+
+
+func _can_sell_loadout_card(card_id: String) -> bool:
+	if current_run == null or Database.get_card(card_id) == null:
+		return false
+	var owned_count: int = _count_card_occurrences(current_run.player_cards, card_id)
+	if owned_count <= 0 or current_run.player_cards.size() <= 1:
+		return false
+	var equipped_count: int = _count_card_occurrences(current_run.equipped_cards, card_id)
+	if equipped_count >= owned_count and current_run.equipped_cards.size() <= 1:
+		return false
+	return true
+
+
+func _remove_card_occurrence(card_ids: Array[String], card_id: String) -> bool:
+	for index in range(card_ids.size() - 1, -1, -1):
+		if card_ids[index] == card_id:
+			card_ids.remove_at(index)
+			return true
+	return false
+
+
+func _show_gold_delta(amount: int) -> void:
+	if amount != 0:
+		SceneRouter.show_gold_delta(amount)
 
 
 func _count_card_occurrences(card_ids: Array[String], card_id: String) -> int:
