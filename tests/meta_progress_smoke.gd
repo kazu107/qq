@@ -68,6 +68,10 @@ func _run() -> void:
 	if iron_relic_icon == null or iron_relic_icon.tooltip_text.find("Iron Plating") == -1:
 		_fail("Meta progress smoke failed: relic unlock section should render relic icons with tooltips")
 		return
+	var initial_victory_progress_label: Label = meta_scene.find_child("AchievementProgress_victory_milestones", true, false) as Label
+	var initial_victory_progress_bar: ProgressBar = meta_scene.find_child("AchievementProgressBar_victory_milestones", true, false) as ProgressBar
+	if not _assert_achievement_progress_layout(initial_victory_progress_label, initial_victory_progress_bar):
+		return
 
 	Game.developer_add_achievement_stat("victories", 1)
 	meta_scene.call("_refresh_ui")
@@ -366,3 +370,20 @@ func _fail(message: String) -> void:
 	_failed = true
 	push_error(message)
 	get_tree().quit(1)
+
+
+func _assert_achievement_progress_layout(progress_label: Label, progress_bar: ProgressBar) -> bool:
+	if progress_label == null or progress_bar == null:
+		_fail("Meta progress smoke failed: achievement progress label and bar should render")
+		return false
+	if progress_label.get_parent() != progress_bar.get_parent() or progress_label.get_index() >= progress_bar.get_index():
+		_fail("Meta progress smoke failed: achievement progress number should sit above the progress bar")
+		return false
+	var background_style: StyleBoxFlat = progress_bar.get_theme_stylebox("background") as StyleBoxFlat
+	if background_style == null or background_style.bg_color.a <= 0.0 or background_style.border_width_top < 1:
+		_fail("Meta progress smoke failed: achievement progress bar should have a visible zero-value background")
+		return false
+	if progress_bar.value != 0.0:
+		_fail("Meta progress smoke failed: initial achievement progress should start at zero for background visibility coverage")
+		return false
+	return true

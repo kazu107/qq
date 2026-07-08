@@ -180,7 +180,7 @@ func _build_shop_panel(parent: Control) -> void:
 
 
 func _build_loadout_panel(parent: Control) -> void:
-	var box: VBoxContainer = _create_panel(parent, Localization.get_text("arena.panel.loadout", "Arena Loadout"), Vector2(360.0, 0.0))
+	var box: VBoxContainer = _create_panel(parent, Localization.get_text("arena.panel.loadout", "Arena Loadout"), Vector2(420.0, 0.0))
 	box.add_theme_constant_override("separation", 12)
 
 	_loadout_summary_label = Label.new()
@@ -202,11 +202,13 @@ func _build_loadout_panel(parent: Control) -> void:
 	inventory_scroll.name = "ArenaLoadoutInventoryScroll"
 	inventory_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inventory_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	box.add_child(inventory_scroll)
 
 	_inventory_box = VBoxContainer.new()
 	_inventory_box.name = "ArenaLoadoutInventory"
 	_inventory_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_inventory_box.custom_minimum_size = Vector2(0.0, 0.0)
 	_inventory_box.add_theme_constant_override("separation", 8)
 	inventory_scroll.add_child(_inventory_box)
 

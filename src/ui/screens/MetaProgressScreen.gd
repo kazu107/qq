@@ -255,6 +255,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		info.add_child(reward_label)
 
 		var progress_box: VBoxContainer = VBoxContainer.new()
+		progress_box.name = "AchievementProgressBox_%s" % achievement_id
 		progress_box.custom_minimum_size = Vector2(220.0, 0.0)
 		progress_box.add_theme_constant_override("separation", 6)
 		row.add_child(progress_box)
@@ -262,12 +263,18 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		var progress_label: Label = Label.new()
 		progress_label.name = "AchievementProgress_%s" % achievement_id
 		progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		progress_label.add_theme_font_size_override("font_size", 15)
+		progress_label.add_theme_color_override("font_color", Color(0.82, 0.90, 0.94, 1.0))
+		progress_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.82))
+		progress_label.add_theme_constant_override("outline_size", 2)
 		progress_box.add_child(progress_label)
 
 		var progress_bar: ProgressBar = ProgressBar.new()
 		progress_bar.name = "AchievementProgressBar_%s" % achievement_id
-		progress_bar.custom_minimum_size = Vector2(220.0, 16.0)
+		progress_bar.custom_minimum_size = Vector2(220.0, 18.0)
 		progress_bar.show_percentage = false
+		progress_bar.add_theme_stylebox_override("background", _make_achievement_progress_background_style())
+		progress_bar.add_theme_stylebox_override("fill", _make_achievement_progress_fill_style())
 		progress_box.add_child(progress_bar)
 
 		var claim_button: Button = Button.new()
@@ -439,6 +446,31 @@ func _update_achievement_row_widgets(achievement_id: String, entry: Dictionary) 
 	if claim_button != null:
 		claim_button.disabled = not bool(entry.get("claimable", false))
 		claim_button.text = Localization.get_text("meta.claimed", "Claimed") if bool(entry.get("claimed", false)) else Localization.get_text("meta.claim", "Claim")
+
+
+func _make_achievement_progress_background_style() -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.018, 0.026, 0.036, 0.96)
+	style.border_color = Color(0.24, 0.36, 0.46, 0.88)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 7
+	style.corner_radius_top_right = 7
+	style.corner_radius_bottom_left = 7
+	style.corner_radius_bottom_right = 7
+	return style
+
+
+func _make_achievement_progress_fill_style() -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.20, 0.76, 0.92, 0.92)
+	style.corner_radius_top_left = 7
+	style.corner_radius_top_right = 7
+	style.corner_radius_bottom_left = 7
+	style.corner_radius_bottom_right = 7
+	return style
 
 
 func _update_starter_rows(entries: Array[Dictionary]) -> void:
