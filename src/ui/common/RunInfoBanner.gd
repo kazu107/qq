@@ -24,25 +24,34 @@ func refresh(live_hp: int = -1, live_max_hp: int = -1) -> void:
 	if Game.current_run == null:
 		visible = false
 		return
+	refresh_run(Game.current_run, live_hp, live_max_hp)
+
+
+func refresh_run(run_state: RunState, live_hp: int = -1, live_max_hp: int = -1, mode_label: String = "") -> void:
+	if run_state == null:
+		visible = false
+		return
 
 	visible = true
-	var hp_value: int = live_hp if live_hp >= 0 else Game.current_run.player_hp
-	var max_hp_value: int = live_max_hp if live_max_hp > 0 else Game.current_run.max_hp
+	var hp_value: int = live_hp if live_hp >= 0 else run_state.player_hp
+	var max_hp_value: int = live_max_hp if live_max_hp > 0 else run_state.max_hp
 	_hp_label.text = "%d/%d" % [maxi(0, hp_value), maxi(1, max_hp_value)]
-	_gold_label.text = "%d" % maxi(0, Game.current_run.gold)
-	if Game.current_run.arena_mode:
+	_gold_label.text = "%d" % maxi(0, run_state.gold)
+	if mode_label != "":
+		_step_label.text = mode_label
+	elif run_state.arena_mode:
 		_step_label.text = "%d/%d" % [
-			maxi(0, Game.current_run.arena_wins),
-			maxi(1, Game.current_run.arena_target_wins),
+			maxi(0, run_state.arena_wins),
+			maxi(1, run_state.arena_target_wins),
 		]
-	elif Game.current_run.infinite_mode:
+	elif run_state.infinite_mode:
 		_step_label.text = "%d/∞" % maxi(1, Game.get_current_step_index() + 1)
 	else:
 		_step_label.text = "%d/%d" % [
 			min(Game.get_map_step_count(), Game.get_current_step_index() + 1),
 			maxi(1, Game.get_map_step_count()),
 		]
-	_relic_row.refresh_relic_ids(Game.current_run.relics)
+	_relic_row.refresh_relic_ids(run_state.relics)
 
 
 func _build_ui() -> void:

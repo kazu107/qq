@@ -24,6 +24,7 @@ SaveManager="*res://src/autoload/SaveManager.gd"
 SceneRouter="*res://src/autoload/SceneRouter.gd"
 AudioManager="*res://src/autoload/AudioManager.gd"
 UiTheme="*res://src/autoload/UiTheme.gd"
+NetworkManager="*res://src/autoload/NetworkManager.gd"
 
 [display]
 

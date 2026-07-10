@@ -25,6 +25,9 @@ var settings: Dictionary = {
 	"replay_view_return_hint": "result",
 	"last_run_starter_id": "",
 	"last_run_seed": 0,
+	"lan_player_name": "Player",
+	"lan_last_address": "127.0.0.1",
+	"lan_port": 32475,
 }
 var pending_enemy_id: String = ""
 var reward_options: Array[String] = []
@@ -76,6 +79,9 @@ func ensure_meta_initialized() -> void:
 			"replay_view_return_hint": "result",
 			"last_run_starter_id": "",
 			"last_run_seed": 0,
+			"lan_player_name": "Player",
+			"lan_last_address": "127.0.0.1",
+			"lan_port": 32475,
 		}
 	if not settings.has("master_volume"):
 		settings["master_volume"] = 1.0
@@ -104,6 +110,12 @@ func ensure_meta_initialized() -> void:
 		settings["last_run_starter_id"] = ""
 	if not settings.has("last_run_seed"):
 		settings["last_run_seed"] = 0
+	if not settings.has("lan_player_name"):
+		settings["lan_player_name"] = "Player"
+	if not settings.has("lan_last_address"):
+		settings["lan_last_address"] = "127.0.0.1"
+	if not settings.has("lan_port"):
+		settings["lan_port"] = 32475
 	last_replay_export_path = String(settings.get("last_replay_export_path", last_replay_export_path))
 	_meta_progress_service.ensure_defaults(meta_progress)
 	AudioManager.apply_settings(settings)
@@ -624,6 +636,31 @@ func get_available_resolutions() -> Array[Dictionary]:
 	return result
 
 
+func get_lan_player_name() -> String:
+	ensure_meta_initialized()
+	return String(settings.get("lan_player_name", "Player"))
+
+
+func get_lan_last_address() -> String:
+	ensure_meta_initialized()
+	return String(settings.get("lan_last_address", "127.0.0.1"))
+
+
+func get_lan_port() -> int:
+	ensure_meta_initialized()
+	return clampi(int(settings.get("lan_port", 32475)), 1024, 65535)
+
+
+func set_lan_preferences(player_name: String, address: String, port: int) -> void:
+	ensure_meta_initialized()
+	var sanitized_name: String = player_name.strip_edges().replace("\n", " ").replace("\r", " ").left(20)
+	settings["lan_player_name"] = sanitized_name if sanitized_name != "" else "Player"
+	var sanitized_address: String = address.strip_edges()
+	settings["lan_last_address"] = sanitized_address if sanitized_address != "" else "127.0.0.1"
+	settings["lan_port"] = clampi(port, 1024, 65535)
+	SaveManager.save_game(current_screen_hint)
+
+
 func set_master_volume(value: float) -> void:
 	ensure_meta_initialized()
 	settings["master_volume"] = clampf(value, 0.0, 1.0)
@@ -880,6 +917,9 @@ func reset_settings_to_defaults() -> void:
 		"replay_view_return_hint": get_replay_view_return_hint(),
 		"last_run_starter_id": String(settings.get("last_run_starter_id", "")),
 		"last_run_seed": int(settings.get("last_run_seed", 0)),
+		"lan_player_name": "Player",
+		"lan_last_address": "127.0.0.1",
+		"lan_port": 32475,
 	}
 	AudioManager.apply_settings(settings)
 	_apply_resolution_from_settings(true)

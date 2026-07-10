@@ -208,7 +208,13 @@ func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: f
 	)
 
 
-func bind_timeline(card_def: CardDef, entry: TimelineEntry, battle_time: float, is_next: bool = false) -> void:
+func bind_timeline(
+	card_def: CardDef,
+	entry: TimelineEntry,
+	battle_time: float,
+	is_next: bool = false,
+	friendly_side: String = "player"
+) -> void:
 	_ensure_visuals()
 	runtime_id = entry.runtime_id
 	_click_enabled = false
@@ -226,7 +232,8 @@ func bind_timeline(card_def: CardDef, entry: TimelineEntry, battle_time: float, 
 	_meta_badge.visible = true
 	_meta_badge.color = BADGE_ACTIVE if is_next else BADGE_DARK
 	set_bleach_enabled(false)
-	_apply_frame(_get_active_border(entry.owner_side), 4 if is_next else 2, 8 if is_next else 4)
+	var display_side: String = "player" if entry.owner_side == friendly_side else "enemy"
+	_apply_frame(_get_active_border(display_side), 4 if is_next else 2, 8 if is_next else 4)
 	_set_mouse_cursor(false)
 	_set_recovery_ratio(1.0)
 	_set_timeline_indicators(true, is_next)

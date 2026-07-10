@@ -53,6 +53,15 @@ func _ready() -> void:
 	)
 	root.add_child(arena_button)
 
+	var lan_button: Button = Button.new()
+	lan_button.name = "LanMultiplayerButton"
+	lan_button.text = Localization.get_text("hub.lan_multiplayer", "LAN Multiplayer")
+	lan_button.pressed.connect(func() -> void:
+		Game.current_screen_hint = "lan"
+		SceneRouter.go_to_lan_lobby()
+	)
+	root.add_child(lan_button)
+
 	if Game.is_infinite_mode_unlocked():
 		var infinite_button: Button = Button.new()
 		infinite_button.name = "InfiniteModeStartButton"

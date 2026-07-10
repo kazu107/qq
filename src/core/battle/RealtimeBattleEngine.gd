@@ -7,9 +7,11 @@ var _enemy_ai := EnemyAI.new()
 var _boss_passive_timer: float = 0.0
 var _timeline_flows: Array[Dictionary] = []
 var _player_run: RunState
+var _enemy_run: RunState
 var _relic_service: RelicService = RelicService.new()
 var _battle_started: bool = false
 var _enemy_name: String = ""
+var _pvp_mode: bool = false
 
 
 func setup(player_run: RunState, enemy_id: String) -> void:
@@ -19,6 +21,8 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 		return
 
 	_player_run = player_run
+	_enemy_run = null
+	_pvp_mode = false
 	var infinite_power: int = _get_infinite_power(player_run)
 	var scaled_enemy_def: EnemyDef = _build_scaled_enemy_def(enemy_def, infinite_power)
 	_battle_started = false
@@ -29,6 +33,28 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 	_apply_enemy_card_scaling(battle_state.enemy, infinite_power)
 	_enemy_ai.reset()
 	_boss_passive_timer = float(enemy_def.passive.get("interval", 0.0))
+	_timeline_flows.clear()
+
+
+func setup_pvp(
+	player_run: RunState,
+	opponent_run: RunState,
+	player_name: String = "Player 1",
+	opponent_name: String = "Player 2"
+) -> void:
+	if player_run == null or opponent_run == null:
+		push_error("PvP battle requires two valid run states")
+		return
+	_player_run = player_run
+	_enemy_run = opponent_run
+	_pvp_mode = true
+	_battle_started = false
+	_enemy_name = opponent_name
+	battle_state = BattleState.new()
+	battle_state.player = _build_run_unit(player_run, "player", player_name)
+	battle_state.enemy = _build_run_unit(opponent_run, "enemy", opponent_name)
+	_enemy_ai.reset()
+	_boss_passive_timer = 0.0
 	_timeline_flows.clear()
 
 
@@ -44,8 +70,9 @@ func update(delta: float) -> void:
 	_tick_cooldowns(delta)
 	_tick_shields(delta)
 	_tick_statuses(delta)
-	_process_boss_passive(delta)
-	_enemy_ai.update(self, delta)
+	if not _pvp_mode:
+		_process_boss_passive(delta)
+		_enemy_ai.update(self, delta)
 	_tick_timeline_flows(delta)
 	_resolve_due_entries()
 	_check_victory()
@@ -130,6 +157,24 @@ func start_battle() -> bool:
 		return false
 	_start_battle()
 	return true
+
+
+func apply_network_snapshot(state: BattleState, battle_started: bool) -> bool:
+	if state == null:
+		return false
+	battle_state = state
+	_battle_started = battle_started
+	return true
+
+
+func is_pvp_mode() -> bool:
+	return _pvp_mode
+
+
+func get_run_for_side(side: String) -> RunState:
+	if side == "player":
+		return _player_run
+	return _enemy_run
 
 
 func delay_active_cards(side: String, amount: float, scope: String) -> int:
@@ -334,13 +379,22 @@ func build_summary() -> Dictionary:
 		"enemy_name": battle_state.enemy.display_name,
 		"log_count": battle_state.logs.size(),
 		"battle_events": battle_state.battle_events.duplicate(true),
+		"pvp": _pvp_mode,
 	}
 
 
 func _build_player_unit(run_state: RunState) -> UnitState:
+	return _build_run_unit(
+		run_state,
+		"player",
+		Localization.get_text("battle.player_name", "Player")
+	)
+
+
+func _build_run_unit(run_state: RunState, side: String, display_name: String) -> UnitState:
 	var unit := UnitState.new()
-	unit.unit_id = "player"
-	unit.display_name = Localization.get_text("battle.player_name", "Player")
+	unit.unit_id = side
+	unit.display_name = display_name
 	unit.max_hp = run_state.max_hp
 	unit.hp = max(1, run_state.player_hp)
 	unit.shield = 0
@@ -348,7 +402,7 @@ func _build_player_unit(run_state: RunState) -> UnitState:
 	unit.speed = run_state.speed
 	unit.active_slot_max = 3
 	unit.temporary_card_modifiers = run_state.temporary_card_modifiers
-	unit.set_runtime_states(_create_runtime_states("player", run_state.equipped_cards))
+	unit.set_runtime_states(_create_runtime_states(side, run_state.equipped_cards))
 	_relic_service.apply_battle_modifiers(unit, run_state)
 	return unit
 
@@ -692,8 +746,9 @@ func _resolve_modifier_card_ids(side: String, source_card_id: String, effect: Di
 func _add_temporary_card_modifier(side: String, card_id: String, stat: String, amount: float) -> void:
 	var modifier_root: Dictionary = {}
 	var unit: UnitState = battle_state.get_unit(side)
-	if side == "player" and _player_run != null:
-		modifier_root = _player_run.temporary_card_modifiers
+	var side_run: RunState = get_run_for_side(side)
+	if side_run != null:
+		modifier_root = side_run.temporary_card_modifiers
 	else:
 		modifier_root = unit.temporary_card_modifiers
 
@@ -701,8 +756,8 @@ func _add_temporary_card_modifier(side: String, card_id: String, stat: String, a
 	card_modifiers[stat] = float(card_modifiers.get(stat, 0.0)) + amount
 	modifier_root[card_id] = card_modifiers
 
-	if side == "player" and _player_run != null:
-		_player_run.temporary_card_modifiers = modifier_root
+	if side_run != null:
+		side_run.temporary_card_modifiers = modifier_root
 		unit.temporary_card_modifiers = modifier_root
 	else:
 		unit.temporary_card_modifiers = modifier_root
@@ -839,6 +894,8 @@ func _apply_enemy_card_scaling(enemy_unit: UnitState, infinite_power: int) -> vo
 
 
 func _get_card_def(side: String, card_id: String) -> CardDef:
+	if _pvp_mode:
+		return CardUpgradeResolver.build_effective_card(card_id, get_run_for_side(side))
 	if side == "player":
 		return CardUpgradeResolver.build_effective_card(card_id, _player_run)
 	if battle_state == null:

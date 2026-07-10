@@ -6,6 +6,8 @@ const BATTLE_CARD_TILE_SIZE: Vector2 = Vector2(100.0, 100.0)
 const BATTLE_LOADOUT_WIDTH: float = 320.0
 const BATTLE_SIDE_PANEL_WIDTH: float = BATTLE_LOADOUT_WIDTH + 34.0
 const TIMELINE_PREVIEW_INSTANCE_ID: int = 999999
+const LAN_SNAPSHOT_INTERVAL: float = 1.0 / 12.0
+const LAN_CLIENT_PREDICTION_LIMIT: float = 0.18
 
 var _engine := RealtimeBattleEngine.new()
 var _enemy_panel: UnitPanel
@@ -28,10 +30,28 @@ var _handled_finish: bool = false
 var _hovered_player_runtime_id: String = ""
 var _processed_battle_event_count: int = 0
 var _processed_vfx_event_count: int = 0
+var _lan_mode: bool = false
+var _local_side: String = "player"
+var _local_run: RunState
+var _opponent_run: RunState
+var _lan_snapshot_elapsed: float = 0.0
+var _lan_authoritative_battle_time: float = 0.0
+var _lan_finish_submitted: bool = false
 
 
 func _ready() -> void:
 	_build_ui()
+	_lan_mode = NetworkManager.has_active_match()
+	if _lan_mode:
+		_connect_lan_signals()
+		if not _setup_lan_battle():
+			SceneRouter.go_to_lan_lobby()
+			return
+		set_process(true)
+		_refresh_ui(1.0)
+		if Game.is_developer_mode_enabled():
+			_build_developer_panel()
+		return
 	if Game.current_run == null:
 		SceneRouter.go_to_title()
 		return
@@ -51,6 +71,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if _engine.battle_state == null:
+		return
+	if _lan_mode:
+		_process_lan_battle(delta)
 		return
 
 	var time_scale := SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE))
@@ -74,6 +97,146 @@ func _process(delta: float) -> void:
 		_transition_timer -= delta
 		if _transition_timer <= 0.0:
 			_advance_after_battle()
+
+
+func _setup_lan_battle() -> bool:
+	var payload: Dictionary = NetworkManager.get_match_payload()
+	var player_run: RunState = NetworkManager.get_match_run("player")
+	var enemy_run: RunState = NetworkManager.get_match_run("enemy")
+	if payload.is_empty() or player_run == null or enemy_run == null:
+		return false
+	_local_side = NetworkManager.get_local_side()
+	_local_run = player_run if _local_side == "player" else enemy_run
+	_opponent_run = enemy_run if _local_side == "player" else player_run
+	_engine.setup_pvp(
+		player_run,
+		enemy_run,
+		String(payload.get("player_name", "Player 1")),
+		String(payload.get("enemy_name", "Player 2"))
+	)
+	var last_snapshot: Dictionary = NetworkManager.get_last_snapshot()
+	if not last_snapshot.is_empty():
+		_apply_lan_snapshot(last_snapshot)
+	_processed_battle_event_count = 0
+	_processed_vfx_event_count = 0
+	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
+	_player_panel.configure_visual("player", _local_run.starter_id)
+	_enemy_panel.configure_visual("enemy", _opponent_run.starter_id)
+	_slow_mode_label.text = Localization.get_text("lan.battle.host", "LAN HOST") if NetworkManager.is_host() else Localization.get_text("lan.battle.client", "LAN CLIENT")
+	return true
+
+
+func _process_lan_battle(delta: float) -> void:
+	if NetworkManager.is_host():
+		if not NetworkManager.is_waiting_for_reconnect():
+			_engine.update(delta)
+		_lan_snapshot_elapsed += delta
+		if _lan_snapshot_elapsed >= LAN_SNAPSHOT_INTERVAL:
+			_lan_snapshot_elapsed = fmod(_lan_snapshot_elapsed, LAN_SNAPSHOT_INTERVAL)
+			_publish_lan_snapshot(false)
+	else:
+		var state: BattleState = _engine.battle_state
+		if not NetworkManager.is_waiting_for_reconnect() and _engine.has_battle_started() and state.winner == "":
+			state.battle_time = minf(
+				state.battle_time + delta,
+				_lan_authoritative_battle_time + LAN_CLIENT_PREDICTION_LIMIT
+			)
+
+	_refresh_ui(1.0)
+	if NetworkManager.is_host() and _engine.battle_state.winner != "" and not _lan_finish_submitted:
+		_lan_finish_submitted = true
+		_publish_lan_snapshot(true)
+		NetworkManager.finish_lan_match(_engine.build_summary(), NetworkManager.get_last_snapshot())
+	if _transition_timer > 0.0:
+		_transition_timer -= delta
+		if _transition_timer <= 0.0:
+			_advance_after_battle()
+
+
+func _publish_lan_snapshot(reliable: bool) -> void:
+	var snapshot: Dictionary = BattleStateCodec.encode(_engine.battle_state, _engine.has_battle_started())
+	NetworkManager.publish_battle_snapshot(snapshot, reliable)
+
+
+func _connect_lan_signals() -> void:
+	if not NetworkManager.battle_snapshot_received.is_connected(_on_lan_snapshot_received):
+		NetworkManager.battle_snapshot_received.connect(_on_lan_snapshot_received)
+	if not NetworkManager.battle_command_received.is_connected(_on_lan_battle_command_received):
+		NetworkManager.battle_command_received.connect(_on_lan_battle_command_received)
+	if not NetworkManager.command_result_received.is_connected(_on_lan_command_result_received):
+		NetworkManager.command_result_received.connect(_on_lan_command_result_received)
+	if not NetworkManager.match_finished.is_connected(_on_lan_match_finished):
+		NetworkManager.match_finished.connect(_on_lan_match_finished)
+	if not NetworkManager.connection_state_changed.is_connected(_on_lan_connection_state_changed):
+		NetworkManager.connection_state_changed.connect(_on_lan_connection_state_changed)
+	if not NetworkManager.session_ended.is_connected(_on_lan_session_ended):
+		NetworkManager.session_ended.connect(_on_lan_session_ended)
+
+
+func _on_lan_snapshot_received(snapshot: Dictionary) -> void:
+	_apply_lan_snapshot(snapshot)
+
+
+func _apply_lan_snapshot(snapshot: Dictionary) -> void:
+	var decoded_state: BattleState = BattleStateCodec.decode(snapshot)
+	if decoded_state == null:
+		return
+	_lan_authoritative_battle_time = decoded_state.battle_time
+	_engine.apply_network_snapshot(decoded_state, bool(snapshot.get("battle_started", false)))
+
+
+func _on_lan_battle_command_received(
+	peer_id: int,
+	side: String,
+	kind: String,
+	runtime_id: String,
+	sequence: int
+) -> void:
+	if not _lan_mode or not NetworkManager.is_host():
+		return
+	var accepted: bool = false
+	if kind == "start":
+		accepted = _engine.start_battle()
+	elif kind == "card":
+		accepted = _engine.request_use_card(side, runtime_id)
+	_publish_lan_snapshot(true)
+	NetworkManager.send_command_result(peer_id, sequence, accepted, NetworkManager.get_last_snapshot())
+
+
+func _on_lan_command_result_received(_sequence: int, accepted: bool, _snapshot: Dictionary) -> void:
+	if not accepted:
+		AudioManager.play_sfx("ui_error")
+
+
+func _on_lan_match_finished(result: Dictionary) -> void:
+	if not _lan_mode or _handled_finish:
+		return
+	_handled_finish = true
+	_transition_timer = 1.4
+	_result_label.visible = true
+	var winner: String = String(result.get("winner", "draw"))
+	if winner == "draw":
+		_result_label.text = Localization.get_text("battle.result.draw", "Draw")
+	elif winner == _local_side:
+		_result_label.text = Localization.get_text("battle.result.victory", "Victory")
+	else:
+		_result_label.text = Localization.get_text("battle.result.defeat", "Defeat")
+
+
+func _on_lan_connection_state_changed(_state: int, message: String) -> void:
+	if not _lan_mode or _slow_mode_label == null:
+		return
+	if NetworkManager.is_waiting_for_reconnect():
+		_slow_mode_label.text = message
+
+
+func _on_lan_session_ended(_reason: String) -> void:
+	if not _lan_mode or _handled_finish:
+		return
+	_handled_finish = true
+	_result_label.visible = true
+	_result_label.text = Localization.get_text("lan.battle.disconnected", "Connection lost")
+	_transition_timer = 0.8
 
 
 func _build_ui() -> void:
@@ -269,7 +432,14 @@ func _refresh_ui(time_scale: float) -> void:
 	if battle_state == null:
 		return
 
-	if time_scale < 1.0:
+	if _lan_mode:
+		if NetworkManager.is_waiting_for_reconnect():
+			_slow_mode_label.text = Localization.get_text("lan.battle.reconnecting", "Connection interrupted - battle paused")
+		else:
+			_slow_mode_label.text = Localization.get_textf("lan.battle.ping", "LAN | Ping {ping} ms", {
+				"ping": NetworkManager.get_connection_ping_ms(),
+			})
+	elif time_scale < 1.0:
 		_slow_mode_label.text = Localization.get_textf("battle.slow_mode_rate", "Slow Mode {rate}%", {
 			"rate": int(round(time_scale * 100.0)),
 		})
@@ -284,25 +454,49 @@ func _refresh_ui(time_scale: float) -> void:
 	var preview_card_def: CardDef = _get_hover_preview_card_def(preview_runtime_state)
 	var preview_slot_cost: int = _get_hover_preview_slot_cost(preview_runtime_state, preview_card_def)
 	var suppressed_shield_losses: Dictionary = _consume_suppressed_shield_decay_losses(battle_state)
+	var local_unit: UnitState = battle_state.get_unit(_local_side)
+	var opponent_unit: UnitState = battle_state.get_opponent(_local_side)
+	if _lan_mode:
+		_local_run.temporary_card_modifiers = local_unit.temporary_card_modifiers.duplicate(true)
+		_opponent_run.temporary_card_modifiers = opponent_unit.temporary_card_modifiers.duplicate(true)
 	if _run_info_banner != null:
-		_run_info_banner.refresh(battle_state.player.hp, battle_state.player.max_hp)
-	_enemy_panel.refresh_unit(battle_state.enemy, 0, int(suppressed_shield_losses.get(battle_state.enemy.unit_id, 0)))
-	_player_panel.refresh_unit(battle_state.player, preview_slot_cost, int(suppressed_shield_losses.get(battle_state.player.unit_id, 0)))
-	_enemy_cards_panel.refresh_cards(battle_state.enemy, null, "enemy")
-	_card_hand_panel.refresh_cards(battle_state.player, Game.current_run, "player")
+		if _lan_mode:
+			_run_info_banner.refresh_run(_local_run, local_unit.hp, local_unit.max_hp, "LAN")
+		else:
+			_run_info_banner.refresh(local_unit.hp, local_unit.max_hp)
+	_enemy_panel.refresh_unit(opponent_unit, 0, int(suppressed_shield_losses.get(opponent_unit.unit_id, 0)))
+	_player_panel.refresh_unit(local_unit, preview_slot_cost, int(suppressed_shield_losses.get(local_unit.unit_id, 0)))
+	_enemy_cards_panel.refresh_cards(opponent_unit, _opponent_run if _lan_mode else null, "player" if _lan_mode else "enemy")
+	_card_hand_panel.refresh_cards(local_unit, _local_run if _lan_mode else Game.current_run, "player")
 	var preview_entry: TimelineEntry = _build_hover_preview_entry(battle_state, preview_runtime_state, preview_card_def)
-	_timeline_panel.refresh_timeline(battle_state.timeline, battle_state.battle_time, Game.current_run, preview_entry, preview_card_def)
+	_timeline_panel.refresh_timeline(
+		battle_state.timeline,
+		battle_state.battle_time,
+		_local_run if _lan_mode else Game.current_run,
+		preview_entry,
+		preview_card_def,
+		_local_side,
+		_opponent_run if _lan_mode else null
+	)
 	_log_panel.refresh_logs(battle_state.logs)
-	var total_steps: int = max(1, Game.get_map_step_count())
-	var display_step: int = min(total_steps, Game.get_current_step_index() + 1)
-	var battle_info_text: String = "\n".join([
-		Localization.get_textf("battle.info.time", "Battle Time {value}s", {"value": "%.1f" % battle_state.battle_time}),
-		Localization.get_textf("battle.info.map_step", "Map Step {current} / {total}", {
-			"current": display_step,
-			"total": total_steps,
-		}),
-		Localization.get_textf("battle.info.current_enemy", "Current Enemy: {value}", {"value": battle_state.enemy.display_name}),
-	])
+	var battle_info_text: String = ""
+	if _lan_mode:
+		battle_info_text = "\n".join([
+			Localization.get_text("lan.battle.title", "LAN BATTLE"),
+			Localization.get_textf("battle.info.time", "Battle Time {value}s", {"value": "%.1f" % battle_state.battle_time}),
+			Localization.get_textf("lan.battle.opponent", "Opponent: {value}", {"value": opponent_unit.display_name}),
+		])
+	else:
+		var total_steps: int = max(1, Game.get_map_step_count())
+		var display_step: int = min(total_steps, Game.get_current_step_index() + 1)
+		battle_info_text = "\n".join([
+			Localization.get_textf("battle.info.time", "Battle Time {value}s", {"value": "%.1f" % battle_state.battle_time}),
+			Localization.get_textf("battle.info.map_step", "Map Step {current} / {total}", {
+				"current": display_step,
+				"total": total_steps,
+			}),
+			Localization.get_textf("battle.info.current_enemy", "Current Enemy: {value}", {"value": battle_state.enemy.display_name}),
+		])
 	_battle_info_label.text = "[center]%s[/center]" % battle_info_text
 	_process_resolution_vfx(battle_state)
 
@@ -344,17 +538,30 @@ func _process_resolution_vfx(battle_state: BattleState) -> void:
 
 
 func _resolve_unit_panel(unit_id: String, battle_state: BattleState) -> UnitPanel:
-	if unit_id == "player":
+	if battle_state == null:
+		return null
+	var local_unit: UnitState = battle_state.get_unit(_local_side)
+	var opponent_unit: UnitState = battle_state.get_opponent(_local_side)
+	if unit_id == local_unit.unit_id or unit_id == _local_side:
 		return _player_panel
-	if battle_state != null and unit_id == battle_state.enemy.unit_id:
-		return _enemy_panel
-	if unit_id == "enemy":
+	if unit_id == opponent_unit.unit_id or unit_id != "" and unit_id == ("enemy" if _local_side == "player" else "player"):
 		return _enemy_panel
 	return null
 
 
 func _on_card_requested(runtime_id: String) -> void:
-	var requested: bool = _engine.request_use_card("player", runtime_id)
+	var requested: bool = false
+	if _lan_mode and not NetworkManager.is_host():
+		requested = NetworkManager.submit_card_command(runtime_id)
+		if requested:
+			var local_runtime: CardRuntimeState = _engine.battle_state.get_unit(_local_side).get_runtime_state(runtime_id)
+			if local_runtime != null:
+				local_runtime.begin_prepare()
+			AudioManager.play_sfx("card_commit")
+	else:
+		requested = _engine.request_use_card(_local_side, runtime_id)
+		if _lan_mode and requested:
+			_publish_lan_snapshot(true)
 	if not requested:
 		AudioManager.play_sfx("ui_error")
 	elif _hovered_player_runtime_id == runtime_id:
@@ -363,7 +570,16 @@ func _on_card_requested(runtime_id: String) -> void:
 
 
 func _on_start_battle_pressed() -> void:
-	if not _engine.start_battle():
+	var started: bool = false
+	if _lan_mode and not NetworkManager.is_host():
+		started = NetworkManager.submit_start_command()
+		if started:
+			_engine.apply_network_snapshot(_engine.battle_state, true)
+	else:
+		started = _engine.start_battle()
+		if _lan_mode and started:
+			_publish_lan_snapshot(true)
+	if not started:
 		AudioManager.play_sfx("ui_error")
 		return
 	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
@@ -384,13 +600,14 @@ func _on_player_card_unhovered(runtime_id: String) -> void:
 func _get_hovered_player_runtime_state(battle_state: BattleState) -> CardRuntimeState:
 	if _hovered_player_runtime_id == "":
 		return null
-	return battle_state.player.get_runtime_state(_hovered_player_runtime_id)
+	return battle_state.get_unit(_local_side).get_runtime_state(_hovered_player_runtime_id)
 
 
 func _get_hover_preview_card_def(runtime_state: CardRuntimeState) -> CardDef:
-	if runtime_state == null or Game.current_run == null:
+	var run_state: RunState = _local_run if _lan_mode else Game.current_run
+	if runtime_state == null or run_state == null:
 		return null
-	return CardUpgradeResolver.build_effective_card(runtime_state.card_id, Game.current_run)
+	return CardUpgradeResolver.build_effective_card(runtime_state.card_id, run_state)
 
 
 func _get_hover_preview_slot_cost(runtime_state: CardRuntimeState, card_def: CardDef) -> int:
@@ -398,7 +615,7 @@ func _get_hover_preview_slot_cost(runtime_state: CardRuntimeState, card_def: Car
 		return 0
 	if not runtime_state.can_use():
 		return 0
-	if _engine.battle_state == null or not CardEffectResolver.can_pay_shield_cost(_engine.battle_state.player, card_def):
+	if _engine.battle_state == null or not CardEffectResolver.can_pay_shield_cost(_engine.battle_state.get_unit(_local_side), card_def):
 		return 0
 	return card_def.active_slot_cost
 
@@ -412,22 +629,23 @@ func _build_hover_preview_entry(
 		return null
 	if not runtime_state.can_use():
 		return null
-	if battle_state.player.active_slots_used + card_def.active_slot_cost > battle_state.player.active_slot_max:
+	var local_unit: UnitState = battle_state.get_unit(_local_side)
+	if local_unit.active_slots_used + card_def.active_slot_cost > local_unit.active_slot_max:
 		return null
-	if not CardEffectResolver.can_pay_shield_cost(battle_state.player, card_def):
+	if not CardEffectResolver.can_pay_shield_cost(local_unit, card_def):
 		return null
 
 	var entry: TimelineEntry = TimelineEntry.new()
 	entry.instance_id = TIMELINE_PREVIEW_INSTANCE_ID
-	entry.owner_side = "player"
+	entry.owner_side = _local_side
 	entry.runtime_id = "preview_%s" % runtime_state.runtime_id
 	entry.card_id = runtime_state.card_id
 	entry.card_name = card_def.name
 	entry.created_at = battle_state.battle_time
-	entry.scheduled_time = battle_state.battle_time + card_def.cast_time * battle_state.player.get_cast_time_multiplier()
+	entry.scheduled_time = battle_state.battle_time + card_def.cast_time * local_unit.get_cast_time_multiplier()
 	entry.sort_key = entry.scheduled_time - card_def.priority_modifier
 	entry.priority_modifier = card_def.priority_modifier
-	entry.actor_speed = battle_state.player.speed
+	entry.actor_speed = local_unit.speed
 	entry.slot_cost = card_def.active_slot_cost
 	entry.interruptible = card_def.interruptible
 	return entry
@@ -437,17 +655,23 @@ func _compute_timeline_horizon() -> float:
 	if _engine.battle_state == null:
 		return TimelinePanel.DEFAULT_TIMELINE_HORIZON
 	var max_cast_time: float = TimelinePanel.DEFAULT_TIMELINE_HORIZON
-	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(_engine.battle_state.player, true))
-	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(_engine.battle_state.enemy, false))
+	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(
+		_engine.battle_state.player,
+		NetworkManager.get_match_run("player") if _lan_mode else Game.current_run
+	))
+	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(
+		_engine.battle_state.enemy,
+		NetworkManager.get_match_run("enemy") if _lan_mode else null
+	))
 	return max_cast_time
 
 
-func _get_unit_loadout_max_cast_time(unit: UnitState, use_player_upgrades: bool) -> float:
+func _get_unit_loadout_max_cast_time(unit: UnitState, run_state: RunState) -> float:
 	var max_cast_time: float = 0.1
 	for runtime_state in unit.card_runtime_states:
 		var card_def: CardDef = null
-		if use_player_upgrades and Game.current_run != null:
-			card_def = CardUpgradeResolver.build_effective_card(runtime_state.card_id, Game.current_run)
+		if run_state != null:
+			card_def = CardUpgradeResolver.build_effective_card(runtime_state.card_id, run_state)
 		else:
 			card_def = Database.get_card(runtime_state.card_id)
 		if card_def != null:
@@ -461,6 +685,9 @@ func _on_log_button_pressed() -> void:
 
 
 func _advance_after_battle() -> void:
+	if _lan_mode:
+		SceneRouter.go_to_lan_lobby()
+		return
 	if Game.current_run == null:
 		SceneRouter.go_to_title()
 		return
@@ -504,22 +731,43 @@ func _refresh_developer_panel() -> void:
 
 
 func _on_dev_force_victory() -> void:
-	_force_battle_result("player")
+	_force_battle_result(_local_side)
 
 
 func _on_dev_force_defeat() -> void:
-	_force_battle_result("enemy")
+	_force_battle_result("enemy" if _local_side == "player" else "player")
 
 
 func _on_dev_restore_hp() -> void:
 	if _engine.battle_state == null:
 		return
-	_engine.battle_state.player.hp = _engine.battle_state.player.max_hp
+	var local_unit: UnitState = _engine.battle_state.get_unit(_local_side)
+	local_unit.hp = local_unit.max_hp
 	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
 
 
 func _force_battle_result(winner: String) -> void:
 	if _engine.battle_state == null or _handled_finish:
+		return
+	if _lan_mode:
+		if not NetworkManager.is_host():
+			AudioManager.play_sfx("ui_error")
+			return
+		_engine.battle_state.winner = winner
+		_engine.battle_state.record_event({
+			"time": _engine.battle_state.battle_time,
+			"event_type": "developer_forced_result",
+			"actor_id": "developer_mode",
+			"card_id": "",
+			"target_id": winner,
+			"result": {"winner": winner},
+			"hp_delta": 0,
+			"shield_delta": 0,
+			"timeline_before": [],
+			"timeline_after": [],
+		})
+		_publish_lan_snapshot(true)
+		NetworkManager.finish_lan_match(_engine.build_summary(), NetworkManager.get_last_snapshot())
 		return
 	_handled_finish = true
 	var summary: Dictionary = _engine.build_summary()

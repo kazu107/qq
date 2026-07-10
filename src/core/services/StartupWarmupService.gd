@@ -36,6 +36,7 @@ static func warm_all() -> Dictionary:
 		"status_icons": int(unit_counts.get("statuses", 0)),
 		"stat_icons": stat_icon_count,
 		"map_icons": map_icon_count,
+		"network_hash": LanProtocol.build_content_hash().left(12),
 	}
 
 
@@ -73,6 +74,10 @@ static func warm_all_async(progress_callback: Callable = Callable()) -> Dictiona
 	await _next_frame()
 	data.summary["stat_icons"] = StatIconFactory.warm_cache()
 	data.summary["map_icons"] = MapNodeButton.warm_icon_cache()
+
+	_report_progress(progress_callback, "boot.caching_network", 0.99)
+	await _next_frame()
+	data.summary["network_hash"] = LanProtocol.build_content_hash().left(12)
 
 	_report_progress(progress_callback, "boot.ready", 1.0)
 	await _next_frame()
