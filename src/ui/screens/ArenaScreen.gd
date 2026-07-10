@@ -24,23 +24,44 @@ var _reward_overlay: ColorRect
 var _reward_modal: PanelContainer
 var _reward_options_box: HBoxContainer
 var _developer_panel: DeveloperPanel
+var _lan_mode: bool = false
 
 
 func _ready() -> void:
-	if Game.current_run == null:
-		SceneRouter.go_to_hub()
-		return
-	if not Game.current_run.arena_mode:
-		SceneRouter.go_to_map()
-		return
-	if Game.current_run.run_complete:
-		SceneRouter.go_to_result()
-		return
+	_lan_mode = NetworkManager.is_lan_arena_session_active()
+	if _lan_mode:
+		if NetworkManager.get_lan_arena_phase() == "battle" and NetworkManager.has_active_match():
+			SceneRouter.go_to_battle()
+			return
+		_connect_lan_signals()
+	else:
+		if Game.current_run == null:
+			SceneRouter.go_to_hub()
+			return
+		if not Game.current_run.arena_mode:
+			SceneRouter.go_to_map()
+			return
+		if Game.current_run.run_complete:
+			SceneRouter.go_to_result()
+			return
 
 	_build_ui()
 	_refresh_ui()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+
+
+func _connect_lan_signals() -> void:
+	if not NetworkManager.arena_preparation_changed.is_connected(_on_lan_arena_changed):
+		NetworkManager.arena_preparation_changed.connect(_on_lan_arena_changed)
+	if not NetworkManager.arena_action_result_received.is_connected(_on_lan_arena_action_result):
+		NetworkManager.arena_action_result_received.connect(_on_lan_arena_action_result)
+	if not NetworkManager.match_started.is_connected(_on_lan_match_started):
+		NetworkManager.match_started.connect(_on_lan_match_started)
+	if not NetworkManager.arena_session_finished.is_connected(_on_lan_arena_finished):
+		NetworkManager.arena_session_finished.connect(_on_lan_arena_finished)
+	if not NetworkManager.session_ended.is_connected(_on_lan_session_ended):
+		NetworkManager.session_ended.connect(_on_lan_session_ended)
 
 
 func _build_ui() -> void:
@@ -320,11 +341,15 @@ func _build_reward_modal() -> void:
 
 
 func _refresh_ui() -> void:
-	if Game.current_run == null or not Game.current_run.arena_mode:
+	var run_state: RunState = _get_active_run()
+	if run_state == null or not run_state.arena_mode:
 		return
 	if _run_info_banner != null:
-		_run_info_banner.refresh()
-	var status: Dictionary = Game.get_arena_status()
+		if _lan_mode:
+			_run_info_banner.refresh_run(run_state, -1, -1, "LAN R%d" % run_state.arena_round)
+		else:
+			_run_info_banner.refresh()
+	var status: Dictionary = _get_arena_status()
 	_status_label.text = Localization.get_textf("arena.status", "Round {round} | Wins {wins}/{target} | Losses {losses}/{max_losses}", {
 		"round": int(status.get("round", 1)),
 		"wins": int(status.get("wins", 0)),
@@ -332,6 +357,11 @@ func _refresh_ui() -> void:
 		"losses": int(status.get("losses", 0)),
 		"max_losses": int(status.get("max_losses", 1)),
 	})
+	if _lan_mode:
+		_status_label.text += "\n%s / %s" % [
+			Localization.get_text("lan.arena.ready", "Ready") if bool(status.get("local_ready", false)) else Localization.get_text("lan.arena.preparing", "Preparing"),
+			Localization.get_text("lan.arena.opponent_ready", "Opponent ready") if bool(status.get("opponent_ready", false)) else Localization.get_text("lan.arena.opponent_preparing", "Opponent preparing"),
+		]
 	_next_enemy_label.text = Localization.get_textf("arena.next_enemy", "Next: {enemy}", {
 		"enemy": String(status.get("next_enemy_name", "")),
 	})
@@ -339,21 +369,60 @@ func _refresh_ui() -> void:
 	_reroll_button.text = Localization.get_textf("arena.reroll_shop", "Refresh Shop ({cost}G)", {
 		"cost": int(status.get("reroll_cost", 0)),
 	})
-	_reroll_button.disabled = not bool(status.get("can_reroll", false))
+	_reroll_button.disabled = not bool(status.get("can_reroll", false)) or _is_preparation_locked()
 	if _start_battle_button != null:
-		_start_battle_button.disabled = Game.get_equipped_cards().is_empty() or Game.has_pending_arena_reward()
+		if _lan_mode:
+			var local_ready: bool = NetworkManager.is_local_arena_ready()
+			_start_battle_button.text = Localization.get_text("lan.arena.cancel_ready", "Cancel Ready") if local_ready else Localization.get_text("lan.arena.finish_prep", "Finish Preparation")
+			_start_battle_button.disabled = _get_equipped_cards().is_empty() or not _get_pending_rewards().is_empty() or NetworkManager.is_waiting_for_reconnect()
+		else:
+			_start_battle_button.text = Localization.get_text("arena.start_battle", "Start Next Battle")
+			_start_battle_button.disabled = Game.get_equipped_cards().is_empty() or Game.has_pending_arena_reward()
 
-	_refresh_offer_list(_card_offers_box, Game.get_arena_card_offers(), true)
-	_refresh_offer_list(_relic_offers_box, Game.get_arena_relic_offers(), false)
+	_refresh_offer_list(_card_offers_box, _get_card_offers(), true)
+	_refresh_offer_list(_relic_offers_box, _get_relic_offers(), false)
 	_loadout_summary_label.text = Localization.get_textf("map.loadout_cost", "Loadout Cost {used} / {limit}", {
-		"used": Game.get_current_loadout_cost(),
-		"limit": Game.get_loadout_limit(),
+		"used": RunState.get_total_loadout_cost(run_state.equipped_cards),
+		"limit": run_state.loadout_limit,
 	})
-	_deck_panel.refresh_card_ids(Game.get_equipped_cards(), false, "EQUIP", Game.current_run)
+	_deck_panel.refresh_card_ids(_get_equipped_cards(), false, "EQUIP", run_state)
 	_rebuild_loadout_rows()
-	_relic_row.refresh_relic_ids(Game.current_run.relics, Localization.get_text("status.none", "None"))
+	_relic_row.refresh_relic_ids(run_state.relics, Localization.get_text("status.none", "None"))
 	_refresh_reward_modal()
 	_refresh_developer_panel()
+
+
+func _get_active_run() -> RunState:
+	return NetworkManager.get_local_arena_run() if _lan_mode else Game.current_run
+
+
+func _get_arena_status() -> Dictionary:
+	return NetworkManager.get_local_arena_status() if _lan_mode else Game.get_arena_status()
+
+
+func _get_card_offers() -> Array[Dictionary]:
+	return NetworkManager.get_local_arena_card_offers() if _lan_mode else Game.get_arena_card_offers()
+
+
+func _get_relic_offers() -> Array[Dictionary]:
+	return NetworkManager.get_local_arena_relic_offers() if _lan_mode else Game.get_arena_relic_offers()
+
+
+func _get_pending_rewards() -> Array[Dictionary]:
+	return NetworkManager.get_local_arena_pending_rewards() if _lan_mode else Game.get_arena_pending_rewards()
+
+
+func _get_loadout_entries() -> Array[Dictionary]:
+	return NetworkManager.get_local_arena_loadout_entries() if _lan_mode else Game.get_loadout_entries()
+
+
+func _get_equipped_cards() -> Array[String]:
+	var run_state: RunState = _get_active_run()
+	return [] if run_state == null else run_state.equipped_cards.duplicate()
+
+
+func _is_preparation_locked() -> bool:
+	return _lan_mode and (NetworkManager.is_local_arena_ready() or NetworkManager.is_waiting_for_reconnect())
 
 
 func _refresh_offer_list(parent: VBoxContainer, offers: Array[Dictionary], is_card: bool) -> void:
@@ -465,7 +534,8 @@ func _add_offer_buttons(parent: HBoxContainer, offer_data: Dictionary, offer_ind
 
 	var bought: bool = bool(offer_data.get("bought", false))
 	var price: int = int(offer_data.get("price", 0))
-	var can_buy: bool = not bought and Game.current_run != null and Game.current_run.gold >= price
+	var run_state: RunState = _get_active_run()
+	var can_buy: bool = not bought and run_state != null and run_state.gold >= price and not _is_preparation_locked()
 	var buy_button: Button = Button.new()
 	buy_button.text = Localization.get_text("arena.sold", "Sold") if bought else Localization.get_text("arena.buy", "Buy")
 	buy_button.disabled = not can_buy
@@ -477,7 +547,7 @@ func _add_offer_buttons(parent: HBoxContainer, offer_data: Dictionary, offer_ind
 
 	var hold_button: Button = Button.new()
 	hold_button.text = Localization.get_text("arena.unhold", "Unhold") if bool(offer_data.get("held", false)) else Localization.get_text("arena.hold", "Hold")
-	hold_button.disabled = bought
+	hold_button.disabled = bought or _is_preparation_locked()
 	if is_card:
 		hold_button.pressed.connect(Callable(self, "_on_toggle_card_hold").bind(offer_index))
 	else:
@@ -502,9 +572,10 @@ func _rebuild_loadout_rows() -> void:
 		_inventory_box.remove_child(child)
 		child.queue_free()
 
-	for entry in Game.get_loadout_entries():
+	var run_state: RunState = _get_active_run()
+	for entry in _get_loadout_entries():
 		var card_id: String = String(entry.get("card_id", ""))
-		var card_def: CardDef = CardUpgradeResolver.build_effective_card(card_id, Game.current_run)
+		var card_def: CardDef = CardUpgradeResolver.build_effective_card(card_id, run_state)
 		if card_def == null:
 			continue
 		_inventory_box.add_child(_build_loadout_row(entry, card_def))
@@ -561,14 +632,14 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	var equip_button: Button = Button.new()
 	equip_button.name = "ArenaEquipButton_%s" % card_id
 	equip_button.text = Localization.get_text("map.equip", "Equip")
-	equip_button.disabled = not bool(entry.get("can_equip", false))
+	equip_button.disabled = not bool(entry.get("can_equip", false)) or _is_preparation_locked()
 	equip_button.pressed.connect(_on_equip_card.bind(card_id))
 	actions.add_child(equip_button)
 
 	var unequip_button: Button = Button.new()
 	unequip_button.name = "ArenaUnequipButton_%s" % card_id
 	unequip_button.text = Localization.get_text("map.unequip", "Unequip")
-	unequip_button.disabled = not bool(entry.get("can_unequip", false))
+	unequip_button.disabled = not bool(entry.get("can_unequip", false)) or _is_preparation_locked()
 	unequip_button.pressed.connect(_on_unequip_card.bind(card_id))
 	actions.add_child(unequip_button)
 
@@ -577,7 +648,7 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	sell_button.name = "ArenaSellButton_%s" % card_id
 	sell_button.icon = StatIconFactory.get_icon("gold")
 	sell_button.text = Localization.get_textf("map.sell_for", "Sell {amount}", {"amount": sell_value})
-	sell_button.disabled = not bool(entry.get("can_sell", false))
+	sell_button.disabled = not bool(entry.get("can_sell", false)) or _is_preparation_locked()
 	sell_button.pressed.connect(_on_sell_card.bind(card_id))
 	actions.add_child(sell_button)
 	return frame
@@ -621,7 +692,7 @@ func _append_loadout_cost_tooltip(preview: CardButton, card_def: CardDef) -> voi
 func _refresh_reward_modal() -> void:
 	if _reward_overlay == null or _reward_modal == null or _reward_options_box == null:
 		return
-	var rewards: Array[Dictionary] = Game.get_arena_pending_rewards()
+	var rewards: Array[Dictionary] = _get_pending_rewards()
 	var show_modal: bool = not rewards.is_empty()
 	_reward_overlay.visible = show_modal
 	_reward_modal.visible = show_modal
@@ -763,64 +834,136 @@ func _make_offer_style(held: bool, bought: bool) -> StyleBoxFlat:
 
 
 func _on_buy_card_offer(offer_index: int) -> void:
-	if Game.buy_arena_card_offer(offer_index):
-		_refresh_ui()
+	if _lan_mode:
+		NetworkManager.submit_arena_action("buy_card", {"index": offer_index})
 	else:
+		Game.buy_arena_card_offer(offer_index)
 		_refresh_ui()
 
 
 func _on_buy_relic_offer(offer_index: int) -> void:
-	if Game.buy_arena_relic_offer(offer_index):
-		_refresh_ui()
+	if _lan_mode:
+		NetworkManager.submit_arena_action("buy_relic", {"index": offer_index})
 	else:
+		Game.buy_arena_relic_offer(offer_index)
 		_refresh_ui()
 
 
 func _on_toggle_card_hold(offer_index: int) -> void:
-	Game.toggle_arena_card_hold(offer_index)
-	_refresh_ui()
+	if _lan_mode:
+		NetworkManager.submit_arena_action("toggle_card_hold", {"index": offer_index})
+	else:
+		Game.toggle_arena_card_hold(offer_index)
+		_refresh_ui()
 
 
 func _on_toggle_relic_hold(offer_index: int) -> void:
-	Game.toggle_arena_relic_hold(offer_index)
-	_refresh_ui()
+	if _lan_mode:
+		NetworkManager.submit_arena_action("toggle_relic_hold", {"index": offer_index})
+	else:
+		Game.toggle_arena_relic_hold(offer_index)
+		_refresh_ui()
 
 
 func _on_reroll_shop() -> void:
-	if Game.reroll_arena_shop_for_gold():
-		_refresh_ui()
+	if _lan_mode:
+		NetworkManager.submit_arena_action("reroll")
 	else:
+		Game.reroll_arena_shop_for_gold()
 		_refresh_ui()
 
 
 func _on_equip_card(card_id: String) -> void:
-	if Game.equip_card(card_id):
+	if _lan_mode:
+		NetworkManager.submit_arena_action("equip", {"card_id": card_id})
+	elif Game.equip_card(card_id):
 		_refresh_ui()
 
 
 func _on_unequip_card(card_id: String) -> void:
-	if Game.unequip_card(card_id):
+	if _lan_mode:
+		NetworkManager.submit_arena_action("unequip", {"card_id": card_id})
+	elif Game.unequip_card(card_id):
 		_refresh_ui()
 
 
 func _on_sell_card(card_id: String) -> void:
-	if Game.sell_loadout_card(card_id):
+	if _lan_mode:
+		NetworkManager.submit_arena_action("sell", {"card_id": card_id})
+	elif Game.sell_loadout_card(card_id):
 		_refresh_ui()
 
 
 func _on_choose_reward(reward_id: String) -> void:
-	if Game.choose_arena_victory_reward(reward_id):
+	if _lan_mode:
+		NetworkManager.submit_arena_action("choose_reward", {"reward_id": reward_id})
+	elif Game.choose_arena_victory_reward(reward_id):
 		_refresh_ui()
 
 
 func _on_start_battle() -> void:
-	if Game.start_next_arena_battle():
+	if _lan_mode:
+		NetworkManager.set_local_arena_ready(not NetworkManager.is_local_arena_ready())
+	elif Game.start_next_arena_battle():
 		SceneRouter.go_to_battle()
 
 
 func _on_abandon() -> void:
-	Game.abandon_run_to_hub()
+	if _lan_mode:
+		NetworkManager.leave_session("arena_abandoned")
+	else:
+		Game.abandon_run_to_hub()
 	SceneRouter.go_to_hub()
+
+
+func _on_lan_arena_changed(_snapshot: Dictionary) -> void:
+	if _lan_mode and is_inside_tree():
+		_refresh_ui()
+
+
+func _on_lan_arena_action_result(action: String, accepted: bool, result: Dictionary) -> void:
+	if not _lan_mode:
+		return
+	if not accepted:
+		AudioManager.play_sfx("ui_error")
+		_refresh_ui()
+		return
+	var gold_delta: int = int(result.get("gold_delta", 0))
+	if gold_delta != 0:
+		SceneRouter.show_gold_delta(gold_delta)
+	match action:
+		"buy_card", "reroll":
+			AudioManager.play_sfx("shop_buy")
+		"buy_relic", "dev_grant_relic":
+			AudioManager.play_sfx("relic_gain")
+		"toggle_card_hold", "toggle_relic_hold", "set_ready":
+			AudioManager.play_sfx("ui_toggle")
+		"equip":
+			AudioManager.play_sfx("loadout_equip")
+		"unequip":
+			AudioManager.play_sfx("loadout_unequip")
+		"sell", "dev_add_gold":
+			AudioManager.play_sfx("gold_gain")
+		"choose_reward":
+			AudioManager.play_sfx("reward_pick")
+		"dev_restore_hp":
+			AudioManager.play_sfx("heal_use")
+	_refresh_ui()
+
+
+func _on_lan_match_started(_payload: Dictionary) -> void:
+	if _lan_mode:
+		SceneRouter.go_to_battle()
+
+
+func _on_lan_arena_finished(_result: Dictionary) -> void:
+	if _lan_mode:
+		SceneRouter.go_to_lan_lobby()
+
+
+func _on_lan_session_ended(_reason: String) -> void:
+	if _lan_mode:
+		SceneRouter.go_to_hub()
 
 
 func _build_developer_panel() -> void:
@@ -846,15 +989,24 @@ func _refresh_developer_panel() -> void:
 
 
 func _on_dev_add_gold() -> void:
-	Game.developer_add_gold(50)
-	_refresh_ui()
+	if _lan_mode:
+		NetworkManager.submit_arena_action("dev_add_gold", {"amount": 50})
+	else:
+		Game.developer_add_gold(50)
+		_refresh_ui()
 
 
 func _on_dev_restore_hp() -> void:
-	Game.developer_restore_hp()
-	_refresh_ui()
+	if _lan_mode:
+		NetworkManager.submit_arena_action("dev_restore_hp")
+	else:
+		Game.developer_restore_hp()
+		_refresh_ui()
 
 
 func _on_dev_grant_relic() -> void:
-	Game.developer_grant_random_relic()
-	_refresh_ui()
+	if _lan_mode:
+		NetworkManager.submit_arena_action("dev_grant_relic")
+	else:
+		Game.developer_grant_random_relic()
+		_refresh_ui()

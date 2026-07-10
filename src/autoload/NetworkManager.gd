@@ -10,6 +10,12 @@ signal battle_command_received(peer_id: int, side: String, kind: String, runtime
 signal command_result_received(sequence: int, accepted: bool, snapshot: Dictionary)
 signal match_finished(result: Dictionary)
 signal session_ended(reason: String)
+signal arena_preparation_started(snapshot: Dictionary)
+signal arena_preparation_changed(snapshot: Dictionary)
+signal arena_action_result_received(action: String, accepted: bool, result: Dictionary)
+signal arena_session_finished(result: Dictionary)
+signal battle_start_state_changed(state: Dictionary)
+signal battle_countdown_finished()
 
 enum ConnectionState {
 	OFFLINE,
@@ -17,6 +23,7 @@ enum ConnectionState {
 	HOSTING,
 	CONNECTING,
 	LOBBY,
+	ARENA_PREPARATION,
 	MATCH,
 	RECONNECTING,
 }
@@ -25,6 +32,7 @@ const DISCOVERY_BEACON_INTERVAL: float = 0.75
 const DISCOVERY_ENTRY_LIFETIME_MSEC: int = 2600
 const PING_INTERVAL: float = 1.0
 const RECONNECT_RETRY_INTERVAL: float = 1.0
+const BATTLE_COUNTDOWN_SECONDS: float = 3.0
 
 var _state: int = ConnectionState.OFFLINE
 var _peer: ENetMultiplayerPeer
@@ -58,6 +66,19 @@ var _next_reconnect_attempt_msec: int = 0
 var _reconnecting: bool = false
 var _closing_peer: bool = false
 var _explicit_peer_leaves: Dictionary = {}
+var _arena_coordinator: LanArenaCoordinator = LanArenaCoordinator.new()
+var _arena_session_active: bool = false
+var _arena_phase: String = ""
+var _arena_session_id: String = ""
+var _arena_runs_by_side: Dictionary = {}
+var _local_arena_run: RunState
+var _arena_ready_by_side: Dictionary = {"player": false, "enemy": false}
+var _local_arena_action_sequence: int = 0
+var _last_arena_action_sequences: Dictionary = {}
+var _battle_ready_by_side: Dictionary = {"player": false, "enemy": false}
+var _battle_countdown_active: bool = false
+var _battle_countdown_deadline_msec: int = 0
+var _battle_countdown_finished: bool = false
 
 
 func _ready() -> void:
@@ -77,6 +98,7 @@ func _process(delta: float) -> void:
 	_process_discovery(delta)
 	_process_ping(delta)
 	_process_reconnect()
+	_process_battle_countdown()
 
 
 func configure_local_player(player_name: String, starter_id: String) -> Dictionary:
@@ -163,7 +185,7 @@ func set_local_starter(starter_id: String) -> bool:
 
 
 func set_local_ready(ready: bool) -> bool:
-	if _local_profile.is_empty() or _match_active:
+	if _local_profile.is_empty() or _match_active or _arena_session_active:
 		return false
 	_local_profile["ready"] = ready
 	_send_or_apply_local_profile()
@@ -175,7 +197,7 @@ func is_local_ready() -> bool:
 
 
 func can_start_match() -> bool:
-	if not _is_host or _match_active or _profiles_by_peer.size() != LanProtocol.MAX_PLAYERS:
+	if not _is_host or _match_active or _arena_session_active or _profiles_by_peer.size() != LanProtocol.MAX_PLAYERS:
 		return false
 	for raw_profile in _profiles_by_peer.values():
 		var profile: Dictionary = Dictionary(raw_profile)
@@ -185,6 +207,10 @@ func can_start_match() -> bool:
 
 
 func start_lan_match() -> bool:
+	return start_lan_arena_preparation()
+
+
+func start_lan_arena_preparation() -> bool:
 	if not can_start_match():
 		return false
 	var guest_peer_id: int = _get_guest_peer_id()
@@ -192,12 +218,22 @@ func start_lan_match() -> bool:
 		return false
 	var host_profile: Dictionary = Dictionary(_profiles_by_peer.get(1, {}))
 	var guest_profile: Dictionary = Dictionary(_profiles_by_peer.get(guest_peer_id, {}))
-	var seed: int = int(Time.get_ticks_msec() % 2147483646) + 1
-	var payload: Dictionary = LanProtocol.build_match_payload(host_profile, guest_profile, seed, 1, guest_peer_id)
-	if payload.is_empty():
+	var base_seed: int = int(Time.get_ticks_msec() % 2147483646) + 1
+	var player_run: RunState = _arena_coordinator.create_run(host_profile, base_seed)
+	var enemy_run: RunState = _arena_coordinator.create_run(guest_profile, base_seed + 7919)
+	if player_run == null or enemy_run == null:
 		return false
-	_match_payload = payload.duplicate(true)
-	_match_active = true
+	_arena_runs_by_side = {
+		"player": player_run,
+		"enemy": enemy_run,
+	}
+	_arena_session_id = "%d-%d" % [base_seed, Time.get_ticks_msec()]
+	_arena_session_active = true
+	_arena_phase = "preparation"
+	_arena_ready_by_side = {"player": false, "enemy": false}
+	_last_arena_action_sequences.clear()
+	_match_payload.clear()
+	_match_active = false
 	_last_match_result.clear()
 	_last_snapshot.clear()
 	_snapshot_sequence = 0
@@ -207,14 +243,96 @@ func start_lan_match() -> bool:
 	_command_rate_windows.clear()
 	_waiting_for_reconnect = false
 	_reserved_remote_profile.clear()
-	_set_state(ConnectionState.MATCH, "LAN match started")
-	_receive_match_started_rpc.rpc(_match_payload)
-	_apply_match_started(_match_payload)
+	for raw_peer_id in _profiles_by_peer.keys():
+		var peer_id: int = int(raw_peer_id)
+		var profile: Dictionary = Dictionary(_profiles_by_peer.get(peer_id, {})).duplicate(true)
+		profile["ready"] = false
+		_profiles_by_peer[peer_id] = profile
+	_local_profile = Dictionary(_profiles_by_peer.get(1, _local_profile)).duplicate(true)
+	_set_state(ConnectionState.ARENA_PREPARATION, "LAN arena preparation started")
+	arena_preparation_started.emit(_build_arena_snapshot("player"))
+	_send_arena_preparation_state()
 	return true
 
 
 func has_active_match() -> bool:
 	return _match_active and not _match_payload.is_empty()
+
+
+func is_lan_arena_session_active() -> bool:
+	return _arena_session_active
+
+
+func get_lan_arena_phase() -> String:
+	return _arena_phase
+
+
+func get_local_arena_run() -> RunState:
+	if _is_host:
+		return _arena_runs_by_side.get("player") as RunState
+	return _local_arena_run
+
+
+func get_local_arena_status() -> Dictionary:
+	var run_state: RunState = get_local_arena_run()
+	if run_state == null:
+		return {}
+	var local_side: String = get_local_side()
+	var opponent_side: String = "enemy" if local_side == "player" else "player"
+	var opponent_profile: Dictionary = _get_profile_for_side(opponent_side)
+	return _arena_coordinator.build_status(
+		run_state,
+		String(opponent_profile.get("name", "Opponent")),
+		String(opponent_profile.get("starter_id", "balanced")),
+		bool(_arena_ready_by_side.get(local_side, false)),
+		bool(_arena_ready_by_side.get(opponent_side, false))
+	)
+
+
+func get_local_arena_card_offers() -> Array[Dictionary]:
+	var run_state: RunState = get_local_arena_run()
+	if run_state == null:
+		return []
+	return _to_dictionary_array(run_state.arena_shop.get("cards", []))
+
+
+func get_local_arena_relic_offers() -> Array[Dictionary]:
+	var run_state: RunState = get_local_arena_run()
+	if run_state == null:
+		return []
+	return _to_dictionary_array(run_state.arena_shop.get("relics", []))
+
+
+func get_local_arena_pending_rewards() -> Array[Dictionary]:
+	var run_state: RunState = get_local_arena_run()
+	if run_state == null:
+		return []
+	return _to_dictionary_array(run_state.arena_pending_rewards)
+
+
+func get_local_arena_loadout_entries() -> Array[Dictionary]:
+	return _arena_coordinator.get_loadout_entries(get_local_arena_run())
+
+
+func is_local_arena_ready() -> bool:
+	return bool(_arena_ready_by_side.get(get_local_side(), false))
+
+
+func submit_arena_action(action: String, payload: Dictionary = {}) -> bool:
+	if not _arena_session_active or _arena_phase != "preparation" or _waiting_for_reconnect:
+		return false
+	var local_side: String = get_local_side()
+	if _is_host:
+		return _apply_arena_action_for_side(1, local_side, action, payload, 0)
+	if _peer == null or _peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
+		return false
+	_local_arena_action_sequence += 1
+	_submit_arena_action_rpc.rpc_id(1, action, payload, _local_arena_action_sequence)
+	return true
+
+
+func set_local_arena_ready(ready: bool) -> bool:
+	return submit_arena_action("set_ready", {"ready": ready})
 
 
 func is_session_connected() -> bool:
@@ -238,7 +356,7 @@ func get_connection_state() -> int:
 
 func get_local_side() -> String:
 	if _match_payload.is_empty():
-		return "player"
+		return "player" if _is_host else "enemy"
 	var unique_id: int = multiplayer.get_unique_id()
 	return String(Dictionary(_match_payload.get("peer_sides", {})).get(str(unique_id), "player" if _is_host else "enemy"))
 
@@ -323,11 +441,40 @@ func publish_battle_snapshot(snapshot: Dictionary, reliable: bool = false) -> bo
 
 
 func submit_card_command(runtime_id: String) -> bool:
+	if not _battle_countdown_finished:
+		return false
 	return _submit_local_command("card", runtime_id)
 
 
 func submit_start_command() -> bool:
-	return _submit_local_command("start", "")
+	return set_local_battle_ready(true)
+
+
+func set_local_battle_ready(ready: bool = true) -> bool:
+	if not _match_active or _battle_countdown_active or _battle_countdown_finished:
+		return false
+	var local_side: String = get_local_side()
+	if _is_host:
+		return _set_battle_ready(local_side, ready)
+	return _submit_local_command("battle_ready", "", {"ready": ready})
+
+
+func is_local_battle_ready() -> bool:
+	return bool(_battle_ready_by_side.get(get_local_side(), false))
+
+
+func is_battle_countdown_active() -> bool:
+	return _battle_countdown_active
+
+
+func get_battle_countdown_remaining() -> float:
+	if not _battle_countdown_active:
+		return 0.0
+	return maxf(0.0, float(_battle_countdown_deadline_msec - Time.get_ticks_msec()) / 1000.0)
+
+
+func has_battle_countdown_finished() -> bool:
+	return _battle_countdown_finished
 
 
 func send_command_result(peer_id: int, sequence: int, accepted: bool, snapshot: Dictionary = {}) -> void:
@@ -346,8 +493,41 @@ func finish_lan_match(summary: Dictionary, final_snapshot: Dictionary = {}) -> b
 	result["enemy_name"] = String(_match_payload.get("enemy_name", "Guest"))
 	if not final_snapshot.is_empty():
 		result["final_snapshot"] = final_snapshot.duplicate(true)
+	var arena_finished: bool = false
+	if _arena_session_active:
+		var winner: String = String(result.get("winner", "draw"))
+		var player_run: RunState = _arena_runs_by_side.get("player") as RunState
+		var enemy_run: RunState = _arena_runs_by_side.get("enemy") as RunState
+		var player_snapshot: Dictionary = Dictionary(final_snapshot.get("player", {}))
+		var enemy_snapshot: Dictionary = Dictionary(final_snapshot.get("enemy", {}))
+		var player_hp: int = int(player_snapshot.get("hp", player_run.player_hp if player_run != null else 1))
+		var enemy_hp: int = int(enemy_snapshot.get("hp", enemy_run.player_hp if enemy_run != null else 1))
+		if player_snapshot.has("temporary_card_modifiers"):
+			player_run.temporary_card_modifiers = Dictionary(player_snapshot.get("temporary_card_modifiers", {})).duplicate(true)
+		if enemy_snapshot.has("temporary_card_modifiers"):
+			enemy_run.temporary_card_modifiers = Dictionary(enemy_snapshot.get("temporary_card_modifiers", {})).duplicate(true)
+		var player_progress: Dictionary = _arena_coordinator.apply_battle_result(player_run, winner == "player", player_hp)
+		var enemy_progress: Dictionary = _arena_coordinator.apply_battle_result(enemy_run, winner == "enemy", enemy_hp)
+		arena_finished = bool(player_progress.get("finished", false)) or bool(enemy_progress.get("finished", false))
+		result["arena_session_id"] = _arena_session_id
+		result["arena_continues"] = not arena_finished
+		result["arena_finished"] = arena_finished
+		result["player_progress"] = player_progress
+		result["enemy_progress"] = enemy_progress
+		result["player_arena_wins"] = player_run.arena_wins
+		result["enemy_arena_wins"] = enemy_run.arena_wins
+		result["player_arena_losses"] = player_run.arena_losses
+		result["enemy_arena_losses"] = enemy_run.arena_losses
+		_arena_phase = "finished" if arena_finished else "preparation"
+		_arena_ready_by_side = {"player": false, "enemy": false}
 	_receive_match_finished_rpc.rpc(result)
 	_apply_match_finished(result)
+	if _arena_session_active:
+		if arena_finished:
+			_finish_arena_session(String(result.get("winner", "draw")), String(result.get("reason", "arena_complete")))
+		else:
+			_send_arena_preparation_state()
+		return true
 	for raw_peer_id in _profiles_by_peer.keys():
 		var peer_id: int = int(raw_peer_id)
 		var profile: Dictionary = Dictionary(_profiles_by_peer.get(peer_id, {})).duplicate(true)
@@ -394,24 +574,31 @@ func _send_or_apply_local_profile() -> void:
 		_submit_profile_rpc.rpc_id(1, _local_profile)
 
 
-func _submit_local_command(kind: String, runtime_id: String) -> bool:
+func _submit_local_command(kind: String, runtime_id: String, extra: Dictionary = {}) -> bool:
 	if not _match_active or _is_host:
 		return false
 	if _peer == null or _peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
 		return false
 	_local_command_sequence += 1
-	_submit_battle_command_rpc.rpc_id(1, {
+	var command: Dictionary = {
 		"sequence": _local_command_sequence,
 		"kind": kind,
 		"runtime_id": runtime_id,
 		"client_ticks_msec": Time.get_ticks_msec(),
-	})
+	}
+	command.merge(extra, true)
+	_submit_battle_command_rpc.rpc_id(1, command)
 	return true
 
 
 func _on_peer_connected(_peer_id: int) -> void:
 	if _is_host:
-		_set_state(ConnectionState.HOSTING if not _match_active else ConnectionState.MATCH, "Peer connected; validating content")
+		var next_state: int = ConnectionState.HOSTING
+		if _match_active:
+			next_state = ConnectionState.MATCH
+		elif _arena_session_active:
+			next_state = ConnectionState.ARENA_PREPARATION
+		_set_state(next_state, "Peer connected; validating content")
 
 
 func _on_peer_disconnected(peer_id: int) -> void:
@@ -423,11 +610,13 @@ func _on_peer_disconnected(peer_id: int) -> void:
 	_profiles_by_peer.erase(peer_id)
 	_peer_sides.erase(peer_id)
 	_peer_pings.erase(peer_id)
-	if _match_active and not was_explicit and not disconnected_profile.is_empty():
+	if _arena_session_active and not was_explicit and not disconnected_profile.is_empty():
 		_reserved_remote_profile = disconnected_profile
 		_waiting_for_reconnect = true
 		_reconnect_deadline_msec = Time.get_ticks_msec() + int(LanProtocol.RECONNECT_GRACE_SECONDS * 1000.0)
-		_set_state(ConnectionState.MATCH, "Opponent disconnected; waiting for reconnection")
+		_cancel_battle_countdown()
+		var reconnect_state: int = ConnectionState.MATCH if _match_active else ConnectionState.ARENA_PREPARATION
+		_set_state(reconnect_state, "Opponent disconnected; waiting for reconnection")
 		return
 	if _match_active:
 		finish_lan_match({
@@ -435,6 +624,8 @@ func _on_peer_disconnected(peer_id: int) -> void:
 			"reason": "opponent_left",
 			"battle_time": float(_last_snapshot.get("battle_time", 0.0)),
 		}, _last_snapshot)
+	elif _arena_session_active:
+		_finish_arena_session("player", "opponent_left")
 	else:
 		_broadcast_lobby_state()
 
@@ -460,7 +651,7 @@ func _on_connection_failed() -> void:
 func _on_server_disconnected() -> void:
 	if _closing_peer:
 		return
-	if _match_active:
+	if _match_active or _arena_session_active:
 		_close_peer_only()
 		_reconnecting = true
 		_reconnect_deadline_msec = Time.get_ticks_msec() + int(LanProtocol.RECONNECT_GRACE_SECONDS * 1000.0)
@@ -498,16 +689,21 @@ func _submit_profile_rpc(raw_profile: Dictionary) -> void:
 	if rejoining:
 		_reserved_remote_profile.clear()
 		_waiting_for_reconnect = false
-		var sides: Dictionary = Dictionary(_match_payload.get("peer_sides", {})).duplicate(true)
-		for raw_side_peer_id in sides.keys():
-			if String(sides.get(raw_side_peer_id, "")) == "enemy":
-				sides.erase(raw_side_peer_id)
-		sides[str(sender_id)] = "enemy"
-		_match_payload["peer_sides"] = sides
-		_receive_match_started_rpc.rpc_id(sender_id, _match_payload)
-		if not _last_snapshot.is_empty():
-			_receive_battle_snapshot_reliable_rpc.rpc_id(sender_id, _last_snapshot)
-		_set_state(ConnectionState.MATCH, "Opponent reconnected")
+		if _match_active:
+			var sides: Dictionary = Dictionary(_match_payload.get("peer_sides", {})).duplicate(true)
+			for raw_side_peer_id in sides.keys():
+				if String(sides.get(raw_side_peer_id, "")) == "enemy":
+					sides.erase(raw_side_peer_id)
+			sides[str(sender_id)] = "enemy"
+			_match_payload["peer_sides"] = sides
+			_receive_match_started_rpc.rpc_id(sender_id, _match_payload)
+			if not _last_snapshot.is_empty():
+				_receive_battle_snapshot_reliable_rpc.rpc_id(sender_id, _last_snapshot)
+			_broadcast_battle_start_state(sender_id)
+			_set_state(ConnectionState.MATCH, "Opponent reconnected")
+		else:
+			_receive_arena_preparation_state_rpc.rpc_id(sender_id, _build_arena_snapshot("enemy"))
+			_set_state(ConnectionState.ARENA_PREPARATION, "Opponent reconnected")
 		return
 	_set_state(ConnectionState.LOBBY, "LAN lobby ready")
 	_broadcast_lobby_state()
@@ -524,7 +720,7 @@ func _receive_lobby_state_rpc(snapshot: Dictionary) -> void:
 		_local_profile["ready"] = bool(player_data.get("ready", false))
 		_local_profile["starter_id"] = String(player_data.get("starter_id", _local_profile.get("starter_id", "")))
 		break
-	if not _match_active:
+	if not _match_active and not _arena_session_active:
 		_set_state(ConnectionState.LOBBY, "LAN lobby ready")
 	lobby_changed.emit(_public_lobby_snapshot.duplicate(true))
 
@@ -537,6 +733,30 @@ func _receive_network_error_rpc(code: String, message: String) -> void:
 @rpc("authority", "call_remote", "reliable", 0)
 func _receive_match_started_rpc(payload: Dictionary) -> void:
 	_apply_match_started(payload)
+
+
+@rpc("any_peer", "call_remote", "reliable", 0)
+func _submit_arena_action_rpc(action: String, payload: Dictionary, sequence: int) -> void:
+	if not _is_host or not _arena_session_active or _arena_phase != "preparation" or _waiting_for_reconnect:
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	var side: String = String(_peer_sides.get(sender_id, ""))
+	var last_sequence: int = int(_last_arena_action_sequences.get(sender_id, 0))
+	if side == "" or sequence <= last_sequence or not _consume_command_rate(sender_id):
+		_arena_action_result_rpc.rpc_id(sender_id, action, false, {})
+		return
+	_last_arena_action_sequences[sender_id] = sequence
+	_apply_arena_action_for_side(sender_id, side, action, payload, sequence)
+
+
+@rpc("authority", "call_remote", "reliable", 0)
+func _receive_arena_preparation_state_rpc(snapshot: Dictionary) -> void:
+	_apply_arena_preparation_state(snapshot)
+
+
+@rpc("authority", "call_remote", "reliable", 0)
+func _arena_action_result_rpc(action: String, accepted: bool, result: Dictionary) -> void:
+	arena_action_result_received.emit(action, accepted, result.duplicate(true))
 
 
 @rpc("authority", "call_remote", "unreliable_ordered", 1)
@@ -559,15 +779,35 @@ func _submit_battle_command_rpc(command: Dictionary) -> void:
 	var kind: String = String(command.get("kind", ""))
 	var runtime_id: String = String(command.get("runtime_id", ""))
 	var valid: bool = sequence > int(_last_command_sequences.get(sender_id, 0))
-	valid = valid and (kind == "card" or kind == "start")
+	valid = valid and (kind == "card" or kind == "battle_ready")
 	if kind == "card":
-		valid = valid and LanProtocol.validate_runtime_id(side, runtime_id)
+		valid = valid and _battle_countdown_finished and LanProtocol.validate_runtime_id(side, runtime_id)
 	valid = valid and _consume_command_rate(sender_id)
 	if not valid:
 		send_command_result(sender_id, sequence, false, _last_snapshot)
 		return
 	_last_command_sequences[sender_id] = sequence
+	if kind == "battle_ready":
+		var ready: bool = bool(command.get("ready", true))
+		var accepted: bool = _set_battle_ready(side, ready)
+		send_command_result(sender_id, sequence, accepted, _last_snapshot)
+		return
 	battle_command_received.emit(sender_id, side, kind, runtime_id, sequence)
+
+
+@rpc("authority", "call_remote", "reliable", 0)
+func _receive_battle_start_state_rpc(state: Dictionary) -> void:
+	_apply_battle_start_state(state)
+
+
+@rpc("authority", "call_remote", "reliable", 0)
+func _receive_battle_countdown_finished_rpc(match_id: String) -> void:
+	if match_id != String(_match_payload.get("match_id", "")):
+		return
+	_battle_countdown_active = false
+	_battle_countdown_finished = true
+	battle_start_state_changed.emit(_build_battle_start_state())
+	battle_countdown_finished.emit()
 
 
 @rpc("authority", "call_remote", "reliable", 0)
@@ -582,6 +822,11 @@ func _receive_match_finished_rpc(result: Dictionary) -> void:
 	_apply_match_finished(result)
 
 
+@rpc("authority", "call_remote", "reliable", 0)
+func _receive_arena_session_finished_rpc(result: Dictionary) -> void:
+	_apply_arena_session_finished(result)
+
+
 @rpc("any_peer", "call_remote", "reliable", 0)
 func _client_leave_rpc(reason: String) -> void:
 	if not _is_host:
@@ -594,6 +839,8 @@ func _client_leave_rpc(reason: String) -> void:
 			"reason": reason,
 			"battle_time": float(_last_snapshot.get("battle_time", 0.0)),
 		}, _last_snapshot)
+	elif _arena_session_active:
+		_finish_arena_session("player", reason)
 	if multiplayer.multiplayer_peer != null:
 		multiplayer.multiplayer_peer.disconnect_peer(sender_id)
 
@@ -601,6 +848,8 @@ func _client_leave_rpc(reason: String) -> void:
 @rpc("authority", "call_remote", "reliable", 0)
 func _receive_session_closed_rpc(reason: String) -> void:
 	_match_active = false
+	_arena_session_active = false
+	_arena_phase = ""
 	_reconnecting = false
 	_close_peer_only()
 	_set_state(ConnectionState.OFFLINE, "Session closed")
@@ -630,6 +879,246 @@ func _report_ping_rpc(value: int) -> void:
 	_peer_pings[sender_id] = clampi(value, 0, 9999)
 
 
+func _apply_arena_action_for_side(
+	peer_id: int,
+	side: String,
+	action: String,
+	payload: Dictionary,
+	_sequence: int
+) -> bool:
+	if not _is_host or not _arena_session_active or _arena_phase != "preparation":
+		return false
+	if side != "player" and side != "enemy":
+		return false
+	var run_state: RunState = _arena_runs_by_side.get(side) as RunState
+	if run_state == null:
+		return false
+	var result: Dictionary = {
+		"accepted": false,
+		"action": action,
+		"gold_delta": 0,
+	}
+	if action == "set_ready":
+		var ready: bool = bool(payload.get("ready", true))
+		var accepted: bool = not ready or (
+			run_state.arena_pending_rewards.is_empty()
+			and _arena_coordinator.has_valid_loadout(run_state)
+		)
+		if accepted:
+			_arena_ready_by_side[side] = ready
+		result["accepted"] = accepted
+		result["ready"] = ready if accepted else bool(_arena_ready_by_side.get(side, false))
+	else:
+		if bool(_arena_ready_by_side.get(side, false)):
+			_send_arena_action_result(peer_id, action, false, result)
+			return false
+		result = _arena_coordinator.apply_action(
+			run_state,
+			action,
+			payload,
+			peer_id == 1 and Game.is_developer_mode_enabled()
+		)
+
+	var was_accepted: bool = bool(result.get("accepted", false))
+	_send_arena_action_result(peer_id, action, was_accepted, result)
+	_send_arena_preparation_state()
+	if was_accepted and _are_both_arena_players_ready():
+		_start_arena_match_from_preparation()
+	return was_accepted
+
+
+func _send_arena_action_result(peer_id: int, action: String, accepted: bool, result: Dictionary) -> void:
+	if peer_id <= 1:
+		arena_action_result_received.emit(action, accepted, result.duplicate(true))
+	else:
+		_arena_action_result_rpc.rpc_id(peer_id, action, accepted, result)
+
+
+func _send_arena_preparation_state() -> void:
+	if not _is_host or not _arena_session_active or _arena_phase != "preparation":
+		return
+	_apply_arena_preparation_state(_build_arena_snapshot("player"))
+	var guest_peer_id: int = _get_guest_peer_id()
+	if guest_peer_id > 1:
+		_receive_arena_preparation_state_rpc.rpc_id(guest_peer_id, _build_arena_snapshot("enemy"))
+
+
+func _build_arena_snapshot(side: String) -> Dictionary:
+	var run_state: RunState = _arena_runs_by_side.get(side) as RunState
+	if run_state == null:
+		return {}
+	var opponent_side: String = "enemy" if side == "player" else "player"
+	var opponent_profile: Dictionary = _get_profile_for_side(opponent_side)
+	return {
+		"protocol_version": LanProtocol.PROTOCOL_VERSION,
+		"content_hash": LanProtocol.build_content_hash(),
+		"arena_session_id": _arena_session_id,
+		"phase": _arena_phase,
+		"local_side": side,
+		"run": run_state.to_dict(),
+		"ready_by_side": _arena_ready_by_side.duplicate(true),
+		"status": _arena_coordinator.build_status(
+			run_state,
+			String(opponent_profile.get("name", "Opponent")),
+			String(opponent_profile.get("starter_id", "balanced")),
+			bool(_arena_ready_by_side.get(side, false)),
+			bool(_arena_ready_by_side.get(opponent_side, false))
+		),
+	}
+
+
+func _apply_arena_preparation_state(snapshot: Dictionary) -> void:
+	if snapshot.is_empty():
+		return
+	if int(snapshot.get("protocol_version", -1)) != LanProtocol.PROTOCOL_VERSION:
+		_emit_error("protocol_mismatch", "LAN protocol versions do not match.")
+		return
+	if String(snapshot.get("content_hash", "")) != LanProtocol.build_content_hash():
+		_emit_error("content_mismatch", "Game data differs from the host.")
+		return
+	var incoming_session_id: String = String(snapshot.get("arena_session_id", ""))
+	var is_new_session: bool = not _arena_session_active or incoming_session_id != _arena_session_id
+	_arena_session_active = true
+	_arena_session_id = incoming_session_id
+	_arena_phase = String(snapshot.get("phase", "preparation"))
+	_arena_ready_by_side = Dictionary(snapshot.get("ready_by_side", {})).duplicate(true)
+	if not _is_host:
+		_local_arena_run = RunState.from_dict(Dictionary(snapshot.get("run", {})))
+	_reconnecting = false
+	_waiting_for_reconnect = false
+	_set_state(ConnectionState.ARENA_PREPARATION, "LAN arena preparation")
+	if is_new_session:
+		arena_preparation_started.emit(snapshot.duplicate(true))
+	arena_preparation_changed.emit(snapshot.duplicate(true))
+
+
+func _are_both_arena_players_ready() -> bool:
+	return (
+		bool(_arena_ready_by_side.get("player", false))
+		and bool(_arena_ready_by_side.get("enemy", false))
+	)
+
+
+func _start_arena_match_from_preparation() -> bool:
+	if not _is_host or not _are_both_arena_players_ready() or _waiting_for_reconnect:
+		return false
+	var guest_peer_id: int = _get_guest_peer_id()
+	var player_run: RunState = _arena_runs_by_side.get("player") as RunState
+	var enemy_run: RunState = _arena_runs_by_side.get("enemy") as RunState
+	if guest_peer_id <= 1 or not _arena_coordinator.has_valid_loadout(player_run) or not _arena_coordinator.has_valid_loadout(enemy_run):
+		return false
+	var seed: int = int(Time.get_ticks_msec() % 2147483646) + 1
+	var host_profile: Dictionary = _get_profile_for_side("player")
+	var guest_profile: Dictionary = _get_profile_for_side("enemy")
+	_match_payload = {
+		"protocol_version": LanProtocol.PROTOCOL_VERSION,
+		"content_hash": LanProtocol.build_content_hash(),
+		"arena_session_id": _arena_session_id,
+		"arena_round": maxi(player_run.arena_round, enemy_run.arena_round),
+		"match_id": "%s-r%d-%d" % [_arena_session_id, player_run.arena_round, Time.get_ticks_msec()],
+		"seed": seed,
+		"player_run": player_run.to_dict(),
+		"enemy_run": enemy_run.to_dict(),
+		"player_name": String(host_profile.get("name", "Host")),
+		"enemy_name": String(guest_profile.get("name", "Guest")),
+		"peer_sides": {
+			"1": "player",
+			str(guest_peer_id): "enemy",
+		},
+	}
+	_arena_phase = "battle"
+	_match_active = true
+	_last_match_result.clear()
+	_last_snapshot.clear()
+	_snapshot_sequence = 0
+	_last_received_snapshot_sequence = 0
+	_local_command_sequence = 0
+	_last_command_sequences.clear()
+	_battle_ready_by_side = {"player": false, "enemy": false}
+	_battle_countdown_active = false
+	_battle_countdown_deadline_msec = 0
+	_battle_countdown_finished = false
+	_set_state(ConnectionState.MATCH, "LAN arena battle ready")
+	_receive_match_started_rpc.rpc(_match_payload)
+	_apply_match_started(_match_payload)
+	_broadcast_battle_start_state()
+	return true
+
+
+func _set_battle_ready(side: String, ready: bool) -> bool:
+	if not _is_host or not _match_active or _waiting_for_reconnect:
+		return false
+	if _battle_countdown_active or _battle_countdown_finished:
+		return false
+	if side != "player" and side != "enemy":
+		return false
+	_battle_ready_by_side[side] = ready
+	if bool(_battle_ready_by_side.get("player", false)) and bool(_battle_ready_by_side.get("enemy", false)):
+		_battle_countdown_active = true
+		_battle_countdown_deadline_msec = Time.get_ticks_msec() + int(BATTLE_COUNTDOWN_SECONDS * 1000.0)
+	_broadcast_battle_start_state()
+	return true
+
+
+func _cancel_battle_countdown() -> void:
+	if not _match_active or _battle_countdown_finished:
+		return
+	_battle_ready_by_side = {"player": false, "enemy": false}
+	_battle_countdown_active = false
+	_battle_countdown_deadline_msec = 0
+	_battle_countdown_finished = false
+	if _is_host:
+		_broadcast_battle_start_state()
+
+
+func _build_battle_start_state() -> Dictionary:
+	return {
+		"match_id": String(_match_payload.get("match_id", "")),
+		"ready_by_side": _battle_ready_by_side.duplicate(true),
+		"countdown_active": _battle_countdown_active,
+		"countdown_remaining": get_battle_countdown_remaining(),
+		"started": _battle_countdown_finished,
+	}
+
+
+func _broadcast_battle_start_state(target_peer_id: int = -1) -> void:
+	if not _is_host or not _match_active:
+		return
+	var state: Dictionary = _build_battle_start_state()
+	if target_peer_id > 1:
+		_receive_battle_start_state_rpc.rpc_id(target_peer_id, state)
+	else:
+		_receive_battle_start_state_rpc.rpc(state)
+	_apply_battle_start_state(state)
+
+
+func _apply_battle_start_state(state: Dictionary) -> void:
+	if String(state.get("match_id", "")) != String(_match_payload.get("match_id", "")):
+		return
+	_battle_ready_by_side = Dictionary(state.get("ready_by_side", {})).duplicate(true)
+	_battle_countdown_active = bool(state.get("countdown_active", false))
+	_battle_countdown_finished = bool(state.get("started", false))
+	if _battle_countdown_active:
+		var remaining: float = maxf(0.0, float(state.get("countdown_remaining", BATTLE_COUNTDOWN_SECONDS)))
+		_battle_countdown_deadline_msec = Time.get_ticks_msec() + int(remaining * 1000.0)
+	else:
+		_battle_countdown_deadline_msec = 0
+	battle_start_state_changed.emit(_build_battle_start_state())
+
+
+func _process_battle_countdown() -> void:
+	if not _is_host or not _match_active or not _battle_countdown_active:
+		return
+	if Time.get_ticks_msec() < _battle_countdown_deadline_msec:
+		return
+	_battle_countdown_active = false
+	_battle_countdown_deadline_msec = 0
+	_battle_countdown_finished = true
+	_broadcast_battle_start_state()
+	_receive_battle_countdown_finished_rpc.rpc(String(_match_payload.get("match_id", "")))
+	battle_countdown_finished.emit()
+
+
 func _apply_match_started(payload: Dictionary) -> void:
 	if int(payload.get("protocol_version", -1)) != LanProtocol.PROTOCOL_VERSION:
 		_emit_error("protocol_mismatch", "LAN protocol versions do not match.")
@@ -637,11 +1126,21 @@ func _apply_match_started(payload: Dictionary) -> void:
 	if String(payload.get("content_hash", "")) != LanProtocol.build_content_hash():
 		_emit_error("content_mismatch", "Game data differs from the host.")
 		return
+	var same_match: bool = String(payload.get("match_id", "")) == String(_match_payload.get("match_id", ""))
 	_match_payload = payload.duplicate(true)
 	_match_active = true
+	if String(payload.get("arena_session_id", "")) != "":
+		_arena_session_active = true
+		_arena_session_id = String(payload.get("arena_session_id", _arena_session_id))
+		_arena_phase = "battle"
 	_reconnecting = false
 	_waiting_for_reconnect = false
 	_last_received_snapshot_sequence = 0
+	if not same_match:
+		_battle_ready_by_side = {"player": false, "enemy": false}
+		_battle_countdown_active = false
+		_battle_countdown_deadline_msec = 0
+		_battle_countdown_finished = false
 	_set_state(ConnectionState.MATCH, "LAN match active")
 	match_started.emit(_match_payload.duplicate(true))
 
@@ -666,8 +1165,45 @@ func _apply_match_finished(result: Dictionary) -> void:
 	_waiting_for_reconnect = false
 	_last_match_result = result.duplicate(true)
 	_local_profile["ready"] = false
-	_set_state(ConnectionState.LOBBY if is_session_connected() else ConnectionState.OFFLINE, "LAN match finished")
+	_battle_ready_by_side = {"player": false, "enemy": false}
+	_battle_countdown_active = false
+	_battle_countdown_deadline_msec = 0
+	_battle_countdown_finished = false
+	var next_state: int = ConnectionState.OFFLINE
+	if is_session_connected():
+		next_state = ConnectionState.ARENA_PREPARATION if _arena_session_active else ConnectionState.LOBBY
+	_set_state(next_state, "LAN match finished")
 	match_finished.emit(_last_match_result.duplicate(true))
+
+
+func _finish_arena_session(winner: String, reason: String) -> void:
+	if not _is_host or not _arena_session_active:
+		return
+	var result: Dictionary = {
+		"arena_session_id": _arena_session_id,
+		"winner": winner,
+		"reason": reason,
+		"player_run": (_arena_runs_by_side.get("player") as RunState).to_dict(),
+		"enemy_run": (_arena_runs_by_side.get("enemy") as RunState).to_dict(),
+	}
+	_receive_arena_session_finished_rpc.rpc(result)
+	_apply_arena_session_finished(result)
+	_broadcast_lobby_state()
+
+
+func _apply_arena_session_finished(result: Dictionary) -> void:
+	_arena_session_active = false
+	_arena_phase = "finished"
+	_match_active = false
+	_waiting_for_reconnect = false
+	_reconnecting = false
+	_battle_ready_by_side = {"player": false, "enemy": false}
+	_battle_countdown_active = false
+	_battle_countdown_deadline_msec = 0
+	_battle_countdown_finished = false
+	_local_profile["ready"] = false
+	_set_state(ConnectionState.LOBBY if is_session_connected() else ConnectionState.OFFLINE, "LAN arena finished")
+	arena_session_finished.emit(result.duplicate(true))
 
 
 func _broadcast_lobby_state() -> void:
@@ -694,6 +1230,7 @@ func _broadcast_lobby_state() -> void:
 		"players": players,
 		"can_start": can_start_match(),
 		"match_active": _match_active,
+		"arena_active": _arena_session_active,
 	}
 	_receive_lobby_state_rpc.rpc(_public_lobby_snapshot)
 	lobby_changed.emit(_public_lobby_snapshot.duplicate(true))
@@ -724,7 +1261,7 @@ func _consume_command_rate(peer_id: int) -> bool:
 func _process_ping(delta: float) -> void:
 	if _is_host or _peer == null or _peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
 		return
-	if _state != ConnectionState.LOBBY and _state != ConnectionState.MATCH:
+	if _state != ConnectionState.LOBBY and _state != ConnectionState.ARENA_PREPARATION and _state != ConnectionState.MATCH:
 		return
 	_ping_elapsed += delta
 	if _ping_elapsed < PING_INTERVAL:
@@ -737,16 +1274,23 @@ func _process_reconnect() -> void:
 	var now_msec: int = Time.get_ticks_msec()
 	if _is_host and _waiting_for_reconnect and now_msec >= _reconnect_deadline_msec:
 		_waiting_for_reconnect = false
-		finish_lan_match({
-			"winner": "player",
-			"reason": "reconnect_timeout",
-			"battle_time": float(_last_snapshot.get("battle_time", 0.0)),
-		}, _last_snapshot)
+		if _match_active:
+			finish_lan_match({
+				"winner": "player",
+				"reason": "reconnect_timeout",
+				"battle_time": float(_last_snapshot.get("battle_time", 0.0)),
+			}, _last_snapshot)
+			if _arena_session_active:
+				_finish_arena_session("player", "reconnect_timeout")
+		elif _arena_session_active:
+			_finish_arena_session("player", "reconnect_timeout")
 		return
 	if not _reconnecting:
 		return
 	if now_msec >= _reconnect_deadline_msec:
 		_match_active = false
+		_arena_session_active = false
+		_arena_phase = ""
 		_reconnecting = false
 		_close_peer_only()
 		_set_state(ConnectionState.OFFLINE, "Reconnection timed out")
@@ -838,6 +1382,28 @@ func _get_guest_peer_id() -> int:
 	return -1
 
 
+func _get_profile_for_side(side: String) -> Dictionary:
+	if _is_host:
+		for raw_peer_id in _peer_sides.keys():
+			var peer_id: int = int(raw_peer_id)
+			if String(_peer_sides.get(peer_id, "")) == side:
+				return Dictionary(_profiles_by_peer.get(peer_id, {})).duplicate(true)
+	for raw_player in Array(_public_lobby_snapshot.get("players", [])):
+		var player_data: Dictionary = Dictionary(raw_player)
+		if String(player_data.get("side", "")) == side:
+			return player_data.duplicate(true)
+	if side == get_local_side():
+		return _local_profile.duplicate(true)
+	return {}
+
+
+func _to_dictionary_array(value: Variant) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for raw_item in Array(value):
+		result.append(Dictionary(raw_item).duplicate(true))
+	return result
+
+
 func _clear_session(clear_profile: bool) -> void:
 	_close_peer_only()
 	if _discovery_sender != null:
@@ -850,6 +1416,18 @@ func _clear_session(clear_profile: bool) -> void:
 	_public_lobby_snapshot.clear()
 	_match_payload.clear()
 	_match_active = false
+	_arena_session_active = false
+	_arena_phase = ""
+	_arena_session_id = ""
+	_arena_runs_by_side.clear()
+	_local_arena_run = null
+	_arena_ready_by_side = {"player": false, "enemy": false}
+	_local_arena_action_sequence = 0
+	_last_arena_action_sequences.clear()
+	_battle_ready_by_side = {"player": false, "enemy": false}
+	_battle_countdown_active = false
+	_battle_countdown_deadline_msec = 0
+	_battle_countdown_finished = false
 	_last_snapshot.clear()
 	_snapshot_sequence = 0
 	_last_received_snapshot_sequence = 0

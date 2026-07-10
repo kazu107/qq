@@ -10,6 +10,7 @@ var _player_run: RunState
 var _enemy_run: RunState
 var _relic_service: RelicService = RelicService.new()
 var _battle_started: bool = false
+var _manual_start_required: bool = false
 var _enemy_name: String = ""
 var _pvp_mode: bool = false
 
@@ -26,6 +27,7 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 	var infinite_power: int = _get_infinite_power(player_run)
 	var scaled_enemy_def: EnemyDef = _build_scaled_enemy_def(enemy_def, infinite_power)
 	_battle_started = false
+	_manual_start_required = false
 	_enemy_name = scaled_enemy_def.name
 	battle_state = BattleState.new()
 	battle_state.player = _build_player_unit(player_run)
@@ -49,6 +51,7 @@ func setup_pvp(
 	_enemy_run = opponent_run
 	_pvp_mode = true
 	_battle_started = false
+	_manual_start_required = true
 	_enemy_name = opponent_name
 	battle_state = BattleState.new()
 	battle_state.player = _build_run_unit(player_run, "player", player_name)
@@ -80,6 +83,8 @@ func update(delta: float) -> void:
 
 func request_use_card(side: String, runtime_id: String) -> bool:
 	if battle_state == null or battle_state.winner != "":
+		return false
+	if _manual_start_required and not _battle_started:
 		return false
 
 	var unit := battle_state.get_unit(side)
@@ -375,6 +380,7 @@ func build_summary() -> Dictionary:
 		"winner": battle_state.winner,
 		"battle_time": battle_state.battle_time,
 		"player_hp": battle_state.player.hp,
+		"enemy_hp": battle_state.enemy.hp,
 		"enemy_id": battle_state.enemy.unit_id,
 		"enemy_name": battle_state.enemy.display_name,
 		"log_count": battle_state.logs.size(),

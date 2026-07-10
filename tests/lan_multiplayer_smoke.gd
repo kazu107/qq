@@ -51,11 +51,17 @@ func _run() -> void:
 	if not is_zero_approx(engine.battle_state.battle_time):
 		_fail("LAN smoke failed: PvP battle advanced before either player started it")
 		return
+	if engine.request_use_card("player", "player_0"):
+		_fail("LAN smoke failed: PvP card started before synchronized start")
+		return
+	if not engine.start_battle():
+		_fail("LAN smoke failed: explicit PvP start was rejected")
+		return
 	if not engine.request_use_card("player", "player_0"):
-		_fail("LAN smoke failed: host card command was rejected")
+		_fail("LAN smoke failed: host card command was rejected after start")
 		return
 	if not engine.request_use_card("enemy", "enemy_0"):
-		_fail("LAN smoke failed: guest card command was rejected")
+		_fail("LAN smoke failed: guest card command was rejected after start")
 		return
 	for _tick_index in range(120):
 		engine.update(0.05)
@@ -83,6 +89,9 @@ func _run() -> void:
 		_fail("LAN smoke failed: snapshot changed battle event history")
 		return
 
+	if not _assert_arena_coordinator(host_profile):
+		return
+
 	await _assert_lan_lobby_scene()
 	if _failed:
 		return
@@ -107,6 +116,37 @@ func _assert_valid_profile(profile: Dictionary) -> bool:
 	var validation: Dictionary = LanProtocol.validate_profile(profile)
 	if not bool(validation.get("valid", false)):
 		_fail("LAN smoke failed: valid profile rejected (%s)" % String(validation.get("error", "unknown")))
+		return false
+	return true
+
+
+func _assert_arena_coordinator(profile: Dictionary) -> bool:
+	var coordinator: LanArenaCoordinator = LanArenaCoordinator.new()
+	var run_state: RunState = coordinator.create_run(profile, 97531)
+	if run_state == null or not run_state.arena_mode or run_state.gold <= 0:
+		_fail("LAN smoke failed: arena preparation run was not configured")
+		return false
+	var status: Dictionary = coordinator.build_status(run_state, "Guest", "tempo", false, true)
+	if int(status.get("target_wins", 0)) != LanArenaCoordinator.TARGET_WINS:
+		_fail("LAN smoke failed: arena target wins were not configured")
+		return false
+	var entries: Array[Dictionary] = coordinator.get_loadout_entries(run_state)
+	if entries.is_empty() or not coordinator.has_valid_loadout(run_state):
+		_fail("LAN smoke failed: arena loadout was not available")
+		return false
+	var offers: Array[Dictionary] = []
+	for raw_offer in Array(run_state.arena_shop.get("cards", [])):
+		offers.append(Dictionary(raw_offer))
+	if offers.is_empty():
+		_fail("LAN smoke failed: arena card offers were not generated")
+		return false
+	var hold_result: Dictionary = coordinator.apply_action(run_state, "toggle_card_hold", {"index": 0})
+	if not bool(hold_result.get("accepted", false)):
+		_fail("LAN smoke failed: arena hold action was rejected")
+		return false
+	var progress: Dictionary = coordinator.apply_battle_result(run_state, true, run_state.player_hp)
+	if bool(progress.get("finished", true)) or run_state.arena_wins != 1 or run_state.arena_pending_rewards.is_empty():
+		_fail("LAN smoke failed: arena round progression was invalid")
 		return false
 	return true
 

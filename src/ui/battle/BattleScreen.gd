@@ -21,6 +21,7 @@ var _log_button: Button
 var _log_popup: PanelContainer
 var _log_panel: LogPanel
 var _start_battle_button: Button
+var _countdown_label: Label
 var _battle_info_label: RichTextLabel
 var _slow_mode_label: Label
 var _result_label: Label
@@ -117,6 +118,8 @@ func _setup_lan_battle() -> bool:
 	var last_snapshot: Dictionary = NetworkManager.get_last_snapshot()
 	if not last_snapshot.is_empty():
 		_apply_lan_snapshot(last_snapshot)
+	elif NetworkManager.has_battle_countdown_finished():
+		_engine.start_battle()
 	_processed_battle_event_count = 0
 	_processed_vfx_event_count = 0
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
@@ -165,6 +168,10 @@ func _connect_lan_signals() -> void:
 		NetworkManager.battle_command_received.connect(_on_lan_battle_command_received)
 	if not NetworkManager.command_result_received.is_connected(_on_lan_command_result_received):
 		NetworkManager.command_result_received.connect(_on_lan_command_result_received)
+	if not NetworkManager.battle_start_state_changed.is_connected(_on_lan_battle_start_state_changed):
+		NetworkManager.battle_start_state_changed.connect(_on_lan_battle_start_state_changed)
+	if not NetworkManager.battle_countdown_finished.is_connected(_on_lan_battle_countdown_finished):
+		NetworkManager.battle_countdown_finished.connect(_on_lan_battle_countdown_finished)
 	if not NetworkManager.match_finished.is_connected(_on_lan_match_finished):
 		NetworkManager.match_finished.connect(_on_lan_match_finished)
 	if not NetworkManager.connection_state_changed.is_connected(_on_lan_connection_state_changed):
@@ -195,9 +202,7 @@ func _on_lan_battle_command_received(
 	if not _lan_mode or not NetworkManager.is_host():
 		return
 	var accepted: bool = false
-	if kind == "start":
-		accepted = _engine.start_battle()
-	elif kind == "card":
+	if kind == "card":
 		accepted = _engine.request_use_card(side, runtime_id)
 	_publish_lan_snapshot(true)
 	NetworkManager.send_command_result(peer_id, sequence, accepted, NetworkManager.get_last_snapshot())
@@ -206,6 +211,20 @@ func _on_lan_battle_command_received(
 func _on_lan_command_result_received(_sequence: int, accepted: bool, _snapshot: Dictionary) -> void:
 	if not accepted:
 		AudioManager.play_sfx("ui_error")
+
+
+func _on_lan_battle_start_state_changed(_state: Dictionary) -> void:
+	if _lan_mode and is_inside_tree():
+		_refresh_ui(1.0)
+
+
+func _on_lan_battle_countdown_finished() -> void:
+	if not _lan_mode or _engine.battle_state == null or _engine.has_battle_started():
+		return
+	_engine.start_battle()
+	if NetworkManager.is_host():
+		_publish_lan_snapshot(true)
+	_refresh_ui(1.0)
 
 
 func _on_lan_match_finished(result: Dictionary) -> void:
@@ -317,6 +336,16 @@ func _build_ui() -> void:
 	_start_battle_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_start_battle_button.pressed.connect(_on_start_battle_pressed)
 	center_panel.add_child(_start_battle_button)
+	_countdown_label = Label.new()
+	_countdown_label.name = "BattleCountdownLabel"
+	_countdown_label.visible = false
+	_countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_countdown_label.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH, 54.0)
+	_countdown_label.add_theme_font_size_override("font_size", 38)
+	_countdown_label.add_theme_color_override("font_color", Color(1.0, 0.82, 0.32, 1.0))
+	_countdown_label.add_theme_color_override("font_outline_color", Color(0.02, 0.03, 0.04, 0.96))
+	_countdown_label.add_theme_constant_override("outline_size", 6)
+	center_panel.add_child(_countdown_label)
 	_battle_info_label = RichTextLabel.new()
 	_battle_info_label.name = "BattleInfoLabel"
 	_battle_info_label.bbcode_enabled = true
@@ -447,8 +476,29 @@ func _refresh_ui(time_scale: float) -> void:
 		_slow_mode_label.text = Localization.get_text("battle.slow_mode_hold", "Hold Space for Slow Mode")
 	if _start_battle_button != null:
 		var can_start: bool = not _engine.has_battle_started() and battle_state.winner == ""
-		_start_battle_button.visible = can_start
-		_start_battle_button.disabled = not can_start
+		if _lan_mode:
+			var local_ready: bool = NetworkManager.is_local_battle_ready()
+			var countdown_active: bool = NetworkManager.is_battle_countdown_active()
+			_start_battle_button.visible = can_start and not countdown_active
+			_start_battle_button.disabled = not can_start or NetworkManager.is_waiting_for_reconnect()
+			_start_battle_button.text = Localization.get_text("lan.battle.cancel_start", "CANCEL START") if local_ready else Localization.get_text("lan.battle.start_ready", "BATTLE START")
+			if _countdown_label != null:
+				_countdown_label.visible = can_start
+				if countdown_active:
+					_countdown_label.text = str(maxi(1, ceili(NetworkManager.get_battle_countdown_remaining())))
+				elif local_ready:
+					_countdown_label.text = Localization.get_text("lan.battle.waiting_start", "WAITING FOR OPPONENT")
+					_countdown_label.add_theme_font_size_override("font_size", 20)
+				else:
+					_countdown_label.text = Localization.get_text("lan.battle.both_start", "BOTH PLAYERS MUST START")
+					_countdown_label.add_theme_font_size_override("font_size", 20)
+				if countdown_active:
+					_countdown_label.add_theme_font_size_override("font_size", 38)
+		else:
+			_start_battle_button.visible = can_start
+			_start_battle_button.disabled = not can_start
+			if _countdown_label != null:
+				_countdown_label.visible = false
 
 	var preview_runtime_state: CardRuntimeState = _get_hovered_player_runtime_state(battle_state)
 	var preview_card_def: CardDef = _get_hover_preview_card_def(preview_runtime_state)
@@ -551,6 +601,9 @@ func _resolve_unit_panel(unit_id: String, battle_state: BattleState) -> UnitPane
 
 func _on_card_requested(runtime_id: String) -> void:
 	var requested: bool = false
+	if _lan_mode and not NetworkManager.has_battle_countdown_finished():
+		AudioManager.play_sfx("ui_error")
+		return
 	if _lan_mode and not NetworkManager.is_host():
 		requested = NetworkManager.submit_card_command(runtime_id)
 		if requested:
@@ -570,15 +623,11 @@ func _on_card_requested(runtime_id: String) -> void:
 
 
 func _on_start_battle_pressed() -> void:
-	var started: bool = false
-	if _lan_mode and not NetworkManager.is_host():
-		started = NetworkManager.submit_start_command()
-		if started:
-			_engine.apply_network_snapshot(_engine.battle_state, true)
+	var started: bool
+	if _lan_mode:
+		started = NetworkManager.set_local_battle_ready(not NetworkManager.is_local_battle_ready())
 	else:
 		started = _engine.start_battle()
-		if _lan_mode and started:
-			_publish_lan_snapshot(true)
 	if not started:
 		AudioManager.play_sfx("ui_error")
 		return
@@ -686,7 +735,10 @@ func _on_log_button_pressed() -> void:
 
 func _advance_after_battle() -> void:
 	if _lan_mode:
-		SceneRouter.go_to_lan_lobby()
+		if NetworkManager.is_lan_arena_session_active() and NetworkManager.get_lan_arena_phase() == "preparation":
+			SceneRouter.go_to_arena()
+		else:
+			SceneRouter.go_to_lan_lobby()
 		return
 	if Game.current_run == null:
 		SceneRouter.go_to_title()

@@ -38,6 +38,11 @@ func _ready() -> void:
 	_refresh_all()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+	if NetworkManager.is_lan_arena_session_active():
+		if NetworkManager.has_active_match():
+			call_deferred("_open_battle_scene")
+		else:
+			call_deferred("_open_arena_scene")
 
 
 func _exit_tree() -> void:
@@ -243,7 +248,7 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 
 	_start_button = Button.new()
 	_start_button.name = "LanStartMatchButton"
-	_start_button.text = Localization.get_text("lan.start_match", "START MATCH")
+	_start_button.text = Localization.get_text("lan.start_arena", "START ARENA PREPARATION")
 	_start_button.custom_minimum_size = Vector2(190.0, 48.0)
 	_start_button.pressed.connect(_on_start_match_pressed)
 	actions.add_child(_start_button)
@@ -267,6 +272,8 @@ func _connect_network_signals() -> void:
 		NetworkManager.network_error.connect(_on_network_error)
 	if not NetworkManager.match_started.is_connected(_on_match_started):
 		NetworkManager.match_started.connect(_on_match_started)
+	if not NetworkManager.arena_preparation_started.is_connected(_on_arena_preparation_started):
+		NetworkManager.arena_preparation_started.connect(_on_arena_preparation_started)
 	if not NetworkManager.match_finished.is_connected(_on_match_finished):
 		NetworkManager.match_finished.connect(_on_match_finished)
 	if not NetworkManager.session_ended.is_connected(_on_session_ended):
@@ -465,7 +472,7 @@ func _on_ready_pressed() -> void:
 
 
 func _on_start_match_pressed() -> void:
-	if not NetworkManager.start_lan_match():
+	if not NetworkManager.start_lan_arena_preparation():
 		AudioManager.play_sfx("ui_error")
 
 
@@ -503,8 +510,19 @@ func _on_match_started(_payload: Dictionary) -> void:
 	call_deferred("_open_battle_scene")
 
 
+func _on_arena_preparation_started(_snapshot: Dictionary) -> void:
+	if _opening_battle:
+		return
+	_opening_battle = true
+	call_deferred("_open_arena_scene")
+
+
 func _open_battle_scene() -> void:
 	SceneRouter.go_to_battle()
+
+
+func _open_arena_scene() -> void:
+	SceneRouter.go_to_arena()
 
 
 func _on_match_finished(_result: Dictionary) -> void:
