@@ -31,6 +31,8 @@ var _handled_finish: bool = false
 var _hovered_player_runtime_id: String = ""
 var _processed_battle_event_count: int = 0
 var _processed_vfx_event_count: int = 0
+var _lan_battle_event_total: int = 0
+var _lan_snapshot_initialized: bool = false
 var _lan_mode: bool = false
 var _local_side: String = "player"
 var _local_run: RunState
@@ -115,13 +117,15 @@ func _setup_lan_battle() -> bool:
 		String(payload.get("player_name", "Player 1")),
 		String(payload.get("enemy_name", "Player 2"))
 	)
+	_processed_battle_event_count = 0
+	_processed_vfx_event_count = 0
+	_lan_battle_event_total = 0
+	_lan_snapshot_initialized = false
 	var last_snapshot: Dictionary = NetworkManager.get_last_snapshot()
 	if not last_snapshot.is_empty():
 		_apply_lan_snapshot(last_snapshot)
 	elif NetworkManager.has_battle_countdown_finished():
 		_engine.start_battle()
-	_processed_battle_event_count = 0
-	_processed_vfx_event_count = 0
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
 	_player_panel.configure_visual("player", _local_run.starter_id)
 	_enemy_panel.configure_visual("enemy", _opponent_run.starter_id)
@@ -157,7 +161,11 @@ func _process_lan_battle(delta: float) -> void:
 
 
 func _publish_lan_snapshot(reliable: bool) -> void:
-	var snapshot: Dictionary = BattleStateCodec.encode(_engine.battle_state, _engine.has_battle_started())
+	var snapshot: Dictionary = BattleStateCodec.encode(
+		_engine.battle_state,
+		_engine.has_battle_started(),
+		true
+	)
 	NetworkManager.publish_battle_snapshot(snapshot, reliable)
 
 
@@ -188,6 +196,14 @@ func _apply_lan_snapshot(snapshot: Dictionary) -> void:
 	var decoded_state: BattleState = BattleStateCodec.decode(snapshot)
 	if decoded_state == null:
 		return
+	_lan_battle_event_total = maxi(
+		decoded_state.battle_events.size(),
+		int(snapshot.get("battle_event_total", decoded_state.battle_events.size()))
+	)
+	if not NetworkManager.is_host() and not _lan_snapshot_initialized:
+		_processed_battle_event_count = _lan_battle_event_total
+		_processed_vfx_event_count = _lan_battle_event_total
+	_lan_snapshot_initialized = true
 	_lan_authoritative_battle_time = decoded_state.battle_time
 	_engine.apply_network_snapshot(decoded_state, bool(snapshot.get("battle_started", false)))
 
@@ -557,9 +573,12 @@ func _consume_suppressed_shield_decay_losses(battle_state: BattleState) -> Dicti
 		return suppressed_by_unit
 
 	var battle_events: Array[Dictionary] = battle_state.battle_events
-	var start_index: int = clampi(_processed_battle_event_count, 0, battle_events.size())
+	var compact_lan_events: bool = _uses_compact_lan_events()
+	var start_index: int = 0 if compact_lan_events else clampi(_processed_battle_event_count, 0, battle_events.size())
 	for event_index in range(start_index, battle_events.size()):
 		var event_data: Dictionary = Dictionary(battle_events[event_index])
+		if compact_lan_events and int(event_data.get("_event_index", -1)) < _processed_battle_event_count:
+			continue
 		if String(event_data.get("event_type", "")) != "shield_decay":
 			continue
 		var target_id: String = String(event_data.get("target_id", ""))
@@ -567,7 +586,7 @@ func _consume_suppressed_shield_decay_losses(battle_state: BattleState) -> Dicti
 		if target_id == "" or shield_loss <= 0:
 			continue
 		suppressed_by_unit[target_id] = int(suppressed_by_unit.get(target_id, 0)) + shield_loss
-	_processed_battle_event_count = battle_events.size()
+	_processed_battle_event_count = _lan_battle_event_total if compact_lan_events else battle_events.size()
 	return suppressed_by_unit
 
 
@@ -576,15 +595,22 @@ func _process_resolution_vfx(battle_state: BattleState) -> void:
 		return
 
 	var battle_events: Array[Dictionary] = battle_state.battle_events
-	var start_index: int = clampi(_processed_vfx_event_count, 0, battle_events.size())
+	var compact_lan_events: bool = _uses_compact_lan_events()
+	var start_index: int = 0 if compact_lan_events else clampi(_processed_vfx_event_count, 0, battle_events.size())
 	for event_index in range(start_index, battle_events.size()):
 		var event_data: Dictionary = Dictionary(battle_events[event_index])
+		if compact_lan_events and int(event_data.get("_event_index", -1)) < _processed_vfx_event_count:
+			continue
 		if String(event_data.get("event_type", "")) != "resolve_card":
 			continue
 		var actor_panel: UnitPanel = _resolve_unit_panel(String(event_data.get("actor_id", "")), battle_state)
 		var target_panel: UnitPanel = _resolve_unit_panel(String(event_data.get("target_id", "")), battle_state)
 		_vfx_layer.play_resolution(event_data, actor_panel, target_panel, _player_panel, _enemy_panel)
-	_processed_vfx_event_count = battle_events.size()
+	_processed_vfx_event_count = _lan_battle_event_total if compact_lan_events else battle_events.size()
+
+
+func _uses_compact_lan_events() -> bool:
+	return _lan_mode and not NetworkManager.is_host()
 
 
 func _resolve_unit_panel(unit_id: String, battle_state: BattleState) -> UnitPanel:

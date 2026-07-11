@@ -1,8 +1,17 @@
 extends RefCounted
 class_name BattleStateCodec
 
+const NETWORK_EVENT_WINDOW: int = 12
+const NETWORK_LOG_WINDOW: int = 16
+const NETWORK_RESULT_UNIT_KEYS: Array[String] = [
+	"player_before",
+	"player_after",
+	"enemy_before",
+	"enemy_after",
+]
 
-static func encode(state: BattleState, battle_started: bool) -> Dictionary:
+
+static func encode(state: BattleState, battle_started: bool, compact_for_network: bool = false) -> Dictionary:
 	if state == null:
 		return {}
 	var active_instances: Array[Dictionary] = []
@@ -11,19 +20,67 @@ static func encode(state: BattleState, battle_started: bool) -> Dictionary:
 	var timeline: Array[Dictionary] = []
 	for entry in state.timeline:
 		timeline.append(_encode_timeline_entry(entry))
+	var encoded_logs: Array[String] = _encode_network_logs(state.logs) if compact_for_network else state.logs.duplicate()
+	var encoded_events: Array[Dictionary] = (
+		_encode_network_events(state.battle_events)
+		if compact_for_network
+		else state.battle_events.duplicate(true)
+	)
 	return {
 		"version": LanProtocol.SNAPSHOT_VERSION,
+		"compact_for_network": compact_for_network,
+		"battle_event_total": state.battle_events.size(),
 		"battle_started": battle_started,
 		"battle_time": state.battle_time,
 		"player": _encode_unit(state.player),
 		"enemy": _encode_unit(state.enemy),
 		"active_instances": active_instances,
 		"timeline": timeline,
-		"logs": state.logs.duplicate(),
-		"battle_events": state.battle_events.duplicate(true),
+		"logs": encoded_logs,
+		"battle_events": encoded_events,
 		"winner": state.winner,
 		"next_instance_id": state.next_instance_id,
 	}
+
+
+static func _encode_network_logs(logs: Array[String]) -> Array[String]:
+	var result: Array[String] = []
+	var start_index: int = maxi(0, logs.size() - NETWORK_LOG_WINDOW)
+	for index in range(start_index, logs.size()):
+		result.append(logs[index])
+	return result
+
+
+static func _encode_network_events(events: Array[Dictionary]) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var start_index: int = maxi(0, events.size() - NETWORK_EVENT_WINDOW)
+	for index in range(start_index, events.size()):
+		var event_data: Dictionary = events[index]
+		result.append({
+			"_event_index": index,
+			"time": float(event_data.get("time", 0.0)),
+			"event_type": String(event_data.get("event_type", "")),
+			"actor_id": String(event_data.get("actor_id", "")),
+			"card_id": String(event_data.get("card_id", "")),
+			"target_id": String(event_data.get("target_id", "")),
+			"result": _encode_network_result(Dictionary(event_data.get("result", {}))),
+			"hp_delta": int(event_data.get("hp_delta", 0)),
+			"shield_delta": int(event_data.get("shield_delta", 0)),
+		})
+	return result
+
+
+static func _encode_network_result(result: Dictionary) -> Dictionary:
+	var compact_result: Dictionary = {}
+	for key: String in NETWORK_RESULT_UNIT_KEYS:
+		var unit_data: Dictionary = Dictionary(result.get(key, {}))
+		if unit_data.is_empty():
+			continue
+		compact_result[key] = {
+			"hp": int(unit_data.get("hp", 0)),
+			"shield": int(unit_data.get("shield", 0)),
+		}
+	return compact_result
 
 
 static func decode(payload: Dictionary) -> BattleState:

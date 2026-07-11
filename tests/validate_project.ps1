@@ -235,19 +235,27 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/StartupCacheSmoke.tscn"
     )
-    Invoke-GodotCheck "[26/27] Running LAN multiplayer protocol smoke" $godotExe @(
+    Invoke-GodotCheck "[26/28] Running LAN multiplayer protocol smoke" $godotExe @(
         "--no-header",
         "--headless",
         "--path", $root,
         "--scene", "res://tests/LanMultiplayerSmoke.tscn"
     )
-    Write-Host "[27/27] Running LAN two-peer ENet smoke"
+    Write-Host "[27/28] Running LAN two-peer ENet smoke"
     $lanValidationOutput = & (Join-Path $PSScriptRoot "validate_lan_network.ps1") -GodotPath $godotExe -Root $root 2>&1 | Out-String
     if ($LASTEXITCODE -ne 0) {
         Add-Error "LAN two-peer validation failed.`n$lanValidationOutput"
     }
     elseif (-not [string]::IsNullOrWhiteSpace($lanValidationOutput)) {
         Write-Host $lanValidationOutput.TrimEnd()
+    }
+    Write-Host "[28/28] Running LAN sustained network soak"
+    $lanSoakOutput = & (Join-Path $PSScriptRoot "validate_lan_network_soak.ps1") -GodotPath $godotExe -Root $root -DurationSeconds 8 2>&1 | Out-String
+    if ($LASTEXITCODE -ne 0) {
+        Add-Error "LAN sustained network soak failed.`n$lanSoakOutput"
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($lanSoakOutput)) {
+        Write-Host $lanSoakOutput.TrimEnd()
     }
 }
 

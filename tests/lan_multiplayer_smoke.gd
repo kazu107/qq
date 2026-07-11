@@ -88,6 +88,8 @@ func _run() -> void:
 	if restored.battle_events.size() != engine.battle_state.battle_events.size():
 		_fail("LAN smoke failed: snapshot changed battle event history")
 		return
+	if not _assert_compact_snapshot_budget(restored):
+		return
 
 	if not _assert_arena_coordinator(host_profile):
 		return
@@ -149,6 +151,101 @@ func _assert_arena_coordinator(profile: Dictionary) -> bool:
 		_fail("LAN smoke failed: arena round progression was invalid")
 		return false
 	return true
+
+
+func _assert_compact_snapshot_budget(state: BattleState) -> bool:
+	var heavy_unit: Dictionary = _build_heavy_unit_snapshot()
+	var heavy_timeline: Array[Dictionary] = []
+	for timeline_index in range(12):
+		heavy_timeline.append({
+			"instance_id": timeline_index,
+			"owner_side": "player" if timeline_index % 2 == 0 else "enemy",
+			"runtime_id": "runtime_%d" % timeline_index,
+			"card_id": "quick_slash",
+			"scheduled_time": float(timeline_index) * 0.75,
+		})
+	_append_heavy_events(state, 40, heavy_unit, heavy_timeline)
+	var first_snapshot: Dictionary = BattleStateCodec.encode(state, true, true)
+	var first_size: int = var_to_bytes(first_snapshot).size()
+	_append_heavy_events(state, 400, heavy_unit, heavy_timeline)
+	var final_snapshot: Dictionary = BattleStateCodec.encode(state, true, true)
+	var final_size: int = var_to_bytes(final_snapshot).size()
+	var compact_events: Array = Array(final_snapshot.get("battle_events", []))
+	if compact_events.size() != BattleStateCodec.NETWORK_EVENT_WINDOW:
+		_fail("LAN smoke failed: compact snapshot did not cap event history")
+		return false
+	if int(final_snapshot.get("battle_event_total", 0)) != state.battle_events.size():
+		_fail("LAN smoke failed: compact snapshot lost the event stream total")
+		return false
+	if final_size > 32768 or final_size > first_size + 1024:
+		_fail("LAN smoke failed: compact snapshot grew with history (%d -> %d bytes)" % [first_size, final_size])
+		return false
+	var newest_event: Dictionary = Dictionary(compact_events.back())
+	if int(newest_event.get("_event_index", -1)) != state.battle_events.size() - 1:
+		_fail("LAN smoke failed: compact snapshot event sequence was invalid")
+		return false
+	var newest_result: Dictionary = Dictionary(newest_event.get("result", {}))
+	var player_before: Dictionary = Dictionary(newest_result.get("player_before", {}))
+	if player_before.keys().size() != 2 or not player_before.has("hp") or not player_before.has("shield"):
+		_fail("LAN smoke failed: compact snapshot retained oversized unit event data")
+		return false
+	print("LAN compact snapshot budget passed: %d -> %d bytes across %d events" % [
+		first_size,
+		final_size,
+		state.battle_events.size(),
+	])
+	return true
+
+
+func _append_heavy_events(
+	state: BattleState,
+	count: int,
+	heavy_unit: Dictionary,
+	heavy_timeline: Array[Dictionary]
+) -> void:
+	for _event_offset in range(count):
+		var event_index: int = state.battle_events.size()
+		state.record_event({
+			"time": float(event_index) * 0.1,
+			"event_type": "resolve_card",
+			"actor_id": "player",
+			"card_id": "quick_slash",
+			"target_id": "enemy",
+			"result": {
+				"player_before": heavy_unit,
+				"player_after": heavy_unit,
+				"enemy_before": heavy_unit,
+				"enemy_after": heavy_unit,
+			},
+			"hp_delta": -4,
+			"shield_delta": 0,
+			"timeline_before": heavy_timeline,
+			"timeline_after": heavy_timeline,
+		})
+
+
+func _build_heavy_unit_snapshot() -> Dictionary:
+	var runtime_states: Array[Dictionary] = []
+	for runtime_index in range(16):
+		runtime_states.append({
+			"runtime_id": "player_%d" % runtime_index,
+			"card_id": "quick_slash",
+			"loadout_index": runtime_index,
+			"state": CardRuntimeState.CardState.READY,
+			"cooldown_remaining": float(runtime_index) * 0.1,
+		})
+	return {
+		"hp": 50,
+		"max_hp": 60,
+		"shield": 12,
+		"attack": 4,
+		"speed": 7,
+		"statuses": {"bleed": {"remaining": 8.0, "stacks": 3}},
+		"runtime_states": runtime_states,
+		"temporary_card_modifiers": {
+			"quick_slash": {"damage": 12.0, "cast_time": -0.6, "recast_time": -1.2},
+		},
+	}
 
 
 func _assert_lan_lobby_scene() -> void:
