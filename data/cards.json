@@ -2867,5 +2867,564 @@
         -6.0
       ]
     }
+  },
+  {
+    "id": "solar_verdict",
+    "name": "Solar Verdict",
+    "description": "Focus a final judgment beam that crushes weakened targets and leaves them exposed.",
+    "rarity": "legendary",
+    "tags": ["attack", "finisher", "debuff"],
+    "loadout_cost": 5,
+    "recast_time": 56,
+    "cast_time": 9.0,
+    "active_slot_cost": 3,
+    "priority_modifier": -0.15,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 26,
+        "target": "enemy",
+        "bonus_if_target_hp_below_ratio": 0.35,
+        "bonus_amount": 14
+      },
+      {"type": "apply_status", "status": "vulnerable", "duration": 14.0, "target": "enemy"}
+    ],
+    "upgrade_profile": {
+      "damage": [0, 4, 8, 12],
+      "duration": [0, 1.0, 2.0, 3.0],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "citadel_prime",
+    "name": "Citadel Prime",
+    "description": "Deploy a sovereign fortress shell that restores its operator and removes exposed weak points.",
+    "rarity": "legendary",
+    "tags": ["shield", "heal", "cleanse"],
+    "loadout_cost": 5,
+    "recast_time": 52,
+    "cast_time": 7.2,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.08,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {"type": "gain_shield", "amount": 28, "target": "self"},
+      {"type": "heal", "amount": 10, "target": "self"},
+      {"type": "remove_status", "status": "weak", "target": "self"},
+      {"type": "remove_status", "status": "vulnerable", "target": "self"}
+    ],
+    "upgrade_profile": {
+      "shield": [0, 4, 8, 12],
+      "heal": [0, 2, 4, 6],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "epoch_breaker",
+    "name": "Epoch Breaker",
+    "description": "Shatter the enemy schedule, interrupt every vulnerable cast, and drive the timeline backward.",
+    "rarity": "legendary",
+    "tags": ["attack", "control", "delay", "interrupt"],
+    "loadout_cost": 5,
+    "recast_time": 58,
+    "cast_time": 8.4,
+    "active_slot_cost": 3,
+    "priority_modifier": -0.12,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {"type": "deal_damage", "amount": 16, "target": "enemy"},
+      {"type": "delay_enemy_active_card", "amount": 3.6, "scope": "all"},
+      {"type": "interrupt_card", "scope": "all_interruptible"}
+    ],
+    "upgrade_profile": {
+      "damage": [0, 3, 6, 9],
+      "delay": [0, 0.6, 1.2, 1.8],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "phoenix_circuit",
+    "name": "Phoenix Circuit",
+    "description": "Rebuild a failing frame and permanently improve every healing circuit for the battle.",
+    "rarity": "legendary",
+    "tags": ["heal", "cleanse", "growth", "support"],
+    "loadout_cost": 5,
+    "recast_time": 54,
+    "cast_time": 7.5,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.05,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {"type": "heal", "amount": 20, "target": "self"},
+      {"type": "remove_status", "status": "bleed", "target": "self"},
+      {"type": "remove_status", "status": "weak", "target": "self"},
+      {"type": "empower_card", "scope": "all_own", "stat": "heal", "amount": 1.0}
+    ],
+    "upgrade_profile": {
+      "heal": [0, 3, 6, 9],
+      "empower": [0, 0.3, 0.6, 0.9],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "atlas_protocol",
+    "name": "Atlas Protocol",
+    "description": "Raise a strategic command frame that reinforces and accelerates the entire loadout.",
+    "rarity": "legendary",
+    "tags": ["support", "growth", "shield", "cooldown"],
+    "loadout_cost": 5,
+    "recast_time": 60,
+    "cast_time": 7.8,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.02,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {"type": "gain_shield", "amount": 16, "target": "self"},
+      {"type": "reduce_recast", "amount": 3.0, "scope": "all"},
+      {"type": "empower_card", "scope": "all_own", "stat": "damage", "amount": 1.0},
+      {"type": "empower_card", "scope": "all_own", "stat": "shield", "amount": 1.0}
+    ],
+    "upgrade_profile": {
+      "shield": [0, 3, 6, 9],
+      "cooldown": [0, 0.5, 1.0, 1.5],
+      "empower": [0, 0.2, 0.4, 0.6],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "worldline_collapse",
+    "name": "Worldline Collapse",
+    "description": "Fold both timelines into reverse while the enemy schedule is forced even farther away.",
+    "rarity": "legendary",
+    "tags": ["special", "control", "reverse", "attack", "delay"],
+    "loadout_cost": 5,
+    "recast_time": 62,
+    "cast_time": 9.3,
+    "active_slot_cost": 3,
+    "priority_modifier": -0.1,
+    "interruptible": true,
+    "target_type": "all",
+    "effects": [
+      {"type": "deal_damage", "amount": 12, "target": "enemy"},
+      {"type": "timeline_flow", "mode": "reverse", "target_side": "all", "duration": 4.5},
+      {"type": "delay_enemy_active_card", "amount": 2.0, "scope": "all"}
+    ],
+    "upgrade_profile": {
+      "damage": [0, 3, 6, 9],
+      "duration": [0, 0.6, 1.2, 1.8],
+      "delay": [0, 0.5, 1.0, 1.5],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "seraph_array",
+    "name": "Seraph Array",
+    "description": "Launch a wing of guard drones that fortifies the user and advances every allied cast.",
+    "rarity": "legendary",
+    "tags": ["shield", "chain", "haste", "support"],
+    "loadout_cost": 5,
+    "recast_time": 50,
+    "cast_time": 6.3,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.12,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {"type": "gain_shield", "amount": 18, "target": "self"},
+      {
+        "type": "auto_queue_card",
+        "card_id": "quick_guard",
+        "count": 3,
+        "delay": 0.3,
+        "queue_spacing": 0.4,
+        "max_depth": 1,
+        "use_cast_time": false
+      },
+      {"type": "haste_own_active_card", "amount": 1.5, "scope": "all"}
+    ],
+    "upgrade_profile": {
+      "shield": [0, 3, 6, 9],
+      "haste": [0, 0.4, 0.8, 1.2],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "ragnarok_engine",
+    "name": "Ragnarok Engine",
+    "description": "A recursive siege engine repeats its own strike and becomes stronger after every resolution.",
+    "rarity": "legendary",
+    "tags": ["attack", "chain", "growth", "finisher"],
+    "loadout_cost": 5,
+    "recast_time": 64,
+    "cast_time": 9.6,
+    "active_slot_cost": 3,
+    "priority_modifier": -0.18,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {"type": "deal_damage", "amount": 18, "target": "enemy"},
+      {"type": "empower_card", "scope": "self", "stat": "damage", "amount": 1.0},
+      {
+        "type": "auto_queue_card",
+        "card_id": "self",
+        "count": 1,
+        "delay": 0.8,
+        "max_depth": 2,
+        "use_cast_time": false
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [0, 3, 6, 9],
+      "empower": [0, 0.3, 0.6, 0.9],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "absolute_zero",
+    "name": "Absolute Zero",
+    "description": "Lock the enemy timeline in perfect stasis and leave every hostile system slowed.",
+    "rarity": "legendary",
+    "tags": ["control", "stop", "debuff", "delay"],
+    "loadout_cost": 5,
+    "recast_time": 60,
+    "cast_time": 8.1,
+    "active_slot_cost": 2,
+    "priority_modifier": -0.06,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {"type": "timeline_flow", "mode": "stop", "target_side": "enemy", "duration": 5.0},
+      {"type": "apply_status", "status": "slow", "duration": 16.0, "target": "enemy"},
+      {"type": "delay_enemy_active_card", "amount": 1.5, "scope": "all"}
+    ],
+    "upgrade_profile": {
+      "duration": [0, 1.0, 2.0, 3.0],
+      "delay": [0, 0.5, 1.0, 1.5],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "quantum_exchange",
+    "name": "Quantum Exchange",
+    "description": "Convert stored shield into damage, repairs, and a deck-wide cooldown surge.",
+    "rarity": "legendary",
+    "tags": ["shield_spend", "attack", "heal", "cooldown"],
+    "loadout_cost": 5,
+    "recast_time": 48,
+    "cast_time": 6.6,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.04,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {"type": "consume_shield", "amount": 14},
+      {"type": "deal_damage", "amount": 24, "target": "enemy"},
+      {"type": "heal", "amount": 14, "target": "self"},
+      {"type": "reduce_recast", "amount": 2.5, "scope": "all"}
+    ],
+    "upgrade_profile": {
+      "damage": [0, 3, 6, 9],
+      "heal": [0, 2, 4, 6],
+      "cooldown": [0, 0.5, 1.0, 1.5],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "crown_of_thorns",
+    "name": "Crown of Thorns",
+    "description": "Raise a barbed barrier that protects the user while inflicting a persistent counter-wound.",
+    "rarity": "legendary",
+    "tags": ["shield", "attack", "bleed", "status"],
+    "loadout_cost": 5,
+    "recast_time": 52,
+    "cast_time": 7.2,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.06,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {"type": "gain_shield", "amount": 22, "target": "self"},
+      {"type": "deal_damage", "amount": 8, "target": "enemy"},
+      {"type": "apply_status", "status": "bleed", "duration": 18.0, "target": "enemy"}
+    ],
+    "upgrade_profile": {
+      "shield": [0, 3, 6, 9],
+      "damage": [0, 2, 4, 6],
+      "duration": [0, 1.0, 2.0, 3.0],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "infinity_arsenal",
+    "name": "Infinity Arsenal",
+    "description": "Open a self-feeding armory that queues twin strikes and twin guards while tuning allied weapons.",
+    "rarity": "legendary",
+    "tags": ["chain", "attack", "shield", "growth"],
+    "loadout_cost": 5,
+    "recast_time": 58,
+    "cast_time": 7.8,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.0,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "auto_queue_card",
+        "card_id": "strike",
+        "count": 2,
+        "delay": 0.3,
+        "queue_spacing": 0.4,
+        "max_depth": 1,
+        "use_cast_time": false
+      },
+      {
+        "type": "auto_queue_card",
+        "card_id": "guard",
+        "count": 2,
+        "delay": 0.6,
+        "queue_spacing": 0.4,
+        "max_depth": 1,
+        "use_cast_time": false
+      },
+      {"type": "empower_card", "scope": "other_own", "stat": "damage", "amount": 0.5}
+    ],
+    "upgrade_profile": {
+      "empower": [0, 0.2, 0.4, 0.6],
+      "cast_time": [0, -0.3, -0.6, -0.9],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "omega_sanctuary",
+    "name": "Omega Sanctuary",
+    "description": "Create a complete recovery chamber that restores, shields, cleanses, and pauses the enemy.",
+    "rarity": "legendary",
+    "tags": ["heal", "shield", "cleanse", "stop"],
+    "loadout_cost": 5,
+    "recast_time": 56,
+    "cast_time": 6.9,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.1,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {"type": "heal", "amount": 16, "target": "self"},
+      {"type": "gain_shield", "amount": 20, "target": "self"},
+      {"type": "timeline_flow", "mode": "stop", "target_side": "enemy", "duration": 2.5},
+      {"type": "remove_status", "status": "vulnerable", "target": "self"}
+    ],
+    "upgrade_profile": {
+      "heal": [0, 3, 6, 9],
+      "shield": [0, 3, 6, 9],
+      "duration": [0, 0.5, 1.0, 1.5],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "event_horizon",
+    "name": "Event Horizon",
+    "description": "Compress hostile actions into a gravity well that damages, delays, and slows the enemy.",
+    "rarity": "legendary",
+    "tags": ["attack", "control", "delay", "debuff"],
+    "loadout_cost": 5,
+    "recast_time": 58,
+    "cast_time": 8.7,
+    "active_slot_cost": 3,
+    "priority_modifier": -0.08,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {"type": "deal_damage", "amount": 14, "target": "enemy"},
+      {"type": "delay_enemy_active_card", "amount": 4.0, "scope": "all"},
+      {"type": "apply_status", "status": "slow", "duration": 14.0, "target": "enemy"}
+    ],
+    "upgrade_profile": {
+      "damage": [0, 3, 6, 9],
+      "delay": [0, 0.6, 1.2, 1.8],
+      "duration": [0, 1.0, 2.0, 3.0],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "deus_ex_machina",
+    "name": "Deus Ex Machina",
+    "description": "Deploy an emergency machine that repairs every fault, readies the deck, and queues a guard.",
+    "rarity": "legendary",
+    "tags": ["heal", "cleanse", "cooldown", "chain"],
+    "loadout_cost": 5,
+    "recast_time": 60,
+    "cast_time": 8.1,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.1,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {"type": "heal", "amount": 12, "target": "self"},
+      {"type": "remove_status", "status": "bleed", "target": "self"},
+      {"type": "remove_status", "status": "weak", "target": "self"},
+      {"type": "remove_status", "status": "slow", "target": "self"},
+      {"type": "remove_status", "status": "vulnerable", "target": "self"},
+      {"type": "reduce_recast", "amount": 2.0, "scope": "all"},
+      {
+        "type": "auto_queue_card",
+        "card_id": "guard",
+        "count": 1,
+        "delay": 0.2,
+        "max_depth": 1,
+        "use_cast_time": false
+      }
+    ],
+    "upgrade_profile": {
+      "heal": [0, 3, 6, 9],
+      "cooldown": [0, 0.5, 1.0, 1.5],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "golden_ratio",
+    "name": "Golden Ratio",
+    "description": "A perfect strike algorithm refines its own damage, cast, and recast every time it resolves.",
+    "rarity": "legendary",
+    "tags": ["attack", "growth", "fast", "special"],
+    "loadout_cost": 5,
+    "recast_time": 44,
+    "cast_time": 5.4,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.2,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {"type": "deal_damage", "amount": 12, "target": "enemy"},
+      {"type": "empower_card", "scope": "self", "stat": "damage", "amount": 2.0},
+      {"type": "empower_card", "scope": "self", "stat": "cast_time", "amount": -0.2},
+      {"type": "empower_card", "scope": "self", "stat": "recast_time", "amount": -0.8}
+    ],
+    "upgrade_profile": {
+      "damage": [0, 2, 4, 6],
+      "cast_time": [0, -0.3, -0.6, -0.9],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "tempest_choir",
+    "name": "Tempest Choir",
+    "description": "Conduct a formation of rapid probes that weakens the enemy and accelerates allied casts.",
+    "rarity": "legendary",
+    "tags": ["chain", "attack", "debuff", "haste"],
+    "loadout_cost": 5,
+    "recast_time": 50,
+    "cast_time": 6.0,
+    "active_slot_cost": 2,
+    "priority_modifier": 0.14,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "auto_queue_card",
+        "card_id": "spark_jab",
+        "count": 4,
+        "delay": 0.2,
+        "queue_spacing": 0.35,
+        "max_depth": 1,
+        "use_cast_time": false
+      },
+      {"type": "apply_status", "status": "weak", "duration": 12.0, "target": "enemy"},
+      {"type": "haste_own_active_card", "amount": 1.2, "scope": "all"}
+    ],
+    "upgrade_profile": {
+      "duration": [0, 1.0, 2.0, 3.0],
+      "haste": [0, 0.4, 0.8, 1.2],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "last_bastion",
+    "name": "Last Bastion",
+    "description": "Collapse stored shielding into a retaliatory fortress that interrupts every vulnerable cast.",
+    "rarity": "legendary",
+    "tags": ["shield_spend", "shield", "attack", "interrupt"],
+    "loadout_cost": 5,
+    "recast_time": 58,
+    "cast_time": 8.1,
+    "active_slot_cost": 3,
+    "priority_modifier": -0.04,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {"type": "consume_shield", "amount": 18},
+      {"type": "gain_shield", "amount": 30, "target": "self"},
+      {"type": "deal_damage", "amount": 20, "target": "enemy"},
+      {"type": "interrupt_card", "scope": "all_interruptible"}
+    ],
+    "upgrade_profile": {
+      "shield": [0, 4, 8, 12],
+      "damage": [0, 3, 6, 9],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "dominion_pulse",
+    "name": "Dominion Pulse",
+    "description": "Issue a battlefield command that strengthens the user while suppressing every enemy parameter.",
+    "rarity": "legendary",
+    "tags": ["buff", "debuff", "support", "shield"],
+    "loadout_cost": 5,
+    "recast_time": 62,
+    "cast_time": 9.0,
+    "active_slot_cost": 2,
+    "priority_modifier": -0.02,
+    "interruptible": true,
+    "target_type": "all",
+    "effects": [
+      {"type": "modify_attack", "amount": 2, "target": "self"},
+      {"type": "modify_speed", "amount": 2, "target": "self"},
+      {"type": "modify_attack", "amount": -2, "target": "enemy"},
+      {"type": "modify_speed", "amount": -2, "target": "enemy"},
+      {"type": "gain_shield", "amount": 8, "target": "self"}
+    ],
+    "upgrade_profile": {
+      "shield": [0, 2, 4, 6],
+      "cast_time": [0, -0.3, -0.6, -0.9],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
+  },
+  {
+    "id": "chronicle_sovereign",
+    "name": "Chronicle Sovereign",
+    "description": "Rewrite the battle record, improve the entire deck, refresh every cooldown, and dispatch a phase runner.",
+    "rarity": "legendary",
+    "tags": ["special", "growth", "cooldown", "chain", "support"],
+    "loadout_cost": 5,
+    "recast_time": 66,
+    "cast_time": 9.9,
+    "active_slot_cost": 3,
+    "priority_modifier": -0.2,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {"type": "empower_card", "scope": "all_own", "stat": "damage", "amount": 1.0},
+      {"type": "empower_card", "scope": "all_own", "stat": "shield", "amount": 1.0},
+      {"type": "empower_card", "scope": "all_own", "stat": "recast_time", "amount": -0.5},
+      {"type": "reduce_recast", "amount": 4.0, "scope": "all"},
+      {
+        "type": "auto_queue_card",
+        "card_id": "phase_zip",
+        "count": 1,
+        "delay": 0.4,
+        "max_depth": 1,
+        "use_cast_time": false
+      }
+    ],
+    "upgrade_profile": {
+      "cooldown": [0, 0.6, 1.2, 1.8],
+      "cast_time": [0, -0.3, -0.6, -0.9],
+      "recast_time": [0, -2.0, -4.0, -6.0]
+    }
   }
 ]

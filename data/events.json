@@ -297,7 +297,7 @@
           },
           {
             "type": "grant_random_card",
-            "rarity_pool": ["rare", "rare", "epic"],
+            "rarity_pool": ["rare", "rare", "epic", "legendary"],
             "guarantee_new": true,
             "card_name_key": "card_name"
           }
@@ -323,7 +323,7 @@
           },
           {
             "type": "grant_random_card",
-            "rarity_pool": ["rare", "rare"],
+            "rarity_pool": ["rare", "rare", "epic", "legendary"],
             "guarantee_new": true,
             "card_name_key": "card_name"
           }
@@ -603,7 +603,7 @@
         "effects": [
           {
             "type": "grant_random_card",
-            "rarity_pool": ["rare", "rare", "epic"],
+            "rarity_pool": ["rare", "rare", "epic", "legendary"],
             "guarantee_new": true,
             "card_name_key": "card_name"
           }

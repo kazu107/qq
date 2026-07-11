@@ -489,8 +489,8 @@ func _get_card_rarity_pool(wins: int) -> Array[String]:
 	if wins < 3:
 		return ["common", "common", "common", "rare"]
 	if wins < 7:
-		return ["common", "rare", "rare", "epic"]
-	return ["rare", "rare", "epic", "epic"]
+		return ["common", "rare", "rare", "epic", "epic", "legendary"]
+	return ["rare", "rare", "epic", "epic", "epic", "legendary"]
 
 
 func _get_card_price(card_id: String, wins: int) -> int:

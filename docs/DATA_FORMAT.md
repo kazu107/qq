@@ -7,7 +7,7 @@
 - `id`
 - `name`
 - `description`
-- `rarity`
+- `rarity`: `common`, `rare`, `epic`, `legendary`
 - `tags`
 - `loadout_cost`
 - `recast_time`

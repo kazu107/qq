@@ -53,6 +53,8 @@ func get_price(card_id: String) -> int:
 			return 32
 		"epic":
 			return 54
+		"legendary":
+			return 82
 		_:
 			return 18
 

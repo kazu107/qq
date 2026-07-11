@@ -2484,7 +2484,7 @@ func _get_shop_rarity_pool(area: int) -> Array[String]:
 		2:
 			return ["common", "rare", "rare"]
 		_:
-			return ["rare", "rare", "epic"]
+			return ["rare", "rare", "epic", "epic", "legendary"]
 
 
 func _is_active_node_final_step() -> bool:

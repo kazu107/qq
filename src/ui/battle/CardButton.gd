@@ -19,6 +19,7 @@ const TIMELINE_NEXT_BADGE := Color(1.0, 0.70, 0.16, 0.96)
 const COMMON_BORDER := Color(0.88, 0.80, 0.67, 1.0)
 const RARE_BORDER := Color(0.47, 0.86, 0.90, 1.0)
 const EPIC_BORDER := Color(0.97, 0.69, 0.34, 1.0)
+const LEGENDARY_BORDER := Color(1.0, 0.93, 0.48, 1.0)
 const ACTIVE_PLAYER_BORDER := Color(0.24, 0.56, 1.0, 1.0)
 const ACTIVE_ENEMY_BORDER := Color(0.95, 0.28, 0.25, 1.0)
 const TOOLTIP_BUFF_COLOR := "#72d36f"
@@ -865,6 +866,8 @@ func _get_rarity_border(rarity: String) -> Color:
 			return RARE_BORDER
 		"epic":
 			return EPIC_BORDER
+		"legendary":
+			return LEGENDARY_BORDER
 		_:
 			return COMMON_BORDER
 

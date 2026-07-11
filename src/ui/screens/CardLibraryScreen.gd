@@ -145,7 +145,7 @@ func _rebuild_card_rows() -> void:
 		child.queue_free()
 	_card_widgets.clear()
 
-	var rarity_order: Array[String] = ["common", "rare", "epic"]
+	var rarity_order: Array[String] = ["common", "rare", "epic", "legendary"]
 	var entries: Array[Dictionary] = Game.get_meta_card_entries()
 	var built_count: int = 0
 	for rarity in rarity_order:
@@ -269,7 +269,7 @@ func _populate_filters() -> void:
 	_rarity_filter.clear()
 	_rarity_filter.add_item(Localization.get_text("library.filter.all", "すべて"))
 	_rarity_filter.set_item_metadata(_rarity_filter.item_count - 1, "all")
-	var rarity_options: Array[String] = ["common", "rare", "epic"]
+	var rarity_options: Array[String] = ["common", "rare", "epic", "legendary"]
 	for rarity: String in rarity_options:
 		_rarity_filter.add_item(Localization.get_rarity_name(rarity))
 		_rarity_filter.set_item_metadata(_rarity_filter.item_count - 1, rarity)

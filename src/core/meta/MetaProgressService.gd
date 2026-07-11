@@ -168,6 +168,8 @@ func get_card_unlock_cost(card_id: String) -> int:
 	if card_def == null:
 		return 1
 	match card_def.rarity:
+		"legendary":
+			return 4
 		"epic":
 			return 2
 		"rare":
