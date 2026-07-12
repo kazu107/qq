@@ -200,6 +200,7 @@ func apply_battle_result(run_state: RunState, summary: Dictionary, allowed_card_
 		run_state.encounters_cleared += 1
 		run_state.current_area = 1 + int(floor(float(run_state.arena_wins) / 3.0))
 		var reward_gold: int = 24 + run_state.current_area * 5 + run_state.arena_wins * 2
+		reward_gold += maxi(0, int(summary.get("relic_bonus_gold", 0)))
 		var reward_heal: int = 5 + run_state.current_area
 		run_state.gold += reward_gold
 		run_state.player_hp = min(run_state.max_hp, run_state.player_hp + reward_heal)
@@ -209,8 +210,11 @@ func apply_battle_result(run_state: RunState, summary: Dictionary, allowed_card_
 		run_state.arena_pending_rewards = build_victory_rewards(run_state, allowed_card_ids, allowed_relic_ids)
 	else:
 		run_state.arena_losses += 1
+		run_state.relic_state["arena_lost_last_battle"] = true
 		run_state.player_hp = max(1, int(ceil(float(run_state.max_hp) * 0.42)))
 		run_state.arena_pending_rewards = []
+	if winner == "player":
+		run_state.relic_state["arena_lost_last_battle"] = false
 
 	if run_state.arena_wins >= run_state.arena_target_wins:
 		run_state.run_complete = true
@@ -357,6 +361,12 @@ func _collect_held_offers(run_state: RunState, array_key: String) -> Array[Dicti
 			continue
 		if not bool(offer_data.get("held", false)):
 			continue
+		if run_state.relics.has("carryover_price_tag"):
+			var previous_rounds: int = mini(4, int(offer_data.get("held_rounds", 0)))
+			var held_rounds: int = mini(4, previous_rounds + 1)
+			offer_data["held_rounds"] = held_rounds
+			if held_rounds > previous_rounds:
+				offer_data["price"] = maxi(0, int(offer_data.get("price", 0)) - 4)
 		result.append(offer_data)
 	return result
 
@@ -500,13 +510,13 @@ func _get_card_price(card_id: String, wins: int) -> int:
 func _get_relic_price(relic_id: String, wins: int) -> int:
 	var price: int = 42 + wins * 3
 	if [
-		"omega_crown", "eternity_engine", "paradox_prism", "rift_compass",
+		"omega_crown", "eternity_engine", "paradox_prism",
 		"overclock_key", "chrono_metronome", "prism_furnace", "emergency_foam",
 	].has(relic_id):
 		price += 18
 	elif [
 		"reactive_barrier", "aegis_matrix", "phase_capacitor", "entropy_battery",
-		"signal_lens", "pulse_injector", "barrier_seed", "stasis_clock",
+		"signal_lens", "pulse_injector", "rift_compass", "barrier_seed", "stasis_clock",
 		"scavenger_contract", "blood_pump", "armor_garden", "bounty_drone",
 	].has(relic_id):
 		price += 10

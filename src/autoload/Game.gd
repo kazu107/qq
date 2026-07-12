@@ -297,6 +297,18 @@ func complete_battle(summary: Dictionary) -> void:
 		SaveManager.save_game(current_screen_hint)
 		return
 
+	if node_type == "hazard" and bool(summary.get("forced_hazard_withdraw", false)):
+		reward_options.clear()
+		last_reward_bundle.clear()
+		last_battle_summary["bonus_text"] = Localization.get_text(
+			"game.hazard_emergency_withdraw",
+			"Emergency Recovery Line activated. The current wave reward was lost and the hazard zone was abandoned."
+		)
+		_complete_active_map_node_and_advance()
+		current_screen_hint = _get_post_progress_scene_hint()
+		SaveManager.save_game(current_screen_hint)
+		return
+
 	if String(summary.get("winner", "")) != "player":
 		current_run.defeated = true
 		current_run.run_complete = true
@@ -317,6 +329,10 @@ func complete_battle(summary: Dictionary) -> void:
 		current_run.current_area = min(3, current_run.encounters_cleared + 1)
 
 	var relic_bonuses: Dictionary = _relic_service.apply_victory_bonuses(current_run)
+	var battle_relic_gold: int = int(summary.get("relic_bonus_gold", 0))
+	if battle_relic_gold > 0:
+		current_run.gold += battle_relic_gold
+		relic_bonuses["gold"] = int(relic_bonuses.get("gold", 0)) + battle_relic_gold
 	var relic_bonus_parts: Array[String] = []
 	var relic_bonus_gold: int = int(relic_bonuses.get("gold", 0))
 	var relic_bonus_heal: int = int(relic_bonuses.get("heal", 0))
@@ -1676,7 +1692,7 @@ func get_equipped_cards() -> Array[String]:
 func get_current_loadout_cost() -> int:
 	if current_run == null:
 		return 0
-	return RunState.get_total_loadout_cost(current_run.equipped_cards)
+	return RelicService.get_effective_loadout_cost(current_run)
 
 
 func get_loadout_limit() -> int:
@@ -1691,7 +1707,6 @@ func get_loadout_entries() -> Array[Dictionary]:
 		return result
 
 	var seen: Dictionary = {}
-	var current_cost: int = get_current_loadout_cost()
 	for card_id in current_run.player_cards:
 		if seen.has(card_id):
 			continue
@@ -1702,12 +1717,15 @@ func get_loadout_entries() -> Array[Dictionary]:
 		var loadout_cost: int = 0
 		if card_def != null:
 			loadout_cost = card_def.loadout_cost
+		var candidate_cards: Array[String] = current_run.equipped_cards.duplicate()
+		candidate_cards.append(card_id)
+		var candidate_cost: int = RelicService.get_effective_loadout_cost_for_cards(current_run, candidate_cards)
 		result.append({
 			"card_id": card_id,
 			"owned_count": owned_count,
 			"equipped_count": equipped_count,
 			"loadout_cost": loadout_cost,
-			"can_equip": equipped_count < owned_count and current_cost + loadout_cost <= current_run.loadout_limit,
+			"can_equip": equipped_count < owned_count and candidate_cost <= current_run.loadout_limit + RelicService.get_allowed_loadout_overage(current_run),
 			"can_unequip": equipped_count > 0 and current_run.equipped_cards.size() > 1,
 			"can_sell": _can_sell_loadout_card(card_id),
 			"sell_value": get_card_sell_value(card_id),
@@ -1729,7 +1747,9 @@ func equip_card(card_id: String) -> bool:
 	var card_def: CardDef = Database.get_card(card_id)
 	if card_def == null:
 		return false
-	if get_current_loadout_cost() + card_def.loadout_cost > current_run.loadout_limit:
+	var candidate_cards: Array[String] = current_run.equipped_cards.duplicate()
+	candidate_cards.append(card_id)
+	if RelicService.get_effective_loadout_cost_for_cards(current_run, candidate_cards) > current_run.loadout_limit + RelicService.get_allowed_loadout_overage(current_run):
 		return false
 	current_run.equipped_cards.append(card_id)
 	AudioManager.play_sfx("loadout_equip")
@@ -2561,11 +2581,14 @@ func _complete_active_map_node_and_advance() -> void:
 	current_run.map_state["current_step"] = next_step
 	if next_step >= steps.size() and current_run.infinite_mode:
 		_map_generator.append_infinite_cycle(current_run.map_state, current_run.seed)
+		var cycle_number: int = int(current_run.map_state.get("cycle_count", 1))
+		_relic_service.apply_infinite_cycle(current_run, cycle_number)
 		steps = Array(current_run.map_state.get("steps", []))
 	if next_step < steps.size():
 		_unlock_step_nodes(next_step)
 		var next_step_data: Dictionary = _get_step(next_step)
 		current_run.current_area = int(next_step_data.get("area", current_run.current_area))
+		_relic_service.apply_step_entry(current_run, next_step + 1)
 	else:
 		current_run.run_complete = true
 
@@ -2691,7 +2714,7 @@ func preview_reward_package(reward_key: String, area: int = -1) -> Dictionary:
 func _has_valid_loadout() -> bool:
 	if current_run == null:
 		return false
-	return not current_run.equipped_cards.is_empty() and get_current_loadout_cost() <= current_run.loadout_limit
+	return not current_run.equipped_cards.is_empty() and get_current_loadout_cost() <= current_run.loadout_limit + RelicService.get_allowed_loadout_overage(current_run)
 
 
 func _auto_equip_card_if_room(card_id: String) -> void:
@@ -2702,7 +2725,9 @@ func _auto_equip_card_if_room(card_id: String) -> void:
 	var card_def: CardDef = Database.get_card(card_id)
 	if card_def == null:
 		return
-	if get_current_loadout_cost() + card_def.loadout_cost > current_run.loadout_limit:
+	var candidate_cards: Array[String] = current_run.equipped_cards.duplicate()
+	candidate_cards.append(card_id)
+	if RelicService.get_effective_loadout_cost_for_cards(current_run, candidate_cards) > current_run.loadout_limit + RelicService.get_allowed_loadout_overage(current_run):
 		return
 	current_run.equipped_cards.append(card_id)
 

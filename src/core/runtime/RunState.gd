@@ -15,6 +15,7 @@ var loadout_limit: int = 10
 var card_upgrades: Dictionary = {}
 var temporary_card_modifiers: Dictionary = {}
 var relics: Array[String] = []
+var relic_state: Dictionary = {}
 var gold: int = 0
 var encounters_cleared: int = 0
 var battle_history: Array[Dictionary] = []
@@ -52,6 +53,7 @@ static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> Ru
 	run_state.card_upgrades = {}
 	run_state.temporary_card_modifiers = {}
 	run_state.relics = []
+	run_state.relic_state = {}
 	run_state.gold = 0
 	run_state.battle_history = []
 	run_state.hp_damage_taken = 0
@@ -86,6 +88,7 @@ static func from_dict(data: Dictionary) -> RunState:
 	run_state.card_upgrades = Dictionary(data.get("card_upgrades", {}))
 	run_state.temporary_card_modifiers = Dictionary(data.get("temporary_card_modifiers", {}))
 	run_state.relics = _to_string_array(data.get("relics", []))
+	run_state.relic_state = Dictionary(data.get("relic_state", {})).duplicate(true)
 	run_state.gold = int(data.get("gold", 0))
 	run_state.encounters_cleared = int(data.get("encounters_cleared", 0))
 	run_state.battle_history = _to_dictionary_array(data.get("battle_history", []))
@@ -121,6 +124,7 @@ func to_dict() -> Dictionary:
 		"card_upgrades": card_upgrades,
 		"temporary_card_modifiers": temporary_card_modifiers,
 		"relics": relics,
+		"relic_state": relic_state.duplicate(true),
 		"gold": gold,
 		"encounters_cleared": encounters_cleared,
 		"battle_history": battle_history,

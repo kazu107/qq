@@ -122,7 +122,14 @@ func _apply_frame(locked: bool) -> void:
 
 
 func _build_tooltip(relic_def: RelicDef) -> String:
-	return "%s\n%s" % [relic_def.name, relic_def.description]
+	var parts: Array[String] = [relic_def.name, relic_def.description]
+	if Game.current_run != null:
+		var relic_data: Dictionary = Dictionary(Game.current_run.relic_state.get(relic_def.id, {}))
+		var card_id: String = String(relic_data.get("card_id", ""))
+		var card_def: CardDef = Database.get_card(card_id)
+		if card_def != null:
+			parts.append(Localization.get_textf("relic.tooltip.engraved_card", "Engraved card: {card_name}", {"card_name": card_def.name}))
+	return "\n".join(parts)
 
 
 func _get_relic_texture(id: String) -> Texture2D:

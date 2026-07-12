@@ -9,6 +9,7 @@ var _timeline_flows: Array[Dictionary] = []
 var _player_run: RunState
 var _enemy_run: RunState
 var _relic_service: RelicService = RelicService.new()
+var _relic_controller: RelicBattleController = RelicBattleController.new()
 var _battle_started: bool = false
 var _manual_start_required: bool = false
 var _enemy_name: String = ""
@@ -32,6 +33,8 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 	battle_state = BattleState.new()
 	battle_state.player = _build_player_unit(player_run)
 	battle_state.enemy = _build_enemy_unit(scaled_enemy_def)
+	_relic_controller.setup(self, battle_state, _player_run, _enemy_run)
+	_relic_controller.apply_unit_setup("player", battle_state.player)
 	_apply_enemy_card_scaling(battle_state.enemy, infinite_power)
 	_enemy_ai.reset()
 	_boss_passive_timer = float(enemy_def.passive.get("interval", 0.0))
@@ -56,6 +59,9 @@ func setup_pvp(
 	battle_state = BattleState.new()
 	battle_state.player = _build_run_unit(player_run, "player", player_name)
 	battle_state.enemy = _build_run_unit(opponent_run, "enemy", opponent_name)
+	_relic_controller.setup(self, battle_state, _player_run, _enemy_run)
+	_relic_controller.apply_unit_setup("player", battle_state.player)
+	_relic_controller.apply_unit_setup("enemy", battle_state.enemy)
 	_enemy_ai.reset()
 	_boss_passive_timer = 0.0
 	_timeline_flows.clear()
@@ -70,6 +76,7 @@ func update(delta: float) -> void:
 		return
 
 	battle_state.battle_time += delta
+	_relic_controller.update(delta)
 	_tick_cooldowns(delta)
 	_tick_shields(delta)
 	_tick_statuses(delta)
@@ -95,19 +102,20 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 	var card_def: CardDef = _get_card_def(side, runtime_state.card_id)
 	if card_def == null:
 		return false
-	if unit.active_slots_used + card_def.active_slot_cost > unit.active_slot_max:
-		return false
-	if not CardEffectResolver.can_pay_shield_cost(unit, card_def):
+	var commit_profile: Dictionary = _relic_controller.build_commit_profile(side, card_def)
+	if not _relic_controller.can_commit(side, card_def, commit_profile):
 		return false
 
 	if not _battle_started:
 		_start_battle()
-	var shield_cost: int = _pay_shield_cost(unit, card_def)
+	var shield_before: int = unit.shield
+	var shield_cost: int = _pay_shield_cost_amount(unit, int(commit_profile.get("shield_cost", 0)))
 
 	runtime_state.begin_prepare()
 	unit.previous_used_runtime_id = unit.last_used_runtime_id
 	unit.last_used_runtime_id = runtime_state.runtime_id
-	unit.active_slots_used += card_def.active_slot_cost
+	var slot_cost: int = int(commit_profile.get("slot_cost", card_def.active_slot_cost))
+	unit.active_slots_used += slot_cost
 
 	var instance := ActiveCardInstance.new()
 	instance.instance_id = battle_state.next_instance_id
@@ -117,14 +125,16 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 	instance.card_id = runtime_state.card_id
 	instance.card_name = card_def.name
 	instance.priority_modifier = card_def.priority_modifier
-	instance.slot_cost = card_def.active_slot_cost
+	instance.slot_cost = slot_cost
 	instance.interruptible = card_def.interruptible
 	instance.actor_speed = unit.speed
 	instance.target_type = card_def.target_type
 	instance.created_at = battle_state.battle_time
-	instance.scheduled_time = battle_state.battle_time + card_def.cast_time * unit.get_cast_time_multiplier()
+	instance.scheduled_time = battle_state.battle_time + float(commit_profile.get("cast_time", card_def.cast_time * unit.get_cast_time_multiplier()))
 	instance.sort_key = instance.scheduled_time - card_def.priority_modifier
 	instance.shield_cost_paid = shield_cost
+	instance.source_card_id = card_def.id
+	_relic_controller.after_commit(side, instance, card_def, commit_profile, shield_before)
 
 	battle_state.active_instances.append(instance)
 	_timeline_resolver.rebuild_timeline(battle_state)
@@ -182,12 +192,12 @@ func get_run_for_side(side: String) -> RunState:
 	return _enemy_run
 
 
-func delay_active_cards(side: String, amount: float, scope: String) -> int:
-	return _shift_active_cards(side, absf(amount), scope, -1)
+func delay_active_cards(side: String, amount: float, scope: String, source_side: String = "") -> int:
+	return _shift_active_cards(side, absf(amount), scope, -1, source_side)
 
 
 func haste_active_cards(side: String, amount: float, scope: String, exclude_instance_id: int = -1) -> int:
-	return _shift_active_cards(side, -absf(amount), scope, exclude_instance_id)
+	return _shift_active_cards(side, -absf(amount), scope, exclude_instance_id, side)
 
 
 func reduce_cooldowns(side: String, amount: float, scope: String, exclude_runtime_id: String = "") -> int:
@@ -239,8 +249,8 @@ func interrupt_active_card(side: String, scope: String) -> int:
 		max_hits = candidates.size()
 	var hit_count := 0
 	for candidate in candidates:
-		_force_interrupt(candidate)
-		hit_count += 1
+		if _force_interrupt(candidate):
+			hit_count += 1
 		if hit_count >= max_hits:
 			break
 	return hit_count
@@ -268,6 +278,8 @@ func empower_cards(side: String, source_card_id: String, effect: Dictionary) -> 
 
 func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: Dictionary) -> int:
 	if battle_state == null or source_instance == null:
+		return 0
+	if not _relic_controller.before_auto_queue(side):
 		return 0
 	var max_depth_value: int = int(effect.get("max_depth", 1))
 	var unlimited_depth: bool = bool(effect.get("unlimited", false)) or max_depth_value < 0
@@ -318,6 +330,7 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 		instance.auto_depth = source_instance.auto_depth + 1
 		instance.source_instance_id = source_instance.instance_id
 		instance.shield_cost_paid = shield_cost
+		_relic_controller.configure_auto_instance(side, source_instance, instance)
 		battle_state.active_instances.append(instance)
 		queued_count += 1
 	_timeline_resolver.rebuild_timeline(battle_state)
@@ -340,7 +353,10 @@ func _resolve_auto_queue_count(unit: UnitState, effect: Dictionary) -> int:
 
 
 func _pay_shield_cost(unit: UnitState, card_def: CardDef) -> int:
-	var shield_cost: int = CardEffectResolver.get_shield_cost(card_def)
+	return _pay_shield_cost_amount(unit, CardEffectResolver.get_shield_cost(card_def))
+
+
+func _pay_shield_cost_amount(unit: UnitState, shield_cost: int) -> int:
 	if shield_cost <= 0:
 		return 0
 	unit.shield = maxi(0, unit.shield - shield_cost)
@@ -350,16 +366,18 @@ func _pay_shield_cost(unit: UnitState, card_def: CardDef) -> int:
 func apply_timeline_flow(side: String, effect: Dictionary) -> int:
 	if battle_state == null:
 		return 0
-	var duration: float = maxf(0.0, float(effect.get("duration", 0.0)))
+	var resolved_effect: Dictionary = _relic_controller.modify_timeline_flow(side, effect)
+	var duration: float = maxf(0.0, float(resolved_effect.get("duration", 0.0)))
 	if duration <= 0.0:
 		return 0
 
 	var flow: Dictionary = {
-		"side": _resolve_flow_side(side, String(effect.get("target_side", "enemy"))),
-		"mode": String(effect.get("mode", "stop")),
-		"scope": String(effect.get("scope", "all")),
+		"side": _resolve_flow_side(side, String(resolved_effect.get("target_side", "enemy"))),
+		"mode": String(resolved_effect.get("mode", "stop")),
+		"scope": String(resolved_effect.get("scope", "all")),
 		"remaining": duration,
-		"speed": maxf(0.0, float(effect.get("speed", 1.0))),
+		"speed": maxf(0.0, float(resolved_effect.get("speed", 1.0))),
+		"source_side": side,
 	}
 	_timeline_flows.append(flow)
 	return _count_flow_targets(flow)
@@ -386,6 +404,10 @@ func build_summary() -> Dictionary:
 		"log_count": battle_state.logs.size(),
 		"battle_events": battle_state.battle_events.duplicate(true),
 		"pvp": _pvp_mode,
+		"forced_hazard_withdraw": _relic_controller.was_forced_hazard_withdraw("player"),
+		"relic_bonus_gold": _relic_controller.victory_gold_bonus("player") if battle_state.winner == "player" else 0,
+		"player_relic_bonus_gold": _relic_controller.victory_gold_bonus("player") if battle_state.winner == "player" else 0,
+		"enemy_relic_bonus_gold": _relic_controller.victory_gold_bonus("enemy") if battle_state.winner == "enemy" else 0,
 	}
 
 
@@ -439,9 +461,11 @@ func _create_runtime_states(side: String, card_ids: Array[String]) -> Array[Card
 
 
 func _tick_cooldowns(delta: float) -> void:
-	for unit in [battle_state.player, battle_state.enemy]:
+	for side: String in ["player", "enemy"]:
+		var unit: UnitState = battle_state.get_unit(side)
+		var adjusted_delta: float = _relic_controller.get_cooldown_delta(side, delta)
 		for runtime_state in unit.card_runtime_states:
-			runtime_state.tick(delta)
+			runtime_state.tick(adjusted_delta)
 
 
 func _start_battle() -> void:
@@ -470,6 +494,7 @@ func _tick_shields(delta: float) -> void:
 		var shield_before: int = unit.shield
 		var decayed: int = unit.tick_shield_decay(delta)
 		if decayed > 0:
+			_relic_controller.on_shield_decay("player" if unit == battle_state.player else "enemy", decayed)
 			battle_state.add_log(Localization.get_textf("battle.log.shield_decay", "{unit_name} lost {amount} shield", {
 				"unit_name": unit.display_name,
 				"amount": decayed,
@@ -492,10 +517,13 @@ func _tick_statuses(delta: float) -> void:
 	for unit in [battle_state.player, battle_state.enemy]:
 		var events: Array[Dictionary] = unit.tick_statuses(delta)
 		for event_data in events:
+			var status_side: String = "player" if unit == battle_state.player else "enemy"
+			_relic_controller.on_status_event(status_side, event_data)
 			if String(event_data.get("type", "")) == "status_damage":
 				var amount := int(event_data.get("amount", 0))
 				var hp_before: int = unit.hp
 				unit.hp = max(0, unit.hp - amount)
+				_relic_controller.prevent_lethal(status_side)
 				battle_state.add_log(Localization.get_textf("battle.log.status_damage", "{unit_name} took {amount} bleed damage", {
 					"unit_name": unit.display_name,
 					"amount": amount,
@@ -567,9 +595,11 @@ func _tick_timeline_flows(delta: float) -> void:
 			continue
 		var active_delta: float = minf(delta, remaining)
 		var shift_amount: float = active_delta
+		var reverse_distance: float = 0.0
 		if String(flow.get("mode", "stop")) == "reverse":
-			shift_amount = active_delta * (1.0 + maxf(0.0, float(flow.get("speed", 1.0))))
-		if _apply_flow_shift(flow, shift_amount) > 0:
+			reverse_distance = active_delta * maxf(0.0, float(flow.get("speed", 1.0)))
+			shift_amount = active_delta + reverse_distance
+		if _apply_flow_shift(flow, shift_amount, reverse_distance) > 0:
 			shifted_any = true
 		remaining = maxf(0.0, remaining - delta)
 		if remaining > 0.0:
@@ -608,17 +638,26 @@ func _resolve_due_entries() -> void:
 		var enemy_before: Dictionary = _snapshot_unit(battle_state.enemy)
 		var target_hp_before: int = target_unit.hp
 		var target_shield_before: int = target_unit.shield
-		var messages := CardEffectResolver.resolve(self, battle_state, instance, card_def)
+		var resolved_card_def: CardDef = _relic_controller.prepare_resolution_card(instance.owner_side, instance, card_def)
+		var messages := CardEffectResolver.resolve(self, battle_state, instance, resolved_card_def)
 		var resolved_instance := battle_state.remove_active_instance(instance.instance_id)
 		if resolved_instance != null:
 			unit.active_slots_used = max(0, unit.active_slots_used - resolved_instance.slot_cost)
 		if runtime_state != null:
-			runtime_state.begin_cooldown(card_def.recast_time)
+			var recast_duration: float = maxf(4.0, (card_def.recast_time + instance.relic_recast_delta - instance.relic_delay_bank) * instance.relic_recast_multiplier)
+			if _relic_controller.has_relic(instance.owner_side, "paradox_mortgage"):
+				recast_duration += float(battle_state.relic_runtime_state.get(instance.owner_side, {}).get("paradox_recast_debt", 0.0))
+				battle_state.relic_runtime_state[instance.owner_side]["paradox_recast_debt"] = 0.0
+			runtime_state.begin_cooldown(recast_duration)
 		_timeline_resolver.rebuild_timeline(battle_state)
 		var timeline_after := _snapshot_timeline()
 		for message in messages:
 			battle_state.add_log("%s" % message)
 		AudioManager.play_card_resolution(card_def, _is_fully_blocked_by_shield(card_def, target_hp_before, target_unit.hp, target_shield_before, target_unit.shield))
+		_relic_controller.after_resolve(instance.owner_side, instance, resolved_card_def, {
+			"slots_before": unit.active_slots_used + instance.slot_cost,
+			"fully_blocked": _is_fully_blocked_by_shield(card_def, target_hp_before, target_unit.hp, target_shield_before, target_unit.shield),
+		})
 		_record_event(_build_basic_event(
 			"resolve_card",
 			unit.unit_id,
@@ -672,17 +711,20 @@ func _snapshot_timeline() -> Array[Dictionary]:
 	return snapshot
 
 
-func _force_interrupt(instance: ActiveCardInstance) -> void:
+func _force_interrupt(instance: ActiveCardInstance) -> bool:
 	var unit := battle_state.get_unit(instance.owner_side)
+	var slots_before: int = unit.active_slots_used
 	var runtime_state := unit.get_runtime_state(instance.runtime_id)
 	var card_def: CardDef = _get_card_def(instance.owner_side, instance.card_id)
-	if runtime_state == null or card_def == null:
-		return
+	if card_def == null or runtime_state == null and not instance.is_auto_queued:
+		return false
 	var timeline_before: Array[Dictionary] = _snapshot_timeline()
 	battle_state.remove_active_instance(instance.instance_id)
 	unit.active_slots_used = max(0, unit.active_slots_used - instance.slot_cost)
-	runtime_state.state = CardRuntimeState.CardState.INTERRUPTED
-	runtime_state.begin_cooldown(card_def.recast_time)
+	if runtime_state != null:
+		runtime_state.state = CardRuntimeState.CardState.INTERRUPTED
+		runtime_state.begin_cooldown(card_def.recast_time)
+	_relic_controller.after_interrupt(instance.owner_side, instance, card_def, runtime_state, slots_before)
 	battle_state.add_log(Localization.get_textf("battle.log.card_was_interrupted", "{unit_name}'s {card_name} was interrupted", {
 		"unit_name": unit.display_name,
 		"card_name": card_def.name,
@@ -704,9 +746,10 @@ func _force_interrupt(instance: ActiveCardInstance) -> void:
 		timeline_before,
 		_snapshot_timeline()
 	))
+	return true
 
 
-func _shift_active_cards(side: String, delta_amount: float, scope: String, exclude_instance_id: int) -> int:
+func _shift_active_cards(side: String, delta_amount: float, scope: String, exclude_instance_id: int, source_side: String = "") -> int:
 	var targets := battle_state.get_active_instances_for_side(side, exclude_instance_id)
 	if targets.is_empty():
 		return 0
@@ -715,7 +758,9 @@ func _shift_active_cards(side: String, delta_amount: float, scope: String, exclu
 	)
 	var count := 0
 	for instance in targets:
+		var before: float = instance.scheduled_time
 		instance.shift_schedule(delta_amount, battle_state.battle_time)
+		_relic_controller.on_timeline_shift(side, source_side, instance, instance.scheduled_time - before)
 		count += 1
 		if scope != "all":
 			break
@@ -769,6 +814,43 @@ func _add_temporary_card_modifier(side: String, card_id: String, stat: String, a
 		unit.temporary_card_modifiers = modifier_root
 
 
+func add_card_modifier(side: String, card_id: String, stat: String, amount: float) -> void:
+	_add_temporary_card_modifier(side, card_id, stat, amount)
+
+
+func interrupt_instance(instance: ActiveCardInstance) -> bool:
+	return instance != null and _force_interrupt(instance)
+
+
+func add_battle_card_modifier(side: String, card_id: String, stat: String, amount: float) -> void:
+	var unit: UnitState = battle_state.get_unit(side)
+	if unit == null:
+		return
+	var card_modifiers: Dictionary = Dictionary(unit.battle_card_modifiers.get(card_id, {}))
+	card_modifiers[stat] = float(card_modifiers.get(stat, 0.0)) + amount
+	unit.battle_card_modifiers[card_id] = card_modifiers
+
+
+func is_relic_enabled(side: String, relic_id: String) -> bool:
+	return _relic_controller.is_relic_enabled(side, relic_id)
+
+
+func set_relic_enabled(side: String, relic_id: String, enabled: bool) -> bool:
+	return _relic_controller.set_relic_enabled(side, relic_id, enabled)
+
+
+func apply_status_from_card(source_side: String, target_side: String, status_id: String, duration: float) -> void:
+	_relic_controller.apply_status(source_side, target_side, status_id, duration)
+
+
+func remove_status_from_card(source_side: String, target_side: String, status_id: String) -> void:
+	_relic_controller.remove_status(source_side, target_side, status_id)
+
+
+func prevent_lethal(side: String) -> bool:
+	return _relic_controller.prevent_lethal(side)
+
+
 func _resolve_flow_side(source_side: String, target_side: String) -> String:
 	match target_side:
 		"self", "own":
@@ -789,12 +871,14 @@ func _count_flow_targets(flow: Dictionary) -> int:
 	return _get_flow_targets(flow).size()
 
 
-func _apply_flow_shift(flow: Dictionary, shift_amount: float) -> int:
+func _apply_flow_shift(flow: Dictionary, shift_amount: float, reverse_distance: float = 0.0) -> int:
 	if shift_amount <= 0.0:
 		return 0
 	var targets: Array[ActiveCardInstance] = _get_flow_targets(flow)
 	for instance in targets:
 		instance.shift_schedule(shift_amount, battle_state.battle_time, true)
+		if String(flow.get("mode", "stop")) == "reverse":
+			_relic_controller.on_reverse_shift(instance.owner_side, instance, reverse_distance)
 	return targets.size()
 
 
@@ -900,16 +984,21 @@ func _apply_enemy_card_scaling(enemy_unit: UnitState, infinite_power: int) -> vo
 
 
 func _get_card_def(side: String, card_id: String) -> CardDef:
+	var unit: UnitState = battle_state.get_unit(side) if battle_state != null else null
+	var card_def: CardDef = null
 	if _pvp_mode:
-		return CardUpgradeResolver.build_effective_card(card_id, get_run_for_side(side))
-	if side == "player":
-		return CardUpgradeResolver.build_effective_card(card_id, _player_run)
-	if battle_state == null:
-		return Database.get_card(card_id)
-	var unit: UnitState = battle_state.get_unit(side)
-	var modifier_totals: Dictionary = Dictionary(unit.temporary_card_modifiers.get(card_id, {}))
-	var tier: int = clampi(int(modifier_totals.get("tier", 0)), 0, CardUpgradeResolver.MAX_TIER)
-	return CardUpgradeResolver.build_card_with_modifiers(card_id, modifier_totals, tier)
+		card_def = CardUpgradeResolver.build_effective_card(card_id, get_run_for_side(side))
+	elif side == "player":
+		card_def = CardUpgradeResolver.build_effective_card(card_id, _player_run)
+	elif unit != null:
+		var modifier_totals: Dictionary = Dictionary(unit.temporary_card_modifiers.get(card_id, {}))
+		var tier: int = clampi(int(modifier_totals.get("tier", 0)), 0, CardUpgradeResolver.MAX_TIER)
+		card_def = CardUpgradeResolver.build_card_with_modifiers(card_id, modifier_totals, tier)
+	else:
+		card_def = Database.get_card(card_id)
+	if card_def != null and unit != null:
+		CardUpgradeResolver.apply_modifier_totals(card_def, Dictionary(unit.battle_card_modifiers.get(card_id, {})))
+	return card_def
 
 
 func _record_event(record: BattleEventRecord) -> void:
@@ -956,6 +1045,7 @@ func _snapshot_unit(unit: UnitState) -> Dictionary:
 		"active_slots_used": unit.active_slots_used,
 		"active_slot_max": unit.active_slot_max,
 		"temporary_card_modifiers": unit.temporary_card_modifiers.duplicate(true),
+		"battle_card_modifiers": unit.battle_card_modifiers.duplicate(true),
 		"cooldowns": _snapshot_runtime_states(unit),
 	}
 

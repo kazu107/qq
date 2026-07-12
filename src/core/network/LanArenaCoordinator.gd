@@ -100,7 +100,7 @@ func apply_action(run_state: RunState, action: String, payload: Dictionary, deve
 	return result
 
 
-func apply_battle_result(run_state: RunState, won: bool, hp_after: int) -> Dictionary:
+func apply_battle_result(run_state: RunState, won: bool, hp_after: int, battle_relic_gold: int = 0) -> Dictionary:
 	if run_state == null:
 		return {
 			"finished": false,
@@ -109,12 +109,17 @@ func apply_battle_result(run_state: RunState, won: bool, hp_after: int) -> Dicti
 			"reward_heal": 0,
 		}
 	run_state.player_hp = clampi(hp_after, 1, run_state.max_hp)
-	return _arena_service.apply_battle_result(
+	var result: Dictionary = _arena_service.apply_battle_result(
 		run_state,
-		{"winner": "player" if won else "enemy"},
+		{"winner": "player" if won else "enemy", "relic_bonus_gold": battle_relic_gold},
 		Database.get_all_card_ids(),
 		Database.get_all_relic_ids()
 	)
+	if won:
+		var bonuses: Dictionary = _relic_service.apply_victory_bonuses(run_state)
+		result["reward_gold"] = int(result.get("reward_gold", 0)) + int(bonuses.get("gold", 0))
+		result["reward_heal"] = int(result.get("reward_heal", 0)) + int(bonuses.get("heal", 0))
+	return result
 
 
 func build_status(
@@ -146,7 +151,7 @@ func get_loadout_entries(run_state: RunState) -> Array[Dictionary]:
 	if run_state == null:
 		return entries
 	var seen: Dictionary = {}
-	var current_cost: int = RunState.get_total_loadout_cost(run_state.equipped_cards)
+	var allowed_cost: int = run_state.loadout_limit + RelicService.get_allowed_loadout_overage(run_state)
 	for card_id in run_state.player_cards:
 		if seen.has(card_id):
 			continue
@@ -161,7 +166,10 @@ func get_loadout_entries(run_state: RunState) -> Array[Dictionary]:
 			"owned_count": owned_count,
 			"equipped_count": equipped_count,
 			"loadout_cost": card_def.loadout_cost,
-			"can_equip": equipped_count < owned_count and current_cost + card_def.loadout_cost <= run_state.loadout_limit,
+			"can_equip": equipped_count < owned_count and RelicService.get_effective_loadout_cost_for_cards(
+				run_state,
+				_typed_cards_with_added(run_state.equipped_cards, card_id)
+			) <= allowed_cost,
 			"can_unequip": equipped_count > 0 and run_state.equipped_cards.size() > 1,
 			"can_sell": can_sell_card(run_state, card_id),
 			"sell_value": get_sell_value(card_id),
@@ -177,7 +185,8 @@ func equip_card(run_state: RunState, card_id: String) -> bool:
 	var card_def: CardDef = Database.get_card(card_id)
 	if card_def == null:
 		return false
-	if RunState.get_total_loadout_cost(run_state.equipped_cards) + card_def.loadout_cost > run_state.loadout_limit:
+	var candidate_cards: Array[String] = _typed_cards_with_added(run_state.equipped_cards, card_id)
+	if RelicService.get_effective_loadout_cost_for_cards(run_state, candidate_cards) > run_state.loadout_limit + RelicService.get_allowed_loadout_overage(run_state):
 		return false
 	run_state.equipped_cards.append(card_id)
 	return true
@@ -218,7 +227,7 @@ func get_sell_value(card_id: String) -> int:
 
 
 func has_valid_loadout(run_state: RunState) -> bool:
-	return run_state != null and not run_state.equipped_cards.is_empty() and RunState.get_total_loadout_cost(run_state.equipped_cards) <= run_state.loadout_limit
+	return run_state != null and not run_state.equipped_cards.is_empty() and RelicService.get_effective_loadout_cost(run_state) <= run_state.loadout_limit + RelicService.get_allowed_loadout_overage(run_state)
 
 
 func _auto_equip_card_if_room(run_state: RunState, card_id: String) -> void:
@@ -227,9 +236,16 @@ func _auto_equip_card_if_room(run_state: RunState, card_id: String) -> void:
 	var card_def: CardDef = Database.get_card(card_id)
 	if card_def == null:
 		return
-	if RunState.get_total_loadout_cost(run_state.equipped_cards) + card_def.loadout_cost > run_state.loadout_limit:
+	var candidate_cards: Array[String] = _typed_cards_with_added(run_state.equipped_cards, card_id)
+	if RelicService.get_effective_loadout_cost_for_cards(run_state, candidate_cards) > run_state.loadout_limit + RelicService.get_allowed_loadout_overage(run_state):
 		return
 	run_state.equipped_cards.append(card_id)
+
+
+func _typed_cards_with_added(card_ids: Array[String], card_id: String) -> Array[String]:
+	var result: Array[String] = card_ids.duplicate()
+	result.append(card_id)
+	return result
 
 
 func _count_occurrences(values: Array[String], target: String) -> int:

@@ -153,7 +153,7 @@
   {
     "id": "armor_garden",
     "name": "Armor Garden",
-    "description": "Gain +4 max HP, start each battle with 4 shield, and recover 3 HP after every victory."
+    "description": "Gain +4 max HP and heal 4 HP when acquired, start each battle with 4 shield, and recover 3 HP after every victory."
   },
   {
     "id": "bounty_drone",
@@ -169,5 +169,577 @@
     "id": "archive_compass",
     "name": "Archive Compass",
     "description": "Increase loadout capacity by 1, then gain 8 gold and recover 2 HP after every victory."
+  },
+  {
+    "id": "triplet_relay",
+    "name": "Triplet Relay",
+    "description": "Every third manually resolved card reduces the longest recast among other cards by 4 seconds, up to 4 times per battle.",
+    "rarity": "rare",
+    "tags": ["timeline", "cooldown", "manual"],
+    "effects": [
+      {"type": "reduce_recast", "trigger": "manual_card_resolved", "every": 3, "target": "longest_other", "amount": 4.0, "max_per_battle": 4}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "borrowed_second_hand",
+    "name": "Borrowed Second Hand",
+    "description": "When a card effectively delays an enemy, haste your frontmost active card by 35% of that delay, up to 2 seconds, with a 6-second cooldown.",
+    "rarity": "rare",
+    "tags": ["timeline", "delay", "haste"],
+    "effects": [
+      {"type": "haste_active_card", "trigger": "enemy_card_delayed", "target": "frontmost_ally", "effective_ratio": 0.35, "max_amount": 2.0, "internal_cooldown": 6.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "terminal_echo_ring",
+    "name": "Terminal Echo Ring",
+    "description": "When a manual card resolves with no other allied card active, reduce the previous different card's recast by 2 seconds. Cooldown: 4 seconds.",
+    "rarity": "common",
+    "tags": ["timeline", "cooldown", "manual"],
+    "effects": [
+      {"type": "reduce_recast", "trigger": "manual_card_resolved", "condition": "no_other_ally_active", "target": "previous_different_card", "amount": 2.0, "internal_cooldown": 4.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "four_name_quartet",
+    "name": "Four-Name Quartet",
+    "description": "Resolve 4 different manual cards in sequence to reduce every recast by 2.5 seconds, up to 3 times per battle.",
+    "rarity": "rare",
+    "tags": ["timeline", "cooldown", "sequence"],
+    "effects": [
+      {"type": "reduce_recast", "trigger": "distinct_manual_sequence", "required_count": 4, "target": "all", "amount": 2.5, "max_per_battle": 3}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "dead_heat_needle",
+    "name": "Dead-Heat Needle",
+    "description": "If your card is due up to 0.2 seconds after an enemy card, align their times and give your card +0.01 priority. Cooldown: 5 seconds.",
+    "rarity": "rare",
+    "tags": ["timeline", "priority", "control"],
+    "effects": [
+      {"type": "align_timeline_entry", "trigger": "card_scheduled", "window_min": 0.0, "window_max": 0.2, "priority_bonus": 0.01, "internal_cooldown": 5.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "silent_three_second_timer",
+    "name": "Silent Three-Second Timer",
+    "description": "After your timeline stays empty for 3 seconds, the next card casts 30% faster but has 25% longer recast.",
+    "rarity": "rare",
+    "tags": ["timeline", "cast", "risk_reward"],
+    "effects": [
+      {"type": "modify_next_card_timing", "trigger": "card_committed", "required_empty_timeline_seconds": 3.0, "cast_multiplier": 0.7, "recast_multiplier": 1.25}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "delay_return_gear",
+    "name": "Delay Return Gear",
+    "description": "When an enemy delays your card, deduct 50% of the effective delay from its recast after resolution, up to 4 seconds per instance.",
+    "rarity": "epic",
+    "tags": ["timeline", "delay", "cooldown"],
+    "effects": [
+      {"type": "bank_delay_as_recast", "trigger": "ally_card_delayed", "effective_ratio": 0.5, "max_per_instance": 4.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "zero_hour_clapper",
+    "name": "Zero-Hour Clapper",
+    "description": "At 10, 20, and 30 battle seconds, haste the allied frontmost card that was already active by 1 second.",
+    "rarity": "common",
+    "tags": ["timeline", "haste", "timed"],
+    "effects": [
+      {"type": "haste_active_card", "trigger": "battle_time_threshold", "thresholds": [10.0, 20.0, 30.0], "target": "preexisting_frontmost_ally", "amount": 1.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "terminal_bell",
+    "name": "Terminal Bell",
+    "description": "After the same enemy card is delayed 3 times, interrupt it if possible; otherwise delay it 3 more seconds. Cooldown: 12 seconds.",
+    "rarity": "epic",
+    "tags": ["timeline", "delay", "interrupt"],
+    "effects": [
+      {"type": "terminal_delay", "trigger": "enemy_instance_delayed", "required_count": 3, "fallback_delay": 3.0, "internal_cooldown": 12.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "paradox_mortgage",
+    "name": "Paradox Mortgage",
+    "description": "Your stop and reverse effects last 30% longer, up to 2 extra seconds, but their source card gains 6 seconds of recast afterward.",
+    "rarity": "epic",
+    "tags": ["timeline", "stop", "reverse", "risk_reward"],
+    "effects": [
+      {"type": "extend_timeline_flow", "trigger": "timeline_flow_applied", "flow_types": ["stop", "reverse"], "duration_multiplier": 1.3, "max_extension": 2.0, "source_recast_penalty": 6.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "overtake_signal",
+    "name": "Overtake Signal",
+    "description": "When haste moves your card ahead of an enemy card, gain 3 shield and give your next Attack +2 damage. Cooldown: 5 seconds.",
+    "rarity": "epic",
+    "tags": ["timeline", "haste", "shield", "attack"],
+    "effects": [
+      {"type": "reward_timeline_overtake", "trigger": "ally_haste_overtake", "shield": 3, "next_attack_damage": 2, "internal_cooldown": 5.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "reversal_turbine",
+    "name": "Reversal Turbine",
+    "description": "When reverse moves your manual card rightward, add +1 to its main effect per second moved, up to +4.",
+    "rarity": "epic",
+    "tags": ["timeline", "reverse", "empower", "manual"],
+    "effects": [
+      {"type": "empower_from_reverse_distance", "trigger": "ally_card_moved_by_reverse", "amount_per_second": 1, "max_amount": 4, "manual_only": true}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "full_slot_bell",
+    "name": "Full-Slot Bell",
+    "description": "When a normal resolution frees a full 3/3 slot board, gain 4 shield; gain 2 instead after an interrupt. Cooldown: 4 seconds.",
+    "rarity": "common",
+    "tags": ["slot", "shield", "trigger"],
+    "effects": [
+      {"type": "gain_shield", "trigger": "full_slots_freed", "amount": 4, "interrupted_amount": 2, "internal_cooldown": 4.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "vacancy_interest_meter",
+    "name": "Vacancy Interest Meter",
+    "description": "For every empty normal slot that remains open for 3 seconds, gain a charge. The next card is hasted by 0.8 seconds per charge, up to 3 charges.",
+    "rarity": "rare",
+    "tags": ["slot", "charge", "haste"],
+    "effects": [
+      {"type": "charge_empty_slots", "trigger": "empty_slot_elapsed", "seconds_per_charge": 3.0, "haste_per_charge": 0.8, "max_charges": 3}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "fourth_reserve_rack",
+    "name": "Fourth Reserve Rack",
+    "description": "Gain 1 active slot. While all 4 slots are occupied, cast progress is 25% slower and cooldown progress is 20% slower.",
+    "rarity": "legendary",
+    "tags": ["slot", "capacity", "risk_reward"],
+    "effects": [
+      {"type": "add_active_slot", "amount": 1, "fourth_slot_cast_progress_multiplier": 0.75, "fourth_slot_cooldown_progress_multiplier": 0.8}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "single_seat_duel_sheath",
+    "name": "Single-Seat Duel Sheath",
+    "description": "A slot-cost 2 or greater card cast alone is 15% faster, but no other card can be committed until it resolves. Minimum cast: 1 second.",
+    "rarity": "epic",
+    "tags": ["slot", "cast", "restriction"],
+    "effects": [
+      {"type": "single_active_duel", "minimum_slot_cost": 2, "cast_multiplier": 0.85, "lock_other_commits": true, "minimum_cast": 1.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "reserved_seat_tag",
+    "name": "Reserved Seat Tag",
+    "description": "When an interruptible enemy card is active, reserve your last open slot for interrupt cards and make those cards cast 20% faster. This behavior can be toggled.",
+    "rarity": "epic",
+    "tags": ["slot", "interrupt", "cast", "toggle"],
+    "effects": [
+      {"type": "reserve_interrupt_slot", "trigger": "interruptible_enemy_active", "reserved_slots": 1, "interrupt_cast_multiplier": 0.8, "toggleable": true}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "echo_rectifier",
+    "name": "Echo Rectifier",
+    "description": "When an auto-queued card resolves, reduce its direct manual source card's recast by 1.5 seconds, up to 3 times per source.",
+    "rarity": "rare",
+    "tags": ["auto_queue", "chain", "cooldown"],
+    "effects": [
+      {"type": "reduce_source_recast", "trigger": "auto_card_resolved", "amount": 1.5, "max_per_source": 3}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "waste_heat_printer",
+    "name": "Waste-Heat Printer",
+    "description": "Gain 1 heat when an auto-queued card resolves. At 3 heat, cancel the next auto-queue and reduce the longest recast by 6 seconds.",
+    "rarity": "epic",
+    "tags": ["auto_queue", "heat", "cooldown"],
+    "effects": [
+      {"type": "convert_auto_queue_heat", "trigger": "auto_card_resolved", "required_heat": 3, "cancel_next_auto": true, "recast_reduction": 6.0, "queue_order": "deterministic"}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "isolation_chamber",
+    "name": "Isolation Chamber",
+    "description": "Gain 1 auxiliary slot for auto-queued cards only. Cards there cast 20% faster; further auto-queues fail while it is occupied.",
+    "rarity": "legendary",
+    "tags": ["auto_queue", "slot", "cast"],
+    "effects": [
+      {"type": "add_auto_aux_slot", "amount": 1, "cast_multiplier": 0.8, "overflow_behavior": "fail"}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "resin_memory_block",
+    "name": "Resin Memory Block",
+    "description": "Whenever an auto-queued card resolves, its manual source card gains +1 to its main effect for this battle, up to +5 per card.",
+    "rarity": "epic",
+    "tags": ["auto_queue", "growth", "empower"],
+    "effects": [
+      {"type": "empower_manual_source", "trigger": "auto_card_resolved", "amount": 1, "max_per_card": 5, "duration": "battle"}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "full_absorption_gauge",
+    "name": "Full Absorption Gauge",
+    "description": "When shield fully absorbs an enemy Attack, reduce the longest recast by 1.5 seconds. Cooldown: 4 seconds; maximum 5 times per battle.",
+    "rarity": "common",
+    "tags": ["shield", "defense", "cooldown"],
+    "effects": [
+      {"type": "reduce_recast", "trigger": "attack_fully_absorbed", "target": "longest", "amount": 1.5, "internal_cooldown": 4.0, "max_per_battle": 5}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "evaporation_recovery_valve",
+    "name": "Evaporation Recovery Valve",
+    "description": "For every 3 shield lost to natural decay, gain a token that reduces the next shield-spend cost by 1, up to 3 tokens.",
+    "rarity": "common",
+    "tags": ["shield", "shield_spend", "charge"],
+    "effects": [
+      {"type": "reduce_shield_cost", "trigger": "natural_shield_decay", "decay_per_token": 3, "amount_per_token": 1, "max_tokens": 3, "accumulation_cutoff": 70.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "residual_pressure_detonator",
+    "name": "Residual Pressure Detonator",
+    "description": "If a shield-spend card leaves exactly 0 shield, haste it by 20% of its base cast, up to 3 seconds. Cooldown: 6 seconds.",
+    "rarity": "rare",
+    "tags": ["shield", "shield_spend", "haste"],
+    "effects": [
+      {"type": "haste_active_card", "trigger": "shield_spend_to_zero", "base_cast_ratio": 0.2, "max_amount": 3.0, "internal_cooldown": 6.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "rupture_insurance_film",
+    "name": "Rupture Insurance Film",
+    "description": "Once per battle, when a shield-spend card is interrupted, refund 50% of its payment and set its recast to 70%.",
+    "rarity": "rare",
+    "tags": ["shield", "shield_spend", "interrupt", "insurance"],
+    "effects": [
+      {"type": "refund_interrupted_shield_spend", "trigger": "shield_spend_interrupted", "refund_ratio": 0.5, "recast_multiplier": 0.7, "max_per_battle": 1}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "compression_caliper",
+    "name": "Compression Caliper",
+    "description": "At 12 or more shield, natural decay slows to 1 every 2 seconds, but shield-spend costs increase by 2.",
+    "rarity": "epic",
+    "tags": ["shield", "shield_spend", "risk_reward"],
+    "effects": [
+      {"type": "modify_shield_economy", "minimum_shield": 12, "decay_interval": 2.0, "shield_cost_bonus": 2}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "twilight_pacemaker",
+    "name": "Twilight Pacemaker",
+    "description": "At 43% HP or less, Attack and Control cards cast 9% faster; at 49% HP or more, Shield and Heal effects are 8% stronger.",
+    "rarity": "rare",
+    "tags": ["health", "threshold", "cast", "shield", "heal"],
+    "effects": [
+      {"type": "dual_hp_threshold", "low_hp_ratio": 0.43, "reset_hp_ratio": 0.49, "low_hp_cast_multiplier": 0.91, "high_hp_effect_multiplier": 1.08, "low_hp_tags": ["attack", "control"], "high_hp_tags": ["shield", "heal"]}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "bleed_pulsator",
+    "name": "Bleed Pulsator",
+    "description": "When you take a bleed tick, haste your frontmost active card by 0.8 seconds; if none is active, reduce the longest recast by 0.8 seconds. Maximum 6 times per battle.",
+    "rarity": "rare",
+    "tags": ["status", "bleed", "haste", "cooldown"],
+    "effects": [
+      {"type": "convert_bleed_tick_to_time", "trigger": "self_bleed_tick", "haste_amount": 0.8, "fallback_recast_reduction": 0.8, "max_per_battle": 6}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "slow_charge_accumulator",
+    "name": "Slow-Charge Accumulator",
+    "description": "When you manually commit a card while slowed, add +1 to its main effect for every 0.5 seconds of cast added by slow, up to +3.",
+    "rarity": "epic",
+    "tags": ["status", "slow", "cast", "empower"],
+    "effects": [
+      {"type": "empower_from_slow_penalty", "trigger": "manual_card_committed", "added_cast_per_bonus": 0.5, "amount_per_step": 1, "max_amount": 3}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "four_symptom_seal",
+    "name": "Four-Symptom Seal",
+    "description": "Once per battle, when the enemy holds 4 negative statuses at once, stop its timeline for 2 seconds and reduce each status's remaining duration by 6 seconds.",
+    "rarity": "legendary",
+    "tags": ["status", "control", "stop", "combo"],
+    "effects": [
+      {"type": "consume_status_duration_for_stop", "trigger": "enemy_negative_status_count", "required_count": 4, "stop_duration": 2.0, "status_duration_reduction": 6.0, "max_per_battle": 1}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "quarantine_buffer",
+    "name": "Quarantine Buffer",
+    "description": "Once per battle, hold the first negative status applied to you for 6 seconds; it has no effect and does not tick during that delay.",
+    "rarity": "epic",
+    "tags": ["status", "defense", "delay"],
+    "effects": [
+      {"type": "defer_negative_status", "trigger": "first_self_negative_status", "defer_duration": 6.0, "suppress_ticks": true, "max_per_battle": 1}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "symptom_transfer_paper",
+    "name": "Symptom Transfer Paper",
+    "description": "When a card removes your negative status, apply that status to the enemy for 40% of its remaining duration, up to 2 statuses per battle.",
+    "rarity": "epic",
+    "tags": ["status", "cleanse", "debuff"],
+    "effects": [
+      {"type": "transfer_cleansed_status", "trigger": "self_status_removed_by_card", "remaining_duration_ratio": 0.4, "max_statuses_per_battle": 2}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "critical_pathology_meter",
+    "name": "Critical Pathology Meter",
+    "description": "When an enemy status expires naturally, bleed deals one final tick; other statuses delay the enemy's frontmost card by 1.2 seconds. Cooldown: 4 seconds.",
+    "rarity": "epic",
+    "tags": ["status", "bleed", "delay", "control"],
+    "effects": [
+      {"type": "reward_natural_status_expiry", "trigger": "enemy_status_expired", "bleed_final_ticks": 1, "other_status_delay": 1.2, "internal_cooldown": 4.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "grade_staircase",
+    "name": "Grade Staircase",
+    "description": "Once per battle, manually resolve Grades 0, 1, 2, and 3 in order to gain 10 shield and reduce every recast by 3 seconds.",
+    "rarity": "rare",
+    "tags": ["grade", "sequence", "shield", "cooldown"],
+    "effects": [
+      {"type": "reward_grade_sequence", "trigger": "manual_card_resolved", "required_grades": [0, 1, 2, 3], "shield": 10, "recast_reduction": 3.0, "reset_on_mismatch": true, "max_per_battle": 1}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "unpolished_motherboard",
+    "name": "Unpolished Motherboard",
+    "description": "If at least 2 Base cards are equipped, each after the first costs 1 less loadout capacity but casts 12% slower, with a maximum total discount of 3.",
+    "rarity": "epic",
+    "tags": ["loadout", "grade", "cast", "risk_reward"],
+    "effects": [
+      {"type": "discount_base_cards", "minimum_equipped": 2, "discount_after_first": 1, "max_total_discount": 3, "cast_multiplier": 1.12}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "overload_seal",
+    "name": "Overload Seal",
+    "description": "You may exceed the loadout limit by 2. Start each battle with 12 seconds of vulnerable for every point over the limit.",
+    "rarity": "legendary",
+    "tags": ["loadout", "status", "risk_reward"],
+    "effects": [
+      {"type": "allow_loadout_overflow", "max_overflow": 2, "starting_status": "vulnerable", "status_duration_per_overflow": 12.0}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "empty_rack_bus",
+    "name": "Empty-Rack Bus",
+    "description": "Gain 1 active slot for every 3 unused loadout capacity, up to +2 slots.",
+    "rarity": "legendary",
+    "tags": ["loadout", "slot", "capacity"],
+    "effects": [
+      {"type": "convert_unused_loadout_to_slots", "unused_capacity_per_slot": 3, "max_slots": 2}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "full_load_latch",
+    "name": "Full-Load Latch",
+    "description": "If equipped cost exactly matches the loadout limit, the first card costing 2 or more slots each battle costs 1 fewer slot.",
+    "rarity": "rare",
+    "tags": ["loadout", "slot", "efficiency"],
+    "effects": [
+      {"type": "reduce_first_heavy_slot_cost", "condition": "loadout_exactly_full", "minimum_slot_cost": 2, "amount": 1, "max_per_battle": 1}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "weight_ticket_punch",
+    "name": "Weight Ticket Punch",
+    "description": "When a loadout-cost 5 card resolves, reduce recast on cost 1-2 cards by 2.5 seconds, up to 3 times per battle.",
+    "rarity": "common",
+    "tags": ["loadout", "cooldown", "heavy"],
+    "effects": [
+      {"type": "reduce_light_card_recasts", "trigger": "loadout_cost_card_resolved", "source_cost": 5, "target_cost_min": 1, "target_cost_max": 2, "amount": 2.5, "max_per_battle": 3}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "grade_differential_wheel",
+    "name": "Grade Differential Wheel",
+    "description": "Resolve a lower Grade within 8 seconds of a higher Grade to reduce the later card's recast by 1.5 seconds per Grade of difference, up to 4.5 seconds.",
+    "rarity": "rare",
+    "tags": ["grade", "cooldown", "sequence"],
+    "effects": [
+      {"type": "reduce_recast_from_grade_drop", "trigger": "manual_card_resolved", "window": 8.0, "amount_per_grade": 1.5, "max_amount": 4.5}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "solar_pinion",
+    "name": "Solar Pinion",
+    "description": "On pickup, imprint 1 card. Its base cast is 1 second shorter and its recast is 15% longer. Minimum cast: 0.6 seconds.",
+    "rarity": "epic",
+    "tags": ["imprint", "cast", "cooldown", "risk_reward"],
+    "effects": [
+      {"type": "imprint_card_timing", "trigger": "relic_acquired", "selection_count": 1, "cast_reduction": 1.0, "recast_multiplier": 1.15, "minimum_cast": 0.6}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "overcharge_confection_furnace",
+    "name": "Overcharge Confection Furnace",
+    "description": "The imprinted card's first use each battle has 40% stronger numeric effects, then enters a cooldown of at least 60 seconds.",
+    "rarity": "legendary",
+    "tags": ["imprint", "empower", "cooldown"],
+    "effects": [
+      {"type": "overcharge_imprinted_card", "trigger": "first_imprinted_card_use", "effect_multiplier": 1.4, "minimum_post_resolve_cooldown": 60.0, "max_per_battle": 1}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "polarization_converter",
+    "name": "Polarization Converter",
+    "description": "Imprint a pure Attack or Shield card. Convert Shield to 65% Damage or Damage to 80% Shield, and add 0.6 seconds to its cast.",
+    "rarity": "legendary",
+    "tags": ["imprint", "attack", "shield", "conversion"],
+    "effects": [
+      {"type": "convert_imprinted_card_effect", "eligible_types": ["pure_attack", "pure_shield"], "shield_to_damage_ratio": 0.65, "damage_to_shield_ratio": 0.8, "cast_penalty": 0.6}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "balanced_three_phase_unit",
+    "name": "Balanced Three-Phase Unit",
+    "description": "Imprint a heavy or extreme-timing card and set it to slot cost 1, cast 4 seconds, and recast 30 seconds, with each main effect capped at 8.",
+    "rarity": "legendary",
+    "tags": ["imprint", "slot", "cast", "cooldown"],
+    "effects": [
+      {"type": "normalize_imprinted_card", "eligible_types": ["heavy", "extreme_timing"], "slot_cost": 1, "cast_time": 4.0, "recast_time": 30.0, "main_effect_cap": 8}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "memorial_fund_coil",
+    "name": "Memorial Fund Coil",
+    "description": "Bank 1 victory gold for every 2 shield paid to shield-spend cards, up to 12 gold per battle.",
+    "rarity": "common",
+    "tags": ["economy", "shield_spend", "victory"],
+    "effects": [
+      {"type": "bank_gold_from_shield_spend", "trigger": "shield_spent", "shield_per_gold": 2, "max_gold_per_battle": 12, "payout": "victory"}
+    ],
+    "mode_scope": ["run", "hazard", "arena", "infinite"]
+  },
+  {
+    "id": "seven_step_validator",
+    "name": "Seven-Step Validator",
+    "description": "On entering Steps 7, 14, 21, and 28, upgrade 1 equipped card of the lowest Grade. Thresholds passed before pickup do not count.",
+    "rarity": "rare",
+    "tags": ["progression", "grade", "upgrade"],
+    "effects": [
+      {"type": "upgrade_lowest_grade_card", "trigger": "step_entered", "steps": [7, 14, 21, 28], "amount": 1, "retroactive": false}
+    ],
+    "mode_scope": ["run", "infinite"]
+  },
+  {
+    "id": "depth_pressure_gauge",
+    "name": "Depth Pressure Gauge",
+    "description": "In Hazard waves after the first, gain wave minus 1 active slots, but casts take 5% longer for each wave.",
+    "rarity": "common",
+    "tags": ["hazard", "slot", "cast", "risk_reward"],
+    "effects": [
+      {"type": "scale_hazard_wave_slots", "minimum_wave": 2, "extra_slots_formula": "wave_minus_one", "cast_multiplier_per_wave": 1.05}
+    ],
+    "mode_scope": ["hazard"]
+  },
+  {
+    "id": "emergency_recovery_line",
+    "name": "Emergency Recovery Line",
+    "description": "Once per run, fatal damage during Hazard wave 2 or later leaves you at 1 HP and forces withdrawal, preserving earlier wave rewards but losing the current wave reward.",
+    "rarity": "legendary",
+    "tags": ["hazard", "health", "survival", "reward"],
+    "effects": [
+      {"type": "prevent_fatal_hazard_damage", "trigger": "fatal_damage", "minimum_wave": 2, "survive_hp": 1, "force_withdraw": true, "preserve_previous_rewards": true, "lose_current_reward": true, "max_per_run": 1}
+    ],
+    "mode_scope": ["hazard"]
+  },
+  {
+    "id": "carryover_price_tag",
+    "name": "Carryover Price Tag",
+    "description": "Arena offers held into the next round cost 4 less per carried round, up to 16 less.",
+    "rarity": "common",
+    "tags": ["arena", "economy", "shop", "hold"],
+    "effects": [
+      {"type": "discount_held_arena_offer", "trigger": "arena_offer_carried", "discount_per_round": 4, "max_discount": 16}
+    ],
+    "mode_scope": ["arena"]
+  },
+  {
+    "id": "defeat_wiring",
+    "name": "Defeat Wiring",
+    "description": "After an Arena loss, begin the next battle with 4 active slots for the first 15 seconds.",
+    "rarity": "epic",
+    "tags": ["arena", "slot", "comeback"],
+    "effects": [
+      {"type": "temporary_slots_after_arena_loss", "trigger": "next_battle_after_arena_loss", "active_slots": 4, "duration": 15.0, "max_battles": 1}
+    ],
+    "mode_scope": ["arena"]
+  },
+  {
+    "id": "overtime_key",
+    "name": "Overtime Key",
+    "description": "When acquired in Arena, increase both allowed losses and required wins by 1.",
+    "rarity": "common",
+    "tags": ["arena", "progression", "risk_reward"],
+    "effects": [
+      {"type": "extend_arena_run", "trigger": "relic_acquired", "max_losses_bonus": 1, "target_wins_bonus": 1}
+    ],
+    "mode_scope": ["arena"]
+  },
+  {
+    "id": "loop_wear_wheel",
+    "name": "Loop-Wear Wheel",
+    "description": "At each 28-step Infinite boundary, permanently reduce recast by 1 second on the equipped card with the highest base recast, up to 4 per card and 12 total.",
+    "rarity": "rare",
+    "tags": ["infinite", "progression", "cooldown", "growth"],
+    "effects": [
+      {"type": "wear_down_highest_recast_card", "trigger": "infinite_cycle_boundary", "cycle_steps": 28, "amount": 1.0, "max_per_card": 4.0, "max_total": 12.0}
+    ],
+    "mode_scope": ["infinite"]
   }
 ]

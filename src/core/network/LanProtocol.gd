@@ -1,8 +1,9 @@
 extends RefCounted
 class_name LanProtocol
 
-const PROTOCOL_VERSION: int = 3
-const SNAPSHOT_VERSION: int = 2
+const PROTOCOL_VERSION: int = 4
+const SNAPSHOT_VERSION: int = 3
+const RELIC_RESOLVER_VERSION: int = 1
 const DEFAULT_PORT: int = 32475
 const DISCOVERY_PORT: int = 32476
 const MAX_PLAYERS: int = 2
@@ -23,7 +24,7 @@ static var _cached_content_hash: String = ""
 static func build_content_hash() -> String:
 	if _cached_content_hash != "":
 		return _cached_content_hash
-	var parts: Array[String] = [str(PROTOCOL_VERSION)]
+	var parts: Array[String] = [str(PROTOCOL_VERSION), "relic-resolver:%d" % RELIC_RESOLVER_VERSION]
 	for file_path in CONTENT_PATHS:
 		var file: FileAccess = FileAccess.open(file_path, FileAccess.READ)
 		if file == null:

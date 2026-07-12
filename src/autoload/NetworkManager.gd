@@ -446,6 +446,12 @@ func submit_card_command(runtime_id: String) -> bool:
 	return _submit_local_command("card", runtime_id)
 
 
+func submit_relic_toggle(relic_id: String, enabled: bool) -> bool:
+	if relic_id != "reserved_seat_tag":
+		return false
+	return _submit_local_command("relic_toggle_on" if enabled else "relic_toggle_off", relic_id)
+
+
 func submit_start_command() -> bool:
 	return set_local_battle_ready(true)
 
@@ -506,8 +512,8 @@ func finish_lan_match(summary: Dictionary, final_snapshot: Dictionary = {}) -> b
 			player_run.temporary_card_modifiers = Dictionary(player_snapshot.get("temporary_card_modifiers", {})).duplicate(true)
 		if enemy_snapshot.has("temporary_card_modifiers"):
 			enemy_run.temporary_card_modifiers = Dictionary(enemy_snapshot.get("temporary_card_modifiers", {})).duplicate(true)
-		var player_progress: Dictionary = _arena_coordinator.apply_battle_result(player_run, winner == "player", player_hp)
-		var enemy_progress: Dictionary = _arena_coordinator.apply_battle_result(enemy_run, winner == "enemy", enemy_hp)
+		var player_progress: Dictionary = _arena_coordinator.apply_battle_result(player_run, winner == "player", player_hp, int(result.get("player_relic_bonus_gold", 0)))
+		var enemy_progress: Dictionary = _arena_coordinator.apply_battle_result(enemy_run, winner == "enemy", enemy_hp, int(result.get("enemy_relic_bonus_gold", 0)))
 		arena_finished = bool(player_progress.get("finished", false)) or bool(enemy_progress.get("finished", false))
 		result["arena_session_id"] = _arena_session_id
 		result["arena_continues"] = not arena_finished
@@ -779,9 +785,11 @@ func _submit_battle_command_rpc(command: Dictionary) -> void:
 	var kind: String = String(command.get("kind", ""))
 	var runtime_id: String = String(command.get("runtime_id", ""))
 	var valid: bool = sequence > int(_last_command_sequences.get(sender_id, 0))
-	valid = valid and (kind == "card" or kind == "battle_ready")
+	valid = valid and (kind == "card" or kind == "battle_ready" or kind == "relic_toggle_on" or kind == "relic_toggle_off")
 	if kind == "card":
 		valid = valid and _battle_countdown_finished and LanProtocol.validate_runtime_id(side, runtime_id)
+	elif kind == "relic_toggle_on" or kind == "relic_toggle_off":
+		valid = valid and runtime_id == "reserved_seat_tag"
 	valid = valid and _consume_command_rate(sender_id)
 	if not valid:
 		send_command_result(sender_id, sequence, false, _last_snapshot)

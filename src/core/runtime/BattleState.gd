@@ -10,6 +10,7 @@ var logs: Array[String] = []
 var battle_events: Array[Dictionary] = []
 var winner: String = ""
 var next_instance_id: int = 1
+var relic_runtime_state: Dictionary = {}
 
 
 func add_log(text: String) -> void:

@@ -21,6 +21,7 @@ var _log_button: Button
 var _log_popup: PanelContainer
 var _log_panel: LogPanel
 var _start_battle_button: Button
+var _reserved_seat_toggle: CheckButton
 var _countdown_label: Label
 var _battle_info_label: RichTextLabel
 var _slow_mode_label: Label
@@ -220,6 +221,8 @@ func _on_lan_battle_command_received(
 	var accepted: bool = false
 	if kind == "card":
 		accepted = _engine.request_use_card(side, runtime_id)
+	elif kind == "relic_toggle_on" or kind == "relic_toggle_off":
+		accepted = _engine.set_relic_enabled(side, runtime_id, kind == "relic_toggle_on")
 	_publish_lan_snapshot(true)
 	NetworkManager.send_command_result(peer_id, sequence, accepted, NetworkManager.get_last_snapshot())
 
@@ -352,6 +355,14 @@ func _build_ui() -> void:
 	_start_battle_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_start_battle_button.pressed.connect(_on_start_battle_pressed)
 	center_panel.add_child(_start_battle_button)
+	_reserved_seat_toggle = CheckButton.new()
+	_reserved_seat_toggle.name = "ReservedSeatToggle"
+	_reserved_seat_toggle.text = Localization.get_text("battle.relic.reserved_seat_toggle", "Reserve last slot for interrupts")
+	_reserved_seat_toggle.tooltip_text = Localization.get_text("battle.relic.reserved_seat_tooltip", "Toggle Reserved Seat Tag during this battle")
+	_reserved_seat_toggle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_reserved_seat_toggle.toggled.connect(_on_reserved_seat_toggled)
+	_reserved_seat_toggle.visible = false
+	center_panel.add_child(_reserved_seat_toggle)
 	_countdown_label = Label.new()
 	_countdown_label.name = "BattleCountdownLabel"
 	_countdown_label.visible = false
@@ -515,6 +526,12 @@ func _refresh_ui(time_scale: float) -> void:
 			_start_battle_button.disabled = not can_start
 			if _countdown_label != null:
 				_countdown_label.visible = false
+	if _reserved_seat_toggle != null:
+		var toggle_run: RunState = _local_run if _lan_mode else Game.current_run
+		_reserved_seat_toggle.visible = toggle_run != null and toggle_run.relics.has("reserved_seat_tag")
+		if _reserved_seat_toggle.visible:
+			_reserved_seat_toggle.set_pressed_no_signal(_engine.is_relic_enabled(_local_side, "reserved_seat_tag"))
+			_reserved_seat_toggle.disabled = _lan_mode and NetworkManager.is_waiting_for_reconnect()
 
 	var preview_runtime_state: CardRuntimeState = _get_hovered_player_runtime_state(battle_state)
 	var preview_card_def: CardDef = _get_hover_preview_card_def(preview_runtime_state)
@@ -657,6 +674,21 @@ func _on_start_battle_pressed() -> void:
 	if not started:
 		AudioManager.play_sfx("ui_error")
 		return
+	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
+
+
+func _on_reserved_seat_toggled(enabled: bool) -> void:
+	var accepted: bool = false
+	if _lan_mode and not NetworkManager.is_host():
+		accepted = NetworkManager.submit_relic_toggle("reserved_seat_tag", enabled)
+		if accepted:
+			_engine.set_relic_enabled(_local_side, "reserved_seat_tag", enabled)
+	else:
+		accepted = _engine.set_relic_enabled(_local_side, "reserved_seat_tag", enabled)
+		if _lan_mode and accepted:
+			_publish_lan_snapshot(true)
+	if not accepted:
+		AudioManager.play_sfx("ui_error")
 	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
 
 

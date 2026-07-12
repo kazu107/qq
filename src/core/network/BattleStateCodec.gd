@@ -40,6 +40,7 @@ static func encode(state: BattleState, battle_started: bool, compact_for_network
 		"battle_events": encoded_events,
 		"winner": state.winner,
 		"next_instance_id": state.next_instance_id,
+		"relic_runtime_state": state.relic_runtime_state.duplicate(true),
 	}
 
 
@@ -100,6 +101,7 @@ static func decode(payload: Dictionary) -> BattleState:
 	state.battle_events = _to_dictionary_array(payload.get("battle_events", []))
 	state.winner = String(payload.get("winner", ""))
 	state.next_instance_id = maxi(1, int(payload.get("next_instance_id", 1)))
+	state.relic_runtime_state = Dictionary(payload.get("relic_runtime_state", {})).duplicate(true)
 	return state
 
 
@@ -128,9 +130,11 @@ static func _encode_unit(unit: UnitState) -> Dictionary:
 		"active_slot_max": unit.active_slot_max,
 		"runtime_states": runtime_states,
 		"temporary_card_modifiers": unit.temporary_card_modifiers.duplicate(true),
+		"battle_card_modifiers": unit.battle_card_modifiers.duplicate(true),
 		"last_used_runtime_id": unit.last_used_runtime_id,
 		"previous_used_runtime_id": unit.previous_used_runtime_id,
 		"cast_time_modifier": unit.cast_time_modifier,
+		"shield_decay_interval": unit.shield_decay_interval,
 	}
 
 
@@ -164,9 +168,11 @@ static func _decode_unit(payload: Dictionary) -> UnitState:
 		runtime_states.append(runtime_state)
 	unit.set_runtime_states(runtime_states)
 	unit.temporary_card_modifiers = Dictionary(payload.get("temporary_card_modifiers", {})).duplicate(true)
+	unit.battle_card_modifiers = Dictionary(payload.get("battle_card_modifiers", {})).duplicate(true)
 	unit.last_used_runtime_id = String(payload.get("last_used_runtime_id", ""))
 	unit.previous_used_runtime_id = String(payload.get("previous_used_runtime_id", ""))
 	unit.cast_time_modifier = maxf(0.05, float(payload.get("cast_time_modifier", 1.0)))
+	unit.shield_decay_interval = maxf(0.1, float(payload.get("shield_decay_interval", 1.0)))
 	return unit
 
 
@@ -189,6 +195,13 @@ static func _encode_active_instance(instance: ActiveCardInstance) -> Dictionary:
 		"auto_depth": instance.auto_depth,
 		"source_instance_id": instance.source_instance_id,
 		"shield_cost_paid": instance.shield_cost_paid,
+		"source_card_id": instance.source_card_id,
+		"relic_effect_bonus": instance.relic_effect_bonus,
+		"relic_recast_multiplier": instance.relic_recast_multiplier,
+		"relic_recast_delta": instance.relic_recast_delta,
+		"relic_delay_bank": instance.relic_delay_bank,
+		"relic_delay_hits": instance.relic_delay_hits,
+		"relic_flags": instance.relic_flags.duplicate(true),
 		"continuous_shift_battle_time": instance.continuous_shift_battle_time,
 		"continuous_shift_amount": instance.continuous_shift_amount,
 	}
@@ -213,6 +226,13 @@ static func _decode_active_instance(payload: Dictionary) -> ActiveCardInstance:
 	instance.auto_depth = maxi(0, int(payload.get("auto_depth", 0)))
 	instance.source_instance_id = int(payload.get("source_instance_id", 0))
 	instance.shield_cost_paid = maxi(0, int(payload.get("shield_cost_paid", 0)))
+	instance.source_card_id = String(payload.get("source_card_id", ""))
+	instance.relic_effect_bonus = int(payload.get("relic_effect_bonus", 0))
+	instance.relic_recast_multiplier = maxf(0.05, float(payload.get("relic_recast_multiplier", 1.0)))
+	instance.relic_recast_delta = float(payload.get("relic_recast_delta", 0.0))
+	instance.relic_delay_bank = maxf(0.0, float(payload.get("relic_delay_bank", 0.0)))
+	instance.relic_delay_hits = maxi(0, int(payload.get("relic_delay_hits", 0)))
+	instance.relic_flags = Dictionary(payload.get("relic_flags", {})).duplicate(true)
 	instance.continuous_shift_battle_time = float(payload.get("continuous_shift_battle_time", -1.0))
 	instance.continuous_shift_amount = float(payload.get("continuous_shift_amount", 0.0))
 	return instance

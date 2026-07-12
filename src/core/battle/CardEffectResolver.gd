@@ -41,6 +41,7 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 					if target.has_status(required_status):
 						amount += int(effect.get("bonus_amount", 0))
 				var result := DamageResolver.apply_damage(actor, target, amount)
+				engine.prevent_lethal(_opponent_side(instance.owner_side))
 				messages.append(Localization.get_textf("battle.log.card_damage", "{card_name} dealt {amount} to {target_name}", {
 					"card_name": card_def.name,
 					"amount": int(result["total_damage"]),
@@ -62,7 +63,8 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 				var target_unit := _resolve_target_unit(actor, target, effect)
 				var status_id := String(effect.get("status", ""))
 				var duration := float(effect.get("duration", 0.0))
-				target_unit.add_status(status_id, duration)
+				var target_side: String = instance.owner_side if target_unit == actor else _opponent_side(instance.owner_side)
+				engine.apply_status_from_card(instance.owner_side, target_side, status_id, duration)
 				messages.append(Localization.get_textf("battle.log.card_apply_status", "{card_name} applied {status_name} to {target_name}", {
 					"card_name": card_def.name,
 					"status_name": Localization.get_status_name(status_id),
@@ -71,13 +73,14 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 			"remove_status":
 				var remove_target := _resolve_target_unit(actor, target, effect)
 				var remove_status_id := String(effect.get("status", ""))
-				remove_target.remove_status(remove_status_id)
+				var remove_side: String = instance.owner_side if remove_target == actor else _opponent_side(instance.owner_side)
+				engine.remove_status_from_card(instance.owner_side, remove_side, remove_status_id)
 				messages.append(Localization.get_textf("battle.log.card_remove_status", "{card_name} removed {status_name}", {
 					"card_name": card_def.name,
 					"status_name": Localization.get_status_name(remove_status_id),
 				}))
 			"delay_enemy_active_card":
-				var delayed := engine.delay_active_cards(_opponent_side(instance.owner_side), float(effect.get("amount", 0.0)), String(effect.get("scope", "single")))
+				var delayed := engine.delay_active_cards(_opponent_side(instance.owner_side), float(effect.get("amount", 0.0)), String(effect.get("scope", "single")), instance.owner_side)
 				messages.append(Localization.get_textf("battle.log.card_delay", "{card_name} delayed {count} target(s)", {
 					"card_name": card_def.name,
 					"count": delayed,

@@ -15,9 +15,11 @@ var active_slots_used: int = 0
 var active_slot_max: int = 3
 var card_runtime_states: Array[CardRuntimeState] = []
 var temporary_card_modifiers: Dictionary = {}
+var battle_card_modifiers: Dictionary = {}
 var last_used_runtime_id: String = ""
 var previous_used_runtime_id: String = ""
 var cast_time_modifier: float = 1.0
+var shield_decay_interval: float = 1.0
 var _shield_decay_accumulator: float = 0.0
 
 
@@ -56,8 +58,9 @@ func tick_shield_decay(delta: float) -> int:
 
 	_shield_decay_accumulator += delta
 	var decayed: int = 0
-	while _shield_decay_accumulator >= 1.0 and shield > 0:
-		_shield_decay_accumulator -= 1.0
+	var interval: float = maxf(0.1, shield_decay_interval)
+	while _shield_decay_accumulator >= interval and shield > 0:
+		_shield_decay_accumulator -= interval
 		shield -= 1
 		decayed += 1
 
@@ -86,7 +89,7 @@ func remove_status(status_id: String) -> void:
 
 
 func has_status(status_id: String) -> bool:
-	return statuses.has(status_id) and float(statuses[status_id].get("duration", 0.0)) > 0.0
+	return statuses.has(status_id) and float(statuses[status_id].get("duration", 0.0)) > 0.0 and float(statuses[status_id].get("suspended", 0.0)) <= 0.0
 
 
 func tick_statuses(delta: float) -> Array[Dictionary]:
@@ -94,6 +97,11 @@ func tick_statuses(delta: float) -> Array[Dictionary]:
 	var expired: Array[String] = []
 	for status_id in statuses.keys():
 		var data: Dictionary = Dictionary(statuses[status_id])
+		var suspended: float = float(data.get("suspended", 0.0))
+		if suspended > 0.0:
+			data["suspended"] = maxf(0.0, suspended - delta)
+			statuses[status_id] = data
+			continue
 		var remaining: float = max(0.0, float(data.get("duration", 0.0)) - delta)
 		data["duration"] = remaining
 		if status_id == "bleed":
@@ -111,6 +119,10 @@ func tick_statuses(delta: float) -> Array[Dictionary]:
 			expired.append(String(status_id))
 	for status_id in expired:
 		statuses.erase(status_id)
+		events.append({
+			"type": "status_expired",
+			"status": status_id,
+		})
 	return events
 
 
