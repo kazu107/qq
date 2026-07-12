@@ -30,13 +30,19 @@ try {
     $clientArguments = $baseArguments + @("--lan-smoke-role=client", "--lan-smoke-port=$port")
     $clientProcess = Start-Process -FilePath $GodotPath -ArgumentList $clientArguments -RedirectStandardOutput $clientOut -RedirectStandardError $clientErr -WindowStyle Hidden -PassThru
 
-    $clientFinished = $clientProcess.WaitForExit(20000)
-    $hostFinished = $hostProcess.WaitForExit(20000)
-    if (-not $clientFinished -or -not $hostFinished) {
-        throw "LAN peer smoke timed out (host=$hostFinished client=$clientFinished)."
+    $hostLog = ""
+    $clientLog = ""
+    $deadline = [DateTime]::UtcNow.AddSeconds(35)
+    do {
+        Start-Sleep -Milliseconds 100
+        $hostLog = ((Get-Content -LiteralPath $hostOut -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content -LiteralPath $hostErr -Raw -ErrorAction SilentlyContinue)).Trim()
+        $clientLog = ((Get-Content -LiteralPath $clientOut -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content -LiteralPath $clientErr -Raw -ErrorAction SilentlyContinue)).Trim()
+        $completed = $hostLog -match "LAN_NETWORK_SMOKE_OK host" -and $clientLog -match "LAN_NETWORK_SMOKE_OK client"
+        $failed = $hostLog -match "LAN_NETWORK_SMOKE_FAIL|SCRIPT ERROR:" -or $clientLog -match "LAN_NETWORK_SMOKE_FAIL|SCRIPT ERROR:"
+    } while (-not $completed -and -not $failed -and [DateTime]::UtcNow -lt $deadline)
+    if (-not $completed) {
+        throw "LAN peer smoke did not complete (hostExited=$($hostProcess.HasExited) clientExited=$($clientProcess.HasExited)).`nHOST:`n$hostLog`nCLIENT:`n$clientLog"
     }
-    $hostLog = ((Get-Content -LiteralPath $hostOut -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content -LiteralPath $hostErr -Raw -ErrorAction SilentlyContinue)).Trim()
-    $clientLog = ((Get-Content -LiteralPath $clientOut -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content -LiteralPath $clientErr -Raw -ErrorAction SilentlyContinue)).Trim()
     if ($hostLog -notmatch "LAN_NETWORK_SMOKE_OK host" -or $hostLog -match "LAN_NETWORK_SMOKE_FAIL") {
         throw "LAN host peer failed.`n$hostLog"
     }
@@ -57,7 +63,18 @@ finally {
     }
     foreach ($logPath in @($hostOut, $hostErr, $clientOut, $clientErr)) {
         if (Test-Path -LiteralPath $logPath) {
-            Remove-Item -LiteralPath $logPath -Force
+            for ($attempt = 0; $attempt -lt 10; $attempt++) {
+                try {
+                    Remove-Item -LiteralPath $logPath -Force -ErrorAction Stop
+                    break
+                }
+                catch {
+                    if ($attempt -eq 9) {
+                        throw
+                    }
+                    Start-Sleep -Milliseconds 100
+                }
+            }
         }
     }
 }

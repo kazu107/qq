@@ -33,7 +33,7 @@ try {
         "--lan-soak-seconds=$duration"
     )
     $hostProcess = Start-Process -FilePath $GodotPath -ArgumentList $hostArguments -RedirectStandardOutput $hostOut -RedirectStandardError $hostErr -WindowStyle Hidden -PassThru
-    Start-Sleep -Milliseconds 450
+    Start-Sleep -Milliseconds 1000
     $clientArguments = $baseArguments + @(
         "--lan-soak-role=client",
         "--lan-soak-port=$port",
@@ -41,13 +41,19 @@ try {
     )
     $clientProcess = Start-Process -FilePath $GodotPath -ArgumentList $clientArguments -RedirectStandardOutput $clientOut -RedirectStandardError $clientErr -WindowStyle Hidden -PassThru
 
-    $clientFinished = $clientProcess.WaitForExit($timeoutMilliseconds)
-    $hostFinished = $hostProcess.WaitForExit($timeoutMilliseconds)
-    if (-not $clientFinished -or -not $hostFinished) {
-        throw "LAN network soak timed out (host=$hostFinished client=$clientFinished duration=${duration}s)."
+    $hostLog = ""
+    $clientLog = ""
+    $deadline = [DateTime]::UtcNow.AddMilliseconds($timeoutMilliseconds)
+    do {
+        Start-Sleep -Milliseconds 100
+        $hostLog = ((Get-Content -LiteralPath $hostOut -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content -LiteralPath $hostErr -Raw -ErrorAction SilentlyContinue)).Trim()
+        $clientLog = ((Get-Content -LiteralPath $clientOut -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content -LiteralPath $clientErr -Raw -ErrorAction SilentlyContinue)).Trim()
+        $completed = $hostLog -match "LAN_NETWORK_SOAK_OK host" -and $clientLog -match "LAN_NETWORK_SOAK_OK client"
+        $failed = $hostLog -match "LAN_NETWORK_SOAK_FAIL|SCRIPT ERROR:" -or $clientLog -match "LAN_NETWORK_SOAK_FAIL|SCRIPT ERROR:"
+    } while (-not $completed -and -not $failed -and [DateTime]::UtcNow -lt $deadline)
+    if (-not $completed) {
+        throw "LAN network soak did not complete (hostExited=$($hostProcess.HasExited) clientExited=$($clientProcess.HasExited) duration=${duration}s).`nHOST:`n$hostLog`nCLIENT:`n$clientLog"
     }
-    $hostLog = ((Get-Content -LiteralPath $hostOut -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content -LiteralPath $hostErr -Raw -ErrorAction SilentlyContinue)).Trim()
-    $clientLog = ((Get-Content -LiteralPath $clientOut -Raw -ErrorAction SilentlyContinue) + "`n" + (Get-Content -LiteralPath $clientErr -Raw -ErrorAction SilentlyContinue)).Trim()
     if ($hostLog -notmatch "LAN_NETWORK_SOAK_OK host" -or $hostLog -match "LAN_NETWORK_SOAK_FAIL") {
         throw "LAN soak host failed.`n$hostLog"
     }
@@ -70,7 +76,18 @@ finally {
     }
     foreach ($logPath in @($hostOut, $hostErr, $clientOut, $clientErr)) {
         if (Test-Path -LiteralPath $logPath) {
-            Remove-Item -LiteralPath $logPath -Force
+            for ($attempt = 0; $attempt -lt 10; $attempt++) {
+                try {
+                    Remove-Item -LiteralPath $logPath -Force -ErrorAction Stop
+                    break
+                }
+                catch {
+                    if ($attempt -eq 9) {
+                        throw
+                    }
+                    Start-Sleep -Milliseconds 100
+                }
+            }
         }
     }
 }

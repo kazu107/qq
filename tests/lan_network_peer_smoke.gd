@@ -101,7 +101,11 @@ func _finish_arena_preparation() -> void:
 
 
 func _on_arena_preparation_changed(_snapshot: Dictionary) -> void:
-	if _role != "client" or _finishing or _card_results_received < 2:
+	call_deferred("_finish_client_round_if_ready")
+
+
+func _finish_client_round_if_ready() -> void:
+	if _role != "client" or _finishing or _match_started_count < 2:
 		return
 	if NetworkManager.get_lan_arena_phase() != "preparation":
 		return
@@ -115,7 +119,7 @@ func _on_arena_preparation_changed(_snapshot: Dictionary) -> void:
 		run_state.arena_losses,
 		str(_countdown_seen),
 	])
-	await get_tree().create_timer(0.25).timeout
+	NetworkManager.leave_session("peer_smoke_client_complete")
 	get_tree().quit()
 
 
@@ -201,6 +205,19 @@ func _finish_round_and_exit() -> void:
 	if restored == null or not bool(snapshot.get("battle_started", false)):
 		_fail("host_battle_screen_sync")
 		return
+	var reconnect_runtime: CardRuntimeState = restored.enemy.get_runtime_state("enemy_1")
+	var reconnect_card_prepared: bool = false
+	if reconnect_runtime != null:
+		for event_value: Variant in restored.battle_events:
+			var event_data: Dictionary = Dictionary(event_value)
+			if String(event_data.get("event_type", "")) != "prepare_card":
+				continue
+			if String(event_data.get("actor_id", "")) == "enemy" and String(event_data.get("card_id", "")) == reconnect_runtime.card_id:
+				reconnect_card_prepared = true
+				break
+	if not reconnect_card_prepared:
+		_fail("reconnect_card_not_applied")
+		return
 	if not NetworkManager.finish_lan_match({
 		"winner": "player",
 		"reason": "peer_smoke_round",
@@ -208,7 +225,6 @@ func _finish_round_and_exit() -> void:
 	}, snapshot):
 		_fail("arena_round_finish_failed")
 		return
-	await get_tree().create_timer(0.85).timeout
 	var run_state: RunState = NetworkManager.get_local_arena_run()
 	if run_state == null or run_state.arena_wins != 1 or run_state.arena_pending_rewards.is_empty():
 		_fail("host_round_progress_invalid")
@@ -220,6 +236,7 @@ func _finish_round_and_exit() -> void:
 		run_state.arena_wins,
 		restored.battle_time,
 	])
+	await get_tree().create_timer(2.0).timeout
 	NetworkManager.leave_session("peer_smoke_complete")
 	get_tree().quit()
 
@@ -231,6 +248,7 @@ func _on_command_result_received(_sequence: int, accepted: bool, _snapshot: Dict
 		_fail("card_command_rejected")
 		return
 	_card_results_received += 1
+	call_deferred("_finish_client_round_if_ready")
 
 
 func _on_network_error(code: String, _message: String) -> void:

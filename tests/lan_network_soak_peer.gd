@@ -16,7 +16,7 @@ var _arena_ready: bool = false
 var _battle_screen: Control
 var _soak_active: bool = false
 var _soak_start_msec: int = 0
-var _event_batch_elapsed: float = 0.0
+var _generated_soak_events: int = 0
 var _heavy_unit: Dictionary = {}
 var _heavy_timeline: Array[Dictionary] = []
 var _snapshot_count: int = 0
@@ -53,11 +53,12 @@ func _process(delta: float) -> void:
 		return
 	var soak_elapsed: float = float(Time.get_ticks_msec() - _soak_start_msec) / 1000.0
 	if _role == "host":
-		_event_batch_elapsed += delta
-		while _event_batch_elapsed >= EVENT_BATCH_INTERVAL:
-			_event_batch_elapsed -= EVENT_BATCH_INTERVAL
+		var expected_event_count: int = int(floor(_soak_seconds / EVENT_BATCH_INTERVAL)) * EVENTS_PER_BATCH
+		var elapsed_event_count: int = int(floor(minf(soak_elapsed, _soak_seconds) / EVENT_BATCH_INTERVAL)) * EVENTS_PER_BATCH
+		var target_event_count: int = mini(expected_event_count, elapsed_event_count)
+		while _generated_soak_events < target_event_count:
 			_append_host_event_batch()
-		if soak_elapsed >= _soak_seconds + 1.0:
+		if soak_elapsed >= _soak_seconds + 1.0 and _generated_soak_events >= expected_event_count:
 			_finish_host()
 	elif soak_elapsed >= _soak_seconds:
 		_finish_client()
@@ -171,6 +172,7 @@ func _append_host_event_batch() -> void:
 			"timeline_before": _heavy_timeline,
 			"timeline_after": _heavy_timeline,
 		})
+		_generated_soak_events += 1
 	engine.battle_state.add_log("network soak events=%d" % engine.battle_state.battle_events.size())
 
 
@@ -202,6 +204,7 @@ func _finish_client() -> void:
 		_last_remote_battle_time,
 		_last_event_total,
 	])
+	NetworkManager.leave_session("network_soak_client_complete")
 	get_tree().quit()
 
 
