@@ -1,11 +1,13 @@
 extends RefCounted
 class_name LanProtocol
 
-const PROTOCOL_VERSION: int = 4
+const PROTOCOL_VERSION: int = 5
 const SNAPSHOT_VERSION: int = 3
 const RELIC_RESOLVER_VERSION: int = 1
 const DEFAULT_PORT: int = 32475
 const DISCOVERY_PORT: int = 32476
+const ONLINE_AUTH_CONTEXT: String = "qq-online-room-v1"
+const ONLINE_ROOM_CODE_LENGTH: int = 6
 const MAX_PLAYERS: int = 2
 const MAX_NAME_LENGTH: int = 20
 const MAX_DECK_CARDS: int = 16
@@ -192,6 +194,32 @@ static func sanitize_player_name(value: String) -> String:
 
 static func sanitize_port(value: int) -> int:
 	return clampi(value, 1024, 65535)
+
+
+static func sanitize_online_room_code(value: String) -> String:
+	var sanitized: String = ""
+	for index in range(value.length()):
+		var character: String = value[index].to_upper()
+		var codepoint: int = character.unicode_at(0)
+		var is_digit: bool = codepoint >= 48 and codepoint <= 57
+		var is_letter: bool = codepoint >= 65 and codepoint <= 90
+		if is_digit or is_letter:
+			sanitized += character
+		if sanitized.length() >= 16:
+			break
+	return sanitized
+
+
+static func generate_online_room_code() -> String:
+	var source: String = "%d:%d:%d" % [Time.get_ticks_usec(), Time.get_unix_time_from_system(), randi()]
+	return source.sha256_text().left(ONLINE_ROOM_CODE_LENGTH).to_upper()
+
+
+static func build_online_room_proof(room_code: String) -> String:
+	var sanitized: String = sanitize_online_room_code(room_code)
+	if sanitized == "":
+		return ""
+	return (ONLINE_AUTH_CONTEXT + ":" + sanitized).sha256_text()
 
 
 static func get_lan_addresses() -> Array[String]:

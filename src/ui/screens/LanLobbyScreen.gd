@@ -3,9 +3,13 @@ extends Control
 const CONNECTION_PANEL_WIDTH: float = 500.0
 const DECK_TILE_SIZE: Vector2 = Vector2(92.0, 92.0)
 
+@export var online_mode: bool = false
+
 var _name_edit: LineEdit
 var _address_edit: LineEdit
 var _port_spin: SpinBox
+var _room_code_edit: LineEdit
+var _automatic_upnp_check: CheckButton
 var _host_button: Button
 var _join_button: Button
 var _discovered_list: ItemList
@@ -30,11 +34,18 @@ var _opening_battle: bool = false
 func _ready() -> void:
 	_build_ui()
 	_connect_network_signals()
-	_name_edit.text = Game.get_lan_player_name()
-	_address_edit.text = Game.get_lan_last_address()
-	_port_spin.value = float(Game.get_lan_port())
-	NetworkManager.begin_discovery()
-	_refresh_discovered_hosts(NetworkManager.get_discovered_hosts())
+	if online_mode:
+		_name_edit.text = Game.get_online_player_name()
+		_address_edit.text = Game.get_online_last_address()
+		_port_spin.value = float(Game.get_online_port())
+		_room_code_edit.text = Game.get_online_room_code()
+		_automatic_upnp_check.button_pressed = Game.get_online_automatic_upnp()
+	else:
+		_name_edit.text = Game.get_lan_player_name()
+		_address_edit.text = Game.get_lan_last_address()
+		_port_spin.value = float(Game.get_lan_port())
+		NetworkManager.begin_discovery()
+		_refresh_discovered_hosts(NetworkManager.get_discovered_hosts())
 	_refresh_all()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
@@ -46,7 +57,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	if not NetworkManager.is_session_connected():
+	if not online_mode and not NetworkManager.is_session_connected():
 		NetworkManager.end_discovery()
 
 
@@ -83,7 +94,7 @@ func _build_ui() -> void:
 	header.add_child(back_button)
 
 	var title: Label = Label.new()
-	title.text = Localization.get_text("lan.title", "LAN MULTIPLAYER")
+	title.text = Localization.get_text("online.title", "ONLINE MULTIPLAYER") if online_mode else Localization.get_text("lan.title", "LAN MULTIPLAYER")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.add_theme_font_size_override("font_size", 30)
@@ -141,9 +152,24 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 	_port_spin.allow_lesser = false
 	box.add_child(_labeled_control(Localization.get_text("lan.port", "UDP port"), _port_spin))
 
+	_room_code_edit = LineEdit.new()
+	_room_code_edit.name = "OnlineRoomCodeEdit"
+	_room_code_edit.placeholder_text = Localization.get_text("online.room_code_auto", "Leave blank to generate")
+	_room_code_edit.max_length = 16
+	_room_code_edit.visible = online_mode
+	var room_code_row: HBoxContainer = _labeled_control(Localization.get_text("online.room_code", "Room code"), _room_code_edit)
+	room_code_row.visible = online_mode
+	box.add_child(room_code_row)
+
+	_automatic_upnp_check = CheckButton.new()
+	_automatic_upnp_check.name = "OnlineAutomaticUpnpCheck"
+	_automatic_upnp_check.text = Localization.get_text("online.automatic_upnp", "Open UDP port automatically (UPnP)")
+	_automatic_upnp_check.visible = online_mode
+	box.add_child(_automatic_upnp_check)
+
 	_host_button = Button.new()
 	_host_button.name = "LanHostButton"
-	_host_button.text = Localization.get_text("lan.host", "HOST LOBBY")
+	_host_button.text = Localization.get_text("online.host", "HOST ONLINE LOBBY") if online_mode else Localization.get_text("lan.host", "HOST LOBBY")
 	_host_button.custom_minimum_size = Vector2(0.0, 46.0)
 	_host_button.pressed.connect(_on_host_pressed)
 	box.add_child(_host_button)
@@ -153,18 +179,22 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 
 	_address_edit = LineEdit.new()
 	_address_edit.name = "LanAddressEdit"
-	_address_edit.placeholder_text = "192.168.1.10"
+	_address_edit.placeholder_text = "203.0.113.10" if online_mode else "192.168.1.10"
 	_address_edit.text_submitted.connect(func(_value: String) -> void: _on_join_pressed())
-	box.add_child(_labeled_control(Localization.get_text("lan.host_address", "Host address"), _address_edit))
+	box.add_child(_labeled_control(
+		Localization.get_text("online.host_address", "Public IP or hostname") if online_mode else Localization.get_text("lan.host_address", "Host address"),
+		_address_edit
+	))
 
 	_join_button = Button.new()
 	_join_button.name = "LanJoinButton"
-	_join_button.text = Localization.get_text("lan.join", "JOIN BY ADDRESS")
+	_join_button.text = Localization.get_text("online.join", "JOIN ONLINE LOBBY") if online_mode else Localization.get_text("lan.join", "JOIN BY ADDRESS")
 	_join_button.custom_minimum_size = Vector2(0.0, 46.0)
 	_join_button.pressed.connect(_on_join_pressed)
 	box.add_child(_join_button)
 
 	var discovered_title: Label = _make_section_title(Localization.get_text("lan.discovered", "DISCOVERED ON LAN"))
+	discovered_title.visible = not online_mode
 	box.add_child(discovered_title)
 	_discovered_list = ItemList.new()
 	_discovered_list.name = "LanDiscoveredList"
@@ -172,12 +202,14 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 	_discovered_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_discovered_list.item_selected.connect(_on_discovered_selected)
 	_discovered_list.item_activated.connect(_on_discovered_activated)
+	_discovered_list.visible = not online_mode
 	box.add_child(_discovered_list)
 
 	_join_discovered_button = Button.new()
 	_join_discovered_button.name = "LanJoinDiscoveredButton"
 	_join_discovered_button.text = Localization.get_text("lan.join_selected", "JOIN SELECTED HOST")
 	_join_discovered_button.disabled = true
+	_join_discovered_button.visible = not online_mode
 	_join_discovered_button.pressed.connect(_on_join_discovered_pressed)
 	box.add_child(_join_discovered_button)
 
@@ -278,6 +310,8 @@ func _connect_network_signals() -> void:
 		NetworkManager.match_finished.connect(_on_match_finished)
 	if not NetworkManager.session_ended.is_connected(_on_session_ended):
 		NetworkManager.session_ended.connect(_on_session_ended)
+	if not NetworkManager.online_host_status_changed.is_connected(_on_online_host_status_changed):
+		NetworkManager.online_host_status_changed.connect(_on_online_host_status_changed)
 
 
 func _refresh_all() -> void:
@@ -286,18 +320,25 @@ func _refresh_all() -> void:
 	_lobby_panel.visible = connected
 	if not connected:
 		if _status_label.text == "":
-			_status_label.text = Localization.get_text("lan.status.offline", "Host a lobby or join a PC on the same local network.")
+			_status_label.text = (
+				Localization.get_text("online.status.offline", "Host a private lobby or join with a public IP address and room code.")
+				if online_mode
+				else Localization.get_text("lan.status.offline", "Host a lobby or join a PC on the same local network.")
+			)
 		return
 
 	var snapshot: Dictionary = NetworkManager.get_lobby_snapshot()
 	var profiles: Array[Dictionary] = NetworkManager.get_lobby_players()
 	_refresh_player_slots(profiles)
 	_refresh_local_profile_controls()
-	var addresses: Array[String] = []
-	for raw_address in Array(snapshot.get("host_addresses", [])):
-		addresses.append(String(raw_address))
-	var invite_address: String = addresses[0] if not addresses.is_empty() else "127.0.0.1"
-	_invite_label.text = "%s:%d" % [invite_address, NetworkManager.get_host_port()]
+	if online_mode:
+		_refresh_online_invite()
+	else:
+		var addresses: Array[String] = []
+		for raw_address in Array(snapshot.get("host_addresses", [])):
+			addresses.append(String(raw_address))
+		var invite_address: String = addresses[0] if not addresses.is_empty() else "127.0.0.1"
+		_invite_label.text = "%s:%d" % [invite_address, NetworkManager.get_host_port()]
 	_start_button.visible = NetworkManager.is_host()
 	_start_button.disabled = not NetworkManager.can_start_match()
 	_ready_button.disabled = NetworkManager.has_active_match()
@@ -387,7 +428,7 @@ func _refresh_local_profile_controls() -> void:
 	for raw_card_id in Array(profile.get("deck", [])):
 		deck.append(String(raw_card_id))
 	var run_state: RunState = LanProtocol.profile_to_run(profile, 1)
-	_deck_panel.refresh_card_ids(deck, false, "LAN", run_state)
+	_deck_panel.refresh_card_ids(deck, false, "ONLINE" if online_mode else "LAN", run_state)
 
 
 func _refresh_last_result() -> void:
@@ -423,16 +464,40 @@ func _refresh_discovered_hosts(hosts: Array[Dictionary]) -> void:
 
 func _on_host_pressed() -> void:
 	_save_preferences()
-	_status_label.text = Localization.get_text("lan.status.hosting", "Opening LAN lobby...")
-	if not NetworkManager.host_lobby(_name_edit.text, _default_starter_id(), int(_port_spin.value)):
+	_status_label.text = Localization.get_text("online.status.hosting", "Opening online lobby...") if online_mode else Localization.get_text("lan.status.hosting", "Opening LAN lobby...")
+	var hosted: bool = false
+	if online_mode:
+		hosted = NetworkManager.host_online_lobby(
+			_name_edit.text,
+			_default_starter_id(),
+			_room_code_edit.text,
+			int(_port_spin.value),
+			_automatic_upnp_check.button_pressed
+		)
+		if hosted:
+			_room_code_edit.text = NetworkManager.get_online_room_code()
+	else:
+		hosted = NetworkManager.host_lobby(_name_edit.text, _default_starter_id(), int(_port_spin.value))
+	if not hosted:
 		AudioManager.play_sfx("ui_error")
 	_refresh_all()
 
 
 func _on_join_pressed() -> void:
 	_save_preferences()
-	_status_label.text = Localization.get_text("lan.status.connecting", "Connecting to host...")
-	if not NetworkManager.join_lobby(_address_edit.text, _name_edit.text, _default_starter_id(), int(_port_spin.value)):
+	_status_label.text = Localization.get_text("online.status.connecting", "Connecting to online host...") if online_mode else Localization.get_text("lan.status.connecting", "Connecting to host...")
+	var joined: bool = false
+	if online_mode:
+		joined = NetworkManager.join_online_lobby(
+			_address_edit.text,
+			_name_edit.text,
+			_default_starter_id(),
+			_room_code_edit.text,
+			int(_port_spin.value)
+		)
+	else:
+		joined = NetworkManager.join_lobby(_address_edit.text, _name_edit.text, _default_starter_id(), int(_port_spin.value))
+	if not joined:
 		AudioManager.play_sfx("ui_error")
 	_refresh_all()
 
@@ -535,7 +600,45 @@ func _on_session_ended(_reason: String) -> void:
 
 
 func _save_preferences() -> void:
-	Game.set_lan_preferences(_name_edit.text, _address_edit.text, int(_port_spin.value))
+	if online_mode:
+		Game.set_online_preferences(
+			_name_edit.text,
+			_address_edit.text,
+			_room_code_edit.text,
+			int(_port_spin.value),
+			_automatic_upnp_check.button_pressed
+		)
+	else:
+		Game.set_lan_preferences(_name_edit.text, _address_edit.text, int(_port_spin.value))
+
+
+func _on_online_host_status_changed(status: Dictionary) -> void:
+	if not online_mode or not NetworkManager.is_host():
+		return
+	var state: String = String(status.get("state", ""))
+	match state:
+		"opening":
+			_status_label.text = Localization.get_text("online.status.upnp_opening", "Opening the router's UDP port with UPnP...")
+		"open":
+			_status_label.text = Localization.get_text("online.status.ready", "UPnP port mapping succeeded. Share the address and room code privately, then verify the connection from another network.")
+		"manual":
+			_status_label.text = Localization.get_text("online.status.manual", "Forward the selected UDP port on your router, then share your public IP and room code.")
+		"failed":
+			_status_label.text = Localization.get_text("online.status.upnp_failed", "Automatic port forwarding failed. Forward the selected UDP port manually; CGNAT connections require a relay or public IPv6.")
+	_refresh_online_invite()
+
+
+func _refresh_online_invite() -> void:
+	if _invite_label == null:
+		return
+	var status: Dictionary = NetworkManager.get_online_host_status()
+	var external_address: String = String(status.get("external_address", ""))
+	var address_text: String = external_address if external_address != "" else Localization.get_text("online.public_ip_pending", "public IP")
+	_invite_label.text = Localization.get_textf("online.invite", "{address}:{port} | Code {code}", {
+		"address": address_text,
+		"port": NetworkManager.get_host_port(),
+		"code": NetworkManager.get_online_room_code(),
+	})
 
 
 func _default_starter_id() -> String:
@@ -555,7 +658,7 @@ func _build_developer_panel() -> void:
 			{"id": "DevLanDisconnect", "label": Localization.get_text("lan.dev.disconnect", "Drop remote peer"), "callback": Callable(self, "_on_dev_disconnect")},
 			{"id": "DevLanLeave", "label": Localization.get_text("lan.leave", "Leave lobby"), "callback": Callable(self, "_on_leave_pressed")},
 		],
-		Localization.get_text("lan.dev.summary", "LAN discovery, handshake, and reconnection test controls.")
+		Localization.get_text("online.dev.summary", "Online direct connection and reconnection test controls.") if online_mode else Localization.get_text("lan.dev.summary", "LAN discovery, handshake, and reconnection test controls.")
 	)
 
 

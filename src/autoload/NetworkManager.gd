@@ -16,6 +16,7 @@ signal arena_action_result_received(action: String, accepted: bool, result: Dict
 signal arena_session_finished(result: Dictionary)
 signal battle_start_state_changed(state: Dictionary)
 signal battle_countdown_finished()
+signal online_host_status_changed(status: Dictionary)
 
 enum ConnectionState {
 	OFFLINE,
@@ -33,6 +34,9 @@ const DISCOVERY_ENTRY_LIFETIME_MSEC: int = 2600
 const PING_INTERVAL: float = 1.0
 const RECONNECT_RETRY_INTERVAL: float = 1.0
 const BATTLE_COUNTDOWN_SECONDS: float = 3.0
+const SESSION_SCOPE_LAN: String = "lan"
+const SESSION_SCOPE_ONLINE: String = "online"
+const ONLINE_UPNP_DESCRIPTION: String = "qq Online Arena"
 
 var _state: int = ConnectionState.OFFLINE
 var _peer: ENetMultiplayerPeer
@@ -79,6 +83,15 @@ var _battle_ready_by_side: Dictionary = {"player": false, "enemy": false}
 var _battle_countdown_active: bool = false
 var _battle_countdown_deadline_msec: int = 0
 var _battle_countdown_finished: bool = false
+var _session_scope: String = SESSION_SCOPE_LAN
+var _online_room_code: String = ""
+var _online_room_proof: String = ""
+var _online_host_status: Dictionary = {}
+var _upnp_thread: Thread
+var _upnp_instance: UPNP
+var _upnp_operation: String = ""
+var _upnp_port: int = 0
+var _upnp_cancel_requested: bool = false
 
 
 func _ready() -> void:
@@ -94,11 +107,29 @@ func _ready() -> void:
 		multiplayer.server_disconnected.connect(_on_server_disconnected)
 
 
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_PREDELETE:
+		return
+	if _upnp_thread != null:
+		var raw_result: Variant = _upnp_thread.wait_to_finish()
+		if _upnp_operation == "open" and typeof(raw_result) == TYPE_DICTIONARY:
+			var result: Dictionary = Dictionary(raw_result)
+			if bool(result.get("mapped", false)):
+				var opened_upnp: UPNP = result.get("upnp") as UPNP
+				if opened_upnp != null:
+					opened_upnp.delete_port_mapping(_upnp_port, "UDP")
+		_upnp_thread = null
+	if _upnp_instance != null and _upnp_port > 0:
+		_upnp_instance.delete_port_mapping(_upnp_port, "UDP")
+	_upnp_instance = null
+
+
 func _process(delta: float) -> void:
 	_process_discovery(delta)
 	_process_ping(delta)
 	_process_reconnect()
 	_process_battle_countdown()
+	_process_upnp_operation()
 
 
 func configure_local_player(player_name: String, starter_id: String) -> Dictionary:
@@ -109,6 +140,7 @@ func configure_local_player(player_name: String, starter_id: String) -> Dictiona
 
 func host_lobby(player_name: String, starter_id: String, port: int = LanProtocol.DEFAULT_PORT) -> bool:
 	_clear_session(false)
+	_session_scope = SESSION_SCOPE_LAN
 	_last_match_result.clear()
 	configure_local_player(player_name, starter_id)
 	_host_port = LanProtocol.sanitize_port(port)
@@ -129,6 +161,42 @@ func host_lobby(player_name: String, starter_id: String, port: int = LanProtocol
 	return true
 
 
+func host_online_lobby(
+	player_name: String,
+	starter_id: String,
+	room_code: String,
+	port: int = LanProtocol.DEFAULT_PORT,
+	automatic_port_mapping: bool = true
+) -> bool:
+	_clear_session(false)
+	_session_scope = SESSION_SCOPE_ONLINE
+	_last_match_result.clear()
+	configure_local_player(player_name, starter_id)
+	_host_port = LanProtocol.sanitize_port(port)
+	_last_address = "127.0.0.1"
+	_online_room_code = LanProtocol.sanitize_online_room_code(room_code)
+	if _online_room_code == "":
+		_online_room_code = LanProtocol.generate_online_room_code()
+	_online_room_proof = LanProtocol.build_online_room_proof(_online_room_code)
+	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
+	var error: Error = peer.create_server(_host_port, LanProtocol.MAX_PLAYERS - 1)
+	if error != OK:
+		_emit_error("host_failed", "Unable to host on UDP port %d (error %d)." % [_host_port, error])
+		return false
+	_peer = peer
+	_is_host = true
+	multiplayer.multiplayer_peer = _peer
+	_profiles_by_peer[1] = _local_profile.duplicate(true)
+	_peer_sides[1] = "player"
+	_set_state(ConnectionState.HOSTING, "Opening online lobby")
+	if automatic_port_mapping:
+		_start_upnp_mapping(_host_port)
+	else:
+		_set_online_host_status("manual", "", "", _host_port)
+	_broadcast_lobby_state()
+	return true
+
+
 func join_lobby(
 	address: String,
 	player_name: String,
@@ -136,12 +204,37 @@ func join_lobby(
 	port: int = LanProtocol.DEFAULT_PORT
 ) -> bool:
 	_clear_session(false)
+	_session_scope = SESSION_SCOPE_LAN
 	_last_match_result.clear()
 	configure_local_player(player_name, starter_id)
 	_last_address = address.strip_edges()
 	if _last_address == "":
 		_last_address = "127.0.0.1"
 	_host_port = LanProtocol.sanitize_port(port)
+	return _connect_client(false)
+
+
+func join_online_lobby(
+	address: String,
+	player_name: String,
+	starter_id: String,
+	room_code: String,
+	port: int = LanProtocol.DEFAULT_PORT
+) -> bool:
+	_clear_session(false)
+	_session_scope = SESSION_SCOPE_ONLINE
+	_last_match_result.clear()
+	configure_local_player(player_name, starter_id)
+	_last_address = address.strip_edges()
+	if _last_address == "":
+		_emit_error("invalid_address", "Enter the host's public IP address or hostname.")
+		return false
+	_host_port = LanProtocol.sanitize_port(port)
+	_online_room_code = LanProtocol.sanitize_online_room_code(room_code)
+	_online_room_proof = LanProtocol.build_online_room_proof(_online_room_code)
+	if _online_room_proof == "":
+		_emit_error("invalid_room_code", "Enter the online room code.")
+		return false
 	return _connect_client(false)
 
 
@@ -249,7 +342,7 @@ func start_lan_arena_preparation() -> bool:
 		profile["ready"] = false
 		_profiles_by_peer[peer_id] = profile
 	_local_profile = Dictionary(_profiles_by_peer.get(1, _local_profile)).duplicate(true)
-	_set_state(ConnectionState.ARENA_PREPARATION, "LAN arena preparation started")
+	_set_state(ConnectionState.ARENA_PREPARATION, "%s arena preparation started" % _session_display_name())
 	arena_preparation_started.emit(_build_arena_snapshot("player"))
 	_send_arena_preparation_state()
 	return true
@@ -424,6 +517,22 @@ func get_host_port() -> int:
 	return _host_port
 
 
+func get_session_scope() -> String:
+	return _session_scope
+
+
+func is_online_session() -> bool:
+	return _session_scope == SESSION_SCOPE_ONLINE
+
+
+func get_online_room_code() -> String:
+	return _online_room_code
+
+
+func get_online_host_status() -> Dictionary:
+	return _online_host_status.duplicate(true)
+
+
 func publish_battle_snapshot(snapshot: Dictionary, reliable: bool = false) -> bool:
 	if not _is_host or not _match_active or snapshot.is_empty():
 		return false
@@ -577,7 +686,7 @@ func _send_or_apply_local_profile() -> void:
 		_broadcast_lobby_state()
 		return
 	if _peer != null and _peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
-		_submit_profile_rpc.rpc_id(1, _local_profile)
+		_submit_profile_rpc.rpc_id(1, _local_profile, _online_room_proof)
 
 
 func _submit_local_command(kind: String, runtime_id: String, extra: Dictionary = {}) -> bool:
@@ -639,7 +748,7 @@ func _on_peer_disconnected(peer_id: int) -> void:
 func _on_connected_to_server() -> void:
 	if _is_host:
 		return
-	_submit_profile_rpc.rpc_id(1, _local_profile)
+	_submit_profile_rpc.rpc_id(1, _local_profile, _online_room_proof)
 
 
 func _on_connection_failed() -> void:
@@ -651,7 +760,7 @@ func _on_connection_failed() -> void:
 		return
 	_close_peer_only()
 	_set_state(ConnectionState.OFFLINE, "Connection failed")
-	_emit_error("connection_failed", "Could not connect to the LAN host.")
+	_emit_error("connection_failed", "Could not connect to the host.")
 
 
 func _on_server_disconnected() -> void:
@@ -670,11 +779,14 @@ func _on_server_disconnected() -> void:
 
 
 @rpc("any_peer", "call_remote", "reliable", 0)
-func _submit_profile_rpc(raw_profile: Dictionary) -> void:
+func _submit_profile_rpc(raw_profile: Dictionary, room_proof: String = "") -> void:
 	if not _is_host:
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	if sender_id <= 1:
+		return
+	if _session_scope == SESSION_SCOPE_ONLINE and room_proof != _online_room_proof:
+		_reject_peer(sender_id, "invalid_room_code")
 		return
 	var validation: Dictionary = LanProtocol.validate_profile(raw_profile)
 	if not bool(validation.get("valid", false)):
@@ -711,7 +823,7 @@ func _submit_profile_rpc(raw_profile: Dictionary) -> void:
 			_receive_arena_preparation_state_rpc.rpc_id(sender_id, _build_arena_snapshot("enemy"))
 			_set_state(ConnectionState.ARENA_PREPARATION, "Opponent reconnected")
 		return
-	_set_state(ConnectionState.LOBBY, "LAN lobby ready")
+	_set_state(ConnectionState.LOBBY, "%s lobby ready" % _session_display_name())
 	_broadcast_lobby_state()
 
 
@@ -727,7 +839,7 @@ func _receive_lobby_state_rpc(snapshot: Dictionary) -> void:
 		_local_profile["starter_id"] = String(player_data.get("starter_id", _local_profile.get("starter_id", "")))
 		break
 	if not _match_active and not _arena_session_active:
-		_set_state(ConnectionState.LOBBY, "LAN lobby ready")
+		_set_state(ConnectionState.LOBBY, "%s lobby ready" % _session_display_name())
 	lobby_changed.emit(_public_lobby_snapshot.duplicate(true))
 
 
@@ -979,7 +1091,7 @@ func _apply_arena_preparation_state(snapshot: Dictionary) -> void:
 	if snapshot.is_empty():
 		return
 	if int(snapshot.get("protocol_version", -1)) != LanProtocol.PROTOCOL_VERSION:
-		_emit_error("protocol_mismatch", "LAN protocol versions do not match.")
+		_emit_error("protocol_mismatch", "Network protocol versions do not match.")
 		return
 	if String(snapshot.get("content_hash", "")) != LanProtocol.build_content_hash():
 		_emit_error("content_mismatch", "Game data differs from the host.")
@@ -994,7 +1106,7 @@ func _apply_arena_preparation_state(snapshot: Dictionary) -> void:
 		_local_arena_run = RunState.from_dict(Dictionary(snapshot.get("run", {})))
 	_reconnecting = false
 	_waiting_for_reconnect = false
-	_set_state(ConnectionState.ARENA_PREPARATION, "LAN arena preparation")
+	_set_state(ConnectionState.ARENA_PREPARATION, "%s arena preparation" % _session_display_name())
 	if is_new_session:
 		arena_preparation_started.emit(snapshot.duplicate(true))
 	arena_preparation_changed.emit(snapshot.duplicate(true))
@@ -1046,7 +1158,7 @@ func _start_arena_match_from_preparation() -> bool:
 	_battle_countdown_active = false
 	_battle_countdown_deadline_msec = 0
 	_battle_countdown_finished = false
-	_set_state(ConnectionState.MATCH, "LAN arena battle ready")
+	_set_state(ConnectionState.MATCH, "%s arena battle ready" % _session_display_name())
 	_receive_match_started_rpc.rpc(_match_payload)
 	_apply_match_started(_match_payload)
 	_broadcast_battle_start_state()
@@ -1129,7 +1241,7 @@ func _process_battle_countdown() -> void:
 
 func _apply_match_started(payload: Dictionary) -> void:
 	if int(payload.get("protocol_version", -1)) != LanProtocol.PROTOCOL_VERSION:
-		_emit_error("protocol_mismatch", "LAN protocol versions do not match.")
+		_emit_error("protocol_mismatch", "Network protocol versions do not match.")
 		return
 	if String(payload.get("content_hash", "")) != LanProtocol.build_content_hash():
 		_emit_error("content_mismatch", "Game data differs from the host.")
@@ -1149,7 +1261,7 @@ func _apply_match_started(payload: Dictionary) -> void:
 		_battle_countdown_active = false
 		_battle_countdown_deadline_msec = 0
 		_battle_countdown_finished = false
-	_set_state(ConnectionState.MATCH, "LAN match active")
+	_set_state(ConnectionState.MATCH, "%s match active" % _session_display_name())
 	match_started.emit(_match_payload.duplicate(true))
 
 
@@ -1180,7 +1292,7 @@ func _apply_match_finished(result: Dictionary) -> void:
 	var next_state: int = ConnectionState.OFFLINE
 	if is_session_connected():
 		next_state = ConnectionState.ARENA_PREPARATION if _arena_session_active else ConnectionState.LOBBY
-	_set_state(next_state, "LAN match finished")
+	_set_state(next_state, "%s match finished" % _session_display_name())
 	match_finished.emit(_last_match_result.duplicate(true))
 
 
@@ -1210,7 +1322,7 @@ func _apply_arena_session_finished(result: Dictionary) -> void:
 	_battle_countdown_deadline_msec = 0
 	_battle_countdown_finished = false
 	_local_profile["ready"] = false
-	_set_state(ConnectionState.LOBBY if is_session_connected() else ConnectionState.OFFLINE, "LAN arena finished")
+	_set_state(ConnectionState.LOBBY if is_session_connected() else ConnectionState.OFFLINE, "%s arena finished" % _session_display_name())
 	arena_session_finished.emit(result.duplicate(true))
 
 
@@ -1233,6 +1345,7 @@ func _broadcast_lobby_state() -> void:
 	_public_lobby_snapshot = {
 		"protocol_version": LanProtocol.PROTOCOL_VERSION,
 		"content_hash": LanProtocol.build_content_hash(),
+		"session_scope": _session_scope,
 		"host_port": _host_port,
 		"host_addresses": LanProtocol.get_lan_addresses(),
 		"players": players,
@@ -1413,6 +1526,8 @@ func _to_dictionary_array(value: Variant) -> Array[Dictionary]:
 
 
 func _clear_session(clear_profile: bool) -> void:
+	if _is_host and _session_scope == SESSION_SCOPE_ONLINE:
+		_request_upnp_close()
 	_close_peer_only()
 	if _discovery_sender != null:
 		_discovery_sender.close()
@@ -1446,6 +1561,10 @@ func _clear_session(clear_profile: bool) -> void:
 	_reserved_remote_profile.clear()
 	_reconnecting = false
 	_explicit_peer_leaves.clear()
+	_session_scope = SESSION_SCOPE_LAN
+	_online_room_code = ""
+	_online_room_proof = ""
+	_online_host_status.clear()
 	if clear_profile:
 		_local_profile.clear()
 	_set_state(ConnectionState.OFFLINE, "Offline")
@@ -1465,21 +1584,131 @@ func _set_state(next_state: int, message: String) -> void:
 	connection_state_changed.emit(_state, message)
 
 
+func _session_display_name() -> String:
+	return "Online" if _session_scope == SESSION_SCOPE_ONLINE else "LAN"
+
+
 func _emit_error(code: String, message: String) -> void:
 	network_error.emit(code, message)
+
+
+func _start_upnp_mapping(port: int) -> void:
+	if _upnp_thread != null:
+		_set_online_host_status("failed", "upnp_busy", "", port)
+		return
+	_upnp_cancel_requested = false
+	_upnp_port = port
+	_upnp_operation = "open"
+	_upnp_thread = Thread.new()
+	var start_error: Error = _upnp_thread.start(Callable(self, "_upnp_open_worker").bind(port))
+	if start_error != OK:
+		_upnp_thread = null
+		_upnp_operation = ""
+		_set_online_host_status("failed", "thread_start_failed", "", port)
+		return
+	_set_online_host_status("opening", "", "", port)
+
+
+func _request_upnp_close() -> void:
+	if _upnp_operation == "open" and _upnp_thread != null:
+		_upnp_cancel_requested = true
+		return
+	if _upnp_thread != null or _upnp_instance == null or _upnp_port <= 0:
+		return
+	_upnp_operation = "close"
+	_upnp_thread = Thread.new()
+	var start_error: Error = _upnp_thread.start(
+		Callable(self, "_upnp_close_worker").bind(_upnp_instance, _upnp_port)
+	)
+	if start_error != OK:
+		_upnp_thread = null
+		_upnp_operation = ""
+
+
+func _process_upnp_operation() -> void:
+	if _upnp_thread == null or _upnp_thread.is_alive():
+		return
+	var raw_result: Variant = _upnp_thread.wait_to_finish()
+	var result: Dictionary = Dictionary(raw_result) if typeof(raw_result) == TYPE_DICTIONARY else {}
+	var completed_operation: String = _upnp_operation
+	_upnp_thread = null
+	_upnp_operation = ""
+	if completed_operation == "close":
+		_upnp_instance = null
+		_upnp_port = 0
+		return
+	_upnp_instance = result.get("upnp") as UPNP
+	var mapped: bool = bool(result.get("mapped", false))
+	if _upnp_cancel_requested or not _is_host or _session_scope != SESSION_SCOPE_ONLINE:
+		_upnp_cancel_requested = false
+		if mapped:
+			_request_upnp_close()
+		else:
+			_upnp_instance = null
+			_upnp_port = 0
+		return
+	if mapped:
+		_set_online_host_status(
+			"open",
+			"",
+			String(result.get("external_address", "")),
+			_upnp_port
+		)
+	else:
+		_set_online_host_status(
+			"failed",
+			String(result.get("error", "upnp_failed")),
+			String(result.get("external_address", "")),
+			_upnp_port
+		)
+
+
+func _set_online_host_status(state: String, error_code: String, external_address: String, port: int) -> void:
+	_online_host_status = {
+		"state": state,
+		"error": error_code,
+		"external_address": external_address,
+		"port": port,
+	}
+	online_host_status_changed.emit(_online_host_status.duplicate(true))
+
+
+func _upnp_open_worker(port: int) -> Dictionary:
+	var upnp: UPNP = UPNP.new()
+	var discover_result: int = upnp.discover(2500, 2, "InternetGatewayDevice")
+	if discover_result != UPNP.UPNP_RESULT_SUCCESS:
+		return {"mapped": false, "error": "discover_%d" % discover_result, "upnp": upnp}
+	var gateway: UPNPDevice = upnp.get_gateway()
+	if gateway == null or not gateway.is_valid_gateway():
+		return {"mapped": false, "error": "no_gateway", "upnp": upnp}
+	var external_address: String = gateway.query_external_address()
+	var mapping_result: int = upnp.add_port_mapping(port, port, ONLINE_UPNP_DESCRIPTION, "UDP", 0)
+	return {
+		"mapped": mapping_result == UPNP.UPNP_RESULT_SUCCESS,
+		"error": "" if mapping_result == UPNP.UPNP_RESULT_SUCCESS else "mapping_%d" % mapping_result,
+		"external_address": external_address,
+		"upnp": upnp,
+	}
+
+
+func _upnp_close_worker(upnp: UPNP, port: int) -> Dictionary:
+	var close_result: int = upnp.delete_port_mapping(port, "UDP")
+	return {"closed": close_result == UPNP.UPNP_RESULT_SUCCESS, "error": close_result}
 
 
 func _error_message_for_code(code: String) -> String:
 	match code:
 		"protocol_mismatch":
-			return "LAN protocol versions do not match."
+			return "Network protocol versions do not match."
 		"content_mismatch":
 			return "Card or relic data differs from the host. Update both PCs to the same build."
 		"invalid_starter", "invalid_card", "invalid_deck_size", "loadout_over_limit":
-			return "The selected LAN loadout is invalid."
+			return "The selected network loadout is invalid."
 		"lobby_full":
-			return "The LAN lobby is full."
+			return "The network lobby is full."
 		"seat_reserved":
 			return "The open seat is reserved for a reconnecting player."
+		"invalid_room_code":
+			return "The online room code is incorrect."
 		_:
-			return "The LAN host rejected the connection (%s)." % code
+			return "The %s host rejected the connection (%s)." % [_session_display_name(), code]

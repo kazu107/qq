@@ -17,6 +17,8 @@ var _match_started_count: int = 0
 var _disconnect_scheduled: bool = false
 var _countdown_seen: bool = false
 var _countdown_started_msec: int = 0
+var _network_scope: String = NetworkManager.SESSION_SCOPE_LAN
+var _online_room_code: String = "TEST42"
 
 
 func _ready() -> void:
@@ -47,15 +49,29 @@ func _parse_arguments() -> void:
 			_role = argument.trim_prefix("--lan-smoke-role=")
 		elif argument.begins_with("--lan-smoke-port="):
 			_port = int(argument.trim_prefix("--lan-smoke-port="))
+		elif argument.begins_with("--network-scope="):
+			_network_scope = argument.trim_prefix("--network-scope=")
+		elif argument.begins_with("--online-room-code="):
+			_online_room_code = argument.trim_prefix("--online-room-code=")
 
 
 func _start_role() -> void:
 	if _role == "host":
-		if not NetworkManager.host_lobby("Peer Host", "balanced", _port):
+		var hosted: bool = NetworkManager.host_online_lobby(
+			"Peer Host", "balanced", _online_room_code, _port, false
+		) if _network_scope == NetworkManager.SESSION_SCOPE_ONLINE else NetworkManager.host_lobby(
+			"Peer Host", "balanced", _port
+		)
+		if not hosted:
 			_fail("host_failed")
 	elif _role == "client":
 		await get_tree().create_timer(0.35).timeout
-		if not NetworkManager.join_lobby("127.0.0.1", "Peer Client", "tempo", _port):
+		var joined: bool = NetworkManager.join_online_lobby(
+			"127.0.0.1", "Peer Client", "tempo", _online_room_code, _port
+		) if _network_scope == NetworkManager.SESSION_SCOPE_ONLINE else NetworkManager.join_lobby(
+			"127.0.0.1", "Peer Client", "tempo", _port
+		)
+		if not joined:
 			_fail("join_failed")
 	else:
 		_fail("missing_role")

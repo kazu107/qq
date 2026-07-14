@@ -346,7 +346,8 @@ func _refresh_ui() -> void:
 		return
 	if _run_info_banner != null:
 		if _lan_mode:
-			_run_info_banner.refresh_run(run_state, -1, -1, "LAN R%d" % run_state.arena_round)
+			var network_label: String = "ONLINE" if NetworkManager.is_online_session() else "LAN"
+			_run_info_banner.refresh_run(run_state, -1, -1, "%s R%d" % [network_label, run_state.arena_round])
 		else:
 			_run_info_banner.refresh()
 	var status: Dictionary = _get_arena_status()
@@ -958,12 +959,19 @@ func _on_lan_match_started(_payload: Dictionary) -> void:
 
 func _on_lan_arena_finished(_result: Dictionary) -> void:
 	if _lan_mode:
-		SceneRouter.go_to_lan_lobby()
+		_go_to_network_lobby()
 
 
 func _on_lan_session_ended(_reason: String) -> void:
 	if _lan_mode:
 		SceneRouter.go_to_hub()
+
+
+func _go_to_network_lobby() -> void:
+	if NetworkManager.is_online_session():
+		SceneRouter.go_to_online_lobby()
+	else:
+		SceneRouter.go_to_lan_lobby()
 
 
 func _build_developer_panel() -> void:

@@ -5,6 +5,7 @@ const HUB_SCENE := "res://scenes/hub/Hub.tscn"
 const RUN_SETUP_SCENE := "res://scenes/run_setup/RunSetup.tscn"
 const ARENA_SCENE := "res://scenes/arena/Arena.tscn"
 const LAN_LOBBY_SCENE := "res://scenes/lan/LanLobby.tscn"
+const ONLINE_LOBBY_SCENE := "res://scenes/online/OnlineLobby.tscn"
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const REWARD_SCENE := "res://scenes/reward/Reward.tscn"
 const RESULT_SCENE := "res://scenes/result/RunResult.tscn"
@@ -31,6 +32,7 @@ func warm_scene_cache() -> void:
 		RUN_SETUP_SCENE,
 		ARENA_SCENE,
 		LAN_LOBBY_SCENE,
+		ONLINE_LOBBY_SCENE,
 		BATTLE_SCENE,
 		REWARD_SCENE,
 		RESULT_SCENE,
@@ -72,6 +74,10 @@ func go_to_arena() -> void:
 
 func go_to_lan_lobby() -> void:
 	_change_scene(LAN_LOBBY_SCENE)
+
+
+func go_to_online_lobby() -> void:
+	_change_scene(ONLINE_LOBBY_SCENE)
 
 
 func go_to_battle() -> void:
@@ -120,6 +126,8 @@ func go_to_continue_target() -> void:
 			go_to_arena()
 		"lan":
 			go_to_lan_lobby()
+		"online":
+			go_to_online_lobby()
 		"battle":
 			go_to_battle()
 		"reward":

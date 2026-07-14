@@ -49,7 +49,7 @@ func _ready() -> void:
 	if _lan_mode:
 		_connect_lan_signals()
 		if not _setup_lan_battle():
-			SceneRouter.go_to_lan_lobby()
+			_go_to_network_lobby()
 			return
 		set_process(true)
 		_refresh_ui(1.0)
@@ -130,7 +130,10 @@ func _setup_lan_battle() -> bool:
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
 	_player_panel.configure_visual("player", _local_run.starter_id)
 	_enemy_panel.configure_visual("enemy", _opponent_run.starter_id)
-	_slow_mode_label.text = Localization.get_text("lan.battle.host", "LAN HOST") if NetworkManager.is_host() else Localization.get_text("lan.battle.client", "LAN CLIENT")
+	if NetworkManager.is_online_session():
+		_slow_mode_label.text = Localization.get_text("online.battle.host", "ONLINE HOST") if NetworkManager.is_host() else Localization.get_text("online.battle.client", "ONLINE CLIENT")
+	else:
+		_slow_mode_label.text = Localization.get_text("lan.battle.host", "LAN HOST") if NetworkManager.is_host() else Localization.get_text("lan.battle.client", "LAN CLIENT")
 	return true
 
 
@@ -492,7 +495,9 @@ func _refresh_ui(time_scale: float) -> void:
 		if NetworkManager.is_waiting_for_reconnect():
 			_slow_mode_label.text = Localization.get_text("lan.battle.reconnecting", "Connection interrupted - battle paused")
 		else:
-			_slow_mode_label.text = Localization.get_textf("lan.battle.ping", "LAN | Ping {ping} ms", {
+			var ping_key: String = "online.battle.ping" if NetworkManager.is_online_session() else "lan.battle.ping"
+			var ping_fallback: String = "ONLINE | Ping {ping} ms" if NetworkManager.is_online_session() else "LAN | Ping {ping} ms"
+			_slow_mode_label.text = Localization.get_textf(ping_key, ping_fallback, {
 				"ping": NetworkManager.get_connection_ping_ms(),
 			})
 	elif time_scale < 1.0:
@@ -544,7 +549,7 @@ func _refresh_ui(time_scale: float) -> void:
 		_opponent_run.temporary_card_modifiers = opponent_unit.temporary_card_modifiers.duplicate(true)
 	if _run_info_banner != null:
 		if _lan_mode:
-			_run_info_banner.refresh_run(_local_run, local_unit.hp, local_unit.max_hp, "LAN")
+			_run_info_banner.refresh_run(_local_run, local_unit.hp, local_unit.max_hp, "ONLINE" if NetworkManager.is_online_session() else "LAN")
 		else:
 			_run_info_banner.refresh(local_unit.hp, local_unit.max_hp)
 	_enemy_panel.refresh_unit(opponent_unit, 0, int(suppressed_shield_losses.get(opponent_unit.unit_id, 0)))
@@ -564,8 +569,9 @@ func _refresh_ui(time_scale: float) -> void:
 	_log_panel.refresh_logs(battle_state.logs)
 	var battle_info_text: String = ""
 	if _lan_mode:
+		var network_title: String = Localization.get_text("online.battle.title", "ONLINE BATTLE") if NetworkManager.is_online_session() else Localization.get_text("lan.battle.title", "LAN BATTLE")
 		battle_info_text = "\n".join([
-			Localization.get_text("lan.battle.title", "LAN BATTLE"),
+			network_title,
 			Localization.get_textf("battle.info.time", "Battle Time {value}s", {"value": "%.1f" % battle_state.battle_time}),
 			Localization.get_textf("lan.battle.opponent", "Opponent: {value}", {"value": opponent_unit.display_name}),
 		])
@@ -796,7 +802,7 @@ func _advance_after_battle() -> void:
 		if NetworkManager.is_lan_arena_session_active() and NetworkManager.get_lan_arena_phase() == "preparation":
 			SceneRouter.go_to_arena()
 		else:
-			SceneRouter.go_to_lan_lobby()
+			_go_to_network_lobby()
 		return
 	if Game.current_run == null:
 		SceneRouter.go_to_title()
@@ -817,6 +823,13 @@ func _advance_after_battle() -> void:
 				SceneRouter.go_to_result()
 			else:
 				SceneRouter.go_to_reward()
+
+
+func _go_to_network_lobby() -> void:
+	if NetworkManager.is_online_session():
+		SceneRouter.go_to_online_lobby()
+	else:
+		SceneRouter.go_to_lan_lobby()
 
 
 func _build_developer_panel() -> void:

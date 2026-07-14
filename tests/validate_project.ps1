@@ -38,9 +38,21 @@ function Resolve-GodotExecutable([string]$PathValue) {
 
 function Invoke-GodotCheck([string]$Label, [string]$ExePath, [string[]]$Arguments) {
     Write-Host $Label
-    $output = & $ExePath @Arguments 2>&1 | Out-String
-    if ($LASTEXITCODE -ne 0) {
-        Add-Error "Godot command failed ($Label) with exit code $LASTEXITCODE.`n$output"
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $outputLines = & $ExePath @Arguments 2>&1
+    $exitCode = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
+    $output = ($outputLines | ForEach-Object {
+        if ($_ -is [System.Management.Automation.ErrorRecord]) {
+            $_.Exception.Message
+        }
+        else {
+            $_.ToString()
+        }
+    }) -join [Environment]::NewLine
+    if ($exitCode -ne 0) {
+        Add-Error "Godot command failed ($Label) with exit code $exitCode.`n$output"
         return
     }
 
@@ -253,6 +265,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/LanMultiplayerSmoke.tscn"
     )
+    Invoke-GodotCheck "[28/30] Running online multiplayer protocol smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/OnlineMultiplayerSmoke.tscn"
+    )
     Write-Host "[29/30] Running LAN two-peer ENet smoke"
     $lanValidationOutput = & (Join-Path $PSScriptRoot "validate_lan_network.ps1") -GodotPath $godotExe -Root $root 2>&1 | Out-String
     if ($LASTEXITCODE -ne 0) {
@@ -260,6 +278,14 @@ if ($godotExe) {
     }
     elseif (-not [string]::IsNullOrWhiteSpace($lanValidationOutput)) {
         Write-Host $lanValidationOutput.TrimEnd()
+    }
+    Write-Host "[29/30] Running online two-peer ENet smoke"
+    $onlineValidationOutput = & (Join-Path $PSScriptRoot "validate_lan_network.ps1") -GodotPath $godotExe -Root $root -Scope online 2>&1 | Out-String
+    if ($LASTEXITCODE -ne 0) {
+        Add-Error "Online two-peer validation failed.`n$onlineValidationOutput"
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($onlineValidationOutput)) {
+        Write-Host $onlineValidationOutput.TrimEnd()
     }
     Write-Host "[30/30] Running LAN sustained network soak"
     $lanSoakOutput = & (Join-Path $PSScriptRoot "validate_lan_network_soak.ps1") -GodotPath $godotExe -Root $root -DurationSeconds 8 2>&1 | Out-String

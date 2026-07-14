@@ -2,7 +2,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$GodotPath,
     [Parameter(Mandatory = $true)]
-    [string]$Root
+    [string]$Root,
+    [ValidateSet("lan", "online")]
+    [string]$Scope = "lan"
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,10 +26,10 @@ $baseArguments = @(
 $hostProcess = $null
 $clientProcess = $null
 try {
-    $hostArguments = $baseArguments + @("--lan-smoke-role=host", "--lan-smoke-port=$port")
+    $hostArguments = $baseArguments + @("--lan-smoke-role=host", "--lan-smoke-port=$port", "--network-scope=$Scope", "--online-room-code=TEST42")
     $hostProcess = Start-Process -FilePath $GodotPath -ArgumentList $hostArguments -RedirectStandardOutput $hostOut -RedirectStandardError $hostErr -WindowStyle Hidden -PassThru
     Start-Sleep -Milliseconds 450
-    $clientArguments = $baseArguments + @("--lan-smoke-role=client", "--lan-smoke-port=$port")
+    $clientArguments = $baseArguments + @("--lan-smoke-role=client", "--lan-smoke-port=$port", "--network-scope=$Scope", "--online-room-code=TEST42")
     $clientProcess = Start-Process -FilePath $GodotPath -ArgumentList $clientArguments -RedirectStandardOutput $clientOut -RedirectStandardError $clientErr -WindowStyle Hidden -PassThru
 
     $hostLog = ""
@@ -41,18 +43,18 @@ try {
         $failed = $hostLog -match "LAN_NETWORK_SMOKE_FAIL|SCRIPT ERROR:" -or $clientLog -match "LAN_NETWORK_SMOKE_FAIL|SCRIPT ERROR:"
     } while (-not $completed -and -not $failed -and [DateTime]::UtcNow -lt $deadline)
     if (-not $completed) {
-        throw "LAN peer smoke did not complete (hostExited=$($hostProcess.HasExited) clientExited=$($clientProcess.HasExited)).`nHOST:`n$hostLog`nCLIENT:`n$clientLog"
+        throw "$Scope peer smoke did not complete (hostExited=$($hostProcess.HasExited) clientExited=$($clientProcess.HasExited)).`nHOST:`n$hostLog`nCLIENT:`n$clientLog"
     }
     if ($hostLog -notmatch "LAN_NETWORK_SMOKE_OK host" -or $hostLog -match "LAN_NETWORK_SMOKE_FAIL") {
-        throw "LAN host peer failed.`n$hostLog"
+        throw "$Scope host peer failed.`n$hostLog"
     }
     if ($clientLog -notmatch "LAN_NETWORK_SMOKE_OK client" -or $clientLog -match "LAN_NETWORK_SMOKE_FAIL") {
-        throw "LAN client peer failed.`n$clientLog"
+        throw "$Scope client peer failed.`n$clientLog"
     }
     if ($hostLog -match "SCRIPT ERROR:" -or $clientLog -match "SCRIPT ERROR:") {
-        throw "LAN peer smoke reported a script error.`nHOST:`n$hostLog`nCLIENT:`n$clientLog"
+        throw "$Scope peer smoke reported a script error.`nHOST:`n$hostLog`nCLIENT:`n$clientLog"
     }
-    Write-Host "LAN two-peer smoke passed on UDP port $port."
+    Write-Host "$Scope two-peer smoke passed on UDP port $port."
 }
 finally {
     if ($hostProcess -and -not $hostProcess.HasExited) {

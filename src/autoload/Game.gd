@@ -28,6 +28,11 @@ var settings: Dictionary = {
 	"lan_player_name": "Player",
 	"lan_last_address": "127.0.0.1",
 	"lan_port": 32475,
+	"online_player_name": "Player",
+	"online_last_address": "",
+	"online_room_code": "",
+	"online_port": 32475,
+	"online_automatic_upnp": true,
 }
 var pending_enemy_id: String = ""
 var reward_options: Array[String] = []
@@ -82,6 +87,11 @@ func ensure_meta_initialized() -> void:
 			"lan_player_name": "Player",
 			"lan_last_address": "127.0.0.1",
 			"lan_port": 32475,
+			"online_player_name": "Player",
+			"online_last_address": "",
+			"online_room_code": "",
+			"online_port": 32475,
+			"online_automatic_upnp": true,
 		}
 	if not settings.has("master_volume"):
 		settings["master_volume"] = 1.0
@@ -116,6 +126,16 @@ func ensure_meta_initialized() -> void:
 		settings["lan_last_address"] = "127.0.0.1"
 	if not settings.has("lan_port"):
 		settings["lan_port"] = 32475
+	if not settings.has("online_player_name"):
+		settings["online_player_name"] = String(settings.get("lan_player_name", "Player"))
+	if not settings.has("online_last_address"):
+		settings["online_last_address"] = ""
+	if not settings.has("online_room_code"):
+		settings["online_room_code"] = ""
+	if not settings.has("online_port"):
+		settings["online_port"] = 32475
+	if not settings.has("online_automatic_upnp"):
+		settings["online_automatic_upnp"] = true
 	last_replay_export_path = String(settings.get("last_replay_export_path", last_replay_export_path))
 	_meta_progress_service.ensure_defaults(meta_progress)
 	AudioManager.apply_settings(settings)
@@ -677,6 +697,48 @@ func set_lan_preferences(player_name: String, address: String, port: int) -> voi
 	SaveManager.save_game(current_screen_hint)
 
 
+func get_online_player_name() -> String:
+	ensure_meta_initialized()
+	return String(settings.get("online_player_name", "Player"))
+
+
+func get_online_last_address() -> String:
+	ensure_meta_initialized()
+	return String(settings.get("online_last_address", ""))
+
+
+func get_online_room_code() -> String:
+	ensure_meta_initialized()
+	return String(settings.get("online_room_code", ""))
+
+
+func get_online_port() -> int:
+	ensure_meta_initialized()
+	return clampi(int(settings.get("online_port", 32475)), 1024, 65535)
+
+
+func get_online_automatic_upnp() -> bool:
+	ensure_meta_initialized()
+	return bool(settings.get("online_automatic_upnp", true))
+
+
+func set_online_preferences(
+	player_name: String,
+	address: String,
+	room_code: String,
+	port: int,
+	automatic_upnp: bool
+) -> void:
+	ensure_meta_initialized()
+	var sanitized_name: String = player_name.strip_edges().replace("\n", " ").replace("\r", " ").left(20)
+	settings["online_player_name"] = sanitized_name if sanitized_name != "" else "Player"
+	settings["online_last_address"] = address.strip_edges()
+	settings["online_room_code"] = LanProtocol.sanitize_online_room_code(room_code)
+	settings["online_port"] = clampi(port, 1024, 65535)
+	settings["online_automatic_upnp"] = automatic_upnp
+	SaveManager.save_game(current_screen_hint)
+
+
 func set_master_volume(value: float) -> void:
 	ensure_meta_initialized()
 	settings["master_volume"] = clampf(value, 0.0, 1.0)
@@ -936,6 +998,11 @@ func reset_settings_to_defaults() -> void:
 		"lan_player_name": "Player",
 		"lan_last_address": "127.0.0.1",
 		"lan_port": 32475,
+		"online_player_name": "Player",
+		"online_last_address": "",
+		"online_room_code": "",
+		"online_port": 32475,
+		"online_automatic_upnp": true,
 	}
 	AudioManager.apply_settings(settings)
 	_apply_resolution_from_settings(true)
