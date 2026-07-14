@@ -81,7 +81,7 @@ func prepare() -> bool:
 		return false
 
 	_initialized = true
-	_set_state("ready", "EOS Relay is ready. Sign in to continue.")
+	_set_state("ready", "EOS Relay is ready.")
 	return true
 
 
@@ -96,40 +96,44 @@ func ensure_authenticated() -> bool:
 		return false
 
 	_authenticating = true
-	_set_state("authenticating", "Signing in to Epic Online Services...")
-	var auth_credentials: EOSAuth_Credentials = EOSAuth_Credentials.new()
-	auth_credentials.external_type = EOS.ECT_EPIC
+	var connect_credentials: EOSConnect_Credentials = EOSConnect_Credentials.new()
+	var login_info: EOSConnect_UserLoginInfo = EOSConnect_UserLoginInfo.new()
 	var developer_login: Dictionary = _get_developer_login()
 	if not developer_login.is_empty():
+		_set_state("authenticating", "Signing in through EOS DevAuthTool...")
+		var auth_credentials: EOSAuth_Credentials = EOSAuth_Credentials.new()
+		auth_credentials.external_type = EOS.ECT_EPIC
 		auth_credentials.type = EOSAuth.LCT_Developer
 		auth_credentials.id = String(developer_login.get("url", "localhost:8081"))
 		auth_credentials.token = String(developer_login.get("token", ""))
+		var auth_result: EOSAuth_LoginCallbackInfo = await EOSAuth.login(
+			auth_credentials,
+			EOSAuth.AS_BasicProfile,
+			0
+		)
+		if auth_result.result_code != EOS.Success:
+			_authenticating = false
+			_set_failure("EOS developer sign-in failed: %s" % EOS.result_to_string(auth_result.result_code))
+			return false
+		_epic_account_id = auth_result.local_user_id
+
+		var id_token: EOSAuth_IdToken = EOSAuth.copy_id_token(_epic_account_id)
+		if not is_instance_valid(id_token):
+			_authenticating = false
+			_set_failure("EOS could not create an Epic ID token for DevAuthTool.")
+			return false
+		connect_credentials.type = EOS.ECT_EPIC_ID_TOKEN
+		connect_credentials.token = id_token.json_web_token
 	else:
-		auth_credentials.type = EOSAuth.LCT_AccountPortal
-		auth_credentials.id = ""
-		auth_credentials.token = ""
+		_set_state("authenticating", "Preparing an anonymous EOS device session...")
+		var device_id_result: EOS.Result = await EOSConnect.create_device_id(_build_device_model())
+		if device_id_result != EOS.Success and device_id_result != EOS.DuplicateNotAllowed:
+			_authenticating = false
+			_set_failure("EOS Device ID creation failed: %s" % EOS.result_to_string(device_id_result))
+			return false
+		connect_credentials.type = EOS.ECT_DEVICEID_ACCESS_TOKEN
+		login_info.display_name = _build_device_display_name()
 
-	var auth_result: EOSAuth_LoginCallbackInfo = await EOSAuth.login(
-		auth_credentials,
-		EOSAuth.AS_BasicProfile,
-		0
-	)
-	if auth_result.result_code != EOS.Success:
-		_authenticating = false
-		_set_failure("Epic account sign-in failed: %s" % EOS.result_to_string(auth_result.result_code))
-		return false
-	_epic_account_id = auth_result.local_user_id
-
-	var id_token: EOSAuth_IdToken = EOSAuth.copy_id_token(_epic_account_id)
-	if not is_instance_valid(id_token):
-		_authenticating = false
-		_set_failure("EOS could not create an Epic ID token.")
-		return false
-
-	var connect_credentials: EOSConnect_Credentials = EOSConnect_Credentials.new()
-	connect_credentials.type = EOS.ECT_EPIC_ID_TOKEN
-	connect_credentials.token = id_token.json_web_token
-	var login_info: EOSConnect_UserLoginInfo = EOSConnect_UserLoginInfo.new()
 	var connect_result: EOSConnect_LoginCallbackInfo = await EOSConnect.login(connect_credentials, login_info)
 	if connect_result.result_code == EOS.InvalidUser:
 		var create_result: EOSConnect_CreateUserCallbackInfo = await EOSConnect.create_user(connect_result.continuance_token)
@@ -146,7 +150,7 @@ func ensure_authenticated() -> bool:
 		return false
 
 	_authenticating = false
-	_set_state("authenticated", "Signed in to EOS. Relay matchmaking is available.")
+	_set_state("authenticated", "EOS connection is ready. Relay matchmaking is available.")
 	return true
 
 
@@ -227,8 +231,8 @@ func join_room(room_proof: String) -> Dictionary:
 		_set_failure("The EOS lobby did not provide valid host connection details.")
 		return _failure_result("invalid_lobby")
 	if owner_id == _product_user_id:
-		_set_failure("Host and client are using the same Epic account. Sign in with a different Epic account on each player.")
-		return _failure_result("same_epic_account")
+		_set_failure("Host and client are using the same EOS identity. Use different PCs or Windows profiles, or separate DevAuthTool credentials for a same-PC test.")
+		return _failure_result("same_eos_identity")
 
 	var join_options: EOSLobby_JoinLobbyOptions = EOSLobby_JoinLobbyOptions.new()
 	join_options.lobby_details = selected_details
@@ -280,7 +284,7 @@ func leave_room() -> void:
 	else:
 		await EOSLobby.leave_lobby(departing_lobby_id)
 	_clear_room_state()
-	_set_state("authenticated", "Signed in to EOS. Relay matchmaking is available.")
+	_set_state("authenticated", "EOS connection is ready. Relay matchmaking is available.")
 
 
 func leave_room_deferred() -> void:
@@ -394,7 +398,7 @@ func _find_compatible_lobby(room_proof: String) -> Dictionary:
 	elif compatible_candidate_seen:
 		message = "A lobby was found, but its game version or data does not match this client."
 	else:
-		message = "No active EOS lobby was found. Keep the host lobby open, wait a few seconds, and confirm both players use different Epic accounts."
+		message = "No active EOS lobby was found. Keep the host lobby open, wait a few seconds, and confirm both players use different EOS device identities."
 	return {
 		"ok": false,
 		"error": "room_not_found",
@@ -444,6 +448,17 @@ func _get_developer_login() -> Dictionary:
 	if url == "":
 		url = "localhost:8081"
 	return {"url": url, "token": token}
+
+
+func _build_device_model() -> String:
+	return ("%s:%s" % [OS.get_name(), OS.get_model_name()]).left(64)
+
+
+func _build_device_display_name() -> String:
+	var device_seed: String = OS.get_unique_id()
+	if device_seed.is_empty():
+		device_seed = "%s:%s" % [OS.get_name(), OS.get_model_name()]
+	return ("qq-" + device_seed.sha256_text()).left(EOSConnect.CONNECT_USERLOGININFO_DISPLAYNAME_MAX_LENGTH)
 
 
 func _build_socket_id(lobby_id: String) -> String:

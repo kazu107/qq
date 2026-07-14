@@ -1250,7 +1250,7 @@
   "online.host": "オンラインロビーを作成",
   "online.host_address": "EOS Relay",
   "online.join": "オンラインロビーに参加",
-  "online.status.offline": "EOSにサインインし、ロビーを作成するかルームコードで参加してください。",
+  "online.status.offline": "ロビーを作成するか、ルームコードで参加してください。EOS接続は端末IDで自動的に準備されます。",
   "online.status.hosting": "EOS Relayロビーを作成しています...",
   "online.status.connecting": "EOS Relayロビーへ接続しています...",
   "online.status.relay": "EOS Relayロビーの準備ができました。ルームコードを相手に共有してください。",

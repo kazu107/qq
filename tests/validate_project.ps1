@@ -293,6 +293,19 @@ if ($godotExe) {
     elseif (-not [string]::IsNullOrWhiteSpace($onlineValidationOutput)) {
         Write-Host $onlineValidationOutput.TrimEnd()
     }
+    if ($env:QQ_EOS_RUN_DEVICE_TESTS -eq "1") {
+        Write-Host "[LIVE] Running anonymous EOS Device ID smoke"
+        $eosDeviceOutput = & powershell.exe -NoProfile -ExecutionPolicy Bypass `
+            -File (Join-Path $PSScriptRoot "validate_eos_device.ps1") `
+            -GodotPath $godotExe `
+            -Root $root 2>&1 | Out-String
+        if ($LASTEXITCODE -ne 0) {
+            Add-Error "EOS anonymous Device ID validation failed.`n$eosDeviceOutput"
+        }
+        elseif (-not [string]::IsNullOrWhiteSpace($eosDeviceOutput)) {
+            Write-Host $eosDeviceOutput.TrimEnd()
+        }
+    }
     Write-Host "[33/33] Running LAN sustained network soak"
     $lanSoakOutput = & (Join-Path $PSScriptRoot "validate_lan_network_soak.ps1") -GodotPath $godotExe -Root $root -DurationSeconds 8 2>&1 | Out-String
     if ($LASTEXITCODE -ne 0) {

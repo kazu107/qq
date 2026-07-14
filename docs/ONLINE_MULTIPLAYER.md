@@ -34,14 +34,24 @@ GD-EOSのWindows用GDExtensionとMITライセンスはリポジトリに含め�
 ## プレイ手順
 
 1. ハブから「オンラインマルチプレイ」を開く。
-2. 初回はEpic Account Portalでサインインする。ホストと参加者は必ず異なるEpicアカウントを使用する。
+2. EOS Connectが端末固有の匿名Device IDを自動作成する。Epicアカウントへのサインイン操作は不要。
 3. ホストはルームコードを指定するか、空欄のままLobbyを作成する。
 4. 参加者は同じルームコードを入力して参加する。
 5. 両者が準備を完了すると戦闘へ進み、両者が戦闘開始を押した後にカウントダウンする。
 
+Device IDはWindowsユーザープロファイル単位でEOS SDKが保持する。別PC同士では自動的に別ユーザーになる。同じWindowsユーザープロファイルで2プロセスを起動するとDevice IDが共有されるため、同一PCテストでは後述のDevAuthToolで`Player1`と`Player2`を使用する。
+
 ルームコードそのものはLobby属性へ保存せず、SHA-256の照合値だけを公開属性に保存する。Lobbyは最大2人、ホスト移譲なし、RTCなしで作成する。
 
 ## 実EOS検証
+
+通常の匿名Device ID接続、ロビー作成、Relayソケット起動、ロビー終了を1プロセスで確認する。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\validate_eos_device.ps1 `
+  -GodotPath 'C:\Users\kazuu\Downloads\Godot_v4.6.2-stable_win64.exe\Godot_v4.6.2-stable_win64_console.exe' `
+  -Root (Get-Location).Path
+```
 
 同一PCで実Relayを検証するには、DevAuthToolを起動する。
 
@@ -60,7 +70,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests\validate_eos_network.p
 
 このテストは実EOS Lobby、Relay接続、準備、戦闘開始、カードRPC、切断後の再接続、ラウンド報酬までを2プロセスで確認する。
 
-通常の`tests/validate_project.ps1`は外部ログインに依存しない回帰テストを行う。DevAuthTool起動中に実EOS検証も続けて行う場合は、`QQ_EOS_RUN_LIVE_TESTS=1`を設定する。
+通常の`tests/validate_project.ps1`は外部接続に依存しない回帰テストを行う。匿名Device IDの実EOS検証は`QQ_EOS_RUN_DEVICE_TESTS=1`、DevAuthToolを使う2プロセス検証は`QQ_EOS_RUN_LIVE_TESTS=1`を設定する。
 
 ## セキュリティ
 
@@ -76,4 +86,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests\validate_eos_network.p
 - `addons/gd-eos/`: GodotとEOS SDKを接続するGDExtension。
 - `tools/setup_eos.ps1`: 公式EOSランタイムのローカル配置。
 - `tests/eos_api_contract_smoke.gd`: GD-EOS API互換性検証。
+- `tests/validate_eos_device.ps1`: 匿名Device IDと実EOS Lobbyの1プロセス検証。
 - `tests/validate_eos_network.ps1`: 実Relayの2アカウント検証。

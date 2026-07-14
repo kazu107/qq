@@ -330,7 +330,7 @@ func _refresh_all() -> void:
 	if not connected:
 		if _status_label.text == "":
 			_status_label.text = (
-				Localization.get_text("online.status.offline", "Sign in to EOS, then host or join with a private room code.")
+				Localization.get_text("online.status.offline", "Host or join with a private room code. EOS uses an anonymous device identity automatically.")
 				if online_mode
 				else Localization.get_text("lan.status.offline", "Host a lobby or join a PC on the same local network.")
 			)

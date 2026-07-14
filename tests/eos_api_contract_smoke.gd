@@ -17,7 +17,7 @@ const REQUIRED_CLASSES: Array[String] = [
 const REQUIRED_METHODS: Dictionary = {
 	"EOSPlatform": ["platform_create", "tick"],
 	"EOSAuth": ["login", "copy_id_token"],
-	"EOSConnect": ["login", "create_user"],
+	"EOSConnect": ["login", "create_user", "create_device_id"],
 	"EOSLobby": ["create_lobby", "create_lobby_search", "join_lobby", "update_lobby_modification"],
 	"EOSLobbySearch": ["set_parameter", "find", "copy_search_result_by_index"],
 	"EOSLobbyDetails": ["copy_attribute_by_key", "get_lobby_owner"],
@@ -44,8 +44,23 @@ func _initialize() -> void:
 	if EOSLobby.LPL_PUBLICADVERTISED == EOSLobby.LPL_INVITEONLY:
 		_fail("GD-EOS lobby permission enum is invalid")
 		return
+	if EOS.ECT_DEVICEID_ACCESS_TOKEN == EOS.ECT_EPIC_ID_TOKEN:
+		_fail("EOS Device ID credential enum is invalid")
+		return
+	var eos_service_source: String = FileAccess.get_file_as_string("res://src/autoload/EosService.gd")
+	if eos_service_source.contains("LCT_AccountPortal"):
+		_fail("EOS Account Portal login must not be used by the normal online flow")
+		return
 	var eos_service_script: Script = load("res://src/autoload/EosService.gd") as Script
 	var eos_service: Node = eos_service_script.new() as Node
+	var device_model: String = String(eos_service.call("_build_device_model"))
+	var device_display_name: String = String(eos_service.call("_build_device_display_name"))
+	if device_model.is_empty() or device_model.length() > 64:
+		_fail("EOS Device ID model is invalid")
+		return
+	if device_display_name.is_empty() or device_display_name.length() > EOSConnect.CONNECT_USERLOGININFO_DISPLAYNAME_MAX_LENGTH:
+		_fail("EOS Device ID display name is invalid")
+		return
 	var socket_id: String = String(eos_service.call("_build_socket_id", "lobby-id:with_symbols"))
 	var socket_id_is_valid: bool = bool(eos_service.call("_is_valid_socket_id", socket_id))
 	var underscore_is_rejected: bool = not bool(eos_service.call("_is_valid_socket_id", "qq_invalid"))
