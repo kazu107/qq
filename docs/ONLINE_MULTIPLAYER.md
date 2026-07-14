@@ -1,5 +1,7 @@
 # オンラインマルチプレイ仕様
 
+> 現在は一時停止中。ハブのオンライン対戦入口、EOS自動起動、GD-EOS GDExtensionを無効化している。clone後の通常プレイとLAN対戦にEOS SDK、Client Secret、トークンは不要。以下は再実装時の資料として保存する。
+
 ## 構成
 
 - 2人用のアリーナ対戦をEpic Online Services (EOS) P2P Relayで接続する。
@@ -8,7 +10,12 @@
 - ホストがEOS Lobbyを作成し、参加者はルームコードからLobbyを検索する。
 - 準備、カウントダウン、カード操作、再接続、報酬処理はLAN版と共通の`NetworkManager`で処理する。
 
-## 初回セットアップ
+## 再有効化時のセットアップ
+
+1. `addons/gd-eos/gd-eos.gdextension.disabled`を`gd-eos.gdextension`へ戻す。
+2. `project.godot`の`EosService`を`src/autoload/EosService.gd`へ戻す。
+3. `Game.ONLINE_MULTIPLAYER_ENABLED`を`true`にする。
+4. 以下のEOS SDKとClient Secretを設定し、EOS専用テストを実行する。
 
 EOS SDKを配置する。`-SdkPath`には展開したSDKのルートまたはその中の`SDK`フォルダを指定できる。
 
@@ -31,7 +38,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\configure_eos_credenti
 
 GD-EOSのWindows用GDExtensionとMITライセンスはリポジトリに含める。別PCではclone後に上記2コマンドだけを実行する。
 
-## プレイ手順
+## 再有効化後のプレイ手順
 
 1. ハブから「オンラインマルチプレイ」を開く。
 2. EOS Connectが端末固有の匿名Device IDを自動作成する。Epicアカウントへのサインイン操作は不要。
@@ -70,7 +77,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests\validate_eos_network.p
 
 このテストは実EOS Lobby、Relay接続、準備、戦闘開始、カードRPC、切断後の再接続、ラウンド報酬までを2プロセスで確認する。
 
-通常の`tests/validate_project.ps1`は外部接続に依存しない回帰テストを行う。匿名Device IDの実EOS検証は`QQ_EOS_RUN_DEVICE_TESTS=1`、DevAuthToolを使う2プロセス検証は`QQ_EOS_RUN_LIVE_TESTS=1`を設定する。
+通常の`tests/validate_project.ps1`はEOS専用テストを実行せず、オンライン機能が無効でLAN入口が利用できることを検査する。EOS専用テストは上記の再有効化を完了した後に個別実行する。
 
 ## セキュリティ
 
@@ -82,8 +89,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests\validate_eos_network.p
 ## 実装ファイル
 
 - `src/autoload/EosService.gd`: EOS初期化、認証、Lobby検索、Relay Peer生成。
+- `src/autoload/EosServiceDisabled.gd`: 現在の既定autoload。EOS依存なしでオンライン操作を拒否する。
 - `src/autoload/NetworkManager.gd`: LAN/EOSの共通セッション管理とホスト権威同期。
-- `addons/gd-eos/`: GodotとEOS SDKを接続するGDExtension。
+- `addons/gd-eos/gd-eos.gdextension.disabled`: 現在停止中のGD-EOS GDExtension設定。
 - `tools/setup_eos.ps1`: 公式EOSランタイムのローカル配置。
 - `tests/eos_api_contract_smoke.gd`: GD-EOS API互換性検証。
 - `tests/validate_eos_device.ps1`: 匿名Device IDと実EOS Lobbyの1プロセス検証。

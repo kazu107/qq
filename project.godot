@@ -24,7 +24,7 @@ SaveManager="*res://src/autoload/SaveManager.gd"
 SceneRouter="*res://src/autoload/SceneRouter.gd"
 AudioManager="*res://src/autoload/AudioManager.gd"
 UiTheme="*res://src/autoload/UiTheme.gd"
-EosService="*res://src/autoload/EosService.gd"
+EosService="*res://src/autoload/EosServiceDisabled.gd"
 NetworkManager="*res://src/autoload/NetworkManager.gd"
 
 [display]

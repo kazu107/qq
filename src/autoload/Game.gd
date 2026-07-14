@@ -1,5 +1,7 @@
 extends Node
 
+const ONLINE_MULTIPLAYER_ENABLED: bool = false
+
 const ARENA_SERVICE_SCRIPT: GDScript = preload("res://src/core/arena/ArenaService.gd")
 const NON_BATTLE_NODE_TYPES := ["shop", "forge", "heal", "event", "hazard"]
 const DEVELOPER_META_RESET_POINTS := 10

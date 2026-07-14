@@ -32,7 +32,6 @@ func warm_scene_cache() -> void:
 		RUN_SETUP_SCENE,
 		ARENA_SCENE,
 		LAN_LOBBY_SCENE,
-		ONLINE_LOBBY_SCENE,
 		BATTLE_SCENE,
 		REWARD_SCENE,
 		RESULT_SCENE,
@@ -43,6 +42,8 @@ func warm_scene_cache() -> void:
 		SETTINGS_SCENE,
 		REPLAY_SCENE,
 	]
+	if Game.ONLINE_MULTIPLAYER_ENABLED:
+		scene_paths.append(ONLINE_LOBBY_SCENE)
 	for scene_path in scene_paths:
 		if _scene_cache.has(scene_path):
 			continue
@@ -77,7 +78,8 @@ func go_to_lan_lobby() -> void:
 
 
 func go_to_online_lobby() -> void:
-	_change_scene(ONLINE_LOBBY_SCENE)
+	Game.current_screen_hint = "hub"
+	go_to_hub()
 
 
 func go_to_battle() -> void:
@@ -127,7 +129,7 @@ func go_to_continue_target() -> void:
 		"lan":
 			go_to_lan_lobby()
 		"online":
-			go_to_online_lobby()
+			go_to_hub()
 		"battle":
 			go_to_battle()
 		"reward":

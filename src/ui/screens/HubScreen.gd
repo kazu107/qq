@@ -62,14 +62,15 @@ func _ready() -> void:
 	)
 	root.add_child(lan_button)
 
-	var online_button: Button = Button.new()
-	online_button.name = "OnlineMultiplayerButton"
-	online_button.text = Localization.get_text("hub.online_multiplayer", "Online Multiplayer")
-	online_button.pressed.connect(func() -> void:
-		Game.current_screen_hint = "online"
-		SceneRouter.go_to_online_lobby()
-	)
-	root.add_child(online_button)
+	if Game.ONLINE_MULTIPLAYER_ENABLED:
+		var online_button: Button = Button.new()
+		online_button.name = "OnlineMultiplayerButton"
+		online_button.text = Localization.get_text("hub.online_multiplayer", "Online Multiplayer")
+		online_button.pressed.connect(func() -> void:
+			Game.current_screen_hint = "online"
+			SceneRouter.go_to_online_lobby()
+		)
+		root.add_child(online_button)
 
 	if Game.is_infinite_mode_unlocked():
 		var infinite_button: Button = Button.new()

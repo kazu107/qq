@@ -6,25 +6,17 @@ Godot 4.6 / GDScriptで実装しているリアルタイムカードタクティ
 
 - Godot 4.6系（検証済み: `Godot_v4.6.2-stable_win64`）
 - Windows PowerShell
-- オンライン対戦を使う場合はEpic Online Services SDK 1.19.1.2
+- LAN対戦はGodot標準のENetのみで動作し、EOS設定は不要
 
 ## セットアップ
 
 1. リポジトリをcloneする。
 2. Godotで`project.godot`を開く。
-3. `Boot`メインシーンから起動する。
+3. `Boot`メインシーンから起動する。EOS SDKやClient Secretの追加設定は必要ない。
 
 `.godot/`は生成物のためclone後に再生成される。`.import`と`.uid`はプロジェクト整合性に使用するためGit管理対象とする。
 
-オンライン対戦を使うPCでは、EOS SDKとClient Secretをローカルへ設定する。
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\setup_eos.ps1 `
-  -SdkPath 'C:\path\to\EOS-SDK-CSharp-53289219-Release-v1.19.1.2'
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\configure_eos_credentials.ps1
-```
-
-Client SecretとEOS公式ランタイムDLLはGitへ含めない。詳しい接続・検証手順は`docs/ONLINE_MULTIPLAYER.md`を参照する。
+オンライン対戦は一時停止中で、ハブの入口とEOS GDExtensionは無効化している。将来再開する場合の手順は`docs/ONLINE_MULTIPLAYER.md`に保存している。
 
 ## 構成
 
@@ -42,7 +34,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests\validate_project.ps1 `
   -GodotPath 'C:\Users\kazuu\Downloads\Godot_v4.6.2-stable_win64.exe'
 ```
 
-JSON、scene/resource参照、Variant型推論、headless起動、各機能のsmoke test、LAN/オンライン回帰、ネットワークsoakを検証する。
+JSON、scene/resource参照、Variant型推論、headless起動、各機能のsmoke test、オンライン停止状態、LAN対戦、ネットワークsoakを検証する。
 
 ## セーブ
 

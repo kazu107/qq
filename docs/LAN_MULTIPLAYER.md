@@ -26,7 +26,7 @@
 
 ## オンライン版との共通化
 
-オンライン版は通信Peerだけを`EOSMultiplayerPeer`へ差し替える。Lobby以降のアリーナ準備、戦闘RPC、再接続、報酬はLAN版と同じ`NetworkManager`処理を使用する。詳細は`docs/ONLINE_MULTIPLAYER.md`を参照する。
+オンライン版は現在一時停止中。LAN版はGodot標準の`ENetMultiplayerPeer`だけを使用し、EOS SDK、Client Secret、トークンがないcloneでも動作する。再開用の設計は`docs/ONLINE_MULTIPLAYER.md`を参照する。
 
 ## テスト
 
