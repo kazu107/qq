@@ -12,6 +12,8 @@ const ATTR_CONTENT_HASH: String = "QQ_CONTENT_HASH"
 const ATTR_STATUS: String = "QQ_STATUS"
 const LOBBY_STATUS_OPEN: String = "OPEN"
 const SOCKET_ID_LENGTH: int = 32
+const SOCKET_ID_PREFIX: String = "qq"
+const SOCKET_ID_CHARACTERS: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 var _config: Dictionary = {}
 var _state: String = "offline"
@@ -188,7 +190,7 @@ func create_room(room_proof: String) -> Dictionary:
 	if peer_error != OK:
 		await EOSLobby.destroy_lobby(_lobby_id)
 		_clear_room_state()
-		_set_failure("EOS Relay server creation failed (error %d)." % peer_error)
+		_set_failure("EOS Relay server creation failed: %s (error %d)." % [error_string(peer_error), peer_error])
 		return _failure_result("peer_create_failed")
 
 	_set_state("lobby", "EOS Relay lobby created.")
@@ -279,7 +281,7 @@ func create_reconnect_peer() -> EOSMultiplayerPeer:
 	peer.set_allow_delayed_delivery(true)
 	var peer_error: Error = peer.create_client(_socket_id, _remote_owner_id)
 	if peer_error != OK:
-		_set_failure("EOS Relay client creation failed (error %d)." % peer_error)
+		_set_failure("EOS Relay client creation failed: %s (error %d)." % [error_string(peer_error), peer_error])
 		return null
 	return peer
 
@@ -398,7 +400,18 @@ func _get_developer_login() -> Dictionary:
 
 
 func _build_socket_id(lobby_id: String) -> String:
-	return ("qq_" + lobby_id.sha256_text()).left(SOCKET_ID_LENGTH)
+	var socket_id: String = (SOCKET_ID_PREFIX + lobby_id.sha256_text()).left(SOCKET_ID_LENGTH)
+	assert(_is_valid_socket_id(socket_id), "Generated EOS socket ID is invalid.")
+	return socket_id
+
+
+func _is_valid_socket_id(socket_id: String) -> bool:
+	if socket_id.is_empty() or socket_id.length() > SOCKET_ID_LENGTH:
+		return false
+	for index in range(socket_id.length()):
+		if SOCKET_ID_CHARACTERS.find(socket_id.substr(index, 1)) < 0:
+			return false
+	return true
 
 
 func _lobby_failure(code: String, result_code: EOS.Result) -> Dictionary:

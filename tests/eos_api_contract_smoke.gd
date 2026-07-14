@@ -44,6 +44,16 @@ func _initialize() -> void:
 	if EOSLobby.LPL_PUBLICADVERTISED == EOSLobby.LPL_INVITEONLY:
 		_fail("GD-EOS lobby permission enum is invalid")
 		return
+	var eos_service_script: Script = load("res://src/autoload/EosService.gd") as Script
+	var eos_service: Node = eos_service_script.new() as Node
+	var socket_id: String = String(eos_service.call("_build_socket_id", "lobby-id:with_symbols"))
+	var socket_id_is_valid: bool = bool(eos_service.call("_is_valid_socket_id", socket_id))
+	var underscore_is_rejected: bool = not bool(eos_service.call("_is_valid_socket_id", "qq_invalid"))
+	var overlength_is_rejected: bool = not bool(eos_service.call("_is_valid_socket_id", "q".repeat(33)))
+	eos_service.free()
+	if not socket_id_is_valid or not underscore_is_rejected or not overlength_is_rejected or socket_id.length() != 32:
+		_fail("Generated EOS socket ID is incompatible with GD-EOS")
+		return
 
 	var config: ConfigFile = ConfigFile.new()
 	if config.load("res://config/eos_product.cfg") != OK:
