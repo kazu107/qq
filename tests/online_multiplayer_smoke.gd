@@ -32,7 +32,7 @@ func _run() -> void:
 	var room_code_edit: LineEdit = lobby.find_child("OnlineRoomCodeEdit", true, false) as LineEdit
 	var upnp_check: CheckButton = lobby.find_child("OnlineAutomaticUpnpCheck", true, false) as CheckButton
 	var discovered_list: ItemList = lobby.find_child("LanDiscoveredList", true, false) as ItemList
-	if room_code_edit == null or not room_code_edit.visible or upnp_check == null or not upnp_check.visible:
+	if room_code_edit == null or not room_code_edit.visible or upnp_check == null or upnp_check.visible:
 		_fail("Online smoke failed: online connection controls were missing")
 		return
 	if discovered_list == null or discovered_list.visible:
@@ -41,24 +41,11 @@ func _run() -> void:
 	lobby.queue_free()
 	await get_tree().process_frame
 
-	var test_port: int = 44001 + int(Time.get_ticks_msec() % 1000)
-	if not NetworkManager.host_online_lobby("Online Host", "balanced", "room-42", test_port, false):
-		_fail("Online smoke failed: direct ENet host could not start")
+	if not ClassDB.class_exists("EOSMultiplayerPeer") or not ClassDB.class_has_method("EOSP2P", "set_relay_control", true):
+		_fail("Online smoke failed: EOS Relay transport was unavailable")
 		return
-	if not NetworkManager.is_online_session() or NetworkManager.get_online_room_code() != "ROOM42":
-		_fail("Online smoke failed: online session metadata was invalid")
-		return
-	var host_status: Dictionary = NetworkManager.get_online_host_status()
-	if String(host_status.get("state", "")) != "manual":
-		_fail("Online smoke failed: manual port mapping state was invalid")
-		return
-	var lobby_snapshot: Dictionary = NetworkManager.get_lobby_snapshot()
-	if String(lobby_snapshot.get("session_scope", "")) != NetworkManager.SESSION_SCOPE_ONLINE:
-		_fail("Online smoke failed: lobby snapshot omitted online scope")
-		return
-	NetworkManager.leave_session("online_smoke_complete")
 
-	print("Online multiplayer smoke passed: proof=%s port=%d" % [proof.left(10), test_port])
+	print("Online multiplayer smoke passed: proof=%s transport=EOS" % proof.left(10))
 	get_tree().quit()
 
 

@@ -1,42 +1,79 @@
 # オンラインマルチプレイ仕様
 
-## 対象
+## 構成
 
-- 2台のPCによる1対1オンラインアリーナ
-- 通信方式はLAN版と同じ`ENetMultiplayerPeer`（UDP）
-- ホスト権威、準備フェーズ、戦闘開始同期、スナップショット、再接続はLAN版と共通
-- 公開ロビー検索や自動マッチングは行わず、公開IPまたはホスト名、UDPポート、ルームコードで直接接続する
+- 2人用のアリーナ対戦をEpic Online Services (EOS) P2P Relayで接続する。
+- GodotのRPC層は`EOSMultiplayerPeer`を使用し、既存のLAN対戦と同じホスト権威モデルを維持する。
+- `EOSP2P.RC_ForceRelays`を指定し、公開IP、ポート開放、UPnPを不要にする。
+- ホストがEOS Lobbyを作成し、参加者はルームコードからLobbyを検索する。
+- 準備、カウントダウン、カード操作、再接続、報酬処理はLAN版と共通の`NetworkManager`で処理する。
 
-## 接続手順
+## 初回セットアップ
+
+EOS SDKを配置する。`-SdkPath`には展開したSDKのルートまたはその中の`SDK`フォルダを指定できる。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\setup_eos.ps1 `
+  -SdkPath 'C:\Users\kazuu\Downloads\EOS-SDK-CSharp-53289219-Release-v1.19.1.2'
+```
+
+Client Secretをローカル設定へ入力する。入力値は画面に表示されず、`config/eos_credentials.local.cfg`へ保存される。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\configure_eos_credentials.ps1
+```
+
+次のファイルはライセンスと機密情報保護のためGitへ追加しない。
+
+- `addons/gd-eos/bin/windows/EOSSDK-Win64-Shipping.dll`
+- `addons/gd-eos/bin/windows/x64/xaudio2_9redist.dll`
+- `config/eos_credentials.local.cfg`
+
+GD-EOSのWindows用GDExtensionとMITライセンスはリポジトリに含める。別PCではclone後に上記2コマンドだけを実行する。
+
+## プレイ手順
 
 1. ハブから「オンラインマルチプレイ」を開く。
-2. ホストはプレイヤー名、UDPポート、任意のルームコードを設定してロビーを作成する。ルームコードが空なら6文字で自動生成する。
-3. UPnPが成功した場合は、画面に公開IP、UDPポート、ルームコードが表示される。
-4. UPnPが失敗または無効の場合は、ルーターで同じUDPポートをホストPCへ転送する。
-5. 参加者はホストの公開IPまたはホスト名、UDPポート、ルームコードを入力する。
-6. 接続後のスターター選択、アリーナ準備、戦闘、報酬、次ラウンドはLAN版と同じ。
+2. 初回はEpic Account Portalでサインインする。
+3. ホストはルームコードを指定するか、空欄のままLobbyを作成する。
+4. 参加者は同じルームコードを入力して参加する。
+5. 両者が準備を完了すると戦闘へ進み、両者が戦闘開始を押した後にカウントダウンする。
 
-## NATと接続制限
+ルームコードそのものはLobby属性へ保存せず、SHA-256の照合値だけを公開属性に保存する。Lobbyは最大2人、ホスト移譲なし、RTCなしで作成する。
 
-- Godot高レベルマルチプレイのENet通信はUDPを使うため、TCPではなくUDPポートを開放する。
-- UPnP処理はブロッキング処理のため、ゲームのメインスレッドとは別のスレッドで実行する。
-- ルーターでUPnPが無効、二重NAT、CGNAT、学内・社内ネットワークの場合、直接接続できないことがある。
-- CGNAT同士でも接続可能にするには、将来リレーサーバーまたは専用サーバーを追加する。
+## 実EOS検証
+
+同一PCで実Relayを検証するには、DevAuthToolを起動する。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\start_eos_dev_auth.ps1 `
+  -SdkPath 'C:\Users\kazuu\Downloads\EOS-SDK-CSharp-53289219-Release-v1.19.1.2'
+```
+
+DevAuthToolでポートを`8081`にし、別々のEpicアカウントで`Player1`と`Player2`を作成してサインインする。その後、次を実行する。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\validate_eos_network.ps1 `
+  -GodotPath 'C:\Users\kazuu\Downloads\Godot_v4.6.2-stable_win64.exe\Godot_v4.6.2-stable_win64_console.exe' `
+  -Root (Get-Location).Path
+```
+
+このテストは実EOS Lobby、Relay接続、準備、戦闘開始、カードRPC、切断後の再接続、ラウンド報酬までを2プロセスで確認する。
+
+通常の`tests/validate_project.ps1`は外部ログインに依存しない回帰テストを行う。DevAuthTool起動中に実EOS検証も続けて行う場合は、`QQ_EOS_RUN_LIVE_TESTS=1`を設定する。
 
 ## セキュリティ
 
-- ロビーは最大2人で、ルームコードが一致しない接続をプロフィール検証前に拒否する。
-- カード、ロードアウト、購入、戦闘コマンドはホストが検証し、クライアントの最終状態を信用しない。
-- 直接ENet接続自体はエンドツーエンド暗号化された認証基盤ではない。ルームコードは公開検索対策であり、アカウント認証の代替ではない。
-- 不特定多数へ公開する場合は、認証、暗号化、レート制限監視、通報・BAN、専用サーバーを別途設計する。
+- Client SecretはGit、スクリーンショット、チャット、ログへ掲載しない。
+- Client Secretが外部へ露出した場合はDeveloper Portalで再発行する。
+- ホストがカード操作、所持品、購入、勝敗、報酬の正当性を検証し、クライアントの最終状態を信用しない。
+- ルームコードは認証情報ではない。将来、不特定多数へ公開する場合はレート制限、通報、BAN、マッチメイク用バックエンドを追加する。
 
-## 費用
+## 実装ファイル
 
-- 現在の直接接続方式に必須のサーバー利用料はない。ホストPCと既存のインターネット回線を使う。
-- 固定IP、独自ドメイン、リレー、マッチメイク、専用サーバー、監視を追加する場合は契約先に応じた継続費用が発生する。
-
-## テスト
-
-- `tests/OnlineMultiplayerSmoke.tscn`: ルームコード、オンラインUI、手動ポート設定のホスト生成を検証する。
-- `tests/validate_lan_network.ps1 -Scope online`: localhost上の2プロセスでオンライン接続、準備、戦闘開始、カード入力、再接続、ラウンド報酬を検証する。
-- 実回線では、別ネットワークのPCから公開IPへ接続する手動テストを行う。
+- `src/autoload/EosService.gd`: EOS初期化、認証、Lobby検索、Relay Peer生成。
+- `src/autoload/NetworkManager.gd`: LAN/EOSの共通セッション管理とホスト権威同期。
+- `addons/gd-eos/`: GodotとEOS SDKを接続するGDExtension。
+- `tools/setup_eos.ps1`: 公式EOSランタイムのローカル配置。
+- `tests/eos_api_contract_smoke.gd`: GD-EOS API互換性検証。
+- `tests/validate_eos_network.ps1`: 実Relayの2アカウント検証。

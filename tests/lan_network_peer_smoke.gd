@@ -1,6 +1,6 @@
 extends Node
 
-const TIMEOUT_SECONDS: float = 30.0
+const DEFAULT_TIMEOUT_SECONDS: float = 30.0
 
 var _role: String = ""
 var _port: int = LanProtocol.DEFAULT_PORT + 80
@@ -19,6 +19,7 @@ var _countdown_seen: bool = false
 var _countdown_started_msec: int = 0
 var _network_scope: String = NetworkManager.SESSION_SCOPE_LAN
 var _online_room_code: String = "TEST42"
+var _timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
 
 
 func _ready() -> void:
@@ -39,7 +40,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_elapsed += delta
-	if _elapsed >= TIMEOUT_SECONDS and not _finishing:
+	if _elapsed >= _timeout_seconds and not _finishing:
 		_fail("timeout")
 
 
@@ -53,24 +54,26 @@ func _parse_arguments() -> void:
 			_network_scope = argument.trim_prefix("--network-scope=")
 		elif argument.begins_with("--online-room-code="):
 			_online_room_code = argument.trim_prefix("--online-room-code=")
+		elif argument.begins_with("--network-smoke-timeout="):
+			_timeout_seconds = maxf(float(argument.trim_prefix("--network-smoke-timeout=")), DEFAULT_TIMEOUT_SECONDS)
 
 
 func _start_role() -> void:
 	if _role == "host":
-		var hosted: bool = NetworkManager.host_online_lobby(
-			"Peer Host", "balanced", _online_room_code, _port, false
-		) if _network_scope == NetworkManager.SESSION_SCOPE_ONLINE else NetworkManager.host_lobby(
-			"Peer Host", "balanced", _port
-		)
+		var hosted: bool = false
+		if _network_scope == NetworkManager.SESSION_SCOPE_ONLINE:
+			hosted = await NetworkManager.host_online_lobby("Peer Host", "balanced", _online_room_code, _port, false)
+		else:
+			hosted = NetworkManager.host_lobby("Peer Host", "balanced", _port)
 		if not hosted:
 			_fail("host_failed")
 	elif _role == "client":
 		await get_tree().create_timer(0.35).timeout
-		var joined: bool = NetworkManager.join_online_lobby(
-			"127.0.0.1", "Peer Client", "tempo", _online_room_code, _port
-		) if _network_scope == NetworkManager.SESSION_SCOPE_ONLINE else NetworkManager.join_lobby(
-			"127.0.0.1", "Peer Client", "tempo", _port
-		)
+		var joined: bool = false
+		if _network_scope == NetworkManager.SESSION_SCOPE_ONLINE:
+			joined = await NetworkManager.join_online_lobby("127.0.0.1", "Peer Client", "tempo", _online_room_code, _port)
+		else:
+			joined = NetworkManager.join_lobby("127.0.0.1", "Peer Client", "tempo", _port)
 		if not joined:
 			_fail("join_failed")
 	else:

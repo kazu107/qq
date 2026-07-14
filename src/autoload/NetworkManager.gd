@@ -39,7 +39,7 @@ const SESSION_SCOPE_ONLINE: String = "online"
 const ONLINE_UPNP_DESCRIPTION: String = "qq Online Arena"
 
 var _state: int = ConnectionState.OFFLINE
-var _peer: ENetMultiplayerPeer
+var _peer: MultiplayerPeer
 var _is_host: bool = false
 var _host_port: int = LanProtocol.DEFAULT_PORT
 var _last_address: String = "127.0.0.1"
@@ -178,21 +178,31 @@ func host_online_lobby(
 	if _online_room_code == "":
 		_online_room_code = LanProtocol.generate_online_room_code()
 	_online_room_proof = LanProtocol.build_online_room_proof(_online_room_code)
-	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
-	var error: Error = peer.create_server(_host_port, LanProtocol.MAX_PLAYERS - 1)
-	if error != OK:
-		_emit_error("host_failed", "Unable to host on UDP port %d (error %d)." % [_host_port, error])
-		return false
-	_peer = peer
+	if _use_online_enet_test_transport():
+		var test_peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
+		var test_error: Error = test_peer.create_server(_host_port, LanProtocol.MAX_PLAYERS - 1)
+		if test_error != OK:
+			_emit_error("host_failed", "Unable to create the online test host (error %d)." % test_error)
+			return false
+		_peer = test_peer
+	else:
+		var eos_result: Dictionary = await EosService.create_room(_online_room_proof)
+		if not bool(eos_result.get("ok", false)):
+			_emit_error(
+				String(eos_result.get("error", "eos_host_failed")),
+				String(eos_result.get("message", "Unable to create the EOS Relay lobby."))
+			)
+			return false
+		_peer = eos_result.get("peer") as MultiplayerPeer
+		if _peer == null:
+			_emit_error("eos_peer_missing", "EOS created a lobby without a multiplayer peer.")
+			return false
 	_is_host = true
 	multiplayer.multiplayer_peer = _peer
 	_profiles_by_peer[1] = _local_profile.duplicate(true)
 	_peer_sides[1] = "player"
-	_set_state(ConnectionState.HOSTING, "Opening online lobby")
-	if automatic_port_mapping:
-		_start_upnp_mapping(_host_port)
-	else:
-		_set_online_host_status("manual", "", "", _host_port)
+	_set_state(ConnectionState.HOSTING, "Hosting through EOS Relay")
+	_set_online_host_status("relay", "", "", 0)
 	_broadcast_lobby_state()
 	return true
 
@@ -226,16 +236,32 @@ func join_online_lobby(
 	_last_match_result.clear()
 	configure_local_player(player_name, starter_id)
 	_last_address = address.strip_edges()
-	if _last_address == "":
-		_emit_error("invalid_address", "Enter the host's public IP address or hostname.")
-		return false
+	if _last_address == "" and _use_online_enet_test_transport():
+		_last_address = "127.0.0.1"
 	_host_port = LanProtocol.sanitize_port(port)
 	_online_room_code = LanProtocol.sanitize_online_room_code(room_code)
 	_online_room_proof = LanProtocol.build_online_room_proof(_online_room_code)
 	if _online_room_proof == "":
 		_emit_error("invalid_room_code", "Enter the online room code.")
 		return false
-	return _connect_client(false)
+	if _use_online_enet_test_transport():
+		return _connect_client(false)
+	var eos_result: Dictionary = await EosService.join_room(_online_room_proof)
+	if not bool(eos_result.get("ok", false)):
+		_emit_error(
+			String(eos_result.get("error", "eos_join_failed")),
+			String(eos_result.get("message", "Unable to join the EOS Relay lobby."))
+		)
+		return false
+	_peer = eos_result.get("peer") as MultiplayerPeer
+	if _peer == null:
+		_emit_error("eos_peer_missing", "EOS joined the lobby without a multiplayer peer.")
+		return false
+	_is_host = false
+	multiplayer.multiplayer_peer = _peer
+	_reconnecting = false
+	_set_state(ConnectionState.CONNECTING, "Connecting through EOS Relay")
+	return true
 
 
 func leave_session(reason: String = "left") -> void:
@@ -666,17 +692,26 @@ func developer_disconnect_peer() -> bool:
 
 func _connect_client(is_reconnect: bool) -> bool:
 	_close_peer_only()
-	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
-	var error: Error = peer.create_client(_last_address, _host_port)
+	var peer: MultiplayerPeer
+	var error: Error = OK
+	if _session_scope == SESSION_SCOPE_ONLINE and not _use_online_enet_test_transport():
+		peer = EosService.create_reconnect_peer()
+		if peer == null:
+			error = ERR_CANT_CONNECT
+	else:
+		var enet_peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
+		error = enet_peer.create_client(_last_address, _host_port)
+		peer = enet_peer
 	if error != OK:
 		if not is_reconnect:
-			_emit_error("join_failed", "Unable to connect to %s:%d (error %d)." % [_last_address, _host_port, error])
+			_emit_error("join_failed", "Unable to create the network client (error %d)." % error)
 		return false
 	_peer = peer
 	_is_host = false
 	multiplayer.multiplayer_peer = _peer
 	_reconnecting = is_reconnect
-	_set_state(ConnectionState.RECONNECTING if is_reconnect else ConnectionState.CONNECTING, "Connecting to %s:%d" % [_last_address, _host_port])
+	var connection_message: String = "Connecting through EOS Relay" if _session_scope == SESSION_SCOPE_ONLINE else "Connecting to %s:%d" % [_last_address, _host_port]
+	_set_state(ConnectionState.RECONNECTING if is_reconnect else ConnectionState.CONNECTING, connection_message)
 	return true
 
 
@@ -1347,7 +1382,7 @@ func _broadcast_lobby_state() -> void:
 		"content_hash": LanProtocol.build_content_hash(),
 		"session_scope": _session_scope,
 		"host_port": _host_port,
-		"host_addresses": LanProtocol.get_lan_addresses(),
+		"host_addresses": [] if _session_scope == SESSION_SCOPE_ONLINE else LanProtocol.get_lan_addresses(),
 		"players": players,
 		"can_start": can_start_match(),
 		"match_active": _match_active,
@@ -1526,8 +1561,8 @@ func _to_dictionary_array(value: Variant) -> Array[Dictionary]:
 
 
 func _clear_session(clear_profile: bool) -> void:
-	if _is_host and _session_scope == SESSION_SCOPE_ONLINE:
-		_request_upnp_close()
+	if _session_scope == SESSION_SCOPE_ONLINE and not _use_online_enet_test_transport():
+		EosService.leave_room_deferred()
 	_close_peer_only()
 	if _discovery_sender != null:
 		_discovery_sender.close()
@@ -1586,6 +1621,10 @@ func _set_state(next_state: int, message: String) -> void:
 
 func _session_display_name() -> String:
 	return "Online" if _session_scope == SESSION_SCOPE_ONLINE else "LAN"
+
+
+func _use_online_enet_test_transport() -> bool:
+	return OS.get_cmdline_user_args().has("--online-transport-test-enet")
 
 
 func _emit_error(code: String, message: String) -> void:

@@ -7,3 +7,9 @@ Thumbs.db
 *.bak
 __pycache__/
 *.pyc
+
+# EOS local credentials and proprietary redistributables.
+/config/eos_credentials.local.cfg
+/addons/gd-eos/bin/windows/EOSSDK-Win64-Shipping.dll
+/addons/gd-eos/bin/windows/x64/xaudio2_9redist.dll
+/tools/.local/

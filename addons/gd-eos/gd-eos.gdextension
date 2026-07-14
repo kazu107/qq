@@ -1,0 +1,21 @@
+[information]
+name = "GD-EOS"
+version = "v0.5.1"
+description = "Epic Online Services plugin for Godot"
+author = "忘忧の (Daylily Zeleen)"
+email = "daylily-zeleen@foxmail.com"
+support_link = "https://afdian.com/a/Daylily-Zeleen"
+repo = "https://github.com/Daylily-Zeleen/GD-EOS"
+
+[configuration]
+
+entry_symbol = "gdeos_library_init"
+compatibility_minimum = 4.3
+
+[libraries]
+windows.x86_64.debug = "bin/windows/libgdeos.windows.template_debug.x86_64.dll"
+windows.x86_64.release = "bin/windows/libgdeos.windows.template_release.x86_64.dll"
+
+[dependencies]
+windows.debug.x86_64 = {"bin/windows/EOSSDK-Win64-Shipping.dll": "", "bin/windows/x64/xaudio2_9redist.dll": ""}
+windows.release.x86_64 = {"bin/windows/EOSSDK-Win64-Shipping.dll": "", "bin/windows/x64/xaudio2_9redist.dll": ""}

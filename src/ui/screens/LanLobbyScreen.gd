@@ -29,17 +29,20 @@ var _result_label: Label
 var _discovered_entries: Array[Dictionary] = []
 var _developer_panel: DeveloperPanel
 var _opening_battle: bool = false
+var _connection_busy: bool = false
 
 
 func _ready() -> void:
 	_build_ui()
 	_connect_network_signals()
 	if online_mode:
+		EosService.prepare()
 		_name_edit.text = Game.get_online_player_name()
 		_address_edit.text = Game.get_online_last_address()
 		_port_spin.value = float(Game.get_online_port())
 		_room_code_edit.text = Game.get_online_room_code()
 		_automatic_upnp_check.button_pressed = Game.get_online_automatic_upnp()
+		_status_label.text = EosService.get_status_message()
 	else:
 		_name_edit.text = Game.get_lan_player_name()
 		_address_edit.text = Game.get_lan_last_address()
@@ -150,7 +153,9 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 	_port_spin.step = 1.0
 	_port_spin.allow_greater = false
 	_port_spin.allow_lesser = false
-	box.add_child(_labeled_control(Localization.get_text("lan.port", "UDP port"), _port_spin))
+	var port_row: HBoxContainer = _labeled_control(Localization.get_text("lan.port", "UDP port"), _port_spin)
+	port_row.visible = not online_mode
+	box.add_child(port_row)
 
 	_room_code_edit = LineEdit.new()
 	_room_code_edit.name = "OnlineRoomCodeEdit"
@@ -164,7 +169,7 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 	_automatic_upnp_check = CheckButton.new()
 	_automatic_upnp_check.name = "OnlineAutomaticUpnpCheck"
 	_automatic_upnp_check.text = Localization.get_text("online.automatic_upnp", "Open UDP port automatically (UPnP)")
-	_automatic_upnp_check.visible = online_mode
+	_automatic_upnp_check.visible = false
 	box.add_child(_automatic_upnp_check)
 
 	_host_button = Button.new()
@@ -179,12 +184,14 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 
 	_address_edit = LineEdit.new()
 	_address_edit.name = "LanAddressEdit"
-	_address_edit.placeholder_text = "203.0.113.10" if online_mode else "192.168.1.10"
+	_address_edit.placeholder_text = "192.168.1.10"
 	_address_edit.text_submitted.connect(func(_value: String) -> void: _on_join_pressed())
-	box.add_child(_labeled_control(
+	var address_row: HBoxContainer = _labeled_control(
 		Localization.get_text("online.host_address", "Public IP or hostname") if online_mode else Localization.get_text("lan.host_address", "Host address"),
 		_address_edit
-	))
+	)
+	address_row.visible = not online_mode
+	box.add_child(address_row)
 
 	_join_button = Button.new()
 	_join_button.name = "LanJoinButton"
@@ -312,6 +319,8 @@ func _connect_network_signals() -> void:
 		NetworkManager.session_ended.connect(_on_session_ended)
 	if not NetworkManager.online_host_status_changed.is_connected(_on_online_host_status_changed):
 		NetworkManager.online_host_status_changed.connect(_on_online_host_status_changed)
+	if not EosService.state_changed.is_connected(_on_eos_state_changed):
+		EosService.state_changed.connect(_on_eos_state_changed)
 
 
 func _refresh_all() -> void:
@@ -321,7 +330,7 @@ func _refresh_all() -> void:
 	if not connected:
 		if _status_label.text == "":
 			_status_label.text = (
-				Localization.get_text("online.status.offline", "Host a private lobby or join with a public IP address and room code.")
+				Localization.get_text("online.status.offline", "Sign in to EOS, then host or join with a private room code.")
 				if online_mode
 				else Localization.get_text("lan.status.offline", "Host a lobby or join a PC on the same local network.")
 			)
@@ -463,11 +472,14 @@ func _refresh_discovered_hosts(hosts: Array[Dictionary]) -> void:
 
 
 func _on_host_pressed() -> void:
+	if _connection_busy:
+		return
+	_set_connection_busy(true)
 	_save_preferences()
 	_status_label.text = Localization.get_text("online.status.hosting", "Opening online lobby...") if online_mode else Localization.get_text("lan.status.hosting", "Opening LAN lobby...")
 	var hosted: bool = false
 	if online_mode:
-		hosted = NetworkManager.host_online_lobby(
+		hosted = await NetworkManager.host_online_lobby(
 			_name_edit.text,
 			_default_starter_id(),
 			_room_code_edit.text,
@@ -480,15 +492,19 @@ func _on_host_pressed() -> void:
 		hosted = NetworkManager.host_lobby(_name_edit.text, _default_starter_id(), int(_port_spin.value))
 	if not hosted:
 		AudioManager.play_sfx("ui_error")
+	_set_connection_busy(false)
 	_refresh_all()
 
 
 func _on_join_pressed() -> void:
+	if _connection_busy:
+		return
+	_set_connection_busy(true)
 	_save_preferences()
 	_status_label.text = Localization.get_text("online.status.connecting", "Connecting to online host...") if online_mode else Localization.get_text("lan.status.connecting", "Connecting to host...")
 	var joined: bool = false
 	if online_mode:
-		joined = NetworkManager.join_online_lobby(
+		joined = await NetworkManager.join_online_lobby(
 			_address_edit.text,
 			_name_edit.text,
 			_default_starter_id(),
@@ -499,6 +515,7 @@ func _on_join_pressed() -> void:
 		joined = NetworkManager.join_lobby(_address_edit.text, _name_edit.text, _default_starter_id(), int(_port_spin.value))
 	if not joined:
 		AudioManager.play_sfx("ui_error")
+	_set_connection_busy(false)
 	_refresh_all()
 
 
@@ -617,6 +634,8 @@ func _on_online_host_status_changed(status: Dictionary) -> void:
 		return
 	var state: String = String(status.get("state", ""))
 	match state:
+		"relay":
+			_status_label.text = Localization.get_text("online.status.relay", "EOS Relay lobby is ready. Share the room code privately.")
 		"opening":
 			_status_label.text = Localization.get_text("online.status.upnp_opening", "Opening the router's UDP port with UPnP...")
 		"open":
@@ -631,14 +650,21 @@ func _on_online_host_status_changed(status: Dictionary) -> void:
 func _refresh_online_invite() -> void:
 	if _invite_label == null:
 		return
-	var status: Dictionary = NetworkManager.get_online_host_status()
-	var external_address: String = String(status.get("external_address", ""))
-	var address_text: String = external_address if external_address != "" else Localization.get_text("online.public_ip_pending", "public IP")
-	_invite_label.text = Localization.get_textf("online.invite", "{address}:{port} | Code {code}", {
-		"address": address_text,
-		"port": NetworkManager.get_host_port(),
+	_invite_label.text = Localization.get_textf("online.invite", "EOS RELAY | Code {code}", {
 		"code": NetworkManager.get_online_room_code(),
 	})
+
+
+func _on_eos_state_changed(_state: String, message: String) -> void:
+	if online_mode and not NetworkManager.is_session_connected():
+		_status_label.text = message
+
+
+func _set_connection_busy(busy: bool) -> void:
+	_connection_busy = busy
+	_host_button.disabled = busy
+	_join_button.disabled = busy
+	_room_code_edit.editable = not busy
 
 
 func _default_starter_id() -> String:
@@ -658,7 +684,7 @@ func _build_developer_panel() -> void:
 			{"id": "DevLanDisconnect", "label": Localization.get_text("lan.dev.disconnect", "Drop remote peer"), "callback": Callable(self, "_on_dev_disconnect")},
 			{"id": "DevLanLeave", "label": Localization.get_text("lan.leave", "Leave lobby"), "callback": Callable(self, "_on_leave_pressed")},
 		],
-		Localization.get_text("online.dev.summary", "Online direct connection and reconnection test controls.") if online_mode else Localization.get_text("lan.dev.summary", "LAN discovery, handshake, and reconnection test controls.")
+		Localization.get_text("online.dev.summary", "EOS Relay connection and reconnection test controls.") if online_mode else Localization.get_text("lan.dev.summary", "LAN discovery, handshake, and reconnection test controls.")
 	)
 
 

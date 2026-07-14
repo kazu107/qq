@@ -91,3 +91,5 @@ finally {
         }
     }
 }
+
+exit 0

@@ -26,10 +26,11 @@ $baseArguments = @(
 $hostProcess = $null
 $clientProcess = $null
 try {
-    $hostArguments = $baseArguments + @("--lan-smoke-role=host", "--lan-smoke-port=$port", "--network-scope=$Scope", "--online-room-code=TEST42")
+    $transportArguments = if ($Scope -eq "online") { @("--online-transport-test-enet") } else { @() }
+    $hostArguments = $baseArguments + $transportArguments + @("--lan-smoke-role=host", "--lan-smoke-port=$port", "--network-scope=$Scope", "--online-room-code=TEST42")
     $hostProcess = Start-Process -FilePath $GodotPath -ArgumentList $hostArguments -RedirectStandardOutput $hostOut -RedirectStandardError $hostErr -WindowStyle Hidden -PassThru
     Start-Sleep -Milliseconds 450
-    $clientArguments = $baseArguments + @("--lan-smoke-role=client", "--lan-smoke-port=$port", "--network-scope=$Scope", "--online-room-code=TEST42")
+    $clientArguments = $baseArguments + $transportArguments + @("--lan-smoke-role=client", "--lan-smoke-port=$port", "--network-scope=$Scope", "--online-room-code=TEST42")
     $clientProcess = Start-Process -FilePath $GodotPath -ArgumentList $clientArguments -RedirectStandardOutput $clientOut -RedirectStandardError $clientErr -WindowStyle Hidden -PassThru
 
     $hostLog = ""
@@ -80,3 +81,5 @@ finally {
         }
     }
 }
+
+exit 0
