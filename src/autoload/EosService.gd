@@ -14,6 +14,8 @@ const LOBBY_STATUS_OPEN: String = "OPEN"
 const SOCKET_ID_LENGTH: int = 32
 const SOCKET_ID_PREFIX: String = "qq"
 const SOCKET_ID_CHARACTERS: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const LOBBY_SEARCH_ATTEMPTS: int = 8
+const LOBBY_SEARCH_RETRY_SECONDS: float = 0.75
 
 var _config: Dictionary = {}
 var _state: String = "offline"
@@ -182,6 +184,7 @@ func create_room(room_proof: String) -> Dictionary:
 		_clear_room_state()
 		_set_failure(update_error)
 		return _failure_result("lobby_update_failed")
+	print("EOS lobby created and advertised; opening the Relay socket.")
 
 	var peer: EOSMultiplayerPeer = EOSMultiplayerPeer.new()
 	peer.set_auto_accept_connection_requests(true)
@@ -193,6 +196,7 @@ func create_room(room_proof: String) -> Dictionary:
 		_set_failure("EOS Relay server creation failed: %s (error %d)." % [error_string(peer_error), peer_error])
 		return _failure_result("peer_create_failed")
 
+	print("EOS Relay host socket is ready.")
 	_set_state("lobby", "EOS Relay lobby created.")
 	return {
 		"ok": true,
@@ -208,38 +212,13 @@ func join_room(room_proof: String) -> Dictionary:
 		return _failure_result("authentication_failed")
 	await leave_room()
 
-	_set_state("searching_lobby", "Searching for the EOS Relay lobby...")
-	var search: EOSLobbySearch = EOSLobby.create_lobby_search(10)
-	if not is_instance_valid(search):
-		_set_failure("EOS lobby search could not be created.")
-		return _failure_result("search_create_failed")
-	var room_parameter: EOSLobby_AttributeData = EOSLobby_AttributeData.new()
-	room_parameter.key = ATTR_ROOM_PROOF
-	room_parameter.value = room_proof
-	var parameter_result: EOS.Result = search.set_parameter(room_parameter, EOS.CO_EQUAL)
-	if parameter_result != EOS.Success:
-		return _lobby_failure("search_parameter_failed", parameter_result)
-	var find_result: EOS.Result = await search.find()
-	if find_result != EOS.Success:
-		return _lobby_failure("lobby_search_failed", find_result)
-
-	var selected_details: EOSLobbyDetails
-	for index in range(search.get_search_result_count()):
-		var details: EOSLobbyDetails = search.copy_search_result_by_index(index)
-		if not is_instance_valid(details):
-			continue
-		if String(_get_lobby_attribute(details, ATTR_ROOM_PROOF)) != room_proof:
-			continue
-		if String(_get_lobby_attribute(details, ATTR_STATUS)) != LOBBY_STATUS_OPEN:
-			continue
-		if String(_get_lobby_attribute(details, ATTR_PROTOCOL)) != str(LanProtocol.PROTOCOL_VERSION):
-			continue
-		if String(_get_lobby_attribute(details, ATTR_CONTENT_HASH)) != LanProtocol.build_content_hash():
-			continue
-		selected_details = details
-		break
+	var search_result: Dictionary = await _find_compatible_lobby(room_proof)
+	if not bool(search_result.get("ok", false)):
+		_set_failure(String(search_result.get("message", "EOS lobby search failed.")))
+		return _failure_result(String(search_result.get("error", "lobby_search_failed")))
+	var selected_details: EOSLobbyDetails = search_result.get("details") as EOSLobbyDetails
 	if not is_instance_valid(selected_details):
-		_set_failure("No compatible EOS lobby was found for that room code.")
+		_set_failure("EOS returned an invalid lobby search result.")
 		return _failure_result("room_not_found")
 
 	var socket_id: String = String(_get_lobby_attribute(selected_details, ATTR_SOCKET_ID))
@@ -247,6 +226,9 @@ func join_room(room_proof: String) -> Dictionary:
 	if socket_id == "" or not is_instance_valid(owner_id):
 		_set_failure("The EOS lobby did not provide valid host connection details.")
 		return _failure_result("invalid_lobby")
+	if owner_id == _product_user_id:
+		_set_failure("Host and client are using the same Epic account. Sign in with a different Epic account on each player.")
+		return _failure_result("same_epic_account")
 
 	var join_options: EOSLobby_JoinLobbyOptions = EOSLobby_JoinLobbyOptions.new()
 	join_options.lobby_details = selected_details
@@ -264,6 +246,7 @@ func join_room(room_proof: String) -> Dictionary:
 		_clear_room_state()
 		return _failure_result("peer_create_failed")
 
+	print("EOS Relay lobby joined; client socket is ready.")
 	_set_state("lobby", "Connected through EOS Relay.")
 	return {
 		"ok": true,
@@ -353,6 +336,70 @@ func _get_lobby_attribute(details: EOSLobbyDetails, key: String) -> Variant:
 	if not is_instance_valid(attribute) or not is_instance_valid(attribute.data):
 		return null
 	return attribute.data.value
+
+
+func _find_compatible_lobby(room_proof: String) -> Dictionary:
+	var last_find_result: EOS.Result = EOS.NotFound
+	var compatible_candidate_seen: bool = false
+	for attempt in range(LOBBY_SEARCH_ATTEMPTS):
+		_set_state("searching_lobby", "Searching for the EOS Relay lobby... (%d/%d)" % [attempt + 1, LOBBY_SEARCH_ATTEMPTS])
+		var search: EOSLobbySearch = EOSLobby.create_lobby_search(10)
+		if not is_instance_valid(search):
+			return {
+				"ok": false,
+				"error": "search_create_failed",
+				"message": "EOS lobby search could not be created.",
+			}
+		var room_parameter: EOSLobby_AttributeData = EOSLobby_AttributeData.new()
+		room_parameter.key = ATTR_ROOM_PROOF
+		room_parameter.value = room_proof
+		var parameter_result: EOS.Result = search.set_parameter(room_parameter, EOS.CO_EQUAL)
+		if parameter_result != EOS.Success:
+			return {
+				"ok": false,
+				"error": "search_parameter_failed",
+				"message": "EOS lobby search parameter failed: %s" % EOS.result_to_string(parameter_result),
+			}
+
+		last_find_result = await search.find()
+		var search_result_count: int = search.get_search_result_count() if last_find_result == EOS.Success else 0
+		print("EOS lobby search attempt %d/%d: result=%s candidates=%d" % [
+			attempt + 1,
+			LOBBY_SEARCH_ATTEMPTS,
+			EOS.result_to_string(last_find_result),
+			search_result_count,
+		])
+		if last_find_result == EOS.Success:
+			for index in range(search_result_count):
+				var details: EOSLobbyDetails = search.copy_search_result_by_index(index)
+				if not is_instance_valid(details):
+					continue
+				if String(_get_lobby_attribute(details, ATTR_ROOM_PROOF)) != room_proof:
+					continue
+				compatible_candidate_seen = true
+				if String(_get_lobby_attribute(details, ATTR_STATUS)) != LOBBY_STATUS_OPEN:
+					continue
+				if String(_get_lobby_attribute(details, ATTR_PROTOCOL)) != str(LanProtocol.PROTOCOL_VERSION):
+					continue
+				if String(_get_lobby_attribute(details, ATTR_CONTENT_HASH)) != LanProtocol.build_content_hash():
+					continue
+				return {"ok": true, "details": details}
+
+		if attempt + 1 < LOBBY_SEARCH_ATTEMPTS:
+			await get_tree().create_timer(LOBBY_SEARCH_RETRY_SECONDS).timeout
+
+	var message: String
+	if last_find_result != EOS.Success:
+		message = "EOS lobby search failed after retries: %s" % EOS.result_to_string(last_find_result)
+	elif compatible_candidate_seen:
+		message = "A lobby was found, but its game version or data does not match this client."
+	else:
+		message = "No active EOS lobby was found. Keep the host lobby open, wait a few seconds, and confirm both players use different Epic accounts."
+	return {
+		"ok": false,
+		"error": "room_not_found",
+		"message": message,
+	}
 
 
 func _load_configuration() -> void:
