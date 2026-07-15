@@ -2,6 +2,7 @@ extends RefCounted
 class_name CardUpgradeResolver
 
 const MAX_TIER := 3
+const ARENA_TIMING_DISCOUNT_MULTIPLIER: float = 0.9
 
 
 static func get_tier(run_state: RunState, card_id: String) -> int:
@@ -16,6 +17,7 @@ static func build_effective_card(card_id: String, run_state: RunState) -> CardDe
 		return card_def
 	var modifier_totals: Dictionary = Dictionary(run_state.temporary_card_modifiers.get(card_id, {}))
 	apply_modifier_totals(card_def, modifier_totals)
+	_apply_arena_timing_discount(card_def, run_state)
 	return card_def
 
 
@@ -161,6 +163,17 @@ static func apply_modifier_totals(card_def: CardDef, modifier_totals: Dictionary
 				_add_float_delta(effect_data, "duration", timeline_duration_bonus, 0.0)
 		modified_effects.append(effect_data)
 	card_def.effects = modified_effects
+
+
+static func _apply_arena_timing_discount(card_def: CardDef, run_state: RunState) -> void:
+	if card_def == null or run_state == null or not run_state.arena_mode:
+		return
+	var stacks: int = maxi(0, run_state.arena_timing_discount_stacks)
+	if stacks == 0:
+		return
+	var multiplier: float = pow(ARENA_TIMING_DISCOUNT_MULTIPLIER, stacks)
+	card_def.cast_time = maxf(0.0, card_def.cast_time * multiplier)
+	card_def.recast_time = maxf(0.0, card_def.recast_time * multiplier)
 
 
 static func _add_int_delta(effect_data: Dictionary, key: String, delta: int, minimum_value: int) -> void:

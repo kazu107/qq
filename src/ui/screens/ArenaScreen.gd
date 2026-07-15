@@ -23,6 +23,8 @@ var _start_battle_button: Button
 var _reward_overlay: ColorRect
 var _reward_modal: PanelContainer
 var _reward_options_box: HBoxContainer
+var _reward_title_label: Label
+var _reward_hint_label: Label
 var _developer_panel: DeveloperPanel
 var _lan_mode: bool = false
 
@@ -319,19 +321,19 @@ func _build_reward_modal() -> void:
 	root.add_theme_constant_override("separation", 16)
 	margin.add_child(root)
 
-	var title: Label = Label.new()
-	title.name = "ArenaRewardTitle"
-	title.text = Localization.get_text("arena.reward.title", "Victory Reward")
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color(1.0, 0.86, 0.48, 1.0))
-	root.add_child(title)
+	_reward_title_label = Label.new()
+	_reward_title_label.name = "ArenaRewardTitle"
+	_reward_title_label.text = Localization.get_text("arena.reward.title", "Victory Reward")
+	_reward_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_reward_title_label.add_theme_font_size_override("font_size", 30)
+	_reward_title_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.48, 1.0))
+	root.add_child(_reward_title_label)
 
-	var hint: Label = Label.new()
-	hint.text = Localization.get_text("arena.reward.hint", "Choose one reward before the next match.")
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_color_override("font_color", Color(0.74, 0.80, 0.86, 1.0))
-	root.add_child(hint)
+	_reward_hint_label = Label.new()
+	_reward_hint_label.text = Localization.get_text("arena.reward.hint", "Choose one reward before the next match.")
+	_reward_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_reward_hint_label.add_theme_color_override("font_color", Color(0.74, 0.80, 0.86, 1.0))
+	root.add_child(_reward_hint_label)
 
 	_reward_options_box = HBoxContainer.new()
 	_reward_options_box.name = "ArenaRewardOptions"
@@ -442,7 +444,7 @@ func _refresh_offer_list(parent: VBoxContainer, offers: Array[Dictionary], is_ca
 
 func _build_card_offer(offer_data: Dictionary, offer_index: int) -> Control:
 	var card_id: String = String(offer_data.get("card_id", ""))
-	var card_def: CardDef = Database.get_card(card_id)
+	var card_def: CardDef = CardUpgradeResolver.build_effective_card(card_id, _get_active_run())
 	var row: HBoxContainer = _create_offer_row(offer_data, "CardOffer_%d" % offer_index)
 	if card_def != null:
 		var preview: CardButton = CardButton.new()
@@ -606,7 +608,6 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	preview.name = "ArenaLoadoutPreview_%s" % card_id
 	preview.set_tile_size(LOADOUT_PREVIEW_SIZE)
 	preview.bind_preview(card_def, card_id, false, "LOAD")
-	_append_loadout_cost_tooltip(preview, card_def)
 	row.add_child(preview)
 
 	var info_box: VBoxContainer = VBoxContainer.new()
@@ -681,15 +682,6 @@ func _build_loadout_count_pill(icon_id: String, count: int, node_name: String) -
 	return pill
 
 
-func _append_loadout_cost_tooltip(preview: CardButton, card_def: CardDef) -> void:
-	if preview == null or card_def == null:
-		return
-	var cost_text: String = Localization.get_textf("card.tooltip.loadout_cost", "Loadout Cost: {cost}", {
-		"cost": card_def.loadout_cost,
-	})
-	preview.append_tooltip_line(cost_text)
-
-
 func _refresh_reward_modal() -> void:
 	if _reward_overlay == null or _reward_modal == null or _reward_options_box == null:
 		return
@@ -702,6 +694,11 @@ func _refresh_reward_modal() -> void:
 		child.queue_free()
 	if not show_modal:
 		return
+	var special_reward: bool = bool(rewards[0].get("special", false))
+	if _reward_title_label != null:
+		_reward_title_label.text = Localization.get_text("arena.special.title", "Special Reward") if special_reward else Localization.get_text("arena.reward.title", "Victory Reward")
+	if _reward_hint_label != null:
+		_reward_hint_label.text = Localization.get_text("arena.special.hint", "Choose one milestone reward. Its effect lasts for this Arena run.") if special_reward else Localization.get_text("arena.reward.hint", "Choose one reward before the next match.")
 	for reward_data in rewards:
 		_reward_options_box.add_child(_build_reward_choice(reward_data))
 
@@ -755,8 +752,15 @@ func _build_reward_choice(reward_data: Dictionary) -> Button:
 
 
 func _add_reward_visual(parent: Control, reward_data: Dictionary, reward_kind: String) -> void:
+	if bool(reward_data.get("special", false)) and reward_kind != "special_legendary_card":
+		var special_group: VBoxContainer = VBoxContainer.new()
+		special_group.alignment = BoxContainer.ALIGNMENT_CENTER
+		special_group.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		parent.add_child(special_group)
+		_add_stat_icon(special_group, String(reward_data.get("visual_icon", "step")))
+		return
 	match reward_kind:
-		"card":
+		"card", "special_legendary_card":
 			var card_id: String = String(reward_data.get("card_id", ""))
 			var card_def: CardDef = Database.get_card(card_id)
 			if card_def == null:

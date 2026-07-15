@@ -32,6 +32,9 @@ var arena_max_losses: int = 3
 var arena_next_enemy_id: String = ""
 var arena_shop: Dictionary = {}
 var arena_pending_rewards: Array[Dictionary] = []
+var arena_pending_special_rewards: Array[Dictionary] = []
+var arena_shop_discount_stacks: int = 0
+var arena_timing_discount_stacks: int = 0
 
 
 static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> RunState:
@@ -67,6 +70,9 @@ static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> Ru
 	run_state.arena_next_enemy_id = ""
 	run_state.arena_shop = {}
 	run_state.arena_pending_rewards = []
+	run_state.arena_pending_special_rewards = []
+	run_state.arena_shop_discount_stacks = 0
+	run_state.arena_timing_discount_stacks = 0
 	return run_state
 
 
@@ -105,6 +111,9 @@ static func from_dict(data: Dictionary) -> RunState:
 	run_state.arena_next_enemy_id = String(data.get("arena_next_enemy_id", ""))
 	run_state.arena_shop = Dictionary(data.get("arena_shop", {}))
 	run_state.arena_pending_rewards = _to_dictionary_array(data.get("arena_pending_rewards", []))
+	run_state.arena_pending_special_rewards = _to_dictionary_array(data.get("arena_pending_special_rewards", []))
+	run_state.arena_shop_discount_stacks = maxi(0, int(data.get("arena_shop_discount_stacks", 0)))
+	run_state.arena_timing_discount_stacks = maxi(0, int(data.get("arena_timing_discount_stacks", 0)))
 	return run_state
 
 
@@ -141,6 +150,9 @@ func to_dict() -> Dictionary:
 		"arena_next_enemy_id": arena_next_enemy_id,
 		"arena_shop": arena_shop,
 		"arena_pending_rewards": arena_pending_rewards,
+		"arena_pending_special_rewards": arena_pending_special_rewards,
+		"arena_shop_discount_stacks": arena_shop_discount_stacks,
+		"arena_timing_discount_stacks": arena_timing_discount_stacks,
 	}
 
 

@@ -7,6 +7,9 @@ const MAX_LOSSES: int = 3
 const CARD_OFFER_COUNT: int = 3
 const RELIC_OFFER_COUNT: int = 2
 const REROLL_COST: int = 8
+const SPECIAL_REWARD_INTERVAL: int = 3
+const SPECIAL_REWARD_OPTION_COUNT: int = 3
+const STACKING_DISCOUNT_MULTIPLIER: float = 0.9
 
 var _shop_service: ShopService = ShopService.new()
 var _forge_service: ForgeService = ForgeService.new()
@@ -27,6 +30,9 @@ func configure_run(run_state: RunState, allowed_card_ids: Array[String], allowed
 	run_state.arena_next_enemy_id = _pick_enemy_for_round(run_state)
 	run_state.arena_shop = {}
 	run_state.arena_pending_rewards = []
+	run_state.arena_pending_special_rewards = []
+	run_state.arena_shop_discount_stacks = 0
+	run_state.arena_timing_discount_stacks = 0
 	run_state.map_state = {
 		"arena": true,
 		"current_step": 0,
@@ -80,7 +86,16 @@ func get_relic_offers(run_state: RunState) -> Array[Dictionary]:
 func get_pending_rewards(run_state: RunState) -> Array[Dictionary]:
 	if run_state == null:
 		return []
-	return _to_dictionary_array(run_state.arena_pending_rewards)
+	if not run_state.arena_pending_rewards.is_empty():
+		return _to_dictionary_array(run_state.arena_pending_rewards)
+	return _to_dictionary_array(run_state.arena_pending_special_rewards)
+
+
+func has_pending_reward(run_state: RunState) -> bool:
+	return run_state != null and (
+		not run_state.arena_pending_rewards.is_empty()
+		or not run_state.arena_pending_special_rewards.is_empty()
+	)
 
 
 func can_reroll(run_state: RunState) -> bool:
@@ -183,13 +198,20 @@ func start_next_match(run_state: RunState) -> String:
 	return resolve_next_enemy_id(run_state)
 
 
-func apply_battle_result(run_state: RunState, summary: Dictionary, allowed_card_ids: Array[String], allowed_relic_ids: Array[String]) -> Dictionary:
+func apply_battle_result(
+	run_state: RunState,
+	summary: Dictionary,
+	allowed_card_ids: Array[String],
+	allowed_relic_ids: Array[String],
+	generate_special_reward: bool = true
+) -> Dictionary:
 	var result: Dictionary = {
 		"finished": false,
 		"won": false,
 		"reward_gold": 0,
 		"reward_heal": 0,
 		"next_enemy_id": "",
+		"special_reward_due": false,
 	}
 	if run_state == null:
 		return result
@@ -227,6 +249,10 @@ func apply_battle_result(run_state: RunState, summary: Dictionary, allowed_card_
 		run_state.defeated = true
 		result["finished"] = true
 		return result
+
+	if generate_special_reward and run_state.arena_round % SPECIAL_REWARD_INTERVAL == 0:
+		run_state.arena_pending_special_rewards = build_special_rewards(run_state, run_state.arena_round)
+		result["special_reward_due"] = not run_state.arena_pending_special_rewards.is_empty()
 
 	run_state.arena_round += 1
 	run_state.arena_next_enemy_id = _pick_enemy_for_round(run_state)
@@ -292,13 +318,100 @@ func build_victory_rewards(run_state: RunState, allowed_card_ids: Array[String],
 	return rewards
 
 
+func build_special_rewards(run_state: RunState, completed_round: int, seed_override: int = 0) -> Array[Dictionary]:
+	var rewards: Array[Dictionary] = []
+	if run_state == null or completed_round <= 0:
+		return rewards
+
+	var reward_stage: int = maxi(1, int(completed_round / SPECIAL_REWARD_INTERVAL))
+	var max_hp_amount: int = 6 + reward_stage * 2
+	var seed_value: int = seed_override
+	if seed_value == 0:
+		seed_value = int(run_state.seed + completed_round * 6421 + reward_stage * 1879)
+	var legendary_card_id: String = _pick_legendary_card(seed_value + 97)
+	var candidates: Array[Dictionary] = [
+		{
+			"id": "arena_special_loadout_r%d" % completed_round,
+			"kind": "special_loadout_limit",
+			"special": true,
+			"visual_icon": "card_equipped",
+			"label": Localization.get_text("arena.special.loadout.label", "Loadout Limit +1"),
+			"description": Localization.get_text("arena.special.loadout.description", "Permanently increase loadout capacity by 1 for this Arena run."),
+		},
+		{
+			"id": "arena_special_max_hp_r%d" % completed_round,
+			"kind": "special_max_hp",
+			"special": true,
+			"visual_icon": "hp",
+			"amount": max_hp_amount,
+			"label": Localization.get_textf("arena.special.max_hp.label", "Max HP +{amount}", {"amount": max_hp_amount}),
+			"description": Localization.get_text("arena.special.max_hp.description", "Increase maximum and current HP. Later rewards grant more HP."),
+		},
+		{
+			"id": "arena_special_shop_discount_r%d" % completed_round,
+			"kind": "special_shop_discount",
+			"special": true,
+			"visual_icon": "gold",
+			"label": Localization.get_text("arena.special.shop_discount.label", "Shop Prices -10%"),
+			"description": Localization.get_text("arena.special.shop_discount.description", "Permanently reduce Arena shop item prices by 10%. Stacks multiplicatively."),
+		},
+		{
+			"id": "arena_special_timing_discount_r%d" % completed_round,
+			"kind": "special_timing_discount",
+			"special": true,
+			"visual_icon": "speed",
+			"label": Localization.get_text("arena.special.timing_discount.label", "All Card Times -10%"),
+			"description": Localization.get_text("arena.special.timing_discount.description", "Permanently shorten cast and recast times of every card by 10%. Stacks multiplicatively."),
+		},
+		{
+			"id": "arena_special_remove_loss_r%d" % completed_round,
+			"kind": "special_remove_loss",
+			"special": true,
+			"visual_icon": "shield",
+			"label": Localization.get_text("arena.special.remove_loss.label", "Remove 1 Loss"),
+			"description": Localization.get_text("arena.special.remove_loss.description", "Reduce the current Arena loss count by 1, to a minimum of 0."),
+		},
+		{
+			"id": "arena_special_upgrade_two_r%d" % completed_round,
+			"kind": "special_upgrade_two",
+			"special": true,
+			"visual_icon": "card_owned",
+			"apply_seed": seed_value + 211,
+			"label": Localization.get_text("arena.special.upgrade_two.label", "Upgrade 2 Random Cards"),
+			"description": Localization.get_text("arena.special.upgrade_two.description", "Increase the Grade of up to 2 random owned cards by 1."),
+		},
+	]
+	if legendary_card_id != "":
+		var legendary_def: CardDef = Database.get_card(legendary_card_id)
+		if legendary_def != null:
+			candidates.append({
+				"id": "arena_special_legendary_r%d" % completed_round,
+				"kind": "special_legendary_card",
+				"special": true,
+				"card_id": legendary_card_id,
+				"label": legendary_def.name,
+				"description": Localization.get_text("arena.special.legendary.description", "Gain this Legendary card."),
+			})
+
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	while rewards.size() < SPECIAL_REWARD_OPTION_COUNT and not candidates.is_empty():
+		var pick_index: int = rng.randi_range(0, candidates.size() - 1)
+		rewards.append(candidates[pick_index].duplicate(true))
+		candidates.remove_at(pick_index)
+	return rewards
+
+
 func apply_pending_reward(run_state: RunState, reward_id: String, relic_service: RelicService) -> Dictionary:
 	var result: Dictionary = {
 		"applied": false,
 	}
 	if run_state == null or reward_id == "":
 		return result
-	var rewards: Array[Dictionary] = get_pending_rewards(run_state)
+	var is_special_reward: bool = run_state.arena_pending_rewards.is_empty()
+	var rewards: Array[Dictionary] = _to_dictionary_array(
+		run_state.arena_pending_special_rewards if is_special_reward else run_state.arena_pending_rewards
+	)
 	var selected_reward: Dictionary = {}
 	for reward_data in rewards:
 		if String(reward_data.get("id", "")) == reward_id:
@@ -308,6 +421,15 @@ func apply_pending_reward(run_state: RunState, reward_id: String, relic_service:
 		return result
 
 	var reward_kind: String = String(selected_reward.get("kind", ""))
+	if is_special_reward:
+		if not _apply_special_reward(run_state, selected_reward, result):
+			return result
+		run_state.arena_pending_special_rewards = []
+		result["applied"] = true
+		result["kind"] = reward_kind
+		result["special"] = true
+		return result
+
 	match reward_kind:
 		"card":
 			var card_id: String = String(selected_reward.get("card_id", ""))
@@ -343,6 +465,53 @@ func apply_pending_reward(run_state: RunState, reward_id: String, relic_service:
 	result["applied"] = true
 	result["kind"] = reward_kind
 	return result
+
+
+func assign_special_rewards(run_state: RunState, rewards: Array[Dictionary]) -> void:
+	if run_state == null:
+		return
+	run_state.arena_pending_special_rewards = _to_dictionary_array(rewards)
+
+
+func _apply_special_reward(run_state: RunState, reward_data: Dictionary, result: Dictionary) -> bool:
+	var reward_kind: String = String(reward_data.get("kind", ""))
+	match reward_kind:
+		"special_loadout_limit":
+			run_state.loadout_limit += 1
+			result["loadout_limit_delta"] = 1
+		"special_max_hp":
+			var hp_amount: int = maxi(1, int(reward_data.get("amount", 1)))
+			run_state.max_hp += hp_amount
+			run_state.player_hp += hp_amount
+			result["max_hp_delta"] = hp_amount
+		"special_shop_discount":
+			run_state.arena_shop_discount_stacks += 1
+			_discount_current_shop(run_state)
+			result["shop_discount_stacks"] = run_state.arena_shop_discount_stacks
+		"special_timing_discount":
+			run_state.arena_timing_discount_stacks += 1
+			result["timing_discount_stacks"] = run_state.arena_timing_discount_stacks
+		"special_remove_loss":
+			var losses_before: int = run_state.arena_losses
+			run_state.arena_losses = maxi(0, run_state.arena_losses - 1)
+			result["losses_removed"] = losses_before - run_state.arena_losses
+		"special_upgrade_two":
+			var upgraded_ids: Array[String] = _upgrade_random_cards(
+				run_state,
+				2,
+				int(reward_data.get("apply_seed", run_state.seed)) + run_state.seed
+			)
+			result["upgraded_card_ids"] = upgraded_ids
+		"special_legendary_card":
+			var card_id: String = String(reward_data.get("card_id", ""))
+			var card_def: CardDef = Database.get_card(card_id)
+			if card_def == null or card_def.rarity != "legendary":
+				return false
+			run_state.player_cards.append(card_id)
+			result["selected_reward_card_id"] = card_id
+		_:
+			return false
+	return true
 
 
 func build_history_node(run_state: RunState) -> Dictionary:
@@ -390,7 +559,7 @@ func _fill_card_offers(run_state: RunState, offers: Array[Dictionary], target_co
 			"id": _make_offer_id("card", card_id, run_state, refresh_count, offers.size()),
 			"kind": "card",
 			"card_id": card_id,
-			"price": _get_card_price(card_id, run_state.arena_wins),
+			"price": _get_card_price(card_id, run_state),
 			"held": false,
 			"bought": false,
 		})
@@ -415,7 +584,7 @@ func _fill_relic_offers(run_state: RunState, offers: Array[Dictionary], target_c
 			"id": _make_offer_id("relic", relic_id, run_state, refresh_count, offers.size()),
 			"kind": "relic",
 			"relic_id": relic_id,
-			"price": _get_relic_price(relic_id, run_state.arena_wins),
+			"price": _get_relic_price(relic_id, run_state),
 			"held": false,
 			"bought": false,
 		})
@@ -455,6 +624,13 @@ func _pick_reward_relic(run_state: RunState, allowed_relic_ids: Array[String], r
 
 
 func _pick_upgrade_card(run_state: RunState, rng: RandomNumberGenerator) -> String:
+	var candidates: Array[String] = _get_upgrade_candidates(run_state)
+	if candidates.is_empty():
+		return ""
+	return candidates[rng.randi_range(0, candidates.size() - 1)]
+
+
+func _get_upgrade_candidates(run_state: RunState) -> Array[String]:
 	var candidates: Array[String] = []
 	var seen: Dictionary = {}
 	for card_id in run_state.player_cards:
@@ -466,9 +642,33 @@ func _pick_upgrade_card(run_state: RunState, rng: RandomNumberGenerator) -> Stri
 		if Database.get_card(card_id) == null:
 			continue
 		candidates.append(card_id)
-	if candidates.is_empty():
+	return candidates
+
+
+func _upgrade_random_cards(run_state: RunState, count: int, seed_value: int) -> Array[String]:
+	var upgraded_ids: Array[String] = []
+	var candidates: Array[String] = _get_upgrade_candidates(run_state)
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	while upgraded_ids.size() < count and not candidates.is_empty():
+		var pick_index: int = rng.randi_range(0, candidates.size() - 1)
+		var card_id: String = candidates[pick_index]
+		candidates.remove_at(pick_index)
+		var tier_before: int = CardUpgradeResolver.get_tier(run_state, card_id)
+		var tier_after: int = _forge_service.upgrade_card(run_state, card_id)
+		if tier_after > tier_before:
+			upgraded_ids.append(card_id)
+	return upgraded_ids
+
+
+func _pick_legendary_card(seed_value: int) -> String:
+	var legendary_ids: Array[String] = Database.get_card_ids_by_rarity("legendary")
+	if legendary_ids.is_empty():
 		return ""
-	return candidates[rng.randi_range(0, candidates.size() - 1)]
+	legendary_ids.sort()
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	return legendary_ids[rng.randi_range(0, legendary_ids.size() - 1)]
 
 
 func _unique_strings(values: Array[String]) -> Array[String]:
@@ -503,12 +703,13 @@ func _get_card_rarity_pool(wins: int) -> Array[String]:
 	return ["rare", "rare", "epic", "epic", "epic", "legendary"]
 
 
-func _get_card_price(card_id: String, wins: int) -> int:
-	return _shop_service.get_price(card_id) + wins * 2
+func _get_card_price(card_id: String, run_state: RunState) -> int:
+	var base_price: int = _shop_service.get_price(card_id) + run_state.arena_wins * 2
+	return _apply_shop_discount(base_price, run_state.arena_shop_discount_stacks)
 
 
-func _get_relic_price(relic_id: String, wins: int) -> int:
-	var price: int = 42 + wins * 3
+func _get_relic_price(relic_id: String, run_state: RunState) -> int:
+	var price: int = 42 + run_state.arena_wins * 3
 	if [
 		"omega_crown", "eternity_engine", "paradox_prism",
 		"overclock_key", "chrono_metronome", "prism_furnace", "emergency_foam",
@@ -520,7 +721,25 @@ func _get_relic_price(relic_id: String, wins: int) -> int:
 		"scavenger_contract", "blood_pump", "armor_garden", "bounty_drone",
 	].has(relic_id):
 		price += 10
-	return price
+	return _apply_shop_discount(price, run_state.arena_shop_discount_stacks)
+
+
+func _apply_shop_discount(price: int, discount_stacks: int) -> int:
+	var multiplier: float = pow(STACKING_DISCOUNT_MULTIPLIER, maxi(0, discount_stacks))
+	return maxi(1, int(round(float(price) * multiplier)))
+
+
+func _discount_current_shop(run_state: RunState) -> void:
+	var shop_data: Dictionary = run_state.arena_shop.duplicate(true)
+	for array_key in ["cards", "relics"]:
+		var offers: Array[Dictionary] = _to_dictionary_array(shop_data.get(array_key, []))
+		for offer_index in range(offers.size()):
+			var offer_data: Dictionary = offers[offer_index]
+			if not bool(offer_data.get("bought", false)):
+				offer_data["price"] = _apply_shop_discount(int(offer_data.get("price", 1)), 1)
+			offers[offer_index] = offer_data
+		shop_data[array_key] = offers
+	run_state.arena_shop = shop_data
 
 
 func _pick_enemy_for_round(run_state: RunState) -> String:

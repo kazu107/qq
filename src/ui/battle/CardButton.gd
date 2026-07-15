@@ -659,6 +659,7 @@ func _build_preview_tooltip(card_def: CardDef, rich: bool = false) -> String:
 		Localization.get_textf("card.tooltip.tags", "Tags: {value}", {"value": _build_tags_text(card_def.tags)}),
 		Localization.get_textf("card.tooltip.cast", "Cast: {value}s", {"value": _format_compared_float(card_def.cast_time, base_cast_time, 1, false, rich)}),
 		Localization.get_textf("card.tooltip.recast", "Recast: {value}s", {"value": _format_compared_float(card_def.recast_time, base_recast_time, 1, false, rich)}),
+		Localization.get_textf("card.tooltip.loadout_cost", "Loadout Cost: {cost}", {"cost": card_def.loadout_cost}),
 		Localization.get_textf("card.tooltip.slots", "Slots: {value}", {"value": card_def.active_slot_cost}),
 		Localization.get_textf("card.tooltip.target", "Target: {value}", {"value": Localization.get_target_name(card_def.target_type)}),
 	]
@@ -700,6 +701,9 @@ func _build_battle_tooltip_lines(card_def: CardDef, rich: bool = false) -> Array
 	}))
 	lines.append(Localization.get_textf("card.tooltip.recast", "Recast: {value}s", {
 		"value": _format_compared_float(card_def.recast_time, base_recast_time, 1, false, rich),
+	}))
+	lines.append(Localization.get_textf("card.tooltip.loadout_cost", "Loadout Cost: {cost}", {
+		"cost": card_def.loadout_cost,
 	}))
 	_append_status_detail_lines(lines, card_def, rich)
 	return lines

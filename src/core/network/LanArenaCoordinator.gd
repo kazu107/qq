@@ -28,7 +28,7 @@ func apply_action(run_state: RunState, action: String, payload: Dictionary, deve
 	}
 	if run_state == null or run_state.run_complete:
 		return result
-	if not run_state.arena_pending_rewards.is_empty() and action != "choose_reward":
+	if _arena_service.has_pending_reward(run_state) and action != "choose_reward":
 		return result
 
 	var gold_before: int = run_state.gold
@@ -113,13 +113,26 @@ func apply_battle_result(run_state: RunState, won: bool, hp_after: int, battle_r
 		run_state,
 		{"winner": "player" if won else "enemy", "relic_bonus_gold": battle_relic_gold},
 		Database.get_all_card_ids(),
-		Database.get_all_relic_ids()
+		Database.get_all_relic_ids(),
+		false
 	)
 	if won:
 		var bonuses: Dictionary = _relic_service.apply_victory_bonuses(run_state)
 		result["reward_gold"] = int(result.get("reward_gold", 0)) + int(bonuses.get("gold", 0))
 		result["reward_heal"] = int(result.get("reward_heal", 0)) + int(bonuses.get("heal", 0))
 	return result
+
+
+func assign_shared_special_rewards(
+	player_run: RunState,
+	enemy_run: RunState,
+	completed_round: int,
+	shared_seed: int
+) -> Array[Dictionary]:
+	var rewards: Array[Dictionary] = _arena_service.build_special_rewards(player_run, completed_round, shared_seed)
+	_arena_service.assign_special_rewards(player_run, rewards)
+	_arena_service.assign_special_rewards(enemy_run, rewards)
+	return rewards
 
 
 func build_status(
@@ -144,6 +157,14 @@ func build_status(
 		"local_ready": local_ready,
 		"opponent_ready": opponent_ready,
 	}
+
+
+func get_pending_rewards(run_state: RunState) -> Array[Dictionary]:
+	return _arena_service.get_pending_rewards(run_state)
+
+
+func has_pending_reward(run_state: RunState) -> bool:
+	return _arena_service.has_pending_reward(run_state)
 
 
 func get_loadout_entries(run_state: RunState) -> Array[Dictionary]:

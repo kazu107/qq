@@ -456,7 +456,6 @@ func _rebuild_loadout_rows() -> void:
 		preview.name = "LoadoutPreview_%s" % card_id
 		preview.set_tile_size(LOADOUT_PREVIEW_SIZE)
 		preview.bind_preview(card_def, card_id, false, "LOAD")
-		_append_loadout_cost_tooltip(preview, card_def)
 		row.add_child(preview)
 
 		var info_box: VBoxContainer = VBoxContainer.new()
@@ -563,15 +562,6 @@ func _is_point_inside_loadout_hover_area(frame: PanelContainer, actions: HBoxCon
 	if actions != null and is_instance_valid(actions):
 		return actions.get_global_rect().grow(2.0).has_point(global_point)
 	return false
-
-
-func _append_loadout_cost_tooltip(preview: CardButton, card_def: CardDef) -> void:
-	if preview == null or card_def == null:
-		return
-	var cost_text: String = Localization.get_textf("card.tooltip.loadout_cost", "Loadout Cost: {cost}", {
-		"cost": card_def.loadout_cost,
-	})
-	preview.append_tooltip_line(cost_text)
 
 
 func _make_loadout_card_stylebox() -> StyleBoxFlat:

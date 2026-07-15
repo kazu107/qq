@@ -962,6 +962,25 @@ func choose_arena_victory_reward(reward_id: String) -> bool:
 		last_battle_summary["upgraded_card_tier"] = int(result.get("upgraded_card_tier", 0))
 		history_update["upgraded_card_id"] = upgraded_card_id
 		history_update["upgraded_card_tier"] = int(result.get("upgraded_card_tier", 0))
+	var upgraded_card_ids: Array[String] = _to_string_array(result.get("upgraded_card_ids", []))
+	if not upgraded_card_ids.is_empty():
+		last_battle_summary["upgraded_card_ids"] = upgraded_card_ids
+		history_update["upgraded_card_ids"] = upgraded_card_ids
+	if bool(result.get("special", false)):
+		var special_reward_kind: String = String(result.get("kind", ""))
+		last_battle_summary["arena_special_reward"] = special_reward_kind
+		history_update["arena_special_reward"] = special_reward_kind
+		var tracked_result_keys: Array[String] = [
+			"loadout_limit_delta",
+			"max_hp_delta",
+			"shop_discount_stacks",
+			"timing_discount_stacks",
+			"losses_removed",
+		]
+		for result_key in tracked_result_keys:
+			if result.has(result_key):
+				last_battle_summary[result_key] = result[result_key]
+				history_update[result_key] = result[result_key]
 
 	if not history_update.is_empty():
 		_update_latest_battle_history(history_update)

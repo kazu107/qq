@@ -426,7 +426,7 @@ func get_local_arena_pending_rewards() -> Array[Dictionary]:
 	var run_state: RunState = get_local_arena_run()
 	if run_state == null:
 		return []
-	return _to_dictionary_array(run_state.arena_pending_rewards)
+	return _arena_coordinator.get_pending_rewards(run_state)
 
 
 func get_local_arena_loadout_entries() -> Array[Dictionary]:
@@ -639,6 +639,7 @@ func finish_lan_match(summary: Dictionary, final_snapshot: Dictionary = {}) -> b
 		var winner: String = String(result.get("winner", "draw"))
 		var player_run: RunState = _arena_runs_by_side.get("player") as RunState
 		var enemy_run: RunState = _arena_runs_by_side.get("enemy") as RunState
+		var completed_round: int = player_run.arena_round if player_run != null else 0
 		var player_snapshot: Dictionary = Dictionary(final_snapshot.get("player", {}))
 		var enemy_snapshot: Dictionary = Dictionary(final_snapshot.get("enemy", {}))
 		var player_hp: int = int(player_snapshot.get("hp", player_run.player_hp if player_run != null else 1))
@@ -650,6 +651,16 @@ func finish_lan_match(summary: Dictionary, final_snapshot: Dictionary = {}) -> b
 		var player_progress: Dictionary = _arena_coordinator.apply_battle_result(player_run, winner == "player", player_hp, int(result.get("player_relic_bonus_gold", 0)))
 		var enemy_progress: Dictionary = _arena_coordinator.apply_battle_result(enemy_run, winner == "enemy", enemy_hp, int(result.get("enemy_relic_bonus_gold", 0)))
 		arena_finished = bool(player_progress.get("finished", false)) or bool(enemy_progress.get("finished", false))
+		if not arena_finished and completed_round > 0 and completed_round % ArenaService.SPECIAL_REWARD_INTERVAL == 0:
+			var shared_special_rewards: Array[Dictionary] = _arena_coordinator.assign_shared_special_rewards(
+				player_run,
+				enemy_run,
+				completed_round,
+				player_run.seed + completed_round * 6421
+			)
+			var special_reward_due: bool = not shared_special_rewards.is_empty()
+			player_progress["special_reward_due"] = special_reward_due
+			enemy_progress["special_reward_due"] = special_reward_due
 		result["arena_session_id"] = _arena_session_id
 		result["arena_continues"] = not arena_finished
 		result["arena_finished"] = arena_finished
@@ -1056,7 +1067,7 @@ func _apply_arena_action_for_side(
 	if action == "set_ready":
 		var ready: bool = bool(payload.get("ready", true))
 		var accepted: bool = not ready or (
-			run_state.arena_pending_rewards.is_empty()
+			not _arena_coordinator.has_pending_reward(run_state)
 			and _arena_coordinator.has_valid_loadout(run_state)
 		)
 		if accepted:
