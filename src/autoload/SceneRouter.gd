@@ -31,7 +31,6 @@ func warm_scene_cache() -> void:
 		HUB_SCENE,
 		RUN_SETUP_SCENE,
 		ARENA_SCENE,
-		LAN_LOBBY_SCENE,
 		BATTLE_SCENE,
 		REWARD_SCENE,
 		RESULT_SCENE,
@@ -42,6 +41,8 @@ func warm_scene_cache() -> void:
 		SETTINGS_SCENE,
 		REPLAY_SCENE,
 	]
+	if Game.supports_lan_multiplayer():
+		scene_paths.append(LAN_LOBBY_SCENE)
 	if Game.ONLINE_MULTIPLAYER_ENABLED:
 		scene_paths.append(ONLINE_LOBBY_SCENE)
 	for scene_path in scene_paths:
@@ -74,6 +75,10 @@ func go_to_arena() -> void:
 
 
 func go_to_lan_lobby() -> void:
+	if not Game.supports_lan_multiplayer():
+		Game.current_screen_hint = "hub"
+		go_to_hub()
+		return
 	_change_scene(LAN_LOBBY_SCENE)
 
 

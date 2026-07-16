@@ -769,6 +769,18 @@ func set_resolution(resolution_code: String) -> void:
 	SaveManager.save_game(current_screen_hint)
 
 
+func is_web_build() -> bool:
+	return OS.has_feature("web")
+
+
+func supports_lan_multiplayer() -> bool:
+	return not is_web_build()
+
+
+func is_user_storage_persistent() -> bool:
+	return not is_web_build() or OS.is_userfs_persistent()
+
+
 func is_replay_auto_export_enabled() -> bool:
 	ensure_meta_initialized()
 	return bool(settings.get("replay_auto_export", true))
@@ -2900,7 +2912,7 @@ func _apply_resolution_from_settings(center_window: bool = false) -> void:
 	if _applied_resolution == resolution_code:
 		return
 	_applied_resolution = resolution_code
-	if DisplayServer.get_name() == "headless":
+	if DisplayServer.get_name() == "headless" or is_web_build():
 		return
 
 	var window_size: Vector2i = _parse_resolution_code(resolution_code)

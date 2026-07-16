@@ -21,17 +21,27 @@ static func warm_all() -> Dictionary:
 	var data: WarmupData = _collect_warmup_data()
 
 	SceneRouter.warm_scene_cache()
-	var unit_counts: Dictionary = UnitPanel.warm_visual_cache(data.portrait_ids, data.status_ids)
+	var unit_counts: Dictionary = {}
+	var card_count: int = 0
+	var card_picker_count: int = 0
+	var card_picker_popup_count: int = 0
+	var relic_count: int = 0
+	if not Game.is_web_build():
+		unit_counts = UnitPanel.warm_visual_cache(data.portrait_ids, data.status_ids)
+		card_count = CardButton.warm_texture_cache(data.card_ids)
+		card_picker_count = CardIconPicker.warm_button_icon_cache(data.card_ids)
+		card_picker_popup_count = CardIconPicker.get_cached_popup_icon_count()
+		relic_count = RelicIcon.warm_texture_cache(data.relic_ids)
 	var stat_icon_count: int = StatIconFactory.warm_cache()
 	var map_icon_count: int = MapNodeButton.warm_icon_cache()
 
 	return {
 		"scenes": SceneRouter.get_cached_scene_count(),
 		"sfx": AudioManager.warm_sfx_cache(),
-		"cards": CardButton.warm_texture_cache(data.card_ids),
-		"card_picker_icons": CardIconPicker.warm_button_icon_cache(data.card_ids),
-		"card_picker_popup_icons": CardIconPicker.get_cached_popup_icon_count(),
-		"relics": RelicIcon.warm_texture_cache(data.relic_ids),
+		"cards": card_count,
+		"card_picker_icons": card_picker_count,
+		"card_picker_popup_icons": card_picker_popup_count,
+		"relics": relic_count,
 		"portraits": int(unit_counts.get("portraits", 0)),
 		"status_icons": int(unit_counts.get("statuses", 0)),
 		"stat_icons": stat_icon_count,
@@ -42,6 +52,7 @@ static func warm_all() -> Dictionary:
 
 static func warm_all_async(progress_callback: Callable = Callable()) -> Dictionary:
 	var data: WarmupData = _collect_warmup_data()
+	var use_lightweight_cache: bool = Game.is_web_build()
 	_report_progress(progress_callback, "boot.caching_scenes", 0.58)
 	await _next_frame()
 	SceneRouter.warm_scene_cache()
@@ -53,20 +64,20 @@ static func warm_all_async(progress_callback: Callable = Callable()) -> Dictiona
 
 	_report_progress(progress_callback, "boot.caching_cards", 0.70)
 	await _next_frame()
-	data.summary["cards"] = CardButton.warm_texture_cache(data.card_ids)
+	data.summary["cards"] = 0 if use_lightweight_cache else CardButton.warm_texture_cache(data.card_ids)
 
 	_report_progress(progress_callback, "boot.caching_card_picker", 0.78)
 	await _next_frame()
-	data.summary["card_picker_icons"] = CardIconPicker.warm_button_icon_cache(data.card_ids)
-	data.summary["card_picker_popup_icons"] = CardIconPicker.get_cached_popup_icon_count()
+	data.summary["card_picker_icons"] = 0 if use_lightweight_cache else CardIconPicker.warm_button_icon_cache(data.card_ids)
+	data.summary["card_picker_popup_icons"] = 0 if use_lightweight_cache else CardIconPicker.get_cached_popup_icon_count()
 
 	_report_progress(progress_callback, "boot.caching_relics", 0.84)
 	await _next_frame()
-	data.summary["relics"] = RelicIcon.warm_texture_cache(data.relic_ids)
+	data.summary["relics"] = 0 if use_lightweight_cache else RelicIcon.warm_texture_cache(data.relic_ids)
 
 	_report_progress(progress_callback, "boot.caching_units", 0.90)
 	await _next_frame()
-	var unit_counts: Dictionary = UnitPanel.warm_visual_cache(data.portrait_ids, data.status_ids)
+	var unit_counts: Dictionary = {} if use_lightweight_cache else UnitPanel.warm_visual_cache(data.portrait_ids, data.status_ids)
 	data.summary["portraits"] = int(unit_counts.get("portraits", 0))
 	data.summary["status_icons"] = int(unit_counts.get("statuses", 0))
 

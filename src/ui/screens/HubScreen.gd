@@ -53,14 +53,22 @@ func _ready() -> void:
 	)
 	root.add_child(arena_button)
 
-	var lan_button: Button = Button.new()
-	lan_button.name = "LanMultiplayerButton"
-	lan_button.text = Localization.get_text("hub.lan_multiplayer", "LAN Multiplayer")
-	lan_button.pressed.connect(func() -> void:
-		Game.current_screen_hint = "lan"
-		SceneRouter.go_to_lan_lobby()
-	)
-	root.add_child(lan_button)
+	if Game.supports_lan_multiplayer():
+		var lan_button: Button = Button.new()
+		lan_button.name = "LanMultiplayerButton"
+		lan_button.text = Localization.get_text("hub.lan_multiplayer", "LAN Multiplayer")
+		lan_button.pressed.connect(func() -> void:
+			Game.current_screen_hint = "lan"
+			SceneRouter.go_to_lan_lobby()
+		)
+		root.add_child(lan_button)
+	else:
+		var web_network_notice: Label = Label.new()
+		web_network_notice.name = "WebNetworkNotice"
+		web_network_notice.text = Localization.get_text("hub.web_network_notice", "LAN multiplayer is not available in the browser edition.")
+		web_network_notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		web_network_notice.add_theme_color_override("font_color", Color(0.62, 0.72, 0.80, 1.0))
+		root.add_child(web_network_notice)
 
 	if Game.ONLINE_MULTIPLAYER_ENABLED:
 		var online_button: Button = Button.new()

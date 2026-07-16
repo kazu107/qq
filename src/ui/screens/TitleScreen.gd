@@ -27,7 +27,12 @@ func _ready() -> void:
 	root.add_child(title)
 
 	_status_label = Label.new()
-	_status_label.text = Localization.get_text("title.subtitle", "Spec-driven MVP build")
+	if Game.is_web_build():
+		_status_label.text = Localization.get_text("title.web_subtitle", "Browser edition | Save data is stored in this browser")
+		if not Game.is_user_storage_persistent():
+			_status_label.text += "\n" + Localization.get_text("title.web_storage_warning", "Save data may not persist in this browser session.")
+	else:
+		_status_label.text = Localization.get_text("title.subtitle", "Spec-driven MVP build")
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_status_label)
 
@@ -60,12 +65,13 @@ func _ready() -> void:
 	)
 	buttons.add_child(settings_button)
 
-	var quit_button := Button.new()
-	quit_button.text = Localization.get_text("title.quit", "Quit")
-	quit_button.pressed.connect(func() -> void:
-		get_tree().quit()
-	)
-	buttons.add_child(quit_button)
+	if not Game.is_web_build():
+		var quit_button := Button.new()
+		quit_button.text = Localization.get_text("title.quit", "Quit")
+		quit_button.pressed.connect(func() -> void:
+			get_tree().quit()
+		)
+		buttons.add_child(quit_button)
 
 	_refresh_buttons()
 

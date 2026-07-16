@@ -13,3 +13,5 @@ __pycache__/
 /addons/gd-eos/bin/windows/EOSSDK-Win64-Shipping.dll
 /addons/gd-eos/bin/windows/x64/xaudio2_9redist.dll
 /tools/.local/
+/build/*
+!/build/.gdignore

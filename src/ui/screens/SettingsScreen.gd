@@ -148,6 +148,7 @@ func _build_ui() -> void:
 
 	var resolution_row: HBoxContainer = HBoxContainer.new()
 	resolution_row.add_theme_constant_override("separation", 12)
+	resolution_row.visible = not Game.is_web_build()
 	root.add_child(resolution_row)
 
 	var resolution_label: Label = Label.new()
