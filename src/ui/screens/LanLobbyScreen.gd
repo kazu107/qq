@@ -9,6 +9,8 @@ var _name_edit: LineEdit
 var _address_edit: LineEdit
 var _port_spin: SpinBox
 var _room_code_edit: LineEdit
+var _create_target_wins_spin: SpinBox
+var _lobby_target_wins_spin: SpinBox
 var _automatic_upnp_check: CheckButton
 var _host_button: Button
 var _join_button: Button
@@ -18,6 +20,7 @@ var _status_label: Label
 var _connection_panel: PanelContainer
 var _lobby_panel: PanelContainer
 var _invite_label: Label
+var _ready_count_label: Label
 var _players_box: VBoxContainer
 var _starter_option: OptionButton
 var _starter_ids: Array[String] = []
@@ -30,6 +33,7 @@ var _discovered_entries: Array[Dictionary] = []
 var _developer_panel: DeveloperPanel
 var _opening_battle: bool = false
 var _connection_busy: bool = false
+var _refreshing_rules: bool = false
 
 
 func _ready() -> void:
@@ -43,6 +47,8 @@ func _ready() -> void:
 	_automatic_upnp_check.button_pressed = false
 	_status_label.text = Localization.get_text("online.status.offline", "Create a room or join with a private room code.")
 	_refresh_all()
+	if not NetworkManager.is_session_connected():
+		NetworkManager.start_online_room_directory()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
 	if NetworkManager.is_lan_arena_session_active():
@@ -53,7 +59,8 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	pass
+	if not NetworkManager.is_session_connected():
+		NetworkManager.stop_online_room_directory()
 
 
 func _build_ui() -> void:
@@ -158,6 +165,12 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 	room_code_row.visible = online_mode
 	box.add_child(room_code_row)
 
+	_create_target_wins_spin = _create_target_wins_control("OnlineTargetWinsSpin")
+	box.add_child(_labeled_control(
+		Localization.get_text("online.target_wins", "First to wins"),
+		_create_target_wins_spin
+	))
+
 	_automatic_upnp_check = CheckButton.new()
 	_automatic_upnp_check.name = "OnlineAutomaticUpnpCheck"
 	_automatic_upnp_check.text = Localization.get_text("online.automatic_upnp", "Open UDP port automatically (UPnP)")
@@ -192,8 +205,11 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 	_join_button.pressed.connect(_on_join_pressed)
 	box.add_child(_join_button)
 
-	var discovered_title: Label = _make_section_title(Localization.get_text("lan.discovered", "DISCOVERED ON LAN"))
-	discovered_title.visible = not online_mode
+	var discovered_title: Label = _make_section_title(
+		Localization.get_text("online.rooms", "PUBLIC WEB ROOMS")
+		if online_mode
+		else Localization.get_text("lan.discovered", "DISCOVERED ON LAN")
+	)
 	box.add_child(discovered_title)
 	_discovered_list = ItemList.new()
 	_discovered_list.name = "LanDiscoveredList"
@@ -201,14 +217,18 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 	_discovered_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_discovered_list.item_selected.connect(_on_discovered_selected)
 	_discovered_list.item_activated.connect(_on_discovered_activated)
-	_discovered_list.visible = not online_mode
+	_discovered_list.visible = true
 	box.add_child(_discovered_list)
 
 	_join_discovered_button = Button.new()
 	_join_discovered_button.name = "LanJoinDiscoveredButton"
-	_join_discovered_button.text = Localization.get_text("lan.join_selected", "JOIN SELECTED HOST")
+	_join_discovered_button.text = (
+		Localization.get_text("online.join_selected", "JOIN SELECTED ROOM")
+		if online_mode
+		else Localization.get_text("lan.join_selected", "JOIN SELECTED HOST")
+	)
 	_join_discovered_button.disabled = true
-	_join_discovered_button.visible = not online_mode
+	_join_discovered_button.visible = true
 	_join_discovered_button.pressed.connect(_on_join_discovered_pressed)
 	box.add_child(_join_discovered_button)
 
@@ -219,6 +239,12 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	header.add_theme_constant_override("separation", 10)
 	box.add_child(header)
 	header.add_child(_make_section_title(Localization.get_text("lan.lobby", "LOBBY")))
+
+	_ready_count_label = Label.new()
+	_ready_count_label.name = "OnlineLobbyReadyCount"
+	_ready_count_label.add_theme_font_size_override("font_size", 18)
+	_ready_count_label.add_theme_color_override("font_color", Color(0.45, 0.94, 0.72, 1.0))
+	header.add_child(_ready_count_label)
 
 	_invite_label = Label.new()
 	_invite_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -240,6 +266,13 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 
 	var divider: HSeparator = HSeparator.new()
 	box.add_child(divider)
+
+	_lobby_target_wins_spin = _create_target_wins_control("OnlineLobbyTargetWinsSpin")
+	_lobby_target_wins_spin.value_changed.connect(_on_lobby_target_wins_changed)
+	box.add_child(_labeled_control(
+		Localization.get_text("online.target_wins", "First to wins"),
+		_lobby_target_wins_spin
+	))
 
 	_starter_option = OptionButton.new()
 	_starter_option.name = "LanStarterOption"
@@ -299,6 +332,8 @@ func _connect_network_signals() -> void:
 		NetworkManager.lobby_changed.connect(_on_lobby_changed)
 	if not NetworkManager.discovery_changed.is_connected(_refresh_discovered_hosts):
 		NetworkManager.discovery_changed.connect(_refresh_discovered_hosts)
+	if not NetworkManager.online_rooms_changed.is_connected(_refresh_online_rooms):
+		NetworkManager.online_rooms_changed.connect(_refresh_online_rooms)
 	if not NetworkManager.network_error.is_connected(_on_network_error):
 		NetworkManager.network_error.connect(_on_network_error)
 	if not NetworkManager.match_started.is_connected(_on_match_started):
@@ -318,6 +353,7 @@ func _refresh_all() -> void:
 	_connection_panel.visible = not connected
 	_lobby_panel.visible = connected
 	if not connected:
+		_refresh_online_rooms(NetworkManager.get_online_rooms())
 		if _status_label.text == "":
 			_status_label.text = Localization.get_text("online.status.offline", "Create a room or join with a private room code.")
 		return
@@ -326,6 +362,14 @@ func _refresh_all() -> void:
 	_refresh_player_slots(profiles)
 	_refresh_local_profile_controls()
 	_refresh_online_invite()
+	_ready_count_label.text = Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
+		"ready": NetworkManager.get_lobby_ready_count(),
+		"total": LanProtocol.MAX_PLAYERS,
+	})
+	_refreshing_rules = true
+	_lobby_target_wins_spin.set_value_no_signal(float(NetworkManager.get_online_target_wins()))
+	_lobby_target_wins_spin.editable = NetworkManager.is_host()
+	_refreshing_rules = false
 	_start_button.visible = NetworkManager.is_host()
 	_start_button.disabled = not NetworkManager.can_start_match()
 	_ready_button.disabled = NetworkManager.has_active_match()
@@ -436,6 +480,8 @@ func _refresh_last_result() -> void:
 
 
 func _refresh_discovered_hosts(hosts: Array[Dictionary]) -> void:
+	if online_mode:
+		return
 	_discovered_entries = hosts.duplicate(true)
 	_discovered_list.clear()
 	for host_data in _discovered_entries:
@@ -449,6 +495,36 @@ func _refresh_discovered_hosts(hosts: Array[Dictionary]) -> void:
 	_join_discovered_button.disabled = _discovered_entries.is_empty()
 
 
+func _refresh_online_rooms(rooms: Array[Dictionary]) -> void:
+	if not online_mode:
+		return
+	_discovered_entries = rooms.duplicate(true)
+	_discovered_list.clear()
+	if _discovered_entries.is_empty():
+		_discovered_list.add_item(Localization.get_text("online.rooms.empty", "No compatible rooms are open."))
+		_discovered_list.set_item_disabled(0, true)
+		_join_discovered_button.disabled = true
+		return
+	for room_data in _discovered_entries:
+		var joinable: bool = bool(room_data.get("joinable", false))
+		var room_text: String = Localization.get_textf(
+			"online.room.entry",
+			"{host} | {players}/{max_players} | First to {target} | {code}",
+			{
+				"host": String(room_data.get("hostName", "Web Host")),
+				"players": int(room_data.get("players", 1)),
+				"max_players": int(room_data.get("maxPlayers", LanProtocol.MAX_PLAYERS)),
+				"target": int(room_data.get("targetWins", ArenaService.TARGET_WINS)),
+				"code": String(room_data.get("code", "")),
+			}
+		)
+		if not joinable:
+			room_text += " | %s" % Localization.get_text("online.room.full", "FULL")
+		_discovered_list.add_item(room_text)
+		_discovered_list.set_item_disabled(_discovered_list.item_count - 1, not joinable)
+	_join_discovered_button.disabled = true
+
+
 func _on_host_pressed() -> void:
 	if _connection_busy:
 		return
@@ -460,7 +536,8 @@ func _on_host_pressed() -> void:
 		_default_starter_id(),
 		_room_code_edit.text,
 		int(_port_spin.value),
-		false
+		false,
+		int(_create_target_wins_spin.value)
 	)
 	if hosted:
 		_room_code_edit.text = NetworkManager.get_online_room_code()
@@ -493,12 +570,21 @@ func _on_discovered_selected(index: int) -> void:
 	if index < 0 or index >= _discovered_entries.size():
 		return
 	var host_data: Dictionary = _discovered_entries[index]
+	if online_mode:
+		_room_code_edit.text = String(host_data.get("code", ""))
+		_create_target_wins_spin.set_value_no_signal(float(host_data.get("targetWins", ArenaService.TARGET_WINS)))
+		_join_discovered_button.disabled = not bool(host_data.get("joinable", false))
+		return
 	_address_edit.text = String(host_data.get("address", "127.0.0.1"))
 	_port_spin.value = float(host_data.get("port", LanProtocol.DEFAULT_PORT))
 	_join_discovered_button.disabled = false
 
 
 func _on_discovered_activated(index: int) -> void:
+	if index < 0 or index >= _discovered_entries.size():
+		return
+	if online_mode and not bool(_discovered_entries[index].get("joinable", false)):
+		return
 	_on_discovered_selected(index)
 	_on_join_pressed()
 
@@ -515,6 +601,13 @@ func _on_starter_selected(index: int) -> void:
 	if index < 0 or index >= _starter_ids.size():
 		return
 	NetworkManager.set_local_starter(_starter_ids[index])
+	_refresh_all()
+
+
+func _on_lobby_target_wins_changed(value: float) -> void:
+	if _refreshing_rules or not NetworkManager.is_host():
+		return
+	NetworkManager.set_online_target_wins(int(value))
 	_refresh_all()
 
 
@@ -542,6 +635,8 @@ func _on_back_pressed() -> void:
 func _on_connection_state_changed(_state: int, message: String) -> void:
 	_status_label.text = message
 	_refresh_all()
+	if not NetworkManager.is_session_connected() and NetworkManager.get_connection_state() == NetworkManager.ConnectionState.OFFLINE:
+		call_deferred("_restart_online_directory")
 
 
 func _on_lobby_changed(_snapshot: Dictionary) -> void:
@@ -553,6 +648,7 @@ func _on_network_error(_code: String, message: String) -> void:
 	_status_label.add_theme_color_override("font_color", Color(1.0, 0.44, 0.36, 1.0))
 	AudioManager.play_sfx("ui_error")
 	_refresh_all()
+	call_deferred("_restart_online_directory")
 
 
 func _on_match_started(_payload: Dictionary) -> void:
@@ -584,6 +680,7 @@ func _on_match_finished(_result: Dictionary) -> void:
 func _on_session_ended(_reason: String) -> void:
 	_opening_battle = false
 	_refresh_all()
+	call_deferred("_restart_online_directory")
 
 
 func _save_preferences() -> void:
@@ -627,6 +724,23 @@ func _set_connection_busy(busy: bool) -> void:
 	_host_button.disabled = busy
 	_join_button.disabled = busy
 	_room_code_edit.editable = not busy
+
+
+func _restart_online_directory() -> void:
+	if online_mode and not NetworkManager.is_session_connected():
+		NetworkManager.start_online_room_directory()
+
+
+func _create_target_wins_control(control_name: String) -> SpinBox:
+	var spin: SpinBox = SpinBox.new()
+	spin.name = control_name
+	spin.min_value = NetworkManager.ONLINE_MIN_TARGET_WINS
+	spin.max_value = NetworkManager.ONLINE_MAX_TARGET_WINS
+	spin.step = 1.0
+	spin.value = ArenaService.TARGET_WINS
+	spin.allow_greater = false
+	spin.allow_lesser = false
+	return spin
 
 
 func _default_starter_id() -> String:

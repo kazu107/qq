@@ -60,6 +60,10 @@ func _run() -> void:
 
 
 func _boot_loading_screen_has_progress_ui() -> bool:
+	var boot_source: String = FileAccess.get_file_as_string("res://src/ui/screens/BootScreen.gd")
+	if not boot_source.contains("SceneRouter.go_to_hub()") or boot_source.contains("SceneRouter.go_to_title()"):
+		_fail("Startup cache smoke failed: boot should transition directly to Hub")
+		return false
 	var boot_scene: PackedScene = load("res://scenes/boot/Boot.tscn") as PackedScene
 	if boot_scene == null:
 		_fail("Startup cache smoke failed: boot scene could not be loaded")

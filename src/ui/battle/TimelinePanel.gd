@@ -109,7 +109,9 @@ func refresh_timeline(
 	preview_entry: TimelineEntry = null,
 	preview_card_def: CardDef = null,
 	local_side: String = "player",
-	opponent_run_state: RunState = null
+	opponent_run_state: RunState = null,
+	local_unit: UnitState = null,
+	opponent_unit: UnitState = null
 ) -> void:
 	var sorted_entries: Array[TimelineEntry] = entries.duplicate()
 	sorted_entries.sort_custom(_compare_entries)
@@ -134,18 +136,52 @@ func refresh_timeline(
 			continue
 
 		var entry: TimelineEntry = sorted_entries[index]
-		var card_def: CardDef = _resolve_card_def(entry, run_state, local_side, opponent_run_state)
+		var tooltip_context: Dictionary = _resolve_card_context(
+			entry,
+			run_state,
+			local_side,
+			opponent_run_state,
+			local_unit,
+			opponent_unit
+		)
+		var card_def: CardDef = tooltip_context.get("card") as CardDef
 		if card_def == null:
 			button.visible = false
 			continue
 
 		button.visible = true
-		button.bind_timeline(card_def, entry, battle_time, index == 0, local_side)
+		button.bind_timeline(
+			card_def,
+			entry,
+			battle_time,
+			index == 0,
+			local_side,
+			tooltip_context.get("comparison") as CardDef
+		)
 		_card_layouts.append({
 			"button": button,
 			"remaining": _get_display_remaining(entry, battle_time),
 		})
-	_refresh_preview(preview_entry, preview_card_def, battle_time, local_side)
+	var preview_context: Dictionary = {}
+	if preview_entry != null:
+		preview_context = _resolve_card_context(
+			preview_entry,
+			run_state,
+			local_side,
+			opponent_run_state,
+			local_unit,
+			opponent_unit
+		)
+	var resolved_preview_card: CardDef = preview_context.get("card") as CardDef
+	if resolved_preview_card == null:
+		resolved_preview_card = preview_card_def
+	_refresh_preview(
+		preview_entry,
+		resolved_preview_card,
+		battle_time,
+		local_side,
+		preview_context.get("comparison") as CardDef
+	)
 	_layout_cards()
 
 
@@ -196,7 +232,8 @@ func _refresh_preview(
 	preview_entry: TimelineEntry,
 	preview_card_def: CardDef,
 	battle_time: float,
-	local_side: String
+	local_side: String,
+	comparison_card_def: CardDef = null
 ) -> void:
 	if preview_entry == null or preview_card_def == null:
 		if _preview_button != null:
@@ -211,7 +248,14 @@ func _refresh_preview(
 		_preview_runtime_id = preview_entry.runtime_id
 		_preview_alpha_elapsed = 0.0
 	_preview_button.visible = true
-	_preview_button.bind_timeline(preview_card_def, preview_entry, battle_time, false, local_side)
+	_preview_button.bind_timeline(
+		preview_card_def,
+		preview_entry,
+		battle_time,
+		false,
+		local_side,
+		comparison_card_def
+	)
 	_apply_preview_alpha()
 	_preview_button.set_bleach_enabled(false)
 	_preview_button.z_index = PREVIEW_Z_INDEX
@@ -365,14 +409,16 @@ func _compare_entries(a: TimelineEntry, b: TimelineEntry) -> bool:
 	return a.instance_id < b.instance_id
 
 
-func _resolve_card_def(
+func _resolve_card_context(
 	entry: TimelineEntry,
 	run_state: RunState,
 	local_side: String,
-	opponent_run_state: RunState
-) -> CardDef:
+	opponent_run_state: RunState,
+	local_unit: UnitState,
+	opponent_unit: UnitState
+) -> Dictionary:
 	if entry.owner_side == local_side and run_state != null:
-		return CardUpgradeResolver.build_effective_card(entry.card_id, run_state)
-	if entry.owner_side != local_side and opponent_run_state != null:
-		return CardUpgradeResolver.build_effective_card(entry.card_id, opponent_run_state)
-	return Database.get_card(entry.card_id)
+		return CardTooltipResolver.build_context(entry.card_id, run_state, local_unit)
+	if entry.owner_side != local_side:
+		return CardTooltipResolver.build_context(entry.card_id, opponent_run_state, opponent_unit)
+	return CardTooltipResolver.build_context(entry.card_id, null, local_unit)

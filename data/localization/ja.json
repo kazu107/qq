@@ -31,6 +31,7 @@
   "hub.title": "ハブ",
   "hub.meta_points": "メタポイント: {points}",
   "hub.run_start": "ラン開始",
+  "hub.continue_run": "続きから",
   "hub.infinite_mode": "無限モード",
   "hub.meta_progress": "メタ進行",
   "hub.card_library": "カード図鑑",
@@ -1265,6 +1266,13 @@
   "online.title": "Web対戦",
   "online.room_code": "ルームコード",
   "online.room_code_auto": "空欄なら自動生成",
+  "online.target_wins": "先取勝利数",
+  "online.rooms": "公開Webルーム",
+  "online.rooms.empty": "参加できる同一バージョンの部屋はありません。",
+  "online.join_selected": "選択したルームに参加",
+  "online.room.entry": "{host} | {players}/{max_players} | {target}勝先取 | {code}",
+  "online.room.full": "参加不可",
+  "network.ready_count": "準備完了 {ready}/{total}",
   "online.automatic_upnp": "WebRTCを使用する",
   "online.host": "Webルームを作成",
   "online.host_address": "Webサーバー",
@@ -1283,5 +1291,6 @@
   "online.battle.client": "WEB ゲスト",
   "online.battle.title": "Web対戦",
   "online.battle.ping": "WebRTC | Ping {ping} ms",
+  "online.arena.score": "ラウンド {round} | スコア {wins}-{losses} | {target}勝先取",
   "online.dev.summary": "WebRTC接続とハンドシェイクの確認用操作です。"
 }

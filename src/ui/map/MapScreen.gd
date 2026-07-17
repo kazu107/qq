@@ -17,7 +17,7 @@ var _developer_panel: DeveloperPanel
 
 func _ready() -> void:
 	if Game.current_run == null:
-		SceneRouter.go_to_title()
+		SceneRouter.go_to_hub()
 		return
 	if Game.current_run.run_complete:
 		SceneRouter.go_to_result()
@@ -436,7 +436,8 @@ func _rebuild_loadout_rows() -> void:
 
 	for entry in Game.get_loadout_entries():
 		var card_id: String = String(entry.get("card_id", ""))
-		var card_def: CardDef = CardUpgradeResolver.build_effective_card(card_id, Game.current_run)
+		var tooltip_context: Dictionary = CardTooltipResolver.build_context(card_id, Game.current_run)
+		var card_def: CardDef = tooltip_context.get("card") as CardDef
 		if card_def == null:
 			continue
 
@@ -455,7 +456,13 @@ func _rebuild_loadout_rows() -> void:
 		var preview: CardButton = CardButton.new()
 		preview.name = "LoadoutPreview_%s" % card_id
 		preview.set_tile_size(LOADOUT_PREVIEW_SIZE)
-		preview.bind_preview(card_def, card_id, false, "LOAD")
+		preview.bind_preview(
+			card_def,
+			card_id,
+			false,
+			"LOAD",
+			tooltip_context.get("comparison") as CardDef
+		)
 		row.add_child(preview)
 
 		var info_box: VBoxContainer = VBoxContainer.new()

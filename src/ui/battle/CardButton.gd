@@ -53,6 +53,7 @@ var _simple_tooltip_text: String = ""
 var _simple_tooltip_bbcode: String = ""
 var _legacy_tooltip_text: String = ""
 var _legacy_tooltip_bbcode: String = ""
+var _comparison_card_override: CardDef
 
 var _art_rect: TextureRect
 var _bleach_overlay: ColorRect
@@ -88,8 +89,16 @@ func set_bleach_enabled(enabled: bool, amount: float = BLEACH_COLOR.a) -> void:
 		move_child(_bleach_overlay, get_child_count() - 1)
 
 
-func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, click_enabled: bool = true, blocked_reason: String = "") -> void:
+func bind(
+	card_def: CardDef,
+	runtime_state: CardRuntimeState,
+	can_use: bool,
+	click_enabled: bool = true,
+	blocked_reason: String = "",
+	comparison_card_def: CardDef = null
+) -> void:
 	_ensure_visuals()
+	_comparison_card_override = comparison_card_def
 	runtime_id = runtime_state.runtime_id
 	_click_enabled = click_enabled
 	_can_use = can_use and click_enabled
@@ -151,8 +160,15 @@ func bind(card_def: CardDef, runtime_state: CardRuntimeState, can_use: bool, cli
 	)
 
 
-func bind_preview(card_def: CardDef, preview_id: String, click_enabled: bool = false, badge_text: String = "CARD") -> void:
+func bind_preview(
+	card_def: CardDef,
+	preview_id: String,
+	click_enabled: bool = false,
+	badge_text: String = "CARD",
+	comparison_card_def: CardDef = null
+) -> void:
 	_ensure_visuals()
+	_comparison_card_override = comparison_card_def
 	runtime_id = preview_id
 	_click_enabled = click_enabled
 	_can_use = click_enabled
@@ -179,8 +195,9 @@ func bind_preview(card_def: CardDef, preview_id: String, click_enabled: bool = f
 	)
 
 
-func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: float) -> void:
+func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: float, comparison_card_def: CardDef = null) -> void:
 	_ensure_visuals()
+	_comparison_card_override = comparison_card_def
 	runtime_id = instance.runtime_id
 	_click_enabled = false
 	_can_use = false
@@ -214,9 +231,11 @@ func bind_timeline(
 	entry: TimelineEntry,
 	battle_time: float,
 	is_next: bool = false,
-	friendly_side: String = "player"
+	friendly_side: String = "player",
+	comparison_card_def: CardDef = null
 ) -> void:
 	_ensure_visuals()
+	_comparison_card_override = comparison_card_def
 	runtime_id = entry.runtime_id
 	_click_enabled = false
 	_can_use = false
@@ -739,6 +758,8 @@ func _apply_stored_tooltip_mode() -> void:
 func _get_comparison_card(card_def: CardDef) -> CardDef:
 	if card_def == null:
 		return null
+	if _comparison_card_override != null and _comparison_card_override.id == card_def.id:
+		return _comparison_card_override
 	return Database.get_card(card_def.id)
 
 

@@ -105,6 +105,48 @@ test("host and guest receive stable peer ids and relay signaling", async () => {
   await stop(app, [host, guest]);
 });
 
+test("room directory tracks compatible rooms, player counts, and host rules", async () => {
+  const app = await startServer();
+  const directory = await connect(app.port);
+  const host = await connect(app.port);
+  const guest = await connect(app.port);
+  send(directory, { type: "list_rooms", protocolVersion: 5, contentHash: BUILD_HASH });
+  assert.deepEqual(await receive(directory), { type: "room_list", rooms: [] });
+
+  const createdList = receive(directory);
+  send(host, {
+    type: "host",
+    room: "LIST42",
+    name: "Arena Host",
+    targetWins: 7,
+    protocolVersion: 5,
+    contentHash: BUILD_HASH,
+  });
+  await receive(host);
+  assert.deepEqual((await createdList).rooms, [{
+    code: "LIST42",
+    hostName: "Arena Host",
+    players: 1,
+    maxPlayers: 2,
+    targetWins: 7,
+    joinable: true,
+  }]);
+
+  const updatedRules = receive(directory);
+  send(host, { type: "update_room", targetWins: 4 });
+  assert.equal((await updatedRules).rooms[0].targetWins, 4);
+
+  const joinedList = receive(directory);
+  const hostPeerJoined = receive(host);
+  send(guest, { type: "join", room: "LIST42", protocolVersion: 5, contentHash: BUILD_HASH });
+  await receive(guest);
+  await hostPeerJoined;
+  const joinedRoom = (await joinedList).rooms[0];
+  assert.equal(joinedRoom.players, 2);
+  assert.equal(joinedRoom.joinable, false);
+  await stop(app, [directory, host, guest]);
+});
+
 test("room validation rejects missing, mismatched, and full rooms", async () => {
   const app = await startServer();
   const host = await connect(app.port);

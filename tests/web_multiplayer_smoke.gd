@@ -53,6 +53,35 @@ func _run() -> void:
 	if room_code_edit == null or room_code_edit.max_length != LanProtocol.ONLINE_ROOM_CODE_LENGTH:
 		_fail("Web room code input length is inconsistent with the signaling server")
 		return
+	var room_list: ItemList = web_lobby.find_child("LanDiscoveredList", true, false) as ItemList
+	var create_target: SpinBox = web_lobby.find_child("OnlineTargetWinsSpin", true, false) as SpinBox
+	var lobby_target: SpinBox = web_lobby.find_child("OnlineLobbyTargetWinsSpin", true, false) as SpinBox
+	var ready_count: Label = web_lobby.find_child("OnlineLobbyReadyCount", true, false) as Label
+	if room_list == null or not room_list.visible:
+		_fail("Compatible Web rooms are not exposed in the online lobby")
+		return
+	if (
+		create_target == null
+		or lobby_target == null
+		or int(create_target.min_value) != NetworkManager.ONLINE_MIN_TARGET_WINS
+		or int(create_target.max_value) != NetworkManager.ONLINE_MAX_TARGET_WINS
+	):
+		_fail("First-to-X room controls are missing or invalid")
+		return
+	if ready_count == null:
+		_fail("Lobby readiness count is missing")
+		return
+	if (
+		not network_source.contains('"target_wins": _online_target_wins')
+		or not network_source.contains("player_run.arena_target_wins = _online_target_wins")
+		or not network_source.contains("player_run.arena_max_losses = _online_target_wins + 1")
+	):
+		_fail("Online first-to-X rules are not synchronized into arena runs")
+		return
+	var boot_source: String = FileAccess.get_file_as_string("res://src/ui/screens/BootScreen.gd")
+	if not boot_source.contains("SceneRouter.go_to_hub()") or boot_source.contains("SceneRouter.go_to_title()"):
+		_fail("Boot flow does not start directly at the Hub")
+		return
 
 	hub.queue_free()
 	web_lobby.queue_free()

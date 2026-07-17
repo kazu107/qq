@@ -8,6 +8,9 @@ const { WebSocketServer, WebSocket } = require("ws");
 const MAX_SIGNAL_BYTES = 64 * 1024;
 const ROOM_CODE_PATTERN = /^[A-Z0-9]{6}$/;
 const SIGNAL_TYPES = new Set(["offer", "answer", "candidate"]);
+const MIN_TARGET_WINS = 1;
+const MAX_TARGET_WINS = 20;
+const DEFAULT_TARGET_WINS = 12;
 const MIME_TYPES = new Map([
   [".html", "text/html; charset=utf-8"],
   [".js", "text/javascript; charset=utf-8"],
@@ -114,6 +117,34 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
   const client = clients.get(socket);
   if (!client) return;
 
+  if (type === "list_rooms") {
+    const protocolVersion = Number(message.protocolVersion);
+    const contentHash = String(message.contentHash || "");
+    if (!Number.isInteger(protocolVersion) || contentHash.length !== 64) {
+      sendError(socket, "invalid_directory_request", "The room directory build identity is invalid.");
+      return;
+    }
+    Object.assign(client, { role: "directory", protocolVersion, contentHash });
+    sendRoomList(socket, rooms, client);
+    return;
+  }
+
+  if (type === "update_room") {
+    if (client.role !== "host" || !client.room) {
+      sendError(socket, "host_only", "Only the room host can update room settings.");
+      return;
+    }
+    const room = rooms.get(client.room);
+    const targetWins = sanitizeTargetWins(message.targetWins);
+    if (!room || targetWins === null) {
+      sendError(socket, "invalid_room_settings", "The room settings are invalid.");
+      return;
+    }
+    room.targetWins = targetWins;
+    broadcastRoomLists(rooms, clients);
+    return;
+  }
+
   if (type === "host" || type === "join") {
     if (client.room) {
       sendError(socket, "already_joined", "This connection already belongs to a room.");
@@ -135,11 +166,14 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
         code: roomCode,
         protocolVersion,
         contentHash,
+        hostName: sanitizeDisplayName(message.name),
+        targetWins: sanitizeTargetWins(message.targetWins) ?? DEFAULT_TARGET_WINS,
         peers: new Map([[1, socket]]),
       };
       rooms.set(roomCode, room);
       Object.assign(client, { room: roomCode, id: 1, role: "host" });
       send(socket, { type: "assigned", id: 1, role: "host", room: roomCode, peers: [], iceServers });
+      broadcastRoomLists(rooms, clients);
       return;
     }
     const room = rooms.get(roomCode);
@@ -161,6 +195,7 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
     Object.assign(client, { room: roomCode, id: guestId, role: "guest" });
     send(socket, { type: "assigned", id: guestId, role: "guest", room: roomCode, peers: [1], iceServers });
     send(hostSocket, { type: "peer_joined", id: guestId });
+    broadcastRoomLists(rooms, clients);
     return;
   }
 
@@ -210,10 +245,50 @@ function removeClient(socket, rooms, clients) {
       peerSocket.close(1001, "host_left");
     }
     rooms.delete(client.room);
+    broadcastRoomLists(rooms, clients);
     return;
   }
   const hostSocket = room.peers.get(1);
   send(hostSocket, { type: "peer_left", id: client.id });
+  broadcastRoomLists(rooms, clients);
+}
+
+function sanitizeDisplayName(value) {
+  const name = String(value || "").trim().slice(0, 24);
+  return name || "Web Host";
+}
+
+function sanitizeTargetWins(value) {
+  const targetWins = Number(value);
+  if (!Number.isInteger(targetWins) || targetWins < MIN_TARGET_WINS || targetWins > MAX_TARGET_WINS) return null;
+  return targetWins;
+}
+
+function buildRoomList(rooms, client) {
+  const entries = [];
+  for (const room of rooms.values()) {
+    if (room.protocolVersion !== client.protocolVersion || room.contentHash !== client.contentHash) continue;
+    entries.push({
+      code: room.code,
+      hostName: room.hostName,
+      players: room.peers.size,
+      maxPlayers: 2,
+      targetWins: room.targetWins,
+      joinable: room.peers.size < 2,
+    });
+  }
+  entries.sort((left, right) => left.code.localeCompare(right.code));
+  return entries;
+}
+
+function sendRoomList(socket, rooms, client) {
+  send(socket, { type: "room_list", rooms: buildRoomList(rooms, client) });
+}
+
+function broadcastRoomLists(rooms, clients) {
+  for (const [socket, client] of clients.entries()) {
+    if (client.role === "directory") sendRoomList(socket, rooms, client);
+  }
 }
 
 function serveStatic(publicDir, request, response) {

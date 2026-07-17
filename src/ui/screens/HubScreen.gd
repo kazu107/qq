@@ -38,6 +38,18 @@ func _ready() -> void:
 	})
 	root.add_child(_info_label)
 
+	if (
+		Game.current_run != null
+		and not Game.current_run.run_complete
+		and Game.current_screen_hint != "hub"
+		and Game.current_screen_hint != "title"
+	):
+		var continue_button: Button = Button.new()
+		continue_button.name = "ContinueRunButton"
+		continue_button.text = Localization.get_text("hub.continue_run", "Continue Run")
+		continue_button.pressed.connect(SceneRouter.go_to_continue_target)
+		root.add_child(continue_button)
+
 	var start_button: Button = Button.new()
 	start_button.text = Localization.get_text("hub.run_start", "Run Start")
 	start_button.pressed.connect(func() -> void:

@@ -4,6 +4,7 @@ class_name WebRtcSignalingClient
 signal transport_ready(peer: WebRTCMultiplayerPeer, is_host: bool, room_code: String)
 signal status_changed(message: String)
 signal failed(code: String, message: String)
+signal room_list_changed(rooms: Array[Dictionary])
 
 const DEFAULT_LOCAL_SIGNALING_URL: String = "ws://127.0.0.1:8060/signal"
 const MAX_SIGNAL_PACKET_BYTES: int = 65536
@@ -19,14 +20,40 @@ var _join_sent: bool = false
 var _transport_announced: bool = false
 var _closing: bool = false
 var _last_socket_state: int = WebSocketPeer.STATE_CLOSED
+var _host_name: String = ""
+var _target_wins: int = ArenaService.TARGET_WINS
 
 
-func start_host(room_code: String, protocol_version: int, content_hash: String) -> Error:
-	return _start("host", room_code, protocol_version, content_hash)
+func start_host(
+	room_code: String,
+	protocol_version: int,
+	content_hash: String,
+	host_name: String = "",
+	target_wins: int = ArenaService.TARGET_WINS
+) -> Error:
+	var start_error: Error = _start("host", room_code, protocol_version, content_hash)
+	if start_error == OK:
+		_host_name = host_name.strip_edges()
+		_target_wins = target_wins
+	return start_error
 
 
 func start_join(room_code: String, protocol_version: int, content_hash: String) -> Error:
 	return _start("join", room_code, protocol_version, content_hash)
+
+
+func start_directory(protocol_version: int, content_hash: String) -> Error:
+	return _start("directory", "", protocol_version, content_hash)
+
+
+func update_room(target_wins: int) -> void:
+	if _role != "host":
+		return
+	_target_wins = target_wins
+	_send({
+		"type": "update_room",
+		"targetWins": target_wins,
+	})
 
 
 func poll() -> void:
@@ -72,6 +99,8 @@ func close() -> void:
 	_signaling_url = ""
 	_join_sent = false
 	_transport_announced = false
+	_host_name = ""
+	_target_wins = ArenaService.TARGET_WINS
 	_last_socket_state = WebSocketPeer.STATE_CLOSED
 	_closing = false
 
@@ -103,7 +132,7 @@ func _start(role: String, room_code: String, protocol_version: int, content_hash
 		return ERR_UNAVAILABLE
 	_role = role
 	_room_code = LanProtocol.sanitize_online_room_code(room_code)
-	if _room_code == "":
+	if _role != "directory" and _room_code == "":
 		_fail("invalid_room_code", "Enter a valid room code.")
 		return ERR_INVALID_PARAMETER
 	_signaling_url = resolve_signaling_url()
@@ -126,18 +155,26 @@ func _send_join_request() -> void:
 	if _join_sent or _socket == null:
 		return
 	_join_sent = true
-	_send({
-		"type": _role,
-		"room": _room_code,
+	var request: Dictionary = {
+		"type": "list_rooms" if _role == "directory" else _role,
 		"protocolVersion": int(_socket.get_meta("protocol_version", -1)),
 		"contentHash": String(_socket.get_meta("content_hash", "")),
-	})
-	status_changed.emit("Creating room..." if _role == "host" else "Joining room...")
+	}
+	if _role != "directory":
+		request["room"] = _room_code
+	if _role == "host":
+		request["name"] = _host_name
+		request["targetWins"] = _target_wins
+	_send(request)
+	if _role != "directory":
+		status_changed.emit("Creating room..." if _role == "host" else "Joining room...")
 
 
 func _handle_message(message: Dictionary) -> void:
 	var message_type: String = String(message.get("type", ""))
 	match message_type:
+		"room_list":
+			room_list_changed.emit(_dictionary_array(message.get("rooms", [])))
 		"assigned":
 			_handle_assigned(message)
 		"peer_joined":
@@ -295,6 +332,9 @@ func _send(payload: Dictionary) -> void:
 
 
 func _handle_unexpected_close() -> void:
+	if _role == "directory":
+		room_list_changed.emit([])
+		return
 	if _transport_announced:
 		status_changed.emit("The signaling channel closed; the current peer connection remains active.")
 		return

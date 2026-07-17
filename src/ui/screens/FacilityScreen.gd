@@ -23,7 +23,7 @@ var _developer_panel: DeveloperPanel
 
 func _ready() -> void:
 	if Game.current_run == null:
-		SceneRouter.go_to_title()
+		SceneRouter.go_to_hub()
 		return
 	if Game.get_active_facility_type() == "":
 		SceneRouter.go_to_map()

@@ -17,6 +17,7 @@ signal arena_session_finished(result: Dictionary)
 signal battle_start_state_changed(state: Dictionary)
 signal battle_countdown_finished()
 signal online_host_status_changed(status: Dictionary)
+signal online_rooms_changed(rooms: Array[Dictionary])
 
 enum ConnectionState {
 	OFFLINE,
@@ -37,6 +38,8 @@ const BATTLE_COUNTDOWN_SECONDS: float = 3.0
 const SESSION_SCOPE_LAN: String = "lan"
 const SESSION_SCOPE_ONLINE: String = "online"
 const ONLINE_UPNP_DESCRIPTION: String = "qq Online Arena"
+const ONLINE_MIN_TARGET_WINS: int = 1
+const ONLINE_MAX_TARGET_WINS: int = 20
 
 var _state: int = ConnectionState.OFFLINE
 var _peer: MultiplayerPeer
@@ -93,6 +96,9 @@ var _upnp_operation: String = ""
 var _upnp_port: int = 0
 var _upnp_cancel_requested: bool = false
 var _web_signaling: WebRtcSignalingClient = WebRtcSignalingClient.new()
+var _web_directory: WebRtcSignalingClient = WebRtcSignalingClient.new()
+var _online_rooms: Array[Dictionary] = []
+var _online_target_wins: int = ArenaService.TARGET_WINS
 var _web_failure_pending: bool = false
 
 
@@ -113,6 +119,10 @@ func _ready() -> void:
 		_web_signaling.status_changed.connect(_on_web_signaling_status_changed)
 	if not _web_signaling.failed.is_connected(_on_web_signaling_failed):
 		_web_signaling.failed.connect(_on_web_signaling_failed)
+	if not _web_directory.room_list_changed.is_connected(_on_online_room_list_changed):
+		_web_directory.room_list_changed.connect(_on_online_room_list_changed)
+	if not _web_directory.failed.is_connected(_on_online_directory_failed):
+		_web_directory.failed.connect(_on_online_directory_failed)
 
 
 func _notification(what: int) -> void:
@@ -134,6 +144,7 @@ func _notification(what: int) -> void:
 
 func _process(delta: float) -> void:
 	_web_signaling.poll()
+	_web_directory.poll()
 	_process_discovery(delta)
 	_process_ping(delta)
 	_process_reconnect()
@@ -175,10 +186,13 @@ func host_online_lobby(
 	starter_id: String,
 	room_code: String,
 	_port: int = LanProtocol.DEFAULT_PORT,
-	_automatic_port_mapping: bool = true
+	_automatic_port_mapping: bool = true,
+	target_wins: int = ArenaService.TARGET_WINS
 ) -> bool:
+	stop_online_room_directory()
 	_clear_session(false)
 	_session_scope = SESSION_SCOPE_ONLINE
+	_online_target_wins = clampi(target_wins, ONLINE_MIN_TARGET_WINS, ONLINE_MAX_TARGET_WINS)
 	_last_match_result.clear()
 	configure_local_player(player_name, starter_id)
 	_online_room_code = LanProtocol.sanitize_online_room_code(room_code)
@@ -188,7 +202,9 @@ func host_online_lobby(
 	var start_error: Error = _web_signaling.start_host(
 		_online_room_code,
 		LanProtocol.PROTOCOL_VERSION,
-		LanProtocol.build_content_hash()
+		LanProtocol.build_content_hash(),
+		String(_local_profile.get("name", player_name)),
+		_online_target_wins
 	)
 	if start_error != OK:
 		_set_state(ConnectionState.OFFLINE, "Web multiplayer is unavailable")
@@ -221,6 +237,7 @@ func join_online_lobby(
 	room_code: String,
 	_port: int = LanProtocol.DEFAULT_PORT
 ) -> bool:
+	stop_online_room_directory()
 	_clear_session(false)
 	_session_scope = SESSION_SCOPE_ONLINE
 	_last_match_result.clear()
@@ -239,6 +256,38 @@ func join_online_lobby(
 		_set_state(ConnectionState.OFFLINE, "Web multiplayer is unavailable")
 		return false
 	_set_state(ConnectionState.CONNECTING, "Connecting to the Web multiplayer room")
+	return true
+
+
+func start_online_room_directory() -> bool:
+	if not OS.has_feature("web") or is_session_connected():
+		return false
+	if _web_directory.start_directory(LanProtocol.PROTOCOL_VERSION, LanProtocol.build_content_hash()) != OK:
+		return false
+	return true
+
+
+func stop_online_room_directory() -> void:
+	_web_directory.close()
+
+
+func get_online_rooms() -> Array[Dictionary]:
+	return _to_dictionary_array(_online_rooms)
+
+
+func get_online_target_wins() -> int:
+	return _online_target_wins
+
+
+func set_online_target_wins(value: int) -> bool:
+	if not _is_host or _session_scope != SESSION_SCOPE_ONLINE or _match_active or _arena_session_active:
+		return false
+	var target_wins: int = clampi(value, ONLINE_MIN_TARGET_WINS, ONLINE_MAX_TARGET_WINS)
+	if target_wins == _online_target_wins:
+		return true
+	_online_target_wins = target_wins
+	_web_signaling.update_room(target_wins)
+	_broadcast_lobby_state()
 	return true
 
 
@@ -293,6 +342,22 @@ func is_local_ready() -> bool:
 	return bool(_local_profile.get("ready", false))
 
 
+func get_lobby_ready_count() -> int:
+	var ready_count: int = 0
+	for raw_player in Array(_public_lobby_snapshot.get("players", [])):
+		if bool(Dictionary(raw_player).get("ready", false)):
+			ready_count += 1
+	return ready_count
+
+
+func get_arena_ready_count() -> int:
+	return int(bool(_arena_ready_by_side.get("player", false))) + int(bool(_arena_ready_by_side.get("enemy", false)))
+
+
+func get_battle_ready_count() -> int:
+	return int(bool(_battle_ready_by_side.get("player", false))) + int(bool(_battle_ready_by_side.get("enemy", false)))
+
+
 func can_start_match() -> bool:
 	if not _is_host or _match_active or _arena_session_active or _profiles_by_peer.size() != LanProtocol.MAX_PLAYERS:
 		return false
@@ -320,6 +385,11 @@ func start_lan_arena_preparation() -> bool:
 	var enemy_run: RunState = _arena_coordinator.create_run(guest_profile, base_seed + 7919)
 	if player_run == null or enemy_run == null:
 		return false
+	if _session_scope == SESSION_SCOPE_ONLINE:
+		player_run.arena_target_wins = _online_target_wins
+		enemy_run.arena_target_wins = _online_target_wins
+		player_run.arena_max_losses = _online_target_wins + 1
+		enemy_run.arena_max_losses = _online_target_wins + 1
 	_arena_runs_by_side = {
 		"player": player_run,
 		"enemy": enemy_run,
@@ -798,6 +868,16 @@ func _on_web_signaling_failed(code: String, message: String) -> void:
 	call_deferred("_finalize_web_signaling_failure", code, message)
 
 
+func _on_online_room_list_changed(rooms: Array[Dictionary]) -> void:
+	_online_rooms = _to_dictionary_array(rooms)
+	online_rooms_changed.emit(get_online_rooms())
+
+
+func _on_online_directory_failed(_code: String, _message: String) -> void:
+	_online_rooms.clear()
+	online_rooms_changed.emit([])
+
+
 func _finalize_web_signaling_failure(code: String, message: String) -> void:
 	if not _web_failure_pending:
 		return
@@ -898,6 +978,12 @@ func _submit_profile_rpc(raw_profile: Dictionary, room_proof: String = "") -> vo
 @rpc("authority", "call_remote", "reliable", 0)
 func _receive_lobby_state_rpc(snapshot: Dictionary) -> void:
 	_public_lobby_snapshot = snapshot.duplicate(true)
+	if String(snapshot.get("session_scope", "")) == SESSION_SCOPE_ONLINE:
+		_online_target_wins = clampi(
+			int(snapshot.get("target_wins", ArenaService.TARGET_WINS)),
+			ONLINE_MIN_TARGET_WINS,
+			ONLINE_MAX_TARGET_WINS
+		)
 	var local_peer_id: int = multiplayer.get_unique_id()
 	for raw_player in Array(snapshot.get("players", [])):
 		var player_data: Dictionary = Dictionary(raw_player)
@@ -1420,6 +1506,7 @@ func _broadcast_lobby_state() -> void:
 		"can_start": can_start_match(),
 		"match_active": _match_active,
 		"arena_active": _arena_session_active,
+		"target_wins": _online_target_wins,
 	}
 	_receive_lobby_state_rpc.rpc(_public_lobby_snapshot)
 	lobby_changed.emit(_public_lobby_snapshot.duplicate(true))
@@ -1635,6 +1722,7 @@ func _clear_session(clear_profile: bool) -> void:
 	_online_room_code = ""
 	_online_room_proof = ""
 	_online_host_status.clear()
+	_online_target_wins = ArenaService.TARGET_WINS
 	if clear_profile:
 		_local_profile.clear()
 	_set_state(ConnectionState.OFFLINE, "Offline")

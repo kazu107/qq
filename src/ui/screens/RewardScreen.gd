@@ -13,7 +13,7 @@ var _developer_panel: DeveloperPanel
 
 func _ready() -> void:
 	if Game.current_run == null:
-		SceneRouter.go_to_title()
+		SceneRouter.go_to_hub()
 		return
 	if Game.reward_options.is_empty():
 		if Game.current_run.run_complete:

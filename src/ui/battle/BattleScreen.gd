@@ -20,6 +20,7 @@ var _log_button: Button
 var _log_popup: PanelContainer
 var _log_panel: LogPanel
 var _start_battle_button: Button
+var _battle_ready_count_label: Label
 var _reserved_seat_toggle: CheckButton
 var _countdown_label: Label
 var _battle_info_label: RichTextLabel
@@ -56,7 +57,7 @@ func _ready() -> void:
 			_build_developer_panel()
 		return
 	if Game.current_run == null:
-		SceneRouter.go_to_title()
+		SceneRouter.go_to_hub()
 		return
 
 	var enemy_id: String = Game.prepare_next_battle()
@@ -352,15 +353,23 @@ func _build_ui() -> void:
 
 	var center_panel := _create_section(main_split, Localization.get_text("battle.section.battle", "Battle"), false, false)
 	center_panel.name = "BattleInfoSection"
-	center_panel.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH, 0.0)
+	_set_section_min_width(center_panel, BATTLE_INFO_MIN_WIDTH)
 	_start_battle_button = Button.new()
 	_start_battle_button.name = "BattleStartButton"
 	_start_battle_button.text = Localization.get_text("battle.start_button", "START")
 	_start_battle_button.tooltip_text = Localization.get_text("battle.start_button_tooltip", "Start battle without committing a card")
-	_start_battle_button.custom_minimum_size = Vector2(150.0, 34.0)
+	_start_battle_button.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH - 20.0, 38.0)
 	_start_battle_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_start_battle_button.clip_text = true
 	_start_battle_button.pressed.connect(_on_start_battle_pressed)
 	center_panel.add_child(_start_battle_button)
+	_battle_ready_count_label = Label.new()
+	_battle_ready_count_label.name = "BattleReadyCountLabel"
+	_battle_ready_count_label.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH, 24.0)
+	_battle_ready_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_battle_ready_count_label.add_theme_color_override("font_color", Color(0.42, 0.95, 0.70, 1.0))
+	_battle_ready_count_label.visible = false
+	center_panel.add_child(_battle_ready_count_label)
 	_reserved_seat_toggle = CheckButton.new()
 	_reserved_seat_toggle.name = "ReservedSeatToggle"
 	_reserved_seat_toggle.text = Localization.get_text("battle.relic.reserved_seat_toggle", "Reserve last slot for interrupts")
@@ -373,6 +382,7 @@ func _build_ui() -> void:
 	_countdown_label.name = "BattleCountdownLabel"
 	_countdown_label.visible = false
 	_countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_countdown_label.clip_text = true
 	_countdown_label.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH, 54.0)
 	_countdown_label.add_theme_font_size_override("font_size", 38)
 	_countdown_label.add_theme_color_override("font_color", Color(1.0, 0.82, 0.32, 1.0))
@@ -517,6 +527,11 @@ func _refresh_ui(time_scale: float) -> void:
 			_start_battle_button.visible = can_start and not countdown_active
 			_start_battle_button.disabled = not can_start or NetworkManager.is_waiting_for_reconnect()
 			_start_battle_button.text = Localization.get_text("lan.battle.cancel_start", "CANCEL START") if local_ready else Localization.get_text("lan.battle.start_ready", "BATTLE START")
+			_battle_ready_count_label.visible = can_start
+			_battle_ready_count_label.text = Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
+				"ready": NetworkManager.get_battle_ready_count(),
+				"total": LanProtocol.MAX_PLAYERS,
+			})
 			if _countdown_label != null:
 				_countdown_label.visible = can_start
 				if countdown_active:
@@ -530,6 +545,7 @@ func _refresh_ui(time_scale: float) -> void:
 				if countdown_active:
 					_countdown_label.add_theme_font_size_override("font_size", 38)
 		else:
+			_battle_ready_count_label.visible = false
 			_start_battle_button.visible = can_start
 			_start_battle_button.disabled = not can_start
 			if _countdown_label != null:
@@ -567,7 +583,9 @@ func _refresh_ui(time_scale: float) -> void:
 		preview_entry,
 		preview_card_def,
 		_local_side,
-		_opponent_run if _lan_mode else null
+		_opponent_run if _lan_mode else null,
+		local_unit,
+		opponent_unit
 	)
 	_log_panel.refresh_logs(battle_state.logs)
 	var battle_info_text: String = ""
@@ -808,7 +826,7 @@ func _advance_after_battle() -> void:
 			_go_to_network_lobby()
 		return
 	if Game.current_run == null:
-		SceneRouter.go_to_title()
+		SceneRouter.go_to_hub()
 		return
 	match Game.current_screen_hint:
 		"result":

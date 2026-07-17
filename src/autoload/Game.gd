@@ -22,7 +22,7 @@ var settings: Dictionary = {
 	"developer_mode": false,
 	"developer_panel_collapsed": false,
 	"replay_auto_export": true,
-	"settings_return_hint": "title",
+	"settings_return_hint": "hub",
 	"replay_view_path": "",
 	"replay_view_return_hint": "result",
 	"last_run_starter_id": "",
@@ -41,7 +41,7 @@ var reward_options: Array[String] = []
 var last_battle_summary: Dictionary = {}
 var last_reward_bundle: Dictionary = {}
 var last_replay_export_path: String = ""
-var current_screen_hint: String = "title"
+var current_screen_hint: String = "hub"
 var run_setup_mode: String = RUN_SETUP_MODE_NORMAL
 var _map_generator: MapGenerator = MapGenerator.new()
 var _reward_resolver: RewardResolver = RewardResolver.new()
@@ -81,7 +81,7 @@ func ensure_meta_initialized() -> void:
 			"developer_mode": false,
 			"developer_panel_collapsed": false,
 			"replay_auto_export": true,
-			"settings_return_hint": "title",
+			"settings_return_hint": "hub",
 			"replay_view_path": "",
 			"replay_view_return_hint": "result",
 			"last_run_starter_id": "",
@@ -147,7 +147,9 @@ func ensure_meta_initialized() -> void:
 func apply_loaded_save(save_data: SaveData) -> void:
 	meta_progress = save_data.meta_progress.duplicate(true)
 	settings = save_data.settings.duplicate(true)
-	current_screen_hint = String(settings.get("screen_hint", "title"))
+	current_screen_hint = String(settings.get("screen_hint", "hub"))
+	if current_screen_hint == "title":
+		current_screen_hint = "hub"
 	pending_enemy_id = String(settings.get("pending_enemy_id", ""))
 	reward_options = _to_string_array(settings.get("reward_options", []))
 	last_battle_summary = Dictionary(settings.get("last_battle_summary", {}))

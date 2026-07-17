@@ -86,7 +86,7 @@ func _boot() -> void:
 	})
 	tooltip_text = "Startup cache: %s" % JSON.stringify(warmup_summary)
 	await get_tree().create_timer(0.2).timeout
-	SceneRouter.go_to_title()
+	SceneRouter.go_to_hub()
 
 
 func _set_loading_status(text: String, progress: float) -> void:

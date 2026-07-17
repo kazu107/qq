@@ -200,6 +200,54 @@ func _run() -> void:
 		push_error("Card UI smoke failed: right-click should toggle card tooltips back to compact mode")
 		get_tree().quit(1)
 		return
+	var character_run: RunState = RunState.from_starter(Database.get_starter("balanced"), 456)
+	var tooltip_unit: UnitState = UnitState.new()
+	tooltip_unit.unit_id = "player"
+	tooltip_unit.attack = character_run.attack + 2
+	var buffed_context: Dictionary = CardTooltipResolver.build_context("quick_slash", character_run, tooltip_unit)
+	var dynamic_button: CardButton = CardButton.new()
+	dynamic_button.set_tile_size(Vector2(120.0, 120.0))
+	add_child(dynamic_button)
+	dynamic_button.bind_preview(
+		buffed_context.get("card") as CardDef,
+		"dynamic_quick",
+		false,
+		"CARD",
+		buffed_context.get("comparison") as CardDef
+	)
+	if dynamic_button.tooltip_text.find("(+2)") == -1:
+		push_error("Card UI smoke failed: character attack buffs should update card damage tooltips")
+		get_tree().quit(1)
+		return
+	var buffed_rich: Control = dynamic_button._make_custom_tooltip(dynamic_button.tooltip_text) as Control
+	var buffed_rich_label: RichTextLabel = buffed_rich.find_child("CardTooltipText", true, false) as RichTextLabel
+	if buffed_rich_label == null or buffed_rich_label.text.find("[color=#72d36f]") == -1:
+		push_error("Card UI smoke failed: character attack buffs should be green")
+		get_tree().quit(1)
+		return
+	buffed_rich.free()
+	tooltip_unit.attack = character_run.attack
+	tooltip_unit.add_status("weak", 10.0)
+	tooltip_unit.add_status("slow", 10.0)
+	var nerfed_context: Dictionary = CardTooltipResolver.build_context("quick_slash", character_run, tooltip_unit)
+	dynamic_button.bind_preview(
+		nerfed_context.get("card") as CardDef,
+		"dynamic_quick",
+		false,
+		"CARD",
+		nerfed_context.get("comparison") as CardDef
+	)
+	if dynamic_button.tooltip_text.find("(-2)") == -1:
+		push_error("Card UI smoke failed: weak should update card damage tooltips in real time")
+		get_tree().quit(1)
+		return
+	var nerfed_rich: Control = dynamic_button._make_custom_tooltip(dynamic_button.tooltip_text) as Control
+	var nerfed_rich_label: RichTextLabel = nerfed_rich.find_child("CardTooltipText", true, false) as RichTextLabel
+	if nerfed_rich_label == null or nerfed_rich_label.text.find("[color=#ff6868]") == -1:
+		push_error("Card UI smoke failed: character debuffs should be red")
+		get_tree().quit(1)
+		return
+	nerfed_rich.free()
 	if absf(first_button.size.x - first_button.size.y) > 0.1:
 		push_error("Card UI smoke failed: battle hand tile is not square")
 		get_tree().quit(1)
@@ -920,9 +968,14 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	var battle_start_button: Button = battle_scene.find_child("BattleStartButton", true, false) as Button
+	var battle_ready_count: Label = battle_scene.find_child("BattleReadyCountLabel", true, false) as Label
 	var battle_engine: RealtimeBattleEngine = battle_scene.get("_engine") as RealtimeBattleEngine
-	if battle_start_button == null or battle_engine == null:
+	if battle_start_button == null or battle_ready_count == null or battle_engine == null:
 		push_error("Card UI smoke failed: battle start button should exist above the battle info")
+		get_tree().quit(1)
+		return
+	if battle_start_button.custom_minimum_size.x < 250.0 or not battle_start_button.clip_text:
+		push_error("Card UI smoke failed: battle ready/cancel button width should stay fixed")
 		get_tree().quit(1)
 		return
 	if battle_engine.has_battle_started() or not battle_start_button.visible or battle_start_button.disabled:

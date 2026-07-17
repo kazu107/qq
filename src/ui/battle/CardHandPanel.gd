@@ -26,7 +26,7 @@ func set_tile_size(size: Vector2) -> void:
 		button.set_tile_size(size)
 
 
-func refresh_cards(unit: UnitState, run_state: RunState = null, owner_side: String = "") -> void:
+func refresh_cards(unit: UnitState, run_state: RunState = null, _owner_side: String = "") -> void:
 	var runtime_states: Array[CardRuntimeState] = unit.get_sorted_runtime_states()
 	_ensure_button_count(runtime_states.size())
 
@@ -37,10 +37,8 @@ func refresh_cards(unit: UnitState, run_state: RunState = null, owner_side: Stri
 			continue
 
 		var runtime_state: CardRuntimeState = runtime_states[index]
-		var resolved_side: String = owner_side
-		if resolved_side == "":
-			resolved_side = unit.unit_id
-		var card_def: CardDef = _resolve_card_def(runtime_state.card_id, run_state, resolved_side, unit)
+		var tooltip_context: Dictionary = CardTooltipResolver.build_context(runtime_state.card_id, run_state, unit)
+		var card_def: CardDef = tooltip_context.get("card") as CardDef
 		if card_def == null:
 			button.visible = false
 			continue
@@ -54,7 +52,14 @@ func refresh_cards(unit: UnitState, run_state: RunState = null, owner_side: Stri
 		elif runtime_state.can_use() and not has_shield:
 			blocked_reason = Localization.get_text("card.blocked_shield", "Blocked: not enough shield")
 		button.visible = true
-		button.bind(card_def, runtime_state, can_use, _interactive, blocked_reason)
+		button.bind(
+			card_def,
+			runtime_state,
+			can_use,
+			_interactive,
+			blocked_reason,
+			tooltip_context.get("comparison") as CardDef
+		)
 
 
 func refresh_card_ids(card_ids: Array[String], interactive: bool = false, badge_text: String = "CARD", run_state: RunState = null) -> void:
@@ -67,23 +72,20 @@ func refresh_card_ids(card_ids: Array[String], interactive: bool = false, badge_
 			continue
 
 		var card_id: String = card_ids[index]
-		var card_def: CardDef = _resolve_card_def(card_id, run_state, "player", null)
+		var tooltip_context: Dictionary = CardTooltipResolver.build_context(card_id, run_state)
+		var card_def: CardDef = tooltip_context.get("card") as CardDef
 		if card_def == null:
 			button.visible = false
 			continue
 
 		button.visible = true
-		button.bind_preview(card_def, card_id, interactive, badge_text)
-
-
-func _resolve_card_def(card_id: String, run_state: RunState, owner_side: String, unit: UnitState) -> CardDef:
-	if owner_side == "player" and run_state != null:
-		return CardUpgradeResolver.build_effective_card(card_id, run_state)
-	if unit != null and unit.temporary_card_modifiers.has(card_id):
-		var modifier_totals: Dictionary = Dictionary(unit.temporary_card_modifiers.get(card_id, {}))
-		var tier: int = clampi(int(modifier_totals.get("tier", 0)), 0, CardUpgradeResolver.MAX_TIER)
-		return CardUpgradeResolver.build_card_with_modifiers(card_id, modifier_totals, tier)
-	return Database.get_card(card_id)
+		button.bind_preview(
+			card_def,
+			card_id,
+			interactive,
+			badge_text,
+			tooltip_context.get("comparison") as CardDef
+		)
 
 
 func _ensure_button_count(count: int) -> void:

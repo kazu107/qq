@@ -41,7 +41,7 @@ func load_save() -> SaveData:
 	return current_save
 
 
-func save_game(scene_hint: String = "title") -> bool:
+func save_game(scene_hint: String = "hub") -> bool:
 	if _save_timer != null:
 		_save_timer.stop()
 	_pending_scene_hint = ""
@@ -57,7 +57,7 @@ func save_game(scene_hint: String = "title") -> bool:
 	return true
 
 
-func request_save(scene_hint: String = "title") -> void:
+func request_save(scene_hint: String = "hub") -> void:
 	_pending_scene_hint = scene_hint
 	_ensure_save_timer()
 	_save_request_scheduled = true

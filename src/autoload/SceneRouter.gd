@@ -144,7 +144,7 @@ func go_to_continue_target() -> void:
 		"replay":
 			go_to_replay_viewer()
 		_:
-			go_to_title()
+			go_to_hub()
 
 
 func show_gold_delta(amount: int) -> void:

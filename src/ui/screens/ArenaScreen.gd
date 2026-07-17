@@ -353,15 +353,31 @@ func _refresh_ui() -> void:
 		else:
 			_run_info_banner.refresh()
 	var status: Dictionary = _get_arena_status()
-	_status_label.text = Localization.get_textf("arena.status", "Round {round} | Wins {wins}/{target} | Losses {losses}/{max_losses}", {
-		"round": int(status.get("round", 1)),
-		"wins": int(status.get("wins", 0)),
-		"target": int(status.get("target_wins", 1)),
-		"losses": int(status.get("losses", 0)),
-		"max_losses": int(status.get("max_losses", 1)),
-	})
+	if _lan_mode and NetworkManager.is_online_session():
+		_status_label.text = Localization.get_textf(
+			"online.arena.score",
+			"Round {round} | Score {wins}-{losses} | First to {target}",
+			{
+				"round": int(status.get("round", 1)),
+				"wins": int(status.get("wins", 0)),
+				"losses": int(status.get("losses", 0)),
+				"target": int(status.get("target_wins", 1)),
+			}
+		)
+	else:
+		_status_label.text = Localization.get_textf("arena.status", "Round {round} | Wins {wins}/{target} | Losses {losses}/{max_losses}", {
+			"round": int(status.get("round", 1)),
+			"wins": int(status.get("wins", 0)),
+			"target": int(status.get("target_wins", 1)),
+			"losses": int(status.get("losses", 0)),
+			"max_losses": int(status.get("max_losses", 1)),
+		})
 	if _lan_mode:
-		_status_label.text += "\n%s / %s" % [
+		_status_label.text += "\n%s | %s / %s" % [
+			Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
+				"ready": NetworkManager.get_arena_ready_count(),
+				"total": LanProtocol.MAX_PLAYERS,
+			}),
 			Localization.get_text("lan.arena.ready", "Ready") if bool(status.get("local_ready", false)) else Localization.get_text("lan.arena.preparing", "Preparing"),
 			Localization.get_text("lan.arena.opponent_ready", "Opponent ready") if bool(status.get("opponent_ready", false)) else Localization.get_text("lan.arena.opponent_preparing", "Opponent preparing"),
 		]
@@ -607,7 +623,14 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	var preview: CardButton = CardButton.new()
 	preview.name = "ArenaLoadoutPreview_%s" % card_id
 	preview.set_tile_size(LOADOUT_PREVIEW_SIZE)
-	preview.bind_preview(card_def, card_id, false, "LOAD")
+	var tooltip_context: Dictionary = CardTooltipResolver.build_context(card_id, _get_active_run())
+	preview.bind_preview(
+		tooltip_context.get("card") as CardDef,
+		card_id,
+		false,
+		"LOAD",
+		tooltip_context.get("comparison") as CardDef
+	)
 	row.add_child(preview)
 
 	var info_box: VBoxContainer = VBoxContainer.new()
