@@ -22,6 +22,8 @@ func _run() -> void:
 	if not has_japanese:
 		_fail("Localization smoke failed: supported language list did not include ja")
 		return
+	if not _verify_japanese_font_coverage():
+		return
 
 	Game.set_language("ja")
 	if Game.get_language() != "ja":
@@ -67,6 +69,43 @@ func _run() -> void:
 	Game.set_language(_original_language)
 	print("Localization smoke passed")
 	get_tree().quit()
+
+
+func _verify_japanese_font_coverage() -> bool:
+	var game_font: Font = UiTheme.get_game_theme().default_font
+	if game_font == null:
+		_fail("Localization smoke failed: game theme did not define an embedded font")
+		return false
+
+	var translation_file: FileAccess = FileAccess.open(Localization.LANGUAGE_PATHS["ja"], FileAccess.READ)
+	if translation_file == null:
+		_fail("Localization smoke failed: Japanese translation file could not be opened")
+		return false
+	var parsed_data: Variant = JSON.parse_string(translation_file.get_as_text())
+	if typeof(parsed_data) != TYPE_DICTIONARY:
+		_fail("Localization smoke failed: Japanese translation file was not a JSON object")
+		return false
+
+	var translation_table: Dictionary = Dictionary(parsed_data)
+	for raw_value in translation_table.values():
+		if typeof(raw_value) != TYPE_STRING:
+			continue
+		var translated_text: String = String(raw_value)
+		for character_index in translated_text.length():
+			var codepoint: int = translated_text.unicode_at(character_index)
+			if _is_japanese_codepoint(codepoint) and not game_font.has_char(codepoint):
+				_fail("Localization smoke failed: embedded font is missing U+%04X" % codepoint)
+				return false
+	return true
+
+
+func _is_japanese_codepoint(codepoint: int) -> bool:
+	return (
+		(codepoint >= 0x3000 and codepoint <= 0x30FF)
+		or (codepoint >= 0x3400 and codepoint <= 0x9FFF)
+		or (codepoint >= 0xF900 and codepoint <= 0xFAFF)
+		or (codepoint >= 0xFF00 and codepoint <= 0xFFEF)
+	)
 
 
 func _restore_from_disk() -> void:

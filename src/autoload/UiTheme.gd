@@ -1,6 +1,7 @@
 extends Node
 
 const BACKGROUND_SCRIPT: GDScript = preload("res://src/ui/common/AtmosphereBackground.gd")
+const GAME_FONT: FontFile = preload("res://assets/fonts/NotoSansJP-GameSubset.ttf")
 const BACKGROUND_NODE_NAME: String = "GameAtmosphereBackground"
 
 const TEXT_MAIN: Color = Color(0.93, 0.95, 0.94, 1.0)
@@ -67,6 +68,7 @@ func _ensure_background(scene_control: Control) -> void:
 
 func _build_theme() -> Theme:
 	var theme: Theme = Theme.new()
+	theme.default_font = GAME_FONT
 	_apply_label_theme(theme)
 	_apply_button_theme(theme, "Button")
 	_apply_button_theme(theme, "OptionButton")
