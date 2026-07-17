@@ -1,0 +1,16 @@
+{
+  "name": "qq-web-multiplayer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Heroku static host and WebRTC signaling server for qq",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node --test server/server.test.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}

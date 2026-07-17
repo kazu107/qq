@@ -1,6 +1,6 @@
 extends Node
 
-const ONLINE_MULTIPLAYER_ENABLED: bool = false
+const WEB_MULTIPLAYER_ENABLED: bool = true
 
 const ARENA_SERVICE_SCRIPT: GDScript = preload("res://src/core/arena/ArenaService.gd")
 const NON_BATTLE_NODE_TYPES := ["shop", "forge", "heal", "event", "hazard"]
@@ -774,7 +774,7 @@ func is_web_build() -> bool:
 
 
 func supports_lan_multiplayer() -> bool:
-	return not is_web_build()
+	return false
 
 
 func is_user_storage_persistent() -> bool:

@@ -972,10 +972,7 @@ func _on_lan_session_ended(_reason: String) -> void:
 
 
 func _go_to_network_lobby() -> void:
-	if NetworkManager.is_online_session():
-		SceneRouter.go_to_online_lobby()
-	else:
-		SceneRouter.go_to_lan_lobby()
+	SceneRouter.go_to_online_lobby()
 
 
 func _build_developer_panel() -> void:

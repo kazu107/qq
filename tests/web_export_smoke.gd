@@ -32,8 +32,8 @@ func _run() -> void:
 		_fail("Web export smoke failed: mobile texture compression would require an ETC2/ASTC reimport")
 		return
 
-	if not Game.supports_lan_multiplayer():
-		_fail("Web export smoke failed: native build unexpectedly disabled LAN multiplayer")
+	if not Game.WEB_MULTIPLAYER_ENABLED or Game.supports_lan_multiplayer():
+		_fail("Web export smoke failed: Web multiplayer did not replace LAN multiplayer")
 		return
 	var hub_scene: PackedScene = load("res://scenes/hub/Hub.tscn") as PackedScene
 	var title_scene: PackedScene = load("res://scenes/title/Title.tscn") as PackedScene
@@ -46,13 +46,19 @@ func _run() -> void:
 	add_child(hub)
 	add_child(title)
 	await get_tree().process_frame
-	if hub.find_child("LanMultiplayerButton", true, false) == null:
-		_fail("Web export smoke failed: native hub lost its LAN entry")
+	if hub.find_child("WebMultiplayerButton", true, false) == null:
+		_fail("Web export smoke failed: hub is missing the Web multiplayer entry")
+		return
+	if hub.find_child("LanMultiplayerButton", true, false) != null:
+		_fail("Web export smoke failed: hub still exposes LAN multiplayer")
+		return
+	if not FileAccess.file_exists("res://package.json") or not FileAccess.file_exists("res://Procfile"):
+		_fail("Web export smoke failed: Heroku process files are missing")
 		return
 
 	hub.queue_free()
 	title.queue_free()
-	print("WEB_EXPORT_SMOKE_OK Compatibility preset and native fallback validated")
+	print("WEB_EXPORT_SMOKE_OK Compatibility preset and Heroku host validated")
 	get_tree().quit()
 
 

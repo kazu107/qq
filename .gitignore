@@ -7,6 +7,7 @@ Thumbs.db
 *.bak
 __pycache__/
 *.pyc
+node_modules/
 
 # EOS local credentials and proprietary redistributables.
 /config/eos_credentials.local.cfg
@@ -15,3 +16,5 @@ __pycache__/
 /tools/.local/
 /build/*
 !/build/.gdignore
+!/build/web/
+!/build/web/**

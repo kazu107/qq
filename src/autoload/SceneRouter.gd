@@ -4,7 +4,6 @@ const TITLE_SCENE := "res://scenes/title/Title.tscn"
 const HUB_SCENE := "res://scenes/hub/Hub.tscn"
 const RUN_SETUP_SCENE := "res://scenes/run_setup/RunSetup.tscn"
 const ARENA_SCENE := "res://scenes/arena/Arena.tscn"
-const LAN_LOBBY_SCENE := "res://scenes/lan/LanLobby.tscn"
 const ONLINE_LOBBY_SCENE := "res://scenes/online/OnlineLobby.tscn"
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const REWARD_SCENE := "res://scenes/reward/Reward.tscn"
@@ -41,9 +40,7 @@ func warm_scene_cache() -> void:
 		SETTINGS_SCENE,
 		REPLAY_SCENE,
 	]
-	if Game.supports_lan_multiplayer():
-		scene_paths.append(LAN_LOBBY_SCENE)
-	if Game.ONLINE_MULTIPLAYER_ENABLED:
+	if Game.WEB_MULTIPLAYER_ENABLED:
 		scene_paths.append(ONLINE_LOBBY_SCENE)
 	for scene_path in scene_paths:
 		if _scene_cache.has(scene_path):
@@ -74,17 +71,12 @@ func go_to_arena() -> void:
 	_change_scene(ARENA_SCENE)
 
 
-func go_to_lan_lobby() -> void:
-	if not Game.supports_lan_multiplayer():
+func go_to_online_lobby() -> void:
+	if not Game.WEB_MULTIPLAYER_ENABLED:
 		Game.current_screen_hint = "hub"
 		go_to_hub()
 		return
-	_change_scene(LAN_LOBBY_SCENE)
-
-
-func go_to_online_lobby() -> void:
-	Game.current_screen_hint = "hub"
-	go_to_hub()
+	_change_scene(ONLINE_LOBBY_SCENE)
 
 
 func go_to_battle() -> void:
@@ -131,10 +123,8 @@ func go_to_continue_target() -> void:
 			go_to_run_setup()
 		"arena":
 			go_to_arena()
-		"lan":
-			go_to_lan_lobby()
 		"online":
-			go_to_hub()
+			go_to_online_lobby()
 		"battle":
 			go_to_battle()
 		"reward":

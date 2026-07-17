@@ -2,7 +2,7 @@ extends Node
 
 signal state_changed(state: String, message: String)
 
-const DISABLED_MESSAGE: String = "Online multiplayer is temporarily disabled. LAN multiplayer remains available."
+const DISABLED_MESSAGE: String = "EOS multiplayer is disabled. Use browser-based Web multiplayer instead."
 
 
 func _ready() -> void:

@@ -1,6 +1,6 @@
 # Web版のビルドと公開
 
-このプロジェクトはGodot 4.6.2のWebエクスポートに対応しています。Web版では通常ラン、アリーナ、無限モード、開発者モードを利用できます。UDP/ENetを使うLAN対戦と、停止中のオンライン対戦はブラウザでは表示されません。
+このプロジェクトはGodot 4.6.2のWebエクスポートに対応しています。Web版では通常ラン、アリーナ、無限モード、開発者モード、WebRTC対戦を利用できます。
 
 ## 初回準備
 
@@ -28,7 +28,7 @@ powershell -ExecutionPolicy Bypass -File tools/build_web.ps1 -GodotPath "C:\path
 
 ## ローカル確認
 
-Web版は`index.html`を直接開かず、HTTPサーバー経由で起動します。
+Web版は`index.html`を直接開かず、Nodeサーバー経由で起動します。初回だけ`npm.cmd install`を実行してください。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools/serve_web.ps1
@@ -38,10 +38,10 @@ powershell -ExecutionPolicy Bypass -File tools/serve_web.ps1
 
 ## 公開
 
-`build/web`内のファイルをすべて同じ階層のまま、GitHub Pages、itch.io、または静的ホスティングへ配置します。公開環境はHTTPSを使用してください。
+Herokuではリポジトリルートの`Procfile`により、Godot WebビルドとWebRTCシグナリングを同じHTTPSホストで提供します。GitHubへのpush後に自動デプロイされます。
 
 セーブデータはブラウザのIndexedDBに保存されます。プライベートブラウズ、Cookieやサイトデータの削除、一部の埋め込みiframeでは保持されない場合があります。
 
-将来ブラウザ間の対戦を追加する場合は、現在のUDP/ENet方式ではなくWebRTCまたはWebSocketと、接続を仲介するシグナリングサーバーが必要です。
+Web対戦はP2PのWebRTCを使い、Herokuは接続確立用のWebSocketシグナリングだけを担当します。厳しいNAT環境向けのTURN設定は`docs/ONLINE_MULTIPLAYER.md`を参照してください。
 
 参考: [Godot公式 Webエクスポート](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_web.html)

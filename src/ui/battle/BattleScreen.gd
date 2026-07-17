@@ -130,10 +130,7 @@ func _setup_lan_battle() -> bool:
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
 	_player_panel.configure_visual("player", _local_run.starter_id)
 	_enemy_panel.configure_visual("enemy", _opponent_run.starter_id)
-	if NetworkManager.is_online_session():
-		_slow_mode_label.text = Localization.get_text("online.battle.host", "ONLINE HOST") if NetworkManager.is_host() else Localization.get_text("online.battle.client", "ONLINE CLIENT")
-	else:
-		_slow_mode_label.text = Localization.get_text("lan.battle.host", "LAN HOST") if NetworkManager.is_host() else Localization.get_text("lan.battle.client", "LAN CLIENT")
+	_slow_mode_label.text = Localization.get_text("online.battle.host", "WEB HOST") if NetworkManager.is_host() else Localization.get_text("online.battle.client", "WEB GUEST")
 	return true
 
 
@@ -569,7 +566,7 @@ func _refresh_ui(time_scale: float) -> void:
 	_log_panel.refresh_logs(battle_state.logs)
 	var battle_info_text: String = ""
 	if _lan_mode:
-		var network_title: String = Localization.get_text("online.battle.title", "ONLINE BATTLE") if NetworkManager.is_online_session() else Localization.get_text("lan.battle.title", "LAN BATTLE")
+		var network_title: String = Localization.get_text("online.battle.title", "WEB BATTLE")
 		battle_info_text = "\n".join([
 			network_title,
 			Localization.get_textf("battle.info.time", "Battle Time {value}s", {"value": "%.1f" % battle_state.battle_time}),
@@ -826,10 +823,7 @@ func _advance_after_battle() -> void:
 
 
 func _go_to_network_lobby() -> void:
-	if NetworkManager.is_online_session():
-		SceneRouter.go_to_online_lobby()
-	else:
-		SceneRouter.go_to_lan_lobby()
+	SceneRouter.go_to_online_lobby()
 
 
 func _build_developer_panel() -> void:

@@ -94,20 +94,11 @@ func _run() -> void:
 	if not _assert_arena_coordinator(host_profile):
 		return
 
-	await _assert_lan_lobby_scene()
+	await _assert_web_lobby_scene()
 	if _failed:
 		return
 
-	var test_port: int = 35000 + int(Time.get_ticks_msec() % 1000)
-	if not NetworkManager.host_lobby("Smoke Host", "balanced", test_port):
-		_fail("LAN smoke failed: ENet host could not open a local UDP port")
-		return
-	if not NetworkManager.is_host() or not NetworkManager.is_session_connected():
-		_fail("LAN smoke failed: host session state was not connected")
-		return
-	NetworkManager.leave_session("smoke_complete")
-
-	print("LAN multiplayer smoke passed: hash=%s events=%d" % [
+	print("Web multiplayer protocol smoke passed: hash=%s events=%d" % [
 		LanProtocol.build_content_hash().left(10),
 		engine.battle_state.battle_events.size(),
 	])
@@ -248,10 +239,10 @@ func _build_heavy_unit_snapshot() -> Dictionary:
 	}
 
 
-func _assert_lan_lobby_scene() -> void:
-	var packed_scene: PackedScene = load("res://scenes/lan/LanLobby.tscn") as PackedScene
+func _assert_web_lobby_scene() -> void:
+	var packed_scene: PackedScene = load("res://scenes/online/OnlineLobby.tscn") as PackedScene
 	if packed_scene == null:
-		_fail("LAN smoke failed: lobby scene could not be loaded")
+		_fail("Web multiplayer smoke failed: lobby scene could not be loaded")
 		return
 	var lobby: Control = packed_scene.instantiate() as Control
 	add_child(lobby)
@@ -259,18 +250,20 @@ func _assert_lan_lobby_scene() -> void:
 	var host_button: Button = lobby.find_child("LanHostButton", true, false) as Button
 	var join_button: Button = lobby.find_child("LanJoinButton", true, false) as Button
 	var discovered_list: ItemList = lobby.find_child("LanDiscoveredList", true, false) as ItemList
+	var room_code_edit: LineEdit = lobby.find_child("OnlineRoomCodeEdit", true, false) as LineEdit
 	var starter_option: OptionButton = lobby.find_child("LanStarterOption", true, false) as OptionButton
 	var ready_button: Button = lobby.find_child("LanReadyButton", true, false) as Button
 	var start_button: Button = lobby.find_child("LanStartMatchButton", true, false) as Button
-	if host_button == null or join_button == null or discovered_list == null:
-		_fail("LAN smoke failed: lobby connection controls were missing")
+	if host_button == null or join_button == null or room_code_edit == null:
+		_fail("Web multiplayer smoke failed: room controls were missing")
+	elif discovered_list == null or discovered_list.visible:
+		_fail("Web multiplayer smoke failed: LAN discovery is still visible")
 	elif starter_option == null or starter_option.item_count != Database.starters.size():
 		_fail("LAN smoke failed: lobby did not expose every starter")
 	elif ready_button == null or start_button == null:
 		_fail("LAN smoke failed: lobby ready/start controls were missing")
 	lobby.queue_free()
 	await get_tree().process_frame
-	NetworkManager.end_discovery()
 
 
 func _fail(message: String) -> void:

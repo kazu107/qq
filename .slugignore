@@ -1,0 +1,16 @@
+/.github
+/.godot
+/addons
+/assets
+/config
+/data
+/docs
+/scenes
+/src
+/tests
+/tools
+/project.godot
+/export_presets.cfg
+/icon.svg
+/icon.svg.import
+/README.md

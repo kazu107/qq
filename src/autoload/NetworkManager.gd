@@ -92,6 +92,8 @@ var _upnp_instance: UPNP
 var _upnp_operation: String = ""
 var _upnp_port: int = 0
 var _upnp_cancel_requested: bool = false
+var _web_signaling: WebRtcSignalingClient = WebRtcSignalingClient.new()
+var _web_failure_pending: bool = false
 
 
 func _ready() -> void:
@@ -105,6 +107,12 @@ func _ready() -> void:
 		multiplayer.connection_failed.connect(_on_connection_failed)
 	if not multiplayer.server_disconnected.is_connected(_on_server_disconnected):
 		multiplayer.server_disconnected.connect(_on_server_disconnected)
+	if not _web_signaling.transport_ready.is_connected(_on_web_transport_ready):
+		_web_signaling.transport_ready.connect(_on_web_transport_ready)
+	if not _web_signaling.status_changed.is_connected(_on_web_signaling_status_changed):
+		_web_signaling.status_changed.connect(_on_web_signaling_status_changed)
+	if not _web_signaling.failed.is_connected(_on_web_signaling_failed):
+		_web_signaling.failed.connect(_on_web_signaling_failed)
 
 
 func _notification(what: int) -> void:
@@ -125,6 +133,7 @@ func _notification(what: int) -> void:
 
 
 func _process(delta: float) -> void:
+	_web_signaling.poll()
 	_process_discovery(delta)
 	_process_ping(delta)
 	_process_reconnect()
@@ -165,45 +174,26 @@ func host_online_lobby(
 	player_name: String,
 	starter_id: String,
 	room_code: String,
-	port: int = LanProtocol.DEFAULT_PORT,
-	automatic_port_mapping: bool = true
+	_port: int = LanProtocol.DEFAULT_PORT,
+	_automatic_port_mapping: bool = true
 ) -> bool:
 	_clear_session(false)
 	_session_scope = SESSION_SCOPE_ONLINE
 	_last_match_result.clear()
 	configure_local_player(player_name, starter_id)
-	_host_port = LanProtocol.sanitize_port(port)
-	_last_address = "127.0.0.1"
 	_online_room_code = LanProtocol.sanitize_online_room_code(room_code)
 	if _online_room_code == "":
 		_online_room_code = LanProtocol.generate_online_room_code()
 	_online_room_proof = LanProtocol.build_online_room_proof(_online_room_code)
-	if _use_online_enet_test_transport():
-		var test_peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
-		var test_error: Error = test_peer.create_server(_host_port, LanProtocol.MAX_PLAYERS - 1)
-		if test_error != OK:
-			_emit_error("host_failed", "Unable to create the online test host (error %d)." % test_error)
-			return false
-		_peer = test_peer
-	else:
-		var eos_result: Dictionary = await EosService.create_room(_online_room_proof)
-		if not bool(eos_result.get("ok", false)):
-			_emit_error(
-				String(eos_result.get("error", "eos_host_failed")),
-				String(eos_result.get("message", "Unable to create the EOS Relay lobby."))
-			)
-			return false
-		_peer = eos_result.get("peer") as MultiplayerPeer
-		if _peer == null:
-			_emit_error("eos_peer_missing", "EOS created a lobby without a multiplayer peer.")
-			return false
-	_is_host = true
-	multiplayer.multiplayer_peer = _peer
-	_profiles_by_peer[1] = _local_profile.duplicate(true)
-	_peer_sides[1] = "player"
-	_set_state(ConnectionState.HOSTING, "Hosting through EOS Relay")
-	_set_online_host_status("relay", "", "", 0)
-	_broadcast_lobby_state()
+	var start_error: Error = _web_signaling.start_host(
+		_online_room_code,
+		LanProtocol.PROTOCOL_VERSION,
+		LanProtocol.build_content_hash()
+	)
+	if start_error != OK:
+		_set_state(ConnectionState.OFFLINE, "Web multiplayer is unavailable")
+		return false
+	_set_state(ConnectionState.CONNECTING, "Connecting to the Web multiplayer server")
 	return true
 
 
@@ -225,42 +215,30 @@ func join_lobby(
 
 
 func join_online_lobby(
-	address: String,
+	_address: String,
 	player_name: String,
 	starter_id: String,
 	room_code: String,
-	port: int = LanProtocol.DEFAULT_PORT
+	_port: int = LanProtocol.DEFAULT_PORT
 ) -> bool:
 	_clear_session(false)
 	_session_scope = SESSION_SCOPE_ONLINE
 	_last_match_result.clear()
 	configure_local_player(player_name, starter_id)
-	_last_address = address.strip_edges()
-	if _last_address == "" and _use_online_enet_test_transport():
-		_last_address = "127.0.0.1"
-	_host_port = LanProtocol.sanitize_port(port)
 	_online_room_code = LanProtocol.sanitize_online_room_code(room_code)
 	_online_room_proof = LanProtocol.build_online_room_proof(_online_room_code)
 	if _online_room_proof == "":
 		_emit_error("invalid_room_code", "Enter the online room code.")
 		return false
-	if _use_online_enet_test_transport():
-		return _connect_client(false)
-	var eos_result: Dictionary = await EosService.join_room(_online_room_proof)
-	if not bool(eos_result.get("ok", false)):
-		_emit_error(
-			String(eos_result.get("error", "eos_join_failed")),
-			String(eos_result.get("message", "Unable to join the EOS Relay lobby."))
-		)
+	var start_error: Error = _web_signaling.start_join(
+		_online_room_code,
+		LanProtocol.PROTOCOL_VERSION,
+		LanProtocol.build_content_hash()
+	)
+	if start_error != OK:
+		_set_state(ConnectionState.OFFLINE, "Web multiplayer is unavailable")
 		return false
-	_peer = eos_result.get("peer") as MultiplayerPeer
-	if _peer == null:
-		_emit_error("eos_peer_missing", "EOS joined the lobby without a multiplayer peer.")
-		return false
-	_is_host = false
-	multiplayer.multiplayer_peer = _peer
-	_reconnecting = false
-	_set_state(ConnectionState.CONNECTING, "Connecting through EOS Relay")
+	_set_state(ConnectionState.CONNECTING, "Connecting to the Web multiplayer room")
 	return true
 
 
@@ -703,25 +681,17 @@ func developer_disconnect_peer() -> bool:
 
 func _connect_client(is_reconnect: bool) -> bool:
 	_close_peer_only()
-	var peer: MultiplayerPeer
-	var error: Error = OK
-	if _session_scope == SESSION_SCOPE_ONLINE and not _use_online_enet_test_transport():
-		peer = EosService.create_reconnect_peer()
-		if peer == null:
-			error = ERR_CANT_CONNECT
-	else:
-		var enet_peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
-		error = enet_peer.create_client(_last_address, _host_port)
-		peer = enet_peer
+	var enet_peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
+	var error: Error = enet_peer.create_client(_last_address, _host_port)
 	if error != OK:
 		if not is_reconnect:
 			_emit_error("join_failed", "Unable to create the network client (error %d)." % error)
 		return false
-	_peer = peer
+	_peer = enet_peer
 	_is_host = false
 	multiplayer.multiplayer_peer = _peer
 	_reconnecting = is_reconnect
-	var connection_message: String = "Connecting through EOS Relay" if _session_scope == SESSION_SCOPE_ONLINE else "Connecting to %s:%d" % [_last_address, _host_port]
+	var connection_message: String = "Connecting to %s:%d" % [_last_address, _host_port]
 	_set_state(ConnectionState.RECONNECTING if is_reconnect else ConnectionState.CONNECTING, connection_message)
 	return true
 
@@ -797,6 +767,50 @@ func _on_connected_to_server() -> void:
 	_submit_profile_rpc.rpc_id(1, _local_profile, _online_room_proof)
 
 
+func _on_web_transport_ready(peer: WebRTCMultiplayerPeer, host_role: bool, room_code: String) -> void:
+	if _session_scope != SESSION_SCOPE_ONLINE or room_code != _online_room_code:
+		peer.close()
+		return
+	_peer = peer
+	_is_host = host_role
+	_reconnecting = false
+	multiplayer.multiplayer_peer = _peer
+	if _is_host:
+		_profiles_by_peer[1] = _local_profile.duplicate(true)
+		_peer_sides[1] = "player"
+		_set_state(ConnectionState.HOSTING, "Web room %s is ready" % _online_room_code)
+		_set_online_host_status("relay", "", "", 0)
+		_broadcast_lobby_state()
+	else:
+		_set_state(ConnectionState.CONNECTING, "Negotiating the WebRTC peer connection")
+
+
+func _on_web_signaling_status_changed(message: String) -> void:
+	if _session_scope != SESSION_SCOPE_ONLINE or message == "":
+		return
+	connection_state_changed.emit(_state, message)
+
+
+func _on_web_signaling_failed(code: String, message: String) -> void:
+	if _session_scope != SESSION_SCOPE_ONLINE or _web_failure_pending:
+		return
+	_web_failure_pending = true
+	call_deferred("_finalize_web_signaling_failure", code, message)
+
+
+func _finalize_web_signaling_failure(code: String, message: String) -> void:
+	if not _web_failure_pending:
+		return
+	_web_failure_pending = false
+	if _session_scope != SESSION_SCOPE_ONLINE:
+		return
+	_web_signaling.close()
+	_close_peer_only()
+	_is_host = false
+	_set_state(ConnectionState.OFFLINE, message)
+	_emit_error(code, message)
+
+
 func _on_connection_failed() -> void:
 	if _closing_peer:
 		return
@@ -811,6 +825,14 @@ func _on_connection_failed() -> void:
 
 func _on_server_disconnected() -> void:
 	if _closing_peer:
+		return
+	if _session_scope == SESSION_SCOPE_ONLINE:
+		_close_peer_only()
+		_match_active = false
+		_arena_session_active = false
+		_arena_phase = ""
+		_set_state(ConnectionState.OFFLINE, "Web opponent disconnected")
+		session_ended.emit("host_disconnected")
 		return
 	if _match_active or _arena_session_active:
 		_close_peer_only()
@@ -923,12 +945,12 @@ func _arena_action_result_rpc(action: String, accepted: bool, result: Dictionary
 	arena_action_result_received.emit(action, accepted, result.duplicate(true))
 
 
-@rpc("authority", "call_remote", "unreliable_ordered", 1)
+@rpc("authority", "call_remote", "unreliable_ordered", 0)
 func _receive_battle_snapshot_rpc(snapshot: Dictionary) -> void:
 	_apply_battle_snapshot(snapshot)
 
 
-@rpc("authority", "call_remote", "reliable", 2)
+@rpc("authority", "call_remote", "reliable", 0)
 func _receive_battle_snapshot_reliable_rpc(snapshot: Dictionary) -> void:
 	_apply_battle_snapshot(snapshot)
 
@@ -1022,7 +1044,7 @@ func _receive_session_closed_rpc(reason: String) -> void:
 	session_ended.emit(reason)
 
 
-@rpc("any_peer", "call_remote", "unreliable", 3)
+@rpc("any_peer", "call_remote", "unreliable", 0)
 func _ping_rpc(sent_ticks_msec: int) -> void:
 	if not _is_host:
 		return
@@ -1030,14 +1052,14 @@ func _ping_rpc(sent_ticks_msec: int) -> void:
 	_pong_rpc.rpc_id(sender_id, sent_ticks_msec)
 
 
-@rpc("authority", "call_remote", "unreliable", 3)
+@rpc("authority", "call_remote", "unreliable", 0)
 func _pong_rpc(sent_ticks_msec: int) -> void:
 	_ping_ms = maxi(0, Time.get_ticks_msec() - sent_ticks_msec)
 	if _peer != null and _peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		_report_ping_rpc.rpc_id(1, _ping_ms)
 
 
-@rpc("any_peer", "call_remote", "unreliable", 3)
+@rpc("any_peer", "call_remote", "unreliable", 0)
 func _report_ping_rpc(value: int) -> void:
 	if not _is_host:
 		return
@@ -1438,6 +1460,8 @@ func _process_ping(delta: float) -> void:
 
 
 func _process_reconnect() -> void:
+	if _session_scope == SESSION_SCOPE_ONLINE:
+		return
 	var now_msec: int = Time.get_ticks_msec()
 	if _is_host and _waiting_for_reconnect and now_msec >= _reconnect_deadline_msec:
 		_waiting_for_reconnect = false
@@ -1572,8 +1596,8 @@ func _to_dictionary_array(value: Variant) -> Array[Dictionary]:
 
 
 func _clear_session(clear_profile: bool) -> void:
-	if _session_scope == SESSION_SCOPE_ONLINE and not _use_online_enet_test_transport():
-		EosService.leave_room_deferred()
+	_web_failure_pending = false
+	_web_signaling.close()
 	_close_peer_only()
 	if _discovery_sender != null:
 		_discovery_sender.close()
@@ -1631,11 +1655,7 @@ func _set_state(next_state: int, message: String) -> void:
 
 
 func _session_display_name() -> String:
-	return "Online" if _session_scope == SESSION_SCOPE_ONLINE else "LAN"
-
-
-func _use_online_enet_test_transport() -> bool:
-	return OS.get_cmdline_user_args().has("--online-transport-test-enet")
+	return "Web" if _session_scope == SESSION_SCOPE_ONLINE else "LAN"
 
 
 func _emit_error(code: String, message: String) -> void:

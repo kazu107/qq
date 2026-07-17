@@ -205,7 +205,7 @@ static func sanitize_online_room_code(value: String) -> String:
 		var is_letter: bool = codepoint >= 65 and codepoint <= 90
 		if is_digit or is_letter:
 			sanitized += character
-		if sanitized.length() >= 16:
+		if sanitized.length() >= ONLINE_ROOM_CODE_LENGTH:
 			break
 	return sanitized
 
