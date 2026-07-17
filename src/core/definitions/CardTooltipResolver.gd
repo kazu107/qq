@@ -14,9 +14,11 @@ static func build_context(card_id: String, run_state: RunState = null, unit: Uni
 	if unit != null:
 		current_attack = unit.get_attack_value()
 		current_card.cast_time = maxf(0.0, current_card.cast_time * unit.get_cast_time_multiplier())
+		if _has_runtime_stat_adjustment(unit, baseline_attack):
+			comparison_card = _build_current_card(card_id, run_state, unit)
+			_apply_attack_to_damage(comparison_card, baseline_attack)
 
 	_apply_attack_to_damage(current_card, current_attack)
-	_apply_attack_to_damage(comparison_card, baseline_attack)
 	return {
 		"card": current_card,
 		"comparison": comparison_card,
@@ -51,6 +53,14 @@ static func _get_baseline_attack(run_state: RunState, unit: UnitState) -> int:
 	if enemy_def != null:
 		return maxi(0, enemy_def.attack)
 	return maxi(0, unit.attack)
+
+
+static func _has_runtime_stat_adjustment(unit: UnitState, baseline_attack: int) -> bool:
+	if unit.has_status("weak") or unit.has_status("slow"):
+		return true
+	if unit.get_attack_value() != baseline_attack:
+		return true
+	return absf(unit.get_cast_time_multiplier() - 1.0) >= 0.001
 
 
 static func _apply_attack_to_damage(card_def: CardDef, attack_value: int) -> void:

@@ -163,7 +163,7 @@ func _run() -> void:
 	add_child(boosted_button)
 	boosted_button.bind_preview(boosted_quick, "boosted_quick")
 	await get_tree().process_frame
-	if boosted_button.tooltip_text.find("Deal 6 (+2) damage") == -1:
+	if boosted_button.tooltip_text.find("Deal 6(+2) damage") == -1:
 		push_error("Card UI smoke failed: boosted tooltip should show plain effect deltas")
 		get_tree().quit(1)
 		return
@@ -171,16 +171,16 @@ func _run() -> void:
 		push_error("Card UI smoke failed: preview tooltip should use the compact battle tooltip by default")
 		get_tree().quit(1)
 		return
-	if boosted_button.tooltip_text.find("Cast: 3.0 (+1.2)s") == -1 or boosted_button.tooltip_text.find("Recast: 6.0 (-2.0)s") == -1:
+	if boosted_button.tooltip_text.find("Cast: 3.0(+1.2)s") == -1 or boosted_button.tooltip_text.find("Recast: 6.0(-2.0)s") == -1:
 		push_error("Card UI smoke failed: boosted tooltip should show plain timing deltas")
 		get_tree().quit(1)
 		return
 	var rich_tooltip: Control = boosted_button._make_custom_tooltip(boosted_button.tooltip_text) as Control
 	var rich_label: RichTextLabel = rich_tooltip.find_child("CardTooltipText", true, false) as RichTextLabel
 	if rich_label == null \
-	or rich_label.text.find("[color=#72d36f]6 (+2)[/color]") == -1 \
-	or rich_label.text.find("[color=#ff6868]3.0 (+1.2)[/color]") == -1 \
-	or rich_label.text.find("[color=#72d36f]6.0 (-2.0)[/color]") == -1:
+	or rich_label.text.find("6[color=#72d36f](+2)[/color]") == -1 \
+	or rich_label.text.find("3.0[color=#ff6868](+1.2)[/color]") == -1 \
+	or rich_label.text.find("6.0[color=#72d36f](-2.0)[/color]") == -1:
 		push_error("Card UI smoke failed: boosted custom tooltip should color beneficial and harmful deltas")
 		get_tree().quit(1)
 		return
@@ -203,11 +203,31 @@ func _run() -> void:
 	var character_run: RunState = RunState.from_starter(Database.get_starter("balanced"), 456)
 	var tooltip_unit: UnitState = UnitState.new()
 	tooltip_unit.unit_id = "player"
-	tooltip_unit.attack = character_run.attack + 2
-	var buffed_context: Dictionary = CardTooltipResolver.build_context("quick_slash", character_run, tooltip_unit)
+	tooltip_unit.attack = character_run.attack
+	var base_context: Dictionary = CardTooltipResolver.build_context("quick_slash", character_run, tooltip_unit)
 	var dynamic_button: CardButton = CardButton.new()
 	dynamic_button.set_tile_size(Vector2(120.0, 120.0))
 	add_child(dynamic_button)
+	dynamic_button.bind_preview(
+		base_context.get("card") as CardDef,
+		"dynamic_quick",
+		false,
+		"CARD",
+		base_context.get("comparison") as CardDef
+	)
+	if dynamic_button.tooltip_text.find("Deal 7(+3) damage") == -1:
+		push_error("Card UI smoke failed: base character attack should appear as a positive tooltip modifier")
+		get_tree().quit(1)
+		return
+	var base_rich: Control = dynamic_button._make_custom_tooltip(dynamic_button.tooltip_text) as Control
+	var base_rich_label: RichTextLabel = base_rich.find_child("CardTooltipText", true, false) as RichTextLabel
+	if base_rich_label == null or base_rich_label.text.find("7[color=#72d36f](+3)[/color]") == -1:
+		push_error("Card UI smoke failed: base character attack modifier should be green")
+		get_tree().quit(1)
+		return
+	base_rich.free()
+	tooltip_unit.attack = character_run.attack + 2
+	var buffed_context: Dictionary = CardTooltipResolver.build_context("quick_slash", character_run, tooltip_unit)
 	dynamic_button.bind_preview(
 		buffed_context.get("card") as CardDef,
 		"dynamic_quick",
@@ -215,13 +235,13 @@ func _run() -> void:
 		"CARD",
 		buffed_context.get("comparison") as CardDef
 	)
-	if dynamic_button.tooltip_text.find("(+2)") == -1:
+	if dynamic_button.tooltip_text.find("Deal 9(+2) damage") == -1:
 		push_error("Card UI smoke failed: character attack buffs should update card damage tooltips")
 		get_tree().quit(1)
 		return
 	var buffed_rich: Control = dynamic_button._make_custom_tooltip(dynamic_button.tooltip_text) as Control
 	var buffed_rich_label: RichTextLabel = buffed_rich.find_child("CardTooltipText", true, false) as RichTextLabel
-	if buffed_rich_label == null or buffed_rich_label.text.find("[color=#72d36f]") == -1:
+	if buffed_rich_label == null or buffed_rich_label.text.find("9[color=#72d36f](+2)[/color]") == -1:
 		push_error("Card UI smoke failed: character attack buffs should be green")
 		get_tree().quit(1)
 		return
@@ -237,13 +257,13 @@ func _run() -> void:
 		"CARD",
 		nerfed_context.get("comparison") as CardDef
 	)
-	if dynamic_button.tooltip_text.find("(-2)") == -1:
+	if dynamic_button.tooltip_text.find("Deal 5(-2) damage") == -1:
 		push_error("Card UI smoke failed: weak should update card damage tooltips in real time")
 		get_tree().quit(1)
 		return
 	var nerfed_rich: Control = dynamic_button._make_custom_tooltip(dynamic_button.tooltip_text) as Control
 	var nerfed_rich_label: RichTextLabel = nerfed_rich.find_child("CardTooltipText", true, false) as RichTextLabel
-	if nerfed_rich_label == null or nerfed_rich_label.text.find("[color=#ff6868]") == -1:
+	if nerfed_rich_label == null or nerfed_rich_label.text.find("5[color=#ff6868](-2)[/color]") == -1:
 		push_error("Card UI smoke failed: character debuffs should be red")
 		get_tree().quit(1)
 		return

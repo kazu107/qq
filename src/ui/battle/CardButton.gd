@@ -770,13 +770,13 @@ func _format_compared_float(current_value: float, base_value: float, decimals: i
 		return current_text
 
 	var delta_text: String = _format_float_value(delta, decimals, true)
-	var compared_text: String = "%s (%s)" % [current_text, delta_text]
+	var compared_text: String = "%s(%s)" % [current_text, delta_text]
 	if not rich:
 		return compared_text
 
 	var is_beneficial: bool = delta > 0.0 if higher_is_beneficial else delta < 0.0
 	var color: String = TOOLTIP_BUFF_COLOR if is_beneficial else TOOLTIP_NERF_COLOR
-	return "[color=%s]%s[/color]" % [color, compared_text]
+	return "%s[color=%s](%s)[/color]" % [current_text, color, delta_text]
 
 
 func _format_float_value(value: float, decimals: int, force_sign: bool) -> String:

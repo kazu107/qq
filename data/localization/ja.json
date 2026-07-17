@@ -536,7 +536,7 @@
   "card.tags.none": "なし",
   "card.grade.base": "基本",
   "card.grade.line": "{grade} | 詠唱 {cast_time}s | 再使用 {recast_time}s | {effect_summary}",
-  "effect.deal_damage": "{amount} ダメージを与える",
+  "effect.deal_damage": "{amount}ダメージを与える",
   "effect.consume_shield": "シールドを {amount} 消費する",
   "effect.gain_shield": "シールドを {amount} 得る",
   "effect.heal": "HP を {amount} 回復する",
