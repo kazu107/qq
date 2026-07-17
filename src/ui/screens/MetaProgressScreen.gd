@@ -260,6 +260,13 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		progress_box.add_theme_constant_override("separation", 6)
 		row.add_child(progress_box)
 
+		var stage_label: Label = Label.new()
+		stage_label.name = "AchievementStage_%s" % achievement_id
+		stage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		stage_label.add_theme_font_size_override("font_size", 13)
+		stage_label.add_theme_color_override("font_color", Color(0.56, 0.72, 0.80, 1.0))
+		progress_box.add_child(stage_label)
+
 		var progress_label: Label = Label.new()
 		progress_label.name = "AchievementProgress_%s" % achievement_id
 		progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -287,6 +294,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		_achievement_widgets[achievement_id] = {
 			"name": name_label,
 			"description": desc_label,
+			"stage": stage_label,
 			"progress": progress_label,
 			"progress_bar": progress_bar,
 			"reward": reward_label,
@@ -417,6 +425,7 @@ func _update_achievement_row_widgets(achievement_id: String, entry: Dictionary) 
 		return
 	var name_label: Label = widgets.get("name") as Label
 	var desc_label: Label = widgets.get("description") as Label
+	var stage_label: Label = widgets.get("stage") as Label
 	var progress_label: Label = widgets.get("progress") as Label
 	var progress_bar: ProgressBar = widgets.get("progress_bar") as ProgressBar
 	var reward_label: Label = widgets.get("reward") as Label
@@ -429,10 +438,13 @@ func _update_achievement_row_widgets(achievement_id: String, entry: Dictionary) 
 		name_label.text = String(entry.get("name", achievement_id))
 	if desc_label != null:
 		desc_label.text = String(entry.get("description", ""))
-	if progress_label != null:
-		progress_label.text = Localization.get_textf("meta.achievement_stage_progress", "Stage {stage} / {stages} | {current} / {target}", {
+	if stage_label != null:
+		stage_label.text = Localization.get_textf("meta.achievement_stage", "Stage {stage} / {stages}", {
 			"stage": mini(claimed_count + 1, tier_count),
 			"stages": tier_count,
+		})
+	if progress_label != null:
+		progress_label.text = Localization.get_textf("meta.achievement_progress", "Progress: {current} / {target}", {
 			"current": current_value,
 			"target": target_value,
 		})

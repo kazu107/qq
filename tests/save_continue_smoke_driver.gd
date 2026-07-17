@@ -23,6 +23,10 @@ func _run() -> void:
 	if _failed:
 		return
 
+	await _exercise_suspended_run_slots()
+	if _failed:
+		return
+
 	_delete_save()
 	print("Save/continue smoke passed")
 	get_tree().quit()
@@ -131,6 +135,70 @@ func _exercise_reward_restore() -> void:
 	var reward_cards: CardHandPanel = reward_scene.find_child("RewardCards", true, false) as CardHandPanel
 	if reward_cards == null or reward_cards.get_child_count() != expected_rewards.size():
 		_fail("Save/continue smoke failed: continue did not reopen reward cards")
+		return
+
+
+func _exercise_suspended_run_slots() -> void:
+	Game.suspended_runs.clear()
+	Game.start_new_run("balanced", 14001)
+	Game.current_run.gold = 77
+	Game.current_screen_hint = "map"
+	Game.abandon_run_to_hub()
+	if Game.current_run != null or not Game.has_suspended_run(Game.RUN_SETUP_MODE_NORMAL):
+		_fail("Save/continue smoke failed: returning to hub did not suspend the normal run")
+		return
+
+	if not Game.start_arena_run("balanced", 24002):
+		_fail("Save/continue smoke failed: arena run could not start for suspension coverage")
+		return
+	Game.current_run.gold = 88
+	Game.current_screen_hint = "arena"
+	Game.abandon_run_to_hub()
+	if Game.current_run != null \
+	or not Game.has_suspended_run(Game.RUN_SETUP_MODE_NORMAL) \
+	or not Game.has_suspended_run(Game.RUN_SETUP_MODE_ARENA):
+		_fail("Save/continue smoke failed: normal and arena suspension slots should coexist")
+		return
+
+	Game.current_run = null
+	Game.suspended_runs = {}
+	Game.settings = {}
+	Game.meta_progress = {}
+	Game.apply_loaded_save(SaveManager.load_save())
+	if Game.current_run != null \
+	or not Game.has_suspended_run(Game.RUN_SETUP_MODE_NORMAL) \
+	or not Game.has_suspended_run(Game.RUN_SETUP_MODE_ARENA):
+		_fail("Save/continue smoke failed: suspended run slots were not restored from disk")
+		return
+
+	var hub_scene: Control = load("res://scenes/hub/Hub.tscn").instantiate() as Control
+	add_child(hub_scene)
+	await get_tree().process_frame
+	for button_name in ["RunStartButton", "ContinueNormalRunButton", "ArenaStartButton", "ContinueArenaRunButton"]:
+		if hub_scene.find_child(button_name, true, false) == null:
+			_fail("Save/continue smoke failed: hub did not render split start/continue button %s" % button_name)
+			return
+	hub_scene.queue_free()
+	await get_tree().process_frame
+
+	if Game.resume_suspended_run(Game.RUN_SETUP_MODE_NORMAL) != "map" \
+	or Game.current_run == null \
+	or Game.current_run.arena_mode \
+	or Game.current_run.seed != 14001 \
+	or Game.current_run.gold != 77:
+		_fail("Save/continue smoke failed: normal run did not resume with its saved state")
+		return
+	if Game.has_suspended_run(Game.RUN_SETUP_MODE_NORMAL) or not Game.has_suspended_run(Game.RUN_SETUP_MODE_ARENA):
+		_fail("Save/continue smoke failed: resuming normal should consume only the normal slot")
+		return
+	Game.abandon_run_to_hub()
+
+	if Game.resume_suspended_run(Game.RUN_SETUP_MODE_ARENA) != "arena" \
+	or Game.current_run == null \
+	or not Game.current_run.arena_mode \
+	or Game.current_run.seed != 24002 \
+	or Game.current_run.gold != 88:
+		_fail("Save/continue smoke failed: arena run did not resume with its saved state")
 		return
 
 

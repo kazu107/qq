@@ -91,18 +91,18 @@ func _ready() -> void:
 	var button_row := HBoxContainer.new()
 	right.add_child(button_row)
 
-	if not _is_arena_setup:
+	if _is_arena_setup:
+		var arena_button: Button = Button.new()
+		arena_button.name = "ArenaStartSelectedButton"
+		arena_button.text = Localization.get_text("run_setup.start_arena", "Start Arena")
+		arena_button.pressed.connect(_on_start_arena)
+		button_row.add_child(arena_button)
+	else:
 		_start_button = Button.new()
 		_start_button.name = "RunStartSelectedButton"
 		_start_button.text = Localization.get_text("run_setup.start", "Start")
 		_start_button.pressed.connect(_on_start)
 		button_row.add_child(_start_button)
-
-	var arena_button: Button = Button.new()
-	arena_button.name = "ArenaStartSelectedButton"
-	arena_button.text = Localization.get_text("run_setup.start_arena", "Start Arena")
-	arena_button.pressed.connect(_on_start_arena)
-	button_row.add_child(arena_button)
 
 	var back_button := Button.new()
 	back_button.text = Localization.get_text("run_setup.back", "Back")

@@ -14,6 +14,9 @@ func _run() -> void:
 	_assert_default_meta()
 	if _failed:
 		return
+	_assert_legacy_tier_migration()
+	if _failed:
+		return
 
 	Game.start_new_run("balanced")
 	var rewards: Array[String] = Game.developer_reroll_rewards()
@@ -69,9 +72,19 @@ func _run() -> void:
 		_fail("Meta progress smoke failed: relic unlock section should render relic icons with tooltips")
 		return
 	var initial_victory_progress_label: Label = meta_scene.find_child("AchievementProgress_victory_milestones", true, false) as Label
+	var initial_victory_stage_label: Label = meta_scene.find_child("AchievementStage_victory_milestones", true, false) as Label
 	var initial_victory_progress_bar: ProgressBar = meta_scene.find_child("AchievementProgressBar_victory_milestones", true, false) as ProgressBar
-	if not _assert_achievement_progress_layout(initial_victory_progress_label, initial_victory_progress_bar):
+	if not _assert_achievement_progress_layout(initial_victory_stage_label, initial_victory_progress_label, initial_victory_progress_bar):
 		return
+	var achievement_entries: Array[Dictionary] = Game.get_meta_achievement_entries()
+	if achievement_entries.size() < 26:
+		_fail("Meta progress smoke failed: expanded achievement catalog should contain at least 26 achievement groups")
+		return
+	for tiered_id in ["deep_push", "deck_expander", "timekeeper_down", "arena_victor", "master_smith"]:
+		var tiered_entry: Dictionary = _find_entry_by_id(achievement_entries, tiered_id)
+		if int(tiered_entry.get("tier_count", 0)) < 3:
+			_fail("Meta progress smoke failed: %s should expose multiple claimable stages" % tiered_id)
+			return
 
 	Game.developer_add_achievement_stat("victories", 1)
 	meta_scene.call("_refresh_ui")
@@ -340,6 +353,16 @@ func _assert_default_meta() -> void:
 		_fail("Meta progress smoke failed: developer reset should seed debug points")
 
 
+func _assert_legacy_tier_migration() -> void:
+	var legacy_meta: Dictionary = Database.meta_progress_template.duplicate(true)
+	legacy_meta["claimed_achievements"] = ["deep_push"]
+	legacy_meta.erase("achievement_claim_counts")
+	MetaProgressService.new().ensure_defaults(legacy_meta)
+	var counts: Dictionary = Dictionary(legacy_meta.get("achievement_claim_counts", {}))
+	if int(counts.get("deep_push", 0)) != 1:
+		_fail("Meta progress smoke failed: a legacy single achievement claim should migrate to only its first tier")
+
+
 func _wait_for_content_ready(scene: Control, label: String) -> bool:
 	for _frame in range(180):
 		await get_tree().process_frame
@@ -372,12 +395,18 @@ func _fail(message: String) -> void:
 	get_tree().quit(1)
 
 
-func _assert_achievement_progress_layout(progress_label: Label, progress_bar: ProgressBar) -> bool:
-	if progress_label == null or progress_bar == null:
-		_fail("Meta progress smoke failed: achievement progress label and bar should render")
+func _assert_achievement_progress_layout(stage_label: Label, progress_label: Label, progress_bar: ProgressBar) -> bool:
+	if stage_label == null or progress_label == null or progress_bar == null:
+		_fail("Meta progress smoke failed: achievement stage, progress label, and bar should render")
 		return false
-	if progress_label.get_parent() != progress_bar.get_parent() or progress_label.get_index() >= progress_bar.get_index():
+	if stage_label.get_parent() != progress_bar.get_parent() \
+	or progress_label.get_parent() != progress_bar.get_parent() \
+	or stage_label.get_index() >= progress_label.get_index() \
+	or progress_label.get_index() >= progress_bar.get_index():
 		_fail("Meta progress smoke failed: achievement progress number should sit above the progress bar")
+		return false
+	if progress_label.text.find("|") >= 0:
+		_fail("Meta progress smoke failed: stage and progress values should use separate labels")
 		return false
 	var background_style: StyleBoxFlat = progress_bar.get_theme_stylebox("background") as StyleBoxFlat
 	if background_style == null or background_style.bg_color.a <= 0.0 or background_style.border_width_top < 1:
@@ -387,3 +416,10 @@ func _assert_achievement_progress_layout(progress_label: Label, progress_bar: Pr
 		_fail("Meta progress smoke failed: initial achievement progress should start at zero for background visibility coverage")
 		return false
 	return true
+
+
+func _find_entry_by_id(entries: Array[Dictionary], entry_id: String) -> Dictionary:
+	for entry in entries:
+		if String(entry.get("id", "")) == entry_id:
+			return entry
+	return {}

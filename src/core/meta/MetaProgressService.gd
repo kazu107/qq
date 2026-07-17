@@ -5,8 +5,24 @@ const DEFAULT_UNLOCKED_STARTERS := ["balanced"]
 const DEFAULT_UNLOCKED_RELICS := ["iron_plating", "reactive_barrier"]
 const DEFAULT_ACHIEVEMENT_STATS := {
 	"runs_started": 0,
+	"normal_runs_started": 0,
+	"arena_runs_started": 0,
+	"infinite_runs_started": 0,
 	"victories": 0,
+	"arena_victories": 0,
+	"defeats": 0,
 	"boss_wins": 0,
+	"cards_bought": 0,
+	"relics_bought": 0,
+	"cards_upgraded": 0,
+	"rewards_claimed": 0,
+	"events_resolved": 0,
+	"facility_choices": 0,
+	"healing_choices": 0,
+	"cards_sold": 0,
+	"reward_rerolls": 0,
+	"shop_rerolls": 0,
+	"gold_spent": 0,
 	"rank_b_tier_1": 0,
 	"rank_a_tier_1": 0,
 	"rank_s_tier_1": 0,
@@ -372,10 +388,13 @@ func build_achievement_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 			var tier_target_value: int = int(tier_condition.get("value", 1))
 			var tier_current_value: int = _get_condition_value(meta_progress, tier_stat_id)
 			var tier_rewards: Array = _get_tier_rewards(achievement_data, active_tier)
+			var tier_description: String = String(active_tier.get("description", ""))
+			if tier_description == "":
+				tier_description = String(achievement_data.get("description", ""))
 			entries.append({
 				"id": achievement_id,
 				"name": String(achievement_data.get("name", achievement_id)),
-				"description": String(active_tier.get("description", achievement_data.get("description", ""))),
+				"description": tier_description,
 				"stat": tier_stat_id,
 				"current": tier_current_value,
 				"target": tier_target_value,
@@ -591,7 +610,8 @@ func _normalized_achievement_claim_counts(value: Variant, claimed_ids: Array[Str
 			if legacy_id != "" and claimed_ids.has(legacy_id):
 				claimed_count = maxi(claimed_count, tier_index + 1)
 		if claimed_ids.has(achievement_id):
-			claimed_count = tiers.size()
+			var legacy_claim_tier_count: int = int(achievement_data.get("legacy_claim_tier_count", tiers.size()))
+			claimed_count = maxi(claimed_count, legacy_claim_tier_count)
 		result[achievement_id] = clampi(claimed_count, 0, tiers.size())
 	return result
 

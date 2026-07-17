@@ -147,6 +147,12 @@ func go_to_continue_target() -> void:
 			go_to_hub()
 
 
+func continue_suspended_run(mode: String) -> void:
+	if Game.resume_suspended_run(mode) == "":
+		return
+	go_to_continue_target()
+
+
 func show_gold_delta(amount: int) -> void:
 	if amount == 0:
 		return

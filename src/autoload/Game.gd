@@ -7,17 +7,21 @@ const NON_BATTLE_NODE_TYPES := ["shop", "forge", "heal", "event", "hazard"]
 const DEVELOPER_META_RESET_POINTS := 10
 const DEBUG_EVENT_NODE_ID := "__debug_event__"
 const DEFAULT_RESOLUTION := "1920x1080"
+const DEFAULT_MASTER_VOLUME := 0.5
+const DEFAULT_SFX_VOLUME := 0.5
+const DEFAULT_GAME_LANGUAGE := "ja"
 const AVAILABLE_RESOLUTION_CODES := ["1280x720", "1600x900", "1920x1080", "2560x1440"]
 const REWARD_REROLL_COST: int = 10
 const RUN_SETUP_MODE_NORMAL := "normal"
 const RUN_SETUP_MODE_ARENA := "arena"
 
 var current_run: RunState
+var suspended_runs: Dictionary = {}
 var meta_progress: Dictionary = {}
 var settings: Dictionary = {
-	"master_volume": 1.0,
-	"sfx_volume": 1.0,
-	"language": Localization.DEFAULT_LANGUAGE,
+	"master_volume": DEFAULT_MASTER_VOLUME,
+	"sfx_volume": DEFAULT_SFX_VOLUME,
+	"language": DEFAULT_GAME_LANGUAGE,
 	"resolution": DEFAULT_RESOLUTION,
 	"developer_mode": false,
 	"developer_panel_collapsed": false,
@@ -74,9 +78,9 @@ func ensure_meta_initialized() -> void:
 		meta_progress = Database.meta_progress_template.duplicate(true)
 	if settings.is_empty():
 		settings = {
-			"master_volume": 1.0,
-			"sfx_volume": 1.0,
-			"language": Localization.DEFAULT_LANGUAGE,
+			"master_volume": DEFAULT_MASTER_VOLUME,
+			"sfx_volume": DEFAULT_SFX_VOLUME,
+			"language": DEFAULT_GAME_LANGUAGE,
 			"resolution": DEFAULT_RESOLUTION,
 			"developer_mode": false,
 			"developer_panel_collapsed": false,
@@ -96,11 +100,11 @@ func ensure_meta_initialized() -> void:
 			"online_automatic_upnp": true,
 		}
 	if not settings.has("master_volume"):
-		settings["master_volume"] = 1.0
+		settings["master_volume"] = DEFAULT_MASTER_VOLUME
 	if not settings.has("sfx_volume"):
-		settings["sfx_volume"] = 1.0
+		settings["sfx_volume"] = DEFAULT_SFX_VOLUME
 	if not settings.has("language"):
-		settings["language"] = Localization.DEFAULT_LANGUAGE
+		settings["language"] = DEFAULT_GAME_LANGUAGE
 	if not settings.has("resolution"):
 		settings["resolution"] = DEFAULT_RESOLUTION
 	settings["resolution"] = _normalize_resolution_code(String(settings.get("resolution", DEFAULT_RESOLUTION)))
@@ -147,6 +151,7 @@ func ensure_meta_initialized() -> void:
 func apply_loaded_save(save_data: SaveData) -> void:
 	meta_progress = save_data.meta_progress.duplicate(true)
 	settings = save_data.settings.duplicate(true)
+	suspended_runs = save_data.suspended_runs.duplicate(true)
 	current_screen_hint = String(settings.get("screen_hint", "hub"))
 	if current_screen_hint == "title":
 		current_screen_hint = "hub"
@@ -173,6 +178,7 @@ func build_save_data(scene_hint: String) -> SaveData:
 		save_data.current_run = current_run.to_dict()
 	else:
 		save_data.current_run = {}
+	save_data.suspended_runs = suspended_runs.duplicate(true)
 	save_data.meta_progress = meta_progress.duplicate(true)
 	save_data.settings = settings.duplicate(true)
 	save_data.settings["screen_hint"] = current_screen_hint
@@ -208,6 +214,7 @@ func start_new_run(starter_id: String, seed_override: int = 0) -> void:
 	var starter: Dictionary = Database.get_starter(starter_id)
 	if starter.is_empty():
 		return
+	suspended_runs.erase(RUN_SETUP_MODE_NORMAL)
 	current_run = RunState.from_starter(starter, seed_override)
 	_apply_permanent_bonuses_to_run(current_run)
 	current_run.map_state = _map_generator.generate_run(current_run.seed, get_unlocked_step_tier())
@@ -216,6 +223,7 @@ func start_new_run(starter_id: String, seed_override: int = 0) -> void:
 	last_battle_summary.clear()
 	last_reward_bundle.clear()
 	_meta_progress_service.increment_achievement_stat(meta_progress, "runs_started")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "normal_runs_started")
 	settings["last_run_starter_id"] = current_run.starter_id
 	settings["last_run_seed"] = current_run.seed
 	current_screen_hint = "map"
@@ -231,6 +239,7 @@ func start_infinite_run(starter_id: String = "", seed_override: int = 0) -> bool
 	var starter: Dictionary = Database.get_starter(resolved_starter_id)
 	if starter.is_empty():
 		return false
+	suspended_runs.erase(RUN_SETUP_MODE_NORMAL)
 	current_run = RunState.from_starter(starter, seed_override)
 	current_run.infinite_mode = true
 	_apply_permanent_bonuses_to_run(current_run)
@@ -241,6 +250,7 @@ func start_infinite_run(starter_id: String = "", seed_override: int = 0) -> bool
 	last_battle_summary.clear()
 	last_reward_bundle.clear()
 	_meta_progress_service.increment_achievement_stat(meta_progress, "runs_started")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "infinite_runs_started")
 	settings["last_run_starter_id"] = current_run.starter_id
 	settings["last_run_seed"] = current_run.seed
 	current_screen_hint = "map"
@@ -254,6 +264,7 @@ func start_arena_run(starter_id: String, seed_override: int = 0) -> bool:
 	var starter: Dictionary = Database.get_starter(starter_id)
 	if starter.is_empty():
 		return false
+	suspended_runs.erase(RUN_SETUP_MODE_ARENA)
 	current_run = RunState.from_starter(starter, seed_override)
 	_arena_service.configure_run(current_run, _get_arena_card_pool_ids(), _get_arena_relic_pool_ids())
 	pending_enemy_id = ""
@@ -261,6 +272,7 @@ func start_arena_run(starter_id: String, seed_override: int = 0) -> bool:
 	last_battle_summary.clear()
 	last_reward_bundle.clear()
 	_meta_progress_service.increment_achievement_stat(meta_progress, "runs_started")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "arena_runs_started")
 	settings["last_run_starter_id"] = current_run.starter_id
 	settings["last_run_seed"] = current_run.seed
 	current_screen_hint = "arena"
@@ -334,6 +346,7 @@ func complete_battle(summary: Dictionary) -> void:
 		return
 
 	if String(summary.get("winner", "")) != "player":
+		_meta_progress_service.increment_achievement_stat(meta_progress, "defeats")
 		current_run.defeated = true
 		current_run.run_complete = true
 		reward_options.clear()
@@ -387,6 +400,7 @@ func choose_reward(card_id: String) -> void:
 		return
 	if card_id != "":
 		current_run.player_cards.append(card_id)
+		_meta_progress_service.increment_achievement_stat(meta_progress, "rewards_claimed")
 		_auto_equip_card_if_room(card_id)
 		_update_latest_battle_history({"selected_reward_card_id": card_id})
 		AudioManager.play_sfx("reward_pick")
@@ -436,6 +450,8 @@ func reroll_rewards_for_gold() -> bool:
 		return false
 
 	current_run.gold = max(0, current_run.gold - REWARD_REROLL_COST)
+	_meta_progress_service.increment_achievement_stat(meta_progress, "reward_rerolls")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", REWARD_REROLL_COST)
 	_show_gold_delta(-REWARD_REROLL_COST)
 	AudioManager.play_sfx("shop_buy")
 	SaveManager.save_game(current_screen_hint)
@@ -449,13 +465,70 @@ func get_run_summary() -> Dictionary:
 
 
 func abandon_run_to_hub() -> void:
+	if current_run != null and not current_run.run_complete:
+		stash_active_run_for_hub()
+		return
+	_clear_active_run_state()
+	current_screen_hint = "hub"
+	SaveManager.save_game(current_screen_hint)
+
+
+func stash_active_run_for_hub() -> bool:
+	if current_run == null or current_run.run_complete:
+		return false
+	var mode: String = RUN_SETUP_MODE_ARENA if current_run.arena_mode else RUN_SETUP_MODE_NORMAL
+	var resume_hint: String = current_screen_hint
+	if resume_hint in ["", "hub", "title", "run_setup", "meta", "library", "settings"]:
+		resume_hint = "arena" if current_run.arena_mode else "map"
+	suspended_runs[mode] = {
+		"run": current_run.to_dict(),
+		"screen_hint": resume_hint,
+		"pending_enemy_id": pending_enemy_id,
+		"reward_options": reward_options.duplicate(),
+		"last_battle_summary": last_battle_summary.duplicate(true),
+		"last_reward_bundle": last_reward_bundle.duplicate(true),
+	}
+	_clear_active_run_state()
+	current_screen_hint = "hub"
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
+func has_suspended_run(mode: String) -> bool:
+	var slot_id: String = _normalize_run_slot_id(mode)
+	if not suspended_runs.has(slot_id):
+		return false
+	var snapshot: Dictionary = Dictionary(suspended_runs.get(slot_id, {}))
+	return not Dictionary(snapshot.get("run", {})).is_empty()
+
+
+func resume_suspended_run(mode: String) -> String:
+	var slot_id: String = _normalize_run_slot_id(mode)
+	if not has_suspended_run(slot_id):
+		return ""
+	var snapshot: Dictionary = Dictionary(suspended_runs.get(slot_id, {})).duplicate(true)
+	var run_data: Dictionary = Dictionary(snapshot.get("run", {}))
+	current_run = RunState.from_dict(run_data)
+	pending_enemy_id = String(snapshot.get("pending_enemy_id", ""))
+	reward_options = _to_string_array(snapshot.get("reward_options", []))
+	last_battle_summary = Dictionary(snapshot.get("last_battle_summary", {})).duplicate(true)
+	last_reward_bundle = Dictionary(snapshot.get("last_reward_bundle", {})).duplicate(true)
+	current_screen_hint = String(snapshot.get("screen_hint", "arena" if current_run.arena_mode else "map"))
+	suspended_runs.erase(slot_id)
+	SaveManager.save_game(current_screen_hint)
+	return current_screen_hint
+
+
+func _clear_active_run_state() -> void:
 	current_run = null
 	pending_enemy_id = ""
 	reward_options.clear()
 	last_battle_summary.clear()
 	last_reward_bundle.clear()
-	current_screen_hint = "hub"
-	SaveManager.save_game(current_screen_hint)
+
+
+func _normalize_run_slot_id(mode: String) -> String:
+	return RUN_SETUP_MODE_ARENA if mode == RUN_SETUP_MODE_ARENA else RUN_SETUP_MODE_NORMAL
 
 
 func has_active_run() -> bool:
@@ -640,17 +713,17 @@ func get_card_library_entries() -> Array[Dictionary]:
 
 func get_master_volume() -> float:
 	ensure_meta_initialized()
-	return float(settings.get("master_volume", 1.0))
+	return float(settings.get("master_volume", DEFAULT_MASTER_VOLUME))
 
 
 func get_sfx_volume() -> float:
 	ensure_meta_initialized()
-	return float(settings.get("sfx_volume", 1.0))
+	return float(settings.get("sfx_volume", DEFAULT_SFX_VOLUME))
 
 
 func get_language() -> String:
 	ensure_meta_initialized()
-	return String(settings.get("language", Localization.DEFAULT_LANGUAGE))
+	return String(settings.get("language", DEFAULT_GAME_LANGUAGE))
 
 
 func get_available_languages() -> Array[Dictionary]:
@@ -873,6 +946,8 @@ func reroll_arena_shop_for_gold() -> bool:
 	if not rerolled:
 		AudioManager.play_sfx("ui_error")
 		return false
+	_meta_progress_service.increment_achievement_stat(meta_progress, "shop_rerolls")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("shop_buy", 0.96)
 	SaveManager.save_game(current_screen_hint)
@@ -887,6 +962,8 @@ func buy_arena_card_offer(offer_index: int) -> bool:
 	if card_id == "":
 		AudioManager.play_sfx("ui_error")
 		return false
+	_meta_progress_service.increment_achievement_stat(meta_progress, "cards_bought")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	_auto_equip_card_if_room(card_id)
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("shop_buy")
@@ -902,6 +979,8 @@ func buy_arena_relic_offer(offer_index: int) -> bool:
 	if relic_id == "":
 		AudioManager.play_sfx("ui_error")
 		return false
+	_meta_progress_service.increment_achievement_stat(meta_progress, "relics_bought")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("relic_gain")
 	SaveManager.save_game(current_screen_hint)
@@ -954,6 +1033,7 @@ func choose_arena_victory_reward(reward_id: String) -> bool:
 	if not bool(result.get("applied", false)):
 		AudioManager.play_sfx("ui_error")
 		return false
+	_meta_progress_service.increment_achievement_stat(meta_progress, "rewards_claimed")
 
 	var history_update: Dictionary = {}
 	var reward_gold: int = int(result.get("reward_gold", 0))
@@ -1018,9 +1098,9 @@ func get_settings_return_hint() -> String:
 func reset_settings_to_defaults() -> void:
 	var developer_mode: bool = is_developer_mode_enabled()
 	settings = {
-		"master_volume": 1.0,
-		"sfx_volume": 1.0,
-		"language": get_language(),
+		"master_volume": DEFAULT_MASTER_VOLUME,
+		"sfx_volume": DEFAULT_SFX_VOLUME,
+		"language": DEFAULT_GAME_LANGUAGE,
 		"resolution": DEFAULT_RESOLUTION,
 		"developer_mode": developer_mode,
 		"replay_auto_export": true,
@@ -1039,6 +1119,7 @@ func reset_settings_to_defaults() -> void:
 		"online_port": 32475,
 		"online_automatic_upnp": true,
 	}
+	_sync_language_from_settings(true)
 	AudioManager.apply_settings(settings)
 	_apply_resolution_from_settings(true)
 	SaveManager.save_game(current_screen_hint)
@@ -1892,6 +1973,7 @@ func sell_loadout_card(card_id: String) -> bool:
 	if _count_card_occurrences(current_run.equipped_cards, card_id) >= owned_count_before:
 		_remove_card_occurrence(current_run.equipped_cards, card_id)
 	current_run.gold += sell_value
+	_meta_progress_service.increment_achievement_stat(meta_progress, "cards_sold")
 	_show_gold_delta(sell_value)
 	AudioManager.play_sfx("gold_gain", 0.92)
 	SaveManager.save_game(current_screen_hint)
@@ -1960,6 +2042,8 @@ func buy_shop_offer(offer_index: int) -> bool:
 	var price: int = int(offer_data.get("price", 0))
 	if not _shop_service.buy_card(current_run, card_id, price):
 		return false
+	_meta_progress_service.increment_achievement_stat(meta_progress, "cards_bought")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 
 	offer_data["bought"] = true
 	offers[offer_index] = offer_data
@@ -2007,6 +2091,8 @@ func use_shop_service_choice(choice_id: String) -> bool:
 				pass
 
 	node_data["shop_service_%s_used" % choice_id] = true
+	_meta_progress_service.increment_achievement_stat(meta_progress, "facility_choices")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	_set_node(step_index, node_index, node_data)
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("shop_buy")
@@ -2034,8 +2120,12 @@ func upgrade_forge_card(card_id: String) -> int:
 	if not options.has(card_id):
 		return CardUpgradeResolver.get_tier(current_run, card_id)
 
+	var previous_tier: int = CardUpgradeResolver.get_tier(current_run, card_id)
 	var new_tier: int = _forge_service.upgrade_card(current_run, card_id)
+	if new_tier > previous_tier:
+		_meta_progress_service.increment_achievement_stat(meta_progress, "cards_upgraded")
 	node_data["forge_used"] = true
+	_meta_progress_service.increment_achievement_stat(meta_progress, "facility_choices")
 	_set_node(step_index, node_index, node_data)
 	AudioManager.play_sfx("forge_upgrade")
 	SaveManager.save_game(current_screen_hint)
@@ -2075,6 +2165,8 @@ func use_forge_service_choice(choice_id: String) -> bool:
 				pass
 
 	node_data["forge_used"] = true
+	_meta_progress_service.increment_achievement_stat(meta_progress, "facility_choices")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	_set_node(step_index, node_index, node_data)
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("forge_upgrade")
@@ -2113,6 +2205,9 @@ func use_heal_node_choice(choice_id: String) -> int:
 			_:
 				pass
 	_complete_active_map_node_and_advance()
+	_meta_progress_service.increment_achievement_stat(meta_progress, "facility_choices")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "healing_choices")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	current_screen_hint = _get_post_progress_scene_hint()
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("heal_use")
@@ -2136,6 +2231,8 @@ func resolve_event_choice(choice_id: String) -> String:
 		return ""
 
 	_complete_active_map_node_and_advance()
+	_meta_progress_service.increment_achievement_stat(meta_progress, "events_resolved")
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	current_screen_hint = _get_post_progress_scene_hint()
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("event_resolve")
@@ -2383,9 +2480,12 @@ func _handle_arena_battle_result(summary: Dictionary) -> void:
 	var winner: String = String(summary.get("winner", ""))
 	if winner == "player":
 		_meta_progress_service.increment_achievement_stat(meta_progress, "victories")
+		_meta_progress_service.increment_achievement_stat(meta_progress, "arena_victories")
 		var enemy_id: String = String(summary.get("enemy_id", ""))
 		if enemy_id.begins_with("boss_"):
 			_meta_progress_service.increment_achievement_stat(meta_progress, "boss_wins")
+	else:
+		_meta_progress_service.increment_achievement_stat(meta_progress, "defeats")
 
 	var arena_result: Dictionary = _arena_service.apply_battle_result(
 		current_run,

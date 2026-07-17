@@ -161,6 +161,15 @@ func _assert_arena_setup_has_only_arena_start() -> void:
 	run_setup_scene.queue_free()
 	Game.prepare_run_setup(Game.RUN_SETUP_MODE_NORMAL)
 	await get_tree().process_frame
+	var normal_setup_scene: Control = load("res://scenes/run_setup/RunSetup.tscn").instantiate() as Control
+	add_child(normal_setup_scene)
+	await get_tree().process_frame
+	if normal_setup_scene.find_child("ArenaStartSelectedButton", true, false) != null:
+		_fail("Arena flow smoke failed: normal run setup should not render an arena start button")
+	elif normal_setup_scene.find_child("RunStartSelectedButton", true, false) == null:
+		_fail("Arena flow smoke failed: normal run setup did not render its run start button")
+	normal_setup_scene.queue_free()
+	await get_tree().process_frame
 
 
 func _assert_arena_shop_can_surface_locked_content() -> bool:

@@ -11,6 +11,7 @@ var _debug_card_grade_options: Array[OptionButton] = []
 
 
 func _ready() -> void:
+	Game.stash_active_run_for_hub()
 	var margin: MarginContainer = MarginContainer.new()
 	margin.anchor_right = 1.0
 	margin.anchor_bottom = 1.0
@@ -38,32 +39,8 @@ func _ready() -> void:
 	})
 	root.add_child(_info_label)
 
-	if (
-		Game.current_run != null
-		and not Game.current_run.run_complete
-		and Game.current_screen_hint != "hub"
-		and Game.current_screen_hint != "title"
-	):
-		var continue_button: Button = Button.new()
-		continue_button.name = "ContinueRunButton"
-		continue_button.text = Localization.get_text("hub.continue_run", "Continue Run")
-		continue_button.pressed.connect(SceneRouter.go_to_continue_target)
-		root.add_child(continue_button)
-
-	var start_button: Button = Button.new()
-	start_button.text = Localization.get_text("hub.run_start", "Run Start")
-	start_button.pressed.connect(func() -> void:
-		SceneRouter.go_to_run_setup()
-	)
-	root.add_child(start_button)
-
-	var arena_button: Button = Button.new()
-	arena_button.name = "ArenaStartButton"
-	arena_button.text = Localization.get_text("hub.arena_start", "Arena Progression")
-	arena_button.pressed.connect(func() -> void:
-		SceneRouter.go_to_run_setup(Game.RUN_SETUP_MODE_ARENA)
-	)
-	root.add_child(arena_button)
+	_add_run_mode_row(root, Game.RUN_SETUP_MODE_NORMAL)
+	_add_run_mode_row(root, Game.RUN_SETUP_MODE_ARENA)
 
 	if Game.WEB_MULTIPLAYER_ENABLED:
 		var online_button: Button = Button.new()
@@ -105,6 +82,38 @@ func _ready() -> void:
 		_build_debug_battle_lab(root)
 		_build_developer_panel()
 		call_deferred("_warm_debug_card_pickers")
+
+
+func _add_run_mode_row(parent: VBoxContainer, mode: String) -> void:
+	var is_arena: bool = mode == Game.RUN_SETUP_MODE_ARENA
+	var row: HBoxContainer = HBoxContainer.new()
+	row.name = "ArenaModeButtonRow" if is_arena else "NormalModeButtonRow"
+	row.add_theme_constant_override("separation", 10)
+	parent.add_child(row)
+
+	var start_button: Button = Button.new()
+	start_button.name = "ArenaStartButton" if is_arena else "RunStartButton"
+	start_button.text = Localization.get_text(
+		"hub.arena_start" if is_arena else "hub.run_start",
+		"Arena Mode" if is_arena else "Run Start"
+	)
+	start_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	start_button.pressed.connect(func() -> void:
+		SceneRouter.go_to_run_setup(mode)
+	)
+	row.add_child(start_button)
+
+	if not Game.has_suspended_run(mode):
+		return
+	var continue_button: Button = Button.new()
+	continue_button.name = "ContinueArenaRunButton" if is_arena else "ContinueNormalRunButton"
+	continue_button.text = Localization.get_text(
+		"hub.continue_arena" if is_arena else "hub.continue_normal",
+		"Continue Arena" if is_arena else "Continue Run"
+	)
+	continue_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	continue_button.pressed.connect(SceneRouter.continue_suspended_run.bind(mode))
+	row.add_child(continue_button)
 
 
 func _build_debug_battle_lab(parent: Control) -> void:

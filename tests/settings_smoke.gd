@@ -5,7 +5,13 @@ var _failed: bool = false
 
 func _ready() -> void:
 	Database.load_all()
+	Game.settings = {}
 	Game.ensure_meta_initialized()
+	if absf(Game.get_master_volume() - 0.5) > 0.001 \
+	or absf(Game.get_sfx_volume() - 0.5) > 0.001 \
+	or Game.get_language() != "ja":
+		_fail("Settings smoke failed: fresh settings should default to 50% volumes and Japanese")
+		return
 	Game.set_developer_mode_enabled(true)
 	Game.set_master_volume(1.0)
 	Game.set_resolution(Game.DEFAULT_RESOLUTION)

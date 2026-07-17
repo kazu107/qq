@@ -1,352 +1,268 @@
 [
   {
-    "id": "victory_milestones",
-    "name": "Victory Milestones",
-    "description": "Win battles across runs.",
-    "condition": {
-      "stat": "victories",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "permanent_bonus",
-        "stat": "max_hp",
-        "amount": 5
-      }
-    ],
+    "id": "victory_milestones", "name": "Victory Milestones", "description": "Win battles across all modes.",
+    "condition": {"stat": "victories", "value": 1}, "rewards": [{"type": "permanent_bonus", "stat": "max_hp", "amount": 5}],
     "tiers": [
-      {
-        "legacy_id": "first_victory",
-        "name": "First Victory",
-        "description": "Win any battle once.",
-        "condition": {
-          "stat": "victories",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "permanent_bonus",
-            "stat": "max_hp",
-            "amount": 5
-          }
-        ]
-      },
-      {
-        "legacy_id": "seasoned_pilot",
-        "name": "Seasoned Pilot",
-        "description": "Win three battles across runs.",
-        "condition": {
-          "stat": "victories",
-          "value": 3
-        },
-        "rewards": [
-          {
-            "type": "permanent_bonus",
-            "stat": "attack",
-            "amount": 1
-          }
-        ]
-      }
+      {"legacy_id": "first_victory", "condition": {"stat": "victories", "value": 1}, "rewards": [{"type": "permanent_bonus", "stat": "max_hp", "amount": 5}]},
+      {"legacy_id": "seasoned_pilot", "condition": {"stat": "victories", "value": 3}, "rewards": [{"type": "permanent_bonus", "stat": "attack", "amount": 1}]},
+      {"condition": {"stat": "victories", "value": 10}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "victories", "value": 25}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "victories", "value": 50}, "rewards": [{"type": "meta_points", "amount": 4}]},
+      {"condition": {"stat": "victories", "value": 100}, "rewards": [{"type": "meta_points", "amount": 6}]}
     ]
   },
   {
-    "id": "deep_push",
-    "name": "Deep Push",
-    "description": "Clear at least two encounters in one run.",
-    "condition": {
-      "stat": "best_clear",
-      "value": 2
-    },
-    "rewards": [
-      {
-        "type": "permanent_bonus",
-        "stat": "max_hp",
-        "amount": 4
-      }
-    ]
-  },
-  {
-    "id": "deck_expander",
-    "name": "Deck Expander",
-    "description": "Unlock sixteen cards.",
-    "condition": {
-      "stat": "unlocked_cards",
-      "value": 16
-    },
-    "rewards": [
-      {
-        "type": "permanent_bonus",
-        "stat": "loadout_limit",
-        "amount": 1
-      }
-    ]
-  },
-  {
-    "id": "timekeeper_down",
-    "name": "Timekeeper Down",
-    "description": "Defeat the Timekeeper boss.",
-    "condition": {
-      "stat": "boss_wins",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "permanent_bonus",
-        "stat": "speed",
-        "amount": 1
-      },
-      {
-        "type": "meta_points",
-        "amount": 2
-      }
-    ]
-  },
-  {
-    "id": "rank_b_milestones",
-    "name": "B Rank Routes",
-    "description": "Clear the current unlocked route with rank B or higher.",
-    "condition": {
-      "stat": "rank_b_tier_1",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "meta_points",
-        "amount": 1
-      }
-    ],
+    "id": "run_milestones", "name": "Run Milestones", "description": "Start runs in any mode.",
+    "condition": {"stat": "runs_started", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
     "tiers": [
-      {
-        "legacy_id": "rank_b_tier_1",
-        "name": "Core Route B Rank",
-        "description": "Clear Steps 1-7 with rank B or higher.",
-        "condition": {
-          "stat": "rank_b_tier_1",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "meta_points",
-            "amount": 1
-          }
-        ]
-      },
-      {
-        "legacy_id": "rank_b_tier_2",
-        "name": "Extended Route B Rank",
-        "description": "Clear Steps 1-14 with rank B or higher.",
-        "condition": {
-          "stat": "rank_b_tier_2",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "meta_points",
-            "amount": 2
-          }
-        ]
-      },
-      {
-        "legacy_id": "rank_b_tier_3",
-        "name": "Rift Route B Rank",
-        "description": "Clear Steps 1-21 with rank B or higher.",
-        "condition": {
-          "stat": "rank_b_tier_3",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "meta_points",
-            "amount": 3
-          }
-        ]
-      },
-      {
-        "legacy_id": "rank_b_tier_4",
-        "name": "Eternity Route B Rank",
-        "description": "Clear Steps 1-28 with rank B or higher.",
-        "condition": {
-          "stat": "rank_b_tier_4",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "meta_points",
-            "amount": 4
-          }
-        ]
-      }
+      {"condition": {"stat": "runs_started", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "runs_started", "value": 5}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "runs_started", "value": 15}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "runs_started", "value": 30}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "runs_started", "value": 60}, "rewards": [{"type": "meta_points", "amount": 5}]}
     ]
   },
   {
-    "id": "rank_a_milestones",
-    "name": "A Rank Routes",
-    "description": "Clear the current unlocked route with rank A or higher.",
-    "condition": {
-      "stat": "rank_a_tier_1",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "permanent_bonus",
-        "stat": "loadout_limit",
-        "amount": 1
-      }
-    ],
+    "id": "normal_explorer", "name": "Route Explorer", "description": "Start standard runs.",
+    "condition": {"stat": "normal_runs_started", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
     "tiers": [
-      {
-        "legacy_id": "rank_a_tier_1",
-        "name": "Core Route A Rank",
-        "description": "Clear Steps 1-7 with rank A or higher.",
-        "condition": {
-          "stat": "rank_a_tier_1",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "permanent_bonus",
-            "stat": "loadout_limit",
-            "amount": 1
-          }
-        ]
-      },
-      {
-        "legacy_id": "rank_a_tier_2",
-        "name": "Extended Route A Rank",
-        "description": "Clear Steps 1-14 with rank A or higher.",
-        "condition": {
-          "stat": "rank_a_tier_2",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "permanent_bonus",
-            "stat": "max_hp",
-            "amount": 5
-          }
-        ]
-      },
-      {
-        "legacy_id": "rank_a_tier_3",
-        "name": "Rift Route A Rank",
-        "description": "Clear Steps 1-21 with rank A or higher.",
-        "condition": {
-          "stat": "rank_a_tier_3",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "permanent_bonus",
-            "stat": "speed",
-            "amount": 1
-          }
-        ]
-      },
-      {
-        "legacy_id": "rank_a_tier_4",
-        "name": "Eternity Route A Rank",
-        "description": "Clear Steps 1-28 with rank A or higher.",
-        "condition": {
-          "stat": "rank_a_tier_4",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "permanent_bonus",
-            "stat": "max_hp",
-            "amount": 8
-          }
-        ]
-      }
+      {"condition": {"stat": "normal_runs_started", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "normal_runs_started", "value": 5}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "normal_runs_started", "value": 15}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "normal_runs_started", "value": 30}, "rewards": [{"type": "meta_points", "amount": 3}]}
     ]
   },
   {
-    "id": "rank_s_milestones",
-    "name": "S Rank Routes",
-    "description": "Clear the current unlocked route with rank S.",
-    "condition": {
-      "stat": "rank_s_tier_1",
-      "value": 1
-    },
-    "rewards": [
-      {
-        "type": "unlock_step_tier",
-        "tier": 2
-      }
-    ],
+    "id": "arena_challenger", "name": "Arena Challenger", "description": "Start Arena Mode runs.",
+    "condition": {"stat": "arena_runs_started", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
     "tiers": [
-      {
-        "legacy_id": "rank_s_tier_1",
-        "name": "Core Route S Rank",
-        "description": "Clear Steps 1-7 with rank S.",
-        "condition": {
-          "stat": "rank_s_tier_1",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "unlock_step_tier",
-            "tier": 2
-          }
-        ]
-      },
-      {
-        "legacy_id": "rank_s_tier_2",
-        "name": "Extended Route S Rank",
-        "description": "Clear Steps 1-14 with rank S.",
-        "condition": {
-          "stat": "rank_s_tier_2",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "permanent_bonus",
-            "stat": "attack",
-            "amount": 1
-          },
-          {
-            "type": "meta_points",
-            "amount": 3
-          },
-          {
-            "type": "unlock_step_tier",
-            "tier": 3
-          }
-        ]
-      },
-      {
-        "legacy_id": "rank_s_tier_3",
-        "name": "Rift Route S Rank",
-        "description": "Clear Steps 1-21 with rank S.",
-        "condition": {
-          "stat": "rank_s_tier_3",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "unlock_step_tier",
-            "tier": 4
-          }
-        ]
-      },
-      {
-        "legacy_id": "rank_s_tier_4",
-        "name": "Eternity Route S Rank",
-        "description": "Clear Steps 1-28 with rank S.",
-        "condition": {
-          "stat": "rank_s_tier_4",
-          "value": 1
-        },
-        "rewards": [
-          {
-            "type": "unlock_infinite_mode"
-          },
-          {
-            "type": "meta_points",
-            "amount": 5
-          }
-        ]
-      }
+      {"condition": {"stat": "arena_runs_started", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "arena_runs_started", "value": 5}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "arena_runs_started", "value": 15}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "arena_runs_started", "value": 30}, "rewards": [{"type": "meta_points", "amount": 3}]}
+    ]
+  },
+  {
+    "id": "infinite_pioneer", "name": "Infinite Pioneer", "description": "Start Infinite Mode runs.",
+    "condition": {"stat": "infinite_runs_started", "value": 1}, "rewards": [{"type": "meta_points", "amount": 2}],
+    "tiers": [
+      {"condition": {"stat": "infinite_runs_started", "value": 1}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "infinite_runs_started", "value": 3}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "infinite_runs_started", "value": 7}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "infinite_runs_started", "value": 15}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "deep_push", "name": "Deep Push", "description": "Reach deeper steps in a single standard run.", "legacy_claim_tier_count": 1,
+    "condition": {"stat": "best_clear", "value": 2}, "rewards": [{"type": "permanent_bonus", "stat": "max_hp", "amount": 4}],
+    "tiers": [
+      {"condition": {"stat": "best_clear", "value": 2}, "rewards": [{"type": "permanent_bonus", "stat": "max_hp", "amount": 4}]},
+      {"condition": {"stat": "best_clear", "value": 7}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "best_clear", "value": 14}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "best_clear", "value": 21}, "rewards": [{"type": "meta_points", "amount": 4}]},
+      {"condition": {"stat": "best_clear", "value": 28}, "rewards": [{"type": "permanent_bonus", "stat": "max_hp", "amount": 6}]}
+    ]
+  },
+  {
+    "id": "deck_expander", "name": "Deck Expander", "description": "Unlock cards in the card library.", "legacy_claim_tier_count": 1,
+    "condition": {"stat": "unlocked_cards", "value": 16}, "rewards": [{"type": "permanent_bonus", "stat": "loadout_limit", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "unlocked_cards", "value": 16}, "rewards": [{"type": "permanent_bonus", "stat": "loadout_limit", "amount": 1}]},
+      {"condition": {"stat": "unlocked_cards", "value": 32}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "unlocked_cards", "value": 48}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "unlocked_cards", "value": 64}, "rewards": [{"type": "meta_points", "amount": 4}]},
+      {"condition": {"stat": "unlocked_cards", "value": 93}, "rewards": [{"type": "meta_points", "amount": 6}]}
+    ]
+  },
+  {
+    "id": "relic_archivist", "name": "Relic Archivist", "description": "Unlock relics in meta progression.",
+    "condition": {"stat": "unlocked_relics", "value": 5}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "unlocked_relics", "value": 5}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "unlocked_relics", "value": 15}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "unlocked_relics", "value": 30}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "unlocked_relics", "value": 50}, "rewards": [{"type": "meta_points", "amount": 4}]},
+      {"condition": {"stat": "unlocked_relics", "value": 86}, "rewards": [{"type": "meta_points", "amount": 6}]}
+    ]
+  },
+  {
+    "id": "starter_collector", "name": "Frame Collector", "description": "Unlock starting loadouts and their characters.",
+    "condition": {"stat": "unlocked_starters", "value": 2}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "unlocked_starters", "value": 2}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "unlocked_starters", "value": 4}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "unlocked_starters", "value": 7}, "rewards": [{"type": "meta_points", "amount": 4}]}
+    ]
+  },
+  {
+    "id": "timekeeper_down", "name": "Boss Hunter", "description": "Defeat bosses across all modes.", "legacy_claim_tier_count": 1,
+    "condition": {"stat": "boss_wins", "value": 1}, "rewards": [{"type": "permanent_bonus", "stat": "speed", "amount": 1}, {"type": "meta_points", "amount": 2}],
+    "tiers": [
+      {"condition": {"stat": "boss_wins", "value": 1}, "rewards": [{"type": "permanent_bonus", "stat": "speed", "amount": 1}, {"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "boss_wins", "value": 3}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "boss_wins", "value": 10}, "rewards": [{"type": "meta_points", "amount": 4}]},
+      {"condition": {"stat": "boss_wins", "value": 25}, "rewards": [{"type": "meta_points", "amount": 6}]}
+    ]
+  },
+  {
+    "id": "arena_victor", "name": "Arena Victor", "description": "Win battles in Arena Mode.",
+    "condition": {"stat": "arena_victories", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "arena_victories", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "arena_victories", "value": 5}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "arena_victories", "value": 15}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "arena_victories", "value": 30}, "rewards": [{"type": "meta_points", "amount": 4}]},
+      {"condition": {"stat": "arena_victories", "value": 60}, "rewards": [{"type": "meta_points", "amount": 6}]}
+    ]
+  },
+  {
+    "id": "comeback_spirit", "name": "Comeback Spirit", "description": "Return after defeats and keep challenging.",
+    "condition": {"stat": "defeats", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "defeats", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "defeats", "value": 5}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "defeats", "value": 15}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "defeats", "value": 30}, "rewards": [{"type": "meta_points", "amount": 3}]}
+    ]
+  },
+  {
+    "id": "card_shopper", "name": "Card Shopper", "description": "Buy cards in shops and Arena Mode.",
+    "condition": {"stat": "cards_bought", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "cards_bought", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "cards_bought", "value": 10}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "cards_bought", "value": 30}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "cards_bought", "value": 75}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "relic_shopper", "name": "Relic Shopper", "description": "Buy relics in Arena Mode.",
+    "condition": {"stat": "relics_bought", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "relics_bought", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "relics_bought", "value": 5}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "relics_bought", "value": 15}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "relics_bought", "value": 30}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "master_smith", "name": "Master Smith", "description": "Upgrade cards at forge nodes.",
+    "condition": {"stat": "cards_upgraded", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "cards_upgraded", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "cards_upgraded", "value": 10}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "cards_upgraded", "value": 30}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "cards_upgraded", "value": 60}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "reward_collector", "name": "Reward Collector", "description": "Choose cards or bonuses from reward screens.",
+    "condition": {"stat": "rewards_claimed", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "rewards_claimed", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "rewards_claimed", "value": 10}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "rewards_claimed", "value": 30}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "rewards_claimed", "value": 75}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "event_explorer", "name": "Event Explorer", "description": "Resolve event choices during standard runs.",
+    "condition": {"stat": "events_resolved", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "events_resolved", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "events_resolved", "value": 10}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "events_resolved", "value": 25}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "events_resolved", "value": 50}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "facility_regular", "name": "Facility Regular", "description": "Use shop, forge, and recovery facility choices.",
+    "condition": {"stat": "facility_choices", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "facility_choices", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "facility_choices", "value": 10}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "facility_choices", "value": 30}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "facility_choices", "value": 60}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "field_medic", "name": "Field Medic", "description": "Use recovery choices at heal nodes.",
+    "condition": {"stat": "healing_choices", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "healing_choices", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "healing_choices", "value": 10}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "healing_choices", "value": 25}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "healing_choices", "value": 50}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "card_merchant", "name": "Card Merchant", "description": "Sell unneeded cards from a loadout.",
+    "condition": {"stat": "cards_sold", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "cards_sold", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "cards_sold", "value": 10}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "cards_sold", "value": 30}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "cards_sold", "value": 60}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "reward_reroller", "name": "Reward Reroller", "description": "Reroll card reward choices with gold.",
+    "condition": {"stat": "reward_rerolls", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "reward_rerolls", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "reward_rerolls", "value": 5}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "reward_rerolls", "value": 15}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "reward_rerolls", "value": 30}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "shop_reroller", "name": "Shop Reroller", "description": "Reroll Arena shop inventories.",
+    "condition": {"stat": "shop_rerolls", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "shop_rerolls", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "shop_rerolls", "value": 5}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "shop_rerolls", "value": 15}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "shop_rerolls", "value": 30}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "big_spender", "name": "Big Spender", "description": "Spend gold on cards, relics, rerolls, and facilities.",
+    "condition": {"stat": "gold_spent", "value": 25}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"condition": {"stat": "gold_spent", "value": 25}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"condition": {"stat": "gold_spent", "value": 100}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"condition": {"stat": "gold_spent", "value": 300}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"condition": {"stat": "gold_spent", "value": 750}, "rewards": [{"type": "meta_points", "amount": 5}]}
+    ]
+  },
+  {
+    "id": "rank_b_milestones", "name": "B Rank Routes", "description": "Clear each route length with rank B or higher.",
+    "condition": {"stat": "rank_b_tier_1", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}],
+    "tiers": [
+      {"legacy_id": "rank_b_tier_1", "description": "Clear Steps 1-7 with rank B or higher.", "condition": {"stat": "rank_b_tier_1", "value": 1}, "rewards": [{"type": "meta_points", "amount": 1}]},
+      {"legacy_id": "rank_b_tier_2", "description": "Clear Steps 1-14 with rank B or higher.", "condition": {"stat": "rank_b_tier_2", "value": 1}, "rewards": [{"type": "meta_points", "amount": 2}]},
+      {"legacy_id": "rank_b_tier_3", "description": "Clear Steps 1-21 with rank B or higher.", "condition": {"stat": "rank_b_tier_3", "value": 1}, "rewards": [{"type": "meta_points", "amount": 3}]},
+      {"legacy_id": "rank_b_tier_4", "description": "Clear Steps 1-28 with rank B or higher.", "condition": {"stat": "rank_b_tier_4", "value": 1}, "rewards": [{"type": "meta_points", "amount": 4}]}
+    ]
+  },
+  {
+    "id": "rank_a_milestones", "name": "A Rank Routes", "description": "Clear each route length with rank A or higher.",
+    "condition": {"stat": "rank_a_tier_1", "value": 1}, "rewards": [{"type": "permanent_bonus", "stat": "loadout_limit", "amount": 1}],
+    "tiers": [
+      {"legacy_id": "rank_a_tier_1", "description": "Clear Steps 1-7 with rank A or higher.", "condition": {"stat": "rank_a_tier_1", "value": 1}, "rewards": [{"type": "permanent_bonus", "stat": "loadout_limit", "amount": 1}]},
+      {"legacy_id": "rank_a_tier_2", "description": "Clear Steps 1-14 with rank A or higher.", "condition": {"stat": "rank_a_tier_2", "value": 1}, "rewards": [{"type": "permanent_bonus", "stat": "max_hp", "amount": 5}]},
+      {"legacy_id": "rank_a_tier_3", "description": "Clear Steps 1-21 with rank A or higher.", "condition": {"stat": "rank_a_tier_3", "value": 1}, "rewards": [{"type": "permanent_bonus", "stat": "speed", "amount": 1}]},
+      {"legacy_id": "rank_a_tier_4", "description": "Clear Steps 1-28 with rank A or higher.", "condition": {"stat": "rank_a_tier_4", "value": 1}, "rewards": [{"type": "permanent_bonus", "stat": "max_hp", "amount": 8}]}
+    ]
+  },
+  {
+    "id": "rank_s_milestones", "name": "S Rank Routes", "description": "Clear each route length with rank S.",
+    "condition": {"stat": "rank_s_tier_1", "value": 1}, "rewards": [{"type": "unlock_step_tier", "tier": 2}],
+    "tiers": [
+      {"legacy_id": "rank_s_tier_1", "description": "Clear Steps 1-7 with rank S.", "condition": {"stat": "rank_s_tier_1", "value": 1}, "rewards": [{"type": "unlock_step_tier", "tier": 2}]},
+      {"legacy_id": "rank_s_tier_2", "description": "Clear Steps 1-14 with rank S.", "condition": {"stat": "rank_s_tier_2", "value": 1}, "rewards": [{"type": "permanent_bonus", "stat": "attack", "amount": 1}, {"type": "meta_points", "amount": 3}, {"type": "unlock_step_tier", "tier": 3}]},
+      {"legacy_id": "rank_s_tier_3", "description": "Clear Steps 1-21 with rank S.", "condition": {"stat": "rank_s_tier_3", "value": 1}, "rewards": [{"type": "unlock_step_tier", "tier": 4}]},
+      {"legacy_id": "rank_s_tier_4", "description": "Clear Steps 1-28 with rank S.", "condition": {"stat": "rank_s_tier_4", "value": 1}, "rewards": [{"type": "unlock_infinite_mode"}, {"type": "meta_points", "amount": 5}]}
     ]
   }
 ]
