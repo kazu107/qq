@@ -9,6 +9,23 @@ const NETWORK_RESULT_UNIT_KEYS: Array[String] = [
 	"enemy_before",
 	"enemy_after",
 ]
+const NETWORK_SUMMARY_KEYS: Array[String] = [
+	"battle_id",
+	"winner",
+	"reason",
+	"battle_time",
+	"player_hp",
+	"enemy_hp",
+	"enemy_id",
+	"enemy_name",
+	"log_count",
+	"battle_event_count",
+	"pvp",
+	"forced_hazard_withdraw",
+	"relic_bonus_gold",
+	"player_relic_bonus_gold",
+	"enemy_relic_bonus_gold",
+]
 
 
 static func encode(state: BattleState, battle_started: bool, compact_for_network: bool = false) -> Dictionary:
@@ -42,6 +59,14 @@ static func encode(state: BattleState, battle_started: bool, compact_for_network
 		"next_instance_id": state.next_instance_id,
 		"relic_runtime_state": state.relic_runtime_state.duplicate(true),
 	}
+
+
+static func encode_match_summary(summary: Dictionary) -> Dictionary:
+	var encoded_summary: Dictionary = {}
+	for key: String in NETWORK_SUMMARY_KEYS:
+		if summary.has(key):
+			encoded_summary[key] = summary[key]
+	return encoded_summary
 
 
 static func _encode_network_logs(logs: Array[String]) -> Array[String]:

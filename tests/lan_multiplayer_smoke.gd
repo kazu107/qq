@@ -90,6 +90,10 @@ func _run() -> void:
 		return
 	if not _assert_compact_snapshot_budget(restored):
 		return
+	if not _assert_compact_match_result(engine):
+		return
+	if not _assert_network_clock_smoothing():
+		return
 
 	if not _assert_arena_coordinator(host_profile):
 		return
@@ -185,6 +189,54 @@ func _assert_compact_snapshot_budget(state: BattleState) -> bool:
 		final_size,
 		state.battle_events.size(),
 	])
+	return true
+
+
+func _assert_compact_match_result(engine: RealtimeBattleEngine) -> bool:
+	var network_summary: Dictionary = engine.build_summary(false)
+	var oversized_summary: Dictionary = network_summary.duplicate(true)
+	var oversized_events: Array[Dictionary] = []
+	for event_index in range(500):
+		oversized_events.append({
+			"event_index": event_index,
+			"payload": "x".repeat(4096),
+		})
+	oversized_summary["battle_events"] = oversized_events
+	var encoded_summary: Dictionary = BattleStateCodec.encode_match_summary(oversized_summary)
+	if encoded_summary.has("battle_events") or network_summary.has("battle_events"):
+		_fail("LAN smoke failed: network match result retained battle event history")
+		return false
+	var encoded_size: int = var_to_bytes(encoded_summary).size()
+	if encoded_size > 4096:
+		_fail("LAN smoke failed: compact match result exceeded budget (%d bytes)" % encoded_size)
+		return false
+	return true
+
+
+func _assert_network_clock_smoothing() -> bool:
+	var clock: NetworkBattleClock = NetworkBattleClock.new()
+	clock.apply_snapshot(0.0, true)
+	var host_time: float = 0.0
+	var previous_display_time: float = clock.get_display_time()
+	var max_frame_step: float = 0.0
+	for frame_index in range(360):
+		host_time += 1.0 / 60.0
+		if frame_index % 5 == 0 or frame_index % 13 == 0:
+			clock.apply_snapshot(maxf(0.0, host_time - 0.12), true)
+		var display_time: float = clock.advance(1.0 / 60.0, 120)
+		if display_time + 0.0001 < previous_display_time:
+			_fail("LAN smoke failed: network display clock moved backward")
+			return false
+		max_frame_step = maxf(max_frame_step, display_time - previous_display_time)
+		previous_display_time = display_time
+	if max_frame_step > 0.03:
+		_fail("LAN smoke failed: network display clock jumped %.4fs in one frame" % max_frame_step)
+		return false
+	var before_stale_snapshot: float = clock.get_display_time()
+	clock.apply_snapshot(maxf(0.0, host_time - 0.5), true)
+	if clock.get_display_time() + 0.0001 < before_stale_snapshot:
+		_fail("LAN smoke failed: stale snapshot rewound the display clock")
+		return false
 	return true
 
 

@@ -390,10 +390,10 @@ func has_heavy_preparing_card(side: String) -> bool:
 	return false
 
 
-func build_summary() -> Dictionary:
+func build_summary(include_battle_events: bool = true) -> Dictionary:
 	if battle_state == null:
 		return {}
-	return {
+	var summary: Dictionary = {
 		"battle_id": _build_battle_id(),
 		"winner": battle_state.winner,
 		"battle_time": battle_state.battle_time,
@@ -402,13 +402,16 @@ func build_summary() -> Dictionary:
 		"enemy_id": battle_state.enemy.unit_id,
 		"enemy_name": battle_state.enemy.display_name,
 		"log_count": battle_state.logs.size(),
-		"battle_events": battle_state.battle_events.duplicate(true),
+		"battle_event_count": battle_state.battle_events.size(),
 		"pvp": _pvp_mode,
 		"forced_hazard_withdraw": _relic_controller.was_forced_hazard_withdraw("player"),
 		"relic_bonus_gold": _relic_controller.victory_gold_bonus("player") if battle_state.winner == "player" else 0,
 		"player_relic_bonus_gold": _relic_controller.victory_gold_bonus("player") if battle_state.winner == "player" else 0,
 		"enemy_relic_bonus_gold": _relic_controller.victory_gold_bonus("enemy") if battle_state.winner == "enemy" else 0,
 	}
+	if include_battle_events:
+		summary["battle_events"] = battle_state.battle_events.duplicate(true)
+	return summary
 
 
 func _build_player_unit(run_state: RunState) -> UnitState:

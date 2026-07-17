@@ -7,7 +7,6 @@ const BATTLE_LOADOUT_WIDTH: float = 320.0
 const BATTLE_SIDE_PANEL_WIDTH: float = BATTLE_LOADOUT_WIDTH + 34.0
 const TIMELINE_PREVIEW_INSTANCE_ID: int = 999999
 const LAN_SNAPSHOT_INTERVAL: float = 1.0 / 12.0
-const LAN_CLIENT_PREDICTION_LIMIT: float = 0.18
 
 var _engine := RealtimeBattleEngine.new()
 var _enemy_panel: UnitPanel
@@ -39,7 +38,7 @@ var _local_side: String = "player"
 var _local_run: RunState
 var _opponent_run: RunState
 var _lan_snapshot_elapsed: float = 0.0
-var _lan_authoritative_battle_time: float = 0.0
+var _network_clock: NetworkBattleClock = NetworkBattleClock.new()
 var _lan_finish_submitted: bool = false
 
 
@@ -122,6 +121,7 @@ func _setup_lan_battle() -> bool:
 	_processed_vfx_event_count = 0
 	_lan_battle_event_total = 0
 	_lan_snapshot_initialized = false
+	_network_clock.reset()
 	var last_snapshot: Dictionary = NetworkManager.get_last_snapshot()
 	if not last_snapshot.is_empty():
 		_apply_lan_snapshot(last_snapshot)
@@ -145,16 +145,13 @@ func _process_lan_battle(delta: float) -> void:
 	else:
 		var state: BattleState = _engine.battle_state
 		if not NetworkManager.is_waiting_for_reconnect() and _engine.has_battle_started() and state.winner == "":
-			state.battle_time = minf(
-				state.battle_time + delta,
-				_lan_authoritative_battle_time + LAN_CLIENT_PREDICTION_LIMIT
-			)
+			state.battle_time = _network_clock.advance(delta, NetworkManager.get_connection_ping_ms())
 
 	_refresh_ui(1.0)
 	if NetworkManager.is_host() and _engine.battle_state.winner != "" and not _lan_finish_submitted:
 		_lan_finish_submitted = true
 		_publish_lan_snapshot(true)
-		NetworkManager.finish_lan_match(_engine.build_summary(), NetworkManager.get_last_snapshot())
+		NetworkManager.finish_lan_match(_engine.build_summary(false), NetworkManager.get_last_snapshot())
 	if _transition_timer > 0.0:
 		_transition_timer -= delta
 		if _transition_timer <= 0.0:
@@ -197,6 +194,14 @@ func _apply_lan_snapshot(snapshot: Dictionary) -> void:
 	var decoded_state: BattleState = BattleStateCodec.decode(snapshot)
 	if decoded_state == null:
 		return
+	var snapshot_started: bool = bool(snapshot.get("battle_started", false))
+	var display_battle_time: float = decoded_state.battle_time
+	if not NetworkManager.is_host():
+		display_battle_time = _network_clock.apply_snapshot(
+			decoded_state.battle_time,
+			snapshot_started,
+			decoded_state.winner != ""
+		)
 	_lan_battle_event_total = maxi(
 		decoded_state.battle_events.size(),
 		int(snapshot.get("battle_event_total", decoded_state.battle_events.size()))
@@ -205,8 +210,9 @@ func _apply_lan_snapshot(snapshot: Dictionary) -> void:
 		_processed_battle_event_count = _lan_battle_event_total
 		_processed_vfx_event_count = _lan_battle_event_total
 	_lan_snapshot_initialized = true
-	_lan_authoritative_battle_time = decoded_state.battle_time
-	_engine.apply_network_snapshot(decoded_state, bool(snapshot.get("battle_started", false)))
+	_engine.apply_network_snapshot(decoded_state, snapshot_started)
+	if not NetworkManager.is_host() and _engine.battle_state != null:
+		_engine.battle_state.battle_time = display_battle_time
 
 
 func _on_lan_battle_command_received(
@@ -884,7 +890,7 @@ func _force_battle_result(winner: String) -> void:
 			"timeline_after": [],
 		})
 		_publish_lan_snapshot(true)
-		NetworkManager.finish_lan_match(_engine.build_summary(), NetworkManager.get_last_snapshot())
+		NetworkManager.finish_lan_match(_engine.build_summary(false), NetworkManager.get_last_snapshot())
 		return
 	_handled_finish = true
 	var summary: Dictionary = _engine.build_summary()

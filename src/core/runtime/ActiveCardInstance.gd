@@ -37,6 +37,8 @@ func shift_schedule(delta_amount: float, battle_time: float, is_continuous: bool
 	scheduled_time = max(battle_time, scheduled_time + delta_amount)
 	sort_key = scheduled_time - priority_modifier
 	if not is_continuous:
+		continuous_shift_battle_time = -1.0
+		continuous_shift_amount = 0.0
 		return
 	if is_equal_approx(continuous_shift_battle_time, battle_time):
 		continuous_shift_amount += absf(delta_amount)

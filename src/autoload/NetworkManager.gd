@@ -605,7 +605,7 @@ func send_command_result(peer_id: int, sequence: int, accepted: bool, snapshot: 
 func finish_lan_match(summary: Dictionary, final_snapshot: Dictionary = {}) -> bool:
 	if not _is_host or not _match_active:
 		return false
-	var result: Dictionary = summary.duplicate(true)
+	var result: Dictionary = BattleStateCodec.encode_match_summary(summary)
 	result["match_id"] = String(_match_payload.get("match_id", ""))
 	result["winner"] = String(summary.get("winner", "draw"))
 	result["player_name"] = String(_match_payload.get("player_name", "Host"))

@@ -13,6 +13,7 @@ const PREVIEW_ALPHA_CYCLE_SECONDS: float = 1.0
 const PREVIEW_Z_INDEX: int = 1000
 const DELAY_SLIDE_SECONDS: float = 0.5
 const SCHEDULE_CHANGE_EPSILON: float = 0.001
+const CONTINUOUS_SHIFT_DISPLAY_TOLERANCE: float = 1.0
 
 var _title_label: Label
 var _summary_label: Label
@@ -29,6 +30,7 @@ var _preview_runtime_id: String = ""
 var _preview_alpha_elapsed: float = 0.0
 var _timeline_horizon: float = DEFAULT_TIMELINE_HORIZON
 var _fixed_horizon: float = DEFAULT_TIMELINE_HORIZON
+var _rendered_scale_horizon: float = -1.0
 var _last_scheduled_times: Dictionary = {}
 var _delay_animation_states: Dictionary = {}
 
@@ -148,12 +150,14 @@ func refresh_timeline(
 
 
 func _refresh_scale(horizon: float) -> void:
+	var resolved_horizon: float = maxf(0.1, horizon)
+	var scale_horizon: float = _ceil_to_multiple(resolved_horizon, 4)
+	if is_equal_approx(_rendered_scale_horizon, scale_horizon) and _scale_row.get_child_count() == TIMELINE_SCALE_MARK_COUNT:
+		return
+	_rendered_scale_horizon = scale_horizon
 	for child in _scale_row.get_children():
 		_scale_row.remove_child(child)
 		child.queue_free()
-
-	var resolved_horizon: float = maxf(0.1, horizon)
-	var scale_horizon: float = _ceil_to_multiple(resolved_horizon, 4)
 
 	for scale_index in range(TIMELINE_SCALE_MARK_COUNT):
 		var label: Label = Label.new()
@@ -253,7 +257,9 @@ func _get_display_remaining(entry: TimelineEntry, battle_time: float) -> float:
 func _get_continuous_shift_amount(entry: TimelineEntry, battle_time: float) -> float:
 	if entry == null:
 		return 0.0
-	if absf(entry.continuous_shift_battle_time - battle_time) > SCHEDULE_CHANGE_EPSILON:
+	if entry.continuous_shift_battle_time < 0.0:
+		return 0.0
+	if absf(entry.continuous_shift_battle_time - battle_time) > CONTINUOUS_SHIFT_DISPLAY_TOLERANCE:
 		return 0.0
 	return maxf(0.0, entry.continuous_shift_amount)
 
