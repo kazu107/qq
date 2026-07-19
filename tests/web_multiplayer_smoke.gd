@@ -56,6 +56,8 @@ func _run() -> void:
 	var room_list: ItemList = web_lobby.find_child("LanDiscoveredList", true, false) as ItemList
 	var create_target: SpinBox = web_lobby.find_child("OnlineTargetWinsSpin", true, false) as SpinBox
 	var lobby_target: SpinBox = web_lobby.find_child("OnlineLobbyTargetWinsSpin", true, false) as SpinBox
+	var max_players: SpinBox = web_lobby.find_child("OnlineLobbyMaxPlayersSpin", true, false) as SpinBox
+	var spectator_check: CheckButton = web_lobby.find_child("OnlineJoinAsSpectatorCheck", true, false) as CheckButton
 	var rules_grid: GridContainer = web_lobby.find_child("OnlineLobbyRulesGrid", true, false) as GridContainer
 	var ready_count: Label = web_lobby.find_child("OnlineLobbyReadyCount", true, false) as Label
 	if room_list == null or not room_list.visible:
@@ -65,7 +67,10 @@ func _run() -> void:
 		create_target != null
 		or lobby_target == null
 		or rules_grid == null
-		or rules_grid.get_child_count() != 7
+		or rules_grid.get_child_count() != 8
+		or max_players == null
+		or int(max_players.step) != 2
+		or spectator_check == null
 		or int(lobby_target.min_value) != NetworkManager.ONLINE_MIN_TARGET_WINS
 		or int(lobby_target.max_value) != NetworkManager.ONLINE_MAX_TARGET_WINS
 	):
@@ -78,7 +83,8 @@ func _run() -> void:
 		not network_source.contains('"target_wins": _online_target_wins')
 		or not network_source.contains('"arena_rules": _build_online_arena_rules()')
 		or not network_source.contains('arena_rules["target_wins"] = _online_target_wins')
-		or not network_source.contains("_arena_coordinator.create_run(host_profile, base_seed, arena_rules)")
+		or not network_source.contains("_arena_coordinator.create_run(profile, base_seed + player_index * 7919, arena_rules)")
+		or not network_source.contains("ArenaTournamentCoordinator.build_round_pairings")
 	):
 		_fail("Online lobby rules are not synchronized into arena runs")
 		return

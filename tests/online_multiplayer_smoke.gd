@@ -34,6 +34,8 @@ func _run() -> void:
 	var discovered_list: ItemList = lobby.find_child("LanDiscoveredList", true, false) as ItemList
 	var create_target_wins_spin: SpinBox = lobby.find_child("OnlineTargetWinsSpin", true, false) as SpinBox
 	var lobby_target_wins_spin: SpinBox = lobby.find_child("OnlineLobbyTargetWinsSpin", true, false) as SpinBox
+	var max_players_spin: SpinBox = lobby.find_child("OnlineLobbyMaxPlayersSpin", true, false) as SpinBox
+	var spectator_check: CheckButton = lobby.find_child("OnlineJoinAsSpectatorCheck", true, false) as CheckButton
 	var expected_rule_controls: Dictionary = {
 		"OnlineInitialGoldSpin": ArenaService.INITIAL_GOLD,
 		"OnlineInitialMaxHpSpin": ArenaService.INITIAL_MAX_HP,
@@ -53,6 +55,9 @@ func _run() -> void:
 		return
 	if lobby_target_wins_spin == null or int(lobby_target_wins_spin.value) != ArenaService.TARGET_WINS:
 		_fail("Online smoke failed: lobby first-to-X room rule control was missing")
+		return
+	if max_players_spin == null or int(max_players_spin.value) != LanProtocol.DEFAULT_PLAYERS or spectator_check == null:
+		_fail("Online smoke failed: multiplayer capacity or spectator controls were missing")
 		return
 	for control_name in expected_rule_controls.keys():
 		var rule_control: SpinBox = lobby.find_child(String(control_name), true, false) as SpinBox

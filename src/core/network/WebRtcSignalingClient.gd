@@ -22,6 +22,8 @@ var _closing: bool = false
 var _last_socket_state: int = WebSocketPeer.STATE_CLOSED
 var _host_name: String = ""
 var _target_wins: int = ArenaService.TARGET_WINS
+var _max_players: int = LanProtocol.DEFAULT_PLAYERS
+var _spectator_join: bool = false
 
 
 func start_host(
@@ -29,30 +31,37 @@ func start_host(
 	protocol_version: int,
 	content_hash: String,
 	host_name: String = "",
-	target_wins: int = ArenaService.TARGET_WINS
+	target_wins: int = ArenaService.TARGET_WINS,
+	max_players: int = LanProtocol.DEFAULT_PLAYERS
 ) -> Error:
 	var start_error: Error = _start("host", room_code, protocol_version, content_hash)
 	if start_error == OK:
 		_host_name = host_name.strip_edges()
 		_target_wins = target_wins
+		_max_players = LanProtocol.sanitize_player_capacity(max_players)
 	return start_error
 
 
-func start_join(room_code: String, protocol_version: int, content_hash: String) -> Error:
-	return _start("join", room_code, protocol_version, content_hash)
+func start_join(room_code: String, protocol_version: int, content_hash: String, spectator: bool = false) -> Error:
+	var start_error: Error = _start("join", room_code, protocol_version, content_hash)
+	if start_error == OK:
+		_spectator_join = spectator
+	return start_error
 
 
 func start_directory(protocol_version: int, content_hash: String) -> Error:
 	return _start("directory", "", protocol_version, content_hash)
 
 
-func update_room(target_wins: int) -> void:
+func update_room(target_wins: int, max_players: int = LanProtocol.DEFAULT_PLAYERS) -> void:
 	if _role != "host":
 		return
 	_target_wins = target_wins
+	_max_players = LanProtocol.sanitize_player_capacity(max_players)
 	_send({
 		"type": "update_room",
 		"targetWins": target_wins,
+		"maxPlayers": _max_players,
 	})
 
 
@@ -101,6 +110,8 @@ func close() -> void:
 	_transport_announced = false
 	_host_name = ""
 	_target_wins = ArenaService.TARGET_WINS
+	_max_players = LanProtocol.DEFAULT_PLAYERS
+	_spectator_join = false
 	_last_socket_state = WebSocketPeer.STATE_CLOSED
 	_closing = false
 
@@ -165,6 +176,9 @@ func _send_join_request() -> void:
 	if _role == "host":
 		request["name"] = _host_name
 		request["targetWins"] = _target_wins
+		request["maxPlayers"] = _max_players
+	elif _role == "join":
+		request["spectator"] = _spectator_join
 	_send(request)
 	if _role != "directory":
 		status_changed.emit("Creating room..." if _role == "host" else "Joining room...")

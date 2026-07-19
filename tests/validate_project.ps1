@@ -163,6 +163,18 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/ArenaFlowSmoke.tscn"
     )
+    Invoke-GodotCheck "[11a/31] Running multiplayer tournament smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/ArenaTournamentSmoke.tscn"
+    )
+    Invoke-GodotCheck "[11b/31] Running spectator battle smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/SpectatorBattleSmoke.tscn"
+    )
     Invoke-GodotCheck "[12/31] Running hazard flow smoke" $godotExe @(
         "--no-header",
         "--headless",

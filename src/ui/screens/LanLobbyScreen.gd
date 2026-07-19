@@ -9,6 +9,8 @@ var _name_edit: LineEdit
 var _address_edit: LineEdit
 var _port_spin: SpinBox
 var _room_code_edit: LineEdit
+var _join_as_spectator_check: CheckButton
+var _lobby_max_players_spin: SpinBox
 var _lobby_target_wins_spin: SpinBox
 var _lobby_initial_gold_spin: SpinBox
 var _lobby_initial_max_hp_spin: SpinBox
@@ -26,10 +28,15 @@ var _connection_panel: PanelContainer
 var _lobby_panel: PanelContainer
 var _invite_label: Label
 var _ready_count_label: Label
-var _players_box: VBoxContainer
+var _players_box: GridContainer
+var _spectators_label: Label
+var _tournament_label: RichTextLabel
 var _starter_option: OptionButton
+var _starter_row: HBoxContainer
 var _starter_ids: Array[String] = []
 var _deck_panel: CardHandPanel
+var _deck_title: Label
+var _deck_scroll: ScrollContainer
 var _ready_button: Button
 var _start_button: Button
 var _leave_button: Button
@@ -59,7 +66,7 @@ func _ready() -> void:
 	if NetworkManager.is_lan_arena_session_active():
 		if NetworkManager.has_active_match():
 			call_deferred("_open_battle_scene")
-		else:
+		elif not NetworkManager.is_local_spectator():
 			call_deferred("_open_arena_scene")
 
 
@@ -170,6 +177,13 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 	room_code_row.visible = online_mode
 	box.add_child(room_code_row)
 
+	_join_as_spectator_check = CheckButton.new()
+	_join_as_spectator_check.name = "OnlineJoinAsSpectatorCheck"
+	_join_as_spectator_check.text = Localization.get_text("online.join_as_spectator", "Join as spectator")
+	_join_as_spectator_check.visible = online_mode
+	_join_as_spectator_check.toggled.connect(func(_enabled: bool) -> void: _refresh_online_rooms(NetworkManager.get_online_rooms()))
+	box.add_child(_join_as_spectator_check)
+
 	_automatic_upnp_check = CheckButton.new()
 	_automatic_upnp_check.name = "OnlineAutomaticUpnpCheck"
 	_automatic_upnp_check.text = Localization.get_text("online.automatic_upnp", "Open UDP port automatically (UPnP)")
@@ -258,10 +272,32 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	_result_label.add_theme_font_size_override("font_size", 24)
 	box.add_child(_result_label)
 
-	_players_box = VBoxContainer.new()
+	var players_scroll: ScrollContainer = ScrollContainer.new()
+	players_scroll.name = "OnlinePlayersScroll"
+	players_scroll.custom_minimum_size = Vector2(0.0, 190.0)
+	players_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	box.add_child(players_scroll)
+	_players_box = GridContainer.new()
 	_players_box.name = "LanPlayersBox"
-	_players_box.add_theme_constant_override("separation", 10)
-	box.add_child(_players_box)
+	_players_box.columns = 2
+	_players_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_players_box.add_theme_constant_override("h_separation", 10)
+	_players_box.add_theme_constant_override("v_separation", 10)
+	players_scroll.add_child(_players_box)
+
+	_spectators_label = Label.new()
+	_spectators_label.name = "OnlineSpectatorsLabel"
+	_spectators_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_spectators_label.add_theme_color_override("font_color", Color(0.62, 0.76, 0.84, 1.0))
+	box.add_child(_spectators_label)
+
+	_tournament_label = RichTextLabel.new()
+	_tournament_label.name = "OnlineTournamentStatus"
+	_tournament_label.bbcode_enabled = true
+	_tournament_label.fit_content = true
+	_tournament_label.scroll_active = false
+	_tournament_label.visible = false
+	box.add_child(_tournament_label)
 
 	var divider: HSeparator = HSeparator.new()
 	box.add_child(divider)
@@ -273,6 +309,19 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	rules_grid.add_theme_constant_override("h_separation", 18)
 	rules_grid.add_theme_constant_override("v_separation", 8)
 	box.add_child(rules_grid)
+
+	_lobby_max_players_spin = _create_rule_control(
+		"OnlineLobbyMaxPlayersSpin",
+		LanProtocol.MIN_PLAYERS,
+		LanProtocol.MAX_PLAYERS,
+		2,
+		LanProtocol.DEFAULT_PLAYERS
+	)
+	_lobby_max_players_spin.value_changed.connect(_on_lobby_max_players_changed)
+	rules_grid.add_child(_labeled_control(
+		Localization.get_text("online.max_players", "Players"),
+		_lobby_max_players_spin
+	))
 
 	_lobby_target_wins_spin = _create_rule_control(
 		"OnlineLobbyTargetWinsSpin",
@@ -355,21 +404,22 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 			continue
 		_starter_ids.append(starter_id)
 		_starter_option.add_item(String(starter_data.get("name", starter_id)))
-	box.add_child(_labeled_control(Localization.get_text("lan.starter", "Starter deck"), _starter_option))
+	_starter_row = _labeled_control(Localization.get_text("lan.starter", "Starter deck"), _starter_option)
+	box.add_child(_starter_row)
 
-	var deck_title: Label = _make_section_title(Localization.get_text("lan.deck", "LOADOUT PREVIEW"))
-	box.add_child(deck_title)
-	var deck_scroll: ScrollContainer = ScrollContainer.new()
-	deck_scroll.name = "LanDeckScroll"
-	deck_scroll.custom_minimum_size = Vector2(0.0, 236.0)
-	deck_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	box.add_child(deck_scroll)
+	_deck_title = _make_section_title(Localization.get_text("lan.deck", "LOADOUT PREVIEW"))
+	box.add_child(_deck_title)
+	_deck_scroll = ScrollContainer.new()
+	_deck_scroll.name = "LanDeckScroll"
+	_deck_scroll.custom_minimum_size = Vector2(0.0, 236.0)
+	_deck_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_child(_deck_scroll)
 
 	_deck_panel = CardHandPanel.new()
 	_deck_panel.name = "LanDeckPreview"
 	_deck_panel.set_interactive(false)
 	_deck_panel.set_tile_size(DECK_TILE_SIZE)
-	deck_scroll.add_child(_deck_panel)
+	_deck_scroll.add_child(_deck_panel)
 
 	var actions: HBoxContainer = HBoxContainer.new()
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -436,9 +486,10 @@ func _refresh_all() -> void:
 	_refresh_online_invite()
 	_ready_count_label.text = Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
 		"ready": NetworkManager.get_lobby_ready_count(),
-		"total": LanProtocol.MAX_PLAYERS,
+		"total": NetworkManager.get_player_capacity(),
 	})
 	_refreshing_rules = true
+	_lobby_max_players_spin.set_value_no_signal(float(NetworkManager.get_online_max_players()))
 	_lobby_target_wins_spin.set_value_no_signal(float(NetworkManager.get_online_target_wins()))
 	var arena_rules: Dictionary = NetworkManager.get_online_arena_rules()
 	_lobby_initial_gold_spin.set_value_no_signal(float(arena_rules.get("initial_gold", ArenaService.INITIAL_GOLD)))
@@ -448,6 +499,7 @@ func _refresh_all() -> void:
 	_lobby_reroll_cost_spin.set_value_no_signal(float(arena_rules.get("reroll_cost", ArenaService.REROLL_COST)))
 	_lobby_shop_offer_count_spin.set_value_no_signal(float(arena_rules.get("shop_offer_count", ArenaService.SHOP_OFFER_COUNT)))
 	var rule_controls: Array[SpinBox] = [
+		_lobby_max_players_spin,
 		_lobby_target_wins_spin,
 		_lobby_initial_gold_spin,
 		_lobby_initial_max_hp_spin,
@@ -461,7 +513,9 @@ func _refresh_all() -> void:
 	_refreshing_rules = false
 	_start_button.visible = NetworkManager.is_host()
 	_start_button.disabled = not NetworkManager.can_start_match()
-	_ready_button.disabled = NetworkManager.has_active_match()
+	_ready_button.visible = not NetworkManager.is_local_spectator()
+	_ready_button.disabled = NetworkManager.has_active_match() or NetworkManager.is_local_spectator()
+	_refresh_tournament_status()
 	_refresh_last_result()
 
 
@@ -469,15 +523,27 @@ func _refresh_player_slots(players: Array[Dictionary]) -> void:
 	for child in _players_box.get_children():
 		_players_box.remove_child(child)
 		child.queue_free()
-	for slot_index in range(LanProtocol.MAX_PLAYERS):
-		var player_data: Dictionary = players[slot_index] if slot_index < players.size() else {}
+	var participants: Array[Dictionary] = []
+	var spectator_names: Array[String] = []
+	for player_data in players:
+		if String(player_data.get("role", LanProtocol.ROLE_PLAYER)) == LanProtocol.ROLE_SPECTATOR:
+			spectator_names.append(String(player_data.get("name", "Spectator")))
+		else:
+			participants.append(player_data)
+	for slot_index in range(NetworkManager.get_player_capacity()):
+		var player_data: Dictionary = participants[slot_index] if slot_index < participants.size() else {}
 		_players_box.add_child(_build_player_slot(slot_index, player_data))
+	_spectators_label.text = Localization.get_textf("online.spectators", "Spectators {count}/{max}: {names}", {
+		"count": spectator_names.size(),
+		"max": LanProtocol.MAX_SPECTATORS,
+		"names": ", ".join(spectator_names) if not spectator_names.is_empty() else Localization.get_text("status.none", "None"),
+	})
 
 
 func _build_player_slot(slot_index: int, player_data: Dictionary) -> PanelContainer:
 	var frame: PanelContainer = PanelContainer.new()
 	frame.name = "LanPlayerSlot%d" % (slot_index + 1)
-	frame.custom_minimum_size = Vector2(0.0, 82.0)
+	frame.custom_minimum_size = Vector2(300.0, 82.0)
 	frame.add_theme_stylebox_override("panel", _make_panel_style(
 		Color(0.035, 0.055, 0.071, 0.94),
 		Color(0.24, 0.53, 0.64, 0.80) if not player_data.is_empty() else Color(0.18, 0.25, 0.29, 0.70)
@@ -536,6 +602,13 @@ func _build_player_slot(slot_index: int, player_data: Dictionary) -> PanelContai
 
 func _refresh_local_profile_controls() -> void:
 	var profile: Dictionary = NetworkManager.get_local_profile()
+	var spectator: bool = NetworkManager.is_local_spectator()
+	_starter_row.visible = not spectator
+	_deck_title.visible = not spectator
+	_deck_scroll.visible = not spectator
+	if spectator:
+		_ready_button.visible = false
+		return
 	var starter_id: String = String(profile.get("starter_id", ""))
 	for index in range(_starter_ids.size()):
 		if _starter_ids[index] == starter_id:
@@ -551,13 +624,49 @@ func _refresh_local_profile_controls() -> void:
 	_deck_panel.refresh_card_ids(deck, false, "WEB", run_state)
 
 
+func _refresh_tournament_status() -> void:
+	if _tournament_label == null:
+		return
+	var snapshot: Dictionary = NetworkManager.get_lobby_snapshot()
+	var standings: Array[Dictionary] = _dictionary_array(snapshot.get("arena_standings", []))
+	var pairings: Array[Dictionary] = _dictionary_array(snapshot.get("arena_pairings", []))
+	_tournament_label.visible = not standings.is_empty()
+	if standings.is_empty():
+		_tournament_label.text = ""
+		return
+	var names_by_peer: Dictionary = {}
+	for player_data in NetworkManager.get_lobby_players():
+		names_by_peer[int(player_data.get("peer_id", -1))] = String(player_data.get("name", "Player"))
+	var lines: Array[String] = [Localization.get_textf("online.tournament.round", "Round {round}", {
+		"round": int(snapshot.get("arena_round_index", 0)) + 1,
+	})]
+	for standing in standings:
+		lines.append("%d. %s  %d-%d" % [
+			int(standing.get("rank", 0)),
+			String(standing.get("name", "Player")),
+			int(standing.get("wins", 0)),
+			int(standing.get("losses", 0)),
+		])
+	if not pairings.is_empty():
+		lines.append(Localization.get_text("online.tournament.pairings", "Pairings"))
+		for pairing in pairings:
+			lines.append("%s vs %s" % [
+				String(names_by_peer.get(int(pairing.get("player_peer_id", -1)), "Player")),
+				String(names_by_peer.get(int(pairing.get("enemy_peer_id", -1)), "Player")),
+			])
+	_tournament_label.text = "\n".join(lines)
+
+
 func _refresh_last_result() -> void:
 	var result: Dictionary = NetworkManager.get_last_match_result()
 	_result_label.visible = not result.is_empty()
 	if result.is_empty():
 		return
 	var winner: String = String(result.get("winner", "draw"))
-	if winner == "draw":
+	if NetworkManager.get_local_side() == "spectator":
+		_result_label.text = Localization.get_text("online.battle.match_complete", "MATCH COMPLETE")
+		_result_label.add_theme_color_override("font_color", Color(0.62, 0.84, 0.94, 1.0))
+	elif winner == "draw":
 		_result_label.text = Localization.get_text("lan.result.draw", "LAST MATCH: DRAW")
 		_result_label.add_theme_color_override("font_color", Color(0.84, 0.86, 0.88, 1.0))
 	elif winner == NetworkManager.get_local_side():
@@ -595,14 +704,17 @@ func _refresh_online_rooms(rooms: Array[Dictionary]) -> void:
 		_join_discovered_button.disabled = true
 		return
 	for room_data in _discovered_entries:
-		var joinable: bool = bool(room_data.get("joinable", false))
+		var spectator_join: bool = _join_as_spectator_check.button_pressed
+		var joinable: bool = bool(room_data.get("spectatorJoinable", false)) if spectator_join else bool(room_data.get("joinable", false))
 		var room_text: String = Localization.get_textf(
 			"online.room.entry",
-			"{host} | {players}/{max_players} | First to {target} | {code}",
+			"{host} | Players {players}/{max_players} | Spectators {spectators}/{max_spectators} | First to {target} | {code}",
 			{
 				"host": String(room_data.get("hostName", "Web Host")),
 				"players": int(room_data.get("players", 1)),
 				"max_players": int(room_data.get("maxPlayers", LanProtocol.MAX_PLAYERS)),
+				"spectators": int(room_data.get("spectators", 0)),
+				"max_spectators": int(room_data.get("maxSpectators", LanProtocol.MAX_SPECTATORS)),
 				"target": int(room_data.get("targetWins", ArenaService.TARGET_WINS)),
 				"code": String(room_data.get("code", "")),
 			}
@@ -625,7 +737,9 @@ func _on_host_pressed() -> void:
 		_default_starter_id(),
 		_room_code_edit.text,
 		int(_port_spin.value),
-		false
+		false,
+		ArenaService.TARGET_WINS,
+		LanProtocol.DEFAULT_PLAYERS
 	)
 	if hosted:
 		_room_code_edit.text = NetworkManager.get_online_room_code()
@@ -646,7 +760,8 @@ func _on_join_pressed() -> void:
 		_name_edit.text,
 		_default_starter_id(),
 		_room_code_edit.text,
-		int(_port_spin.value)
+		int(_port_spin.value),
+		_join_as_spectator_check.button_pressed
 	)
 	if not joined:
 		AudioManager.play_sfx("ui_error")
@@ -660,7 +775,11 @@ func _on_discovered_selected(index: int) -> void:
 	var host_data: Dictionary = _discovered_entries[index]
 	if online_mode:
 		_room_code_edit.text = String(host_data.get("code", ""))
-		_join_discovered_button.disabled = not bool(host_data.get("joinable", false))
+		_join_discovered_button.disabled = not (
+			bool(host_data.get("spectatorJoinable", false))
+			if _join_as_spectator_check.button_pressed
+			else bool(host_data.get("joinable", false))
+		)
 		return
 	_address_edit.text = String(host_data.get("address", "127.0.0.1"))
 	_port_spin.value = float(host_data.get("port", LanProtocol.DEFAULT_PORT))
@@ -670,7 +789,8 @@ func _on_discovered_selected(index: int) -> void:
 func _on_discovered_activated(index: int) -> void:
 	if index < 0 or index >= _discovered_entries.size():
 		return
-	if online_mode and not bool(_discovered_entries[index].get("joinable", false)):
+	var joinable: bool = bool(_discovered_entries[index].get("spectatorJoinable", false)) if _join_as_spectator_check.button_pressed else bool(_discovered_entries[index].get("joinable", false))
+	if online_mode and not joinable:
 		return
 	_on_discovered_selected(index)
 	_on_join_pressed()
@@ -695,6 +815,13 @@ func _on_lobby_target_wins_changed(value: float) -> void:
 	if _refreshing_rules or not NetworkManager.is_host():
 		return
 	NetworkManager.set_online_target_wins(int(value))
+	_refresh_all()
+
+
+func _on_lobby_max_players_changed(value: float) -> void:
+	if _refreshing_rules or not NetworkManager.is_host():
+		return
+	NetworkManager.set_online_max_players(int(value))
 	_refresh_all()
 
 
@@ -760,6 +887,9 @@ func _on_match_started(_payload: Dictionary) -> void:
 
 
 func _on_arena_preparation_started(_snapshot: Dictionary) -> void:
+	if NetworkManager.is_local_spectator():
+		_refresh_all()
+		return
 	if _opening_battle:
 		return
 	_opening_battle = true
@@ -772,6 +902,13 @@ func _open_battle_scene() -> void:
 
 func _open_arena_scene() -> void:
 	SceneRouter.go_to_arena()
+
+
+func _dictionary_array(value: Variant) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for raw_item in Array(value):
+		result.append(Dictionary(raw_item).duplicate(true))
+	return result
 
 
 func _on_match_finished(_result: Dictionary) -> void:

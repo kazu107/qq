@@ -376,7 +376,7 @@ func _refresh_ui() -> void:
 		_status_label.text += "\n%s | %s / %s" % [
 			Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
 				"ready": NetworkManager.get_arena_ready_count(),
-				"total": LanProtocol.MAX_PLAYERS,
+				"total": NetworkManager.get_arena_player_count(),
 			}),
 			Localization.get_text("lan.arena.ready", "Ready") if bool(status.get("local_ready", false)) else Localization.get_text("lan.arena.preparing", "Preparing"),
 			Localization.get_text("lan.arena.opponent_ready", "Opponent ready") if bool(status.get("opponent_ready", false)) else Localization.get_text("lan.arena.opponent_preparing", "Opponent preparing"),

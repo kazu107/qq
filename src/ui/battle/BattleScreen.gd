@@ -35,6 +35,7 @@ var _processed_vfx_event_count: int = 0
 var _lan_battle_event_total: int = 0
 var _lan_snapshot_initialized: bool = false
 var _lan_mode: bool = false
+var _spectator_mode: bool = false
 var _local_side: String = "player"
 var _local_run: RunState
 var _opponent_run: RunState
@@ -109,7 +110,8 @@ func _setup_lan_battle() -> bool:
 	var enemy_run: RunState = NetworkManager.get_match_run("enemy")
 	if payload.is_empty() or player_run == null or enemy_run == null:
 		return false
-	_local_side = NetworkManager.get_local_side()
+	_spectator_mode = NetworkManager.is_local_match_spectator() or not NetworkManager.can_local_control_match()
+	_local_side = "player" if _spectator_mode else NetworkManager.get_local_side()
 	_local_run = player_run if _local_side == "player" else enemy_run
 	_opponent_run = enemy_run if _local_side == "player" else player_run
 	_engine.setup_pvp(
@@ -131,7 +133,11 @@ func _setup_lan_battle() -> bool:
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
 	_player_panel.configure_visual("player", _local_run.starter_id)
 	_enemy_panel.configure_visual("enemy", _opponent_run.starter_id)
-	_slow_mode_label.text = Localization.get_text("online.battle.host", "WEB HOST") if NetworkManager.is_host() else Localization.get_text("online.battle.client", "WEB GUEST")
+	_card_hand_panel.set_interactive(not _spectator_mode)
+	if _spectator_mode:
+		_slow_mode_label.text = Localization.get_text("online.battle.spectating", "SPECTATING")
+	else:
+		_slow_mode_label.text = Localization.get_text("online.battle.host", "WEB HOST") if NetworkManager.is_host() else Localization.get_text("online.battle.client", "WEB GUEST")
 	return true
 
 
@@ -260,7 +266,9 @@ func _on_lan_match_finished(result: Dictionary) -> void:
 	_transition_timer = 1.4
 	_result_label.visible = true
 	var winner: String = String(result.get("winner", "draw"))
-	if winner == "draw":
+	if _spectator_mode:
+		_result_label.text = Localization.get_text("online.battle.match_complete", "MATCH COMPLETE")
+	elif winner == "draw":
 		_result_label.text = Localization.get_text("battle.result.draw", "Draw")
 	elif winner == _local_side:
 		_result_label.text = Localization.get_text("battle.result.victory", "Victory")
@@ -507,6 +515,8 @@ func _refresh_ui(time_scale: float) -> void:
 	if _lan_mode:
 		if NetworkManager.is_waiting_for_reconnect():
 			_slow_mode_label.text = Localization.get_text("lan.battle.reconnecting", "Connection interrupted - battle paused")
+		elif _spectator_mode:
+			_slow_mode_label.text = Localization.get_text("online.battle.spectating", "SPECTATING")
 		else:
 			var ping_key: String = "online.battle.ping" if NetworkManager.is_online_session() else "lan.battle.ping"
 			var ping_fallback: String = "ONLINE | Ping {ping} ms" if NetworkManager.is_online_session() else "LAN | Ping {ping} ms"
@@ -522,28 +532,35 @@ func _refresh_ui(time_scale: float) -> void:
 	if _start_battle_button != null:
 		var can_start: bool = not _engine.has_battle_started() and battle_state.winner == ""
 		if _lan_mode:
-			var local_ready: bool = NetworkManager.is_local_battle_ready()
-			var countdown_active: bool = NetworkManager.is_battle_countdown_active()
-			_start_battle_button.visible = can_start and not countdown_active
-			_start_battle_button.disabled = not can_start or NetworkManager.is_waiting_for_reconnect()
-			_start_battle_button.text = Localization.get_text("lan.battle.cancel_start", "CANCEL START") if local_ready else Localization.get_text("lan.battle.start_ready", "BATTLE START")
-			_battle_ready_count_label.visible = can_start
-			_battle_ready_count_label.text = Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
-				"ready": NetworkManager.get_battle_ready_count(),
-				"total": LanProtocol.MAX_PLAYERS,
-			})
-			if _countdown_label != null:
-				_countdown_label.visible = can_start
-				if countdown_active:
-					_countdown_label.text = str(maxi(1, ceili(NetworkManager.get_battle_countdown_remaining())))
-				elif local_ready:
-					_countdown_label.text = Localization.get_text("lan.battle.waiting_start", "WAITING FOR OPPONENT")
-					_countdown_label.add_theme_font_size_override("font_size", 20)
-				else:
-					_countdown_label.text = Localization.get_text("lan.battle.both_start", "BOTH PLAYERS MUST START")
-					_countdown_label.add_theme_font_size_override("font_size", 20)
-				if countdown_active:
-					_countdown_label.add_theme_font_size_override("font_size", 38)
+			if _spectator_mode:
+				_start_battle_button.visible = false
+				_battle_ready_count_label.visible = false
+				if _countdown_label != null:
+					_countdown_label.visible = can_start
+					_countdown_label.text = Localization.get_text("online.battle.waiting_players", "Waiting for both players")
+			else:
+				var local_ready: bool = NetworkManager.is_local_battle_ready()
+				var countdown_active: bool = NetworkManager.is_battle_countdown_active()
+				_start_battle_button.visible = can_start and not countdown_active
+				_start_battle_button.disabled = not can_start or NetworkManager.is_waiting_for_reconnect()
+				_start_battle_button.text = Localization.get_text("lan.battle.cancel_start", "CANCEL START") if local_ready else Localization.get_text("lan.battle.start_ready", "BATTLE START")
+				_battle_ready_count_label.visible = can_start
+				_battle_ready_count_label.text = Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
+					"ready": NetworkManager.get_battle_ready_count(),
+					"total": 2,
+				})
+				if _countdown_label != null:
+					_countdown_label.visible = can_start
+					if countdown_active:
+						_countdown_label.text = str(maxi(1, ceili(NetworkManager.get_battle_countdown_remaining())))
+					elif local_ready:
+						_countdown_label.text = Localization.get_text("lan.battle.waiting_start", "WAITING FOR OPPONENT")
+						_countdown_label.add_theme_font_size_override("font_size", 20)
+					else:
+						_countdown_label.text = Localization.get_text("lan.battle.both_start", "BOTH PLAYERS MUST START")
+						_countdown_label.add_theme_font_size_override("font_size", 20)
+					if countdown_active:
+						_countdown_label.add_theme_font_size_override("font_size", 38)
 		else:
 			_battle_ready_count_label.visible = false
 			_start_battle_button.visible = can_start
@@ -552,7 +569,7 @@ func _refresh_ui(time_scale: float) -> void:
 				_countdown_label.visible = false
 	if _reserved_seat_toggle != null:
 		var toggle_run: RunState = _local_run if _lan_mode else Game.current_run
-		_reserved_seat_toggle.visible = toggle_run != null and toggle_run.relics.has("reserved_seat_tag")
+		_reserved_seat_toggle.visible = not _spectator_mode and toggle_run != null and toggle_run.relics.has("reserved_seat_tag")
 		if _reserved_seat_toggle.visible:
 			_reserved_seat_toggle.set_pressed_no_signal(_engine.is_relic_enabled(_local_side, "reserved_seat_tag"))
 			_reserved_seat_toggle.disabled = _lan_mode and NetworkManager.is_waiting_for_reconnect()
@@ -670,6 +687,9 @@ func _resolve_unit_panel(unit_id: String, battle_state: BattleState) -> UnitPane
 
 
 func _on_card_requested(runtime_id: String) -> void:
+	if _spectator_mode:
+		AudioManager.play_sfx("ui_error")
+		return
 	var requested: bool = false
 	if _lan_mode and not NetworkManager.has_battle_countdown_finished():
 		AudioManager.play_sfx("ui_error")
@@ -693,6 +713,8 @@ func _on_card_requested(runtime_id: String) -> void:
 
 
 func _on_start_battle_pressed() -> void:
+	if _spectator_mode:
+		return
 	var started: bool
 	if _lan_mode:
 		started = NetworkManager.set_local_battle_ready(not NetworkManager.is_local_battle_ready())
@@ -705,6 +727,8 @@ func _on_start_battle_pressed() -> void:
 
 
 func _on_reserved_seat_toggled(enabled: bool) -> void:
+	if _spectator_mode:
+		return
 	var accepted: bool = false
 	if _lan_mode and not NetworkManager.is_host():
 		accepted = NetworkManager.submit_relic_toggle("reserved_seat_tag", enabled)
@@ -820,7 +844,9 @@ func _on_log_button_pressed() -> void:
 
 func _advance_after_battle() -> void:
 	if _lan_mode:
-		if NetworkManager.is_lan_arena_session_active() and NetworkManager.get_lan_arena_phase() == "preparation":
+		if NetworkManager.has_active_match():
+			SceneRouter.go_to_battle()
+		elif NetworkManager.is_lan_arena_session_active() and NetworkManager.get_lan_arena_phase() == "preparation" and not NetworkManager.is_local_spectator():
 			SceneRouter.go_to_arena()
 		else:
 			_go_to_network_lobby()

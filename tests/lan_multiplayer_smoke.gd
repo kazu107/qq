@@ -329,6 +329,8 @@ func _assert_web_lobby_scene() -> void:
 	var start_button: Button = lobby.find_child("LanStartMatchButton", true, false) as Button
 	var create_target_wins_spin: SpinBox = lobby.find_child("OnlineTargetWinsSpin", true, false) as SpinBox
 	var lobby_target_wins_spin: SpinBox = lobby.find_child("OnlineLobbyTargetWinsSpin", true, false) as SpinBox
+	var max_players_spin: SpinBox = lobby.find_child("OnlineLobbyMaxPlayersSpin", true, false) as SpinBox
+	var spectator_check: CheckButton = lobby.find_child("OnlineJoinAsSpectatorCheck", true, false) as CheckButton
 	var rules_grid: GridContainer = lobby.find_child("OnlineLobbyRulesGrid", true, false) as GridContainer
 	var ready_count: Label = lobby.find_child("OnlineLobbyReadyCount", true, false) as Label
 	if host_button == null or join_button == null or room_code_edit == null:
@@ -339,7 +341,7 @@ func _assert_web_lobby_scene() -> void:
 		_fail("LAN smoke failed: lobby did not expose every starter")
 	elif ready_button == null or start_button == null:
 		_fail("LAN smoke failed: lobby ready/start controls were missing")
-	elif create_target_wins_spin != null or lobby_target_wins_spin == null or rules_grid == null or rules_grid.get_child_count() != 7 or ready_count == null:
+	elif create_target_wins_spin != null or lobby_target_wins_spin == null or max_players_spin == null or spectator_check == null or rules_grid == null or rules_grid.get_child_count() != 8 or ready_count == null:
 		_fail("Web multiplayer smoke failed: lobby-only room rules or readiness count were missing")
 	lobby.queue_free()
 	await get_tree().process_frame

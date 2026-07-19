@@ -127,9 +127,20 @@ func assign_shared_special_rewards(
 	completed_round: int,
 	shared_seed: int
 ) -> Array[Dictionary]:
-	var rewards: Array[Dictionary] = _arena_service.build_special_rewards(player_run, completed_round, shared_seed)
-	_arena_service.assign_special_rewards(player_run, rewards)
-	_arena_service.assign_special_rewards(enemy_run, rewards)
+	return assign_shared_special_rewards_to_runs([player_run, enemy_run], completed_round, shared_seed)
+
+
+func assign_shared_special_rewards_to_runs(
+	runs: Array[RunState],
+	completed_round: int,
+	shared_seed: int
+) -> Array[Dictionary]:
+	if runs.is_empty() or runs[0] == null:
+		return []
+	var rewards: Array[Dictionary] = _arena_service.build_special_rewards(runs[0], completed_round, shared_seed)
+	for run_state in runs:
+		if run_state != null:
+			_arena_service.assign_special_rewards(run_state, rewards)
 	return rewards
 
 

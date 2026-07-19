@@ -1,11 +1,15 @@
 extends Node
 
 var _failed: bool = false
+var _original_save_exists: bool = false
+var _original_save_data: PackedByteArray = PackedByteArray()
+var _original_save_restored: bool = false
 
 
 func _ready() -> void:
 	Database.load_all()
 	Game.ensure_meta_initialized()
+	_capture_original_save()
 	_delete_save()
 	call_deferred("_run")
 
@@ -27,7 +31,7 @@ func _run() -> void:
 	if _failed:
 		return
 
-	_delete_save()
+	_restore_original_save()
 	print("Save/continue smoke passed")
 	get_tree().quit()
 
@@ -282,7 +286,29 @@ func _delete_save() -> void:
 		DirAccess.remove_absolute(absolute_path)
 
 
+func _capture_original_save() -> void:
+	_original_save_exists = FileAccess.file_exists(SaveManager.SAVE_PATH)
+	if not _original_save_exists:
+		return
+	var file: FileAccess = FileAccess.open(SaveManager.SAVE_PATH, FileAccess.READ)
+	if file != null:
+		_original_save_data = file.get_buffer(file.get_length())
+
+
+func _restore_original_save() -> void:
+	if _original_save_restored:
+		return
+	_original_save_restored = true
+	if not _original_save_exists:
+		_delete_save()
+		return
+	var file: FileAccess = FileAccess.open(SaveManager.SAVE_PATH, FileAccess.WRITE)
+	if file != null:
+		file.store_buffer(_original_save_data)
+
+
 func _fail(message: String) -> void:
 	_failed = true
+	_restore_original_save()
 	push_error(message)
 	get_tree().quit(1)

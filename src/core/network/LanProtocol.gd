@@ -1,14 +1,19 @@
 extends RefCounted
 class_name LanProtocol
 
-const PROTOCOL_VERSION: int = 5
+const PROTOCOL_VERSION: int = 6
 const SNAPSHOT_VERSION: int = 3
 const RELIC_RESOLVER_VERSION: int = 1
 const DEFAULT_PORT: int = 32475
 const DISCOVERY_PORT: int = 32476
 const ONLINE_AUTH_CONTEXT: String = "qq-online-room-v1"
 const ONLINE_ROOM_CODE_LENGTH: int = 6
-const MAX_PLAYERS: int = 2
+const MIN_PLAYERS: int = 2
+const DEFAULT_PLAYERS: int = 2
+const MAX_PLAYERS: int = 8
+const MAX_SPECTATORS: int = 4
+const ROLE_PLAYER: String = "player"
+const ROLE_SPECTATOR: String = "spectator"
 const MAX_NAME_LENGTH: int = 20
 const MAX_DECK_CARDS: int = 16
 const MAX_RELICS: int = 4
@@ -45,7 +50,8 @@ static func build_profile(
 	player_name: String,
 	starter_id: String,
 	ready: bool = false,
-	reconnect_token: String = ""
+	reconnect_token: String = "",
+	participant_role: String = ROLE_PLAYER
 ) -> Dictionary:
 	var resolved_starter_id: String = _resolve_starter_id(starter_id)
 	var starter_data: Dictionary = Database.get_starter(resolved_starter_id)
@@ -58,6 +64,7 @@ static func build_profile(
 		"content_hash": build_content_hash(),
 		"name": sanitize_player_name(player_name),
 		"starter_id": resolved_starter_id,
+		"role": sanitize_participant_role(participant_role),
 		"ready": ready,
 		"reconnect_token": token,
 		"deck": run_state.equipped_cards.duplicate(),
@@ -71,7 +78,8 @@ static func update_profile_starter(profile: Dictionary, starter_id: String) -> D
 		String(profile.get("name", "Player")),
 		starter_id,
 		false,
-		String(profile.get("reconnect_token", ""))
+		String(profile.get("reconnect_token", "")),
+		String(profile.get("role", ROLE_PLAYER))
 	)
 	return updated
 
@@ -112,7 +120,8 @@ static func validate_profile(raw_profile: Dictionary) -> Dictionary:
 			"content_hash": build_content_hash(),
 			"name": sanitize_player_name(String(raw_profile.get("name", "Player"))),
 			"starter_id": starter_id,
-			"ready": bool(raw_profile.get("ready", false)),
+			"role": sanitize_participant_role(String(raw_profile.get("role", ROLE_PLAYER))),
+			"ready": bool(raw_profile.get("ready", false)) and sanitize_participant_role(String(raw_profile.get("role", ROLE_PLAYER))) == ROLE_PLAYER,
 			"reconnect_token": token,
 			"deck": deck,
 			"card_upgrades": upgrades,
@@ -170,6 +179,7 @@ static func build_public_profile(profile: Dictionary, peer_id: int, side: String
 		"peer_id": peer_id,
 		"name": String(profile.get("name", "Player")),
 		"starter_id": String(profile.get("starter_id", "")),
+		"role": sanitize_participant_role(String(profile.get("role", ROLE_PLAYER))),
 		"ready": bool(profile.get("ready", false)),
 		"deck_count": Array(profile.get("deck", [])).size(),
 		"side": side,
@@ -194,6 +204,17 @@ static func sanitize_player_name(value: String) -> String:
 
 static func sanitize_port(value: int) -> int:
 	return clampi(value, 1024, 65535)
+
+
+static func sanitize_player_capacity(value: int) -> int:
+	var capacity: int = clampi(value, MIN_PLAYERS, MAX_PLAYERS)
+	if capacity % 2 != 0:
+		capacity -= 1
+	return maxi(MIN_PLAYERS, capacity)
+
+
+static func sanitize_participant_role(value: String) -> String:
+	return ROLE_SPECTATOR if value == ROLE_SPECTATOR else ROLE_PLAYER
 
 
 static func sanitize_online_room_code(value: String) -> String:

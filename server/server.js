@@ -11,6 +11,10 @@ const SIGNAL_TYPES = new Set(["offer", "answer", "candidate"]);
 const MIN_TARGET_WINS = 1;
 const MAX_TARGET_WINS = 20;
 const DEFAULT_TARGET_WINS = 12;
+const MIN_PLAYERS = 2;
+const MAX_PLAYERS = 8;
+const DEFAULT_PLAYERS = 2;
+const MAX_SPECTATORS = 4;
 const MIME_TYPES = new Map([
   [".html", "text/html; charset=utf-8"],
   [".js", "text/javascript; charset=utf-8"],
@@ -64,7 +68,7 @@ function createQqServer(options = {}) {
   });
 
   websocketServer.on("connection", (socket) => {
-    clients.set(socket, { room: "", id: 0, role: "", alive: true });
+    clients.set(socket, { room: "", id: 0, role: "", participantRole: "", alive: true });
     socket.on("pong", () => {
       const client = clients.get(socket);
       if (client) client.alive = true;
@@ -125,7 +129,7 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
       return;
     }
     Object.assign(client, { role: "directory", protocolVersion, contentHash });
-    sendRoomList(socket, rooms, client);
+    sendRoomList(socket, rooms, clients, client);
     return;
   }
 
@@ -136,11 +140,13 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
     }
     const room = rooms.get(client.room);
     const targetWins = sanitizeTargetWins(message.targetWins);
-    if (!room || targetWins === null) {
+    const maxPlayers = sanitizeMaxPlayers(message.maxPlayers);
+    if (!room || targetWins === null || maxPlayers === null || countParticipants(room, clients, "player") > maxPlayers) {
       sendError(socket, "invalid_room_settings", "The room settings are invalid.");
       return;
     }
     room.targetWins = targetWins;
+    room.maxPlayers = maxPlayers;
     broadcastRoomLists(rooms, clients);
     return;
   }
@@ -168,11 +174,12 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
         contentHash,
         hostName: sanitizeDisplayName(message.name),
         targetWins: sanitizeTargetWins(message.targetWins) ?? DEFAULT_TARGET_WINS,
+        maxPlayers: sanitizeMaxPlayers(message.maxPlayers) ?? DEFAULT_PLAYERS,
         peers: new Map([[1, socket]]),
       };
       rooms.set(roomCode, room);
-      Object.assign(client, { room: roomCode, id: 1, role: "host" });
-      send(socket, { type: "assigned", id: 1, role: "host", room: roomCode, peers: [], iceServers });
+      Object.assign(client, { room: roomCode, id: 1, role: "host", participantRole: "player" });
+      send(socket, { type: "assigned", id: 1, role: "host", participantRole: "player", room: roomCode, peers: [], iceServers });
       broadcastRoomLists(rooms, clients);
       return;
     }
@@ -185,16 +192,21 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
       sendError(socket, "build_mismatch", "Both players must use the same game build.");
       return;
     }
-    if (room.peers.size >= 2) {
-      sendError(socket, "room_full", "That room already has two players.");
+    const participantRole = message.spectator === true ? "spectator" : "player";
+    const roleCount = countParticipants(room, clients, participantRole);
+    const roleLimit = participantRole === "spectator" ? MAX_SPECTATORS : room.maxPlayers;
+    if (roleCount >= roleLimit) {
+      sendError(socket, participantRole === "spectator" ? "spectator_full" : "room_full", "That room has no open slot for the selected role.");
       return;
     }
-    const guestId = 2;
-    const hostSocket = room.peers.get(1);
+    const guestId = nextPeerId(room);
+    const existingPeerIds = [...room.peers.keys()].sort((left, right) => left - right);
     room.peers.set(guestId, socket);
-    Object.assign(client, { room: roomCode, id: guestId, role: "guest" });
-    send(socket, { type: "assigned", id: guestId, role: "guest", room: roomCode, peers: [1], iceServers });
-    send(hostSocket, { type: "peer_joined", id: guestId });
+    Object.assign(client, { room: roomCode, id: guestId, role: "guest", participantRole });
+    send(socket, { type: "assigned", id: guestId, role: "guest", participantRole, room: roomCode, peers: existingPeerIds, iceServers });
+    for (const peerId of existingPeerIds) {
+      send(room.peers.get(peerId), { type: "peer_joined", id: guestId, participantRole });
+    }
     broadcastRoomLists(rooms, clients);
     return;
   }
@@ -248,8 +260,9 @@ function removeClient(socket, rooms, clients) {
     broadcastRoomLists(rooms, clients);
     return;
   }
-  const hostSocket = room.peers.get(1);
-  send(hostSocket, { type: "peer_left", id: client.id });
+  for (const peerSocket of room.peers.values()) {
+    send(peerSocket, { type: "peer_left", id: client.id });
+  }
   broadcastRoomLists(rooms, clients);
 }
 
@@ -264,30 +277,53 @@ function sanitizeTargetWins(value) {
   return targetWins;
 }
 
-function buildRoomList(rooms, client) {
+function sanitizeMaxPlayers(value) {
+  const maxPlayers = Number(value);
+  if (!Number.isInteger(maxPlayers) || maxPlayers < MIN_PLAYERS || maxPlayers > MAX_PLAYERS || maxPlayers % 2 !== 0) return null;
+  return maxPlayers;
+}
+
+function countParticipants(room, clients, participantRole) {
+  let count = 0;
+  for (const socket of room.peers.values()) {
+    if (clients.get(socket)?.participantRole === participantRole) count += 1;
+  }
+  return count;
+}
+
+function nextPeerId(room) {
+  let peerId = 2;
+  while (room.peers.has(peerId)) peerId += 1;
+  return peerId;
+}
+
+function buildRoomList(rooms, clients, client) {
   const entries = [];
   for (const room of rooms.values()) {
     if (room.protocolVersion !== client.protocolVersion || room.contentHash !== client.contentHash) continue;
     entries.push({
       code: room.code,
       hostName: room.hostName,
-      players: room.peers.size,
-      maxPlayers: 2,
+      players: countParticipants(room, clients, "player"),
+      maxPlayers: room.maxPlayers,
+      spectators: countParticipants(room, clients, "spectator"),
+      maxSpectators: MAX_SPECTATORS,
       targetWins: room.targetWins,
-      joinable: room.peers.size < 2,
+      joinable: countParticipants(room, clients, "player") < room.maxPlayers,
+      spectatorJoinable: countParticipants(room, clients, "spectator") < MAX_SPECTATORS,
     });
   }
   entries.sort((left, right) => left.code.localeCompare(right.code));
   return entries;
 }
 
-function sendRoomList(socket, rooms, client) {
-  send(socket, { type: "room_list", rooms: buildRoomList(rooms, client) });
+function sendRoomList(socket, rooms, clients, client) {
+  send(socket, { type: "room_list", rooms: buildRoomList(rooms, clients, client) });
 }
 
 function broadcastRoomLists(rooms, clients) {
   for (const [socket, client] of clients.entries()) {
-    if (client.role === "directory") sendRoomList(socket, rooms, client);
+    if (client.role === "directory") sendRoomList(socket, rooms, clients, client);
   }
 }
 
