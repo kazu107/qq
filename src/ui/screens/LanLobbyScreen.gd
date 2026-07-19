@@ -9,7 +9,6 @@ var _name_edit: LineEdit
 var _address_edit: LineEdit
 var _port_spin: SpinBox
 var _room_code_edit: LineEdit
-var _create_target_wins_spin: SpinBox
 var _lobby_target_wins_spin: SpinBox
 var _automatic_upnp_check: CheckButton
 var _host_button: Button
@@ -164,12 +163,6 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 	var room_code_row: HBoxContainer = _labeled_control(Localization.get_text("online.room_code", "Room code"), _room_code_edit)
 	room_code_row.visible = online_mode
 	box.add_child(room_code_row)
-
-	_create_target_wins_spin = _create_target_wins_control("OnlineTargetWinsSpin")
-	box.add_child(_labeled_control(
-		Localization.get_text("online.target_wins", "First to wins"),
-		_create_target_wins_spin
-	))
 
 	_automatic_upnp_check = CheckButton.new()
 	_automatic_upnp_check.name = "OnlineAutomaticUpnpCheck"
@@ -536,8 +529,7 @@ func _on_host_pressed() -> void:
 		_default_starter_id(),
 		_room_code_edit.text,
 		int(_port_spin.value),
-		false,
-		int(_create_target_wins_spin.value)
+		false
 	)
 	if hosted:
 		_room_code_edit.text = NetworkManager.get_online_room_code()
@@ -572,7 +564,6 @@ func _on_discovered_selected(index: int) -> void:
 	var host_data: Dictionary = _discovered_entries[index]
 	if online_mode:
 		_room_code_edit.text = String(host_data.get("code", ""))
-		_create_target_wins_spin.set_value_no_signal(float(host_data.get("targetWins", ArenaService.TARGET_WINS)))
 		_join_discovered_button.disabled = not bool(host_data.get("joinable", false))
 		return
 	_address_edit.text = String(host_data.get("address", "127.0.0.1"))

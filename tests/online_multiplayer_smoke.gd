@@ -32,24 +32,31 @@ func _run() -> void:
 	var room_code_edit: LineEdit = lobby.find_child("OnlineRoomCodeEdit", true, false) as LineEdit
 	var upnp_check: CheckButton = lobby.find_child("OnlineAutomaticUpnpCheck", true, false) as CheckButton
 	var discovered_list: ItemList = lobby.find_child("LanDiscoveredList", true, false) as ItemList
-	var target_wins_spin: SpinBox = lobby.find_child("OnlineTargetWinsSpin", true, false) as SpinBox
+	var create_target_wins_spin: SpinBox = lobby.find_child("OnlineTargetWinsSpin", true, false) as SpinBox
+	var lobby_target_wins_spin: SpinBox = lobby.find_child("OnlineLobbyTargetWinsSpin", true, false) as SpinBox
 	if room_code_edit == null or not room_code_edit.visible or upnp_check == null or upnp_check.visible:
 		_fail("Online smoke failed: online connection controls were missing")
 		return
 	if discovered_list == null or not discovered_list.visible:
 		_fail("Online smoke failed: Web room directory was not visible")
 		return
-	if target_wins_spin == null or int(target_wins_spin.value) != ArenaService.TARGET_WINS:
-		_fail("Online smoke failed: first-to-X room rule control was missing")
+	if create_target_wins_spin != null:
+		_fail("Online smoke failed: first-to-X was editable before room creation")
+		return
+	if lobby_target_wins_spin == null or int(lobby_target_wins_spin.value) != ArenaService.TARGET_WINS:
+		_fail("Online smoke failed: lobby first-to-X room rule control was missing")
 		return
 	lobby.queue_free()
 	await get_tree().process_frame
 
-	if not ClassDB.class_exists("EOSMultiplayerPeer") or not ClassDB.class_has_method("EOSP2P", "set_relay_control", true):
-		_fail("Online smoke failed: EOS Relay transport was unavailable")
+	if not Game.WEB_MULTIPLAYER_ENABLED:
+		_fail("Online smoke failed: Web multiplayer was disabled")
+		return
+	if WebRtcSignalingClient.resolve_signaling_url().strip_edges() == "":
+		_fail("Online smoke failed: WebRTC signaling URL was unavailable")
 		return
 
-	print("Online multiplayer smoke passed: proof=%s transport=EOS" % proof.left(10))
+	print("Online multiplayer smoke passed: proof=%s transport=WebRTC" % proof.left(10))
 	get_tree().quit()
 
 

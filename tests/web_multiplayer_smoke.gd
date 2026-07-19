@@ -61,12 +61,12 @@ func _run() -> void:
 		_fail("Compatible Web rooms are not exposed in the online lobby")
 		return
 	if (
-		create_target == null
+		create_target != null
 		or lobby_target == null
-		or int(create_target.min_value) != NetworkManager.ONLINE_MIN_TARGET_WINS
-		or int(create_target.max_value) != NetworkManager.ONLINE_MAX_TARGET_WINS
+		or int(lobby_target.min_value) != NetworkManager.ONLINE_MIN_TARGET_WINS
+		or int(lobby_target.max_value) != NetworkManager.ONLINE_MAX_TARGET_WINS
 	):
-		_fail("First-to-X room controls are missing or invalid")
+		_fail("First-to-X must only be configurable inside the created lobby")
 		return
 	if ready_count == null:
 		_fail("Lobby readiness count is missing")

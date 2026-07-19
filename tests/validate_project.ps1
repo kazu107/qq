@@ -283,8 +283,20 @@ if ($godotExe) {
 		Add-Error "npm.cmd was not found; Node signaling tests could not run."
 	}
 	else {
-		$nodeOutput = & $npmCommand.Source test 2>&1 | Out-String
-		if ($LASTEXITCODE -ne 0) {
+		$previousErrorActionPreference = $ErrorActionPreference
+		$ErrorActionPreference = "Continue"
+		$nodeOutputLines = & $npmCommand.Source test 2>&1
+		$nodeExitCode = $LASTEXITCODE
+		$ErrorActionPreference = $previousErrorActionPreference
+		$nodeOutput = ($nodeOutputLines | ForEach-Object {
+			if ($_ -is [System.Management.Automation.ErrorRecord]) {
+				$_.Exception.Message
+			}
+			else {
+				$_.ToString()
+			}
+		}) -join [Environment]::NewLine
+		if ($nodeExitCode -ne 0) {
 			Add-Error "Heroku signaling server tests failed.`n$nodeOutput"
 		}
 		elseif (-not [string]::IsNullOrWhiteSpace($nodeOutput)) {
