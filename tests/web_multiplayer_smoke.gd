@@ -29,6 +29,13 @@ func _run() -> void:
 	if network_source.contains("unreliable_ordered\", 1") or network_source.contains("unreliable\", 3"):
 		_fail("WebRTC RPCs must use the default transfer channels")
 		return
+	var server_source: String = FileAccess.get_file_as_string("res://server/server.js")
+	if (
+		not server_source.contains('peers: [1], iceServers')
+		or not server_source.contains('send(room.peers.get(1), { type: "peer_joined"')
+	):
+		_fail("WebRTC guests must connect only to the relay host")
+		return
 
 	var hub_scene: PackedScene = load("res://scenes/hub/Hub.tscn") as PackedScene
 	var web_lobby_scene: PackedScene = load("res://scenes/online/OnlineLobby.tscn") as PackedScene

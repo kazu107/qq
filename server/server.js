@@ -233,13 +233,12 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
       return;
     }
     const guestId = nextPeerId(room);
-    const existingPeerIds = [...room.peers.keys()].sort((left, right) => left - right);
     room.peers.set(guestId, socket);
     Object.assign(client, { room: roomCode, id: guestId, role: "guest", participantRole });
-    send(socket, { type: "assigned", id: guestId, role: "guest", participantRole, room: roomCode, peers: existingPeerIds, iceServers });
-    for (const peerId of existingPeerIds) {
-      send(room.peers.get(peerId), { type: "peer_joined", id: guestId, participantRole });
-    }
+    // WebRTCMultiplayerPeer clients may only add peer ID 1. Godot relays
+    // MultiplayerAPI traffic between guests through the host connection.
+    send(socket, { type: "assigned", id: guestId, role: "guest", participantRole, room: roomCode, peers: [1], iceServers });
+    send(room.peers.get(1), { type: "peer_joined", id: guestId, participantRole });
     broadcastRoomLists(rooms, clients);
     return;
   }
