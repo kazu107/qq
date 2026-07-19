@@ -34,6 +34,14 @@ func _run() -> void:
 	var discovered_list: ItemList = lobby.find_child("LanDiscoveredList", true, false) as ItemList
 	var create_target_wins_spin: SpinBox = lobby.find_child("OnlineTargetWinsSpin", true, false) as SpinBox
 	var lobby_target_wins_spin: SpinBox = lobby.find_child("OnlineLobbyTargetWinsSpin", true, false) as SpinBox
+	var expected_rule_controls: Dictionary = {
+		"OnlineInitialGoldSpin": ArenaService.INITIAL_GOLD,
+		"OnlineInitialMaxHpSpin": ArenaService.INITIAL_MAX_HP,
+		"OnlineSpecialRewardIntervalSpin": ArenaService.SPECIAL_REWARD_INTERVAL,
+		"OnlineShopPricePercentSpin": 100,
+		"OnlineRerollCostSpin": ArenaService.REROLL_COST,
+		"OnlineShopOfferCountSpin": ArenaService.SHOP_OFFER_COUNT,
+	}
 	if room_code_edit == null or not room_code_edit.visible or upnp_check == null or upnp_check.visible:
 		_fail("Online smoke failed: online connection controls were missing")
 		return
@@ -46,6 +54,11 @@ func _run() -> void:
 	if lobby_target_wins_spin == null or int(lobby_target_wins_spin.value) != ArenaService.TARGET_WINS:
 		_fail("Online smoke failed: lobby first-to-X room rule control was missing")
 		return
+	for control_name in expected_rule_controls.keys():
+		var rule_control: SpinBox = lobby.find_child(String(control_name), true, false) as SpinBox
+		if rule_control == null or int(rule_control.value) != int(expected_rule_controls.get(control_name, -1)):
+			_fail("Online smoke failed: lobby rule control was missing or invalid: %s" % control_name)
+			return
 	lobby.queue_free()
 	await get_tree().process_frame
 

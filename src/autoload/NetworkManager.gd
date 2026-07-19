@@ -40,6 +40,18 @@ const SESSION_SCOPE_ONLINE: String = "online"
 const ONLINE_UPNP_DESCRIPTION: String = "qq Online Arena"
 const ONLINE_MIN_TARGET_WINS: int = 1
 const ONLINE_MAX_TARGET_WINS: int = 20
+const ONLINE_MIN_INITIAL_GOLD: int = 0
+const ONLINE_MAX_INITIAL_GOLD: int = 500
+const ONLINE_MIN_INITIAL_MAX_HP: int = 20
+const ONLINE_MAX_INITIAL_MAX_HP: int = 200
+const ONLINE_MIN_SPECIAL_REWARD_INTERVAL: int = 1
+const ONLINE_MAX_SPECIAL_REWARD_INTERVAL: int = 10
+const ONLINE_MIN_SHOP_PRICE_PERCENT: int = 50
+const ONLINE_MAX_SHOP_PRICE_PERCENT: int = 200
+const ONLINE_MIN_REROLL_COST: int = 0
+const ONLINE_MAX_REROLL_COST: int = 100
+const ONLINE_MIN_SHOP_OFFER_COUNT: int = 2
+const ONLINE_MAX_SHOP_OFFER_COUNT: int = 10
 
 var _state: int = ConnectionState.OFFLINE
 var _peer: MultiplayerPeer
@@ -99,6 +111,12 @@ var _web_signaling: WebRtcSignalingClient = WebRtcSignalingClient.new()
 var _web_directory: WebRtcSignalingClient = WebRtcSignalingClient.new()
 var _online_rooms: Array[Dictionary] = []
 var _online_target_wins: int = ArenaService.TARGET_WINS
+var _online_initial_gold: int = ArenaService.INITIAL_GOLD
+var _online_initial_max_hp: int = ArenaService.INITIAL_MAX_HP
+var _online_special_reward_interval: int = ArenaService.SPECIAL_REWARD_INTERVAL
+var _online_shop_price_percent: int = 100
+var _online_reroll_cost: int = ArenaService.REROLL_COST
+var _online_shop_offer_count: int = ArenaService.SHOP_OFFER_COUNT
 var _web_failure_pending: bool = false
 
 
@@ -291,6 +309,72 @@ func set_online_target_wins(value: int) -> bool:
 	return true
 
 
+func get_online_arena_rules() -> Dictionary:
+	return _build_online_arena_rules()
+
+
+func set_online_arena_rules(rules: Dictionary) -> bool:
+	if not _is_host or _session_scope != SESSION_SCOPE_ONLINE or _match_active or _arena_session_active:
+		return false
+	var sanitized_rules: Dictionary = {
+		"initial_gold": clampi(int(rules.get("initial_gold", _online_initial_gold)), ONLINE_MIN_INITIAL_GOLD, ONLINE_MAX_INITIAL_GOLD),
+		"initial_max_hp": clampi(int(rules.get("initial_max_hp", _online_initial_max_hp)), ONLINE_MIN_INITIAL_MAX_HP, ONLINE_MAX_INITIAL_MAX_HP),
+		"special_reward_interval": clampi(int(rules.get("special_reward_interval", _online_special_reward_interval)), ONLINE_MIN_SPECIAL_REWARD_INTERVAL, ONLINE_MAX_SPECIAL_REWARD_INTERVAL),
+		"shop_price_percent": clampi(int(rules.get("shop_price_percent", _online_shop_price_percent)), ONLINE_MIN_SHOP_PRICE_PERCENT, ONLINE_MAX_SHOP_PRICE_PERCENT),
+		"reroll_cost": clampi(int(rules.get("reroll_cost", _online_reroll_cost)), ONLINE_MIN_REROLL_COST, ONLINE_MAX_REROLL_COST),
+		"shop_offer_count": clampi(int(rules.get("shop_offer_count", _online_shop_offer_count)), ONLINE_MIN_SHOP_OFFER_COUNT, ONLINE_MAX_SHOP_OFFER_COUNT),
+	}
+	if sanitized_rules == _build_online_arena_rules():
+		return true
+	_apply_online_arena_rules(sanitized_rules)
+	_broadcast_lobby_state()
+	return true
+
+
+func _build_online_arena_rules() -> Dictionary:
+	return {
+		"initial_gold": _online_initial_gold,
+		"initial_max_hp": _online_initial_max_hp,
+		"special_reward_interval": _online_special_reward_interval,
+		"shop_price_percent": _online_shop_price_percent,
+		"reroll_cost": _online_reroll_cost,
+		"shop_offer_count": _online_shop_offer_count,
+	}
+
+
+func _apply_online_arena_rules(rules: Dictionary) -> void:
+	_online_initial_gold = clampi(
+		int(rules.get("initial_gold", _online_initial_gold)),
+		ONLINE_MIN_INITIAL_GOLD,
+		ONLINE_MAX_INITIAL_GOLD
+	)
+	_online_initial_max_hp = clampi(
+		int(rules.get("initial_max_hp", _online_initial_max_hp)),
+		ONLINE_MIN_INITIAL_MAX_HP,
+		ONLINE_MAX_INITIAL_MAX_HP
+	)
+	_online_special_reward_interval = clampi(
+		int(rules.get("special_reward_interval", _online_special_reward_interval)),
+		ONLINE_MIN_SPECIAL_REWARD_INTERVAL,
+		ONLINE_MAX_SPECIAL_REWARD_INTERVAL
+	)
+	_online_shop_price_percent = clampi(
+		int(rules.get("shop_price_percent", _online_shop_price_percent)),
+		ONLINE_MIN_SHOP_PRICE_PERCENT,
+		ONLINE_MAX_SHOP_PRICE_PERCENT
+	)
+	_online_reroll_cost = clampi(
+		int(rules.get("reroll_cost", _online_reroll_cost)),
+		ONLINE_MIN_REROLL_COST,
+		ONLINE_MAX_REROLL_COST
+	)
+	_online_shop_offer_count = clampi(
+		int(rules.get("shop_offer_count", _online_shop_offer_count)),
+		ONLINE_MIN_SHOP_OFFER_COUNT,
+		ONLINE_MAX_SHOP_OFFER_COUNT
+	)
+
+
 func leave_session(reason: String = "left") -> void:
 	if _peer != null and _peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		if _is_host:
@@ -381,15 +465,15 @@ func start_lan_arena_preparation() -> bool:
 	var host_profile: Dictionary = Dictionary(_profiles_by_peer.get(1, {}))
 	var guest_profile: Dictionary = Dictionary(_profiles_by_peer.get(guest_peer_id, {}))
 	var base_seed: int = int(Time.get_ticks_msec() % 2147483646) + 1
-	var player_run: RunState = _arena_coordinator.create_run(host_profile, base_seed)
-	var enemy_run: RunState = _arena_coordinator.create_run(guest_profile, base_seed + 7919)
+	var arena_rules: Dictionary = {}
+	if _session_scope == SESSION_SCOPE_ONLINE:
+		arena_rules = _build_online_arena_rules()
+		arena_rules["target_wins"] = _online_target_wins
+		arena_rules["max_losses"] = _online_target_wins + 1
+	var player_run: RunState = _arena_coordinator.create_run(host_profile, base_seed, arena_rules)
+	var enemy_run: RunState = _arena_coordinator.create_run(guest_profile, base_seed + 7919, arena_rules)
 	if player_run == null or enemy_run == null:
 		return false
-	if _session_scope == SESSION_SCOPE_ONLINE:
-		player_run.arena_target_wins = _online_target_wins
-		enemy_run.arena_target_wins = _online_target_wins
-		player_run.arena_max_losses = _online_target_wins + 1
-		enemy_run.arena_max_losses = _online_target_wins + 1
 	_arena_runs_by_side = {
 		"player": player_run,
 		"enemy": enemy_run,
@@ -699,7 +783,8 @@ func finish_lan_match(summary: Dictionary, final_snapshot: Dictionary = {}) -> b
 		var player_progress: Dictionary = _arena_coordinator.apply_battle_result(player_run, winner == "player", player_hp, int(result.get("player_relic_bonus_gold", 0)))
 		var enemy_progress: Dictionary = _arena_coordinator.apply_battle_result(enemy_run, winner == "enemy", enemy_hp, int(result.get("enemy_relic_bonus_gold", 0)))
 		arena_finished = bool(player_progress.get("finished", false)) or bool(enemy_progress.get("finished", false))
-		if not arena_finished and completed_round > 0 and completed_round % ArenaService.SPECIAL_REWARD_INTERVAL == 0:
+		var special_reward_interval: int = player_run.arena_special_reward_interval if player_run != null else ArenaService.SPECIAL_REWARD_INTERVAL
+		if not arena_finished and completed_round > 0 and completed_round % special_reward_interval == 0:
 			var shared_special_rewards: Array[Dictionary] = _arena_coordinator.assign_shared_special_rewards(
 				player_run,
 				enemy_run,
@@ -984,6 +1069,7 @@ func _receive_lobby_state_rpc(snapshot: Dictionary) -> void:
 			ONLINE_MIN_TARGET_WINS,
 			ONLINE_MAX_TARGET_WINS
 		)
+		_apply_online_arena_rules(Dictionary(snapshot.get("arena_rules", {})))
 	var local_peer_id: int = multiplayer.get_unique_id()
 	for raw_player in Array(snapshot.get("players", [])):
 		var player_data: Dictionary = Dictionary(raw_player)
@@ -1507,6 +1593,7 @@ func _broadcast_lobby_state() -> void:
 		"match_active": _match_active,
 		"arena_active": _arena_session_active,
 		"target_wins": _online_target_wins,
+		"arena_rules": _build_online_arena_rules(),
 	}
 	_receive_lobby_state_rpc.rpc(_public_lobby_snapshot)
 	lobby_changed.emit(_public_lobby_snapshot.duplicate(true))
@@ -1723,6 +1810,12 @@ func _clear_session(clear_profile: bool) -> void:
 	_online_room_proof = ""
 	_online_host_status.clear()
 	_online_target_wins = ArenaService.TARGET_WINS
+	_online_initial_gold = ArenaService.INITIAL_GOLD
+	_online_initial_max_hp = ArenaService.INITIAL_MAX_HP
+	_online_special_reward_interval = ArenaService.SPECIAL_REWARD_INTERVAL
+	_online_shop_price_percent = 100
+	_online_reroll_cost = ArenaService.REROLL_COST
+	_online_shop_offer_count = ArenaService.SHOP_OFFER_COUNT
 	if clear_profile:
 		_local_profile.clear()
 	_set_state(ConnectionState.OFFLINE, "Offline")

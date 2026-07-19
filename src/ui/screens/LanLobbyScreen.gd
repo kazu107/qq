@@ -10,6 +10,12 @@ var _address_edit: LineEdit
 var _port_spin: SpinBox
 var _room_code_edit: LineEdit
 var _lobby_target_wins_spin: SpinBox
+var _lobby_initial_gold_spin: SpinBox
+var _lobby_initial_max_hp_spin: SpinBox
+var _lobby_special_reward_interval_spin: SpinBox
+var _lobby_shop_price_percent_spin: SpinBox
+var _lobby_reroll_cost_spin: SpinBox
+var _lobby_shop_offer_count_spin: SpinBox
 var _automatic_upnp_check: CheckButton
 var _host_button: Button
 var _join_button: Button
@@ -260,12 +266,85 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	var divider: HSeparator = HSeparator.new()
 	box.add_child(divider)
 
-	_lobby_target_wins_spin = _create_target_wins_control("OnlineLobbyTargetWinsSpin")
+	box.add_child(_make_section_title(Localization.get_text("online.rules", "MATCH RULES")))
+	var rules_grid: GridContainer = GridContainer.new()
+	rules_grid.name = "OnlineLobbyRulesGrid"
+	rules_grid.columns = 2
+	rules_grid.add_theme_constant_override("h_separation", 18)
+	rules_grid.add_theme_constant_override("v_separation", 8)
+	box.add_child(rules_grid)
+
+	_lobby_target_wins_spin = _create_rule_control(
+		"OnlineLobbyTargetWinsSpin",
+		NetworkManager.ONLINE_MIN_TARGET_WINS,
+		NetworkManager.ONLINE_MAX_TARGET_WINS,
+		1,
+		ArenaService.TARGET_WINS
+	)
 	_lobby_target_wins_spin.value_changed.connect(_on_lobby_target_wins_changed)
-	box.add_child(_labeled_control(
+	rules_grid.add_child(_labeled_control(
 		Localization.get_text("online.target_wins", "First to wins"),
 		_lobby_target_wins_spin
 	))
+	_lobby_initial_gold_spin = _create_rule_control(
+		"OnlineInitialGoldSpin",
+		NetworkManager.ONLINE_MIN_INITIAL_GOLD,
+		NetworkManager.ONLINE_MAX_INITIAL_GOLD,
+		10,
+		ArenaService.INITIAL_GOLD
+	)
+	_lobby_initial_max_hp_spin = _create_rule_control(
+		"OnlineInitialMaxHpSpin",
+		NetworkManager.ONLINE_MIN_INITIAL_MAX_HP,
+		NetworkManager.ONLINE_MAX_INITIAL_MAX_HP,
+		5,
+		ArenaService.INITIAL_MAX_HP
+	)
+	_lobby_special_reward_interval_spin = _create_rule_control(
+		"OnlineSpecialRewardIntervalSpin",
+		NetworkManager.ONLINE_MIN_SPECIAL_REWARD_INTERVAL,
+		NetworkManager.ONLINE_MAX_SPECIAL_REWARD_INTERVAL,
+		1,
+		ArenaService.SPECIAL_REWARD_INTERVAL
+	)
+	_lobby_shop_price_percent_spin = _create_rule_control(
+		"OnlineShopPricePercentSpin",
+		NetworkManager.ONLINE_MIN_SHOP_PRICE_PERCENT,
+		NetworkManager.ONLINE_MAX_SHOP_PRICE_PERCENT,
+		10,
+		100,
+		"%"
+	)
+	_lobby_reroll_cost_spin = _create_rule_control(
+		"OnlineRerollCostSpin",
+		NetworkManager.ONLINE_MIN_REROLL_COST,
+		NetworkManager.ONLINE_MAX_REROLL_COST,
+		1,
+		ArenaService.REROLL_COST
+	)
+	_lobby_shop_offer_count_spin = _create_rule_control(
+		"OnlineShopOfferCountSpin",
+		NetworkManager.ONLINE_MIN_SHOP_OFFER_COUNT,
+		NetworkManager.ONLINE_MAX_SHOP_OFFER_COUNT,
+		1,
+		ArenaService.SHOP_OFFER_COUNT
+	)
+	var additional_rule_controls: Array[SpinBox] = [
+		_lobby_initial_gold_spin,
+		_lobby_initial_max_hp_spin,
+		_lobby_special_reward_interval_spin,
+		_lobby_shop_price_percent_spin,
+		_lobby_reroll_cost_spin,
+		_lobby_shop_offer_count_spin,
+	]
+	for control in additional_rule_controls:
+		control.value_changed.connect(_on_lobby_arena_rules_changed)
+	rules_grid.add_child(_labeled_control(Localization.get_text("online.initial_gold", "Starting gold"), _lobby_initial_gold_spin))
+	rules_grid.add_child(_labeled_control(Localization.get_text("online.initial_max_hp", "Starting max HP"), _lobby_initial_max_hp_spin))
+	rules_grid.add_child(_labeled_control(Localization.get_text("online.special_reward_interval", "Special reward interval"), _lobby_special_reward_interval_spin))
+	rules_grid.add_child(_labeled_control(Localization.get_text("online.shop_price_percent", "Shop price multiplier"), _lobby_shop_price_percent_spin))
+	rules_grid.add_child(_labeled_control(Localization.get_text("online.reroll_cost", "Reroll cost"), _lobby_reroll_cost_spin))
+	rules_grid.add_child(_labeled_control(Localization.get_text("online.shop_offer_count", "Shop items (total)"), _lobby_shop_offer_count_spin))
 
 	_starter_option = OptionButton.new()
 	_starter_option.name = "LanStarterOption"
@@ -361,7 +440,24 @@ func _refresh_all() -> void:
 	})
 	_refreshing_rules = true
 	_lobby_target_wins_spin.set_value_no_signal(float(NetworkManager.get_online_target_wins()))
-	_lobby_target_wins_spin.editable = NetworkManager.is_host()
+	var arena_rules: Dictionary = NetworkManager.get_online_arena_rules()
+	_lobby_initial_gold_spin.set_value_no_signal(float(arena_rules.get("initial_gold", ArenaService.INITIAL_GOLD)))
+	_lobby_initial_max_hp_spin.set_value_no_signal(float(arena_rules.get("initial_max_hp", ArenaService.INITIAL_MAX_HP)))
+	_lobby_special_reward_interval_spin.set_value_no_signal(float(arena_rules.get("special_reward_interval", ArenaService.SPECIAL_REWARD_INTERVAL)))
+	_lobby_shop_price_percent_spin.set_value_no_signal(float(arena_rules.get("shop_price_percent", 100)))
+	_lobby_reroll_cost_spin.set_value_no_signal(float(arena_rules.get("reroll_cost", ArenaService.REROLL_COST)))
+	_lobby_shop_offer_count_spin.set_value_no_signal(float(arena_rules.get("shop_offer_count", ArenaService.SHOP_OFFER_COUNT)))
+	var rule_controls: Array[SpinBox] = [
+		_lobby_target_wins_spin,
+		_lobby_initial_gold_spin,
+		_lobby_initial_max_hp_spin,
+		_lobby_special_reward_interval_spin,
+		_lobby_shop_price_percent_spin,
+		_lobby_reroll_cost_spin,
+		_lobby_shop_offer_count_spin,
+	]
+	for control in rule_controls:
+		control.editable = NetworkManager.is_host()
 	_refreshing_rules = false
 	_start_button.visible = NetworkManager.is_host()
 	_start_button.disabled = not NetworkManager.can_start_match()
@@ -602,6 +698,20 @@ func _on_lobby_target_wins_changed(value: float) -> void:
 	_refresh_all()
 
 
+func _on_lobby_arena_rules_changed(_value: float) -> void:
+	if _refreshing_rules or not NetworkManager.is_host():
+		return
+	NetworkManager.set_online_arena_rules({
+		"initial_gold": int(_lobby_initial_gold_spin.value),
+		"initial_max_hp": int(_lobby_initial_max_hp_spin.value),
+		"special_reward_interval": int(_lobby_special_reward_interval_spin.value),
+		"shop_price_percent": int(_lobby_shop_price_percent_spin.value),
+		"reroll_cost": int(_lobby_reroll_cost_spin.value),
+		"shop_offer_count": int(_lobby_shop_offer_count_spin.value),
+	})
+	_refresh_all()
+
+
 func _on_ready_pressed() -> void:
 	NetworkManager.set_local_ready(not NetworkManager.is_local_ready())
 	_refresh_all()
@@ -722,13 +832,22 @@ func _restart_online_directory() -> void:
 		NetworkManager.start_online_room_directory()
 
 
-func _create_target_wins_control(control_name: String) -> SpinBox:
+func _create_rule_control(
+	control_name: String,
+	minimum: int,
+	maximum: int,
+	step_value: int,
+	default_value: int,
+	suffix_text: String = ""
+) -> SpinBox:
 	var spin: SpinBox = SpinBox.new()
 	spin.name = control_name
-	spin.min_value = NetworkManager.ONLINE_MIN_TARGET_WINS
-	spin.max_value = NetworkManager.ONLINE_MAX_TARGET_WINS
-	spin.step = 1.0
-	spin.value = ArenaService.TARGET_WINS
+	spin.custom_minimum_size = Vector2(150.0, 0.0)
+	spin.min_value = float(minimum)
+	spin.max_value = float(maximum)
+	spin.step = float(step_value)
+	spin.value = float(default_value)
+	spin.suffix = suffix_text
 	spin.allow_greater = false
 	spin.allow_lesser = false
 	return spin

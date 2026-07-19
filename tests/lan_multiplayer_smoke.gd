@@ -127,6 +127,27 @@ func _assert_arena_coordinator(profile: Dictionary) -> bool:
 	if int(status.get("target_wins", 0)) != LanArenaCoordinator.TARGET_WINS:
 		_fail("LAN smoke failed: arena target wins were not configured")
 		return false
+	var custom_run: RunState = coordinator.create_run(profile, 97532, {
+		"initial_gold": 140,
+		"initial_max_hp": 90,
+		"special_reward_interval": 2,
+		"shop_price_percent": 120,
+		"reroll_cost": 11,
+		"shop_offer_count": 6,
+		"target_wins": 5,
+		"max_losses": 6,
+	})
+	if (
+		custom_run == null
+		or custom_run.gold != 140
+		or custom_run.max_hp != 90
+		or custom_run.arena_target_wins != 5
+		or custom_run.arena_max_losses != 6
+		or custom_run.arena_reroll_cost != 11
+		or custom_run.arena_shop_offer_count != 6
+	):
+		_fail("LAN smoke failed: synchronized custom arena rules were not applied")
+		return false
 	var entries: Array[Dictionary] = coordinator.get_loadout_entries(run_state)
 	if entries.is_empty() or not coordinator.has_valid_loadout(run_state):
 		_fail("LAN smoke failed: arena loadout was not available")
@@ -308,6 +329,7 @@ func _assert_web_lobby_scene() -> void:
 	var start_button: Button = lobby.find_child("LanStartMatchButton", true, false) as Button
 	var create_target_wins_spin: SpinBox = lobby.find_child("OnlineTargetWinsSpin", true, false) as SpinBox
 	var lobby_target_wins_spin: SpinBox = lobby.find_child("OnlineLobbyTargetWinsSpin", true, false) as SpinBox
+	var rules_grid: GridContainer = lobby.find_child("OnlineLobbyRulesGrid", true, false) as GridContainer
 	var ready_count: Label = lobby.find_child("OnlineLobbyReadyCount", true, false) as Label
 	if host_button == null or join_button == null or room_code_edit == null:
 		_fail("Web multiplayer smoke failed: room controls were missing")
@@ -317,7 +339,7 @@ func _assert_web_lobby_scene() -> void:
 		_fail("LAN smoke failed: lobby did not expose every starter")
 	elif ready_button == null or start_button == null:
 		_fail("LAN smoke failed: lobby ready/start controls were missing")
-	elif create_target_wins_spin != null or lobby_target_wins_spin == null or ready_count == null:
+	elif create_target_wins_spin != null or lobby_target_wins_spin == null or rules_grid == null or rules_grid.get_child_count() != 7 or ready_count == null:
 		_fail("Web multiplayer smoke failed: lobby-only room rules or readiness count were missing")
 	lobby.queue_free()
 	await get_tree().process_frame

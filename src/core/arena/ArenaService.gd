@@ -2,10 +2,12 @@ extends RefCounted
 class_name ArenaService
 
 const INITIAL_GOLD: int = 70
+const INITIAL_MAX_HP: int = 60
 const TARGET_WINS: int = 12
 const MAX_LOSSES: int = 3
 const CARD_OFFER_COUNT: int = 3
 const RELIC_OFFER_COUNT: int = 2
+const SHOP_OFFER_COUNT: int = CARD_OFFER_COUNT + RELIC_OFFER_COUNT
 const REROLL_COST: int = 8
 const SPECIAL_REWARD_INTERVAL: int = 3
 const SPECIAL_REWARD_OPTION_COUNT: int = 3
@@ -15,18 +17,31 @@ var _shop_service: ShopService = ShopService.new()
 var _forge_service: ForgeService = ForgeService.new()
 
 
-func configure_run(run_state: RunState, allowed_card_ids: Array[String], allowed_relic_ids: Array[String]) -> void:
+func configure_run(
+	run_state: RunState,
+	allowed_card_ids: Array[String],
+	allowed_relic_ids: Array[String],
+	rules: Dictionary = {}
+) -> void:
 	if run_state == null:
 		return
+	run_state.arena_initial_gold = maxi(0, int(rules.get("initial_gold", INITIAL_GOLD)))
+	run_state.arena_initial_max_hp = maxi(1, int(rules.get("initial_max_hp", run_state.max_hp)))
+	run_state.arena_special_reward_interval = maxi(1, int(rules.get("special_reward_interval", SPECIAL_REWARD_INTERVAL)))
+	run_state.arena_shop_price_percent = clampi(int(rules.get("shop_price_percent", 100)), 1, 500)
+	run_state.arena_reroll_cost = maxi(0, int(rules.get("reroll_cost", REROLL_COST)))
+	run_state.arena_shop_offer_count = clampi(int(rules.get("shop_offer_count", SHOP_OFFER_COUNT)), 2, 12)
 	run_state.arena_mode = true
 	run_state.infinite_mode = false
 	run_state.current_area = 1
-	run_state.gold += INITIAL_GOLD
+	run_state.max_hp = run_state.arena_initial_max_hp
+	run_state.player_hp = run_state.max_hp
+	run_state.gold = run_state.arena_initial_gold
 	run_state.arena_round = 1
 	run_state.arena_wins = 0
 	run_state.arena_losses = 0
-	run_state.arena_target_wins = TARGET_WINS
-	run_state.arena_max_losses = MAX_LOSSES
+	run_state.arena_target_wins = maxi(1, int(rules.get("target_wins", TARGET_WINS)))
+	run_state.arena_max_losses = maxi(1, int(rules.get("max_losses", MAX_LOSSES)))
 	run_state.arena_next_enemy_id = _pick_enemy_for_round(run_state)
 	run_state.arena_shop = {}
 	run_state.arena_pending_rewards = []
@@ -58,8 +73,8 @@ func build_status(run_state: RunState) -> Dictionary:
 		"max_losses": run_state.arena_max_losses,
 		"next_enemy_id": next_enemy_id,
 		"next_enemy_name": enemy_name,
-		"reroll_cost": REROLL_COST,
-		"can_reroll": run_state.gold >= REROLL_COST,
+		"reroll_cost": run_state.arena_reroll_cost,
+		"can_reroll": run_state.gold >= run_state.arena_reroll_cost,
 	}
 
 
@@ -99,13 +114,13 @@ func has_pending_reward(run_state: RunState) -> bool:
 
 
 func can_reroll(run_state: RunState) -> bool:
-	return run_state != null and run_state.gold >= REROLL_COST
+	return run_state != null and run_state.gold >= run_state.arena_reroll_cost
 
 
 func reroll_shop(run_state: RunState, allowed_card_ids: Array[String], allowed_relic_ids: Array[String]) -> bool:
 	if not can_reroll(run_state):
 		return false
-	run_state.gold = max(0, run_state.gold - REROLL_COST)
+	run_state.gold = max(0, run_state.gold - run_state.arena_reroll_cost)
 	refresh_shop(run_state, allowed_card_ids, allowed_relic_ids, true)
 	return true
 
@@ -122,8 +137,10 @@ func refresh_shop(run_state: RunState, allowed_card_ids: Array[String], allowed_
 	if keep_held:
 		card_offers = _collect_held_offers(run_state, "cards")
 		relic_offers = _collect_held_offers(run_state, "relics")
-	_fill_card_offers(run_state, card_offers, CARD_OFFER_COUNT, allowed_card_ids, rng, refresh_count)
-	_fill_relic_offers(run_state, relic_offers, RELIC_OFFER_COUNT, allowed_relic_ids, rng, refresh_count)
+	var relic_offer_count: int = maxi(1, floori(float(run_state.arena_shop_offer_count) * 0.4))
+	var card_offer_count: int = maxi(1, run_state.arena_shop_offer_count - relic_offer_count)
+	_fill_card_offers(run_state, card_offers, card_offer_count, allowed_card_ids, rng, refresh_count)
+	_fill_relic_offers(run_state, relic_offers, relic_offer_count, allowed_relic_ids, rng, refresh_count)
 	run_state.arena_shop = {
 		"refresh_count": refresh_count,
 		"cards": card_offers,
@@ -250,7 +267,7 @@ func apply_battle_result(
 		result["finished"] = true
 		return result
 
-	if generate_special_reward and run_state.arena_round % SPECIAL_REWARD_INTERVAL == 0:
+	if generate_special_reward and run_state.arena_round % run_state.arena_special_reward_interval == 0:
 		run_state.arena_pending_special_rewards = build_special_rewards(run_state, run_state.arena_round)
 		result["special_reward_due"] = not run_state.arena_pending_special_rewards.is_empty()
 
@@ -323,7 +340,7 @@ func build_special_rewards(run_state: RunState, completed_round: int, seed_overr
 	if run_state == null or completed_round <= 0:
 		return rewards
 
-	var reward_stage: int = maxi(1, int(completed_round / SPECIAL_REWARD_INTERVAL))
+	var reward_stage: int = maxi(1, int(completed_round / run_state.arena_special_reward_interval))
 	var max_hp_amount: int = 6 + reward_stage * 2
 	var seed_value: int = seed_override
 	if seed_value == 0:
@@ -705,7 +722,8 @@ func _get_card_rarity_pool(wins: int) -> Array[String]:
 
 func _get_card_price(card_id: String, run_state: RunState) -> int:
 	var base_price: int = _shop_service.get_price(card_id) + run_state.arena_wins * 2
-	return _apply_shop_discount(base_price, run_state.arena_shop_discount_stacks)
+	var configured_price: int = _apply_shop_price_percent(base_price, run_state.arena_shop_price_percent)
+	return _apply_shop_discount(configured_price, run_state.arena_shop_discount_stacks)
 
 
 func _get_relic_price(relic_id: String, run_state: RunState) -> int:
@@ -721,7 +739,12 @@ func _get_relic_price(relic_id: String, run_state: RunState) -> int:
 		"scavenger_contract", "blood_pump", "armor_garden", "bounty_drone",
 	].has(relic_id):
 		price += 10
-	return _apply_shop_discount(price, run_state.arena_shop_discount_stacks)
+	var configured_price: int = _apply_shop_price_percent(price, run_state.arena_shop_price_percent)
+	return _apply_shop_discount(configured_price, run_state.arena_shop_discount_stacks)
+
+
+func _apply_shop_price_percent(price: int, price_percent: int) -> int:
+	return maxi(1, int(round(float(price) * float(price_percent) / 100.0)))
 
 
 func _apply_shop_discount(price: int, discount_stacks: int) -> int:

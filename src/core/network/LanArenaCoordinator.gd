@@ -9,13 +9,11 @@ var _relic_service: RelicService = RelicService.new()
 var _shop_service: ShopService = ShopService.new()
 
 
-func create_run(profile: Dictionary, seed: int) -> RunState:
+func create_run(profile: Dictionary, seed: int, rules: Dictionary = {}) -> RunState:
 	var run_state: RunState = LanProtocol.profile_to_run(profile, seed)
 	if run_state == null:
 		return null
-	_arena_service.configure_run(run_state, Database.get_all_card_ids(), Database.get_all_relic_ids())
-	run_state.arena_target_wins = TARGET_WINS
-	run_state.arena_max_losses = MAX_LOSSES
+	_arena_service.configure_run(run_state, Database.get_all_card_ids(), Database.get_all_relic_ids(), rules)
 	run_state.arena_next_enemy_id = ""
 	return run_state
 
@@ -152,8 +150,8 @@ func build_status(
 		"max_losses": run_state.arena_max_losses,
 		"next_enemy_id": opponent_starter_id,
 		"next_enemy_name": opponent_name,
-		"reroll_cost": ArenaService.REROLL_COST,
-		"can_reroll": run_state.gold >= ArenaService.REROLL_COST,
+		"reroll_cost": run_state.arena_reroll_cost,
+		"can_reroll": run_state.gold >= run_state.arena_reroll_cost,
 		"local_ready": local_ready,
 		"opponent_ready": opponent_ready,
 	}
