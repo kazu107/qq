@@ -5,6 +5,7 @@ signal transport_ready(peer: WebRTCMultiplayerPeer, is_host: bool, room_code: St
 signal status_changed(message: String)
 signal failed(code: String, message: String)
 signal room_list_changed(rooms: Array[Dictionary])
+signal participant_role_update_result(role: String, accepted: bool, code: String, message: String)
 
 const DEFAULT_LOCAL_SIGNALING_URL: String = "ws://127.0.0.1:8060/signal"
 const MAX_SIGNAL_PACKET_BYTES: int = 65536
@@ -63,6 +64,18 @@ func update_room(target_wins: int, max_players: int = LanProtocol.DEFAULT_PLAYER
 		"targetWins": target_wins,
 		"maxPlayers": _max_players,
 	})
+
+
+func update_participant_role(role: String) -> bool:
+	if _role != "host" and _role != "join":
+		return false
+	if _socket == null or _socket.get_ready_state() != WebSocketPeer.STATE_OPEN:
+		return false
+	_send({
+		"type": "update_participant_role",
+		"spectator": LanProtocol.sanitize_participant_role(role) == LanProtocol.ROLE_SPECTATOR,
+	})
+	return true
 
 
 func poll() -> void:
@@ -195,6 +208,13 @@ func _handle_message(message: Dictionary) -> void:
 			_create_connection(int(message.get("id", 0)))
 		"peer_left":
 			_remove_connection(int(message.get("id", 0)))
+		"participant_role_updated":
+			participant_role_update_result.emit(
+				LanProtocol.sanitize_participant_role(String(message.get("participantRole", LanProtocol.ROLE_PLAYER))),
+				bool(message.get("accepted", false)),
+				String(message.get("code", "")),
+				String(message.get("message", ""))
+			)
 		"offer", "answer":
 			_handle_session_description(message_type, message)
 		"candidate":

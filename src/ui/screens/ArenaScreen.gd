@@ -17,6 +17,7 @@ var _loadout_summary_label: Label
 var _deck_panel: CardHandPanel
 var _inventory_box: VBoxContainer
 var _relic_row: RelicIconRow
+var _participants_box: VBoxContainer
 var _reroll_button: Button
 var _abandon_button: Button
 var _start_battle_button: Button
@@ -125,6 +126,8 @@ func _build_ui() -> void:
 	_build_status_panel(body)
 	_build_shop_panel(body)
 	_build_loadout_panel(body)
+	if _lan_mode:
+		_build_participant_panel(body)
 	_build_reward_modal()
 
 
@@ -256,6 +259,49 @@ func _build_loadout_panel(parent: Control) -> void:
 	box.add_child(_start_battle_button)
 
 
+func _build_participant_panel(parent: Control) -> void:
+	var box: VBoxContainer = _create_panel(
+		parent,
+		Localization.get_text("online.arena.participants", "Players"),
+		Vector2(330.0, 0.0)
+	)
+	box.name = "ArenaParticipantsPanelBody"
+	box.add_theme_constant_override("separation", 10)
+
+	var header: HBoxContainer = HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	box.add_child(header)
+	_add_participant_column_label(header, Localization.get_text("online.arena.participant.name", "Name"), 124.0, HORIZONTAL_ALIGNMENT_LEFT)
+	_add_participant_column_label(header, Localization.get_text("online.arena.participant.score", "Score"), 58.0, HORIZONTAL_ALIGNMENT_CENTER)
+	_add_participant_column_label(header, Localization.get_text("online.arena.participant.state", "Status"), 82.0, HORIZONTAL_ALIGNMENT_CENTER)
+
+	var divider: HSeparator = HSeparator.new()
+	box.add_child(divider)
+
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.name = "ArenaParticipantsScroll"
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	box.add_child(scroll)
+
+	_participants_box = VBoxContainer.new()
+	_participants_box.name = "ArenaParticipantsList"
+	_participants_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_participants_box.add_theme_constant_override("separation", 8)
+	scroll.add_child(_participants_box)
+
+
+func _add_participant_column_label(parent: HBoxContainer, text: String, width: float, alignment: HorizontalAlignment) -> void:
+	var label: Label = Label.new()
+	label.text = text
+	label.custom_minimum_size = Vector2(width, 0.0)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL if alignment == HORIZONTAL_ALIGNMENT_LEFT else Control.SIZE_SHRINK_CENTER
+	label.horizontal_alignment = alignment
+	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_color", Color(0.58, 0.70, 0.77, 1.0))
+	parent.add_child(label)
+
+
 func _create_panel(parent: Control, title: String, min_size: Vector2) -> VBoxContainer:
 	var panel: PanelContainer = PanelContainer.new()
 	panel.custom_minimum_size = min_size
@@ -353,18 +399,8 @@ func _refresh_ui() -> void:
 		else:
 			_run_info_banner.refresh()
 	var status: Dictionary = _get_arena_status()
-	if _lan_mode and NetworkManager.is_online_session():
-		_status_label.text = Localization.get_textf(
-			"online.arena.score",
-			"Round {round} | Score {wins}-{losses} | First to {target}",
-			{
-				"round": int(status.get("round", 1)),
-				"wins": int(status.get("wins", 0)),
-				"losses": int(status.get("losses", 0)),
-				"target": int(status.get("target_wins", 1)),
-			}
-		)
-	else:
+	_status_label.visible = not _lan_mode
+	if not _lan_mode:
 		_status_label.text = Localization.get_textf("arena.status", "Round {round} | Wins {wins}/{target} | Losses {losses}/{max_losses}", {
 			"round": int(status.get("round", 1)),
 			"wins": int(status.get("wins", 0)),
@@ -372,15 +408,6 @@ func _refresh_ui() -> void:
 			"losses": int(status.get("losses", 0)),
 			"max_losses": int(status.get("max_losses", 1)),
 		})
-	if _lan_mode:
-		_status_label.text += "\n%s | %s / %s" % [
-			Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
-				"ready": NetworkManager.get_arena_ready_count(),
-				"total": NetworkManager.get_arena_player_count(),
-			}),
-			Localization.get_text("lan.arena.ready", "Ready") if bool(status.get("local_ready", false)) else Localization.get_text("lan.arena.preparing", "Preparing"),
-			Localization.get_text("lan.arena.opponent_ready", "Opponent ready") if bool(status.get("opponent_ready", false)) else Localization.get_text("lan.arena.opponent_preparing", "Opponent preparing"),
-		]
 	_next_enemy_label.text = Localization.get_textf("arena.next_enemy", "Next: {enemy}", {
 		"enemy": String(status.get("next_enemy_name", "")),
 	})
@@ -406,6 +433,7 @@ func _refresh_ui() -> void:
 	})
 	_deck_panel.refresh_card_ids(_get_equipped_cards(), false, "EQUIP", run_state)
 	_rebuild_loadout_rows()
+	_refresh_participant_rows()
 	_relic_row.refresh_relic_ids(run_state.relics, Localization.get_text("status.none", "None"))
 	_refresh_reward_modal()
 	_refresh_developer_panel()
@@ -598,6 +626,60 @@ func _rebuild_loadout_rows() -> void:
 		if card_def == null:
 			continue
 		_inventory_box.add_child(_build_loadout_row(entry, card_def))
+
+
+func _refresh_participant_rows() -> void:
+	if _participants_box == null:
+		return
+	for child in _participants_box.get_children():
+		_participants_box.remove_child(child)
+		child.queue_free()
+	for participant in NetworkManager.get_arena_participant_statuses():
+		_participants_box.add_child(_build_participant_row(participant))
+
+
+func _build_participant_row(participant: Dictionary) -> PanelContainer:
+	var ready: bool = bool(participant.get("ready", false))
+	var frame: PanelContainer = PanelContainer.new()
+	frame.custom_minimum_size = Vector2(0.0, 52.0)
+	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.add_theme_stylebox_override("panel", _make_panel_style(
+		Color(0.035, 0.050, 0.064, 0.96),
+		Color(0.24, 0.70, 0.47, 0.82) if ready else Color(0.83, 0.63, 0.20, 0.78),
+		1
+	))
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	frame.add_child(margin)
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	margin.add_child(row)
+
+	var name_label: Label = Label.new()
+	name_label.text = String(participant.get("name", "Player"))
+	name_label.custom_minimum_size = Vector2(104.0, 0.0)
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	row.add_child(name_label)
+
+	var score_label: Label = Label.new()
+	score_label.text = "%d-%d" % [int(participant.get("wins", 0)), int(participant.get("losses", 0))]
+	score_label.custom_minimum_size = Vector2(58.0, 0.0)
+	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	score_label.add_theme_color_override("font_color", Color(0.80, 0.88, 0.94, 1.0))
+	row.add_child(score_label)
+
+	var ready_label: Label = Label.new()
+	ready_label.name = "ArenaParticipantReady_%s" % int(participant.get("peer_id", -1))
+	ready_label.text = Localization.get_text("lan.arena.ready", "Ready") if ready else Localization.get_text("lan.arena.preparing", "Preparing")
+	ready_label.custom_minimum_size = Vector2(82.0, 0.0)
+	ready_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ready_label.add_theme_color_override("font_color", Color(0.30, 1.0, 0.62, 1.0) if ready else Color(1.0, 0.78, 0.28, 1.0))
+	row.add_child(ready_label)
+	return frame
 
 
 func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:

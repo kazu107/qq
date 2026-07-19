@@ -151,6 +151,39 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
     return;
   }
 
+  if (type === "update_participant_role") {
+    if (!client.room) {
+      sendParticipantRoleResult(socket, client.participantRole, false, "invalid_state", "Join a room before changing roles.");
+      return;
+    }
+    const room = rooms.get(client.room);
+    const participantRole = message.spectator === true ? "spectator" : "player";
+    if (!room || !room.peers.has(client.id)) {
+      sendParticipantRoleResult(socket, client.participantRole, false, "room_not_found", "The room is no longer available.");
+      return;
+    }
+    if (client.participantRole === participantRole) {
+      sendParticipantRoleResult(socket, participantRole, true);
+      return;
+    }
+    const roleCount = countParticipants(room, clients, participantRole);
+    const roleLimit = participantRole === "spectator" ? MAX_SPECTATORS : room.maxPlayers;
+    if (roleCount >= roleLimit) {
+      sendParticipantRoleResult(
+        socket,
+        client.participantRole,
+        false,
+        participantRole === "spectator" ? "spectator_full" : "room_full",
+        "That room has no open slot for the selected role."
+      );
+      return;
+    }
+    client.participantRole = participantRole;
+    sendParticipantRoleResult(socket, participantRole, true);
+    broadcastRoomLists(rooms, clients);
+    return;
+  }
+
   if (type === "host" || type === "join") {
     if (client.room) {
       sendError(socket, "already_joined", "This connection already belongs to a room.");
@@ -295,6 +328,16 @@ function nextPeerId(room) {
   let peerId = 2;
   while (room.peers.has(peerId)) peerId += 1;
   return peerId;
+}
+
+function sendParticipantRoleResult(socket, participantRole, accepted, code = "", message = "") {
+  send(socket, {
+    type: "participant_role_updated",
+    participantRole,
+    accepted,
+    code,
+    message,
+  });
 }
 
 function buildRoomList(rooms, clients, client) {

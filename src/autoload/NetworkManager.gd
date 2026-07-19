@@ -127,6 +127,7 @@ var _online_reroll_cost: int = ArenaService.REROLL_COST
 var _online_shop_offer_count: int = ArenaService.SHOP_OFFER_COUNT
 var _online_max_players: int = LanProtocol.DEFAULT_PLAYERS
 var _local_participant_role: String = LanProtocol.ROLE_PLAYER
+var _pending_participant_role: String = ""
 var _web_failure_pending: bool = false
 
 
@@ -147,6 +148,8 @@ func _ready() -> void:
 		_web_signaling.status_changed.connect(_on_web_signaling_status_changed)
 	if not _web_signaling.failed.is_connected(_on_web_signaling_failed):
 		_web_signaling.failed.connect(_on_web_signaling_failed)
+	if not _web_signaling.participant_role_update_result.is_connected(_on_web_participant_role_update_result):
+		_web_signaling.participant_role_update_result.connect(_on_web_participant_role_update_result)
 	if not _web_directory.room_list_changed.is_connected(_on_online_room_list_changed):
 		_web_directory.room_list_changed.connect(_on_online_room_list_changed)
 	if not _web_directory.failed.is_connected(_on_online_directory_failed):
@@ -367,6 +370,25 @@ func is_local_spectator() -> bool:
 	return _local_participant_role == LanProtocol.ROLE_SPECTATOR
 
 
+func is_participant_role_change_pending() -> bool:
+	return _pending_participant_role != ""
+
+
+func set_local_participant_role(role: String) -> bool:
+	var resolved_role: String = LanProtocol.sanitize_participant_role(role)
+	if _session_scope != SESSION_SCOPE_ONLINE or not is_session_connected():
+		return false
+	if _arena_session_active or _match_active or _pending_participant_role != "" or _local_profile.is_empty():
+		return false
+	if resolved_role == _local_participant_role:
+		return true
+	_pending_participant_role = resolved_role
+	if not _web_signaling.update_participant_role(resolved_role):
+		_pending_participant_role = ""
+		return false
+	return true
+
+
 func is_local_match_spectator() -> bool:
 	return get_local_side() == "spectator"
 
@@ -377,6 +399,16 @@ func get_arena_player_count() -> int:
 
 func get_arena_standings() -> Array[Dictionary]:
 	return _to_dictionary_array(_arena_standings)
+
+
+func get_arena_participant_statuses() -> Array[Dictionary]:
+	var participants: Array[Dictionary] = []
+	for standing in _arena_standings:
+		var entry: Dictionary = standing.duplicate(true)
+		var peer_id: int = int(entry.get("peer_id", -1))
+		entry["ready"] = bool(_arena_ready_by_peer.get(str(peer_id), false))
+		participants.append(entry)
+	return participants
 
 
 func get_arena_pairings() -> Array[Dictionary]:
@@ -1097,6 +1129,17 @@ func _on_web_signaling_status_changed(message: String) -> void:
 	if _session_scope != SESSION_SCOPE_ONLINE or message == "":
 		return
 	connection_state_changed.emit(_state, message)
+
+
+func _on_web_participant_role_update_result(role: String, accepted: bool, code: String, message: String) -> void:
+	_pending_participant_role = ""
+	if not accepted:
+		_emit_error(code if code != "" else "role_change_rejected", message if message != "" else "Could not change participant role.")
+		return
+	_local_participant_role = LanProtocol.sanitize_participant_role(role)
+	_local_profile["role"] = _local_participant_role
+	_local_profile["ready"] = false
+	_send_or_apply_local_profile()
 
 
 func _on_web_signaling_failed(code: String, message: String) -> void:
@@ -2124,6 +2167,7 @@ func _clear_session(clear_profile: bool) -> void:
 	_online_shop_offer_count = ArenaService.SHOP_OFFER_COUNT
 	_online_max_players = LanProtocol.DEFAULT_PLAYERS
 	_local_participant_role = LanProtocol.ROLE_PLAYER
+	_pending_participant_role = ""
 	if clear_profile:
 		_local_profile.clear()
 	_set_state(ConnectionState.OFFLINE, "Offline")

@@ -31,6 +31,7 @@ var _ready_count_label: Label
 var _players_box: GridContainer
 var _spectators_label: Label
 var _tournament_label: RichTextLabel
+var _participant_role_option: OptionButton
 var _starter_option: OptionButton
 var _starter_row: HBoxContainer
 var _starter_ids: Array[String] = []
@@ -395,6 +396,16 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	rules_grid.add_child(_labeled_control(Localization.get_text("online.reroll_cost", "Reroll cost"), _lobby_reroll_cost_spin))
 	rules_grid.add_child(_labeled_control(Localization.get_text("online.shop_offer_count", "Shop items (total)"), _lobby_shop_offer_count_spin))
 
+	_participant_role_option = OptionButton.new()
+	_participant_role_option.name = "OnlineParticipantRoleOption"
+	_participant_role_option.add_item(Localization.get_text("online.role.player", "Player"))
+	_participant_role_option.add_item(Localization.get_text("online.role.spectator", "Spectator"))
+	_participant_role_option.item_selected.connect(_on_participant_role_selected)
+	box.add_child(_labeled_control(
+		Localization.get_text("online.role", "Role"),
+		_participant_role_option
+	))
+
 	_starter_option = OptionButton.new()
 	_starter_option.name = "LanStarterOption"
 	_starter_option.item_selected.connect(_on_starter_selected)
@@ -603,6 +614,8 @@ func _build_player_slot(slot_index: int, player_data: Dictionary) -> PanelContai
 func _refresh_local_profile_controls() -> void:
 	var profile: Dictionary = NetworkManager.get_local_profile()
 	var spectator: bool = NetworkManager.is_local_spectator()
+	_participant_role_option.select(1 if spectator else 0)
+	_participant_role_option.disabled = NetworkManager.is_participant_role_change_pending() or NetworkManager.is_lan_arena_session_active()
 	_starter_row.visible = not spectator
 	_deck_title.visible = not spectator
 	_deck_scroll.visible = not spectator
@@ -841,6 +854,17 @@ func _on_lobby_arena_rules_changed(_value: float) -> void:
 
 func _on_ready_pressed() -> void:
 	NetworkManager.set_local_ready(not NetworkManager.is_local_ready())
+	_refresh_all()
+
+
+func _on_participant_role_selected(index: int) -> void:
+	var role: String = LanProtocol.ROLE_SPECTATOR if index == 1 else LanProtocol.ROLE_PLAYER
+	if role == String(NetworkManager.get_local_profile().get("role", LanProtocol.ROLE_PLAYER)):
+		return
+	if NetworkManager.set_local_participant_role(role):
+		AudioManager.play_sfx("ui_toggle")
+	else:
+		AudioManager.play_sfx("ui_error")
 	_refresh_all()
 
 

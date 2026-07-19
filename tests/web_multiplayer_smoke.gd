@@ -58,6 +58,7 @@ func _run() -> void:
 	var lobby_target: SpinBox = web_lobby.find_child("OnlineLobbyTargetWinsSpin", true, false) as SpinBox
 	var max_players: SpinBox = web_lobby.find_child("OnlineLobbyMaxPlayersSpin", true, false) as SpinBox
 	var spectator_check: CheckButton = web_lobby.find_child("OnlineJoinAsSpectatorCheck", true, false) as CheckButton
+	var participant_role_option: OptionButton = web_lobby.find_child("OnlineParticipantRoleOption", true, false) as OptionButton
 	var rules_grid: GridContainer = web_lobby.find_child("OnlineLobbyRulesGrid", true, false) as GridContainer
 	var ready_count: Label = web_lobby.find_child("OnlineLobbyReadyCount", true, false) as Label
 	if room_list == null or not room_list.visible:
@@ -71,6 +72,8 @@ func _run() -> void:
 		or max_players == null
 		or int(max_players.step) != 2
 		or spectator_check == null
+		or participant_role_option == null
+		or participant_role_option.item_count != 2
 		or int(lobby_target.min_value) != NetworkManager.ONLINE_MIN_TARGET_WINS
 		or int(lobby_target.max_value) != NetworkManager.ONLINE_MAX_TARGET_WINS
 	):
