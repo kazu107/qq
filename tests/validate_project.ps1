@@ -39,10 +39,17 @@ function Resolve-GodotExecutable([string]$PathValue) {
 function Invoke-GodotCheck([string]$Label, [string]$ExePath, [string[]]$Arguments) {
     Write-Host $Label
     $previousErrorActionPreference = $ErrorActionPreference
-    $ErrorActionPreference = "Continue"
-    $outputLines = & $ExePath @Arguments 2>&1
-    $exitCode = $LASTEXITCODE
-    $ErrorActionPreference = $previousErrorActionPreference
+    $previousAppData = [Environment]::GetEnvironmentVariable("APPDATA", "Process")
+    try {
+        [Environment]::SetEnvironmentVariable("APPDATA", $script:TestAppData, "Process")
+        $ErrorActionPreference = "Continue"
+        $outputLines = & $ExePath @Arguments 2>&1
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+        [Environment]::SetEnvironmentVariable("APPDATA", $previousAppData, "Process")
+    }
     $output = ($outputLines | ForEach-Object {
         if ($_ -is [System.Management.Automation.ErrorRecord]) {
             $_.Exception.Message
@@ -111,6 +118,13 @@ foreach ($gdFile in $gdFiles) {
         }
     }
 }
+
+$systemTempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+$script:TestAppData = [IO.Path]::GetFullPath(
+    [IO.Path]::Combine($systemTempRoot, "qq-godot-validation-$([Guid]::NewGuid().ToString('N'))")
+)
+[IO.Directory]::CreateDirectory($script:TestAppData) | Out-Null
+Write-Host "Using isolated Godot user data: $script:TestAppData"
 
 $godotExe = Resolve-GodotExecutable $GodotPath
 if ($godotExe) {
@@ -321,6 +335,13 @@ if ($godotExe) {
 			Write-Host $nodeOutput.TrimEnd()
 		}
 	}
+}
+
+if (
+    $script:TestAppData.StartsWith($systemTempRoot, [StringComparison]::OrdinalIgnoreCase) -and
+    [IO.Directory]::Exists($script:TestAppData)
+) {
+    [IO.Directory]::Delete($script:TestAppData, $true)
 }
 
 if ($errors.Count -gt 0) {
