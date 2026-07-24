@@ -14,6 +14,9 @@ node_modules/
 /addons/gd-eos/bin/windows/EOSSDK-Win64-Shipping.dll
 /addons/gd-eos/bin/windows/x64/xaudio2_9redist.dll
 /tools/.local/
+/sfx_generation.pid
+/sfx_generation.stdout.log
+/sfx_generation.stderr.log
 /build/*
 !/build/.gdignore
 !/build/web/

@@ -27,6 +27,7 @@ var _battle_info_label: RichTextLabel
 var _slow_mode_label: Label
 var _result_label: Label
 var _developer_panel: DeveloperPanel
+var _last_countdown_second: int = -1
 var _transition_timer: float = -1.0
 var _handled_finish: bool = false
 var _hovered_player_runtime_id: String = ""
@@ -253,6 +254,7 @@ func _on_lan_battle_start_state_changed(_state: Dictionary) -> void:
 func _on_lan_battle_countdown_finished() -> void:
 	if not _lan_mode or _engine.battle_state == null or _engine.has_battle_started():
 		return
+	AudioManager.play_sfx("battle_go")
 	_engine.start_battle()
 	if NetworkManager.is_host():
 		_publish_lan_snapshot(true)
@@ -552,11 +554,17 @@ func _refresh_ui(time_scale: float) -> void:
 				if _countdown_label != null:
 					_countdown_label.visible = can_start
 					if countdown_active:
-						_countdown_label.text = str(maxi(1, ceili(NetworkManager.get_battle_countdown_remaining())))
+						var countdown_second: int = maxi(1, ceili(NetworkManager.get_battle_countdown_remaining()))
+						_countdown_label.text = str(countdown_second)
+						if countdown_second != _last_countdown_second:
+							_last_countdown_second = countdown_second
+							AudioManager.play_sfx("online_countdown", 0.94 + float(3 - mini(3, countdown_second)) * 0.06, -2.0)
 					elif local_ready:
+						_last_countdown_second = -1
 						_countdown_label.text = Localization.get_text("lan.battle.waiting_start", "WAITING FOR OPPONENT")
 						_countdown_label.add_theme_font_size_override("font_size", 20)
 					else:
+						_last_countdown_second = -1
 						_countdown_label.text = Localization.get_text("lan.battle.both_start", "BOTH PLAYERS MUST START")
 						_countdown_label.add_theme_font_size_override("font_size", 20)
 					if countdown_active:
@@ -667,6 +675,20 @@ func _process_resolution_vfx(battle_state: BattleState) -> void:
 		var actor_panel: UnitPanel = _resolve_unit_panel(String(event_data.get("actor_id", "")), battle_state)
 		var target_panel: UnitPanel = _resolve_unit_panel(String(event_data.get("target_id", "")), battle_state)
 		_vfx_layer.play_resolution(event_data, actor_panel, target_panel, _player_panel, _enemy_panel)
+		if compact_lan_events:
+			var card_def: CardDef = Database.get_card(String(event_data.get("card_id", "")))
+			var result: Dictionary = Dictionary(event_data.get("result", {}))
+			var has_damage: bool = false
+			if card_def != null:
+				for effect_data: Dictionary in card_def.effects:
+					if String(effect_data.get("type", "")) == "deal_damage":
+						has_damage = true
+						break
+			var fully_blocked: bool = has_damage and (
+				int(result.get("target_hp_after", 0)) == int(result.get("target_hp_before", 0))
+				and int(result.get("target_shield_after", 0)) < int(result.get("target_shield_before", 0))
+			)
+			AudioManager.play_card_resolution(card_def, fully_blocked)
 	_processed_vfx_event_count = _lan_battle_event_total if compact_lan_events else battle_events.size()
 
 
@@ -717,7 +739,10 @@ func _on_start_battle_pressed() -> void:
 		return
 	var started: bool
 	if _lan_mode:
-		started = NetworkManager.set_local_battle_ready(not NetworkManager.is_local_battle_ready())
+		var next_ready: bool = not NetworkManager.is_local_battle_ready()
+		started = NetworkManager.set_local_battle_ready(next_ready)
+		if started:
+			AudioManager.play_sfx("online_ready" if next_ready else "online_unready")
 	else:
 		started = _engine.start_battle()
 	if not started:

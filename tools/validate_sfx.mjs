@@ -1,0 +1,131 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.dirname(scriptDir);
+const audioRoot = path.join(repoRoot, "assets", "audio", "sfx");
+const catalog = JSON.parse(fs.readFileSync(path.join(repoRoot, "data", "sfx_catalog.json"), "utf8"));
+const cards = JSON.parse(fs.readFileSync(path.join(repoRoot, "data", "cards.json"), "utf8"));
+const relics = JSON.parse(fs.readFileSync(path.join(repoRoot, "data", "relics.json"), "utf8"));
+
+const expectedIds = [
+  ...catalog.map((entry) => entry.id),
+  ...cards.map((card) => `card_${card.id}`),
+  ...relics.map((relic) => `relic_${relic.id}`),
+];
+const errors = [];
+const seen = new Set();
+let minimumDuration = Number.POSITIVE_INFINITY;
+let maximumDuration = 0;
+let minimumRms = Number.POSITIVE_INFINITY;
+
+if (catalog.length !== 124) {
+  errors.push(`Expected 124 shared catalog entries, got ${catalog.length}`);
+}
+const sharedIds = new Set(catalog.map((entry) => entry.id));
+for (const entry of catalog) {
+  if (!entry.category || !entry.name_ja || !entry.name_en) {
+    errors.push(`${entry.id}: incomplete catalog metadata`);
+  }
+  if (entry.source && !sharedIds.has(entry.source)) {
+    errors.push(`${entry.id}: unknown derived source ${entry.source}`);
+  }
+  if (!entry.source && (!entry.prompt || !Number.isInteger(entry.seed))) {
+    errors.push(`${entry.id}: model-generated entry requires prompt and integer seed`);
+  }
+}
+
+for (const id of expectedIds) {
+  if (!id || seen.has(id)) {
+    errors.push(`Blank or duplicate SFX ID: ${id}`);
+    continue;
+  }
+  seen.add(id);
+  const wavPath = path.join(audioRoot, `${id}.wav`);
+  if (!fs.existsSync(wavPath)) {
+    errors.push(`Missing WAV: ${id}`);
+    continue;
+  }
+
+  try {
+    const metrics = inspectWav(wavPath);
+    if (metrics.audioFormat !== 1) errors.push(`${id}: expected PCM format 1, got ${metrics.audioFormat}`);
+    if (metrics.channels !== 1) errors.push(`${id}: expected mono, got ${metrics.channels} channels`);
+    if (metrics.sampleRate !== 48000) errors.push(`${id}: expected 48000 Hz, got ${metrics.sampleRate}`);
+    if (metrics.bitsPerSample !== 16) errors.push(`${id}: expected 16-bit PCM, got ${metrics.bitsPerSample}`);
+    if (metrics.duration < 0.18 || metrics.duration > 2.5) {
+      errors.push(`${id}: suspicious duration ${metrics.duration.toFixed(3)} s`);
+    }
+    if (metrics.peak < 64 || metrics.rms < 8) {
+      errors.push(`${id}: silent or near-silent audio (peak=${metrics.peak}, rms=${metrics.rms.toFixed(2)})`);
+    }
+    minimumDuration = Math.min(minimumDuration, metrics.duration);
+    maximumDuration = Math.max(maximumDuration, metrics.duration);
+    minimumRms = Math.min(minimumRms, metrics.rms);
+  } catch (error) {
+    errors.push(`${id}: ${error.message}`);
+  }
+}
+
+if (errors.length > 0) {
+  for (const error of errors) console.error(error);
+  process.exit(1);
+}
+
+console.log(
+  `SFX validation passed: ${expectedIds.length} WAV files, ` +
+    `${minimumDuration.toFixed(2)}-${maximumDuration.toFixed(2)} s, ` +
+    `minimum RMS ${minimumRms.toFixed(2)}`,
+);
+
+function inspectWav(wavPath) {
+  const buffer = fs.readFileSync(wavPath);
+  if (buffer.length < 44 || buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WAVE") {
+    throw new Error("invalid RIFF/WAVE header");
+  }
+
+  let offset = 12;
+  let format = null;
+  let dataOffset = -1;
+  let dataLength = 0;
+  while (offset + 8 <= buffer.length) {
+    const chunkId = buffer.toString("ascii", offset, offset + 4);
+    const chunkLength = buffer.readUInt32LE(offset + 4);
+    const chunkDataOffset = offset + 8;
+    if (chunkDataOffset + chunkLength > buffer.length) break;
+    if (chunkId === "fmt " && chunkLength >= 16) {
+      format = {
+        audioFormat: buffer.readUInt16LE(chunkDataOffset),
+        channels: buffer.readUInt16LE(chunkDataOffset + 2),
+        sampleRate: buffer.readUInt32LE(chunkDataOffset + 4),
+        bitsPerSample: buffer.readUInt16LE(chunkDataOffset + 14),
+      };
+    } else if (chunkId === "data") {
+      dataOffset = chunkDataOffset;
+      dataLength = chunkLength;
+      break;
+    }
+    offset = chunkDataOffset + chunkLength + (chunkLength % 2);
+  }
+
+  if (format === null || dataOffset < 0 || dataLength <= 0) {
+    throw new Error("missing fmt or data chunk");
+  }
+  if (format.bitsPerSample !== 16) {
+    return { ...format, duration: 0, peak: 0, rms: 0 };
+  }
+
+  const sampleCount = Math.floor(dataLength / 2);
+  let peak = 0;
+  let squareSum = 0;
+  for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1) {
+    const sample = buffer.readInt16LE(dataOffset + sampleIndex * 2);
+    const absolute = Math.abs(sample);
+    peak = Math.max(peak, absolute);
+    squareSum += sample * sample;
+  }
+  const duration = sampleCount / (format.sampleRate * format.channels);
+  const rms = Math.sqrt(squareSum / Math.max(1, sampleCount));
+  return { ...format, duration, peak, rms };
+}

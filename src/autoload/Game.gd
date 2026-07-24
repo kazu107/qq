@@ -403,7 +403,7 @@ func choose_reward(card_id: String) -> void:
 		_meta_progress_service.increment_achievement_stat(meta_progress, "rewards_claimed")
 		_auto_equip_card_if_room(card_id)
 		_update_latest_battle_history({"selected_reward_card_id": card_id})
-		AudioManager.play_sfx("reward_pick")
+		AudioManager.play_sfx("card_gain")
 	reward_options.clear()
 	last_reward_bundle.clear()
 	if _should_return_to_hazard_after_reward():
@@ -453,7 +453,7 @@ func reroll_rewards_for_gold() -> bool:
 	_meta_progress_service.increment_achievement_stat(meta_progress, "reward_rerolls")
 	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", REWARD_REROLL_COST)
 	_show_gold_delta(-REWARD_REROLL_COST)
-	AudioManager.play_sfx("shop_buy")
+	AudioManager.play_sfx("reward_reroll")
 	SaveManager.save_game(current_screen_hint)
 	return true
 
@@ -690,7 +690,7 @@ func claim_meta_achievement(achievement_id: String) -> bool:
 	ensure_meta_initialized()
 	var claimed: bool = _meta_progress_service.claim_achievement(meta_progress, achievement_id)
 	if claimed:
-		AudioManager.play_sfx("meta_unlock")
+		AudioManager.play_sfx("achievement_claim")
 		SaveManager.request_save(current_screen_hint)
 	return claimed
 
@@ -949,7 +949,7 @@ func reroll_arena_shop_for_gold() -> bool:
 	_meta_progress_service.increment_achievement_stat(meta_progress, "shop_rerolls")
 	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	_show_gold_delta(current_run.gold - gold_before)
-	AudioManager.play_sfx("shop_buy", 0.96)
+	AudioManager.play_sfx("shop_reroll", 0.96)
 	SaveManager.save_game(current_screen_hint)
 	return true
 
@@ -1078,7 +1078,16 @@ func choose_arena_victory_reward(reward_id: String) -> bool:
 
 	if not history_update.is_empty():
 		_update_latest_battle_history(history_update)
-	AudioManager.play_sfx("reward_pick")
+	if bonus_relic_id != "":
+		AudioManager.play_sfx("relic_gain")
+	elif not upgraded_card_ids.is_empty() or upgraded_card_id != "":
+		AudioManager.play_sfx("card_upgrade")
+	elif selected_card_id != "":
+		AudioManager.play_sfx("card_gain")
+	elif reward_gold > 0:
+		AudioManager.play_sfx("gold_gain")
+	else:
+		AudioManager.play_sfx("reward_pick")
 	SaveManager.save_game(current_screen_hint)
 	return true
 
@@ -1449,7 +1458,7 @@ func developer_unlock_infinite_mode() -> bool:
 	ensure_meta_initialized()
 	var unlocked: bool = _meta_progress_service.unlock_infinite_mode(meta_progress)
 	if unlocked:
-		AudioManager.play_sfx("meta_unlock")
+		AudioManager.play_sfx("infinite_unlock")
 		SaveManager.request_save(current_screen_hint)
 	return unlocked
 
@@ -1975,7 +1984,7 @@ func sell_loadout_card(card_id: String) -> bool:
 	current_run.gold += sell_value
 	_meta_progress_service.increment_achievement_stat(meta_progress, "cards_sold")
 	_show_gold_delta(sell_value)
-	AudioManager.play_sfx("gold_gain", 0.92)
+	AudioManager.play_sfx("shop_sell", 0.92)
 	SaveManager.save_game(current_screen_hint)
 	return true
 
@@ -2262,7 +2271,7 @@ func continue_hazard() -> bool:
 	node_data["hazard_started"] = true
 	_set_node(step_index, node_index, node_data)
 	current_screen_hint = "battle"
-	AudioManager.play_sfx("hazard_enter")
+	AudioManager.play_sfx("hazard_enter" if cleared_waves == 0 else "hazard_wave")
 	SaveManager.save_game(current_screen_hint)
 	return true
 
@@ -2284,6 +2293,7 @@ func leave_facility() -> void:
 		return
 	_complete_active_map_node_and_advance()
 	current_screen_hint = _get_post_progress_scene_hint()
+	AudioManager.play_sfx("facility_leave")
 	SaveManager.save_game(current_screen_hint)
 
 

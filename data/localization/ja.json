@@ -1355,5 +1355,7 @@
   "online.arena.participant.name": "名前",
   "online.arena.participant.score": "スコア",
   "online.arena.participant.state": "準備状態",
-  "online.dev.summary": "WebRTC接続とハンドシェイクの確認用操作です。"
+  "online.dev.summary": "WebRTC接続とハンドシェイクの確認用操作です。",
+  "developer.sfx_lab": "SE再生ラボ",
+  "developer.sfx_lab.tooltip": "登録済みのすべての効果音を検索・再生します。"
 }

@@ -115,6 +115,7 @@ func _ready() -> void:
 	root.add_child(info)
 
 	_refresh_reward_ui()
+	AudioManager.play_sfx("legendary_reveal" if _has_legendary_reward() else "reward_reveal")
 
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
@@ -148,6 +149,14 @@ func _get_reward_relic_ids() -> Array[String]:
 	if relic_id == "":
 		return []
 	return [relic_id]
+
+
+func _has_legendary_reward() -> bool:
+	for card_id: String in Game.reward_options:
+		var card_def: CardDef = Database.get_card(card_id)
+		if card_def != null and card_def.rarity == "legendary":
+			return true
+	return false
 
 
 func _refresh_reroll_button() -> void:

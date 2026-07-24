@@ -31,6 +31,7 @@ func _ready() -> void:
 
 	_build_ui()
 	_refresh_ui()
+	AudioManager.play_sfx("facility_enter", 1.0, -3.0)
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
 

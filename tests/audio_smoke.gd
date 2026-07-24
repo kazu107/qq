@@ -1,38 +1,6 @@
 extends Node
 
-const EXPECTED_SFX_IDS: Array[String] = [
-	"ui_confirm",
-	"ui_page",
-	"ui_toggle",
-	"ui_error",
-	"run_start",
-	"map_select",
-	"loadout_equip",
-	"loadout_unequip",
-	"reward_pick",
-	"reward_skip",
-	"shop_buy",
-	"forge_upgrade",
-	"heal_use",
-	"event_resolve",
-	"hazard_enter",
-	"hazard_withdraw",
-	"meta_unlock",
-	"meta_points",
-	"relic_gain",
-	"gold_gain",
-	"battle_start",
-	"card_commit",
-	"battle_attack",
-	"battle_guard",
-	"battle_heal",
-	"battle_status",
-	"battle_interrupt",
-	"battle_time",
-	"battle_tick",
-	"battle_victory",
-	"battle_defeat",
-]
+const EXPECTED_SHARED_SFX_COUNT: int = 124
 
 var _failed: bool = false
 
@@ -56,6 +24,14 @@ func _run() -> void:
 		return
 
 	_assert_shield_block_resolution_sfx()
+	if _failed:
+		return
+
+	_assert_unique_resolution_sfx()
+	if _failed:
+		return
+
+	_assert_unique_relic_sfx()
 	if _failed:
 		return
 
@@ -134,7 +110,7 @@ func _run() -> void:
 	if Game.reward_options.is_empty():
 		Game.reward_options = ["guard"]
 	Game.choose_reward(Game.reward_options[0])
-	_assert_last_sfx("reward_pick", "Audio smoke failed: choosing a reward should play the reward pick SFX")
+	_assert_last_sfx("card_gain", "Audio smoke failed: choosing a reward should play the card gain SFX")
 	if _failed:
 		return
 
@@ -179,7 +155,18 @@ func _run() -> void:
 
 
 func _assert_sfx_assets() -> void:
-	for sfx_id in EXPECTED_SFX_IDS:
+	var catalog: Array[Dictionary] = AudioManager.get_sfx_catalog()
+	var expected_count: int = EXPECTED_SHARED_SFX_COUNT + Database.get_all_card_ids().size() + Database.get_all_relic_ids().size()
+	if catalog.size() != expected_count:
+		_fail("Audio smoke failed: catalog size was %d, expected %d" % [catalog.size(), expected_count])
+		return
+	var seen_ids: Dictionary = {}
+	for entry: Dictionary in catalog:
+		var sfx_id: String = String(entry.get("sfx_id", ""))
+		if sfx_id == "" or seen_ids.has(sfx_id):
+			_fail("Audio smoke failed: blank or duplicate catalog ID %s" % sfx_id)
+			return
+		seen_ids[sfx_id] = true
 		if not ResourceLoader.exists("res://assets/audio/sfx/%s.wav" % sfx_id):
 			_fail("Audio smoke failed: missing SFX asset %s" % sfx_id)
 			return
@@ -187,12 +174,14 @@ func _assert_sfx_assets() -> void:
 
 func _assert_sfx_playback() -> void:
 	AudioManager.clear_play_history()
-	for sfx_id in EXPECTED_SFX_IDS:
+	var catalog: Array[Dictionary] = AudioManager.get_sfx_catalog()
+	for entry: Dictionary in catalog:
+		var sfx_id: String = String(entry.get("sfx_id", ""))
 		if not AudioManager.play_sfx(sfx_id):
 			_fail("Audio smoke failed: AudioManager could not play %s" % sfx_id)
 			return
-	if AudioManager.get_play_history().size() != EXPECTED_SFX_IDS.size():
-		_fail("Audio smoke failed: AudioManager did not record all playback requests")
+	if AudioManager.get_play_history().is_empty():
+		_fail("Audio smoke failed: AudioManager did not record playback requests")
 		return
 
 
@@ -205,7 +194,33 @@ func _assert_shield_block_resolution_sfx() -> void:
 	if not AudioManager.play_card_resolution(card_def, true):
 		_fail("Audio smoke failed: blocked damage resolution SFX could not play")
 		return
-	_assert_last_sfx("battle_guard", "Audio smoke failed: fully shielded damage should play the guard SFX")
+	_assert_last_sfx("battle_full_block", "Audio smoke failed: fully shielded damage should play the full block SFX")
+
+
+func _assert_unique_resolution_sfx() -> void:
+	var card_def: CardDef = Database.get_card("quick_slash")
+	if card_def == null:
+		_fail("Audio smoke failed: quick_slash was missing for unique SFX verification")
+		return
+	AudioManager.clear_play_history()
+	if not AudioManager.play_card_resolution(card_def):
+		_fail("Audio smoke failed: unique card resolution SFX could not play")
+		return
+	_assert_last_sfx("card_quick_slash", "Audio smoke failed: card resolution should prefer the card-specific SFX")
+
+
+func _assert_unique_relic_sfx() -> void:
+	var relic_ids: Array[String] = Database.get_all_relic_ids()
+	if relic_ids.is_empty():
+		_fail("Audio smoke failed: no relic was available for unique SFX verification")
+		return
+	relic_ids.sort()
+	var relic_id: String = relic_ids[0]
+	AudioManager.clear_play_history()
+	if not AudioManager.play_relic_proc(relic_id):
+		_fail("Audio smoke failed: unique relic SFX could not play")
+		return
+	_assert_last_sfx("relic_%s" % relic_id, "Audio smoke failed: relic proc should prefer the relic-specific SFX")
 
 
 func _find_available_battle_node() -> Dictionary:
@@ -242,18 +257,10 @@ func _request_first_card(engine: RealtimeBattleEngine) -> bool:
 
 func _wait_for_resolution_sfx(engine: RealtimeBattleEngine) -> bool:
 	var timeout: float = 0.0
-	var target_sfx: Array[String] = [
-		"battle_attack",
-		"battle_guard",
-		"battle_heal",
-		"battle_status",
-		"battle_interrupt",
-		"battle_time",
-	]
 	while timeout < 40.0:
 		engine.update(0.2)
-		for sfx_id in target_sfx:
-			if AudioManager.has_played_sfx(sfx_id):
+		for sfx_id: String in AudioManager.get_play_history():
+			if sfx_id.begins_with("card_") and sfx_id != "card_commit" and sfx_id != "card_ready" and sfx_id != "card_cooldown_ready":
 				return true
 		timeout += 0.2
 		await get_tree().process_frame

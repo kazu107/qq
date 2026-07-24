@@ -233,26 +233,26 @@ func _refresh_ui() -> void:
 func _on_master_volume_changed(value: float) -> void:
 	Game.set_master_volume(value)
 	_master_volume_value.text = "%d%%" % int(round(value * 100.0))
-	AudioManager.play_sfx("ui_toggle")
+	AudioManager.play_sfx("ui_slider")
 
 
 func _on_sfx_volume_changed(value: float) -> void:
 	Game.set_sfx_volume(value)
 	_sfx_volume_value.text = "%d%%" % int(round(value * 100.0))
-	AudioManager.play_sfx("ui_toggle")
+	AudioManager.play_sfx("ui_slider")
 
 
 func _on_language_selected(index: int) -> void:
 	if index < 0 or index >= _language_codes.size():
 		return
-	AudioManager.play_sfx("ui_toggle")
+	AudioManager.play_sfx("ui_dropdown")
 	Game.set_language(_language_codes[index])
 
 
 func _on_resolution_selected(index: int) -> void:
 	if index < 0 or index >= _resolution_codes.size():
 		return
-	AudioManager.play_sfx("ui_toggle")
+	AudioManager.play_sfx("ui_dropdown")
 	Game.set_resolution(_resolution_codes[index])
 
 

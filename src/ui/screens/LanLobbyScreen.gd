@@ -47,6 +47,8 @@ var _developer_panel: DeveloperPanel
 var _opening_battle: bool = false
 var _connection_busy: bool = false
 var _refreshing_rules: bool = false
+var _last_lobby_player_count: int = -1
+var _last_connection_state: int = NetworkManager.ConnectionState.OFFLINE
 
 
 func _ready() -> void:
@@ -756,6 +758,7 @@ func _on_host_pressed() -> void:
 	)
 	if hosted:
 		_room_code_edit.text = NetworkManager.get_online_room_code()
+		AudioManager.play_sfx("online_room_create")
 	if not hosted:
 		AudioManager.play_sfx("ui_error")
 	_set_connection_busy(false)
@@ -778,6 +781,8 @@ func _on_join_pressed() -> void:
 	)
 	if not joined:
 		AudioManager.play_sfx("ui_error")
+	else:
+		AudioManager.play_sfx("online_room_join")
 	_set_connection_busy(false)
 	_refresh_all()
 
@@ -853,7 +858,9 @@ func _on_lobby_arena_rules_changed(_value: float) -> void:
 
 
 func _on_ready_pressed() -> void:
-	NetworkManager.set_local_ready(not NetworkManager.is_local_ready())
+	var next_ready: bool = not NetworkManager.is_local_ready()
+	NetworkManager.set_local_ready(next_ready)
+	AudioManager.play_sfx("online_ready" if next_ready else "online_unready")
 	_refresh_all()
 
 
@@ -862,7 +869,7 @@ func _on_participant_role_selected(index: int) -> void:
 	if role == String(NetworkManager.get_local_profile().get("role", LanProtocol.ROLE_PLAYER)):
 		return
 	if NetworkManager.set_local_participant_role(role):
-		AudioManager.play_sfx("ui_toggle")
+		AudioManager.play_sfx("online_role_change")
 	else:
 		AudioManager.play_sfx("ui_error")
 	_refresh_all()
@@ -874,31 +881,44 @@ func _on_start_match_pressed() -> void:
 
 
 func _on_leave_pressed() -> void:
+	AudioManager.play_sfx("online_room_leave")
 	NetworkManager.leave_session("left_lobby")
 	_refresh_all()
 
 
 func _on_back_pressed() -> void:
 	if NetworkManager.is_session_connected():
+		AudioManager.play_sfx("online_room_leave")
 		NetworkManager.leave_session("returned_to_hub")
 	SceneRouter.go_to_hub()
 
 
-func _on_connection_state_changed(_state: int, message: String) -> void:
+func _on_connection_state_changed(state: int, message: String) -> void:
 	_status_label.text = message
+	if state == NetworkManager.ConnectionState.LOBBY and _last_connection_state != NetworkManager.ConnectionState.LOBBY:
+		AudioManager.play_sfx("online_reconnected" if _last_connection_state == NetworkManager.ConnectionState.RECONNECTING else "online_connected")
+	elif state == NetworkManager.ConnectionState.RECONNECTING and _last_connection_state != NetworkManager.ConnectionState.RECONNECTING:
+		AudioManager.play_sfx("online_disconnected")
+	elif state == NetworkManager.ConnectionState.MATCH and _last_connection_state != NetworkManager.ConnectionState.MATCH:
+		AudioManager.play_sfx("online_all_ready")
+	_last_connection_state = state
 	_refresh_all()
 	if not NetworkManager.is_session_connected() and NetworkManager.get_connection_state() == NetworkManager.ConnectionState.OFFLINE:
 		call_deferred("_restart_online_directory")
 
 
-func _on_lobby_changed(_snapshot: Dictionary) -> void:
+func _on_lobby_changed(snapshot: Dictionary) -> void:
+	var player_count: int = Array(snapshot.get("players", [])).size()
+	if _last_lobby_player_count >= 0 and player_count != _last_lobby_player_count:
+		AudioManager.play_sfx("online_player_join" if player_count > _last_lobby_player_count else "online_player_leave")
+	_last_lobby_player_count = player_count
 	_refresh_all()
 
 
 func _on_network_error(_code: String, message: String) -> void:
 	_status_label.text = message
 	_status_label.add_theme_color_override("font_color", Color(1.0, 0.44, 0.36, 1.0))
-	AudioManager.play_sfx("ui_error")
+	AudioManager.play_sfx("online_disconnected")
 	_refresh_all()
 	call_deferred("_restart_online_directory")
 
@@ -907,6 +927,7 @@ func _on_match_started(_payload: Dictionary) -> void:
 	if _opening_battle:
 		return
 	_opening_battle = true
+	AudioManager.play_sfx("battle_go")
 	call_deferred("_open_battle_scene")
 
 
@@ -917,6 +938,7 @@ func _on_arena_preparation_started(_snapshot: Dictionary) -> void:
 	if _opening_battle:
 		return
 	_opening_battle = true
+	AudioManager.play_sfx("online_all_ready")
 	call_deferred("_open_arena_scene")
 
 
@@ -941,6 +963,7 @@ func _on_match_finished(_result: Dictionary) -> void:
 
 func _on_session_ended(_reason: String) -> void:
 	_opening_battle = false
+	AudioManager.play_sfx("online_disconnected")
 	_refresh_all()
 	call_deferred("_restart_online_directory")
 

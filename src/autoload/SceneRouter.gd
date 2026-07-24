@@ -14,6 +14,7 @@ const META_SCENE := "res://scenes/meta/MetaProgress.tscn"
 const CARD_LIBRARY_SCENE := "res://scenes/library/CardLibrary.tscn"
 const SETTINGS_SCENE := "res://scenes/settings/Settings.tscn"
 const REPLAY_SCENE := "res://scenes/replay/ReplayViewer.tscn"
+const SFX_LAB_SCENE := "res://scenes/debug/SfxLab.tscn"
 const TRANSITION_COVER_NAME := "SceneTransitionCover"
 const GOLD_DELTA_POPUP_NAME := "GoldDeltaPopup"
 
@@ -22,6 +23,7 @@ var _transition_cover: ColorRect
 var _gold_popup_layer: CanvasLayer
 var _gold_popup_index: int = 0
 var _scene_cache: Dictionary = {}
+var _debug_return_scene_path: String = HUB_SCENE
 
 
 func warm_scene_cache() -> void:
@@ -39,6 +41,7 @@ func warm_scene_cache() -> void:
 		CARD_LIBRARY_SCENE,
 		SETTINGS_SCENE,
 		REPLAY_SCENE,
+		SFX_LAB_SCENE,
 	]
 	if Game.WEB_MULTIPLAYER_ENABLED:
 		scene_paths.append(ONLINE_LOBBY_SCENE)
@@ -115,6 +118,23 @@ func go_to_replay_viewer() -> void:
 	_change_scene(REPLAY_SCENE)
 
 
+func go_to_sfx_lab() -> void:
+	if not Game.is_developer_mode_enabled():
+		go_to_hub()
+		return
+	var current_scene: Node = get_tree().current_scene
+	if current_scene != null and current_scene.scene_file_path != "" and current_scene.scene_file_path != SFX_LAB_SCENE:
+		_debug_return_scene_path = current_scene.scene_file_path
+	_change_scene(SFX_LAB_SCENE)
+
+
+func return_from_sfx_lab() -> void:
+	var return_path: String = _debug_return_scene_path
+	if return_path == "" or return_path == SFX_LAB_SCENE:
+		return_path = HUB_SCENE
+	_change_scene(return_path)
+
+
 func go_to_continue_target() -> void:
 	match Game.current_screen_hint:
 		"hub":
@@ -149,7 +169,9 @@ func go_to_continue_target() -> void:
 
 func continue_suspended_run(mode: String) -> void:
 	if Game.resume_suspended_run(mode) == "":
+		AudioManager.play_sfx("ui_error")
 		return
+	AudioManager.play_sfx("run_resume")
 	go_to_continue_target()
 
 

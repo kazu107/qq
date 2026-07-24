@@ -49,20 +49,39 @@ func set_actions(actions: Array) -> void:
 
 	for raw_action in actions:
 		var action_data: Dictionary = Dictionary(raw_action)
-		var button: Button = Button.new()
-		button.name = String(action_data.get("id", "DevAction"))
-		button.text = String(action_data.get("label", "Action"))
-		button.disabled = bool(action_data.get("disabled", false))
-		button.tooltip_text = String(action_data.get("tooltip", ""))
-		button.mouse_filter = Control.MOUSE_FILTER_STOP
+		_add_action_button(action_data)
 
-		var callback_value: Variant = action_data.get("callback", Callable())
-		if callback_value is Callable:
-			var callback: Callable = callback_value
-			if callback.is_valid():
-				button.pressed.connect(_on_action_pressed.bind(callback))
+	if Game.is_developer_mode_enabled() and not _contains_action(actions, "DevSfxLab"):
+		_add_action_button({
+			"id": "DevSfxLab",
+			"label": Localization.get_text("developer.sfx_lab", "SE Lab"),
+			"tooltip": Localization.get_text("developer.sfx_lab.tooltip", "Play and inspect every registered sound effect."),
+			"callback": Callable(SceneRouter, "go_to_sfx_lab"),
+		})
 
-		_actions_box.add_child(button)
+
+func _add_action_button(action_data: Dictionary) -> void:
+	var button: Button = Button.new()
+	button.name = String(action_data.get("id", "DevAction"))
+	button.text = String(action_data.get("label", "Action"))
+	button.disabled = bool(action_data.get("disabled", false))
+	button.tooltip_text = String(action_data.get("tooltip", ""))
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	var callback_value: Variant = action_data.get("callback", Callable())
+	if callback_value is Callable:
+		var callback: Callable = callback_value
+		if callback.is_valid():
+			button.pressed.connect(_on_action_pressed.bind(callback))
+
+	_actions_box.add_child(button)
+
+
+func _contains_action(actions: Array, action_id: String) -> bool:
+	for raw_action: Variant in actions:
+		if raw_action is Dictionary and String(Dictionary(raw_action).get("id", "")) == action_id:
+			return true
+	return false
 
 
 func pin_top_right(offset_top: float = 16.0, offset_right: float = 16.0) -> void:
@@ -161,7 +180,7 @@ func _build_ui() -> void:
 
 
 func _on_toggle_pressed() -> void:
-	AudioManager.play_sfx("ui_toggle")
+	AudioManager.play_sfx("ui_window_open" if _collapsed else "ui_window_close")
 	set_collapsed(not _collapsed, true)
 
 

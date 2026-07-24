@@ -43,6 +43,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tests\validate_project.ps1 `
 
 JSON、scene/resource参照、Variant型推論、headless起動、ゲーム機能smoke、Web設定、シグナリングルームと中継を検証します。
 
+## 効果音
+
+生成済みWAVはリポジトリに含まれるため、別PCで音声モデルを用意する必要はありません。生成環境では次のコマンドで共通SE、カード固有SE、遺物固有SEを再生成できます。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\generate_sfx.ps1 -Force
+node tools\validate_sfx.mjs
+```
+
+開発者モードを有効にすると、開発者パネルの`SE再生ラボ`から登録済みSEを検索・個別再生・連続再生できます。
+
 ## セーブ
 
 - セーブ: `user://save.json`

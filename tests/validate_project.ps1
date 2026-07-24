@@ -223,6 +223,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/AudioSmoke.tscn"
     )
+    Invoke-GodotCheck "[19a/31] Running SFX lab smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/SfxLabSmoke.tscn"
+    )
     Invoke-GodotCheck "[20/31] Running event system smoke" $godotExe @(
         "--no-header",
         "--headless",

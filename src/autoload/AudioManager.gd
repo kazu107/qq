@@ -1,6 +1,7 @@
 extends Node
 
 const SFX_PATH_TEMPLATE := "res://assets/audio/sfx/%s.wav"
+const SFX_CATALOG_PATH := "res://data/sfx_catalog.json"
 const PLAYER_POOL_SIZE := 12
 const MAX_HISTORY := 96
 
@@ -10,20 +11,33 @@ var _players: Array[AudioStreamPlayer] = []
 var _stream_cache: Dictionary = {}
 var _play_history: Array[String] = []
 var _last_sfx_id: String = ""
+var _catalog_cache: Array[Dictionary] = []
+var _last_hover_msec: int = 0
+var _last_relic_play_msec: Dictionary = {}
 
 
 func _ready() -> void:
 	if not _is_headless():
 		_ensure_players()
+		if not get_tree().node_added.is_connected(_on_tree_node_added):
+			get_tree().node_added.connect(_on_tree_node_added)
+	if not Localization.language_changed.is_connected(_on_language_changed):
+		Localization.language_changed.connect(_on_language_changed)
 	_apply_master_volume()
 
 
 func _exit_tree() -> void:
+	if get_tree() != null and get_tree().node_added.is_connected(_on_tree_node_added):
+		get_tree().node_added.disconnect(_on_tree_node_added)
+	if Localization.language_changed.is_connected(_on_language_changed):
+		Localization.language_changed.disconnect(_on_language_changed)
 	for player in _players:
 		player.stop()
 		player.stream = null
 	_play_history.clear()
 	_stream_cache.clear()
+	_catalog_cache.clear()
+	_last_relic_play_msec.clear()
 	_players.clear()
 
 
@@ -73,8 +87,18 @@ func get_available_sfx_ids() -> Array[String]:
 	return ids
 
 
+func get_sfx_catalog() -> Array[Dictionary]:
+	if _catalog_cache.is_empty():
+		_catalog_cache = _build_sfx_catalog()
+	return _catalog_cache.duplicate(true)
+
+
 func get_cached_sfx_count() -> int:
 	return _stream_cache.size()
+
+
+func has_sfx(sfx_id: String) -> bool:
+	return sfx_id != "" and ResourceLoader.exists(SFX_PATH_TEMPLATE % sfx_id)
 
 
 func play_sfx(sfx_id: String, pitch_scale: float = 1.0, volume_boost_db: float = 0.0) -> bool:
@@ -107,12 +131,34 @@ func play_sfx(sfx_id: String, pitch_scale: float = 1.0, volume_boost_db: float =
 	return true
 
 
+func stop_all_sfx() -> void:
+	for player in _players:
+		player.stop()
+		player.stream = null
+
+
 func play_card_resolution(card_def: CardDef, fully_blocked_by_shield: bool = false) -> bool:
 	if card_def == null:
 		return false
 	if fully_blocked_by_shield:
-		return play_sfx("battle_guard", 0.92)
+		return play_sfx("battle_full_block", 0.92)
+	var card_sfx_id: String = "card_%s" % card_def.id
+	if has_sfx(card_sfx_id):
+		return play_sfx(card_sfx_id)
 	return play_sfx(_resolve_card_resolution_sfx(card_def))
+
+
+func play_relic_proc(relic_id: String, pitch_scale: float = 1.0) -> bool:
+	if not _is_headless():
+		var now_msec: int = Time.get_ticks_msec()
+		var last_msec: int = int(_last_relic_play_msec.get(relic_id, -1000))
+		if now_msec - last_msec < 90:
+			return true
+		_last_relic_play_msec[relic_id] = now_msec
+	var relic_sfx_id: String = "relic_%s" % relic_id
+	if has_sfx(relic_sfx_id):
+		return play_sfx(relic_sfx_id, pitch_scale)
+	return play_sfx("relic_proc", pitch_scale)
 
 
 func play_battle_outcome(winner: String) -> bool:
@@ -186,6 +232,97 @@ func _get_sfx_stream(sfx_id: String) -> AudioStream:
 
 	_stream_cache[sfx_id] = stream
 	return stream
+
+
+func _build_sfx_catalog() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var catalog_file: FileAccess = FileAccess.open(SFX_CATALOG_PATH, FileAccess.READ)
+	if catalog_file != null:
+		var parsed: Variant = JSON.parse_string(catalog_file.get_as_text())
+		if parsed is Array:
+			for raw_entry: Variant in parsed:
+				if not raw_entry is Dictionary:
+					continue
+				var entry: Dictionary = Dictionary(raw_entry).duplicate(true)
+				var sfx_id: String = String(entry.get("id", ""))
+				if sfx_id == "":
+					continue
+				entry["sfx_id"] = sfx_id
+				entry["kind"] = "shared"
+				entry["available"] = has_sfx(sfx_id)
+				result.append(entry)
+
+	var card_ids: Array[String] = Database.get_all_card_ids()
+	card_ids.sort()
+	for card_id: String in card_ids:
+		var card_def: CardDef = Database.get_card(card_id)
+		if card_def == null:
+			continue
+		var card_sfx_id: String = "card_%s" % card_id
+		result.append({
+			"id": card_sfx_id,
+			"sfx_id": card_sfx_id,
+			"category": "card",
+			"kind": "card",
+			"source_id": card_id,
+			"name_ja": card_def.name,
+			"name_en": card_def.name,
+			"available": has_sfx(card_sfx_id),
+		})
+
+	var relic_ids: Array[String] = Database.get_all_relic_ids()
+	relic_ids.sort()
+	for relic_id: String in relic_ids:
+		var relic_def: RelicDef = Database.get_relic(relic_id)
+		if relic_def == null:
+			continue
+		var relic_sfx_id: String = "relic_%s" % relic_id
+		result.append({
+			"id": relic_sfx_id,
+			"sfx_id": relic_sfx_id,
+			"category": "relic",
+			"kind": "relic",
+			"source_id": relic_id,
+			"name_ja": relic_def.name,
+			"name_en": relic_def.name,
+			"available": has_sfx(relic_sfx_id),
+		})
+	return result
+
+
+func _on_tree_node_added(node: Node) -> void:
+	if node is BaseButton:
+		call_deferred("_connect_button_hover", node)
+
+
+func _connect_button_hover(node: Node) -> void:
+	var button: BaseButton = node as BaseButton
+	if button == null or not is_instance_valid(button):
+		return
+	var hover_callback: Callable = _on_button_hovered.bind(button)
+	if not button.mouse_entered.is_connected(hover_callback):
+		button.mouse_entered.connect(hover_callback)
+
+
+func _on_button_hovered(button: BaseButton) -> void:
+	if button == null or not is_instance_valid(button):
+		return
+	var now_msec: int = Time.get_ticks_msec()
+	if now_msec - _last_hover_msec < 45:
+		return
+	_last_hover_msec = now_msec
+	if button.disabled:
+		play_sfx("map_locked" if button is MapNodeButton else "ui_disabled", 0.94, -8.0)
+	elif button is MapNodeButton:
+		play_sfx("map_hover", 1.0, -8.0)
+	elif button.tooltip_text != "":
+		play_sfx("ui_tooltip", 1.0, -9.0)
+	else:
+		play_sfx("ui_hover", 1.0, -9.0)
+
+
+func _on_language_changed(_language_code: String) -> void:
+	_catalog_cache.clear()
 
 
 func _resolve_card_resolution_sfx(card_def: CardDef) -> String:

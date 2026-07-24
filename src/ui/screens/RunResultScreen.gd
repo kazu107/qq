@@ -383,6 +383,7 @@ func _start_score_animation() -> void:
 			0.62
 		).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 		_score_tween.tween_interval(0.08)
+	_score_tween.tween_callback(func() -> void: AudioManager.play_sfx("result_score_reveal", 1.0, -3.0))
 	_score_tween.tween_method(
 		_set_total_progress,
 		0.0,
@@ -398,7 +399,7 @@ func _activate_category(index: int) -> void:
 	var row: Control = _category_rows[index].get("row") as Control
 	if row != null:
 		row.modulate = Color.WHITE
-	AudioManager.play_sfx("battle_tick", 0.82 + float(index) * 0.08, -5.0)
+	AudioManager.play_sfx("result_bar_tick", 0.82 + float(index) * 0.08, -5.0)
 
 
 func _set_category_progress(value: float, index: int) -> void:
@@ -440,7 +441,7 @@ func _reveal_rank() -> void:
 	reveal.tween_property(_rank_panel, "modulate:a", 1.0, 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_rank_panel.scale = Vector2(0.84, 0.84)
 	reveal.tween_property(_rank_panel, "scale", Vector2.ONE, 0.42).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	AudioManager.play_sfx("battle_victory" if bool(_summary_data.get("cleared", false)) else "battle_defeat", 1.0, -2.0)
+	AudioManager.play_sfx("result_rank_reveal", 1.0 if bool(_summary_data.get("cleared", false)) else 0.82, -2.0)
 
 
 func _finish_score_animation() -> void:
