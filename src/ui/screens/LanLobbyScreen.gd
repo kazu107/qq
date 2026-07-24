@@ -42,6 +42,9 @@ var _ready_button: Button
 var _start_button: Button
 var _leave_button: Button
 var _result_label: Label
+var _details_button: Button
+var _details_overlay: ColorRect
+var _details_content: RichTextLabel
 var _discovered_entries: Array[Dictionary] = []
 var _developer_panel: DeveloperPanel
 var _opening_battle: bool = false
@@ -67,7 +70,7 @@ func _ready() -> void:
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
 	if NetworkManager.is_lan_arena_session_active():
-		if NetworkManager.has_active_match():
+		if NetworkManager.has_active_match() or NetworkManager.is_local_waiting_for_round_results():
 			call_deferred("_open_battle_scene")
 		elif not NetworkManager.is_local_spectator():
 			call_deferred("_open_arena_scene")
@@ -147,6 +150,7 @@ func _build_ui() -> void:
 	_lobby_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_child(_lobby_panel)
 	_build_lobby_panel(_lobby_panel)
+	_build_details_overlay()
 
 
 func _build_connection_panel(panel: PanelContainer) -> void:
@@ -250,7 +254,27 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 
 
 func _build_lobby_panel(panel: PanelContainer) -> void:
-	var box: VBoxContainer = _add_panel_content(panel)
+	var panel_margin: MarginContainer = MarginContainer.new()
+	panel_margin.add_theme_constant_override("margin_left", 18)
+	panel_margin.add_theme_constant_override("margin_top", 16)
+	panel_margin.add_theme_constant_override("margin_right", 18)
+	panel_margin.add_theme_constant_override("margin_bottom", 16)
+	panel.add_child(panel_margin)
+	var fixed_layout: VBoxContainer = VBoxContainer.new()
+	fixed_layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fixed_layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	fixed_layout.add_theme_constant_override("separation", 10)
+	panel_margin.add_child(fixed_layout)
+	var content_scroll: ScrollContainer = ScrollContainer.new()
+	content_scroll.name = "OnlineLobbyContentScroll"
+	content_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	fixed_layout.add_child(content_scroll)
+	var box: VBoxContainer = VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 10)
+	content_scroll.add_child(box)
 	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 10)
 	box.add_child(header)
@@ -267,6 +291,12 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	_invite_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_invite_label.add_theme_color_override("font_color", Color(0.46, 0.78, 0.86, 1.0))
 	header.add_child(_invite_label)
+	_details_button = Button.new()
+	_details_button.name = "OnlineMatchDetailsButton"
+	_details_button.text = Localization.get_text("online.details.open", "MATCH INFO")
+	_details_button.custom_minimum_size = Vector2(142.0, 36.0)
+	_details_button.pressed.connect(_on_details_pressed)
+	header.add_child(_details_button)
 
 	_result_label = Label.new()
 	_result_label.name = "LanLastResultLabel"
@@ -437,27 +467,80 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	var actions: HBoxContainer = HBoxContainer.new()
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	actions.add_theme_constant_override("separation", 10)
-	box.add_child(actions)
+	fixed_layout.add_child(actions)
 
 	_ready_button = Button.new()
 	_ready_button.name = "LanReadyButton"
-	_ready_button.custom_minimum_size = Vector2(170.0, 48.0)
+	_ready_button.custom_minimum_size = Vector2(150.0, 48.0)
+	_ready_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_ready_button.pressed.connect(_on_ready_pressed)
 	actions.add_child(_ready_button)
 
 	_start_button = Button.new()
 	_start_button.name = "LanStartMatchButton"
 	_start_button.text = Localization.get_text("lan.start_arena", "START ARENA PREPARATION")
-	_start_button.custom_minimum_size = Vector2(190.0, 48.0)
+	_start_button.custom_minimum_size = Vector2(170.0, 48.0)
+	_start_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_start_button.pressed.connect(_on_start_match_pressed)
 	actions.add_child(_start_button)
 
 	_leave_button = Button.new()
 	_leave_button.name = "LanLeaveButton"
 	_leave_button.text = Localization.get_text("lan.leave", "LEAVE LOBBY")
-	_leave_button.custom_minimum_size = Vector2(160.0, 48.0)
+	_leave_button.custom_minimum_size = Vector2(150.0, 48.0)
+	_leave_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_leave_button.pressed.connect(_on_leave_pressed)
 	actions.add_child(_leave_button)
+
+
+func _build_details_overlay() -> void:
+	_details_overlay = ColorRect.new()
+	_details_overlay.name = "OnlineMatchDetailsOverlay"
+	_details_overlay.color = Color(0.0, 0.0, 0.0, 0.78)
+	_details_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_details_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_details_overlay.z_index = 110
+	_details_overlay.visible = false
+	add_child(_details_overlay)
+	var center: CenterContainer = CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_details_overlay.add_child(center)
+	var modal: PanelContainer = PanelContainer.new()
+	modal.custom_minimum_size = Vector2(880.0, 680.0)
+	center.add_child(modal)
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 26)
+	margin.add_theme_constant_override("margin_top", 22)
+	margin.add_theme_constant_override("margin_right", 26)
+	margin.add_theme_constant_override("margin_bottom", 22)
+	modal.add_child(margin)
+	var content: VBoxContainer = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 12)
+	margin.add_child(content)
+	var header: HBoxContainer = HBoxContainer.new()
+	content.add_child(header)
+	var title: Label = Label.new()
+	title.text = Localization.get_text("online.details.title", "MATCH INFO")
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", Color(0.68, 0.92, 1.0, 1.0))
+	header.add_child(title)
+	var close_button: Button = Button.new()
+	close_button.text = Localization.get_text("common.close", "CLOSE")
+	close_button.custom_minimum_size = Vector2(120.0, 40.0)
+	close_button.pressed.connect(_on_details_close_pressed)
+	header.add_child(close_button)
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	content.add_child(scroll)
+	_details_content = RichTextLabel.new()
+	_details_content.bbcode_enabled = true
+	_details_content.fit_content = true
+	_details_content.scroll_active = false
+	_details_content.custom_minimum_size = Vector2(810.0, 0.0)
+	_details_content.add_theme_font_size_override("normal_font_size", 17)
+	scroll.add_child(_details_content)
 
 
 func _connect_network_signals() -> void:
@@ -475,6 +558,8 @@ func _connect_network_signals() -> void:
 		NetworkManager.match_started.connect(_on_match_started)
 	if not NetworkManager.arena_preparation_started.is_connected(_on_arena_preparation_started):
 		NetworkManager.arena_preparation_started.connect(_on_arena_preparation_started)
+	if not NetworkManager.arena_preparation_changed.is_connected(_on_arena_preparation_changed):
+		NetworkManager.arena_preparation_changed.connect(_on_arena_preparation_changed)
 	if not NetworkManager.match_finished.is_connected(_on_match_finished):
 		NetworkManager.match_finished.connect(_on_match_finished)
 	if not NetworkManager.session_ended.is_connected(_on_session_ended):
@@ -528,8 +613,11 @@ func _refresh_all() -> void:
 	_start_button.disabled = not NetworkManager.can_start_match()
 	_ready_button.visible = not NetworkManager.is_local_spectator()
 	_ready_button.disabled = NetworkManager.has_active_match() or NetworkManager.is_local_spectator()
+	_details_button.visible = connected
 	_refresh_tournament_status()
 	_refresh_last_result()
+	if _details_overlay != null and _details_overlay.visible:
+		_refresh_details_modal()
 
 
 func _refresh_player_slots(players: Array[Dictionary]) -> void:
@@ -645,7 +733,7 @@ func _refresh_tournament_status() -> void:
 	var snapshot: Dictionary = NetworkManager.get_lobby_snapshot()
 	var standings: Array[Dictionary] = _dictionary_array(snapshot.get("arena_standings", []))
 	var pairings: Array[Dictionary] = _dictionary_array(snapshot.get("arena_pairings", []))
-	_tournament_label.visible = not standings.is_empty()
+	_tournament_label.visible = false
 	if standings.is_empty():
 		_tournament_label.text = ""
 		return
@@ -674,7 +762,7 @@ func _refresh_tournament_status() -> void:
 
 func _refresh_last_result() -> void:
 	var result: Dictionary = NetworkManager.get_last_match_result()
-	_result_label.visible = not result.is_empty()
+	_result_label.visible = false
 	if result.is_empty():
 		return
 	var winner: String = String(result.get("winner", "draw"))
@@ -690,6 +778,104 @@ func _refresh_last_result() -> void:
 	else:
 		_result_label.text = Localization.get_text("lan.result.loss", "LAST MATCH: DEFEAT")
 		_result_label.add_theme_color_override("font_color", Color(1.0, 0.42, 0.34, 1.0))
+
+
+func _on_details_pressed() -> void:
+	_refresh_details_modal()
+	_details_overlay.visible = true
+	AudioManager.play_sfx("ui_toggle")
+
+
+func _on_details_close_pressed() -> void:
+	_details_overlay.visible = false
+	AudioManager.play_sfx("ui_toggle")
+
+
+func _refresh_details_modal() -> void:
+	if _details_content == null:
+		return
+	var snapshot: Dictionary = NetworkManager.get_lobby_snapshot()
+	var standings: Array[Dictionary] = _dictionary_array(snapshot.get("arena_standings", []))
+	var results: Array[Dictionary] = _dictionary_array(snapshot.get("arena_round_results", []))
+	var details: Array[Dictionary] = _dictionary_array(snapshot.get("arena_public_details", []))
+	if details.is_empty():
+		details = NetworkManager.get_arena_public_details()
+	var lines: Array[String] = []
+	if not standings.is_empty():
+		lines.append("[font_size=22][color=#a8e8ff]%s[/color][/font_size]" % Localization.get_text(
+			"online.details.standings",
+			"STANDINGS"
+		))
+		for standing in standings:
+			lines.append("%d. [b]%s[/b]   [color=#6cf0a0]%dW[/color] / [color=#ff8575]%dL[/color]" % [
+				int(standing.get("rank", 0)),
+				String(standing.get("name", "Player")),
+				int(standing.get("wins", 0)),
+				int(standing.get("losses", 0)),
+			])
+	if not results.is_empty():
+		lines.append("\n[font_size=22][color=#a8e8ff]%s[/color][/font_size]" % Localization.get_text(
+			"online.details.results",
+			"LATEST ROUND"
+		))
+		for result in results:
+			var player_name: String = String(result.get("player_name", "Player"))
+			var enemy_name: String = String(result.get("enemy_name", "Opponent"))
+			if String(result.get("status", "running")) != "finished":
+				lines.append("• %s vs %s  [color=#f3bc52]%s[/color]" % [
+					player_name,
+					enemy_name,
+					Localization.get_text("online.round_results.in_progress", "IN PROGRESS"),
+				])
+				continue
+			var winner: String = String(result.get("winner", "draw"))
+			var winner_name: String = Localization.get_text("battle.result.draw", "Draw")
+			if winner == "player":
+				winner_name = player_name
+			elif winner == "enemy":
+				winner_name = enemy_name
+			lines.append("• %s %d/%d  vs  %s %d/%d  |  %s: [color=#ffd35f]%s[/color]" % [
+				player_name,
+				int(result.get("player_hp", 0)),
+				maxi(1, int(result.get("player_max_hp", 1))),
+				enemy_name,
+				int(result.get("enemy_hp", 0)),
+				maxi(1, int(result.get("enemy_max_hp", 1))),
+				Localization.get_text("online.round_results.winner", "Winner"),
+				winner_name,
+			])
+	if not details.is_empty():
+		lines.append("\n[font_size=22][color=#a8e8ff]%s[/color][/font_size]" % Localization.get_text(
+			"online.details.players",
+			"PLAYER INVENTORIES"
+		))
+		for detail in details:
+			var owned_cards: Array[String] = _string_array(detail.get("owned_cards", []))
+			var equipped_cards: Array[String] = _string_array(detail.get("equipped_cards", []))
+			var relics: Array[String] = _string_array(detail.get("relics", []))
+			lines.append("\n[b][color=#ffffff]%s[/color][/b]   HP %d/%d   Gold %d   %dW-%dL" % [
+				String(detail.get("name", "Player")),
+				int(detail.get("hp", 0)),
+				maxi(1, int(detail.get("max_hp", 1))),
+				int(detail.get("gold", 0)),
+				int(detail.get("wins", 0)),
+				int(detail.get("losses", 0)),
+			])
+			lines.append("[color=#8ea6b2]%s[/color] %s" % [
+				Localization.get_text("online.details.equipped", "Equipped:"),
+				", ".join(equipped_cards) if not equipped_cards.is_empty() else Localization.get_text("status.none", "None"),
+			])
+			lines.append("[color=#8ea6b2]%s[/color] %s" % [
+				Localization.get_text("online.details.owned", "Owned cards:"),
+				", ".join(owned_cards) if not owned_cards.is_empty() else Localization.get_text("status.none", "None"),
+			])
+			lines.append("[color=#8ea6b2]%s[/color] %s" % [
+				Localization.get_text("online.details.relics", "Relics:"),
+				", ".join(relics) if not relics.is_empty() else Localization.get_text("status.none", "None"),
+			])
+	if lines.is_empty():
+		lines.append(Localization.get_text("online.details.empty", "No arena results are available yet."))
+	_details_content.text = "\n".join(lines)
 
 
 func _refresh_discovered_hosts(hosts: Array[Dictionary]) -> void:
@@ -942,6 +1128,11 @@ func _on_arena_preparation_started(_snapshot: Dictionary) -> void:
 	call_deferred("_open_arena_scene")
 
 
+func _on_arena_preparation_changed(_snapshot: Dictionary) -> void:
+	if NetworkManager.is_local_spectator():
+		_refresh_all()
+
+
 func _open_battle_scene() -> void:
 	SceneRouter.go_to_battle()
 
@@ -954,6 +1145,13 @@ func _dictionary_array(value: Variant) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for raw_item in Array(value):
 		result.append(Dictionary(raw_item).duplicate(true))
+	return result
+
+
+func _string_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	for raw_item in Array(value):
+		result.append(String(raw_item))
 	return result
 
 

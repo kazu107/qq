@@ -18,6 +18,7 @@ signal battle_start_state_changed(state: Dictionary)
 signal battle_countdown_finished()
 signal online_host_status_changed(status: Dictionary)
 signal online_rooms_changed(rooms: Array[Dictionary])
+signal arena_round_results_changed(snapshot: Dictionary)
 
 enum ConnectionState {
 	OFFLINE,
@@ -129,6 +130,13 @@ var _online_max_players: int = LanProtocol.DEFAULT_PLAYERS
 var _local_participant_role: String = LanProtocol.ROLE_PLAYER
 var _pending_participant_role: String = ""
 var _web_failure_pending: bool = false
+var _parallel_match_contexts: Dictionary = {}
+var _match_id_by_peer: Dictionary = {}
+var _spectator_match_id: String = ""
+var _arena_round_results: Array[Dictionary] = []
+var _arena_round_results_complete: bool = false
+var _arena_round_continue_by_peer: Dictionary = {}
+var _arena_public_details: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -179,7 +187,10 @@ func _process(delta: float) -> void:
 	_process_discovery(delta)
 	_process_ping(delta)
 	_process_reconnect()
-	_process_battle_countdown()
+	if _parallel_match_contexts.is_empty():
+		_process_battle_countdown()
+	else:
+		_process_parallel_matches(delta)
 	_process_upnp_operation()
 
 
@@ -415,6 +426,31 @@ func get_arena_pairings() -> Array[Dictionary]:
 	return _to_dictionary_array(_arena_pairings)
 
 
+func is_parallel_arena_round() -> bool:
+	return _arena_session_active and (
+		not _parallel_match_contexts.is_empty()
+		or bool(_match_payload.get("parallel_round", false))
+	)
+
+
+func is_local_waiting_for_round_results() -> bool:
+	return (
+		_arena_session_active
+		and bool(_match_payload.get("parallel_round", false))
+		and not _match_active
+		and not is_local_spectator()
+		and (_arena_phase == "battle" or _arena_phase == "round_result")
+	)
+
+
+func get_arena_round_results_snapshot() -> Dictionary:
+	return _build_arena_round_results_snapshot()
+
+
+func get_arena_public_details() -> Array[Dictionary]:
+	return _to_dictionary_array(_arena_public_details)
+
+
 func get_online_arena_rules() -> Dictionary:
 	return _build_online_arena_rules()
 
@@ -549,6 +585,11 @@ func get_arena_ready_count() -> int:
 
 
 func get_battle_ready_count() -> int:
+	if is_parallel_arena_round():
+		var context: Dictionary = _get_local_parallel_match_context()
+		if not context.is_empty():
+			var ready_by_side: Dictionary = Dictionary(context.get("ready_by_side", {}))
+			return int(bool(ready_by_side.get("player", false))) + int(bool(ready_by_side.get("enemy", false)))
 	return int(bool(_battle_ready_by_side.get("player", false))) + int(bool(_battle_ready_by_side.get("enemy", false)))
 
 
@@ -602,6 +643,13 @@ func start_lan_arena_preparation() -> bool:
 	_arena_pairings = ArenaTournamentCoordinator.build_round_pairings(_arena_player_peer_ids, _arena_round_index)
 	_active_match_peer_ids.clear()
 	_arena_standings = ArenaTournamentCoordinator.build_standings(_arena_player_peer_ids, _profiles_by_peer, _arena_runs_by_peer)
+	_dispose_parallel_match_contexts()
+	_match_id_by_peer.clear()
+	_spectator_match_id = ""
+	_arena_round_results.clear()
+	_arena_round_results_complete = false
+	_arena_round_continue_by_peer.clear()
+	_arena_public_details = _build_arena_public_details()
 	_last_arena_action_sequences.clear()
 	_match_payload.clear()
 	_match_active = false
@@ -859,11 +907,18 @@ func set_local_battle_ready(ready: bool = true) -> bool:
 		return false
 	var local_side: String = get_local_side()
 	if _is_host:
+		if is_parallel_arena_round():
+			return _set_parallel_battle_ready(String(_match_payload.get("match_id", "")), local_side, ready)
 		return _set_battle_ready(local_side, ready)
 	return _submit_local_command("battle_ready", "", {"ready": ready})
 
 
 func is_local_battle_ready() -> bool:
+	if is_parallel_arena_round():
+		var context: Dictionary = _get_local_parallel_match_context()
+		if not context.is_empty():
+			var ready_by_side: Dictionary = Dictionary(context.get("ready_by_side", {}))
+			return bool(ready_by_side.get(get_local_side(), false))
 	return bool(_battle_ready_by_side.get(get_local_side(), false))
 
 
@@ -879,6 +934,34 @@ func get_battle_countdown_remaining() -> float:
 
 func has_battle_countdown_finished() -> bool:
 	return _battle_countdown_finished
+
+
+func acknowledge_arena_round_results() -> bool:
+	if not _arena_session_active or not _arena_round_results_complete or is_local_spectator():
+		return false
+	var local_peer_id: int = multiplayer.get_unique_id()
+	if _is_host:
+		return _acknowledge_round_results_for_peer(local_peer_id)
+	if _peer == null or _peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
+		return false
+	_acknowledge_round_results_rpc.rpc_id(1)
+	return true
+
+
+func developer_force_local_match(winner_side: String) -> bool:
+	if not _is_host or not is_parallel_arena_round():
+		return false
+	var match_id: String = String(_match_payload.get("match_id", ""))
+	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+	var engine: RealtimeBattleEngine = context.get("engine") as RealtimeBattleEngine
+	if engine == null or engine.battle_state == null or bool(context.get("finished", false)):
+		return false
+	if winner_side != "player" and winner_side != "enemy":
+		return false
+	engine.battle_state.winner = winner_side
+	_publish_parallel_context_snapshot(match_id, true)
+	_finish_parallel_match(match_id)
+	return true
 
 
 func send_command_result(peer_id: int, sequence: int, accepted: bool, snapshot: Dictionary = {}) -> void:
@@ -991,10 +1074,20 @@ func _prepare_next_tournament_round() -> void:
 	_arena_pairings = ArenaTournamentCoordinator.build_round_pairings(_arena_player_peer_ids, _arena_round_index)
 	_active_match_peer_ids.clear()
 	_arena_runs_by_side.clear()
+	_dispose_parallel_match_contexts()
+	_match_id_by_peer.clear()
+	_spectator_match_id = ""
+	_arena_round_results.clear()
+	_arena_round_results_complete = false
+	_arena_round_continue_by_peer.clear()
+	_match_active = false
+	_match_payload.clear()
+	_last_snapshot.clear()
 	_arena_ready_by_peer.clear()
 	for peer_id in _arena_player_peer_ids:
 		_arena_ready_by_peer[str(peer_id)] = false
 	_arena_phase = "preparation"
+	_arena_public_details = _build_arena_public_details()
 	_send_arena_preparation_state()
 	_broadcast_lobby_state()
 
@@ -1036,9 +1129,7 @@ func _send_or_apply_local_profile() -> void:
 
 
 func _submit_local_command(kind: String, runtime_id: String, extra: Dictionary = {}) -> bool:
-	if not _match_active or _is_host or not can_local_control_match():
-		return false
-	if _peer == null or _peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
+	if not _match_active or not can_local_control_match():
 		return false
 	_local_command_sequence += 1
 	var command: Dictionary = {
@@ -1048,6 +1139,12 @@ func _submit_local_command(kind: String, runtime_id: String, extra: Dictionary =
 		"client_ticks_msec": Time.get_ticks_msec(),
 	}
 	command.merge(extra, true)
+	if _is_host:
+		if not is_parallel_arena_round():
+			return false
+		return _apply_parallel_battle_command(1, command)
+	if _peer == null or _peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
+		return false
 	_submit_battle_command_rpc.rpc_id(1, command)
 	return true
 
@@ -1055,7 +1152,7 @@ func _submit_local_command(kind: String, runtime_id: String, extra: Dictionary =
 func _on_peer_connected(_peer_id: int) -> void:
 	if _is_host:
 		var next_state: int = ConnectionState.HOSTING
-		if _match_active:
+		if _match_active or _has_unfinished_parallel_matches():
 			next_state = ConnectionState.MATCH
 		elif _arena_session_active:
 			next_state = ConnectionState.ARENA_PREPARATION
@@ -1242,13 +1339,28 @@ func _submit_profile_rpc(raw_profile: Dictionary, room_proof: String = "") -> vo
 	if _arena_session_active and String(profile.get("role", LanProtocol.ROLE_PLAYER)) == LanProtocol.ROLE_SPECTATOR:
 		_broadcast_lobby_state()
 		if _match_active:
-			var sides: Dictionary = Dictionary(_match_payload.get("peer_sides", {})).duplicate(true)
-			sides[str(sender_id)] = "spectator"
-			_match_payload["peer_sides"] = sides
-			_receive_match_started_rpc.rpc_id(sender_id, _match_payload)
-			if not _last_snapshot.is_empty():
-				_receive_battle_snapshot_reliable_rpc.rpc_id(sender_id, _last_snapshot)
-			_broadcast_battle_start_state(sender_id)
+			if not _parallel_match_contexts.is_empty() and _spectator_match_id != "":
+				var context: Dictionary = Dictionary(_parallel_match_contexts.get(_spectator_match_id, {}))
+				var viewer_peer_ids: Array[int] = _to_int_array(context.get("viewer_peer_ids", []))
+				if not viewer_peer_ids.has(sender_id):
+					viewer_peer_ids.append(sender_id)
+				context["viewer_peer_ids"] = viewer_peer_ids
+				_parallel_match_contexts[_spectator_match_id] = context
+				_match_id_by_peer[sender_id] = _spectator_match_id
+				_receive_match_started_rpc.rpc_id(sender_id, Dictionary(context.get("payload", {})))
+				var context_snapshot: Dictionary = Dictionary(context.get("last_snapshot", {}))
+				if not context_snapshot.is_empty():
+					_receive_battle_snapshot_reliable_rpc.rpc_id(sender_id, context_snapshot)
+				var start_state: Dictionary = _build_parallel_battle_start_state(context)
+				_receive_battle_start_state_rpc.rpc_id(sender_id, start_state)
+			else:
+				var sides: Dictionary = Dictionary(_match_payload.get("peer_sides", {})).duplicate(true)
+				sides[str(sender_id)] = "spectator"
+				_match_payload["peer_sides"] = sides
+				_receive_match_started_rpc.rpc_id(sender_id, _match_payload)
+				if not _last_snapshot.is_empty():
+					_receive_battle_snapshot_reliable_rpc.rpc_id(sender_id, _last_snapshot)
+				_broadcast_battle_start_state(sender_id)
 		else:
 			_receive_arena_preparation_state_rpc.rpc_id(sender_id, _build_arena_snapshot(sender_id))
 		return
@@ -1286,6 +1398,9 @@ func _receive_lobby_state_rpc(snapshot: Dictionary) -> void:
 		)
 		_online_max_players = LanProtocol.sanitize_player_capacity(int(snapshot.get("max_players", LanProtocol.DEFAULT_PLAYERS)))
 		_apply_online_arena_rules(Dictionary(snapshot.get("arena_rules", {})))
+	_arena_round_results = _to_dictionary_array(snapshot.get("arena_round_results", _arena_round_results))
+	_arena_round_results_complete = bool(snapshot.get("arena_round_results_complete", _arena_round_results_complete))
+	_arena_public_details = _to_dictionary_array(snapshot.get("arena_public_details", _arena_public_details))
 	var local_peer_id: int = multiplayer.get_unique_id()
 	for raw_player in Array(snapshot.get("players", [])):
 		var player_data: Dictionary = Dictionary(raw_player)
@@ -1346,9 +1461,14 @@ func _receive_battle_snapshot_reliable_rpc(snapshot: Dictionary) -> void:
 
 @rpc("any_peer", "call_remote", "reliable", 0)
 func _submit_battle_command_rpc(command: Dictionary) -> void:
-	if not _is_host or not _match_active or _waiting_for_reconnect:
+	if not _is_host or _waiting_for_reconnect:
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
+	if not _parallel_match_contexts.is_empty():
+		_apply_parallel_battle_command(sender_id, command)
+		return
+	if not _match_active:
+		return
 	var side: String = String(Dictionary(_match_payload.get("peer_sides", {})).get(str(sender_id), "spectator"))
 	var sequence: int = int(command.get("sequence", 0))
 	var kind: String = String(command.get("kind", ""))
@@ -1397,6 +1517,19 @@ func _command_result_rpc(sequence: int, accepted: bool, snapshot: Dictionary) ->
 @rpc("authority", "call_remote", "reliable", 0)
 func _receive_match_finished_rpc(result: Dictionary) -> void:
 	_apply_match_finished(result)
+
+
+@rpc("authority", "call_remote", "reliable", 0)
+func _receive_arena_round_results_rpc(snapshot: Dictionary) -> void:
+	_apply_arena_round_results_snapshot(snapshot)
+
+
+@rpc("any_peer", "call_remote", "reliable", 0)
+func _acknowledge_round_results_rpc() -> void:
+	if not _is_host:
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	_acknowledge_round_results_for_peer(sender_id)
 
 
 @rpc("authority", "call_remote", "reliable", 0)
@@ -1510,6 +1643,8 @@ func _apply_arena_action_for_peer(
 
 	var was_accepted: bool = bool(result.get("accepted", false))
 	_send_arena_action_result(peer_id, action, was_accepted, result)
+	if was_accepted:
+		_arena_public_details = _build_arena_public_details()
 	_send_arena_preparation_state()
 	if was_accepted and _are_all_arena_players_ready():
 		_start_arena_match_from_preparation()
@@ -1562,6 +1697,9 @@ func _build_arena_snapshot(peer_id: int) -> Dictionary:
 		"pair_index": _arena_pair_index,
 		"round_index": _arena_round_index,
 		"standings": _arena_standings.duplicate(true),
+		"round_results": _arena_round_results.duplicate(true),
+		"round_results_complete": _arena_round_results_complete,
+		"public_details": _arena_public_details.duplicate(true),
 		"status": status,
 	}
 
@@ -1587,6 +1725,9 @@ func _apply_arena_preparation_state(snapshot: Dictionary) -> void:
 	_arena_pair_index = int(snapshot.get("pair_index", 0))
 	_arena_round_index = int(snapshot.get("round_index", 0))
 	_arena_standings = _to_dictionary_array(snapshot.get("standings", []))
+	_arena_round_results = _to_dictionary_array(snapshot.get("round_results", []))
+	_arena_round_results_complete = bool(snapshot.get("round_results_complete", false))
+	_arena_public_details = _to_dictionary_array(snapshot.get("public_details", []))
 	_local_participant_role = LanProtocol.ROLE_SPECTATOR if bool(snapshot.get("spectator", false)) else LanProtocol.ROLE_PLAYER
 	if not _is_host:
 		var run_data: Dictionary = Dictionary(snapshot.get("run", {}))
@@ -1612,7 +1753,562 @@ func _start_arena_match_from_preparation() -> bool:
 	if not _is_host or not _are_all_arena_players_ready() or _waiting_for_reconnect:
 		return false
 	_arena_pair_index = 0
-	return _start_current_pairing_match()
+	return _start_parallel_round_matches()
+
+
+func _start_parallel_round_matches() -> bool:
+	if not _is_host or not _arena_session_active or _arena_pairings.is_empty():
+		return false
+	_dispose_parallel_match_contexts()
+	_match_id_by_peer.clear()
+	_spectator_match_id = ""
+	_arena_round_results.clear()
+	_arena_round_results_complete = false
+	_arena_round_continue_by_peer.clear()
+	_last_command_sequences.clear()
+	_command_rate_windows.clear()
+	var all_peer_ids: Array[int] = _get_all_peer_ids()
+	var spectator_peer_ids: Array[int] = _get_spectator_peer_ids()
+	for pair_index in range(_arena_pairings.size()):
+		var pairing: Dictionary = _arena_pairings[pair_index]
+		var player_peer_id: int = int(pairing.get("player_peer_id", -1))
+		var enemy_peer_id: int = int(pairing.get("enemy_peer_id", -1))
+		var player_run: RunState = _arena_runs_by_peer.get(player_peer_id) as RunState
+		var enemy_run: RunState = _arena_runs_by_peer.get(enemy_peer_id) as RunState
+		if player_run == null or enemy_run == null:
+			_dispose_parallel_match_contexts()
+			_match_id_by_peer.clear()
+			return false
+		if not _arena_coordinator.has_valid_loadout(player_run) or not _arena_coordinator.has_valid_loadout(enemy_run):
+			_dispose_parallel_match_contexts()
+			_match_id_by_peer.clear()
+			return false
+		var match_id: String = "%s-r%d-p%d-%d" % [
+			_arena_session_id,
+			_arena_round_index + 1,
+			pair_index + 1,
+			Time.get_ticks_msec() + pair_index,
+		]
+		var player_profile: Dictionary = _get_profile_for_peer(player_peer_id)
+		var enemy_profile: Dictionary = _get_profile_for_peer(enemy_peer_id)
+		var peer_sides: Dictionary = ArenaTournamentCoordinator.build_peer_sides(
+			all_peer_ids,
+			player_peer_id,
+			enemy_peer_id
+		)
+		var payload: Dictionary = {
+			"protocol_version": LanProtocol.PROTOCOL_VERSION,
+			"content_hash": LanProtocol.build_content_hash(),
+			"arena_session_id": _arena_session_id,
+			"arena_round": _arena_round_index + 1,
+			"pair_index": pair_index,
+			"pair_count": _arena_pairings.size(),
+			"parallel_round": true,
+			"match_id": match_id,
+			"seed": int(Time.get_ticks_msec() % 2147483646) + pair_index * 7919 + 1,
+			"player_run": player_run.to_dict(),
+			"enemy_run": enemy_run.to_dict(),
+			"player_name": String(player_profile.get("name", "Player")),
+			"enemy_name": String(enemy_profile.get("name", "Opponent")),
+			"player_peer_id": player_peer_id,
+			"enemy_peer_id": enemy_peer_id,
+			"peer_sides": peer_sides,
+			"standings": _arena_standings.duplicate(true),
+		}
+		var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+		engine.set_audio_enabled(false)
+		engine.setup_pvp(
+			player_run,
+			enemy_run,
+			String(payload.get("player_name", "Player")),
+			String(payload.get("enemy_name", "Opponent"))
+		)
+		var viewer_peer_ids: Array[int] = [player_peer_id, enemy_peer_id]
+		if pair_index == 0:
+			_spectator_match_id = match_id
+			for spectator_peer_id in spectator_peer_ids:
+				viewer_peer_ids.append(spectator_peer_id)
+				_match_id_by_peer[spectator_peer_id] = match_id
+		var context: Dictionary = {
+			"match_id": match_id,
+			"pair_index": pair_index,
+			"player_peer_id": player_peer_id,
+			"enemy_peer_id": enemy_peer_id,
+			"payload": payload,
+			"engine": engine,
+			"viewer_peer_ids": viewer_peer_ids,
+			"ready_by_side": {"player": false, "enemy": false},
+			"countdown_active": false,
+			"countdown_deadline_msec": 0,
+			"countdown_finished": false,
+			"snapshot_sequence": 0,
+			"snapshot_elapsed": 0.0,
+			"last_snapshot": {},
+			"finished": false,
+			"result": {},
+		}
+		_parallel_match_contexts[match_id] = context
+		_match_id_by_peer[player_peer_id] = match_id
+		_match_id_by_peer[enemy_peer_id] = match_id
+		_arena_round_results.append({
+			"match_id": match_id,
+			"pair_index": pair_index,
+			"player_peer_id": player_peer_id,
+			"enemy_peer_id": enemy_peer_id,
+			"player_name": String(payload.get("player_name", "Player")),
+			"enemy_name": String(payload.get("enemy_name", "Opponent")),
+			"status": "running",
+			"winner": "",
+			"player_hp": player_run.player_hp,
+			"enemy_hp": enemy_run.player_hp,
+		})
+	_arena_phase = "battle"
+	_match_active = true
+	_arena_public_details = _build_arena_public_details()
+	for peer_id in all_peer_ids:
+		var peer_match_id: String = String(_match_id_by_peer.get(peer_id, ""))
+		if peer_match_id == "":
+			continue
+		var peer_context: Dictionary = Dictionary(_parallel_match_contexts.get(peer_match_id, {}))
+		var peer_payload: Dictionary = Dictionary(peer_context.get("payload", {}))
+		if peer_id == 1:
+			_apply_match_started(peer_payload)
+		else:
+			_receive_match_started_rpc.rpc_id(peer_id, peer_payload)
+	var local_context: Dictionary = _get_local_parallel_match_context()
+	_apply_local_parallel_context_legacy_state(local_context)
+	_set_state(ConnectionState.MATCH, "%s arena battles active" % _session_display_name())
+	for raw_match_id in _parallel_match_contexts.keys():
+		var context_match_id: String = String(raw_match_id)
+		_publish_parallel_context_snapshot(context_match_id, true)
+		_broadcast_parallel_battle_start_state(context_match_id)
+	_broadcast_arena_round_results()
+	_broadcast_lobby_state()
+	return true
+
+
+func _get_local_parallel_match_context() -> Dictionary:
+	var local_peer_id: int = multiplayer.get_unique_id()
+	var match_id: String = String(_match_id_by_peer.get(local_peer_id, ""))
+	if match_id == "" and not _match_payload.is_empty():
+		match_id = String(_match_payload.get("match_id", ""))
+	return Dictionary(_parallel_match_contexts.get(match_id, {}))
+
+
+func _apply_local_parallel_context_legacy_state(context: Dictionary) -> void:
+	if context.is_empty():
+		return
+	var payload: Dictionary = Dictionary(context.get("payload", {}))
+	var player_peer_id: int = int(payload.get("player_peer_id", -1))
+	var enemy_peer_id: int = int(payload.get("enemy_peer_id", -1))
+	_active_match_peer_ids = [player_peer_id, enemy_peer_id]
+	_arena_runs_by_side = {
+		"player": _arena_runs_by_peer.get(player_peer_id),
+		"enemy": _arena_runs_by_peer.get(enemy_peer_id),
+	}
+	_battle_ready_by_side = Dictionary(context.get("ready_by_side", {})).duplicate(true)
+	_battle_countdown_active = bool(context.get("countdown_active", false))
+	_battle_countdown_deadline_msec = int(context.get("countdown_deadline_msec", 0))
+	_battle_countdown_finished = bool(context.get("countdown_finished", false))
+	_last_snapshot = Dictionary(context.get("last_snapshot", {})).duplicate(true)
+
+
+func _process_parallel_matches(delta: float) -> void:
+	if not _is_host or _parallel_match_contexts.is_empty():
+		return
+	var now_msec: int = Time.get_ticks_msec()
+	var match_ids: Array[String] = []
+	for raw_match_id in _parallel_match_contexts.keys():
+		match_ids.append(String(raw_match_id))
+	for match_id in match_ids:
+		var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+		if context.is_empty() or bool(context.get("finished", false)):
+			continue
+		var engine: RealtimeBattleEngine = context.get("engine") as RealtimeBattleEngine
+		if engine == null or engine.battle_state == null:
+			continue
+		if bool(context.get("countdown_active", false)) and now_msec >= int(context.get("countdown_deadline_msec", 0)):
+			context["countdown_active"] = false
+			context["countdown_deadline_msec"] = 0
+			context["countdown_finished"] = true
+			_parallel_match_contexts[match_id] = context
+			engine.start_battle()
+			_broadcast_parallel_battle_start_state(match_id)
+			_emit_parallel_countdown_finished(match_id)
+			_publish_parallel_context_snapshot(match_id, true)
+		if bool(context.get("countdown_finished", false)) and engine.battle_state.winner == "":
+			engine.update(delta)
+		var snapshot_elapsed: float = float(context.get("snapshot_elapsed", 0.0)) + delta
+		if snapshot_elapsed >= 1.0 / 12.0:
+			snapshot_elapsed = fmod(snapshot_elapsed, 1.0 / 12.0)
+			context["snapshot_elapsed"] = snapshot_elapsed
+			_parallel_match_contexts[match_id] = context
+			_publish_parallel_context_snapshot(match_id, false)
+		else:
+			context["snapshot_elapsed"] = snapshot_elapsed
+			_parallel_match_contexts[match_id] = context
+		if engine.battle_state.winner != "":
+			_publish_parallel_context_snapshot(match_id, true)
+			_finish_parallel_match(match_id)
+
+
+func _publish_parallel_context_snapshot(match_id: String, reliable: bool) -> bool:
+	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+	var engine: RealtimeBattleEngine = context.get("engine") as RealtimeBattleEngine
+	if engine == null or engine.battle_state == null:
+		return false
+	var sequence: int = int(context.get("snapshot_sequence", 0)) + 1
+	var outgoing: Dictionary = BattleStateCodec.encode(
+		engine.battle_state,
+		engine.has_battle_started(),
+		true
+	)
+	outgoing["sequence"] = sequence
+	outgoing["match_id"] = match_id
+	outgoing["server_ticks_msec"] = Time.get_ticks_msec()
+	context["snapshot_sequence"] = sequence
+	context["last_snapshot"] = outgoing.duplicate(true)
+	_parallel_match_contexts[match_id] = context
+	var viewer_peer_ids: Array[int] = _to_int_array(context.get("viewer_peer_ids", []))
+	for peer_id in viewer_peer_ids:
+		if peer_id == 1:
+			if String(_match_payload.get("match_id", "")) == match_id:
+				_apply_battle_snapshot(outgoing)
+		elif reliable:
+			_receive_battle_snapshot_reliable_rpc.rpc_id(peer_id, outgoing)
+		else:
+			_receive_battle_snapshot_rpc.rpc_id(peer_id, outgoing)
+	return true
+
+
+func _set_parallel_battle_ready(match_id: String, side: String, ready: bool) -> bool:
+	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+	if context.is_empty() or bool(context.get("finished", false)):
+		return false
+	if bool(context.get("countdown_active", false)) or bool(context.get("countdown_finished", false)):
+		return false
+	if side != "player" and side != "enemy":
+		return false
+	var ready_by_side: Dictionary = Dictionary(context.get("ready_by_side", {})).duplicate(true)
+	ready_by_side[side] = ready
+	context["ready_by_side"] = ready_by_side
+	if bool(ready_by_side.get("player", false)) and bool(ready_by_side.get("enemy", false)):
+		context["countdown_active"] = true
+		context["countdown_deadline_msec"] = Time.get_ticks_msec() + int(BATTLE_COUNTDOWN_SECONDS * 1000.0)
+	_parallel_match_contexts[match_id] = context
+	_broadcast_parallel_battle_start_state(match_id)
+	return true
+
+
+func _build_parallel_battle_start_state(context: Dictionary) -> Dictionary:
+	var remaining: float = 0.0
+	if bool(context.get("countdown_active", false)):
+		remaining = maxf(
+			0.0,
+			float(int(context.get("countdown_deadline_msec", 0)) - Time.get_ticks_msec()) / 1000.0
+		)
+	return {
+		"match_id": String(context.get("match_id", "")),
+		"ready_by_side": Dictionary(context.get("ready_by_side", {})).duplicate(true),
+		"countdown_active": bool(context.get("countdown_active", false)),
+		"countdown_remaining": remaining,
+		"started": bool(context.get("countdown_finished", false)),
+	}
+
+
+func _broadcast_parallel_battle_start_state(match_id: String) -> void:
+	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+	if context.is_empty():
+		return
+	var state: Dictionary = _build_parallel_battle_start_state(context)
+	var viewer_peer_ids: Array[int] = _to_int_array(context.get("viewer_peer_ids", []))
+	for peer_id in viewer_peer_ids:
+		if peer_id == 1:
+			if String(_match_payload.get("match_id", "")) == match_id:
+				_apply_battle_start_state(state)
+		else:
+			_receive_battle_start_state_rpc.rpc_id(peer_id, state)
+
+
+func _emit_parallel_countdown_finished(match_id: String) -> void:
+	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+	var viewer_peer_ids: Array[int] = _to_int_array(context.get("viewer_peer_ids", []))
+	for peer_id in viewer_peer_ids:
+		if peer_id == 1:
+			if String(_match_payload.get("match_id", "")) == match_id:
+				battle_countdown_finished.emit()
+		else:
+			_receive_battle_countdown_finished_rpc.rpc_id(peer_id, match_id)
+
+
+func _apply_parallel_battle_command(peer_id: int, command: Dictionary) -> bool:
+	var match_id: String = String(_match_id_by_peer.get(peer_id, ""))
+	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+	if context.is_empty() or bool(context.get("finished", false)):
+		return false
+	var player_peer_id: int = int(context.get("player_peer_id", -1))
+	var enemy_peer_id: int = int(context.get("enemy_peer_id", -1))
+	var side: String = "player" if peer_id == player_peer_id else "enemy" if peer_id == enemy_peer_id else "spectator"
+	var sequence: int = int(command.get("sequence", 0))
+	var kind: String = String(command.get("kind", ""))
+	var runtime_id: String = String(command.get("runtime_id", ""))
+	var valid: bool = (side == "player" or side == "enemy")
+	valid = valid and sequence > int(_last_command_sequences.get(peer_id, 0))
+	valid = valid and (kind == "card" or kind == "battle_ready" or kind == "relic_toggle_on" or kind == "relic_toggle_off")
+	if kind == "card":
+		valid = valid and bool(context.get("countdown_finished", false))
+		valid = valid and LanProtocol.validate_runtime_id(side, runtime_id)
+	elif kind == "relic_toggle_on" or kind == "relic_toggle_off":
+		valid = valid and runtime_id == "reserved_seat_tag"
+	valid = valid and _consume_command_rate(peer_id)
+	var last_snapshot: Dictionary = Dictionary(context.get("last_snapshot", {}))
+	if not valid:
+		if peer_id > 1:
+			send_command_result(peer_id, sequence, false, last_snapshot)
+		return false
+	_last_command_sequences[peer_id] = sequence
+	if kind == "battle_ready":
+		var ready: bool = bool(command.get("ready", true))
+		var ready_accepted: bool = _set_parallel_battle_ready(match_id, side, ready)
+		if peer_id > 1:
+			send_command_result(peer_id, sequence, ready_accepted, last_snapshot)
+		return ready_accepted
+	var engine: RealtimeBattleEngine = context.get("engine") as RealtimeBattleEngine
+	if engine == null:
+		return false
+	var accepted: bool = false
+	if kind == "card":
+		accepted = engine.request_use_card(side, runtime_id)
+	elif kind == "relic_toggle_on" or kind == "relic_toggle_off":
+		accepted = engine.set_relic_enabled(side, runtime_id, kind == "relic_toggle_on")
+	_publish_parallel_context_snapshot(match_id, true)
+	context = Dictionary(_parallel_match_contexts.get(match_id, {}))
+	last_snapshot = Dictionary(context.get("last_snapshot", {}))
+	if peer_id > 1:
+		send_command_result(peer_id, sequence, accepted, last_snapshot)
+	return accepted
+
+
+func _finish_parallel_match(match_id: String) -> bool:
+	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+	var engine: RealtimeBattleEngine = context.get("engine") as RealtimeBattleEngine
+	if context.is_empty() or engine == null or engine.battle_state == null or bool(context.get("finished", false)):
+		return false
+	var summary: Dictionary = engine.build_summary(false)
+	var result: Dictionary = BattleStateCodec.encode_match_summary(summary)
+	var player_peer_id: int = int(context.get("player_peer_id", -1))
+	var enemy_peer_id: int = int(context.get("enemy_peer_id", -1))
+	var payload: Dictionary = Dictionary(context.get("payload", {}))
+	var final_snapshot: Dictionary = Dictionary(context.get("last_snapshot", {})).duplicate(true)
+	var winner: String = String(summary.get("winner", "draw"))
+	result["match_id"] = match_id
+	result["winner"] = winner
+	result["player_name"] = String(payload.get("player_name", "Player"))
+	result["enemy_name"] = String(payload.get("enemy_name", "Opponent"))
+	result["player_peer_id"] = player_peer_id
+	result["enemy_peer_id"] = enemy_peer_id
+	result["final_snapshot"] = final_snapshot
+	result["arena_session_id"] = _arena_session_id
+	result["round_index"] = _arena_round_index
+	result["pair_index"] = int(context.get("pair_index", 0))
+	var player_run: RunState = _arena_runs_by_peer.get(player_peer_id) as RunState
+	var enemy_run: RunState = _arena_runs_by_peer.get(enemy_peer_id) as RunState
+	if player_run == null or enemy_run == null:
+		return false
+	var player_state: UnitState = engine.battle_state.player
+	var enemy_state: UnitState = engine.battle_state.enemy
+	player_run.temporary_card_modifiers = player_state.temporary_card_modifiers.duplicate(true)
+	enemy_run.temporary_card_modifiers = enemy_state.temporary_card_modifiers.duplicate(true)
+	var player_progress: Dictionary = _arena_coordinator.apply_battle_result(
+		player_run,
+		winner == "player",
+		player_state.hp,
+		int(result.get("player_relic_bonus_gold", 0))
+	)
+	var enemy_progress: Dictionary = _arena_coordinator.apply_battle_result(
+		enemy_run,
+		winner == "enemy",
+		enemy_state.hp,
+		int(result.get("enemy_relic_bonus_gold", 0))
+	)
+	result["player_progress"] = player_progress
+	result["enemy_progress"] = enemy_progress
+	result["winner_peer_id"] = player_peer_id if winner == "player" else enemy_peer_id if winner == "enemy" else -1
+	result["player_arena_wins"] = player_run.arena_wins
+	result["enemy_arena_wins"] = enemy_run.arena_wins
+	result["player_arena_losses"] = player_run.arena_losses
+	result["enemy_arena_losses"] = enemy_run.arena_losses
+	context["finished"] = true
+	context["result"] = result.duplicate(true)
+	_parallel_match_contexts[match_id] = context
+	_arena_standings = ArenaTournamentCoordinator.build_standings(
+		_arena_player_peer_ids,
+		_profiles_by_peer,
+		_arena_runs_by_peer
+	)
+	for result_index in range(_arena_round_results.size()):
+		var round_result: Dictionary = _arena_round_results[result_index]
+		if String(round_result.get("match_id", "")) != match_id:
+			continue
+		round_result["status"] = "finished"
+		round_result["winner"] = winner
+		round_result["winner_peer_id"] = int(result.get("winner_peer_id", -1))
+		round_result["player_hp"] = player_state.hp
+		round_result["player_max_hp"] = player_state.max_hp
+		round_result["enemy_hp"] = enemy_state.hp
+		round_result["enemy_max_hp"] = enemy_state.max_hp
+		round_result["battle_time"] = float(summary.get("battle_time", 0.0))
+		_arena_round_results[result_index] = round_result
+		break
+	result["standings"] = _arena_standings.duplicate(true)
+	var viewer_peer_ids: Array[int] = _to_int_array(context.get("viewer_peer_ids", []))
+	for peer_id in viewer_peer_ids:
+		if peer_id == 1:
+			if String(_match_payload.get("match_id", "")) == match_id:
+				_apply_match_finished(result)
+		else:
+			_receive_match_finished_rpc.rpc_id(peer_id, result)
+	_arena_round_results_complete = _are_all_parallel_matches_finished()
+	if _arena_round_results_complete:
+		_arena_phase = "round_result"
+		_match_active = false
+	_arena_public_details = _build_arena_public_details()
+	_broadcast_arena_round_results()
+	_broadcast_lobby_state()
+	return true
+
+
+func _are_all_parallel_matches_finished() -> bool:
+	if _parallel_match_contexts.is_empty():
+		return false
+	for raw_context in _parallel_match_contexts.values():
+		var context: Dictionary = Dictionary(raw_context)
+		if not bool(context.get("finished", false)):
+			return false
+	return true
+
+
+func _has_unfinished_parallel_matches() -> bool:
+	for raw_context in _parallel_match_contexts.values():
+		var context: Dictionary = Dictionary(raw_context)
+		if not bool(context.get("finished", false)):
+			return true
+	return false
+
+
+func _dispose_parallel_match_contexts() -> void:
+	for raw_context in _parallel_match_contexts.values():
+		var context: Dictionary = Dictionary(raw_context)
+		var engine: RealtimeBattleEngine = context.get("engine") as RealtimeBattleEngine
+		if engine != null:
+			engine.dispose()
+	_parallel_match_contexts.clear()
+
+
+func _build_arena_round_results_snapshot() -> Dictionary:
+	var completed_count: int = 0
+	for result in _arena_round_results:
+		if String(result.get("status", "")) == "finished":
+			completed_count += 1
+	var continue_ready_count: int = 0
+	for peer_id in _arena_player_peer_ids:
+		if bool(_arena_round_continue_by_peer.get(str(peer_id), false)):
+			continue_ready_count += 1
+	return {
+		"arena_session_id": _arena_session_id,
+		"round_index": _arena_round_index,
+		"phase": _arena_phase,
+		"results": _arena_round_results.duplicate(true),
+		"completed_count": completed_count,
+		"total_count": _arena_round_results.size(),
+		"all_complete": _arena_round_results_complete,
+		"continue_ready_count": continue_ready_count,
+		"continue_total": _arena_player_peer_ids.size(),
+		"continue_by_peer": _arena_round_continue_by_peer.duplicate(true),
+		"standings": _arena_standings.duplicate(true),
+		"public_details": _arena_public_details.duplicate(true),
+	}
+
+
+func _broadcast_arena_round_results() -> void:
+	if not _is_host or not _arena_session_active:
+		return
+	var snapshot: Dictionary = _build_arena_round_results_snapshot()
+	_receive_arena_round_results_rpc.rpc(snapshot)
+	_apply_arena_round_results_snapshot(snapshot)
+
+
+func _apply_arena_round_results_snapshot(snapshot: Dictionary) -> void:
+	if snapshot.is_empty():
+		return
+	var incoming_session_id: String = String(snapshot.get("arena_session_id", ""))
+	if _arena_session_id != "" and incoming_session_id != _arena_session_id:
+		return
+	_arena_session_id = incoming_session_id
+	_arena_round_index = int(snapshot.get("round_index", _arena_round_index))
+	_arena_phase = String(snapshot.get("phase", _arena_phase))
+	_arena_round_results = _to_dictionary_array(snapshot.get("results", []))
+	_arena_round_results_complete = bool(snapshot.get("all_complete", false))
+	_arena_round_continue_by_peer = Dictionary(snapshot.get("continue_by_peer", {})).duplicate(true)
+	_arena_standings = _to_dictionary_array(snapshot.get("standings", _arena_standings))
+	_arena_public_details = _to_dictionary_array(snapshot.get("public_details", _arena_public_details))
+	arena_round_results_changed.emit(snapshot.duplicate(true))
+
+
+func _acknowledge_round_results_for_peer(peer_id: int) -> bool:
+	if not _is_host or not _arena_round_results_complete or not _arena_player_peer_ids.has(peer_id):
+		return false
+	_arena_round_continue_by_peer[str(peer_id)] = true
+	_broadcast_arena_round_results()
+	for player_peer_id in _arena_player_peer_ids:
+		if not bool(_arena_round_continue_by_peer.get(str(player_peer_id), false)):
+			return true
+	var tournament_winner_peer_id: int = _find_tournament_winner_peer_id()
+	if tournament_winner_peer_id > 0:
+		_finish_arena_session("winner", "target_wins", tournament_winner_peer_id)
+	else:
+		_prepare_next_tournament_round()
+	return true
+
+
+func _build_arena_public_details() -> Array[Dictionary]:
+	var details: Array[Dictionary] = []
+	for peer_id in _arena_player_peer_ids:
+		var run_state: RunState = _arena_runs_by_peer.get(peer_id) as RunState
+		if run_state == null:
+			continue
+		var profile: Dictionary = _get_profile_for_peer(peer_id)
+		var owned_counts: Dictionary = {}
+		for card_id in run_state.player_cards:
+			owned_counts[card_id] = int(owned_counts.get(card_id, 0)) + 1
+		var owned_cards: Array[String] = []
+		for raw_card_id in owned_counts.keys():
+			var card_id: String = String(raw_card_id)
+			var card_def: CardDef = Database.get_card(card_id)
+			var card_name: String = card_def.name if card_def != null else card_id
+			owned_cards.append("%s x%d" % [card_name, int(owned_counts.get(card_id, 0))])
+		owned_cards.sort()
+		var equipped_cards: Array[String] = []
+		for equipped_card_id in run_state.equipped_cards:
+			var equipped_def: CardDef = Database.get_card(equipped_card_id)
+			equipped_cards.append(equipped_def.name if equipped_def != null else equipped_card_id)
+		var relic_names: Array[String] = []
+		for relic_id in run_state.relics:
+			var relic_def: RelicDef = Database.get_relic(relic_id)
+			relic_names.append(relic_def.name if relic_def != null else relic_id)
+		details.append({
+			"peer_id": peer_id,
+			"name": String(profile.get("name", "Player")),
+			"hp": run_state.player_hp,
+			"max_hp": run_state.max_hp,
+			"gold": run_state.gold,
+			"wins": run_state.arena_wins,
+			"losses": run_state.arena_losses,
+			"owned_cards": owned_cards,
+			"equipped_cards": equipped_cards,
+			"relics": relic_names,
+		})
+	return details
 
 
 func _start_current_pairing_match() -> bool:
@@ -1800,7 +2496,10 @@ func _apply_match_finished(result: Dictionary) -> void:
 	_battle_countdown_finished = false
 	var next_state: int = ConnectionState.OFFLINE
 	if is_session_connected():
-		next_state = ConnectionState.ARENA_PREPARATION if _arena_session_active else ConnectionState.LOBBY
+		if _arena_session_active and bool(_match_payload.get("parallel_round", false)):
+			next_state = ConnectionState.MATCH
+		else:
+			next_state = ConnectionState.ARENA_PREPARATION if _arena_session_active else ConnectionState.LOBBY
 	_set_state(next_state, "%s match finished" % _session_display_name())
 	match_finished.emit(_last_match_result.duplicate(true))
 
@@ -1847,6 +2546,10 @@ func _apply_arena_session_finished(result: Dictionary) -> void:
 	_battle_countdown_active = false
 	_battle_countdown_deadline_msec = 0
 	_battle_countdown_finished = false
+	_dispose_parallel_match_contexts()
+	_match_id_by_peer.clear()
+	_spectator_match_id = ""
+	_arena_round_continue_by_peer.clear()
 	_local_profile["ready"] = false
 	_arena_standings = _to_dictionary_array(result.get("standings", _arena_standings))
 	_set_state(ConnectionState.LOBBY if is_session_connected() else ConnectionState.OFFLINE, "%s arena finished" % _session_display_name())
@@ -1881,7 +2584,7 @@ func _broadcast_lobby_state() -> void:
 		"spectator_count": _get_spectator_peer_ids().size(),
 		"max_spectators": LanProtocol.MAX_SPECTATORS,
 		"can_start": can_start_match(),
-		"match_active": _match_active,
+		"match_active": _match_active or _has_unfinished_parallel_matches(),
 		"arena_active": _arena_session_active,
 		"target_wins": _online_target_wins,
 		"arena_rules": _build_online_arena_rules(),
@@ -1890,6 +2593,9 @@ func _broadcast_lobby_state() -> void:
 		"arena_pair_index": _arena_pair_index,
 		"arena_pairings": _arena_pairings.duplicate(true),
 		"arena_standings": _arena_standings.duplicate(true),
+		"arena_round_results": _arena_round_results.duplicate(true),
+		"arena_round_results_complete": _arena_round_results_complete,
+		"arena_public_details": _arena_public_details.duplicate(true),
 	}
 	_receive_lobby_state_rpc.rpc(_public_lobby_snapshot)
 	lobby_changed.emit(_public_lobby_snapshot.duplicate(true))
@@ -2168,6 +2874,13 @@ func _clear_session(clear_profile: bool) -> void:
 	_online_max_players = LanProtocol.DEFAULT_PLAYERS
 	_local_participant_role = LanProtocol.ROLE_PLAYER
 	_pending_participant_role = ""
+	_dispose_parallel_match_contexts()
+	_match_id_by_peer.clear()
+	_spectator_match_id = ""
+	_arena_round_results.clear()
+	_arena_round_results_complete = false
+	_arena_round_continue_by_peer.clear()
+	_arena_public_details.clear()
 	if clear_profile:
 		_local_profile.clear()
 	_set_state(ConnectionState.OFFLINE, "Offline")

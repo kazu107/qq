@@ -1,7 +1,7 @@
 extends RefCounted
 class_name LanProtocol
 
-const PROTOCOL_VERSION: int = 8
+const PROTOCOL_VERSION: int = 9
 const SNAPSHOT_VERSION: int = 3
 const RELIC_RESOLVER_VERSION: int = 1
 const DEFAULT_PORT: int = 32475

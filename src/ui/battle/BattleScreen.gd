@@ -43,11 +43,16 @@ var _opponent_run: RunState
 var _lan_snapshot_elapsed: float = 0.0
 var _network_clock: NetworkBattleClock = NetworkBattleClock.new()
 var _lan_finish_submitted: bool = false
+var _round_results_overlay: ColorRect
+var _round_results_list: RichTextLabel
+var _round_results_status: Label
+var _round_results_continue: Button
+var _round_results_acknowledged: bool = false
 
 
 func _ready() -> void:
 	_build_ui()
-	_lan_mode = NetworkManager.has_active_match()
+	_lan_mode = NetworkManager.has_active_match() or NetworkManager.is_local_waiting_for_round_results()
 	if _lan_mode:
 		_connect_lan_signals()
 		if not _setup_lan_battle():
@@ -55,6 +60,10 @@ func _ready() -> void:
 			return
 		set_process(true)
 		_refresh_ui(1.0)
+		if NetworkManager.is_local_waiting_for_round_results():
+			_handled_finish = true
+			_show_round_results_overlay()
+			_refresh_round_results_overlay()
 		if Game.is_developer_mode_enabled():
 			_build_developer_panel()
 		return
@@ -73,6 +82,10 @@ func _ready() -> void:
 	_refresh_ui(SlowModeController.NORMAL_SCALE)
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+
+
+func _exit_tree() -> void:
+	_engine.dispose()
 
 
 func _process(delta: float) -> void:
@@ -143,7 +156,8 @@ func _setup_lan_battle() -> bool:
 
 
 func _process_lan_battle(delta: float) -> void:
-	if NetworkManager.is_host():
+	var parallel_round: bool = NetworkManager.is_parallel_arena_round()
+	if NetworkManager.is_host() and not parallel_round:
 		if not NetworkManager.is_waiting_for_reconnect():
 			_engine.update(delta)
 		_lan_snapshot_elapsed += delta
@@ -156,7 +170,7 @@ func _process_lan_battle(delta: float) -> void:
 			state.battle_time = _network_clock.advance(delta, NetworkManager.get_connection_ping_ms())
 
 	_refresh_ui(1.0)
-	if NetworkManager.is_host() and _engine.battle_state.winner != "" and not _lan_finish_submitted:
+	if NetworkManager.is_host() and not parallel_round and _engine.battle_state.winner != "" and not _lan_finish_submitted:
 		_lan_finish_submitted = true
 		_publish_lan_snapshot(true)
 		NetworkManager.finish_lan_match(_engine.build_summary(false), NetworkManager.get_last_snapshot())
@@ -188,6 +202,12 @@ func _connect_lan_signals() -> void:
 		NetworkManager.battle_countdown_finished.connect(_on_lan_battle_countdown_finished)
 	if not NetworkManager.match_finished.is_connected(_on_lan_match_finished):
 		NetworkManager.match_finished.connect(_on_lan_match_finished)
+	if not NetworkManager.arena_round_results_changed.is_connected(_on_arena_round_results_changed):
+		NetworkManager.arena_round_results_changed.connect(_on_arena_round_results_changed)
+	if not NetworkManager.arena_preparation_changed.is_connected(_on_lan_arena_preparation_changed):
+		NetworkManager.arena_preparation_changed.connect(_on_lan_arena_preparation_changed)
+	if not NetworkManager.arena_session_finished.is_connected(_on_lan_arena_session_finished):
+		NetworkManager.arena_session_finished.connect(_on_lan_arena_session_finished)
 	if not NetworkManager.connection_state_changed.is_connected(_on_lan_connection_state_changed):
 		NetworkManager.connection_state_changed.connect(_on_lan_connection_state_changed)
 	if not NetworkManager.session_ended.is_connected(_on_lan_session_ended):
@@ -204,7 +224,8 @@ func _apply_lan_snapshot(snapshot: Dictionary) -> void:
 		return
 	var snapshot_started: bool = bool(snapshot.get("battle_started", false))
 	var display_battle_time: float = decoded_state.battle_time
-	if not NetworkManager.is_host():
+	var snapshot_client: bool = NetworkManager.is_parallel_arena_round() or not NetworkManager.is_host()
+	if snapshot_client:
 		display_battle_time = _network_clock.apply_snapshot(
 			decoded_state.battle_time,
 			snapshot_started,
@@ -214,12 +235,12 @@ func _apply_lan_snapshot(snapshot: Dictionary) -> void:
 		decoded_state.battle_events.size(),
 		int(snapshot.get("battle_event_total", decoded_state.battle_events.size()))
 	)
-	if not NetworkManager.is_host() and not _lan_snapshot_initialized:
+	if snapshot_client and not _lan_snapshot_initialized:
 		_processed_battle_event_count = _lan_battle_event_total
 		_processed_vfx_event_count = _lan_battle_event_total
 	_lan_snapshot_initialized = true
 	_engine.apply_network_snapshot(decoded_state, snapshot_started)
-	if not NetworkManager.is_host() and _engine.battle_state != null:
+	if snapshot_client and _engine.battle_state != null:
 		_engine.battle_state.battle_time = display_battle_time
 
 
@@ -230,7 +251,7 @@ func _on_lan_battle_command_received(
 	runtime_id: String,
 	sequence: int
 ) -> void:
-	if not _lan_mode or not NetworkManager.is_host():
+	if not _lan_mode or not NetworkManager.is_host() or NetworkManager.is_parallel_arena_round():
 		return
 	var accepted: bool = false
 	if kind == "card":
@@ -256,7 +277,7 @@ func _on_lan_battle_countdown_finished() -> void:
 		return
 	AudioManager.play_sfx("battle_go")
 	_engine.start_battle()
-	if NetworkManager.is_host():
+	if NetworkManager.is_host() and not NetworkManager.is_parallel_arena_round():
 		_publish_lan_snapshot(true)
 	_refresh_ui(1.0)
 
@@ -265,6 +286,11 @@ func _on_lan_match_finished(result: Dictionary) -> void:
 	if not _lan_mode or _handled_finish:
 		return
 	_handled_finish = true
+	if NetworkManager.is_parallel_arena_round():
+		_result_label.visible = false
+		_show_round_results_overlay()
+		call_deferred("_refresh_round_results_overlay")
+		return
 	_transition_timer = 1.4
 	_result_label.visible = true
 	var winner: String = String(result.get("winner", "draw"))
@@ -276,6 +302,26 @@ func _on_lan_match_finished(result: Dictionary) -> void:
 		_result_label.text = Localization.get_text("battle.result.victory", "Victory")
 	else:
 		_result_label.text = Localization.get_text("battle.result.defeat", "Defeat")
+
+
+func _on_arena_round_results_changed(_snapshot: Dictionary) -> void:
+	if not _lan_mode or not NetworkManager.is_parallel_arena_round():
+		return
+	if _handled_finish or _spectator_mode:
+		_show_round_results_overlay()
+		_refresh_round_results_overlay()
+
+
+func _on_lan_arena_preparation_changed(snapshot: Dictionary) -> void:
+	if not _lan_mode or String(snapshot.get("phase", "")) != "preparation":
+		return
+	if _round_results_acknowledged:
+		SceneRouter.go_to_arena()
+
+
+func _on_lan_arena_session_finished(_result: Dictionary) -> void:
+	if _lan_mode and _round_results_acknowledged:
+		_go_to_network_lobby()
 
 
 func _on_lan_connection_state_changed(_state: int, message: String) -> void:
@@ -454,6 +500,7 @@ func _build_ui() -> void:
 	_vfx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_vfx_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_vfx_layer)
+	_build_round_results_overlay()
 
 
 func _build_log_popup() -> void:
@@ -482,6 +529,157 @@ func _build_log_popup() -> void:
 	_log_panel = LogPanel.new()
 	_log_panel.name = "BattleLogPanel"
 	popup_margin.add_child(_log_panel)
+
+
+func _build_round_results_overlay() -> void:
+	_round_results_overlay = ColorRect.new()
+	_round_results_overlay.name = "ArenaRoundResultsOverlay"
+	_round_results_overlay.color = Color(0.0, 0.0, 0.0, 0.78)
+	_round_results_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_round_results_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_round_results_overlay.z_index = 120
+	_round_results_overlay.visible = false
+	add_child(_round_results_overlay)
+
+	var center: CenterContainer = CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_round_results_overlay.add_child(center)
+	var modal: PanelContainer = PanelContainer.new()
+	modal.name = "ArenaRoundResultsModal"
+	modal.custom_minimum_size = Vector2(760.0, 520.0)
+	center.add_child(modal)
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 28)
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_right", 28)
+	margin.add_theme_constant_override("margin_bottom", 24)
+	modal.add_child(margin)
+	var content: VBoxContainer = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 14)
+	margin.add_child(content)
+
+	var title: Label = Label.new()
+	title.text = Localization.get_text("online.round_results.title", "ROUND RESULTS")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_color_override("font_color", Color(1.0, 0.82, 0.34, 1.0))
+	content.add_child(title)
+	_round_results_status = Label.new()
+	_round_results_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_round_results_status.add_theme_font_size_override("font_size", 19)
+	content.add_child(_round_results_status)
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	content.add_child(scroll)
+	_round_results_list = RichTextLabel.new()
+	_round_results_list.bbcode_enabled = true
+	_round_results_list.fit_content = true
+	_round_results_list.scroll_active = false
+	_round_results_list.custom_minimum_size = Vector2(680.0, 0.0)
+	_round_results_list.add_theme_font_size_override("normal_font_size", 18)
+	scroll.add_child(_round_results_list)
+	_round_results_continue = Button.new()
+	_round_results_continue.name = "ArenaRoundResultsContinue"
+	_round_results_continue.custom_minimum_size = Vector2(300.0, 52.0)
+	_round_results_continue.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_round_results_continue.visible = false
+	_round_results_continue.pressed.connect(_on_round_results_continue_pressed)
+	content.add_child(_round_results_continue)
+
+
+func _show_round_results_overlay() -> void:
+	if _round_results_overlay != null:
+		_round_results_overlay.visible = true
+
+
+func _refresh_round_results_overlay() -> void:
+	if _round_results_overlay == null or not _round_results_overlay.visible:
+		return
+	var snapshot: Dictionary = NetworkManager.get_arena_round_results_snapshot()
+	var results: Array[Dictionary] = _to_dictionary_array(snapshot.get("results", []))
+	if results.is_empty():
+		_round_results_status.text = Localization.get_text("online.round_results.waiting", "Waiting for match results...")
+		_round_results_list.text = ""
+		return
+	var completed_count: int = int(snapshot.get("completed_count", 0))
+	var total_count: int = maxi(1, int(snapshot.get("total_count", results.size())))
+	var all_complete: bool = bool(snapshot.get("all_complete", false))
+	_round_results_status.text = (
+		Localization.get_textf("online.round_results.complete", "All matches complete ({done}/{total})", {
+			"done": completed_count,
+			"total": total_count,
+		})
+		if all_complete
+		else Localization.get_textf("online.round_results.progress", "Waiting for other matches ({done}/{total})", {
+			"done": completed_count,
+			"total": total_count,
+		})
+	)
+	_round_results_status.add_theme_color_override(
+		"font_color",
+		Color(0.42, 1.0, 0.68, 1.0) if all_complete else Color(1.0, 0.76, 0.28, 1.0)
+	)
+	var lines: Array[String] = []
+	for result in results:
+		var player_name: String = String(result.get("player_name", "Player"))
+		var enemy_name: String = String(result.get("enemy_name", "Opponent"))
+		var status: String = String(result.get("status", "running"))
+		if status != "finished":
+			lines.append("[color=#9db2bc]● %s  vs  %s[/color]  [color=#f1b84b]%s[/color]" % [
+				player_name,
+				enemy_name,
+				Localization.get_text("online.round_results.in_progress", "IN PROGRESS"),
+			])
+			continue
+		var winner: String = String(result.get("winner", "draw"))
+		var winner_text: String = Localization.get_text("battle.result.draw", "Draw")
+		if winner == "player":
+			winner_text = player_name
+		elif winner == "enemy":
+			winner_text = enemy_name
+		lines.append("[color=#61f0a0]✓ %s[/color]  [color=#d8e4e9]%d/%d  vs  %d/%d[/color]\n   %s: [color=#ffd35f]%s[/color]  |  %.1fs" % [
+			"%s  vs  %s" % [player_name, enemy_name],
+			int(result.get("player_hp", 0)),
+			maxi(1, int(result.get("player_max_hp", 1))),
+			int(result.get("enemy_hp", 0)),
+			maxi(1, int(result.get("enemy_max_hp", 1))),
+			Localization.get_text("online.round_results.winner", "Winner"),
+			winner_text,
+			float(result.get("battle_time", 0.0)),
+		])
+	_round_results_list.text = "\n\n".join(lines)
+	_round_results_continue.visible = all_complete
+	_round_results_continue.disabled = _round_results_acknowledged
+	if _spectator_mode:
+		_round_results_continue.text = Localization.get_text("online.round_results.back_lobby", "BACK TO LOBBY")
+	elif _round_results_acknowledged:
+		var ready_count: int = int(snapshot.get("continue_ready_count", 0))
+		var ready_total: int = int(snapshot.get("continue_total", 0))
+		_round_results_continue.text = Localization.get_textf(
+			"online.round_results.wait_continue",
+			"WAITING FOR PLAYERS {ready}/{total}",
+			{"ready": ready_count, "total": ready_total}
+		)
+	else:
+		_round_results_continue.text = Localization.get_text("online.round_results.continue", "CLAIM REWARDS / CONTINUE")
+
+
+func _on_round_results_continue_pressed() -> void:
+	if _spectator_mode:
+		_go_to_network_lobby()
+		return
+	if _round_results_acknowledged:
+		return
+	if not NetworkManager.acknowledge_arena_round_results():
+		AudioManager.play_sfx("ui_error")
+		return
+	_round_results_acknowledged = true
+	_refresh_round_results_overlay()
+	if NetworkManager.get_lan_arena_phase() == "preparation":
+		SceneRouter.go_to_arena()
+	elif not NetworkManager.is_lan_arena_session_active():
+		_go_to_network_lobby()
 
 
 func _create_section(parent: Control, title: String, expand_horizontal: bool = true, expand_vertical: bool = true, show_header: bool = true) -> VBoxContainer:
@@ -693,7 +891,7 @@ func _process_resolution_vfx(battle_state: BattleState) -> void:
 
 
 func _uses_compact_lan_events() -> bool:
-	return _lan_mode and not NetworkManager.is_host()
+	return _lan_mode and (NetworkManager.is_parallel_arena_round() or not NetworkManager.is_host())
 
 
 func _resolve_unit_panel(unit_id: String, battle_state: BattleState) -> UnitPanel:
@@ -716,7 +914,7 @@ func _on_card_requested(runtime_id: String) -> void:
 	if _lan_mode and not NetworkManager.has_battle_countdown_finished():
 		AudioManager.play_sfx("ui_error")
 		return
-	if _lan_mode and not NetworkManager.is_host():
+	if _lan_mode and (NetworkManager.is_parallel_arena_round() or not NetworkManager.is_host()):
 		requested = NetworkManager.submit_card_command(runtime_id)
 		if requested:
 			var local_runtime: CardRuntimeState = _engine.battle_state.get_unit(_local_side).get_runtime_state(runtime_id)
@@ -755,7 +953,7 @@ func _on_reserved_seat_toggled(enabled: bool) -> void:
 	if _spectator_mode:
 		return
 	var accepted: bool = false
-	if _lan_mode and not NetworkManager.is_host():
+	if _lan_mode and (NetworkManager.is_parallel_arena_round() or not NetworkManager.is_host()):
 		accepted = NetworkManager.submit_relic_toggle("reserved_seat_tag", enabled)
 		if accepted:
 			_engine.set_relic_enabled(_local_side, "reserved_seat_tag", enabled)
@@ -901,6 +1099,13 @@ func _go_to_network_lobby() -> void:
 	SceneRouter.go_to_online_lobby()
 
 
+func _to_dictionary_array(value: Variant) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for raw_item in Array(value):
+		result.append(Dictionary(raw_item).duplicate(true))
+	return result
+
+
 func _build_developer_panel() -> void:
 	_developer_panel = DeveloperPanel.new()
 	add_child(_developer_panel)
@@ -944,6 +1149,10 @@ func _force_battle_result(winner: String) -> void:
 	if _lan_mode:
 		if not NetworkManager.is_host():
 			AudioManager.play_sfx("ui_error")
+			return
+		if NetworkManager.is_parallel_arena_round():
+			if not NetworkManager.developer_force_local_match(winner):
+				AudioManager.play_sfx("ui_error")
 			return
 		_engine.battle_state.winner = winner
 		_engine.battle_state.record_event({

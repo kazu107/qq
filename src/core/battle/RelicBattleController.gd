@@ -20,6 +20,12 @@ func setup(engine: RealtimeBattleEngine, state: BattleState, player_run: RunStat
 			_state.relic_runtime_state[side] = {}
 
 
+func detach() -> void:
+	_engine = null
+	_state = null
+	_runs.clear()
+
+
 func apply_unit_setup(side: String, unit: UnitState) -> void:
 	var run: RunState = _run(side)
 	if unit == null or run == null:

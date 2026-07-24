@@ -14,6 +14,29 @@ var _battle_started: bool = false
 var _manual_start_required: bool = false
 var _enemy_name: String = ""
 var _pvp_mode: bool = false
+var _audio_enabled: bool = true
+
+
+func set_audio_enabled(enabled: bool) -> void:
+	_audio_enabled = enabled
+
+
+func dispose() -> void:
+	_relic_controller.detach()
+	battle_state = null
+	_player_run = null
+	_enemy_run = null
+	_timeline_flows.clear()
+
+
+func _play_sfx(sfx_id: String, pitch_scale: float = 1.0, volume_db: float = 0.0) -> void:
+	if _audio_enabled:
+		AudioManager.play_sfx(sfx_id, pitch_scale, volume_db)
+
+
+func _play_card_resolution(card_def: CardDef, fully_blocked: bool) -> void:
+	if _audio_enabled:
+		AudioManager.play_card_resolution(card_def, fully_blocked)
 
 
 func setup(player_run: RunState, enemy_id: String) -> void:
@@ -143,8 +166,8 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 		"card_name": card_def.name,
 	}))
 	if shield_cost > 0:
-		AudioManager.play_sfx("battle_shield_spend", 1.0, -2.0)
-	AudioManager.play_sfx("card_commit", 1.03 if side == "player" else 0.94)
+		_play_sfx("battle_shield_spend", 1.0, -2.0)
+	_play_sfx("card_commit", 1.03 if side == "player" else 0.94)
 	_record_event(_build_basic_event(
 		"prepare_card",
 		unit.unit_id,
@@ -197,14 +220,14 @@ func get_run_for_side(side: String) -> RunState:
 func delay_active_cards(side: String, amount: float, scope: String, source_side: String = "") -> int:
 	var affected: int = _shift_active_cards(side, absf(amount), scope, -1, source_side)
 	if affected > 0:
-		AudioManager.play_sfx("timeline_delay", 0.96 if side == "player" else 0.9, -3.0)
+		_play_sfx("timeline_delay", 0.96 if side == "player" else 0.9, -3.0)
 	return affected
 
 
 func haste_active_cards(side: String, amount: float, scope: String, exclude_instance_id: int = -1) -> int:
 	var affected: int = _shift_active_cards(side, -absf(amount), scope, exclude_instance_id, side)
 	if affected > 0:
-		AudioManager.play_sfx("timeline_haste", 1.04 if side == "player" else 0.96, -3.0)
+		_play_sfx("timeline_haste", 1.04 if side == "player" else 0.96, -3.0)
 	return affected
 
 
@@ -237,7 +260,7 @@ func reduce_cooldowns(side: String, amount: float, scope: String, exclude_runtim
 	for runtime_state in affected:
 		runtime_state.set_cooldown_remaining(runtime_state.cooldown_remaining - absf(amount))
 	if not affected.is_empty():
-		AudioManager.play_sfx("timeline_haste", 1.12 if side == "player" else 1.0, -4.0)
+		_play_sfx("timeline_haste", 1.12 if side == "player" else 1.0, -4.0)
 	return affected.size()
 
 
@@ -345,7 +368,7 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 		queued_count += 1
 	_timeline_resolver.rebuild_timeline(battle_state)
 	if queued_count > 0:
-		AudioManager.play_sfx("timeline_auto_queue", 1.04 if side == "player" else 0.94, -2.0)
+		_play_sfx("timeline_auto_queue", 1.04 if side == "player" else 0.94, -2.0)
 	return queued_count
 
 
@@ -392,7 +415,7 @@ func apply_timeline_flow(side: String, effect: Dictionary) -> int:
 		"source_side": side,
 	}
 	_timeline_flows.append(flow)
-	AudioManager.play_sfx("timeline_reverse" if String(flow.get("mode", "stop")) == "reverse" else "timeline_stop")
+	_play_sfx("timeline_reverse" if String(flow.get("mode", "stop")) == "reverse" else "timeline_stop")
 	return _count_flow_targets(flow)
 
 
@@ -487,7 +510,7 @@ func _tick_cooldowns(delta: float) -> void:
 			if was_cooling_down and runtime_state.state == CardRuntimeState.CardState.READY:
 				became_ready = true
 		if became_ready:
-			AudioManager.play_sfx("card_cooldown_ready", 1.04 if side == "player" else 0.9, -4.0)
+			_play_sfx("card_cooldown_ready", 1.04 if side == "player" else 0.9, -4.0)
 
 
 func _start_battle() -> void:
@@ -508,7 +531,7 @@ func _start_battle() -> void:
 			"enemy": _snapshot_unit(battle_state.enemy),
 		}
 	))
-	AudioManager.play_sfx("boss_intro" if battle_state.enemy.unit_id.begins_with("boss_") else "battle_start")
+	_play_sfx("boss_intro" if battle_state.enemy.unit_id.begins_with("boss_") else "battle_start")
 
 
 func _tick_shields(delta: float) -> void:
@@ -550,7 +573,7 @@ func _tick_statuses(delta: float) -> void:
 					"unit_name": unit.display_name,
 					"amount": amount,
 				}))
-				AudioManager.play_sfx("status_bleed_tick", 0.95)
+				_play_sfx("status_bleed_tick", 0.95)
 				_record_event(_build_basic_event(
 					"status_damage",
 					unit.unit_id,
@@ -584,7 +607,7 @@ func _process_boss_passive(delta: float) -> void:
 		battle_state.add_log(Localization.get_textf("battle.log.twisted_timeline", "{unit_name} twisted the timeline", {
 			"unit_name": battle_state.enemy.display_name,
 		}))
-		AudioManager.play_sfx("boss_passive", 0.88)
+		_play_sfx("boss_passive", 0.88)
 		_record_event(_build_basic_event(
 			"boss_passive",
 			battle_state.enemy.unit_id,
@@ -638,9 +661,9 @@ func _tick_timeline_flows(delta: float) -> void:
 	if shifted_any:
 		_timeline_resolver.rebuild_timeline(battle_state)
 	if ended_reverse:
-		AudioManager.play_sfx("timeline_reverse_end")
+		_play_sfx("timeline_reverse_end")
 	if ended_stop:
-		AudioManager.play_sfx("timeline_resume")
+		_play_sfx("timeline_resume")
 
 
 func _resolve_due_entries() -> void:
@@ -687,14 +710,14 @@ func _resolve_due_entries() -> void:
 		for message in messages:
 			battle_state.add_log("%s" % message)
 		var fully_blocked: bool = _is_fully_blocked_by_shield(card_def, target_hp_before, target_unit.hp, target_shield_before, target_unit.shield)
-		AudioManager.play_card_resolution(card_def, fully_blocked)
+		_play_card_resolution(card_def, fully_blocked)
 		if target_shield_before > 0 and target_unit.shield <= 0 and not fully_blocked:
-			AudioManager.play_sfx("battle_shield_break", 1.0, -1.0)
+			_play_sfx("battle_shield_break", 1.0, -1.0)
 		var low_hp_threshold: int = ceili(float(target_unit.max_hp) * 0.25)
 		if target_hp_before > low_hp_threshold and target_unit.hp > 0 and target_unit.hp <= low_hp_threshold:
-			AudioManager.play_sfx("battle_hp_low", 1.0, -1.0)
+			_play_sfx("battle_hp_low", 1.0, -1.0)
 		if target_hp_before > 0 and target_unit.hp <= 0:
-			AudioManager.play_sfx("battle_lethal", 1.0, -1.0)
+			_play_sfx("battle_lethal", 1.0, -1.0)
 		_relic_controller.after_resolve(instance.owner_side, instance, resolved_card_def, {
 			"slots_before": unit.active_slots_used + instance.slot_cost,
 			"fully_blocked": fully_blocked,
@@ -770,7 +793,7 @@ func _force_interrupt(instance: ActiveCardInstance) -> bool:
 		"unit_name": unit.display_name,
 		"card_name": card_def.name,
 	}))
-	AudioManager.play_sfx("battle_interrupt", 0.92)
+	_play_sfx("battle_interrupt", 0.92)
 	_timeline_resolver.rebuild_timeline(battle_state)
 	_record_event(_build_basic_event(
 		"interrupt_card",

@@ -68,6 +68,12 @@ func _run() -> void:
 	var participant_role_option: OptionButton = web_lobby.find_child("OnlineParticipantRoleOption", true, false) as OptionButton
 	var rules_grid: GridContainer = web_lobby.find_child("OnlineLobbyRulesGrid", true, false) as GridContainer
 	var ready_count: Label = web_lobby.find_child("OnlineLobbyReadyCount", true, false) as Label
+	var lobby_scroll: ScrollContainer = web_lobby.find_child("OnlineLobbyContentScroll", true, false) as ScrollContainer
+	var ready_button: Button = web_lobby.find_child("LanReadyButton", true, false) as Button
+	var start_button: Button = web_lobby.find_child("LanStartMatchButton", true, false) as Button
+	var leave_button: Button = web_lobby.find_child("LanLeaveButton", true, false) as Button
+	var details_button: Button = web_lobby.find_child("OnlineMatchDetailsButton", true, false) as Button
+	var details_overlay: ColorRect = web_lobby.find_child("OnlineMatchDetailsOverlay", true, false) as ColorRect
 	if room_list == null or not room_list.visible:
 		_fail("Compatible Web rooms are not exposed in the online lobby")
 		return
@@ -88,6 +94,20 @@ func _run() -> void:
 		return
 	if ready_count == null:
 		_fail("Lobby readiness count is missing")
+		return
+	if (
+		lobby_scroll == null
+		or ready_button == null
+		or start_button == null
+		or leave_button == null
+		or lobby_scroll.is_ancestor_of(ready_button)
+		or lobby_scroll.is_ancestor_of(start_button)
+		or lobby_scroll.is_ancestor_of(leave_button)
+	):
+		_fail("Lobby action buttons are still inside the scrolling content")
+		return
+	if details_button == null or details_overlay == null or details_overlay.visible:
+		_fail("Foreground match details modal is not configured")
 		return
 	if (
 		not network_source.contains('"target_wins": _online_target_wins')

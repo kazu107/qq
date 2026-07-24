@@ -15,6 +15,9 @@ func _run() -> void:
 	NetworkManager._is_host = true
 	NetworkManager._session_scope = NetworkManager.SESSION_SCOPE_ONLINE
 	NetworkManager._local_participant_role = LanProtocol.ROLE_PLAYER
+	NetworkManager._arena_session_active = true
+	NetworkManager._arena_session_id = "spectator-arena"
+	NetworkManager._arena_phase = "battle"
 	NetworkManager._match_payload = {
 		"protocol_version": LanProtocol.PROTOCOL_VERSION,
 		"content_hash": LanProtocol.build_content_hash(),
@@ -23,6 +26,8 @@ func _run() -> void:
 		"enemy_run": second_run.to_dict(),
 		"player_name": "Alpha",
 		"enemy_name": "Beta",
+		"arena_session_id": "spectator-arena",
+		"parallel_round": true,
 		"peer_sides": {"1": "spectator", "2": "player", "3": "enemy"},
 	}
 	NetworkManager._match_active = true
@@ -43,6 +48,45 @@ func _run() -> void:
 		return
 	if not NetworkManager.is_local_match_spectator() or NetworkManager.can_local_control_match():
 		_fail("Spectator network role could issue battle commands")
+		return
+	NetworkManager._apply_match_finished({
+		"match_id": "spectator-smoke",
+		"winner": "player",
+	})
+	NetworkManager._apply_arena_round_results_snapshot({
+		"arena_session_id": "spectator-arena",
+		"round_index": 0,
+		"results": [
+			{"match_id": "spectator-smoke", "player_name": "Alpha", "enemy_name": "Beta", "status": "finished", "winner": "player", "player_hp": 30, "player_max_hp": 60, "enemy_hp": 0, "enemy_max_hp": 60},
+			{"match_id": "other-match", "player_name": "Gamma", "enemy_name": "Delta", "status": "running"},
+		],
+		"all_complete": false,
+		"standings": [],
+		"public_details": [],
+	})
+	await get_tree().process_frame
+	var result_overlay: ColorRect = battle.find_child("ArenaRoundResultsOverlay", true, false) as ColorRect
+	var continue_button: Button = battle.find_child("ArenaRoundResultsContinue", true, false) as Button
+	if result_overlay == null or not result_overlay.visible:
+		_fail("Spectator did not enter the parallel round result window")
+		return
+	if continue_button == null or continue_button.visible:
+		_fail("Continue button appeared before every parallel match finished")
+		return
+	NetworkManager._apply_arena_round_results_snapshot({
+		"arena_session_id": "spectator-arena",
+		"round_index": 0,
+		"results": [
+			{"match_id": "spectator-smoke", "player_name": "Alpha", "enemy_name": "Beta", "status": "finished", "winner": "player", "player_hp": 30, "player_max_hp": 60, "enemy_hp": 0, "enemy_max_hp": 60},
+			{"match_id": "other-match", "player_name": "Gamma", "enemy_name": "Delta", "status": "finished", "winner": "enemy", "player_hp": 0, "player_max_hp": 60, "enemy_hp": 22, "enemy_max_hp": 60},
+		],
+		"all_complete": true,
+		"standings": [],
+		"public_details": [],
+	})
+	await get_tree().process_frame
+	if not continue_button.visible:
+		_fail("Continue button did not appear after every parallel match finished")
 		return
 	battle.queue_free()
 	await get_tree().process_frame

@@ -11,9 +11,10 @@ func _run() -> void:
 	_test_round_pairings()
 	_test_spectator_roles()
 	_test_standings()
+	_test_parallel_round_isolation()
 	_test_participant_statuses()
 	await _test_preparation_roster_ui()
-	print("Arena tournament smoke passed: even capacities, pairings, spectators, and standings")
+	print("Arena tournament smoke passed: parallel pairings, spectator isolation, standings, and UI")
 	get_tree().quit()
 
 
@@ -70,6 +71,122 @@ func _test_standings() -> void:
 	_expect(int(standings[0].get("wins", 0)) >= int(standings[1].get("wins", 0)), "Standings were not sorted by wins")
 	for index in range(standings.size()):
 		_expect(int(standings[index].get("rank", 0)) == index + 1, "Standing rank was invalid")
+
+
+func _test_parallel_round_isolation() -> void:
+	NetworkManager._clear_session(false)
+	var profiles: Dictionary = {}
+	var runs: Dictionary = {}
+	var coordinator: LanArenaCoordinator = LanArenaCoordinator.new()
+	for peer_id in [1, 2, 3, 4]:
+		var profile: Dictionary = LanProtocol.build_profile("P%d" % peer_id, "balanced")
+		profiles[peer_id] = profile
+		var run_state: RunState = coordinator.create_run(profile, 500 + peer_id)
+		run_state.max_hp = 50 + peer_id * 10
+		run_state.player_hp = run_state.max_hp
+		runs[peer_id] = run_state
+	profiles[5] = LanProtocol.build_profile(
+		"Watcher",
+		"balanced",
+		false,
+		"watcher-token",
+		LanProtocol.ROLE_SPECTATOR
+	)
+	var first_engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	var second_engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	first_engine.set_audio_enabled(false)
+	second_engine.set_audio_enabled(false)
+	first_engine.setup_pvp(runs[1] as RunState, runs[4] as RunState, "P1", "P4")
+	second_engine.setup_pvp(runs[2] as RunState, runs[3] as RunState, "P2", "P3")
+	first_engine.start_battle()
+	second_engine.start_battle()
+	NetworkManager._is_host = true
+	NetworkManager._arena_session_active = true
+	NetworkManager._arena_session_id = "parallel-test"
+	NetworkManager._arena_phase = "battle"
+	NetworkManager._profiles_by_peer = profiles
+	NetworkManager._arena_runs_by_peer = runs
+	NetworkManager._arena_player_peer_ids = [1, 2, 3, 4]
+	NetworkManager._arena_pairings = [
+		{"player_peer_id": 1, "enemy_peer_id": 4},
+		{"player_peer_id": 2, "enemy_peer_id": 3},
+	]
+	NetworkManager._arena_standings = ArenaTournamentCoordinator.build_standings(
+		NetworkManager._arena_player_peer_ids,
+		profiles,
+		runs
+	)
+	NetworkManager._arena_round_results = [
+		{"match_id": "m1", "pair_index": 0, "player_peer_id": 1, "enemy_peer_id": 4, "player_name": "P1", "enemy_name": "P4", "status": "running"},
+		{"match_id": "m2", "pair_index": 1, "player_peer_id": 2, "enemy_peer_id": 3, "player_name": "P2", "enemy_name": "P3", "status": "running"},
+	]
+	NetworkManager._parallel_match_contexts = {
+		"m1": _make_parallel_context("m1", 0, 1, 4, first_engine),
+		"m2": _make_parallel_context("m2", 1, 2, 3, second_engine),
+	}
+	NetworkManager._process_parallel_matches(0.25)
+	_expect(is_equal_approx(first_engine.battle_state.battle_time, 0.25), "First parallel battle did not advance")
+	_expect(is_equal_approx(second_engine.battle_state.battle_time, 0.25), "Second parallel battle did not advance")
+
+	var untouched_two_hp: int = (runs[2] as RunState).player_hp
+	var untouched_three_hp: int = (runs[3] as RunState).player_hp
+	first_engine.battle_state.player.hp = 37
+	first_engine.battle_state.enemy.hp = 0
+	first_engine.battle_state.winner = "player"
+	NetworkManager._publish_parallel_context_snapshot("m1", true)
+	_expect(NetworkManager._finish_parallel_match("m1"), "First parallel result was rejected")
+	_expect((runs[1] as RunState).arena_wins == 1, "First match winner did not receive a win")
+	_expect((runs[4] as RunState).arena_losses == 1, "First match loser did not receive a loss")
+	_expect((runs[2] as RunState).arena_wins == 0 and (runs[2] as RunState).arena_losses == 0, "Other pairing received the first result")
+	_expect((runs[3] as RunState).arena_wins == 0 and (runs[3] as RunState).arena_losses == 0, "Other pairing received the first result")
+	_expect((runs[2] as RunState).player_hp == untouched_two_hp and (runs[3] as RunState).player_hp == untouched_three_hp, "Other pairing HP was overwritten")
+	_expect(not NetworkManager._arena_runs_by_peer.has(5), "Spectator received an arena RunState")
+	_expect(not NetworkManager._arena_round_results_complete, "Round completed before every pairing finished")
+
+	second_engine.battle_state.player.hp = 0
+	second_engine.battle_state.enemy.hp = 31
+	second_engine.battle_state.winner = "enemy"
+	NetworkManager._publish_parallel_context_snapshot("m2", true)
+	_expect(NetworkManager._finish_parallel_match("m2"), "Second parallel result was rejected")
+	_expect((runs[2] as RunState).arena_losses == 1, "Second match loser did not receive a loss")
+	_expect((runs[3] as RunState).arena_wins == 1, "Second match winner did not receive a win")
+	_expect(NetworkManager._arena_round_results_complete, "Round did not complete after every pairing finished")
+	_expect(not NetworkManager._acknowledge_round_results_for_peer(5), "Spectator was allowed to advance player results")
+	_expect(NetworkManager._acknowledge_round_results_for_peer(1), "Player result acknowledgement failed")
+	var result_snapshot: Dictionary = NetworkManager.get_arena_round_results_snapshot()
+	_expect(int(result_snapshot.get("continue_ready_count", 0)) == 1, "Player acknowledgement count was invalid")
+	NetworkManager._clear_session(false)
+
+
+func _make_parallel_context(
+	match_id: String,
+	pair_index: int,
+	player_peer_id: int,
+	enemy_peer_id: int,
+	engine: RealtimeBattleEngine
+) -> Dictionary:
+	return {
+		"match_id": match_id,
+		"pair_index": pair_index,
+		"player_peer_id": player_peer_id,
+		"enemy_peer_id": enemy_peer_id,
+		"payload": {
+			"match_id": match_id,
+			"player_name": "P%d" % player_peer_id,
+			"enemy_name": "P%d" % enemy_peer_id,
+		},
+		"engine": engine,
+		"viewer_peer_ids": [],
+		"ready_by_side": {"player": true, "enemy": true},
+		"countdown_active": false,
+		"countdown_deadline_msec": 0,
+		"countdown_finished": true,
+		"snapshot_sequence": 0,
+		"snapshot_elapsed": 0.0,
+		"last_snapshot": {},
+		"finished": false,
+		"result": {},
+	}
 
 
 func _test_participant_statuses() -> void:

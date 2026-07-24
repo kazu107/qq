@@ -33,7 +33,10 @@ var _lan_mode: bool = false
 func _ready() -> void:
 	_lan_mode = NetworkManager.is_lan_arena_session_active()
 	if _lan_mode:
-		if NetworkManager.get_lan_arena_phase() == "battle" and NetworkManager.has_active_match():
+		if (
+			NetworkManager.get_lan_arena_phase() == "battle"
+			and NetworkManager.has_active_match()
+		) or NetworkManager.is_local_waiting_for_round_results():
 			SceneRouter.go_to_battle()
 			return
 		_connect_lan_signals()
