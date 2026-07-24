@@ -23,6 +23,10 @@ func _run() -> void:
 	if _failed:
 		return
 
+	_assert_start_sfx_volume_offsets()
+	if _failed:
+		return
+
 	_assert_shield_block_resolution_sfx()
 	if _failed:
 		return
@@ -183,6 +187,17 @@ func _assert_sfx_playback() -> void:
 	if AudioManager.get_play_history().is_empty():
 		_fail("Audio smoke failed: AudioManager did not record playback requests")
 		return
+
+
+func _assert_start_sfx_volume_offsets() -> void:
+	if not is_equal_approx(AudioManager.get_sfx_volume_offset_db("run_start"), -3.0):
+		_fail("Audio smoke failed: run_start should use the reduced volume offset")
+		return
+	if not is_equal_approx(AudioManager.get_sfx_volume_offset_db("run_resume"), -3.0):
+		_fail("Audio smoke failed: run_resume should use the reduced volume offset")
+		return
+	if not is_zero_approx(AudioManager.get_sfx_volume_offset_db("hazard_enter")):
+		_fail("Audio smoke failed: unrelated SFX should not inherit the run start volume offset")
 
 
 func _assert_shield_block_resolution_sfx() -> void:

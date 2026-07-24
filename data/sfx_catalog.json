@@ -32,7 +32,7 @@
   {"id":"facility_leave","category":"run","name_ja":"施設を出る","name_en":"Leave facility","source":"ui_window_close","pitch":0.9,"seconds":0.75},
   {"id":"event_choice","category":"run","name_ja":"イベント選択","name_en":"Event choice","source":"ui_confirm","pitch":0.93,"seconds":0.7},
   {"id":"event_resolve","category":"run","name_ja":"イベント解決","name_en":"Event resolved","source":"relic_gain","pitch":0.94,"seconds":1.0},
-  {"id":"hazard_enter","category":"run","name_ja":"危険地帯へ進入","name_en":"Enter hazard","prompt":"entering a dangerous combat zone, heavy sealed door lock and low warning pulse, tense dry game sound","seconds":1.2,"seed":2417},
+  {"id":"hazard_enter","category":"run","name_ja":"危険地帯へ進入","name_en":"Enter hazard","source":"map_select","pitch":0.76,"seconds":0.7},
   {"id":"hazard_wave","category":"run","name_ja":"危険地帯ウェーブ","name_en":"Hazard wave","source":"boss_reveal","pitch":1.08,"seconds":1.1},
   {"id":"hazard_withdraw","category":"run","name_ja":"危険地帯から撤退","name_en":"Hazard withdraw","prompt":"tactical retreat from danger, descending electronic alert and quick mechanical disengage, controlled not catastrophic","seconds":1.0,"seed":2418},
 

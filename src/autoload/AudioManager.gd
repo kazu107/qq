@@ -4,6 +4,10 @@ const SFX_PATH_TEMPLATE := "res://assets/audio/sfx/%s.wav"
 const SFX_CATALOG_PATH := "res://data/sfx_catalog.json"
 const PLAYER_POOL_SIZE := 12
 const MAX_HISTORY := 96
+const SFX_VOLUME_OFFSETS_DB: Dictionary = {
+	"run_start": -3.0,
+	"run_resume": -3.0,
+}
 
 var master_volume: float = 1.0
 var sfx_volume: float = 1.0
@@ -121,7 +125,7 @@ func play_sfx(sfx_id: String, pitch_scale: float = 1.0, volume_boost_db: float =
 
 	player.stream = stream
 	player.pitch_scale = clampf(pitch_scale, 0.5, 2.0)
-	player.volume_db = _resolve_sfx_volume_db(volume_boost_db)
+	player.volume_db = _resolve_sfx_volume_db(volume_boost_db + get_sfx_volume_offset_db(sfx_id))
 	player.play()
 	return true
 
@@ -177,6 +181,10 @@ func get_play_history() -> Array[String]:
 func clear_play_history() -> void:
 	_play_history.clear()
 	_last_sfx_id = ""
+
+
+func get_sfx_volume_offset_db(sfx_id: String) -> float:
+	return float(SFX_VOLUME_OFFSETS_DB.get(sfx_id, 0.0))
 
 
 func has_played_sfx(sfx_id: String) -> bool:

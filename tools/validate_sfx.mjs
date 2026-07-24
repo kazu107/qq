@@ -10,6 +10,7 @@ const cards = JSON.parse(fs.readFileSync(path.join(repoRoot, "data", "cards.json
 const relics = JSON.parse(fs.readFileSync(path.join(repoRoot, "data", "relics.json"), "utf8"));
 const audioManagerSource = fs.readFileSync(path.join(repoRoot, "src", "autoload", "AudioManager.gd"), "utf8");
 const requiredNonVocalDerivations = new Map([
+  ["hazard_enter", "map_select"],
   ["online_room_join", "map_select"],
   ["online_room_leave", "online_room_join"],
   ["online_connected", "ui_save"],
