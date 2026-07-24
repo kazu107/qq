@@ -8,6 +8,13 @@ const audioRoot = path.join(repoRoot, "assets", "audio", "sfx");
 const catalog = JSON.parse(fs.readFileSync(path.join(repoRoot, "data", "sfx_catalog.json"), "utf8"));
 const cards = JSON.parse(fs.readFileSync(path.join(repoRoot, "data", "cards.json"), "utf8"));
 const relics = JSON.parse(fs.readFileSync(path.join(repoRoot, "data", "relics.json"), "utf8"));
+const audioManagerSource = fs.readFileSync(path.join(repoRoot, "src", "autoload", "AudioManager.gd"), "utf8");
+const requiredNonVocalDerivations = new Map([
+  ["online_room_join", "map_select"],
+  ["online_room_leave", "online_room_join"],
+  ["online_connected", "ui_save"],
+  ["online_reconnected", "online_connected"],
+]);
 
 const expectedIds = [
   ...catalog.map((entry) => entry.id),
@@ -37,6 +44,21 @@ for (const entry of catalog) {
   if (!entry.source && (!entry.prompt || !Number.isInteger(entry.seed))) {
     errors.push(`${entry.id}: model-generated entry requires prompt and integer seed`);
   }
+}
+for (const [id, expectedSource] of requiredNonVocalDerivations) {
+  const entry = catalog.find((candidate) => candidate.id === id);
+  if (!entry || entry.source !== expectedSource || entry.prompt) {
+    errors.push(`${id}: must remain a deterministic non-vocal derivative of ${expectedSource}`);
+  }
+}
+if (
+  audioManagerSource.includes("_connect_button_hover") ||
+  audioManagerSource.includes("_on_button_hovered") ||
+  audioManagerSource.includes('play_sfx("ui_hover"') ||
+  audioManagerSource.includes('play_sfx("map_hover"') ||
+  audioManagerSource.includes('play_sfx("ui_tooltip"')
+) {
+  errors.push("AudioManager: automatic hover SFX playback must remain disabled");
 }
 
 for (const id of expectedIds) {

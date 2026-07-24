@@ -12,23 +12,18 @@ var _stream_cache: Dictionary = {}
 var _play_history: Array[String] = []
 var _last_sfx_id: String = ""
 var _catalog_cache: Array[Dictionary] = []
-var _last_hover_msec: int = 0
 var _last_relic_play_msec: Dictionary = {}
 
 
 func _ready() -> void:
 	if not _is_headless():
 		_ensure_players()
-		if not get_tree().node_added.is_connected(_on_tree_node_added):
-			get_tree().node_added.connect(_on_tree_node_added)
 	if not Localization.language_changed.is_connected(_on_language_changed):
 		Localization.language_changed.connect(_on_language_changed)
 	_apply_master_volume()
 
 
 func _exit_tree() -> void:
-	if get_tree() != null and get_tree().node_added.is_connected(_on_tree_node_added):
-		get_tree().node_added.disconnect(_on_tree_node_added)
 	if Localization.language_changed.is_connected(_on_language_changed):
 		Localization.language_changed.disconnect(_on_language_changed)
 	for player in _players:
@@ -288,37 +283,6 @@ func _build_sfx_catalog() -> Array[Dictionary]:
 			"available": has_sfx(relic_sfx_id),
 		})
 	return result
-
-
-func _on_tree_node_added(node: Node) -> void:
-	if node is BaseButton:
-		call_deferred("_connect_button_hover", node)
-
-
-func _connect_button_hover(node: Node) -> void:
-	var button: BaseButton = node as BaseButton
-	if button == null or not is_instance_valid(button):
-		return
-	var hover_callback: Callable = _on_button_hovered.bind(button)
-	if not button.mouse_entered.is_connected(hover_callback):
-		button.mouse_entered.connect(hover_callback)
-
-
-func _on_button_hovered(button: BaseButton) -> void:
-	if button == null or not is_instance_valid(button):
-		return
-	var now_msec: int = Time.get_ticks_msec()
-	if now_msec - _last_hover_msec < 45:
-		return
-	_last_hover_msec = now_msec
-	if button.disabled:
-		play_sfx("map_locked" if button is MapNodeButton else "ui_disabled", 0.94, -8.0)
-	elif button is MapNodeButton:
-		play_sfx("map_hover", 1.0, -8.0)
-	elif button.tooltip_text != "":
-		play_sfx("ui_tooltip", 1.0, -9.0)
-	else:
-		play_sfx("ui_hover", 1.0, -9.0)
 
 
 func _on_language_changed(_language_code: String) -> void:
