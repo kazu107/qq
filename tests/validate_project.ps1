@@ -243,6 +243,32 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/SfxLabSmoke.tscn"
     )
+    Write-Host "[19b/31] Validating normalized SFX assets"
+    $nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
+    if ($null -eq $nodeCommand) {
+        Add-Error "node.exe was not found; SFX asset validation could not run."
+    }
+    else {
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        $sfxOutputLines = & $nodeCommand.Source (Join-Path $root "tools\validate_sfx.mjs") 2>&1
+        $sfxExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $previousErrorActionPreference
+        $sfxOutput = ($sfxOutputLines | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                $_.Exception.Message
+            }
+            else {
+                $_.ToString()
+            }
+        }) -join [Environment]::NewLine
+        if ($sfxExitCode -ne 0) {
+            Add-Error "SFX asset validation failed.`n$sfxOutput"
+        }
+        elseif (-not [string]::IsNullOrWhiteSpace($sfxOutput)) {
+            Write-Host $sfxOutput.TrimEnd()
+        }
+    }
     Invoke-GodotCheck "[20/31] Running event system smoke" $godotExe @(
         "--no-header",
         "--headless",

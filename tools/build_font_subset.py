@@ -12,6 +12,9 @@ from pathlib import Path
 from fontTools import subset
 from fontTools.ttLib import TTFont
 
+TEXT_RESOURCE_SUFFIXES = {".cfg", ".gd", ".godot", ".json", ".tres", ".tscn"}
+DEFAULT_SCAN_ROOTS = (Path("data"), Path("src"), Path("scenes"))
+
 
 def _collect_strings(value: object, characters: set[str]) -> None:
     if isinstance(value, str):
@@ -37,11 +40,24 @@ def main() -> None:
         type=Path,
         default=Path("assets/fonts/NotoSansJP-GameSubset.ttf"),
     )
+    parser.add_argument(
+        "--scan-root",
+        type=Path,
+        action="append",
+        help="Additional runtime text root. Defaults to data, src, and scenes.",
+    )
     args = parser.parse_args()
 
     localized_data = json.loads(args.localization.read_text(encoding="utf-8"))
     characters = set(string.printable)
     _collect_strings(localized_data, characters)
+    scan_roots = args.scan_root or list(DEFAULT_SCAN_ROOTS)
+    for scan_root in scan_roots:
+        if not scan_root.exists():
+            continue
+        for text_path in scan_root.rglob("*"):
+            if text_path.is_file() and text_path.suffix.lower() in TEXT_RESOURCE_SUFFIXES:
+                characters.update(text_path.read_text(encoding="utf-8"))
 
     options = subset.Options()
     options.layout_features = ["*"]
@@ -57,6 +73,15 @@ def main() -> None:
     subsetter = subset.Subsetter(options=options)
     subsetter.populate(text="".join(sorted(characters)))
     subsetter.subset(font)
+
+    missing_characters = sorted(
+        character
+        for character in characters
+        if not character.isspace() and ord(character) not in font.getBestCmap()
+    )
+    if missing_characters:
+        missing_preview = "".join(missing_characters[:40])
+        raise RuntimeError(f"Source font is missing required characters: {missing_preview}")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     temporary_output = args.output.with_suffix(".tmp.ttf")

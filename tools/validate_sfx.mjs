@@ -18,7 +18,10 @@ const errors = [];
 const seen = new Set();
 let minimumDuration = Number.POSITIVE_INFINITY;
 let maximumDuration = 0;
-let minimumRms = Number.POSITIVE_INFINITY;
+let minimumRmsDb = Number.POSITIVE_INFINITY;
+let maximumRmsDb = Number.NEGATIVE_INFINITY;
+let maximumPeakDb = Number.NEGATIVE_INFINITY;
+const rmsDbValues = [];
 
 if (catalog.length !== 124) {
   errors.push(`Expected 124 shared catalog entries, got ${catalog.length}`);
@@ -60,12 +63,33 @@ for (const id of expectedIds) {
     if (metrics.peak < 64 || metrics.rms < 8) {
       errors.push(`${id}: silent or near-silent audio (peak=${metrics.peak}, rms=${metrics.rms.toFixed(2)})`);
     }
+    const rmsDb = linearToDb(metrics.rms / 32768);
+    const peakDb = linearToDb(metrics.peak / 32768);
+    if (rmsDb < -25.0 || rmsDb > -17.25) {
+      errors.push(`${id}: normalized RMS is out of range (${rmsDb.toFixed(2)} dBFS)`);
+    }
+    if (peakDb > -1.25) {
+      errors.push(`${id}: normalized peak is too high (${peakDb.toFixed(2)} dBFS)`);
+    }
     minimumDuration = Math.min(minimumDuration, metrics.duration);
     maximumDuration = Math.max(maximumDuration, metrics.duration);
-    minimumRms = Math.min(minimumRms, metrics.rms);
+    minimumRmsDb = Math.min(minimumRmsDb, rmsDb);
+    maximumRmsDb = Math.max(maximumRmsDb, rmsDb);
+    maximumPeakDb = Math.max(maximumPeakDb, peakDb);
+    rmsDbValues.push(rmsDb);
   } catch (error) {
     errors.push(`${id}: ${error.message}`);
   }
+}
+
+rmsDbValues.sort((a, b) => a - b);
+const fifthPercentileRmsDb = percentile(rmsDbValues, 0.05);
+const ninetyFifthPercentileRmsDb = percentile(rmsDbValues, 0.95);
+if (ninetyFifthPercentileRmsDb - fifthPercentileRmsDb > 5.0) {
+  errors.push(
+    `SFX loudness spread is too wide: p05=${fifthPercentileRmsDb.toFixed(2)} dBFS, ` +
+      `p95=${ninetyFifthPercentileRmsDb.toFixed(2)} dBFS`,
+  );
 }
 
 if (errors.length > 0) {
@@ -76,7 +100,9 @@ if (errors.length > 0) {
 console.log(
   `SFX validation passed: ${expectedIds.length} WAV files, ` +
     `${minimumDuration.toFixed(2)}-${maximumDuration.toFixed(2)} s, ` +
-    `minimum RMS ${minimumRms.toFixed(2)}`,
+    `RMS ${minimumRmsDb.toFixed(2)}..${maximumRmsDb.toFixed(2)} dBFS, ` +
+    `p05/p95 ${fifthPercentileRmsDb.toFixed(2)}/${ninetyFifthPercentileRmsDb.toFixed(2)} dBFS, ` +
+    `maximum peak ${maximumPeakDb.toFixed(2)} dBFS`,
 );
 
 function inspectWav(wavPath) {
@@ -128,4 +154,13 @@ function inspectWav(wavPath) {
   const duration = sampleCount / (format.sampleRate * format.channels);
   const rms = Math.sqrt(squareSum / Math.max(1, sampleCount));
   return { ...format, duration, peak, rms };
+}
+
+function linearToDb(value) {
+  return 20 * Math.log10(Math.max(Number.EPSILON, value));
+}
+
+function percentile(values, ratio) {
+  if (values.length === 0) return Number.NaN;
+  return values[Math.floor((values.length - 1) * ratio)];
 }

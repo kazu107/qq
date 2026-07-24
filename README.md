@@ -52,6 +52,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\generate_sfx.ps1 -Forc
 node tools\validate_sfx.mjs
 ```
 
+生成スクリプトは人声を避ける条件を全モデル音へ適用し、派生音の作成後に`tools\normalize_sfx.mjs`で全WAVを共通の音量基準へ自動調整します。
+
 開発者モードを有効にすると、開発者パネルの`SE再生ラボ`から登録済みSEを検索・個別再生・連続再生できます。
 
 ## セーブ

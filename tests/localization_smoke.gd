@@ -1,5 +1,19 @@
 extends Node
 
+const RUNTIME_TEXT_ROOTS: Array[String] = [
+	"res://data",
+	"res://scenes",
+	"res://src",
+]
+const RUNTIME_TEXT_EXTENSIONS: Array[String] = [
+	"cfg",
+	"gd",
+	"godot",
+	"json",
+	"tres",
+	"tscn",
+]
+
 var _failed: bool = false
 var _original_language: String = Localization.DEFAULT_LANGUAGE
 
@@ -77,25 +91,40 @@ func _verify_japanese_font_coverage() -> bool:
 		_fail("Localization smoke failed: game theme did not define an embedded font")
 		return false
 
-	var translation_file: FileAccess = FileAccess.open(Localization.LANGUAGE_PATHS["ja"], FileAccess.READ)
-	if translation_file == null:
-		_fail("Localization smoke failed: Japanese translation file could not be opened")
-		return false
-	var parsed_data: Variant = JSON.parse_string(translation_file.get_as_text())
-	if typeof(parsed_data) != TYPE_DICTIONARY:
-		_fail("Localization smoke failed: Japanese translation file was not a JSON object")
+	for root_path: String in RUNTIME_TEXT_ROOTS:
+		if not _verify_directory_font_coverage(game_font, root_path):
+			return false
+	return true
+
+
+func _verify_directory_font_coverage(game_font: Font, root_path: String) -> bool:
+	var directory: DirAccess = DirAccess.open(root_path)
+	if directory == null:
+		_fail("Localization smoke failed: runtime text directory could not be opened: %s" % root_path)
 		return false
 
-	var translation_table: Dictionary = Dictionary(parsed_data)
-	for raw_value in translation_table.values():
-		if typeof(raw_value) != TYPE_STRING:
+	for file_name: String in directory.get_files():
+		var extension: String = file_name.get_extension().to_lower()
+		if not RUNTIME_TEXT_EXTENSIONS.has(extension):
 			continue
-		var translated_text: String = String(raw_value)
-		for character_index in translated_text.length():
-			var codepoint: int = translated_text.unicode_at(character_index)
+		var file_path: String = root_path.path_join(file_name)
+		var text_file: FileAccess = FileAccess.open(file_path, FileAccess.READ)
+		if text_file == null:
+			_fail("Localization smoke failed: runtime text file could not be opened: %s" % file_path)
+			return false
+		var runtime_text: String = text_file.get_as_text()
+		for character_index: int in runtime_text.length():
+			var codepoint: int = runtime_text.unicode_at(character_index)
 			if _is_japanese_codepoint(codepoint) and not game_font.has_char(codepoint):
-				_fail("Localization smoke failed: embedded font is missing U+%04X" % codepoint)
+				_fail(
+					"Localization smoke failed: embedded font is missing U+%04X used by %s"
+					% [codepoint, file_path]
+				)
 				return false
+
+	for directory_name: String in directory.get_directories():
+		if not _verify_directory_font_coverage(game_font, root_path.path_join(directory_name)):
+			return false
 	return true
 
 

@@ -8,7 +8,8 @@ param(
     [switch]$SkipModelGeneration,
     [switch]$SkipShared,
     [switch]$SkipCards,
-    [switch]$SkipRelics
+    [switch]$SkipRelics,
+    [switch]$SkipNormalization
 )
 
 $ErrorActionPreference = "Stop"
@@ -85,13 +86,14 @@ function Invoke-ModelGeneration($entry) {
 
     $seconds = [double]$entry.seconds
     $seed = [int]$entry.seed
+    $prompt = "$([string]$entry.prompt), pure non-vocal sound design, no human or synthetic voice, no speech-like syllables"
     Write-Host "[shared model] $($entry.id)"
-    & $GeneratorPath ([string]$entry.prompt) $outputPath `
+    & $GeneratorPath $prompt $outputPath `
         --seconds (Format-Number $seconds) `
         --steps $Steps `
         --seed $seed `
         --cfg-scale 4.2 `
-        --negative "music, melody, vocals, voice, speech, narration, long ambience, excessive reverb, clipping"
+        --negative "human voice, synthetic voice, speech, spoken words, whispering, chanting, vocals, breathing, crowd, music, melody, narration, long ambience, excessive reverb, clipping"
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $outputPath)) {
         throw "Model generation failed: $($entry.id)"
     }
@@ -336,4 +338,11 @@ if (-not $SkipRelics) {
 }
 
 $wavCount = @(Get-ChildItem -LiteralPath $AudioRoot -Filter "*.wav" -File).Count
+if (-not $SkipNormalization) {
+    Write-Host "[normalize] Matching SFX loudness"
+    & node (Join-Path $PSScriptRoot "normalize_sfx.mjs")
+    if ($LASTEXITCODE -ne 0) {
+        throw "SFX normalization failed."
+    }
+}
 Write-Host "SFX generation complete: $wavCount WAV files"
