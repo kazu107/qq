@@ -36,6 +36,7 @@ var arena_pending_special_rewards: Array[Dictionary] = []
 var arena_shop_discount_stacks: int = 0
 var arena_timing_discount_stacks: int = 0
 var arena_initial_gold: int = 70
+var arena_match_gold: int = 50
 var arena_initial_max_hp: int = 0
 var arena_special_reward_interval: int = 3
 var arena_shop_price_percent: int = 100
@@ -80,6 +81,7 @@ static func from_starter(starter_data: Dictionary, seed_override: int = 0) -> Ru
 	run_state.arena_shop_discount_stacks = 0
 	run_state.arena_timing_discount_stacks = 0
 	run_state.arena_initial_gold = 70
+	run_state.arena_match_gold = 50
 	run_state.arena_initial_max_hp = run_state.max_hp
 	run_state.arena_special_reward_interval = 3
 	run_state.arena_shop_price_percent = 100
@@ -127,6 +129,7 @@ static func from_dict(data: Dictionary) -> RunState:
 	run_state.arena_shop_discount_stacks = maxi(0, int(data.get("arena_shop_discount_stacks", 0)))
 	run_state.arena_timing_discount_stacks = maxi(0, int(data.get("arena_timing_discount_stacks", 0)))
 	run_state.arena_initial_gold = maxi(0, int(data.get("arena_initial_gold", 70)))
+	run_state.arena_match_gold = maxi(0, int(data.get("arena_match_gold", 50)))
 	run_state.arena_initial_max_hp = maxi(1, int(data.get("arena_initial_max_hp", run_state.max_hp)))
 	run_state.arena_special_reward_interval = maxi(1, int(data.get("arena_special_reward_interval", 3)))
 	run_state.arena_shop_price_percent = maxi(1, int(data.get("arena_shop_price_percent", 100)))
@@ -172,6 +175,7 @@ func to_dict() -> Dictionary:
 		"arena_shop_discount_stacks": arena_shop_discount_stacks,
 		"arena_timing_discount_stacks": arena_timing_discount_stacks,
 		"arena_initial_gold": arena_initial_gold,
+		"arena_match_gold": arena_match_gold,
 		"arena_initial_max_hp": arena_initial_max_hp,
 		"arena_special_reward_interval": arena_special_reward_interval,
 		"arena_shop_price_percent": arena_shop_price_percent,

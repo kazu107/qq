@@ -33,6 +33,7 @@ func _test_custom_arena_rules() -> void:
 		Database.get_all_relic_ids(),
 		{
 			"initial_gold": 123,
+			"match_gold": 91,
 			"initial_max_hp": 88,
 			"special_reward_interval": 2,
 			"shop_price_percent": 150,
@@ -41,6 +42,7 @@ func _test_custom_arena_rules() -> void:
 		}
 	)
 	_expect(run_state.gold == 123, "Custom starting gold was not applied")
+	_expect(run_state.arena_match_gold == 91, "Custom base match gold was not applied")
 	_expect(run_state.max_hp == 88 and run_state.player_hp == 88, "Custom starting max HP was not applied")
 	_expect(
 		_arena_service.get_card_offers(run_state).size() + _arena_service.get_relic_offers(run_state).size() == 7,
@@ -57,6 +59,24 @@ func _test_custom_arena_rules() -> void:
 	)
 	_expect(run_state.gold == gold_before_reroll - 13, "Custom reroll cost was not applied")
 	_expect(int(_arena_service.build_status(run_state).get("reroll_cost", -1)) == 13, "Custom reroll cost was not exposed to the UI")
+	var reward_run: RunState = RunState.from_starter(Database.get_starter("balanced"), 904)
+	_arena_service.configure_run(
+		reward_run,
+		Database.get_all_card_ids(),
+		Database.get_all_relic_ids(),
+		{"match_gold": 91}
+	)
+	var reward_result: Dictionary = _arena_service.apply_battle_result(
+		reward_run,
+		{"winner": "enemy"},
+		Database.get_all_card_ids(),
+		Database.get_all_relic_ids()
+	)
+	_expect(
+		int(reward_result.get("reward_gold", 0))
+		== 91 + ArenaService.MATCH_GOLD_PER_TIER + ArenaService.MATCH_GOLD_PER_ROUND,
+		"Custom base match gold was not used by the reward calculation"
+	)
 
 	var early_run: RunState = RunState.from_starter(Database.get_starter("balanced"), 902)
 	_arena_service.configure_run(early_run, Database.get_all_card_ids(), Database.get_all_relic_ids(), {"special_reward_interval": 2})
@@ -258,6 +278,7 @@ func _test_run_state_round_trip() -> void:
 	run_state.arena_timing_discount_stacks = 3
 	run_state.arena_pending_special_rewards = [{"id": "round_trip", "kind": "special_loadout_limit", "special": true}]
 	run_state.arena_initial_gold = 123
+	run_state.arena_match_gold = 91
 	run_state.arena_initial_max_hp = 88
 	run_state.arena_special_reward_interval = 2
 	run_state.arena_shop_price_percent = 150
@@ -268,6 +289,7 @@ func _test_run_state_round_trip() -> void:
 	_expect(restored.arena_timing_discount_stacks == 3, "Timing discount stacks were not saved")
 	_expect(restored.arena_pending_special_rewards == run_state.arena_pending_special_rewards, "Pending special rewards were not saved")
 	_expect(restored.arena_initial_gold == 123 and restored.arena_initial_max_hp == 88, "Custom starting resources were not saved")
+	_expect(restored.arena_match_gold == 91, "Custom base match gold was not saved")
 	_expect(restored.arena_special_reward_interval == 2, "Custom special reward interval was not saved")
 	_expect(restored.arena_shop_price_percent == 150, "Custom shop multiplier was not saved")
 	_expect(restored.arena_reroll_cost == 13 and restored.arena_shop_offer_count == 7, "Custom shop rules were not saved")

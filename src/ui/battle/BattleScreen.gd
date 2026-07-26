@@ -635,7 +635,7 @@ func _refresh_round_results_overlay() -> void:
 		var enemy_name: String = String(result.get("enemy_name", "Opponent"))
 		var status: String = String(result.get("status", "running"))
 		if status != "finished":
-			lines.append("[color=#9db2bc]● %s  vs  %s[/color]  [color=#f1b84b]%s[/color]" % [
+			lines.append("[color=#9db2bc]%s  vs  %s[/color]  [color=#f1b84b]%s[/color]" % [
 				player_name,
 				enemy_name,
 				Localization.get_text("online.round_results.in_progress", "IN PROGRESS"),
@@ -647,7 +647,7 @@ func _refresh_round_results_overlay() -> void:
 			winner_text = player_name
 		elif winner == "enemy":
 			winner_text = enemy_name
-		lines.append("[color=#61f0a0]✓ %s[/color]  [color=#d8e4e9]%d/%d  vs  %d/%d[/color]\n   %s: [color=#ffd35f]%s[/color]  |  %.1fs" % [
+		lines.append("[color=#61f0a0]%s[/color]  [color=#d8e4e9]%d/%d  vs  %d/%d[/color]\n   %s: [color=#ffd35f]%s[/color]  |  %.1fs" % [
 			"%s  vs  %s" % [player_name, enemy_name],
 			int(result.get("player_hp", 0)),
 			maxi(1, int(result.get("player_max_hp", 1))),

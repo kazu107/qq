@@ -12,7 +12,7 @@ const REROLL_COST: int = 8
 const SPECIAL_REWARD_INTERVAL: int = 3
 const SPECIAL_REWARD_OPTION_COUNT: int = 3
 const STACKING_DISCOUNT_MULTIPLIER: float = 0.9
-const MATCH_GOLD_BASE: int = 24
+const MATCH_GOLD_BASE: int = 50
 const MATCH_GOLD_PER_TIER: int = 5
 const MATCH_GOLD_PER_ROUND: int = 2
 
@@ -29,6 +29,7 @@ func configure_run(
 	if run_state == null:
 		return
 	run_state.arena_initial_gold = maxi(0, int(rules.get("initial_gold", INITIAL_GOLD)))
+	run_state.arena_match_gold = maxi(0, int(rules.get("match_gold", MATCH_GOLD_BASE)))
 	run_state.arena_initial_max_hp = maxi(1, int(rules.get("initial_max_hp", run_state.max_hp)))
 	run_state.arena_special_reward_interval = maxi(1, int(rules.get("special_reward_interval", SPECIAL_REWARD_INTERVAL)))
 	run_state.arena_shop_price_percent = clampi(int(rules.get("shop_price_percent", 100)), 1, 500)
@@ -240,7 +241,7 @@ func apply_battle_result(
 	var reward_round: int = maxi(1, run_state.arena_round)
 	var reward_tier: int = 1 + int(floor(float(reward_round) / 3.0))
 	var reward_gold: int = (
-		MATCH_GOLD_BASE
+		run_state.arena_match_gold
 		+ reward_tier * MATCH_GOLD_PER_TIER
 		+ reward_round * MATCH_GOLD_PER_ROUND
 		+ maxi(0, int(summary.get("relic_bonus_gold", 0)))

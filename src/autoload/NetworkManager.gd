@@ -43,6 +43,8 @@ const ONLINE_MIN_TARGET_WINS: int = 1
 const ONLINE_MAX_TARGET_WINS: int = 20
 const ONLINE_MIN_INITIAL_GOLD: int = 0
 const ONLINE_MAX_INITIAL_GOLD: int = 500
+const ONLINE_MIN_MATCH_GOLD: int = 0
+const ONLINE_MAX_MATCH_GOLD: int = 500
 const ONLINE_MIN_INITIAL_MAX_HP: int = 20
 const ONLINE_MAX_INITIAL_MAX_HP: int = 200
 const ONLINE_MIN_SPECIAL_REWARD_INTERVAL: int = 1
@@ -121,6 +123,7 @@ var _web_directory: WebRtcSignalingClient = WebRtcSignalingClient.new()
 var _online_rooms: Array[Dictionary] = []
 var _online_target_wins: int = ArenaService.TARGET_WINS
 var _online_initial_gold: int = ArenaService.INITIAL_GOLD
+var _online_match_gold: int = ArenaService.MATCH_GOLD_BASE
 var _online_initial_max_hp: int = ArenaService.INITIAL_MAX_HP
 var _online_special_reward_interval: int = ArenaService.SPECIAL_REWARD_INTERVAL
 var _online_shop_price_percent: int = 100
@@ -474,6 +477,7 @@ func set_online_arena_rules(rules: Dictionary) -> bool:
 		return false
 	var sanitized_rules: Dictionary = {
 		"initial_gold": clampi(int(rules.get("initial_gold", _online_initial_gold)), ONLINE_MIN_INITIAL_GOLD, ONLINE_MAX_INITIAL_GOLD),
+		"match_gold": clampi(int(rules.get("match_gold", _online_match_gold)), ONLINE_MIN_MATCH_GOLD, ONLINE_MAX_MATCH_GOLD),
 		"initial_max_hp": clampi(int(rules.get("initial_max_hp", _online_initial_max_hp)), ONLINE_MIN_INITIAL_MAX_HP, ONLINE_MAX_INITIAL_MAX_HP),
 		"special_reward_interval": clampi(int(rules.get("special_reward_interval", _online_special_reward_interval)), ONLINE_MIN_SPECIAL_REWARD_INTERVAL, ONLINE_MAX_SPECIAL_REWARD_INTERVAL),
 		"shop_price_percent": clampi(int(rules.get("shop_price_percent", _online_shop_price_percent)), ONLINE_MIN_SHOP_PRICE_PERCENT, ONLINE_MAX_SHOP_PRICE_PERCENT),
@@ -490,6 +494,7 @@ func set_online_arena_rules(rules: Dictionary) -> bool:
 func _build_online_arena_rules() -> Dictionary:
 	return {
 		"initial_gold": _online_initial_gold,
+		"match_gold": _online_match_gold,
 		"initial_max_hp": _online_initial_max_hp,
 		"special_reward_interval": _online_special_reward_interval,
 		"shop_price_percent": _online_shop_price_percent,
@@ -503,6 +508,11 @@ func _apply_online_arena_rules(rules: Dictionary) -> void:
 		int(rules.get("initial_gold", _online_initial_gold)),
 		ONLINE_MIN_INITIAL_GOLD,
 		ONLINE_MAX_INITIAL_GOLD
+	)
+	_online_match_gold = clampi(
+		int(rules.get("match_gold", _online_match_gold)),
+		ONLINE_MIN_MATCH_GOLD,
+		ONLINE_MAX_MATCH_GOLD
 	)
 	_online_initial_max_hp = clampi(
 		int(rules.get("initial_max_hp", _online_initial_max_hp)),
@@ -2882,6 +2892,7 @@ func _clear_session(clear_profile: bool) -> void:
 	_online_host_status.clear()
 	_online_target_wins = ArenaService.TARGET_WINS
 	_online_initial_gold = ArenaService.INITIAL_GOLD
+	_online_match_gold = ArenaService.MATCH_GOLD_BASE
 	_online_initial_max_hp = ArenaService.INITIAL_MAX_HP
 	_online_special_reward_interval = ArenaService.SPECIAL_REWARD_INTERVAL
 	_online_shop_price_percent = 100

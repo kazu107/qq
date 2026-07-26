@@ -65,6 +65,7 @@ func _run() -> void:
 	var create_target: SpinBox = web_lobby.find_child("OnlineTargetWinsSpin", true, false) as SpinBox
 	var lobby_target: SpinBox = web_lobby.find_child("OnlineLobbyTargetWinsSpin", true, false) as SpinBox
 	var max_players: SpinBox = web_lobby.find_child("OnlineLobbyMaxPlayersSpin", true, false) as SpinBox
+	var match_gold: SpinBox = web_lobby.find_child("OnlineMatchGoldSpin", true, false) as SpinBox
 	var spectator_check: CheckButton = web_lobby.find_child("OnlineJoinAsSpectatorCheck", true, false) as CheckButton
 	var participant_role_option: OptionButton = web_lobby.find_child("OnlineParticipantRoleOption", true, false) as OptionButton
 	var rules_grid: GridContainer = web_lobby.find_child("OnlineLobbyRulesGrid", true, false) as GridContainer
@@ -75,6 +76,7 @@ func _run() -> void:
 	var leave_button: Button = web_lobby.find_child("LanLeaveButton", true, false) as Button
 	var details_button: Button = web_lobby.find_child("OnlineMatchDetailsButton", true, false) as Button
 	var details_overlay: ColorRect = web_lobby.find_child("OnlineMatchDetailsOverlay", true, false) as ColorRect
+	var details_content: RichTextLabel = web_lobby.find_child("OnlineMatchDetailsContent", true, false) as RichTextLabel
 	if room_list == null or not room_list.visible:
 		_fail("Compatible Web rooms are not exposed in the online lobby")
 		return
@@ -82,9 +84,13 @@ func _run() -> void:
 		create_target != null
 		or lobby_target == null
 		or rules_grid == null
-		or rules_grid.get_child_count() != 8
+		or rules_grid.get_child_count() != 9
 		or max_players == null
 		or int(max_players.step) != 2
+		or match_gold == null
+		or int(match_gold.value) != ArenaService.MATCH_GOLD_BASE
+		or int(match_gold.min_value) != NetworkManager.ONLINE_MIN_MATCH_GOLD
+		or int(match_gold.max_value) != NetworkManager.ONLINE_MAX_MATCH_GOLD
 		or spectator_check == null
 		or participant_role_option == null
 		or participant_role_option.item_count != 2
@@ -107,9 +113,26 @@ func _run() -> void:
 	):
 		_fail("Lobby action buttons are still inside the scrolling content")
 		return
-	if details_button == null or details_overlay == null or details_overlay.visible:
+	if details_button == null or details_overlay == null or details_content == null or details_overlay.visible:
 		_fail("Foreground match details modal is not configured")
 		return
+	NetworkManager._public_lobby_snapshot = {
+		"arena_standings": [{"rank": 1, "name": "Alpha", "wins": 1, "losses": 0}],
+		"arena_round_results": [{
+			"status": "finished",
+			"player_name": "Alpha",
+			"enemy_name": "Beta",
+			"winner": "player",
+		}],
+		"arena_public_details": [{
+			"name": "Alpha",
+			"hp": 60,
+			"max_hp": 60,
+			"gold": 100,
+			"wins": 1,
+			"losses": 0,
+		}],
+	}
 	NetworkManager.request_arena_details_auto_open()
 	web_lobby.call("_on_arena_session_finished", {})
 	await get_tree().process_frame
@@ -117,8 +140,15 @@ func _run() -> void:
 		_fail("Match details modal did not open automatically after returning to the lobby")
 		return
 	if (
+		not details_content.text.contains("Alpha")
+		or details_content.text.contains(Localization.get_text("online.details.results", "LATEST ROUND"))
+	):
+		_fail("Match details modal still shows the latest round section")
+		return
+	if (
 		not network_source.contains('"target_wins": _online_target_wins')
 		or not network_source.contains('"arena_rules": _build_online_arena_rules()')
+		or not network_source.contains('"match_gold": _online_match_gold')
 		or not network_source.contains('arena_rules["target_wins"] = _online_target_wins')
 		or not network_source.contains("_arena_coordinator.create_run(profile, base_seed + player_index * 7919, arena_rules)")
 		or not network_source.contains("ArenaTournamentCoordinator.build_round_pairings")

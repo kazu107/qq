@@ -13,6 +13,7 @@ var _join_as_spectator_check: CheckButton
 var _lobby_max_players_spin: SpinBox
 var _lobby_target_wins_spin: SpinBox
 var _lobby_initial_gold_spin: SpinBox
+var _lobby_match_gold_spin: SpinBox
 var _lobby_initial_max_hp_spin: SpinBox
 var _lobby_special_reward_interval_spin: SpinBox
 var _lobby_shop_price_percent_spin: SpinBox
@@ -378,6 +379,13 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 		10,
 		ArenaService.INITIAL_GOLD
 	)
+	_lobby_match_gold_spin = _create_rule_control(
+		"OnlineMatchGoldSpin",
+		NetworkManager.ONLINE_MIN_MATCH_GOLD,
+		NetworkManager.ONLINE_MAX_MATCH_GOLD,
+		5,
+		ArenaService.MATCH_GOLD_BASE
+	)
 	_lobby_initial_max_hp_spin = _create_rule_control(
 		"OnlineInitialMaxHpSpin",
 		NetworkManager.ONLINE_MIN_INITIAL_MAX_HP,
@@ -416,6 +424,7 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	)
 	var additional_rule_controls: Array[SpinBox] = [
 		_lobby_initial_gold_spin,
+		_lobby_match_gold_spin,
 		_lobby_initial_max_hp_spin,
 		_lobby_special_reward_interval_spin,
 		_lobby_shop_price_percent_spin,
@@ -425,6 +434,7 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	for control in additional_rule_controls:
 		control.value_changed.connect(_on_lobby_arena_rules_changed)
 	rules_grid.add_child(_labeled_control(Localization.get_text("online.initial_gold", "Starting gold"), _lobby_initial_gold_spin))
+	rules_grid.add_child(_labeled_control(Localization.get_text("online.match_gold", "Base match gold"), _lobby_match_gold_spin))
 	rules_grid.add_child(_labeled_control(Localization.get_text("online.initial_max_hp", "Starting max HP"), _lobby_initial_max_hp_spin))
 	rules_grid.add_child(_labeled_control(Localization.get_text("online.special_reward_interval", "Special reward interval"), _lobby_special_reward_interval_spin))
 	rules_grid.add_child(_labeled_control(Localization.get_text("online.shop_price_percent", "Shop price multiplier"), _lobby_shop_price_percent_spin))
@@ -538,6 +548,7 @@ func _build_details_overlay() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	content.add_child(scroll)
 	_details_content = RichTextLabel.new()
+	_details_content.name = "OnlineMatchDetailsContent"
 	_details_content.bbcode_enabled = true
 	_details_content.fit_content = true
 	_details_content.scroll_active = false
@@ -596,6 +607,7 @@ func _refresh_all() -> void:
 	_lobby_target_wins_spin.set_value_no_signal(float(NetworkManager.get_online_target_wins()))
 	var arena_rules: Dictionary = NetworkManager.get_online_arena_rules()
 	_lobby_initial_gold_spin.set_value_no_signal(float(arena_rules.get("initial_gold", ArenaService.INITIAL_GOLD)))
+	_lobby_match_gold_spin.set_value_no_signal(float(arena_rules.get("match_gold", ArenaService.MATCH_GOLD_BASE)))
 	_lobby_initial_max_hp_spin.set_value_no_signal(float(arena_rules.get("initial_max_hp", ArenaService.INITIAL_MAX_HP)))
 	_lobby_special_reward_interval_spin.set_value_no_signal(float(arena_rules.get("special_reward_interval", ArenaService.SPECIAL_REWARD_INTERVAL)))
 	_lobby_shop_price_percent_spin.set_value_no_signal(float(arena_rules.get("shop_price_percent", 100)))
@@ -605,6 +617,7 @@ func _refresh_all() -> void:
 		_lobby_max_players_spin,
 		_lobby_target_wins_spin,
 		_lobby_initial_gold_spin,
+		_lobby_match_gold_spin,
 		_lobby_initial_max_hp_spin,
 		_lobby_special_reward_interval_spin,
 		_lobby_shop_price_percent_spin,
@@ -805,7 +818,6 @@ func _refresh_details_modal() -> void:
 		return
 	var snapshot: Dictionary = NetworkManager.get_lobby_snapshot()
 	var standings: Array[Dictionary] = _dictionary_array(snapshot.get("arena_standings", []))
-	var results: Array[Dictionary] = _dictionary_array(snapshot.get("arena_round_results", []))
 	var details: Array[Dictionary] = _dictionary_array(snapshot.get("arena_public_details", []))
 	if details.is_empty():
 		details = NetworkManager.get_arena_public_details()
@@ -821,37 +833,6 @@ func _refresh_details_modal() -> void:
 				String(standing.get("name", "Player")),
 				int(standing.get("wins", 0)),
 				int(standing.get("losses", 0)),
-			])
-	if not results.is_empty():
-		lines.append("\n[font_size=22][color=#a8e8ff]%s[/color][/font_size]" % Localization.get_text(
-			"online.details.results",
-			"LATEST ROUND"
-		))
-		for result in results:
-			var player_name: String = String(result.get("player_name", "Player"))
-			var enemy_name: String = String(result.get("enemy_name", "Opponent"))
-			if String(result.get("status", "running")) != "finished":
-				lines.append("• %s vs %s  [color=#f3bc52]%s[/color]" % [
-					player_name,
-					enemy_name,
-					Localization.get_text("online.round_results.in_progress", "IN PROGRESS"),
-				])
-				continue
-			var winner: String = String(result.get("winner", "draw"))
-			var winner_name: String = Localization.get_text("battle.result.draw", "Draw")
-			if winner == "player":
-				winner_name = player_name
-			elif winner == "enemy":
-				winner_name = enemy_name
-			lines.append("• %s %d/%d  vs  %s %d/%d  |  %s: [color=#ffd35f]%s[/color]" % [
-				player_name,
-				int(result.get("player_hp", 0)),
-				maxi(1, int(result.get("player_max_hp", 1))),
-				enemy_name,
-				int(result.get("enemy_hp", 0)),
-				maxi(1, int(result.get("enemy_max_hp", 1))),
-				Localization.get_text("online.round_results.winner", "Winner"),
-				winner_name,
 			])
 	if not details.is_empty():
 		lines.append("\n[font_size=22][color=#a8e8ff]%s[/color][/font_size]" % Localization.get_text(
@@ -1043,6 +1024,7 @@ func _on_lobby_arena_rules_changed(_value: float) -> void:
 		return
 	NetworkManager.set_online_arena_rules({
 		"initial_gold": int(_lobby_initial_gold_spin.value),
+		"match_gold": int(_lobby_match_gold_spin.value),
 		"initial_max_hp": int(_lobby_initial_max_hp_spin.value),
 		"special_reward_interval": int(_lobby_special_reward_interval_spin.value),
 		"shop_price_percent": int(_lobby_shop_price_percent_spin.value),
