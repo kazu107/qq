@@ -6,6 +6,7 @@ func _ready() -> void:
 
 
 func _run() -> void:
+	NetworkManager._arena_details_auto_open_pending = false
 	if not Game.WEB_MULTIPLAYER_ENABLED:
 		_fail("Web multiplayer feature flag is disabled")
 		return
@@ -108,6 +109,12 @@ func _run() -> void:
 		return
 	if details_button == null or details_overlay == null or details_overlay.visible:
 		_fail("Foreground match details modal is not configured")
+		return
+	NetworkManager.request_arena_details_auto_open()
+	web_lobby.call("_on_arena_session_finished", {})
+	await get_tree().process_frame
+	if not details_overlay.visible or NetworkManager.consume_arena_details_auto_open_request():
+		_fail("Match details modal did not open automatically after returning to the lobby")
 		return
 	if (
 		not network_source.contains('"target_wins": _online_target_wins')

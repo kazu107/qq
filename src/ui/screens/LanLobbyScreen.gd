@@ -69,11 +69,14 @@ func _ready() -> void:
 		NetworkManager.start_online_room_directory()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+	var auto_open_details: bool = NetworkManager.consume_arena_details_auto_open_request()
 	if NetworkManager.is_lan_arena_session_active():
 		if NetworkManager.has_active_match() or NetworkManager.is_local_waiting_for_round_results():
 			call_deferred("_open_battle_scene")
 		elif not NetworkManager.is_local_spectator():
 			call_deferred("_open_arena_scene")
+	if auto_open_details:
+		call_deferred("_show_details_overlay")
 
 
 func _exit_tree() -> void:
@@ -562,6 +565,8 @@ func _connect_network_signals() -> void:
 		NetworkManager.arena_preparation_changed.connect(_on_arena_preparation_changed)
 	if not NetworkManager.match_finished.is_connected(_on_match_finished):
 		NetworkManager.match_finished.connect(_on_match_finished)
+	if not NetworkManager.arena_session_finished.is_connected(_on_arena_session_finished):
+		NetworkManager.arena_session_finished.connect(_on_arena_session_finished)
 	if not NetworkManager.session_ended.is_connected(_on_session_ended):
 		NetworkManager.session_ended.connect(_on_session_ended)
 	if not NetworkManager.online_host_status_changed.is_connected(_on_online_host_status_changed):
@@ -781,9 +786,13 @@ func _refresh_last_result() -> void:
 
 
 func _on_details_pressed() -> void:
+	_show_details_overlay()
+	AudioManager.play_sfx("ui_toggle")
+
+
+func _show_details_overlay() -> void:
 	_refresh_details_modal()
 	_details_overlay.visible = true
-	AudioManager.play_sfx("ui_toggle")
 
 
 func _on_details_close_pressed() -> void:
@@ -1156,6 +1165,13 @@ func _string_array(value: Variant) -> Array[String]:
 
 
 func _on_match_finished(_result: Dictionary) -> void:
+	_refresh_all()
+
+
+func _on_arena_session_finished(_result: Dictionary) -> void:
+	_opening_battle = false
+	if NetworkManager.consume_arena_details_auto_open_request():
+		call_deferred("_show_details_overlay")
 	_refresh_all()
 
 

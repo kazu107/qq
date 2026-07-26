@@ -91,8 +91,78 @@ func _run() -> void:
 	battle.queue_free()
 	await get_tree().process_frame
 	NetworkManager._clear_session(false)
+	await _test_player_result_colors()
 	print("Spectator battle smoke passed: read-only battle view")
 	get_tree().quit()
+
+
+func _test_player_result_colors() -> void:
+	var first_profile: Dictionary = LanProtocol.build_profile("Alpha", "balanced")
+	var second_profile: Dictionary = LanProtocol.build_profile("Beta", "tempo")
+	var first_run: RunState = LanProtocol.profile_to_run(first_profile, 3301)
+	var second_run: RunState = LanProtocol.profile_to_run(second_profile, 4402)
+	NetworkManager._is_host = true
+	NetworkManager._session_scope = NetworkManager.SESSION_SCOPE_ONLINE
+	NetworkManager._local_participant_role = LanProtocol.ROLE_PLAYER
+	NetworkManager._arena_session_active = true
+	NetworkManager._arena_session_id = "result-color-arena"
+	NetworkManager._arena_phase = "round_result"
+	NetworkManager._match_payload = {
+		"protocol_version": LanProtocol.PROTOCOL_VERSION,
+		"content_hash": LanProtocol.build_content_hash(),
+		"match_id": "result-color-match",
+		"player_run": first_run.to_dict(),
+		"enemy_run": second_run.to_dict(),
+		"player_name": "Alpha",
+		"enemy_name": "Beta",
+		"arena_session_id": "result-color-arena",
+		"parallel_round": true,
+		"peer_sides": {"1": "player", "2": "enemy"},
+	}
+	NetworkManager._match_active = false
+	NetworkManager._last_match_result = {
+		"match_id": "result-color-match",
+		"winner": "player",
+	}
+	NetworkManager._arena_round_results = [
+		{
+			"match_id": "result-color-match",
+			"player_name": "Alpha",
+			"enemy_name": "Beta",
+			"status": "finished",
+			"winner": "player",
+			"player_hp": 28,
+			"player_max_hp": 60,
+			"enemy_hp": 0,
+			"enemy_max_hp": 60,
+		},
+	]
+	NetworkManager._arena_round_results_complete = true
+
+	var battle: Control = load("res://scenes/battle/Battle.tscn").instantiate() as Control
+	add_child(battle)
+	await get_tree().process_frame
+	var outcome: Label = battle.find_child("ArenaRoundResultsOutcome", true, false) as Label
+	if (
+		outcome == null
+		or not outcome.visible
+		or outcome.text != Localization.get_text("online.round_results.local_win", "VICTORY")
+		or not outcome.get_theme_color("font_color").is_equal_approx(Color(0.30, 1.0, 0.62, 1.0))
+	):
+		_fail("Local victory was not displayed in green")
+		return
+
+	NetworkManager._last_match_result["winner"] = "enemy"
+	battle.call("_refresh_round_results_overlay")
+	if (
+		outcome.text != Localization.get_text("online.round_results.local_loss", "DEFEAT")
+		or not outcome.get_theme_color("font_color").is_equal_approx(Color(1.0, 0.36, 0.32, 1.0))
+	):
+		_fail("Local defeat was not displayed in red")
+		return
+	battle.queue_free()
+	await get_tree().process_frame
+	NetworkManager._clear_session(false)
 
 
 func _fail(message: String) -> void:

@@ -130,6 +130,8 @@ func _test_parallel_round_isolation() -> void:
 
 	var untouched_two_hp: int = (runs[2] as RunState).player_hp
 	var untouched_three_hp: int = (runs[3] as RunState).player_hp
+	var first_winner_gold_before: int = (runs[1] as RunState).gold
+	var first_loser_gold_before: int = (runs[4] as RunState).gold
 	first_engine.battle_state.player.hp = 37
 	first_engine.battle_state.enemy.hp = 0
 	first_engine.battle_state.winner = "player"
@@ -137,6 +139,12 @@ func _test_parallel_round_isolation() -> void:
 	_expect(NetworkManager._finish_parallel_match("m1"), "First parallel result was rejected")
 	_expect((runs[1] as RunState).arena_wins == 1, "First match winner did not receive a win")
 	_expect((runs[4] as RunState).arena_losses == 1, "First match loser did not receive a loss")
+	_expect((runs[4] as RunState).player_hp == (runs[4] as RunState).max_hp, "First match loser was not fully healed")
+	_expect(
+		(runs[1] as RunState).gold - first_winner_gold_before
+		== (runs[4] as RunState).gold - first_loser_gold_before,
+		"First match participants did not receive equal base gold"
+	)
 	_expect((runs[2] as RunState).arena_wins == 0 and (runs[2] as RunState).arena_losses == 0, "Other pairing received the first result")
 	_expect((runs[3] as RunState).arena_wins == 0 and (runs[3] as RunState).arena_losses == 0, "Other pairing received the first result")
 	_expect((runs[2] as RunState).player_hp == untouched_two_hp and (runs[3] as RunState).player_hp == untouched_three_hp, "Other pairing HP was overwritten")
@@ -199,6 +207,7 @@ func _test_participant_statuses() -> void:
 	_expect(participants.size() == 2, "Preparation participants were omitted")
 	_expect(not bool(participants[0].get("ready", true)), "Preparing participant state was invalid")
 	_expect(bool(participants[1].get("ready", false)), "Ready participant state was invalid")
+	_expect(int(participants[0].get("target_wins", 0)) == ArenaService.TARGET_WINS, "Participant target wins were omitted")
 	NetworkManager._arena_standings.clear()
 	NetworkManager._arena_ready_by_peer.clear()
 
@@ -214,6 +223,9 @@ func _test_preparation_roster_ui() -> void:
 		1: coordinator.create_run(Dictionary(profiles[1]), 101),
 		2: coordinator.create_run(Dictionary(profiles[2]), 202),
 	}
+	NetworkManager._online_target_wins = 3
+	(runs[1] as RunState).arena_target_wins = 3
+	(runs[2] as RunState).arena_target_wins = 3
 	(runs[1] as RunState).arena_wins = 2
 	(runs[2] as RunState).arena_wins = 1
 	(runs[2] as RunState).arena_losses = 1
@@ -235,10 +247,19 @@ func _test_preparation_roster_ui() -> void:
 	var loadout_body: VBoxContainer = arena.find_child("ArenaLoadoutPanelBody", true, false) as VBoxContainer
 	var participants_body: VBoxContainer = arena.find_child("ArenaParticipantsPanelBody", true, false) as VBoxContainer
 	var participants_list: VBoxContainer = arena.find_child("ArenaParticipantsList", true, false) as VBoxContainer
+	var participants_title: Label = arena.find_child("ArenaParticipantsTitle", true, false) as Label
+	var match_point_label: Label = arena.find_child("ArenaMatchPointLabel", true, false) as Label
 	var preparing_label: Label = arena.find_child("ArenaParticipantReady_1", true, false) as Label
 	var ready_label: Label = arena.find_child("ArenaParticipantReady_2", true, false) as Label
 	_expect(status_label != null and not status_label.visible, "Legacy preparation score and readiness text remained visible")
 	_expect(participants_list != null and participants_list.get_child_count() == 2, "Preparation roster did not show every player")
+	_expect(participants_title != null and participants_title.text.contains("3"), "Preparation roster omitted the first-to-X rule")
+	_expect(
+		match_point_label != null
+		and match_point_label.visible
+		and match_point_label.text == Localization.get_textf("online.arena.match_point", "{player} MATCH POINT!", {"player": "Alpha"}),
+		"Preparation roster did not identify the match-point player"
+	)
 	_expect(loadout_body != null and participants_body != null and participants_body.get_parent().get_parent().get_index() > loadout_body.get_parent().get_parent().get_index(), "Preparation roster was not placed to the right of the loadout")
 	_expect(preparing_label != null and preparing_label.get_theme_color("font_color").is_equal_approx(Color(1.0, 0.78, 0.28, 1.0)), "Preparing state was not yellow")
 	_expect(ready_label != null and ready_label.get_theme_color("font_color").is_equal_approx(Color(0.30, 1.0, 0.62, 1.0)), "Ready state was not green")

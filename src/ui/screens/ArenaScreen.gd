@@ -18,6 +18,8 @@ var _deck_panel: CardHandPanel
 var _inventory_box: VBoxContainer
 var _relic_row: RelicIconRow
 var _participants_box: VBoxContainer
+var _participants_title_label: Label
+var _match_point_label: Label
 var _reroll_button: Button
 var _abandon_button: Button
 var _start_battle_button: Button
@@ -263,13 +265,21 @@ func _build_loadout_panel(parent: Control) -> void:
 
 
 func _build_participant_panel(parent: Control) -> void:
+	var target_wins: int = NetworkManager.get_online_target_wins()
 	var box: VBoxContainer = _create_panel(
 		parent,
-		Localization.get_text("online.arena.participants", "Players"),
+		Localization.get_textf(
+			"online.arena.participants_first_to",
+			"Players (First to {target})",
+			{"target": target_wins}
+		),
 		Vector2(330.0, 0.0)
 	)
 	box.name = "ArenaParticipantsPanelBody"
 	box.add_theme_constant_override("separation", 10)
+	_participants_title_label = box.get_child(0) as Label
+	if _participants_title_label != null:
+		_participants_title_label.name = "ArenaParticipantsTitle"
 
 	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 8)
@@ -292,6 +302,15 @@ func _build_participant_panel(parent: Control) -> void:
 	_participants_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_participants_box.add_theme_constant_override("separation", 8)
 	scroll.add_child(_participants_box)
+
+	_match_point_label = Label.new()
+	_match_point_label.name = "ArenaMatchPointLabel"
+	_match_point_label.visible = false
+	_match_point_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_match_point_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_match_point_label.add_theme_font_size_override("font_size", 19)
+	_match_point_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.28, 1.0))
+	box.add_child(_match_point_label)
 
 
 func _add_participant_column_label(parent: HBoxContainer, text: String, width: float, alignment: HorizontalAlignment) -> void:
@@ -637,8 +656,33 @@ func _refresh_participant_rows() -> void:
 	for child in _participants_box.get_children():
 		_participants_box.remove_child(child)
 		child.queue_free()
-	for participant in NetworkManager.get_arena_participant_statuses():
+	var participants: Array[Dictionary] = NetworkManager.get_arena_participant_statuses()
+	for participant in participants:
 		_participants_box.add_child(_build_participant_row(participant))
+	_refresh_match_point(participants)
+
+
+func _refresh_match_point(participants: Array[Dictionary]) -> void:
+	if _match_point_label == null:
+		return
+	if _participants_title_label != null:
+		_participants_title_label.text = Localization.get_textf(
+			"online.arena.participants_first_to",
+			"Players (First to {target})",
+			{"target": NetworkManager.get_online_target_wins()}
+		)
+	var match_point_lines: Array[String] = []
+	for participant in participants:
+		var wins: int = int(participant.get("wins", 0))
+		var target_wins: int = maxi(1, int(participant.get("target_wins", NetworkManager.get_online_target_wins())))
+		if wins == target_wins - 1:
+			match_point_lines.append(Localization.get_textf(
+				"online.arena.match_point",
+				"{player} MATCH POINT!",
+				{"player": String(participant.get("name", "Player"))}
+			))
+	_match_point_label.text = "\n".join(match_point_lines)
+	_match_point_label.visible = not match_point_lines.is_empty()
 
 
 func _build_participant_row(participant: Dictionary) -> PanelContainer:

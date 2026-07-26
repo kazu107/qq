@@ -12,6 +12,9 @@ const REROLL_COST: int = 8
 const SPECIAL_REWARD_INTERVAL: int = 3
 const SPECIAL_REWARD_OPTION_COUNT: int = 3
 const STACKING_DISCOUNT_MULTIPLIER: float = 0.9
+const MATCH_GOLD_BASE: int = 24
+const MATCH_GOLD_PER_TIER: int = 5
+const MATCH_GOLD_PER_ROUND: int = 2
 
 var _shop_service: ShopService = ShopService.new()
 var _forge_service: ForgeService = ForgeService.new()
@@ -234,23 +237,29 @@ func apply_battle_result(
 		return result
 
 	var winner: String = String(summary.get("winner", ""))
+	var reward_round: int = maxi(1, run_state.arena_round)
+	var reward_tier: int = 1 + int(floor(float(reward_round) / 3.0))
+	var reward_gold: int = (
+		MATCH_GOLD_BASE
+		+ reward_tier * MATCH_GOLD_PER_TIER
+		+ reward_round * MATCH_GOLD_PER_ROUND
+		+ maxi(0, int(summary.get("relic_bonus_gold", 0)))
+	)
+	run_state.gold += reward_gold
+	result["reward_gold"] = reward_gold
 	if winner == "player":
 		run_state.arena_wins += 1
 		run_state.encounters_cleared += 1
 		run_state.current_area = 1 + int(floor(float(run_state.arena_wins) / 3.0))
-		var reward_gold: int = 24 + run_state.current_area * 5 + run_state.arena_wins * 2
-		reward_gold += maxi(0, int(summary.get("relic_bonus_gold", 0)))
 		var reward_heal: int = 5 + run_state.current_area
-		run_state.gold += reward_gold
 		run_state.player_hp = min(run_state.max_hp, run_state.player_hp + reward_heal)
 		result["won"] = true
-		result["reward_gold"] = reward_gold
 		result["reward_heal"] = reward_heal
 		run_state.arena_pending_rewards = build_victory_rewards(run_state, allowed_card_ids, allowed_relic_ids)
 	else:
 		run_state.arena_losses += 1
 		run_state.relic_state["arena_lost_last_battle"] = true
-		run_state.player_hp = max(1, int(ceil(float(run_state.max_hp) * 0.42)))
+		run_state.player_hp = run_state.max_hp
 		run_state.arena_pending_rewards = []
 	if winner == "player":
 		run_state.relic_state["arena_lost_last_battle"] = false

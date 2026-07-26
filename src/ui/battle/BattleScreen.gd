@@ -46,6 +46,7 @@ var _lan_finish_submitted: bool = false
 var _round_results_overlay: ColorRect
 var _round_results_list: RichTextLabel
 var _round_results_status: Label
+var _round_results_outcome: Label
 var _round_results_continue: Button
 var _round_results_acknowledged: bool = false
 
@@ -568,6 +569,12 @@ func _build_round_results_overlay() -> void:
 	_round_results_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_round_results_status.add_theme_font_size_override("font_size", 19)
 	content.add_child(_round_results_status)
+	_round_results_outcome = Label.new()
+	_round_results_outcome.name = "ArenaRoundResultsOutcome"
+	_round_results_outcome.visible = false
+	_round_results_outcome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_round_results_outcome.add_theme_font_size_override("font_size", 30)
+	content.add_child(_round_results_outcome)
 	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -600,6 +607,7 @@ func _refresh_round_results_overlay() -> void:
 	var results: Array[Dictionary] = _to_dictionary_array(snapshot.get("results", []))
 	if results.is_empty():
 		_round_results_status.text = Localization.get_text("online.round_results.waiting", "Waiting for match results...")
+		_round_results_outcome.visible = false
 		_round_results_list.text = ""
 		return
 	var completed_count: int = int(snapshot.get("completed_count", 0))
@@ -620,6 +628,7 @@ func _refresh_round_results_overlay() -> void:
 		"font_color",
 		Color(0.42, 1.0, 0.68, 1.0) if all_complete else Color(1.0, 0.76, 0.28, 1.0)
 	)
+	_refresh_local_round_outcome()
 	var lines: Array[String] = []
 	for result in results:
 		var player_name: String = String(result.get("player_name", "Player"))
@@ -665,8 +674,31 @@ func _refresh_round_results_overlay() -> void:
 		_round_results_continue.text = Localization.get_text("online.round_results.continue", "CLAIM REWARDS / CONTINUE")
 
 
+func _refresh_local_round_outcome() -> void:
+	if _round_results_outcome == null:
+		return
+	_round_results_outcome.visible = false
+	if _spectator_mode:
+		return
+	var local_result: Dictionary = NetworkManager.get_last_match_result()
+	if local_result.is_empty():
+		return
+	var winner: String = String(local_result.get("winner", "draw"))
+	if winner == "draw":
+		_round_results_outcome.text = Localization.get_text("online.round_results.local_draw", "DRAW")
+		_round_results_outcome.add_theme_color_override("font_color", Color(0.82, 0.86, 0.90, 1.0))
+	elif winner == _local_side:
+		_round_results_outcome.text = Localization.get_text("online.round_results.local_win", "VICTORY")
+		_round_results_outcome.add_theme_color_override("font_color", Color(0.30, 1.0, 0.62, 1.0))
+	else:
+		_round_results_outcome.text = Localization.get_text("online.round_results.local_loss", "DEFEAT")
+		_round_results_outcome.add_theme_color_override("font_color", Color(1.0, 0.36, 0.32, 1.0))
+	_round_results_outcome.visible = true
+
+
 func _on_round_results_continue_pressed() -> void:
 	if _spectator_mode:
+		NetworkManager.request_arena_details_auto_open()
 		_go_to_network_lobby()
 		return
 	if _round_results_acknowledged:

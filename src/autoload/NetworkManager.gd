@@ -137,6 +137,7 @@ var _arena_round_results: Array[Dictionary] = []
 var _arena_round_results_complete: bool = false
 var _arena_round_continue_by_peer: Dictionary = {}
 var _arena_public_details: Array[Dictionary] = []
+var _arena_details_auto_open_pending: bool = false
 
 
 func _ready() -> void:
@@ -417,7 +418,9 @@ func get_arena_participant_statuses() -> Array[Dictionary]:
 	for standing in _arena_standings:
 		var entry: Dictionary = standing.duplicate(true)
 		var peer_id: int = int(entry.get("peer_id", -1))
+		var run_state: RunState = _arena_runs_by_peer.get(peer_id) as RunState
 		entry["ready"] = bool(_arena_ready_by_peer.get(str(peer_id), false))
+		entry["target_wins"] = run_state.arena_target_wins if run_state != null else _online_target_wins
 		participants.append(entry)
 	return participants
 
@@ -449,6 +452,17 @@ func get_arena_round_results_snapshot() -> Dictionary:
 
 func get_arena_public_details() -> Array[Dictionary]:
 	return _to_dictionary_array(_arena_public_details)
+
+
+func request_arena_details_auto_open() -> void:
+	_arena_details_auto_open_pending = true
+
+
+func consume_arena_details_auto_open_request() -> bool:
+	if not _arena_details_auto_open_pending:
+		return false
+	_arena_details_auto_open_pending = false
+	return true
 
 
 func get_online_arena_rules() -> Dictionary:
@@ -650,6 +664,7 @@ func start_lan_arena_preparation() -> bool:
 	_arena_round_results_complete = false
 	_arena_round_continue_by_peer.clear()
 	_arena_public_details = _build_arena_public_details()
+	_arena_details_auto_open_pending = false
 	_last_arena_action_sequences.clear()
 	_match_payload.clear()
 	_match_active = false
@@ -2552,6 +2567,7 @@ func _apply_arena_session_finished(result: Dictionary) -> void:
 	_arena_round_continue_by_peer.clear()
 	_local_profile["ready"] = false
 	_arena_standings = _to_dictionary_array(result.get("standings", _arena_standings))
+	request_arena_details_auto_open()
 	_set_state(ConnectionState.LOBBY if is_session_connected() else ConnectionState.OFFLINE, "%s arena finished" % _session_display_name())
 	arena_session_finished.emit(result.duplicate(true))
 
@@ -2881,6 +2897,7 @@ func _clear_session(clear_profile: bool) -> void:
 	_arena_round_results_complete = false
 	_arena_round_continue_by_peer.clear()
 	_arena_public_details.clear()
+	_arena_details_auto_open_pending = false
 	if clear_profile:
 		_local_profile.clear()
 	_set_state(ConnectionState.OFFLINE, "Offline")
