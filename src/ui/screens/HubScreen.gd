@@ -8,10 +8,13 @@ var _debug_enemy_option: OptionButton
 var _debug_starter_option: OptionButton
 var _debug_card_options: Array[CardIconPicker] = []
 var _debug_card_grade_options: Array[OptionButton] = []
+var _version_history_overlay: ColorRect
+var _version_history_content: RichTextLabel
 
 
 func _ready() -> void:
 	Game.stash_active_run_for_hub()
+	_build_top_right_actions()
 	var margin: MarginContainer = MarginContainer.new()
 	margin.anchor_right = 1.0
 	margin.anchor_bottom = 1.0
@@ -69,19 +72,192 @@ func _ready() -> void:
 	library_button.pressed.connect(_on_open_card_library)
 	root.add_child(library_button)
 
-	var settings_button: Button = Button.new()
-	settings_button.name = "OpenSettingsButton"
-	settings_button.text = Localization.get_text("hub.settings", "Settings")
-	settings_button.pressed.connect(func() -> void:
-		Game.open_settings("hub")
-		SceneRouter.go_to_settings()
-	)
-	root.add_child(settings_button)
+	_build_version_history_overlay()
 
 	if Game.is_developer_mode_enabled():
 		_build_debug_battle_lab(root)
 		_build_developer_panel()
 		call_deferred("_warm_debug_card_pickers")
+
+
+func _build_top_right_actions() -> void:
+	var actions: HBoxContainer = HBoxContainer.new()
+	actions.name = "HubTopActions"
+	actions.anchor_left = 1.0
+	actions.anchor_top = 0.0
+	actions.anchor_right = 1.0
+	actions.anchor_bottom = 0.0
+	actions.offset_left = -390.0
+	actions.offset_top = 22.0
+	actions.offset_right = -22.0
+	actions.offset_bottom = 76.0
+	actions.alignment = BoxContainer.ALIGNMENT_END
+	actions.add_theme_constant_override("separation", 10)
+	actions.z_index = 40
+	add_child(actions)
+
+	var history_button: Button = Button.new()
+	history_button.name = "VersionHistoryButton"
+	history_button.custom_minimum_size = Vector2(270.0, 54.0)
+	history_button.text = Localization.get_textf(
+		"hub.version_history.button",
+		"Version History {version}",
+		{"version": GameVersion.get_current_version()}
+	)
+	history_button.tooltip_text = Localization.get_text(
+		"hub.version_history.tooltip",
+		"Open version history"
+	)
+	history_button.icon = StatIconFactory.get_icon("version_history")
+	history_button.expand_icon = true
+	history_button.pressed.connect(_open_version_history)
+	actions.add_child(history_button)
+
+	var settings_button: Button = Button.new()
+	settings_button.name = "OpenSettingsButton"
+	settings_button.custom_minimum_size = Vector2(58.0, 54.0)
+	settings_button.tooltip_text = Localization.get_text("hub.settings.tooltip", "Open settings")
+	settings_button.icon = StatIconFactory.get_icon("settings")
+	settings_button.expand_icon = true
+	settings_button.pressed.connect(_open_settings)
+	actions.add_child(settings_button)
+
+
+func _build_version_history_overlay() -> void:
+	_version_history_overlay = ColorRect.new()
+	_version_history_overlay.name = "VersionHistoryOverlay"
+	_version_history_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_version_history_overlay.color = Color(0.01, 0.02, 0.035, 0.88)
+	_version_history_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_version_history_overlay.z_index = 120
+	_version_history_overlay.visible = false
+	add_child(_version_history_overlay)
+
+	var center: CenterContainer = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.offset_left = 28.0
+	center.offset_top = 28.0
+	center.offset_right = -28.0
+	center.offset_bottom = -28.0
+	_version_history_overlay.add_child(center)
+
+	var modal: PanelContainer = PanelContainer.new()
+	modal.name = "VersionHistoryModal"
+	modal.custom_minimum_size = Vector2(900.0, 700.0)
+	center.add_child(modal)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 30)
+	margin.add_theme_constant_override("margin_top", 26)
+	margin.add_theme_constant_override("margin_right", 30)
+	margin.add_theme_constant_override("margin_bottom", 24)
+	modal.add_child(margin)
+
+	var root: VBoxContainer = VBoxContainer.new()
+	root.add_theme_constant_override("separation", 14)
+	margin.add_child(root)
+
+	var header: HBoxContainer = HBoxContainer.new()
+	header.add_theme_constant_override("separation", 18)
+	root.add_child(header)
+
+	var title: Label = Label.new()
+	title.text = Localization.get_text("hub.version_history.title", "Version History")
+	title.add_theme_font_size_override("font_size", 30)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+
+	var current_version: Label = Label.new()
+	current_version.name = "CurrentVersionLabel"
+	current_version.text = Localization.get_textf(
+		"hub.version_history.current",
+		"Current: {version}",
+		{"version": GameVersion.get_current_version()}
+	)
+	current_version.add_theme_font_size_override("font_size", 20)
+	current_version.add_theme_color_override("font_color", Color(0.46, 0.88, 1.0))
+	current_version.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	header.add_child(current_version)
+
+	var scheme: Label = Label.new()
+	scheme.text = Localization.get_textf(
+		"hub.version_history.scheme",
+		"Version scheme: {scheme}",
+		{"scheme": GameVersion.get_scheme()}
+	)
+	scheme.add_theme_color_override("font_color", Color(0.66, 0.72, 0.78))
+	root.add_child(scheme)
+	root.add_child(HSeparator.new())
+
+	_version_history_content = RichTextLabel.new()
+	_version_history_content.name = "VersionHistoryContent"
+	_version_history_content.bbcode_enabled = true
+	_version_history_content.fit_content = false
+	_version_history_content.scroll_active = true
+	_version_history_content.selection_enabled = true
+	_version_history_content.custom_minimum_size = Vector2(820.0, 470.0)
+	_version_history_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_version_history_content.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(_version_history_content)
+
+	var footer: HBoxContainer = HBoxContainer.new()
+	footer.alignment = BoxContainer.ALIGNMENT_CENTER
+	root.add_child(footer)
+
+	var close_button: Button = Button.new()
+	close_button.name = "VersionHistoryCloseButton"
+	close_button.custom_minimum_size = Vector2(220.0, 48.0)
+	close_button.text = Localization.get_text("hub.version_history.close", "Close")
+	close_button.pressed.connect(_close_version_history)
+	footer.add_child(close_button)
+
+	_refresh_version_history_content()
+
+
+func _refresh_version_history_content() -> void:
+	if _version_history_content == null:
+		return
+	var language_suffix: String = "ja" if Game.get_language() == "ja" else "en"
+	var lines: PackedStringArray = []
+	for release: Dictionary in GameVersion.get_releases():
+		var version: String = String(release.get("version", ""))
+		var date: String = String(release.get("date", ""))
+		var title: String = String(release.get("title_%s" % language_suffix, release.get("title_en", "")))
+		lines.append("[font_size=24][color=#f4c85c][b]%s[/b][/color]  [color=#7fdcff]%s[/color][/font_size]" % [version, date])
+		lines.append("[font_size=20][b]%s[/b][/font_size]" % title)
+		var raw_changes: Variant = release.get("changes_%s" % language_suffix, release.get("changes_en", []))
+		if raw_changes is Array:
+			for raw_change: Variant in raw_changes:
+				lines.append("  [color=#c9d7e2]- %s[/color]" % String(raw_change))
+		lines.append("")
+	_version_history_content.text = "\n".join(lines)
+	_version_history_content.scroll_to_line(0)
+
+
+func _open_version_history() -> void:
+	if _version_history_overlay == null:
+		return
+	_refresh_version_history_content()
+	_version_history_overlay.visible = true
+	AudioManager.play_sfx("ui_toggle")
+
+
+func _close_version_history() -> void:
+	if _version_history_overlay == null:
+		return
+	_version_history_overlay.visible = false
+	AudioManager.play_sfx("ui_toggle")
+
+
+func _open_settings() -> void:
+	Game.open_settings("hub")
+	SceneRouter.go_to_settings()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _version_history_overlay != null and _version_history_overlay.visible and event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		_close_version_history()
 
 
 func _add_run_mode_row(parent: VBoxContainer, mode: String) -> void:
@@ -329,7 +505,7 @@ func _get_selected_grade(option: OptionButton) -> int:
 func _build_developer_panel() -> void:
 	_developer_panel = DeveloperPanel.new()
 	add_child(_developer_panel)
-	_developer_panel.pin_top_right()
+	_developer_panel.pin_top_right(92.0)
 	_developer_panel.configure(
 		Localization.get_text("developer.title", "Developer Mode"),
 		[

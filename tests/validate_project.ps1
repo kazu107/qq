@@ -231,6 +231,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/SettingsSmoke.tscn"
     )
+    Invoke-GodotCheck "[18a/31] Running Hub version UI smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/HubVersionSmoke.tscn"
+    )
     Invoke-GodotCheck "[19/31] Running audio smoke" $godotExe @(
         "--no-header",
         "--headless",

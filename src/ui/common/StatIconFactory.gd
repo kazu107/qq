@@ -16,6 +16,8 @@ static func warm_cache(extra_icon_ids: Array[String] = []) -> int:
 		"relic",
 		"card_owned",
 		"card_equipped",
+		"settings",
+		"version_history",
 	]
 	for icon_id in extra_icon_ids:
 		if icon_id != "" and not icon_ids.has(icon_id):
@@ -63,6 +65,10 @@ static func _build_icon(stat_id: String) -> Texture2D:
 			return _build_card_owned_icon()
 		"card_equipped":
 			return _build_card_equipped_icon()
+		"settings":
+			return _build_settings_icon()
+		"version_history":
+			return _build_version_history_icon()
 		_:
 			return _build_generic_icon(stat_id)
 
@@ -225,6 +231,54 @@ static func _build_card_equipped_icon() -> Texture2D:
 	return ImageTexture.create_from_image(image)
 
 
+static func _build_settings_icon() -> Texture2D:
+	var image: Image = Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var shadow: Color = Color(0.02, 0.06, 0.09, 0.96)
+	var cyan: Color = Color(0.28, 0.82, 1.0, 1.0)
+	var bright: Color = Color(0.82, 1.0, 1.0, 1.0)
+	var center_color: Color = Color(0.03, 0.10, 0.16, 1.0)
+	var teeth: Array[Rect2i] = [
+		Rect2i(27, 4, 10, 14),
+		Rect2i(27, 46, 10, 14),
+		Rect2i(4, 27, 14, 10),
+		Rect2i(46, 27, 14, 10),
+		Rect2i(11, 11, 12, 12),
+		Rect2i(41, 11, 12, 12),
+		Rect2i(11, 41, 12, 12),
+		Rect2i(41, 41, 12, 12),
+	]
+	for tooth: Rect2i in teeth:
+		image.fill_rect(Rect2i(tooth.position + Vector2i(2, 2), tooth.size), shadow)
+		image.fill_rect(tooth, cyan)
+	_draw_disc(image, Vector2i(34, 34), 22, shadow)
+	_draw_disc(image, Vector2i(32, 32), 21, cyan)
+	_draw_disc(image, Vector2i(32, 32), 12, bright)
+	_draw_disc(image, Vector2i(32, 32), 7, center_color)
+	return ImageTexture.create_from_image(image)
+
+
+static func _build_version_history_icon() -> Texture2D:
+	var image: Image = Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var shadow: Color = Color(0.03, 0.05, 0.08, 0.96)
+	var panel: Color = Color(0.20, 0.48, 0.68, 1.0)
+	var cyan: Color = Color(0.50, 0.92, 1.0, 1.0)
+	var amber: Color = Color(1.0, 0.72, 0.24, 1.0)
+	image.fill_rect(Rect2i(15, 7, 39, 51), shadow)
+	image.fill_rect(Rect2i(11, 5, 39, 51), panel.darkened(0.16))
+	image.fill_rect(Rect2i(15, 9, 31, 43), Color(0.04, 0.10, 0.16, 1.0))
+	image.fill_rect(Rect2i(38, 5, 12, 12), cyan.darkened(0.12))
+	image.fill_rect(Rect2i(41, 8, 9, 9), shadow)
+	for row_y: int in [19, 30, 41]:
+		image.fill_rect(Rect2i(19, row_y, 6, 6), amber)
+		image.fill_rect(Rect2i(29, row_y + 1, 13, 4), cyan)
+	image.fill_rect(Rect2i(8, 47, 18, 6), amber)
+	image.fill_rect(Rect2i(8, 41, 6, 12), amber)
+	image.fill_rect(Rect2i(5, 44, 9, 6), amber)
+	return ImageTexture.create_from_image(image)
+
+
 static func _draw_shield_shape(image: Image, origin: Vector2i, color: Color) -> void:
 	image.fill_rect(Rect2i(origin.x + 12, origin.y + 10, 40, 8), color)
 	image.fill_rect(Rect2i(origin.x + 10, origin.y + 18, 44, 14), color)
@@ -236,6 +290,13 @@ static func _draw_shield_shape(image: Image, origin: Vector2i, color: Color) -> 
 static func _draw_diamond(image: Image, center: Vector2i, radius: int, color: Color) -> void:
 	for y in range(-radius, radius + 1):
 		var half_width: int = radius - abs(y)
+		image.fill_rect(Rect2i(center.x - half_width, center.y + y, half_width * 2 + 1, 1), color)
+
+
+static func _draw_disc(image: Image, center: Vector2i, radius: int, color: Color) -> void:
+	var radius_squared: int = radius * radius
+	for y in range(-radius, radius + 1):
+		var half_width: int = int(sqrt(float(radius_squared - y * y)))
 		image.fill_rect(Rect2i(center.x - half_width, center.y + y, half_width * 2 + 1, 1), color)
 
 

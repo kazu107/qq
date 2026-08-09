@@ -46,7 +46,7 @@ func _run() -> void:
 	if AudioManager.get_cached_sfx_count() < expected_sfx:
 		_fail("Startup cache smoke failed: SFX streams were not fully cached")
 		return
-	if StatIconFactory.get_cached_icon_count() < 10:
+	if StatIconFactory.get_cached_icon_count() < 12:
 		_fail("Startup cache smoke failed: generated stat icons were not cached")
 		return
 	if MapNodeButton.get_cached_type_icon_count() < 8 or not MapNodeButton.has_cached_lock_icon():

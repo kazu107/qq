@@ -1,0 +1,70 @@
+{
+  "scheme": "QQ-MAJOR.MINOR.PATCH",
+  "current_version": "QQ-0.10.0",
+  "releases": [
+    {
+      "version": "QQ-0.10.0",
+      "date": "2026-08-09",
+      "title_ja": "メイン画面とバージョン管理",
+      "title_en": "Hub and version management",
+      "changes_ja": [
+        "メイン画面の右上に設定用のギアボタンを追加しました。",
+        "ゲーム内で変更内容を確認できるバージョン履歴を追加しました。",
+        "QQ-MAJOR.MINOR.PATCH 形式の独自バージョン管理を開始しました。"
+      ],
+      "changes_en": [
+        "Added a settings gear button to the top-right of the Hub.",
+        "Added an in-game version history showing notable changes.",
+        "Introduced the QQ-MAJOR.MINOR.PATCH versioning scheme."
+      ]
+    },
+    {
+      "version": "QQ-0.9.2",
+      "date": "2026-07-27",
+      "title_ja": "対戦報酬と結果表示の改善",
+      "title_en": "Match rewards and results improvements",
+      "changes_ja": [
+        "対戦の基本ゴールド量をルールから設定できるようにしました。",
+        "マルチプレイの試合結果と復帰処理を改善しました。",
+        "対戦画面に残っていた一部の文字表示不具合を修正しました。"
+      ],
+      "changes_en": [
+        "Made base match gold configurable from room rules.",
+        "Improved multiplayer match results and recovery flow.",
+        "Fixed remaining text rendering issues in multiplayer screens."
+      ]
+    },
+    {
+      "version": "QQ-0.9.1",
+      "date": "2026-07-24",
+      "title_ja": "複数試合とサウンドの改善",
+      "title_en": "Parallel matches and audio improvements",
+      "changes_ja": [
+        "4人以上のWeb対戦で複数の試合を並行して進行できるようにしました。",
+        "全試合の進行を確認できるラウンド結果ウィンドウを追加しました。",
+        "効果音の音量と日本語フォント表示を改善しました。"
+      ],
+      "changes_en": [
+        "Enabled parallel matches in Web rooms with four or more players.",
+        "Added a round results window that tracks every active match.",
+        "Improved sound balance and Japanese font rendering."
+      ]
+    },
+    {
+      "version": "QQ-0.9.0",
+      "date": "2026-07-19",
+      "title_ja": "Webアリーナ対戦",
+      "title_en": "Web arena multiplayer",
+      "changes_ja": [
+        "WebRTCを利用したブラウザ間のアリーナ対戦を追加しました。",
+        "複数人トーナメントと観戦モードを追加しました。",
+        "勝利数や初期資源などを変更できるルームルールを追加しました。"
+      ],
+      "changes_en": [
+        "Added browser-to-browser arena matches using WebRTC.",
+        "Added multiplayer tournaments and spectator mode.",
+        "Added room rules for wins, starting resources, and other settings."
+      ]
+    }
+  ]
+}

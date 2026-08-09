@@ -34,6 +34,10 @@ Herokuはルートの`package.json`と`Procfile`を検出し、`build/web`を配
 - `server/`: Heroku用静的配信・WebRTCシグナリングサーバー。
 - `tests/`: smoke testと検証スクリプト。
 
+## バージョン管理
+
+ゲーム独自の `QQ-MAJOR.MINOR.PATCH` 形式を使用します。現在の番号と更新履歴は `data/version_history.json` を唯一の情報源とし、実装を変更するたびに番号と履歴を更新します。詳細は `docs/VERSIONING.md` を参照してください。
+
 ## 検証
 
 ```powershell

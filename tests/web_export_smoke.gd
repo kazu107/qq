@@ -49,6 +49,9 @@ func _run() -> void:
 	if hub.find_child("WebMultiplayerButton", true, false) == null:
 		_fail("Web export smoke failed: hub is missing the Web multiplayer entry")
 		return
+	if hub.find_child("HubTopActions", true, false) == null or hub.find_child("VersionHistoryButton", true, false) == null:
+		_fail("Web export smoke failed: Hub version controls are missing")
+		return
 	if hub.find_child("LanMultiplayerButton", true, false) != null:
 		_fail("Web export smoke failed: hub still exposes LAN multiplayer")
 		return
