@@ -44,6 +44,7 @@
   "hub.version_history.title": "バージョン履歴",
   "hub.version_history.current": "現在のバージョン: {version}",
   "hub.version_history.scheme": "管理方式: {scheme}",
+  "hub.version_history.estimated": "推定",
   "hub.version_history.close": "閉じる",
   "hub.web_network_notice": "Web対戦はブラウザ版から利用できます。",
   "hub.meta_unlocked_all": "すべてのメタ要素を解放しました。",

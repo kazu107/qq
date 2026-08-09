@@ -187,6 +187,13 @@ func _build_version_history_overlay() -> void:
 	)
 	scheme.add_theme_color_override("font_color", Color(0.66, 0.72, 0.78))
 	root.add_child(scheme)
+
+	var history_note: Label = Label.new()
+	history_note.name = "VersionHistoryNote"
+	history_note.text = GameVersion.get_history_note(Game.get_language())
+	history_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	history_note.add_theme_color_override("font_color", Color(0.76, 0.69, 0.50))
+	root.add_child(history_note)
 	root.add_child(HSeparator.new())
 
 	_version_history_content = RichTextLabel.new()
@@ -223,7 +230,10 @@ func _refresh_version_history_content() -> void:
 		var version: String = String(release.get("version", ""))
 		var date: String = String(release.get("date", ""))
 		var title: String = String(release.get("title_%s" % language_suffix, release.get("title_en", "")))
-		lines.append("[font_size=24][color=#f4c85c][b]%s[/b][/color]  [color=#7fdcff]%s[/color][/font_size]" % [version, date])
+		var estimated_badge: String = ""
+		if bool(release.get("estimated", false)):
+			estimated_badge = "  [color=#c8ad72](%s)[/color]" % Localization.get_text("hub.version_history.estimated", "Estimated")
+		lines.append("[font_size=24][color=#f4c85c][b]%s[/b][/color]  [color=#7fdcff]%s[/color]%s[/font_size]" % [version, date, estimated_badge])
 		lines.append("[font_size=20][b]%s[/b][/font_size]" % title)
 		var raw_changes: Variant = release.get("changes_%s" % language_suffix, release.get("changes_en", []))
 		if raw_changes is Array:

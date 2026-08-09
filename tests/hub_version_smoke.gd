@@ -26,8 +26,33 @@ func _run() -> void:
 		return
 
 	var releases: Array[Dictionary] = GameVersion.get_releases()
-	if releases.is_empty() or String(releases[0].get("version", "")) != current_version:
+	if releases.size() < 28 or String(releases[0].get("version", "")) != current_version:
 		_fail("Hub version smoke failed: latest history entry does not match the current version")
+		return
+	var seen_versions: Dictionary = {}
+	var previous_date: String = "9999-99-99"
+	for release: Dictionary in releases:
+		var release_version: String = String(release.get("version", ""))
+		var release_date: String = String(release.get("date", ""))
+		if version_pattern.search(release_version) == null or seen_versions.has(release_version):
+			_fail("Hub version smoke failed: historical versions are invalid or duplicated")
+			return
+		if release_date == "" or release_date.naturalnocasecmp_to(previous_date) > 0:
+			_fail("Hub version smoke failed: release history is not newest-first")
+			return
+		var changes_ja: Variant = release.get("changes_ja", [])
+		var changes_en: Variant = release.get("changes_en", [])
+		if String(release.get("title_ja", "")) == "" or String(release.get("title_en", "")) == "":
+			_fail("Hub version smoke failed: bilingual release titles are incomplete")
+			return
+		if changes_ja is not Array or changes_en is not Array or Array(changes_ja).is_empty() or Array(changes_en).is_empty():
+			_fail("Hub version smoke failed: bilingual release changes are incomplete")
+			return
+		seen_versions[release_version] = true
+		previous_date = release_date
+	var initial_release: Dictionary = releases[releases.size() - 1]
+	if String(initial_release.get("version", "")) != "QQ-0.1.0" or not bool(initial_release.get("estimated", false)):
+		_fail("Hub version smoke failed: reconstructed initial release is missing")
 		return
 	var latest_title: String = String(releases[0].get("title_ja", ""))
 	if latest_title == "":
@@ -47,12 +72,16 @@ func _run() -> void:
 	var history_button: Button = hub.find_child("VersionHistoryButton", true, false) as Button
 	var history_overlay: ColorRect = hub.find_child("VersionHistoryOverlay", true, false) as ColorRect
 	var history_content: RichTextLabel = hub.find_child("VersionHistoryContent", true, false) as RichTextLabel
+	var history_note: Label = hub.find_child("VersionHistoryNote", true, false) as Label
 	var close_button: Button = hub.find_child("VersionHistoryCloseButton", true, false) as Button
 	if top_actions == null or settings_button == null or history_button == null:
 		_fail("Hub version smoke failed: top-right Hub actions are incomplete")
 		return
-	if history_overlay == null or history_content == null or close_button == null:
+	if history_overlay == null or history_content == null or history_note == null or close_button == null:
 		_fail("Hub version smoke failed: version history modal is incomplete")
+		return
+	if history_note.text == "" or history_note.text.find("推定") == -1:
+		_fail("Hub version smoke failed: reconstructed history notice is missing")
 		return
 
 	var settings_buttons: Array[Node] = hub.find_children("OpenSettingsButton", "Button", true, false)
@@ -80,7 +109,7 @@ func _run() -> void:
 	if not history_overlay.visible:
 		_fail("Hub version smoke failed: version history did not open")
 		return
-	if history_content.text.find(current_version) == -1 or history_content.text.find(latest_title) == -1:
+	if history_content.text.find(current_version) == -1 or history_content.text.find(latest_title) == -1 or history_content.text.find("推定") == -1:
 		_fail("Hub version smoke failed: version history content is incomplete")
 		return
 

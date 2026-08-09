@@ -18,6 +18,12 @@ static func get_scheme() -> String:
 	return String(_cached_data.get("scheme", FALLBACK_SCHEME))
 
 
+static func get_history_note(language_code: String) -> String:
+	_ensure_loaded()
+	var language_suffix: String = "ja" if language_code == "ja" else "en"
+	return String(_cached_data.get("history_note_%s" % language_suffix, ""))
+
+
 static func get_releases() -> Array[Dictionary]:
 	_ensure_loaded()
 	var releases: Array[Dictionary] = []
@@ -36,6 +42,8 @@ static func _ensure_loaded() -> void:
 	_cached_data = {
 		"scheme": FALLBACK_SCHEME,
 		"current_version": FALLBACK_VERSION,
+		"history_note_ja": "",
+		"history_note_en": "",
 		"releases": [],
 	}
 	if not FileAccess.file_exists(DATA_PATH):

@@ -1,7 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.10.0",
+  "current_version": "QQ-0.10.1",
+  "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
+  "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.10.1",
+      "date": "2026-08-09",
+      "title_ja": "過去バージョン履歴の復元",
+      "title_en": "Reconstructed historical versions",
+      "changes_ja": [
+        "正式な番号運用開始時点までのGit履歴を機能単位で整理しました。",
+        "正式運用前の主要な変更へ推定バージョン番号を割り当てました。",
+        "推定された履歴をゲーム内で識別できるようにしました。"
+      ],
+      "changes_en": [
+        "Organized the Git history through the start of formal versioning into feature milestones.",
+        "Assigned estimated version numbers to major changes made before formal versioning.",
+        "Made reconstructed entries identifiable inside the in-game history."
+      ]
+    },
     {
       "version": "QQ-0.10.0",
       "date": "2026-08-09",
@@ -21,6 +39,7 @@
     {
       "version": "QQ-0.9.2",
       "date": "2026-07-27",
+      "estimated": true,
       "title_ja": "対戦報酬と結果表示の改善",
       "title_en": "Match rewards and results improvements",
       "changes_ja": [
@@ -37,33 +56,424 @@
     {
       "version": "QQ-0.9.1",
       "date": "2026-07-24",
+      "estimated": true,
       "title_ja": "複数試合とサウンドの改善",
       "title_en": "Parallel matches and audio improvements",
       "changes_ja": [
         "4人以上のWeb対戦で複数の試合を並行して進行できるようにしました。",
         "全試合の進行を確認できるラウンド結果ウィンドウを追加しました。",
-        "効果音の音量と日本語フォント表示を改善しました。"
+        "生成済み効果音ライブラリとSE再生ラボを追加し、音量や声の混入を調整しました。"
       ],
       "changes_en": [
         "Enabled parallel matches in Web rooms with four or more players.",
         "Added a round results window that tracks every active match.",
-        "Improved sound balance and Japanese font rendering."
+        "Added the generated SFX library and debug lab, then rebalanced volume and removed voice artifacts."
       ]
     },
     {
       "version": "QQ-0.9.0",
       "date": "2026-07-19",
+      "estimated": true,
       "title_ja": "Webアリーナ対戦",
       "title_en": "Web arena multiplayer",
       "changes_ja": [
-        "WebRTCを利用したブラウザ間のアリーナ対戦を追加しました。",
-        "複数人トーナメントと観戦モードを追加しました。",
-        "勝利数や初期資源などを変更できるルームルールを追加しました。"
+        "勝利数や初期資源などを変更できるWeb対戦ルームルールを追加しました。",
+        "複数人トーナメント、観戦モード、対戦者と観戦者の切り替えを追加しました。",
+        "複数ブラウザを安定して接続できるWebRTC中継構成へ改善しました。"
       ],
       "changes_en": [
-        "Added browser-to-browser arena matches using WebRTC.",
-        "Added multiplayer tournaments and spectator mode.",
-        "Added room rules for wins, starting resources, and other settings."
+        "Added Web room rules for wins, starting resources, and other settings.",
+        "Added multiplayer tournaments, spectator mode, and participant role switching.",
+        "Improved the WebRTC relay topology for stable multi-browser rooms."
+      ]
+    },
+    {
+      "version": "QQ-0.8.0",
+      "date": "2026-07-17",
+      "estimated": true,
+      "title_ja": "Web版とWebRTC対戦",
+      "title_en": "Web build and WebRTC multiplayer",
+      "changes_ja": [
+        "GodotのWeb出力とHeroku配信用の構成を追加しました。",
+        "LAN対戦をブラウザ間のWebRTC対戦へ置き換えました。",
+        "Web版へ日本語フォントを組み込み、オンライン戦闘、ツールチップ、途中再開を改善しました。"
+      ],
+      "changes_en": [
+        "Added Godot Web export and Heroku deployment support.",
+        "Replaced LAN multiplayer with browser-to-browser WebRTC matches.",
+        "Embedded Japanese fonts and improved online battles, live tooltips, and resumable runs."
+      ]
+    },
+    {
+      "version": "QQ-0.7.3",
+      "date": "2026-07-15",
+      "estimated": true,
+      "title_ja": "オンライン接続基盤の試行",
+      "title_en": "Online connectivity prototypes",
+      "changes_ja": [
+        "直接接続によるオンラインアリーナ対戦の基盤を追加しました。",
+        "EOS Relay、ロビー検索、匿名デバイス認証を試作して接続問題を調整しました。",
+        "任意SDKなしでも起動できる構成へ戻し、アリーナの節目報酬を追加しました。"
+      ],
+      "changes_en": [
+        "Added the foundation for direct online arena matches.",
+        "Prototyped EOS Relay, lobby discovery, and anonymous device authentication while addressing connection issues.",
+        "Restored dependency-free startup and added arena milestone rewards."
+      ]
+    },
+    {
+      "version": "QQ-0.7.2",
+      "date": "2026-07-12",
+      "estimated": true,
+      "title_ja": "遺物システムの大規模拡張",
+      "title_en": "Major relic expansion",
+      "changes_ja": [
+        "既存遺物と類似ゲームの調査を基に、新しい遺物群を追加しました。",
+        "遺物効果、取得経路、説明表示を拡張しました。",
+        "既存を含む遺物画像を遺物らしいデザインへ再生成しました。"
+      ],
+      "changes_en": [
+        "Added a large set of relics based on research into the existing pool and related games.",
+        "Expanded relic effects, acquisition paths, and descriptions.",
+        "Regenerated relic artwork, including the original relic set, with a unified artifact style."
+      ]
+    },
+    {
+      "version": "QQ-0.7.1",
+      "date": "2026-07-11",
+      "estimated": true,
+      "title_ja": "LANアリーナとレジェンダリーカード",
+      "title_en": "LAN arena and legendary cards",
+      "changes_ja": [
+        "LAN対戦をアリーナの準備フェーズと戦闘フローへ統合しました。",
+        "長時間戦闘で通信データが増え続ける問題を修正しました。",
+        "レジェンダリーのレア度と20枚のカードを追加し、読みやすいカード画像へ更新しました。"
+      ],
+      "changes_en": [
+        "Integrated LAN multiplayer with arena preparation and battle flow.",
+        "Fixed unbounded network snapshot growth during long battles.",
+        "Added Legendary rarity and twenty cards, then replaced card art with readable illustrations."
+      ]
+    },
+    {
+      "version": "QQ-0.7.0",
+      "date": "2026-07-10",
+      "estimated": true,
+      "title_ja": "LANマルチプレイ",
+      "title_en": "LAN multiplayer",
+      "changes_ja": [
+        "ホストとゲストで対戦できるLANロビーを追加しました。",
+        "戦闘状態の同期、通信プロトコル、ネットワーク用テストを追加しました。",
+        "戦闘画面とタイムラインをネットワーク対戦へ対応させました。"
+      ],
+      "changes_en": [
+        "Added a LAN lobby for host and guest matches.",
+        "Added battle-state synchronization, a network protocol, and multiplayer tests.",
+        "Adapted the battle screen and timeline for network matches."
+      ]
+    },
+    {
+      "version": "QQ-0.6.3",
+      "date": "2026-07-09",
+      "estimated": true,
+      "title_ja": "カード画像の再生成",
+      "title_en": "Regenerated card artwork",
+      "changes_ja": [
+        "全カードの画像を生成済みイラストへ差し替えました。",
+        "カードごとに識別しやすい構図と色へ整理しました。"
+      ],
+      "changes_en": [
+        "Replaced every card image with generated artwork.",
+        "Improved composition and color differentiation between cards."
+      ]
+    },
+    {
+      "version": "QQ-0.6.2",
+      "date": "2026-07-08",
+      "estimated": true,
+      "title_ja": "アリーナモードの拡張",
+      "title_en": "Expanded arena mode",
+      "changes_ja": [
+        "勝利を重ねながら準備と戦闘を繰り返すアリーナモードを追加しました。",
+        "勝利報酬、ショップ、ロードアウト編集、カード売却とゴールド演出を追加しました。",
+        "カードと遺物の種類を増やし、アリーナの表示と操作を改善しました。"
+      ],
+      "changes_en": [
+        "Added Arena Mode with repeating preparation and battle rounds.",
+        "Added victory rewards, shops, loadout editing, card selling, and animated gold feedback.",
+        "Expanded the card and relic pools and refined arena presentation and controls."
+      ]
+    },
+    {
+      "version": "QQ-0.6.1",
+      "date": "2026-07-07",
+      "estimated": true,
+      "title_ja": "開始デッキとキャラクター",
+      "title_en": "Starter decks and characters",
+      "changes_ja": [
+        "解放して選択できる開始デッキを追加しました。",
+        "選んだデッキに応じてプレイヤー画像が変わるようにしました。",
+        "各デッキ用のキャラクター画像を追加しました。"
+      ],
+      "changes_en": [
+        "Added unlockable and selectable starter decks.",
+        "Changed the player portrait according to the selected deck.",
+        "Added character artwork for each starter deck."
+      ]
+    },
+    {
+      "version": "QQ-0.6.0",
+      "date": "2026-07-04",
+      "estimated": true,
+      "title_ja": "起動高速化と無限モード",
+      "title_en": "Startup caching and Infinite Mode",
+      "changes_ja": [
+        "起動時に主要シーン、画像、効果音、UIを事前読み込みするキャッシュを追加しました。",
+        "カード解放をカード図鑑へ統合し、段階式実績を改善しました。",
+        "28ステップを周期的に繰り返して敵が強化される無限モードを追加しました。"
+      ],
+      "changes_en": [
+        "Added startup caching for major scenes, images, sound effects, and UI assets.",
+        "Moved card unlocks into the library and improved tiered achievements.",
+        "Added Infinite Mode with repeating 28-step cycles and scaling enemies."
+      ]
+    },
+    {
+      "version": "QQ-0.5.2",
+      "date": "2026-07-01",
+      "estimated": true,
+      "title_ja": "デバッグ選択と画面高速化",
+      "title_en": "Debug selection and faster screens",
+      "changes_ja": [
+        "デバッグ戦闘ラボのカード選択をアイコン式の3列表示へ変更しました。",
+        "マップへ戦闘サマリーを追加し、カード所持数と装備数の表示を整理しました。",
+        "カード図鑑とハブの読み込みを高速化し、設定トグルの表示不具合を修正しました。"
+      ],
+      "changes_en": [
+        "Changed the debug battle card picker to a three-column icon grid.",
+        "Added battle summaries to the map and simplified owned and equipped card counts.",
+        "Improved Card Library and Hub loading and fixed settings toggle hover visuals."
+      ]
+    },
+    {
+      "version": "QQ-0.5.1",
+      "date": "2026-06-29",
+      "estimated": true,
+      "title_ja": "カード解決エフェクト",
+      "title_en": "Card resolution effects",
+      "changes_ja": [
+        "カード解決時のリッチな戦闘エフェクトを追加しました。",
+        "見づらかった軌跡表現を削除して演出を整理しました。",
+        "マップのロードアウト操作がホバー中に点滅する問題を修正しました。"
+      ],
+      "changes_en": [
+        "Added richer battle effects when cards resolve.",
+        "Removed distracting trail effects and refined presentation.",
+        "Fixed flickering hover actions in the map loadout."
+      ]
+    },
+    {
+      "version": "QQ-0.5.0",
+      "date": "2026-06-27",
+      "estimated": true,
+      "title_ja": "ランHUDとイベント画面",
+      "title_en": "Run HUD and event screens",
+      "changes_ja": [
+        "HP、ゴールド、ステップ、遺物を常時表示するラン情報バナーを追加しました。",
+        "戦闘報酬、イベント、ショップ、鍛冶、回復、危険地帯を共通の選択肢レイアウトへ整理しました。",
+        "カードコスト、シールド、状態時間、ツールチップ、マップロードアウト表示を改善しました。"
+      ],
+      "changes_en": [
+        "Added a persistent run banner for HP, gold, step, and relic information.",
+        "Unified rewards, events, shops, forge, healing, and hazard areas under a common choice layout.",
+        "Improved card costs, shields, status timers, tooltips, and map loadout presentation."
+      ]
+    },
+    {
+      "version": "QQ-0.4.3",
+      "date": "2026-06-24",
+      "estimated": true,
+      "title_ja": "シールドカードとバランス調整",
+      "title_en": "Shield cards and balance tuning",
+      "changes_ja": [
+        "敵のHPを全体的に調整しました。",
+        "シールドを消費して効果を得るカードとガーディアン用戦術を追加しました。",
+        "高シールドカード、遅延効果、メタ進行と図鑑の応答速度を調整しました。"
+      ],
+      "changes_en": [
+        "Adjusted enemy HP across progression tiers.",
+        "Added shield-spending cards and Guardian tactics.",
+        "Tuned high-shield cards, delay effects, and Meta Progress and Library responsiveness."
+      ]
+    },
+    {
+      "version": "QQ-0.4.2",
+      "date": "2026-06-21",
+      "estimated": true,
+      "title_ja": "開発者パネルの操作改善",
+      "title_en": "Developer panel controls",
+      "changes_ja": [
+        "開発者パネルを折りたたみ可能にしました。",
+        "パネル右上へ小さな開閉ボタンを配置しました。",
+        "画面を移動しても開閉状態が維持されるようにしました。"
+      ],
+      "changes_en": [
+        "Made the developer panel collapsible.",
+        "Added a compact toggle in the panel's top-right corner.",
+        "Persisted the expanded or collapsed state across scene changes."
+      ]
+    },
+    {
+      "version": "QQ-0.4.1",
+      "date": "2026-06-20",
+      "estimated": true,
+      "title_ja": "ラン評価と28ステップ進行",
+      "title_en": "Run scoring and 28-step progression",
+      "changes_ja": [
+        "ラン終了時に項目別バー、スコア、SからEまでのランクを表示する演出を追加しました。",
+        "ランク実績によってステップ8から28を段階的に解放する進行を追加しました。",
+        "各進行帯の敵、ボス、カード、遺物とマップ移動を追加しました。"
+      ],
+      "changes_en": [
+        "Added animated category bars, a score, and S-through-E ranks to run results.",
+        "Added rank achievements that progressively unlock steps 8 through 28.",
+        "Added enemies, bosses, cards, relics, and map navigation for each progression tier."
+      ]
+    },
+    {
+      "version": "QQ-0.4.0",
+      "date": "2026-06-19",
+      "estimated": true,
+      "title_ja": "UIテーマと戦闘ルールの刷新",
+      "title_en": "UI theme and battle rule overhaul",
+      "changes_ja": [
+        "ゲーム全体へ統一されたリッチUIテーマを追加しました。",
+        "防御力を廃止し、攻撃と速度をアイコン表示へ変更しました。",
+        "カード使用または開始ボタンで戦闘が始まる待機フェーズを追加し、戦闘とマップ配置を改善しました。"
+      ],
+      "changes_en": [
+        "Added a unified rich UI theme across the game.",
+        "Removed defense and replaced attack and speed labels with icons.",
+        "Added a waiting phase where battle starts from a card or Start button and refined battle and map layouts."
+      ]
+    },
+    {
+      "version": "QQ-0.3.3",
+      "date": "2026-06-18",
+      "estimated": true,
+      "title_ja": "戦況パネルと防御音",
+      "title_en": "Battle status panel and block audio",
+      "changes_ja": [
+        "戦況欄から不要な操作説明と件数表示を削除しました。",
+        "プレイヤー、敵、戦況パネルの幅と中央配置を調整しました。",
+        "シールドで全ダメージを防いだ際の専用効果音を追加しました。"
+      ],
+      "changes_en": [
+        "Removed unnecessary control instructions and counters from the battle status panel.",
+        "Adjusted the width and centering of player, enemy, and battle status panels.",
+        "Added a distinct sound when shields fully block incoming damage."
+      ]
+    },
+    {
+      "version": "QQ-0.3.2",
+      "date": "2026-06-17",
+      "estimated": true,
+      "title_ja": "戦闘数値と報酬改善",
+      "title_en": "Battle numbers and reward improvements",
+      "changes_ja": [
+        "ダメージ、回復、シールドのフローティング数値を大きく見やすくしました。",
+        "デバッグ戦闘でカードGradeを指定できるようにし、状態ツールチップの重複を修正しました。",
+        "カード報酬の有料リロール、遺物アイコン、マップのロック表示を追加しました。"
+      ],
+      "changes_en": [
+        "Made floating damage, healing, and shield numbers larger and clearer.",
+        "Added card Grade selection to debug battles and fixed duplicate status tooltips.",
+        "Added paid reward rerolls, relic icons, and clearer locked map nodes."
+      ]
+    },
+    {
+      "version": "QQ-0.3.1",
+      "date": "2026-06-16",
+      "estimated": true,
+      "title_ja": "遺物アイコンと説明",
+      "title_en": "Relic icons and descriptions",
+      "changes_ja": [
+        "全遺物へ専用画像と説明ツールチップを追加しました。",
+        "遺物名をアイコン上から外して表示を簡潔にしました。",
+        "イベント選択肢の取得内容へ遺物アイコンを埋め込みました。"
+      ],
+      "changes_en": [
+        "Added dedicated artwork and descriptive tooltips for every relic.",
+        "Removed names from relic icons for a cleaner presentation.",
+        "Embedded relic icons in relevant event rewards and choices."
+      ]
+    },
+    {
+      "version": "QQ-0.3.0",
+      "date": "2026-06-14",
+      "estimated": true,
+      "title_ja": "特殊カード、状態、実績",
+      "title_en": "Special cards, statuses, and achievements",
+      "changes_ja": [
+        "スロット使用量をバッテリー表示にし、カード遅延時の滑らかな移動とコストプレビューを追加しました。",
+        "状態アイコン、残り時間ツールチップ、実績と永続報酬、任意構成のデバッグ戦闘を追加しました。",
+        "戦闘中の一時強化、自動投入、時間停止、時間逆行などの特殊カード効果を追加しました。"
+      ],
+      "changes_en": [
+        "Added battery-style slot usage, smooth delay movement, and slot-cost previews.",
+        "Added status icons and timers, achievements with permanent rewards, and configurable debug battles.",
+        "Added temporary card upgrades, automatic queueing, timeline stops, and reverse-time card effects."
+      ]
+    },
+    {
+      "version": "QQ-0.2.1",
+      "date": "2026-06-13",
+      "estimated": true,
+      "title_ja": "タイムラインプレビューの改善",
+      "title_en": "Timeline preview refinements",
+      "changes_ja": [
+        "カードホバー時のタイムラインプレビューと戦況UIを改善しました。",
+        "プレビューを白い発光から半透明の周期表示へ変更しました。",
+        "ゲーム設定をウィンドウ終了後も保存するようにしました。"
+      ],
+      "changes_en": [
+        "Improved timeline previews on card hover and battle status interactions.",
+        "Replaced white preview bloom with a pulsing translucent treatment.",
+        "Persisted game settings when the window closes."
+      ]
+    },
+    {
+      "version": "QQ-0.2.0",
+      "date": "2026-06-10",
+      "estimated": true,
+      "title_ja": "タイムライン表示の再設計",
+      "title_en": "Timeline presentation redesign",
+      "changes_ja": [
+        "タイムラインカードを拡大し、ログを別ウィンドウへ移動しました。",
+        "カードが詠唱時間に応じて右から左へ移動する固定目盛り式へ変更しました。",
+        "ロードアウト最大詠唱時間の固定スケール、ホバープレビュー、解像度設定を追加しました。"
+      ],
+      "changes_en": [
+        "Enlarged timeline cards and moved the battle log into a separate window.",
+        "Redesigned the timeline around fixed ticks with cards sliding from right to left by cast time.",
+        "Added a loadout-based fixed scale, hover previews, and resolution settings."
+      ]
+    },
+    {
+      "version": "QQ-0.1.0",
+      "date": "2026-06-02",
+      "estimated": true,
+      "title_ja": "初期プレイアブル版",
+      "title_en": "Initial playable build",
+      "changes_ja": [
+        "リアルタイムカード戦闘、敵AI、タイムライン、カード効果の基礎を実装しました。",
+        "マップ、報酬、イベント、ショップ、鍛冶、回復、危険地帯を含むラン進行を実装しました。",
+        "カード、敵、遺物、メタ進行、セーブ、リプレイ、日本語表示、効果音を含む初期コンテンツを追加しました。"
+      ],
+      "changes_en": [
+        "Implemented the foundations of real-time card combat, enemy AI, the timeline, and card effects.",
+        "Implemented run progression with maps, rewards, events, shops, forge, healing, and hazard areas.",
+        "Added initial cards, enemies, relics, meta progression, saves, replays, Japanese localization, and sound effects."
       ]
     }
   ]
