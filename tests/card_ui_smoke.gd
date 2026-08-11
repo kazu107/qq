@@ -853,10 +853,42 @@ func _run() -> void:
 	var log_popup: PanelContainer = battle_scene.find_child("BattleLogPopup", true, false) as PanelContainer
 	var log_panel: LogPanel = battle_scene.find_child("BattleLogPanel", true, false) as LogPanel
 	var battle_vfx_layer: BattleVfxLayer = battle_scene.find_child("BattleVfxLayer", true, false) as BattleVfxLayer
+	var battle_stage_region: Control = battle_scene.find_child("BattleStageRegion", true, false) as Control
+	var battle_stage: BattleStage3D = battle_scene.find_child("BattleStage3D", true, false) as BattleStage3D
+	var battle_stage_viewport: SubViewport = battle_scene.find_child("BattleStageViewport", true, false) as SubViewport
+	var battle_stage_camera: Camera3D = battle_scene.find_child("BattleStageCamera", true, false) as Camera3D
+	var battle_player_actor: BattleActor3D = battle_scene.find_child("PlayerBattleActor3D", true, false) as BattleActor3D
+	var battle_enemy_actor: BattleActor3D = battle_scene.find_child("EnemyBattleActor3D", true, false) as BattleActor3D
 	var battle_player_unit_panel: UnitPanel = battle_scene.find_child("PlayerUnitPanel", true, false) as UnitPanel
 	var battle_enemy_unit_panel: UnitPanel = battle_scene.find_child("EnemyUnitPanel", true, false) as UnitPanel
 	if bottom_split == null or timeline_section == null or battle_timeline_panel == null or log_button == null or log_popup == null or log_panel == null or battle_vfx_layer == null:
 		push_error("Card UI smoke failed: battle scene layout sections were not created")
+		get_tree().quit(1)
+		return
+	if battle_stage_region == null \
+	or battle_stage == null \
+	or battle_stage_viewport == null \
+	or battle_stage_camera == null \
+	or battle_player_actor == null \
+	or battle_enemy_actor == null:
+		push_error("Card UI smoke failed: battle scene should include the 3D greybox stage")
+		get_tree().quit(1)
+		return
+	if battle_stage_region.size_flags_horizontal != Control.SIZE_EXPAND_FILL \
+	or battle_stage_viewport.render_target_update_mode != SubViewport.UPDATE_ALWAYS \
+	or not battle_stage_camera.current:
+		push_error("Card UI smoke failed: 3D greybox stage should fill the center and render continuously")
+		get_tree().quit(1)
+		return
+	var player_body_pivot: Node3D = battle_player_actor.get_node_or_null("BodyPivot") as Node3D
+	if player_body_pivot == null:
+		push_error("Card UI smoke failed: 3D player actor should contain an animated body pivot")
+		get_tree().quit(1)
+		return
+	var body_y_before: float = player_body_pivot.position.y
+	battle_player_actor._process(0.37)
+	if is_equal_approx(body_y_before, player_body_pivot.position.y):
+		push_error("Card UI smoke failed: 3D player actor idle animation should update its pose")
 		get_tree().quit(1)
 		return
 	if battle_player_unit_panel == null or battle_enemy_unit_panel == null:

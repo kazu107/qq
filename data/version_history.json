@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.10.1",
+  "current_version": "QQ-0.11.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.11.0",
+      "date": "2026-08-11",
+      "title_ja": "3D戦闘フィールド試作",
+      "title_en": "3D battle stage prototype",
+      "changes_ja": [
+        "戦闘画面の中央に3Dフィールドを追加しました。",
+        "プリミティブで構成したプレイヤーと敵、床、照明、固定カメラを追加しました。",
+        "プレイヤーと敵に軽量な待機アニメーションを追加しました。"
+      ],
+      "changes_en": [
+        "Added a 3D field to the center of the battle screen.",
+        "Added primitive player and enemy actors, arena floor, lighting, and a fixed camera.",
+        "Added lightweight idle animation to both combatants."
+      ]
+    },
     {
       "version": "QQ-0.10.1",
       "date": "2026-08-09",

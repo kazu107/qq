@@ -5,6 +5,7 @@ const BATTLE_INFO_MIN_WIDTH: float = 280.0
 const BATTLE_CARD_TILE_SIZE: Vector2 = Vector2(100.0, 100.0)
 const BATTLE_LOADOUT_WIDTH: float = 320.0
 const BATTLE_SIDE_PANEL_WIDTH: float = BATTLE_LOADOUT_WIDTH + 34.0
+const BATTLE_STAGE_MIN_WIDTH: float = 420.0
 const TIMELINE_PREVIEW_INSTANCE_ID: int = 999999
 const LAN_SNAPSHOT_INTERVAL: float = 1.0 / 12.0
 
@@ -15,6 +16,7 @@ var _player_panel: UnitPanel
 var _card_hand_panel: CardHandPanel
 var _timeline_panel: TimelinePanel
 var _vfx_layer: BattleVfxLayer
+var _battle_stage: BattleStage3D
 var _run_info_banner: RunInfoBanner
 var _log_button: Button
 var _log_popup: PanelContainer
@@ -408,7 +410,30 @@ func _build_ui() -> void:
 	_enemy_cards_panel.set_tile_size(BATTLE_CARD_TILE_SIZE)
 	left_panel.add_child(_enemy_cards_panel)
 
-	var center_panel := _create_section(main_split, Localization.get_text("battle.section.battle", "Battle"), false, false)
+	var battle_stage_region := Control.new()
+	battle_stage_region.name = "BattleStageRegion"
+	battle_stage_region.custom_minimum_size = Vector2(BATTLE_STAGE_MIN_WIDTH, 0.0)
+	battle_stage_region.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	battle_stage_region.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	battle_stage_region.clip_contents = true
+	main_split.add_child(battle_stage_region)
+
+	_battle_stage = BattleStage3D.new()
+	_battle_stage.name = "BattleStage3D"
+	battle_stage_region.add_child(_battle_stage)
+	_battle_stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	var center_overlay := VBoxContainer.new()
+	center_overlay.name = "BattleStageHudOverlay"
+	center_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	battle_stage_region.add_child(center_overlay)
+	center_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center_overlay.offset_left = 14.0
+	center_overlay.offset_top = 12.0
+	center_overlay.offset_right = -14.0
+	center_overlay.offset_bottom = -12.0
+
+	var center_panel := _create_section(center_overlay, Localization.get_text("battle.section.battle", "Battle"), false, false)
 	center_panel.name = "BattleInfoSection"
 	_set_section_min_width(center_panel, BATTLE_INFO_MIN_WIDTH)
 	_start_battle_button = Button.new()
