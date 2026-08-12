@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>$GODOT_PROJECT_NAME</title>
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	color: white;
+	background: #03070b;
+	overflow: hidden;
+	touch-action: none;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status, #status-splash, #status-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#status, #status-splash {
+	top: 0;
+	bottom: 0;
+}
+
+#status {
+	background: radial-gradient(circle at 50% 42%, #10263a 0%, #07111b 42%, #03070b 100%);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
+}
+
+#status::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background-image: linear-gradient(rgba(84, 161, 205, 0.04) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(84, 161, 205, 0.04) 1px, transparent 1px);
+	background-size: 36px 36px;
+	pointer-events: none;
+}
+
+#status-splash {
+	max-height: 56%;
+	max-width: 56%;
+	margin: auto;
+	z-index: 1;
+}
+
+#status-splash.show-image--false {
+	display: none;
+}
+
+#status-splash.fullsize--true {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+#status-splash.use-filter--false {
+	image-rendering: pixelated;
+}
+
+#status-progress, #status-notice, #status-detail {
+	z-index: 2;
+}
+
+#status-progress, #status-notice {
+	display: none;
+}
+
+#status-progress {
+	bottom: 11%;
+	width: min(520px, 64%);
+	height: 10px;
+	margin: 0 auto;
+	accent-color: #4ec9ff;
+}
+
+#status-detail {
+	position: absolute;
+	bottom: calc(11% + 24px);
+	color: #b9d9e8;
+	font: 600 14px/1.4 "Noto Sans JP", "Yu Gothic UI", sans-serif;
+	letter-spacing: 0.08em;
+	text-align: center;
+}
+
+#status-notice {
+	background-color: #301d24;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #f0dfe3;
+	font-family: "Noto Sans JP", "Yu Gothic UI", sans-serif;
+	line-height: 1.5;
+	margin: 0 2rem;
+	max-width: 720px;
+	overflow: hidden;
+	padding: 1rem 1.25rem;
+	text-align: center;
+}
+		</style>
+		$GODOT_HEAD_INCLUDE
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			JavaScriptを有効にしてください。
+		</noscript>
+
+		<div id="status">
+			<img id="status-splash" class="$GODOT_SPLASH_CLASSES" src="$GODOT_SPLASH" alt="">
+			<div id="status-detail">起動準備中</div>
+			<progress id="status-progress"></progress>
+			<div id="status-notice"></div>
+		</div>
+
+		<script src="$GODOT_URL"></script>
+		<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+const R2_MANIFEST_URL = 'https://qq.kazu107.xyz/releases/current.json';
+const R2_ORIGIN = new URL(R2_MANIFEST_URL).origin;
+const LOCAL_PACK_PATH = `${GODOT_CONFIG.executable}.pck`;
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusNotice = document.getElementById('status-notice');
+	const statusDetail = document.getElementById('status-detail');
+
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.remove();
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusDetail.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusDetail(text) {
+		statusDetail.textContent = text;
+	}
+
+	function setStatusNotice(text) {
+		statusNotice.replaceChildren();
+		String(text).split('\n').forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(error) {
+		console.error(error);
+		const message = error instanceof Error ? error.message : String(error || '不明なエラーが発生しました。');
+		setStatusNotice(`ゲームを起動できませんでした。\n${message}\nページを再読み込みしてください。`);
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	function useLocalPack() {
+		const requestedPack = new URLSearchParams(window.location.search).get('pack');
+		if (requestedPack === 'remote') {
+			return false;
+		}
+		if (requestedPack === 'local') {
+			return true;
+		}
+		return window.location.protocol === 'file:'
+			|| ['localhost', '127.0.0.1', '0.0.0.0', '[::1]'].includes(window.location.hostname);
+	}
+
+	function validateManifest(manifest) {
+		if (!manifest || manifest.schema_version !== 1 || !manifest.pck) {
+			throw new Error('R2マニフェストの形式が正しくありません。');
+		}
+		const pckUrl = new URL(String(manifest.pck.url || ''));
+		const sha256 = String(manifest.pck.sha256 || '').toLowerCase();
+		const size = Number(manifest.pck.size);
+		if (pckUrl.origin !== R2_ORIGIN || !/^[a-f0-9]{64}$/.test(sha256)) {
+			throw new Error('R2マニフェストのPCK情報が正しくありません。');
+		}
+		if (!pckUrl.pathname.endsWith(`/objects/${sha256}.pck`) || !Number.isSafeInteger(size) || size <= 0) {
+			throw new Error('R2マニフェストのPCKパスまたはサイズが正しくありません。');
+		}
+		return { source: pckUrl.toString(), size, remote: true };
+	}
+
+	async function fetchRemotePack() {
+		const controller = new AbortController();
+		const timeout = window.setTimeout(() => controller.abort(), 8000);
+		try {
+			const response = await fetch(R2_MANIFEST_URL, {
+				cache: 'no-store',
+				credentials: 'omit',
+				signal: controller.signal,
+			});
+			if (!response.ok) {
+				throw new Error(`R2マニフェストを取得できませんでした (${response.status})。`);
+			}
+			return validateManifest(await response.json());
+		} finally {
+			window.clearTimeout(timeout);
+		}
+	}
+
+	async function resolvePack() {
+		const localPack = {
+			source: LOCAL_PACK_PATH,
+			size: Number(GODOT_CONFIG.fileSizes[LOCAL_PACK_PATH] || 0),
+			remote: false,
+		};
+		if (useLocalPack()) {
+			return localPack;
+		}
+		setStatusDetail('ゲームデータを確認中');
+		try {
+			return await fetchRemotePack();
+		} catch (error) {
+			console.warn('R2 manifest unavailable; using the bundled PCK.', error);
+			setStatusDetail('内蔵ゲームデータを使用します');
+			return localPack;
+		}
+	}
+
+	function updateProgress(current, total) {
+		if (current > 0 && total > 0) {
+			statusProgress.value = current;
+			statusProgress.max = total;
+			setStatusDetail(`ゲームデータを読み込み中 ${Math.min(100, Math.floor(current / total * 100))}%`);
+		} else {
+			statusProgress.removeAttribute('value');
+			statusProgress.removeAttribute('max');
+			setStatusDetail('ゲームデータを読み込み中');
+		}
+	}
+
+	async function startGame() {
+		setStatusMode('progress');
+		const pack = await resolvePack();
+		const fileSizes = Object.assign({}, GODOT_CONFIG.fileSizes, { [pack.source]: pack.size });
+		const originalArgs = Array.isArray(GODOT_CONFIG.args) ? GODOT_CONFIG.args.slice() : [];
+		const engine = new Engine(Object.assign({}, GODOT_CONFIG, {
+			fileSizes,
+			onProgress: updateProgress,
+		}));
+
+		if (pack.remote) {
+			setStatusDetail('R2からゲームデータを読み込み中');
+		}
+		await Promise.all([
+			engine.init(GODOT_CONFIG.executable),
+			engine.preloadFile(pack.source, LOCAL_PACK_PATH),
+		]);
+		await engine.start({ args: ['--main-pack', LOCAL_PACK_PATH].concat(originalArgs) });
+		setStatusMode('hidden');
+	}
+
+	const missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
+	if (missing.length !== 0) {
+		displayFailureNotice(`必要なブラウザ機能が見つかりません。\n${missing.join('\n')}`);
+		return;
+	}
+	startGame().catch(displayFailureNotice);
+}());
+		</script>
+	</body>
+</html>

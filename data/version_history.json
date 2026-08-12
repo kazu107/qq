@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.11.0",
+  "current_version": "QQ-0.11.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.11.1",
+      "date": "2026-08-13",
+      "title_ja": "R2 Web配信基盤",
+      "title_en": "R2 Web distribution",
+      "changes_ja": [
+        "Web版の大容量PCKをCloudflare R2から配信できる起動処理を追加しました。",
+        "PCKをSHA-256付きの不変URLで公開する自動デプロイを追加しました。",
+        "ローカル開発では従来どおりローカルPCKを使用する構成にしました。"
+      ],
+      "changes_en": [
+        "Added Cloudflare R2 loading for the large Web PCK.",
+        "Added automated publishing to immutable SHA-256 PCK URLs.",
+        "Kept local development on the bundled local PCK."
+      ]
+    },
     {
       "version": "QQ-0.11.0",
       "date": "2026-08-11",

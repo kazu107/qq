@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "node server/server.js",
-    "test": "node --test server/server.test.js"
+    "test": "node --test server/server.test.js tests/r2_release_manifest.test.mjs",
+    "test:r2": "node --test tests/r2_release_manifest.test.mjs"
   },
   "dependencies": {
     "ws": "^8.18.3"

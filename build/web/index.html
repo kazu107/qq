@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
@@ -13,7 +13,7 @@ html, body, #canvas {
 
 body {
 	color: white;
-	background-color: black;
+	background: #03070b;
 	overflow: hidden;
 	touch-action: none;
 }
@@ -38,7 +38,7 @@ body {
 }
 
 #status {
-	background-color: #242424;
+	background: radial-gradient(circle at 50% 42%, #10263a 0%, #07111b 42%, #03070b 100%);
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -46,10 +46,21 @@ body {
 	visibility: hidden;
 }
 
+#status::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background-image: linear-gradient(rgba(84, 161, 205, 0.04) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(84, 161, 205, 0.04) 1px, transparent 1px);
+	background-size: 36px 36px;
+	pointer-events: none;
+}
+
 #status-splash {
-	max-height: 100%;
-	max-width: 100%;
+	max-height: 56%;
+	max-width: 56%;
 	margin: auto;
+	z-index: 1;
 }
 
 #status-splash.show-image--false {
@@ -66,28 +77,43 @@ body {
 	image-rendering: pixelated;
 }
 
+#status-progress, #status-notice, #status-detail {
+	z-index: 2;
+}
+
 #status-progress, #status-notice {
 	display: none;
 }
 
 #status-progress {
-	bottom: 10%;
-	width: 50%;
+	bottom: 11%;
+	width: min(520px, 64%);
+	height: 10px;
 	margin: 0 auto;
+	accent-color: #4ec9ff;
+}
+
+#status-detail {
+	position: absolute;
+	bottom: calc(11% + 24px);
+	color: #b9d9e8;
+	font: 600 14px/1.4 "Noto Sans JP", "Yu Gothic UI", sans-serif;
+	letter-spacing: 0.08em;
+	text-align: center;
 }
 
 #status-notice {
-	background-color: #5b3943;
+	background-color: #301d24;
 	border-radius: 0.5rem;
 	border: 1px solid #9b3943;
-	color: #e0e0e0;
-	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
-	line-height: 1.3;
+	color: #f0dfe3;
+	font-family: "Noto Sans JP", "Yu Gothic UI", sans-serif;
+	line-height: 1.5;
 	margin: 0 2rem;
+	max-width: 720px;
 	overflow: hidden;
-	padding: 1rem;
+	padding: 1rem 1.25rem;
 	text-align: center;
-	z-index: 1;
 }
 		</style>
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
@@ -100,25 +126,29 @@ body {
 		</canvas>
 
 		<noscript>
-			Your browser does not support JavaScript.
+			JavaScriptを有効にしてください。
 		</noscript>
 
 		<div id="status">
 			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
+			<div id="status-detail">起動準備中</div>
 			<progress id="status-progress"></progress>
 			<div id="status-notice"></div>
 		</div>
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":99053256,"index.wasm":37695054},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":99053976,"index.wasm":37695054},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
-const engine = new Engine(GODOT_CONFIG);
+const R2_MANIFEST_URL = 'https://qq.kazu107.xyz/releases/current.json';
+const R2_ORIGIN = new URL(R2_MANIFEST_URL).origin;
+const LOCAL_PACK_PATH = `${GODOT_CONFIG.executable}.pck`;
 
 (function () {
 	const statusOverlay = document.getElementById('status');
 	const statusProgress = document.getElementById('status-progress');
 	const statusNotice = document.getElementById('status-notice');
+	const statusDetail = document.getElementById('status-detail');
 
 	let initializing = true;
 	let statusMode = '';
@@ -134,85 +164,135 @@ const engine = new Engine(GODOT_CONFIG);
 		}
 		statusOverlay.style.visibility = 'visible';
 		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusDetail.style.display = mode === 'progress' ? 'block' : 'none';
 		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
 		statusMode = mode;
 	}
 
+	function setStatusDetail(text) {
+		statusDetail.textContent = text;
+	}
+
 	function setStatusNotice(text) {
-		while (statusNotice.lastChild) {
-			statusNotice.removeChild(statusNotice.lastChild);
-		}
-		const lines = text.split('\n');
-		lines.forEach((line) => {
+		statusNotice.replaceChildren();
+		String(text).split('\n').forEach((line) => {
 			statusNotice.appendChild(document.createTextNode(line));
 			statusNotice.appendChild(document.createElement('br'));
 		});
 	}
 
-	function displayFailureNotice(err) {
-		console.error(err);
-		if (err instanceof Error) {
-			setStatusNotice(err.message);
-		} else if (typeof err === 'string') {
-			setStatusNotice(err);
-		} else {
-			setStatusNotice('An unknown error occurred.');
-		}
+	function displayFailureNotice(error) {
+		console.error(error);
+		const message = error instanceof Error ? error.message : String(error || '不明なエラーが発生しました。');
+		setStatusNotice(`ゲームを起動できませんでした。\n${message}\nページを再読み込みしてください。`);
 		setStatusMode('notice');
 		initializing = false;
 	}
 
-	const missing = Engine.getMissingFeatures({
-		threads: GODOT_THREADS_ENABLED,
-	});
-
-	if (missing.length !== 0) {
-		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
-			let serviceWorkerRegistrationPromise;
-			try {
-				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
-			} catch (err) {
-				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
-			}
-			// There's a chance that installing the service worker would fix the issue
-			Promise.race([
-				serviceWorkerRegistrationPromise.then((registration) => {
-					if (registration != null) {
-						return Promise.reject(new Error('Service worker already exists.'));
-					}
-					return registration;
-				}).then(() => engine.installServiceWorker()),
-				// For some reason, `getRegistration()` can stall
-				new Promise((resolve) => {
-					setTimeout(() => resolve(), 2000);
-				}),
-			]).then(() => {
-				// Reload if there was no error.
-				window.location.reload();
-			}).catch((err) => {
-				console.error('Error while registering service worker:', err);
-			});
-		} else {
-			// Display the message as usual
-			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
-			displayFailureNotice(missingMsg + missing.join('\n'));
+	function useLocalPack() {
+		const requestedPack = new URLSearchParams(window.location.search).get('pack');
+		if (requestedPack === 'remote') {
+			return false;
 		}
-	} else {
-		setStatusMode('progress');
-		engine.startGame({
-			'onProgress': function (current, total) {
-				if (current > 0 && total > 0) {
-					statusProgress.value = current;
-					statusProgress.max = total;
-				} else {
-					statusProgress.removeAttribute('value');
-					statusProgress.removeAttribute('max');
-				}
-			},
-		}).then(() => {
-			setStatusMode('hidden');
-		}, displayFailureNotice);
+		if (requestedPack === 'local') {
+			return true;
+		}
+		return window.location.protocol === 'file:'
+			|| ['localhost', '127.0.0.1', '0.0.0.0', '[::1]'].includes(window.location.hostname);
 	}
+
+	function validateManifest(manifest) {
+		if (!manifest || manifest.schema_version !== 1 || !manifest.pck) {
+			throw new Error('R2マニフェストの形式が正しくありません。');
+		}
+		const pckUrl = new URL(String(manifest.pck.url || ''));
+		const sha256 = String(manifest.pck.sha256 || '').toLowerCase();
+		const size = Number(manifest.pck.size);
+		if (pckUrl.origin !== R2_ORIGIN || !/^[a-f0-9]{64}$/.test(sha256)) {
+			throw new Error('R2マニフェストのPCK情報が正しくありません。');
+		}
+		if (!pckUrl.pathname.endsWith(`/objects/${sha256}.pck`) || !Number.isSafeInteger(size) || size <= 0) {
+			throw new Error('R2マニフェストのPCKパスまたはサイズが正しくありません。');
+		}
+		return { source: pckUrl.toString(), size, remote: true };
+	}
+
+	async function fetchRemotePack() {
+		const controller = new AbortController();
+		const timeout = window.setTimeout(() => controller.abort(), 8000);
+		try {
+			const response = await fetch(R2_MANIFEST_URL, {
+				cache: 'no-store',
+				credentials: 'omit',
+				signal: controller.signal,
+			});
+			if (!response.ok) {
+				throw new Error(`R2マニフェストを取得できませんでした (${response.status})。`);
+			}
+			return validateManifest(await response.json());
+		} finally {
+			window.clearTimeout(timeout);
+		}
+	}
+
+	async function resolvePack() {
+		const localPack = {
+			source: LOCAL_PACK_PATH,
+			size: Number(GODOT_CONFIG.fileSizes[LOCAL_PACK_PATH] || 0),
+			remote: false,
+		};
+		if (useLocalPack()) {
+			return localPack;
+		}
+		setStatusDetail('ゲームデータを確認中');
+		try {
+			return await fetchRemotePack();
+		} catch (error) {
+			console.warn('R2 manifest unavailable; using the bundled PCK.', error);
+			setStatusDetail('内蔵ゲームデータを使用します');
+			return localPack;
+		}
+	}
+
+	function updateProgress(current, total) {
+		if (current > 0 && total > 0) {
+			statusProgress.value = current;
+			statusProgress.max = total;
+			setStatusDetail(`ゲームデータを読み込み中 ${Math.min(100, Math.floor(current / total * 100))}%`);
+		} else {
+			statusProgress.removeAttribute('value');
+			statusProgress.removeAttribute('max');
+			setStatusDetail('ゲームデータを読み込み中');
+		}
+	}
+
+	async function startGame() {
+		setStatusMode('progress');
+		const pack = await resolvePack();
+		const fileSizes = Object.assign({}, GODOT_CONFIG.fileSizes, { [pack.source]: pack.size });
+		const originalArgs = Array.isArray(GODOT_CONFIG.args) ? GODOT_CONFIG.args.slice() : [];
+		const engine = new Engine(Object.assign({}, GODOT_CONFIG, {
+			fileSizes,
+			onProgress: updateProgress,
+		}));
+
+		if (pack.remote) {
+			setStatusDetail('R2からゲームデータを読み込み中');
+		}
+		await Promise.all([
+			engine.init(GODOT_CONFIG.executable),
+			engine.preloadFile(pack.source, LOCAL_PACK_PATH),
+		]);
+		await engine.start({ args: ['--main-pack', LOCAL_PACK_PATH].concat(originalArgs) });
+		setStatusMode('hidden');
+	}
+
+	const missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
+	if (missing.length !== 0) {
+		displayFailureNotice(`必要なブラウザ機能が見つかりません。\n${missing.join('\n')}`);
+		return;
+	}
+	startGame().catch(displayFailureNotice);
 }());
 		</script>
 	</body>

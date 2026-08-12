@@ -31,6 +31,25 @@ func _run() -> void:
 	if preset_text.find('vram_texture_compression/for_mobile=false') == -1:
 		_fail("Web export smoke failed: mobile texture compression would require an ETC2/ASTC reimport")
 		return
+	if preset_text.find('html/custom_html_shell="res://web/custom_shell.html"') == -1:
+		_fail("Web export smoke failed: the R2-aware custom HTML shell is not configured")
+		return
+	var shell_text: String = _read_text("res://web/custom_shell.html")
+	if shell_text == "":
+		return
+	if (
+		shell_text.find("https://qq.kazu107.xyz/releases/current.json") == -1
+		or shell_text.find("engine.preloadFile(pack.source, LOCAL_PACK_PATH)") == -1
+		or shell_text.find("'localhost', '127.0.0.1'") == -1
+	):
+		_fail("Web export smoke failed: R2 loading or the local PCK fallback is incomplete")
+		return
+	if (
+		not FileAccess.file_exists("res://tools/prepare_r2_release.mjs")
+		or not FileAccess.file_exists("res://.github/workflows/publish-web-r2.yml")
+	):
+		_fail("Web export smoke failed: the R2 publishing workflow is missing")
+		return
 
 	if not Game.WEB_MULTIPLAYER_ENABLED or Game.supports_lan_multiplayer():
 		_fail("Web export smoke failed: Web multiplayer did not replace LAN multiplayer")
@@ -61,7 +80,7 @@ func _run() -> void:
 
 	hub.queue_free()
 	title.queue_free()
-	print("WEB_EXPORT_SMOKE_OK Compatibility preset and Heroku host validated")
+	print("WEB_EXPORT_SMOKE_OK Compatibility preset, R2 PCK, and Heroku host validated")
 	get_tree().quit()
 
 

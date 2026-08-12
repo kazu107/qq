@@ -1,0 +1,196 @@
+name: Publish Web PCK to R2
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/publish-web-r2.yml"
+      - "addons/**"
+      - "assets/**"
+      - "data/**"
+      - "scenes/**"
+      - "src/**"
+      - "tests/r2_release_manifest.test.mjs"
+      - "tools/prepare_r2_release.mjs"
+      - "web/**"
+      - "build/web/**"
+      - "export_presets.cfg"
+      - "project.godot"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qq-web-r2-production
+  cancel-in-progress: false
+
+env:
+  GODOT_VERSION: 4.6.2-stable
+  GODOT_TEMPLATE_VERSION: 4.6.2.stable
+  R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
+  R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME }}
+  R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+  R2_PUBLIC_BASE_URL: ${{ vars.R2_PUBLIC_BASE_URL }}
+  WEB_ORIGIN: https://masterqueue.kazu107.xyz
+
+jobs:
+  publish:
+    name: Build and publish content-addressed PCK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate R2 configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${R2_ACCOUNT_ID:?Set the R2_ACCOUNT_ID repository variable}"
+          : "${R2_BUCKET_NAME:?Set the R2_BUCKET_NAME repository variable}"
+          : "${R2_PUBLIC_BASE_URL:?Set the R2_PUBLIC_BASE_URL repository variable}"
+          endpoint="${R2_ENDPOINT:-https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com}"
+          if [[ "${R2_PUBLIC_BASE_URL}" != https://* ]]; then
+            echo "R2_PUBLIC_BASE_URL must use HTTPS." >&2
+            exit 1
+          fi
+          echo "RESOLVED_R2_ENDPOINT=${endpoint%/}" >> "$GITHUB_ENV"
+          echo "RESOLVED_R2_PUBLIC_BASE_URL=${R2_PUBLIC_BASE_URL%/}" >> "$GITHUB_ENV"
+
+      - name: Cache Godot executable
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/qq-godot/${{ env.GODOT_VERSION }}
+          key: ${{ runner.os }}-godot-${{ env.GODOT_VERSION }}
+
+      - name: Install Godot
+        shell: bash
+        run: |
+          set -euo pipefail
+          install_dir="$HOME/.cache/qq-godot/${GODOT_VERSION}"
+          godot_path="$install_dir/godot"
+          if [[ ! -x "$godot_path" ]]; then
+            mkdir -p "$install_dir"
+            archive="$RUNNER_TEMP/godot.zip"
+            curl --fail --location --retry 5 --retry-all-errors \
+              "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" \
+              --output "$archive"
+            unzip -q "$archive" -d "$install_dir"
+            mv "$install_dir/Godot_v${GODOT_VERSION}_linux.x86_64" "$godot_path"
+            chmod +x "$godot_path"
+          fi
+          echo "$install_dir" >> "$GITHUB_PATH"
+          "$godot_path" --version
+
+      - name: Cache imported resources
+        uses: actions/cache@v4
+        with:
+          path: .godot/imported
+          key: ${{ runner.os }}-godot-imports-${{ env.GODOT_VERSION }}-${{ hashFiles('project.godot', 'assets/**') }}
+          restore-keys: |
+            ${{ runner.os }}-godot-imports-${{ env.GODOT_VERSION }}-
+
+      - name: Build PCK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/web
+          godot --headless --path "$GITHUB_WORKSPACE" --export-pack Web "$GITHUB_WORKSPACE/build/web/index.pck"
+          test -s build/web/index.pck
+
+      - name: Test release metadata generator
+        run: node --test tests/r2_release_manifest.test.mjs
+
+      - name: Prepare R2 release
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build/r2-release
+          node tools/prepare_r2_release.mjs \
+            --pck build/web/index.pck \
+            --output build/r2-release \
+            --public-base-url "$RESOLVED_R2_PUBLIC_BASE_URL" \
+            --commit "$GITHUB_SHA" \
+            --version-file data/version_history.json
+          cat build/r2-release/release.env >> "$GITHUB_ENV"
+
+      - name: Install AWS CLI
+        shell: bash
+        run: |
+          if ! command -v aws >/dev/null 2>&1; then
+            python -m pip install --disable-pip-version-check awscli
+          fi
+          aws --version
+
+      - name: Upload immutable PCK and manifests
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: |
+          set -euo pipefail
+          : "${AWS_ACCESS_KEY_ID:?Set the R2_ACCESS_KEY_ID Actions secret}"
+          : "${AWS_SECRET_ACCESS_KEY:?Set the R2_SECRET_ACCESS_KEY Actions secret}"
+
+          if aws s3api head-object \
+            --bucket "$R2_BUCKET_NAME" \
+            --key "$PCK_OBJECT_KEY" \
+            --endpoint-url "$RESOLVED_R2_ENDPOINT" >/dev/null 2>&1; then
+            echo "PCK already exists in R2: $PCK_OBJECT_KEY"
+          else
+            aws s3 cp build/web/index.pck "s3://${R2_BUCKET_NAME}/${PCK_OBJECT_KEY}" \
+              --endpoint-url "$RESOLVED_R2_ENDPOINT" \
+              --content-type application/octet-stream \
+              --cache-control "public,max-age=31536000,immutable" \
+              --only-show-errors
+          fi
+
+          aws s3 cp build/r2-release/release.json "s3://${R2_BUCKET_NAME}/${RELEASE_MANIFEST_KEY}" \
+            --endpoint-url "$RESOLVED_R2_ENDPOINT" \
+            --content-type application/json \
+            --cache-control "public,max-age=31536000,immutable" \
+            --only-show-errors
+          aws s3 cp build/r2-release/current.json "s3://${R2_BUCKET_NAME}/${CURRENT_MANIFEST_KEY}" \
+            --endpoint-url "$RESOLVED_R2_ENDPOINT" \
+            --content-type application/json \
+            --cache-control "no-store" \
+            --only-show-errors
+
+      - name: Verify public R2 delivery and CORS
+        shell: bash
+        run: |
+          set -euo pipefail
+          pck_url="$RESOLVED_R2_PUBLIC_BASE_URL/$PCK_OBJECT_KEY"
+          manifest_url="$RESOLVED_R2_PUBLIC_BASE_URL/$CURRENT_MANIFEST_KEY"
+          curl --fail --silent --show-error --retry 8 --retry-delay 3 --head "$pck_url" >/dev/null
+          curl --fail --silent --show-error --retry 8 --retry-delay 3 "$manifest_url" --output "$RUNNER_TEMP/current.json"
+          node -e '
+            const fs = require("node:fs");
+            const local = JSON.parse(fs.readFileSync("build/r2-release/current.json", "utf8"));
+            const remote = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            if (JSON.stringify(local) !== JSON.stringify(remote)) throw new Error("Published manifest does not match the build.");
+          ' "$RUNNER_TEMP/current.json"
+
+          curl --fail --silent --show-error \
+            --header "Origin: $WEB_ORIGIN" \
+            --dump-header "$RUNNER_TEMP/r2-headers.txt" \
+            --output /dev/null \
+            "$manifest_url"
+          if ! grep -Eiq "^access-control-allow-origin: ${WEB_ORIGIN//./\\.}\r?$" "$RUNNER_TEMP/r2-headers.txt"; then
+            echo "R2 CORS does not allow $WEB_ORIGIN" >&2
+            cat "$RUNNER_TEMP/r2-headers.txt" >&2
+            exit 1
+          fi
+
+          {
+            echo "### R2 Web release"
+            echo "- Version: $GAME_VERSION"
+            echo "- PCK: $PCK_OBJECT_KEY"
+            echo "- Size: $PCK_SIZE bytes"
+            echo "- SHA-256: $PCK_SHA256"
+          } >> "$GITHUB_STEP_SUMMARY"
