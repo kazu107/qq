@@ -6,6 +6,7 @@ on:
     branches:
       - main
     paths:
+      - ".gitignore"
       - ".github/workflows/publish-web-r2.yml"
       - "addons/**"
       - "assets/**"

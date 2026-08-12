@@ -46,6 +46,8 @@ Actions Variables:
 
 HerokuのGitHub自動デプロイは従来どおり利用します。R2公開処理が一時的に遅れても、`current.json`は直前の正常なPCKを示すため、公開中のゲームは継続して起動できます。
 
+`build/web/index.pck`はGit管理およびHeroku slugから除外し、GitHub Actionsがソースから生成してR2へ直接配置します。ローカルのWebビルドでは同じパスへ生成できますが、Gitには追加されません。
+
 ## ローカル確認
 
 ```powershell

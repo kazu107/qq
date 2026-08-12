@@ -74,6 +74,7 @@ test("the Godot Web shell loads a validated R2 PCK while preserving local develo
   const shell = await readFile(path.join(PROJECT_ROOT, "web", "custom_shell.html"), "utf8");
   const preset = await readFile(path.join(PROJECT_ROOT, "export_presets.cfg"), "utf8");
   const workflow = await readFile(path.join(PROJECT_ROOT, ".github", "workflows", "publish-web-r2.yml"), "utf8");
+  const gitignore = await readFile(path.join(PROJECT_ROOT, ".gitignore"), "utf8");
   assert.match(shell, /https:\/\/qq\.kazu107\.xyz\/releases\/current\.json/);
   assert.match(shell, /engine\.preloadFile\(pack\.source, LOCAL_PACK_PATH\)/);
   assert.match(shell, /engine\.start\(\{ args: \['--main-pack', LOCAL_PACK_PATH\]/);
@@ -85,6 +86,7 @@ test("the Godot Web shell loads a validated R2 PCK while preserving local develo
   assert.match(workflow, /tr -d '\\r'.*grep -Fxiq/);
   assert.match(workflow, /assert_cors "\$manifest_url" manifest/);
   assert.match(workflow, /assert_cors "\$pck_url" pck/);
+  assert.match(gitignore, /^\/build\/web\/index\.pck$/m);
 
   const inlineScripts = [...shell.matchAll(/<script>([\s\S]*?)<\/script>/g)];
   assert.equal(inlineScripts.length, 1);

@@ -23,3 +23,4 @@ node_modules/
 !/build/.gdignore
 !/build/web/
 !/build/web/**
+/build/web/index.pck
