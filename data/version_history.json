@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.11.1",
+  "current_version": "QQ-0.12.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.12.0",
+      "date": "2026-08-13",
+      "title_ja": "3D戦闘アニメーション連携",
+      "title_en": "3D combat animation integration",
+      "changes_ja": [
+        "カードの詠唱と解決を3Dキャラクターの動作へ連携しました。",
+        "攻撃、被弾、防御、回復、シールド、状態、割り込み、勝敗の演出を追加しました。",
+        "ローカル戦、Web対戦、観戦で確定済み戦闘イベントから同じ演出を再生する構成にしました。"
+      ],
+      "changes_en": [
+        "Connected card preparation and resolution events to the 3D combatants.",
+        "Added attack, hit, block, heal, shield, status, interrupt, victory, and defeat performances.",
+        "Replayed the same confirmed battle events in local battles, Web matches, and spectator views."
+      ]
+    },
     {
       "version": "QQ-0.11.1",
       "date": "2026-08-13",

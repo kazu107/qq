@@ -927,6 +927,18 @@ func _run() -> void:
 		push_error("Card UI smoke failed: card resolution VFX should not render trajectory effects")
 		get_tree().quit(1)
 		return
+	var stage_integration_state := BattleState.new()
+	stage_integration_state.player = UnitState.new()
+	stage_integration_state.player.unit_id = "player"
+	stage_integration_state.enemy = UnitState.new()
+	stage_integration_state.enemy.unit_id = "scout"
+	stage_integration_state.battle_events.append(resolution_vfx_event)
+	battle_scene.set("_processed_vfx_event_count", 0)
+	battle_scene.call("_process_resolution_vfx", stage_integration_state)
+	if battle_player_actor.get_action_name() != "attack" or battle_enemy_actor.get_action_name() != "hit":
+		push_error("Card UI smoke failed: BattleScreen should forward resolution events to the 3D stage")
+		get_tree().quit(1)
+		return
 	if obsolete_log_section != null:
 		push_error("Card UI smoke failed: bottom log section should be replaced by a timeline section")
 		get_tree().quit(1)

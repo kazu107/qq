@@ -78,6 +78,7 @@ func _ready() -> void:
 	_engine.setup(Game.current_run, enemy_id)
 	_processed_battle_event_count = 0
 	_processed_vfx_event_count = 0
+	_configure_battle_stage()
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
 	_player_panel.configure_visual("player", Game.current_run.starter_id)
 	_enemy_panel.configure_visual("enemy", enemy_id)
@@ -105,7 +106,7 @@ func _process(delta: float) -> void:
 	if _engine.battle_state.winner != "" and not _handled_finish:
 		_handled_finish = true
 		Game.complete_battle(_engine.build_summary())
-		_transition_timer = 1.2
+		_transition_timer = 2.0
 		_result_label.visible = true
 		match _engine.battle_state.winner:
 			"player":
@@ -147,6 +148,7 @@ func _setup_lan_battle() -> bool:
 		_apply_lan_snapshot(last_snapshot)
 	elif NetworkManager.has_battle_countdown_finished():
 		_engine.start_battle()
+	_configure_battle_stage()
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
 	_player_panel.configure_visual("player", _local_run.starter_id)
 	_enemy_panel.configure_visual("enemy", _opponent_run.starter_id)
@@ -294,7 +296,7 @@ func _on_lan_match_finished(result: Dictionary) -> void:
 		_show_round_results_overlay()
 		call_deferred("_refresh_round_results_overlay")
 		return
-	_transition_timer = 1.4
+	_transition_timer = 2.0
 	_result_label.visible = true
 	var winner: String = String(result.get("winner", "draw"))
 	if _spectator_mode:
@@ -915,7 +917,7 @@ func _consume_suppressed_shield_decay_losses(battle_state: BattleState) -> Dicti
 
 
 func _process_resolution_vfx(battle_state: BattleState) -> void:
-	if battle_state == null or _vfx_layer == null:
+	if battle_state == null or (_vfx_layer == null and _battle_stage == null):
 		return
 
 	var battle_events: Array[Dictionary] = battle_state.battle_events
@@ -925,11 +927,15 @@ func _process_resolution_vfx(battle_state: BattleState) -> void:
 		var event_data: Dictionary = Dictionary(battle_events[event_index])
 		if compact_lan_events and int(event_data.get("_event_index", -1)) < _processed_vfx_event_count:
 			continue
-		if String(event_data.get("event_type", "")) != "resolve_card":
+		var event_type: String = String(event_data.get("event_type", ""))
+		if _battle_stage != null and event_type != "shield_decay":
+			_battle_stage.play_battle_event(event_data)
+		if event_type != "resolve_card":
 			continue
 		var actor_panel: UnitPanel = _resolve_unit_panel(String(event_data.get("actor_id", "")), battle_state)
 		var target_panel: UnitPanel = _resolve_unit_panel(String(event_data.get("target_id", "")), battle_state)
-		_vfx_layer.play_resolution(event_data, actor_panel, target_panel, _player_panel, _enemy_panel)
+		if _vfx_layer != null:
+			_vfx_layer.play_resolution(event_data, actor_panel, target_panel, _player_panel, _enemy_panel)
 		if compact_lan_events:
 			var card_def: CardDef = Database.get_card(String(event_data.get("card_id", "")))
 			var result: Dictionary = Dictionary(event_data.get("result", {}))
@@ -945,6 +951,16 @@ func _process_resolution_vfx(battle_state: BattleState) -> void:
 			)
 			AudioManager.play_card_resolution(card_def, fully_blocked)
 	_processed_vfx_event_count = _lan_battle_event_total if compact_lan_events else battle_events.size()
+
+
+func _configure_battle_stage() -> void:
+	if _battle_stage == null or _engine.battle_state == null:
+		return
+	var local_unit: UnitState = _engine.battle_state.get_unit(_local_side)
+	var opponent_unit: UnitState = _engine.battle_state.get_opponent(_local_side)
+	if local_unit == null or opponent_unit == null:
+		return
+	_battle_stage.configure_combatants(local_unit.unit_id, opponent_unit.unit_id, _local_side)
 
 
 func _uses_compact_lan_events() -> bool:
