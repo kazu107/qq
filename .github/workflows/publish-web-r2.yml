@@ -217,7 +217,7 @@ jobs:
                 --dump-header "$headers" \
                 --output /dev/null \
                 "$url"
-              if grep -Eiq "^access-control-allow-origin: ${WEB_ORIGIN//./\\.}\r?$" "$headers"; then
+              if tr -d '\r' < "$headers" | grep -Fxiq "access-control-allow-origin: $WEB_ORIGIN"; then
                 return 0
               fi
               sleep 3

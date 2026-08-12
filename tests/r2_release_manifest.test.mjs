@@ -82,6 +82,7 @@ test("the Godot Web shell loads a validated R2 PCK while preserving local develo
   assert.match(preset, /html\/custom_html_shell="res:\/\/web\/custom_shell\.html"/);
   assert.match(preset, /exclude_filter="[^"]*web\/\*/);
   assert.match(workflow, /aws s3api put-bucket-cors/);
+  assert.match(workflow, /tr -d '\\r'.*grep -Fxiq/);
   assert.match(workflow, /assert_cors "\$manifest_url" manifest/);
   assert.match(workflow, /assert_cors "\$pck_url" pck/);
 
