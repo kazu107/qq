@@ -124,6 +124,37 @@ jobs:
           fi
           aws --version
 
+      - name: Configure R2 CORS
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: |
+          set -euo pipefail
+          : "${AWS_ACCESS_KEY_ID:?Set the R2_ACCESS_KEY_ID Actions secret}"
+          : "${AWS_SECRET_ACCESS_KEY:?Set the R2_SECRET_ACCESS_KEY Actions secret}"
+
+          node -e '
+            const fs = require("node:fs");
+            const policy = {
+              CORSRules: [{
+                AllowedOrigins: [process.env.WEB_ORIGIN],
+                AllowedMethods: ["GET", "HEAD"],
+                AllowedHeaders: ["Range"],
+                ExposeHeaders: ["Accept-Ranges", "Content-Length", "Content-Range", "ETag"],
+                MaxAgeSeconds: 86400,
+              }],
+            };
+            fs.writeFileSync(process.argv[1], JSON.stringify(policy));
+          ' "$RUNNER_TEMP/r2-cors.json"
+          aws s3api put-bucket-cors \
+            --bucket "$R2_BUCKET_NAME" \
+            --cors-configuration "file://$RUNNER_TEMP/r2-cors.json" \
+            --endpoint-url "$RESOLVED_R2_ENDPOINT"
+
       - name: Upload immutable PCK and manifests
         shell: bash
         env:
@@ -176,16 +207,27 @@ jobs:
             if (JSON.stringify(local) !== JSON.stringify(remote)) throw new Error("Published manifest does not match the build.");
           ' "$RUNNER_TEMP/current.json"
 
-          curl --fail --silent --show-error \
-            --header "Origin: $WEB_ORIGIN" \
-            --dump-header "$RUNNER_TEMP/r2-headers.txt" \
-            --output /dev/null \
-            "$manifest_url"
-          if ! grep -Eiq "^access-control-allow-origin: ${WEB_ORIGIN//./\\.}\r?$" "$RUNNER_TEMP/r2-headers.txt"; then
-            echo "R2 CORS does not allow $WEB_ORIGIN" >&2
-            cat "$RUNNER_TEMP/r2-headers.txt" >&2
-            exit 1
-          fi
+          assert_cors() {
+            local url="$1"
+            local label="$2"
+            local headers="$RUNNER_TEMP/r2-${label}-headers.txt"
+            for attempt in {1..10}; do
+              curl --fail --silent --show-error \
+                --header "Origin: $WEB_ORIGIN" \
+                --dump-header "$headers" \
+                --output /dev/null \
+                "$url"
+              if grep -Eiq "^access-control-allow-origin: ${WEB_ORIGIN//./\\.}\r?$" "$headers"; then
+                return 0
+              fi
+              sleep 3
+            done
+            echo "R2 CORS does not allow $WEB_ORIGIN for $label" >&2
+            cat "$headers" >&2
+            return 1
+          }
+          assert_cors "$manifest_url" manifest
+          assert_cors "$pck_url" pck
 
           {
             echo "### R2 Web release"

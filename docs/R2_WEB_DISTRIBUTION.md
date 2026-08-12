@@ -32,7 +32,7 @@ Actions Variables:
 - `R2_ENDPOINT`
 - `R2_PUBLIC_BASE_URL`
 
-資格情報には対象バケットだけの`Object Read & Write`権限を使用します。値はGitやログへ出力しません。
+ワークフローはR2のCORSを`https://masterqueue.kazu107.xyz`向けに自動設定します。このためAPIトークンにはバケット設定を変更できる`Admin Read & Write`権限が必要です。値はGitやログへ出力しません。
 
 ## 公開手順
 

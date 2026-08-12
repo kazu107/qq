@@ -73,6 +73,7 @@ test("prepareR2Release rejects insecure public URLs", async () => {
 test("the Godot Web shell loads a validated R2 PCK while preserving local development", async () => {
   const shell = await readFile(path.join(PROJECT_ROOT, "web", "custom_shell.html"), "utf8");
   const preset = await readFile(path.join(PROJECT_ROOT, "export_presets.cfg"), "utf8");
+  const workflow = await readFile(path.join(PROJECT_ROOT, ".github", "workflows", "publish-web-r2.yml"), "utf8");
   assert.match(shell, /https:\/\/qq\.kazu107\.xyz\/releases\/current\.json/);
   assert.match(shell, /engine\.preloadFile\(pack\.source, LOCAL_PACK_PATH\)/);
   assert.match(shell, /engine\.start\(\{ args: \['--main-pack', LOCAL_PACK_PATH\]/);
@@ -80,6 +81,9 @@ test("the Godot Web shell loads a validated R2 PCK while preserving local develo
   assert.doesNotMatch(shell, /engine\.startGame\(/);
   assert.match(preset, /html\/custom_html_shell="res:\/\/web\/custom_shell\.html"/);
   assert.match(preset, /exclude_filter="[^"]*web\/\*/);
+  assert.match(workflow, /aws s3api put-bucket-cors/);
+  assert.match(workflow, /assert_cors "\$manifest_url" manifest/);
+  assert.match(workflow, /assert_cors "\$pck_url" pck/);
 
   const inlineScripts = [...shell.matchAll(/<script>([\s\S]*?)<\/script>/g)];
   assert.equal(inlineScripts.length, 1);
