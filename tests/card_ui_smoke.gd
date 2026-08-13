@@ -866,15 +866,18 @@ func _run() -> void:
 		push_error("Card UI smoke failed: 3D greybox stage should fill the center and render continuously")
 		get_tree().quit(1)
 		return
-	var player_body_pivot: Node3D = battle_player_actor.get_node_or_null("BodyPivot") as Node3D
-	if player_body_pivot == null:
-		push_error("Card UI smoke failed: 3D player actor should contain an animated body pivot")
+	var player_skeleton: Skeleton3D = battle_player_actor.get_skeleton()
+	if player_skeleton == null \
+	or battle_player_actor.get_equipment_socket("left_hand") == null \
+	or battle_player_actor.get_equipment_socket("right_hand") == null:
+		push_error("Card UI smoke failed: 3D player actor should contain the shared skeleton and equipment sockets")
 		get_tree().quit(1)
 		return
-	var body_y_before: float = player_body_pivot.position.y
+	var spine_rotation_before: Quaternion = battle_player_actor.get_bone_pose_rotation("spine")
 	battle_player_actor._process(0.37)
-	if is_equal_approx(body_y_before, player_body_pivot.position.y):
-		push_error("Card UI smoke failed: 3D player actor idle animation should update its pose")
+	var spine_rotation_after: Quaternion = battle_player_actor.get_bone_pose_rotation("spine")
+	if spine_rotation_before.angle_to(spine_rotation_after) < 0.0001:
+		push_error("Card UI smoke failed: 3D player actor idle animation should update its skeleton pose")
 		get_tree().quit(1)
 		return
 	if battle_player_unit_panel == null \

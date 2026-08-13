@@ -20,6 +20,12 @@ func _run() -> void:
 	if player_actor == null or enemy_actor == null:
 		_fail("3D battle stage smoke failed: combat actors are missing")
 		return
+	if player_actor.get_skeleton() == null \
+	or enemy_actor.get_skeleton() == null \
+	or player_actor.get_equipment_socket("right_hand") == null \
+	or enemy_actor.get_equipment_socket("left_hand") == null:
+		_fail("3D battle stage smoke failed: combatants should use the common skeletal humanoid")
+		return
 
 	stage.play_battle_event({
 		"event_type": "prepare_card",

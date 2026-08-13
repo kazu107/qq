@@ -171,6 +171,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/BattleStage3DSmoke.tscn"
     )
+    Invoke-GodotCheck "[9b/31] Running common 3D battle humanoid smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/CommonBattleHumanoidSmoke.tscn"
+    )
     Invoke-GodotCheck "[10/31] Running map/facility smoke" $godotExe @(
         "--no-header",
         "--headless",

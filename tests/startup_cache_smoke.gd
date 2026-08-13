@@ -52,6 +52,9 @@ func _run() -> void:
 	if MapNodeButton.get_cached_type_icon_count() < 8 or not MapNodeButton.has_cached_lock_icon():
 		_fail("Startup cache smoke failed: map node icons were not cached")
 		return
+	if int(summary.get("battle_3d_meshes", 0)) < 20 or CommonBattleHumanoid3D.get_cached_mesh_count() < 20:
+		_fail("Startup cache smoke failed: 3D battle model meshes were not cached")
+		return
 	if not _boot_loading_screen_has_progress_ui():
 		return
 

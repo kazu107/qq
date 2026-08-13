@@ -616,7 +616,7 @@ func _spawn_projectile(actor: BattleActor3D, target: BattleActor3D, color: Color
 	_spawn_effect(
 		"BattleProjectile3D",
 		_projectile_mesh,
-		_actor_effect_position(actor),
+		actor.get_weapon_world_position(),
 		_actor_effect_position(target),
 		color,
 		duration,
@@ -777,7 +777,7 @@ func _update_camera(delta: float) -> void:
 
 
 func _actor_effect_position(actor: BattleActor3D) -> Vector3:
-	return actor.position + Vector3(0.0, 1.36, 0.0) if actor != null else Vector3.ZERO
+	return actor.get_effect_world_position() if actor != null else Vector3.ZERO
 
 
 func _color_for_actor(actor: BattleActor3D) -> Color:

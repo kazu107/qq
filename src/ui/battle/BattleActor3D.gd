@@ -1,11 +1,11 @@
 extends Node3D
 class_name BattleActor3D
 
+const HUMANOID_SCENE: PackedScene = preload("res://scenes/battle/CommonBattleHumanoid3D.tscn")
 const PLAYER_PRIMARY := Color(0.08, 0.42, 0.96, 1.0)
 const PLAYER_ACCENT := Color(0.22, 0.88, 1.0, 1.0)
 const ENEMY_PRIMARY := Color(0.76, 0.12, 0.11, 1.0)
 const ENEMY_ACCENT := Color(1.0, 0.46, 0.18, 1.0)
-const ARMOR_DARK := Color(0.045, 0.065, 0.09, 1.0)
 const ACTION_IDLE: StringName = &"idle"
 const ACTION_CAST: StringName = &"cast"
 const ACTION_ATTACK: StringName = &"attack"
@@ -32,16 +32,9 @@ const ACTION_DURATIONS: Dictionary = {
 }
 
 var actor_side: String = "player"
-var _body_pivot: Node3D
-var _left_arm_pivot: Node3D
-var _right_arm_pivot: Node3D
+var _humanoid: CommonBattleHumanoid3D
 var _platform_mesh: MeshInstance3D
-var _shield_mesh: MeshInstance3D
-var _shield_core_mesh: MeshInstance3D
 var _platform_material: StandardMaterial3D
-var _primary_material: StandardMaterial3D
-var _accent_material: StandardMaterial3D
-var _shield_material: StandardMaterial3D
 var _elapsed: float = 0.0
 var _phase_offset: float = 0.0
 var _visual_built: bool = false
@@ -77,6 +70,7 @@ func _process(delta: float) -> void:
 	_elapsed = fmod(_elapsed + delta, TAU * 8.0)
 	if not _home_position_initialized:
 		_home_position = position
+		_home_rotation = rotation
 		_home_position_initialized = true
 	if _action != ACTION_IDLE and _action != ACTION_CAST:
 		_action_elapsed = minf(_action_elapsed + delta, _action_duration)
@@ -144,122 +138,60 @@ func get_last_action_name() -> String:
 	return String(_last_action)
 
 
+func get_humanoid_model() -> CommonBattleHumanoid3D:
+	return _humanoid
+
+
+func get_skeleton() -> Skeleton3D:
+	return _humanoid.get_skeleton() if _humanoid != null else null
+
+
+func get_equipment_socket(socket_id: String) -> BoneAttachment3D:
+	return _humanoid.get_socket(socket_id) if _humanoid != null else null
+
+
+func get_bone_pose_rotation(bone_name: String) -> Quaternion:
+	return _humanoid.get_bone_rotation(bone_name) if _humanoid != null else Quaternion.IDENTITY
+
+
+func get_effect_world_position() -> Vector3:
+	var chest_socket: BoneAttachment3D = get_equipment_socket("chest")
+	return chest_socket.global_position if chest_socket != null else global_position + Vector3(0.0, 1.48, 0.0)
+
+
+func get_weapon_world_position() -> Vector3:
+	var weapon_socket: BoneAttachment3D = get_equipment_socket("right_hand")
+	return weapon_socket.global_position if weapon_socket != null else get_effect_world_position()
+
+
 func _build_visual() -> void:
 	_visual_built = true
-	_primary_material = _make_material(PLAYER_PRIMARY, 0.0)
-	_accent_material = _make_material(PLAYER_ACCENT, 1.15)
 	_platform_material = _make_material(Color(0.06, 0.28, 0.58, 0.88), 0.7)
-	var dark_material: StandardMaterial3D = _make_material(ARMOR_DARK, 0.0)
-
 	var platform_mesh := CylinderMesh.new()
 	platform_mesh.top_radius = 0.86
 	platform_mesh.bottom_radius = 0.94
 	platform_mesh.height = 0.12
-	_platform_mesh = _add_mesh(self, "Platform", platform_mesh, Vector3(0.0, 0.06, 0.0), Vector3.ZERO, _platform_material)
+	platform_mesh.radial_segments = 16
+	platform_mesh.rings = 1
+	_platform_mesh = _add_mesh(self, "Platform", platform_mesh, Vector3(0.0, 0.06, 0.0), _platform_material)
 
-	var left_leg := CapsuleMesh.new()
-	left_leg.radius = 0.16
-	left_leg.height = 0.72
-	_add_mesh(self, "LeftLeg", left_leg, Vector3(-0.22, 0.52, 0.0), Vector3.ZERO, dark_material)
-	var right_leg := CapsuleMesh.new()
-	right_leg.radius = 0.16
-	right_leg.height = 0.72
-	_add_mesh(self, "RightLeg", right_leg, Vector3(0.22, 0.52, 0.0), Vector3.ZERO, dark_material)
-
-	_body_pivot = Node3D.new()
-	_body_pivot.name = "BodyPivot"
-	_body_pivot.position = Vector3(0.0, 0.94, 0.0)
-	add_child(_body_pivot)
-
-	var hips := BoxMesh.new()
-	hips.size = Vector3(0.68, 0.28, 0.46)
-	_add_mesh(_body_pivot, "Hips", hips, Vector3(0.0, 0.0, 0.0), Vector3.ZERO, dark_material)
-	var torso := BoxMesh.new()
-	torso.size = Vector3(0.9, 0.92, 0.52)
-	_add_mesh(_body_pivot, "Torso", torso, Vector3(0.0, 0.52, 0.0), Vector3.ZERO, _primary_material)
-	var chest := BoxMesh.new()
-	chest.size = Vector3(0.52, 0.16, 0.58)
-	_add_mesh(_body_pivot, "ChestLight", chest, Vector3(0.0, 0.58, -0.02), Vector3.ZERO, _accent_material)
-
-	var head := SphereMesh.new()
-	head.radius = 0.34
-	head.height = 0.68
-	_add_mesh(_body_pivot, "Head", head, Vector3(0.0, 1.22, 0.0), Vector3.ZERO, dark_material)
-	var visor := BoxMesh.new()
-	visor.size = Vector3(0.48, 0.15, 0.08)
-	_add_mesh(_body_pivot, "Visor", visor, Vector3(0.0, 1.24, -0.31), Vector3.ZERO, _accent_material)
-
-	_left_arm_pivot = _build_arm("LeftArmPivot", -0.58, dark_material)
-	_right_arm_pivot = _build_arm("RightArmPivot", 0.58, dark_material)
-	_left_arm_pivot.rotation.z = -0.18
-	_right_arm_pivot.rotation.z = 0.22
-
-	_shield_material = _make_material(PLAYER_PRIMARY, 0.54)
-	_shield_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_shield_material.albedo_color.a = 0.86
-	var shield := CylinderMesh.new()
-	shield.top_radius = 0.38
-	shield.bottom_radius = 0.38
-	shield.height = 0.08
-	_shield_mesh = _add_mesh(
-		_left_arm_pivot,
-		"Shield",
-		shield,
-		Vector3(0.0, -0.62, -0.18),
-		Vector3(90.0, 0.0, 0.0),
-		_shield_material
-	)
-	var shield_core := CylinderMesh.new()
-	shield_core.top_radius = 0.18
-	shield_core.bottom_radius = 0.18
-	shield_core.height = 0.10
-	_shield_core_mesh = _add_mesh(
-		_left_arm_pivot,
-		"ShieldCore",
-		shield_core,
-		Vector3(0.0, -0.62, -0.23),
-		Vector3(90.0, 0.0, 0.0),
-		_accent_material
-	)
-
-	var weapon := BoxMesh.new()
-	weapon.size = Vector3(0.12, 1.22, 0.12)
-	_add_mesh(_right_arm_pivot, "Weapon", weapon, Vector3(0.0, -0.86, 0.0), Vector3.ZERO, _accent_material)
-	var weapon_guard := BoxMesh.new()
-	weapon_guard.size = Vector3(0.42, 0.10, 0.16)
-	_add_mesh(_right_arm_pivot, "WeaponGuard", weapon_guard, Vector3(0.0, -0.40, 0.0), Vector3.ZERO, _primary_material)
-
-
-func _build_arm(node_name: String, x_position: float, material: StandardMaterial3D) -> Node3D:
-	var pivot := Node3D.new()
-	pivot.name = node_name
-	pivot.position = Vector3(x_position, 0.80, 0.0)
-	_body_pivot.add_child(pivot)
-	var arm := CapsuleMesh.new()
-	arm.radius = 0.14
-	arm.height = 0.76
-	_add_mesh(pivot, "Arm", arm, Vector3(0.0, -0.34, 0.0), Vector3.ZERO, material)
-	return pivot
+	_humanoid = HUMANOID_SCENE.instantiate() as CommonBattleHumanoid3D
+	if _humanoid == null:
+		push_error("Common battle humanoid scene could not be instantiated")
+		return
+	_humanoid.name = "CommonBattleHumanoid3D"
+	add_child(_humanoid)
 
 
 func _update_pose() -> void:
-	if _body_pivot == null or _left_arm_pivot == null or _right_arm_pivot == null:
+	if _humanoid == null:
 		return
 	var wave: float = sin(_elapsed * 2.1 + _phase_offset)
 	var slow_wave: float = sin(_elapsed * 1.05 + _phase_offset)
 	position = _home_position
 	rotation = _home_rotation
-	_body_pivot.position.y = 0.94 + wave * 0.035
-	_body_pivot.rotation = Vector3(0.0, 0.0, slow_wave * 0.018)
-	_left_arm_pivot.rotation.z = -0.18 - wave * 0.045
-	_right_arm_pivot.rotation.z = 0.22 + wave * 0.06
-	_left_arm_pivot.rotation.x = 0.0
-	_right_arm_pivot.rotation.x = 0.0
-	if _shield_mesh != null:
-		_shield_mesh.scale = Vector3.ONE
-	if _shield_core_mesh != null:
-		_shield_core_mesh.scale = Vector3.ONE
-	_set_shield_energy(0.54)
+	_humanoid.begin_pose()
+	_apply_idle_pose(wave, slow_wave)
 	var action_progress: float = clampf(_action_elapsed / maxf(0.001, _action_duration), 0.0, 1.0)
 	match _action:
 		ACTION_CAST:
@@ -282,132 +214,153 @@ func _update_pose() -> void:
 			_apply_victory_pose()
 		ACTION_DEFEAT:
 			_apply_defeat_pose(action_progress)
-	if _accent_material != null:
-		var action_energy: float = 0.72 if _action == ACTION_IDLE else 1.18
-		_accent_material.emission_energy_multiplier = action_energy + (slow_wave + 1.0) * 0.18
+	_humanoid.set_accent_energy((0.72 if _action == ACTION_IDLE else 1.18) + (slow_wave + 1.0) * 0.18)
+	_humanoid.finish_pose()
 	if _platform_mesh != null:
 		_platform_mesh.scale = Vector3.ONE * (1.0 + sin(_elapsed * 3.2) * 0.018)
 
 
+func _apply_idle_pose(wave: float, slow_wave: float) -> void:
+	_humanoid.set_bone_position_offset("root", Vector3(0.0, wave * 0.035, 0.0))
+	_humanoid.set_bone_rotation("spine", Vector3(slow_wave * 0.012, 0.0, slow_wave * 0.020))
+	_humanoid.set_bone_rotation("chest", Vector3(-slow_wave * 0.008, 0.0, -slow_wave * 0.012))
+	_humanoid.set_bone_rotation("head", Vector3(0.0, slow_wave * 0.035, 0.0))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(wave * 0.028, 0.0, -0.18 - wave * 0.045))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(-wave * 0.035, 0.0, 0.22 + wave * 0.060))
+	_humanoid.set_bone_rotation("left_forearm", Vector3(-0.12, 0.0, -0.04))
+	_humanoid.set_bone_rotation("right_forearm", Vector3(-0.10, 0.0, 0.04))
+	_humanoid.set_bone_rotation("left_upper_leg", Vector3(-wave * 0.018, 0.0, 0.0))
+	_humanoid.set_bone_rotation("right_upper_leg", Vector3(wave * 0.018, 0.0, 0.0))
+
+
 func _apply_cast_pose(wave: float) -> void:
-	_body_pivot.position.y += 0.06
-	_left_arm_pivot.rotation.x = -0.78 + wave * 0.08
-	_right_arm_pivot.rotation.x = -0.78 - wave * 0.08
-	_left_arm_pivot.rotation.z = -0.52
-	_right_arm_pivot.rotation.z = 0.52
+	_humanoid.set_bone_position_offset("root", Vector3(0.0, 0.07 + wave * 0.025, 0.0))
+	_humanoid.set_bone_rotation("spine", Vector3(-0.10, wave * 0.03, 0.0))
+	_humanoid.set_bone_rotation("chest", Vector3(-0.08, -wave * 0.04, 0.0))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(-0.92 + wave * 0.08, 0.0, -0.56))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(-0.92 - wave * 0.08, 0.0, 0.56))
+	_humanoid.set_bone_rotation("left_forearm", Vector3(-0.48, 0.0, 0.22))
+	_humanoid.set_bone_rotation("right_forearm", Vector3(-0.48, 0.0, -0.22))
+	_humanoid.set_bone_rotation("head", Vector3(-0.12, 0.0, 0.0))
 
 
 func _apply_attack_pose(progress: float) -> void:
 	var strike: float = sin(progress * PI)
 	position += -transform.basis.z * strike * 0.52
-	_body_pivot.rotation.x = -0.18 * strike
-	_right_arm_pivot.rotation.x = -1.82 + progress * 2.70
-	_right_arm_pivot.rotation.z = 0.48 - strike * 0.70
-	_left_arm_pivot.rotation.z = -0.42
+	_humanoid.set_bone_position_offset("root", Vector3(0.0, -strike * 0.04, -strike * 0.06))
+	_humanoid.set_bone_rotation("hips", Vector3(0.0, -0.18 * strike, 0.0))
+	_humanoid.set_bone_rotation("spine", Vector3(-0.18 * strike, -0.34 * strike, 0.04 * strike))
+	_humanoid.set_bone_rotation("chest", Vector3(-0.10 * strike, -0.22 * strike, 0.0))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(-1.92 + progress * 2.82, -0.20, 0.48 - strike * 0.72))
+	_humanoid.set_bone_rotation("right_forearm", Vector3(-0.72 + progress * 0.44, 0.0, -0.12))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(-0.18, 0.0, -0.48))
+	_humanoid.set_bone_rotation("left_upper_leg", Vector3(0.18 * strike, 0.0, 0.0))
+	_humanoid.set_bone_rotation("right_upper_leg", Vector3(-0.24 * strike, 0.0, 0.0))
 
 
 func _apply_hit_pose(progress: float) -> void:
 	var impact: float = sin(progress * PI)
 	position += transform.basis.z * impact * 0.20
-	_body_pivot.rotation.x = 0.20 * impact
-	_body_pivot.rotation.z += sin(progress * PI * 5.0) * (1.0 - progress) * 0.12
-	_left_arm_pivot.rotation.z = -0.64
-	_right_arm_pivot.rotation.z = 0.64
+	var shake: float = sin(progress * PI * 5.0) * (1.0 - progress)
+	_humanoid.set_bone_position_offset("root", Vector3(0.0, -impact * 0.08, impact * 0.04))
+	_humanoid.set_bone_rotation("spine", Vector3(0.24 * impact, 0.0, shake * 0.15))
+	_humanoid.set_bone_rotation("chest", Vector3(0.18 * impact, 0.0, -shake * 0.10))
+	_humanoid.set_bone_rotation("head", Vector3(0.22 * impact, 0.0, -shake * 0.08))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(0.18, 0.0, -0.72))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(0.18, 0.0, 0.72))
 
 
 func _apply_block_pose(progress: float) -> void:
 	var brace: float = sin(minf(1.0, progress * 1.8) * PI * 0.5)
-	_body_pivot.position.y -= brace * 0.07
-	_body_pivot.rotation.x = brace * 0.10
-	_left_arm_pivot.rotation.x = -1.18
-	_left_arm_pivot.rotation.z = -0.58
-	_right_arm_pivot.rotation.z = 0.44
-	_set_shield_energy(1.8 + sin(progress * PI * 4.0) * 0.24)
+	_humanoid.set_bone_position_offset("root", Vector3(0.0, -brace * 0.08, brace * 0.04))
+	_humanoid.set_bone_rotation("spine", Vector3(0.12 * brace, 0.10 * brace, 0.0))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(-1.28, -0.28, -0.62))
+	_humanoid.set_bone_rotation("left_forearm", Vector3(-0.72, 0.0, 0.22))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(-0.14, 0.0, 0.52))
+	_humanoid.set_bone_rotation("left_upper_leg", Vector3(0.18 * brace, 0.0, 0.0))
+	_humanoid.set_bone_rotation("right_upper_leg", Vector3(0.12 * brace, 0.0, 0.0))
+	_humanoid.set_shield_pulse(1.06, 1.8 + sin(progress * PI * 4.0) * 0.24)
 
 
 func _apply_heal_pose(progress: float) -> void:
 	var lift: float = sin(progress * PI)
-	_body_pivot.position.y += lift * 0.16
-	_left_arm_pivot.rotation.x = -1.28
-	_right_arm_pivot.rotation.x = -1.28
-	_left_arm_pivot.rotation.z = -0.82
-	_right_arm_pivot.rotation.z = 0.82
+	_humanoid.set_bone_position_offset("root", Vector3(0.0, lift * 0.16, 0.0))
+	_humanoid.set_bone_rotation("spine", Vector3(-0.10 * lift, 0.0, 0.0))
+	_humanoid.set_bone_rotation("head", Vector3(-0.16 * lift, 0.0, 0.0))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(-1.34, 0.0, -0.84))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(-1.34, 0.0, 0.84))
+	_humanoid.set_bone_rotation("left_forearm", Vector3(-0.36, 0.0, 0.18))
+	_humanoid.set_bone_rotation("right_forearm", Vector3(-0.36, 0.0, -0.18))
 
 
 func _apply_shield_pose(progress: float) -> void:
 	var pulse: float = sin(progress * PI)
-	_left_arm_pivot.rotation.x = -1.22
-	_left_arm_pivot.rotation.z = -0.46
-	_right_arm_pivot.rotation.z = 0.48
-	_set_shield_energy(1.45 + pulse * 1.15)
-	if _shield_mesh != null:
-		_shield_mesh.scale = Vector3.ONE * (1.0 + pulse * 0.32)
-	if _shield_core_mesh != null:
-		_shield_core_mesh.scale = Vector3.ONE * (1.0 + pulse * 0.48)
+	_humanoid.set_bone_rotation("spine", Vector3(-0.06, 0.12, 0.0))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(-1.28, -0.24, -0.50))
+	_humanoid.set_bone_rotation("left_forearm", Vector3(-0.64, 0.0, 0.18))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(-0.36, 0.0, 0.52))
+	_humanoid.set_shield_pulse(1.0 + pulse * 0.34, 1.45 + pulse * 1.15)
 
 
 func _apply_status_pose(progress: float) -> void:
 	var pulse: float = sin(progress * PI * 3.0) * (1.0 - progress)
-	_body_pivot.rotation.y = pulse * 0.18
-	_body_pivot.position.y += absf(pulse) * 0.06
+	_humanoid.set_bone_position_offset("root", Vector3(0.0, absf(pulse) * 0.07, 0.0))
+	_humanoid.set_bone_rotation("hips", Vector3(0.0, -pulse * 0.12, 0.0))
+	_humanoid.set_bone_rotation("spine", Vector3(0.0, pulse * 0.22, pulse * 0.06))
+	_humanoid.set_bone_rotation("chest", Vector3(0.0, -pulse * 0.30, -pulse * 0.06))
+	_humanoid.set_bone_rotation("head", Vector3(0.0, pulse * 0.18, 0.0))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(-0.48, 0.0, -0.50))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(-0.48, 0.0, 0.50))
 
 
 func _apply_interrupt_pose(progress: float) -> void:
 	var recoil: float = sin(progress * PI)
-	_body_pivot.rotation.z += sin(progress * PI * 6.0) * (1.0 - progress) * 0.18
-	_body_pivot.position.y -= recoil * 0.12
-	_left_arm_pivot.rotation.z = -0.80 + recoil * 0.30
-	_right_arm_pivot.rotation.z = 0.80 - recoil * 0.30
+	var shake: float = sin(progress * PI * 6.0) * (1.0 - progress)
+	_humanoid.set_bone_position_offset("root", Vector3(0.0, -recoil * 0.12, recoil * 0.06))
+	_humanoid.set_bone_rotation("spine", Vector3(recoil * 0.18, shake * 0.10, shake * 0.20))
+	_humanoid.set_bone_rotation("chest", Vector3(recoil * 0.12, -shake * 0.14, -shake * 0.12))
+	_humanoid.set_bone_rotation("head", Vector3(recoil * 0.20, 0.0, shake * 0.16))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(0.16, 0.0, -0.82 + recoil * 0.28))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(0.16, 0.0, 0.82 - recoil * 0.28))
 
 
 func _apply_victory_pose() -> void:
-	_body_pivot.position.y += 0.10 + absf(sin(_elapsed * 2.8)) * 0.08
-	_left_arm_pivot.rotation.x = -2.05
-	_right_arm_pivot.rotation.x = -2.05
-	_left_arm_pivot.rotation.z = -0.48
-	_right_arm_pivot.rotation.z = 0.48
+	var celebration: float = absf(sin(_elapsed * 2.8))
+	_humanoid.set_bone_position_offset("root", Vector3(0.0, 0.10 + celebration * 0.09, 0.0))
+	_humanoid.set_bone_rotation("spine", Vector3(-0.10, sin(_elapsed * 1.6) * 0.08, 0.0))
+	_humanoid.set_bone_rotation("head", Vector3(-0.16, 0.0, 0.0))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(-2.08, 0.0, -0.52))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(-2.08, 0.0, 0.52))
+	_humanoid.set_bone_rotation("left_forearm", Vector3(-0.42, 0.0, 0.0))
+	_humanoid.set_bone_rotation("right_forearm", Vector3(-0.42, 0.0, 0.0))
 
 
 func _apply_defeat_pose(progress: float) -> void:
 	var fall: float = _ease_out_cubic(progress)
-	rotation.z = (1.20 if actor_side == "player" else -1.20) * fall
+	rotation.z = _home_rotation.z + (1.20 if actor_side == "player" else -1.20) * fall
 	position.y = _home_position.y - fall * 0.44
-	_body_pivot.position.y -= fall * 0.18
-
-
-func _set_shield_energy(energy: float) -> void:
-	if _shield_material != null:
-		_shield_material.emission_energy_multiplier = energy
+	_humanoid.set_bone_position_offset("root", Vector3(0.0, -fall * 0.18, fall * 0.06))
+	_humanoid.set_bone_rotation("spine", Vector3(fall * 0.28, 0.0, 0.0))
+	_humanoid.set_bone_rotation("head", Vector3(fall * 0.35, 0.0, 0.0))
+	_humanoid.set_bone_rotation("left_upper_arm", Vector3(0.30 * fall, 0.0, -0.46))
+	_humanoid.set_bone_rotation("right_upper_arm", Vector3(0.30 * fall, 0.0, 0.46))
 
 
 func _apply_palette() -> void:
-	if _primary_material == null or _accent_material == null or _platform_material == null:
-		return
 	var primary: Color = PLAYER_PRIMARY if actor_side == "player" else ENEMY_PRIMARY
 	var accent: Color = PLAYER_ACCENT if actor_side == "player" else ENEMY_ACCENT
-	_primary_material.albedo_color = primary
-	_accent_material.albedo_color = accent
-	_accent_material.emission = accent
-	if _shield_material != null:
-		_shield_material.albedo_color = Color(primary.r, primary.g, primary.b, 0.86)
-		_shield_material.emission = accent
-	_platform_material.albedo_color = primary.darkened(0.32)
-	_platform_material.emission = accent.darkened(0.32)
+	if _humanoid != null:
+		_humanoid.configure_palette(primary, accent)
+	if _platform_material != null:
+		_platform_material.albedo_color = primary.darkened(0.32)
+		_platform_material.emission = accent.darkened(0.32)
 
 
-func _add_mesh(
-	parent: Node3D,
-	node_name: String,
-	mesh: Mesh,
-	local_position: Vector3,
-	local_rotation_degrees: Vector3,
-	material: Material
-) -> MeshInstance3D:
+func _add_mesh(parent: Node3D, node_name: String, mesh: Mesh, local_position: Vector3, material: Material) -> MeshInstance3D:
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
 	instance.mesh = mesh
 	instance.position = local_position
-	instance.rotation_degrees = local_rotation_degrees
 	instance.material_override = material
 	parent.add_child(instance)
 	return instance

@@ -1,9 +1,29 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.13.0",
+  "current_version": "QQ-0.14.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.14.0",
+      "date": "2026-08-13",
+      "title_ja": "共通ローポリ戦闘モデル",
+      "title_en": "Common low-poly combat model",
+      "changes_ja": [
+        "プレイヤーと敵を18本のボーンを持つ共通ローポリ人型モデルへ置き換えました。",
+        "左右の手、胸、頭、背中に装備ソケットを追加し、剣、盾、動力装置をボーンへ追従させました。",
+        "待機、詠唱、攻撃、防御、被弾、回復、状態、妨害、勝利、戦闘不能を全身のボーンアニメーションへ刷新しました。",
+        "攻撃弾と効果の発生位置を手と胸の3Dソケットへ統合しました。",
+        "共通3Dメッシュを起動時にキャッシュし、初回戦闘のモデル生成負荷を分散しました。"
+      ],
+      "changes_en": [
+        "Replaced player and enemy stand-ins with a shared 18-bone low-poly humanoid model.",
+        "Added hand, chest, head, and back equipment sockets with skeletal weapon, shield, and power-pack attachments.",
+        "Rebuilt idle, cast, attack, block, hit, heal, status, interrupt, victory, and defeat as full-body skeletal performances.",
+        "Moved projectile and effect origins to the animated hand and chest sockets.",
+        "Cached the shared 3D meshes during startup to reduce first-battle model construction work."
+      ]
+    },
     {
       "version": "QQ-0.13.0",
       "date": "2026-08-13",
