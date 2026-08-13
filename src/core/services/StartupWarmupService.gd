@@ -34,7 +34,9 @@ static func warm_all() -> Dictionary:
 		relic_count = RelicIcon.warm_texture_cache(data.relic_ids)
 	var stat_icon_count: int = StatIconFactory.warm_cache()
 	var map_icon_count: int = MapNodeButton.warm_icon_cache()
-	var battle_3d_mesh_count: int = CommonBattleHumanoid3D.warm_mesh_cache()
+	var battle_3d_mesh_count: int = CommonBattleHumanoid3D.warm_visual_profile_cache(
+		Database.get_all_battle_visual_profiles()
+	)
 
 	return {
 		"scenes": SceneRouter.get_cached_scene_count(),
@@ -87,7 +89,9 @@ static func warm_all_async(progress_callback: Callable = Callable()) -> Dictiona
 	await _next_frame()
 	data.summary["stat_icons"] = StatIconFactory.warm_cache()
 	data.summary["map_icons"] = MapNodeButton.warm_icon_cache()
-	data.summary["battle_3d_meshes"] = CommonBattleHumanoid3D.warm_mesh_cache()
+	data.summary["battle_3d_meshes"] = CommonBattleHumanoid3D.warm_visual_profile_cache(
+		Database.get_all_battle_visual_profiles()
+	)
 
 	_report_progress(progress_callback, "boot.caching_network", 0.99)
 	await _next_frame()

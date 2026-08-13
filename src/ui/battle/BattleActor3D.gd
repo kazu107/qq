@@ -35,6 +35,9 @@ var actor_side: String = "player"
 var _humanoid: CommonBattleHumanoid3D
 var _platform_mesh: MeshInstance3D
 var _platform_material: StandardMaterial3D
+var _platform_base_scale: Vector3 = Vector3.ONE
+var _visual_profile_id: String = ""
+var _visual_profile: Dictionary = {}
 var _elapsed: float = 0.0
 var _phase_offset: float = 0.0
 var _visual_built: bool = false
@@ -49,13 +52,27 @@ var _home_position_initialized: bool = false
 var _last_action: StringName = ACTION_IDLE
 
 
-func configure(side: String) -> void:
+func configure(side: String, visual_profile_id: String = "", visual_profile: Dictionary = {}) -> void:
 	actor_side = side
 	_phase_offset = 0.0 if actor_side == "player" else PI
 	if not _visual_built:
 		_build_visual()
+	if visual_profile_id != "" or not visual_profile.is_empty():
+		_visual_profile_id = visual_profile_id
+		_visual_profile = visual_profile.duplicate(true)
+	elif _visual_profile_id == "":
+		_visual_profile_id = "default_player" if actor_side == "player" else "default_enemy"
+		_visual_profile = _default_visual_profile()
 	_apply_palette()
 	set_process(true)
+
+
+func configure_visual(visual_profile_id: String, visual_profile: Dictionary) -> void:
+	_visual_profile_id = visual_profile_id
+	_visual_profile = visual_profile.duplicate(true)
+	if _visual_profile.is_empty():
+		_visual_profile = _default_visual_profile()
+	_apply_palette()
 
 
 func _ready() -> void:
@@ -142,6 +159,34 @@ func get_humanoid_model() -> CommonBattleHumanoid3D:
 	return _humanoid
 
 
+func get_visual_profile_id() -> String:
+	return _visual_profile_id
+
+
+func get_weapon_type() -> String:
+	return _humanoid.get_weapon_type() if _humanoid != null else ""
+
+
+func get_offhand_type() -> String:
+	return _humanoid.get_offhand_type() if _humanoid != null else ""
+
+
+func get_head_type() -> String:
+	return _humanoid.get_head_type() if _humanoid != null else ""
+
+
+func get_back_type() -> String:
+	return _humanoid.get_back_type() if _humanoid != null else ""
+
+
+func get_body_scale() -> Vector3:
+	return _humanoid.get_body_scale() if _humanoid != null else Vector3.ONE
+
+
+func is_boss_profile() -> bool:
+	return _humanoid.is_boss_profile() if _humanoid != null else false
+
+
 func get_skeleton() -> Skeleton3D:
 	return _humanoid.get_skeleton() if _humanoid != null else null
 
@@ -217,7 +262,7 @@ func _update_pose() -> void:
 	_humanoid.set_accent_energy((0.72 if _action == ACTION_IDLE else 1.18) + (slow_wave + 1.0) * 0.18)
 	_humanoid.finish_pose()
 	if _platform_mesh != null:
-		_platform_mesh.scale = Vector3.ONE * (1.0 + sin(_elapsed * 3.2) * 0.018)
+		_platform_mesh.scale = _platform_base_scale * (1.0 + sin(_elapsed * 3.2) * 0.018)
 
 
 func _apply_idle_pose(wave: float, slow_wave: float) -> void:
@@ -347,13 +392,35 @@ func _apply_defeat_pose(progress: float) -> void:
 
 
 func _apply_palette() -> void:
+	var default_primary: Color = PLAYER_PRIMARY if actor_side == "player" else ENEMY_PRIMARY
+	var default_accent: Color = PLAYER_ACCENT if actor_side == "player" else ENEMY_ACCENT
+	var primary: Color = Color.from_string(String(_visual_profile.get("primary", "")), default_primary)
+	var accent: Color = Color.from_string(String(_visual_profile.get("accent", "")), default_accent)
+	if _humanoid != null:
+		_humanoid.configure_visual(_visual_profile_id, _visual_profile)
+		var body_scale: Vector3 = _humanoid.get_body_scale()
+		_platform_base_scale = Vector3(maxf(1.0, body_scale.x * 0.94), 1.0, maxf(1.0, body_scale.z * 0.94))
+	if _platform_material != null:
+		var team_primary: Color = PLAYER_PRIMARY if actor_side == "player" else ENEMY_PRIMARY
+		var team_accent: Color = PLAYER_ACCENT if actor_side == "player" else ENEMY_ACCENT
+		_platform_material.albedo_color = team_primary.darkened(0.32)
+		_platform_material.emission = team_accent.darkened(0.32)
+
+
+func _default_visual_profile() -> Dictionary:
 	var primary: Color = PLAYER_PRIMARY if actor_side == "player" else ENEMY_PRIMARY
 	var accent: Color = PLAYER_ACCENT if actor_side == "player" else ENEMY_ACCENT
-	if _humanoid != null:
-		_humanoid.configure_palette(primary, accent)
-	if _platform_material != null:
-		_platform_material.albedo_color = primary.darkened(0.32)
-		_platform_material.emission = accent.darkened(0.32)
+	return {
+		"primary": primary.to_html(false),
+		"secondary": CommonBattleHumanoid3D.ARMOR_DARK.to_html(false),
+		"accent": accent.to_html(false),
+		"body_scale": [1.0, 1.0, 1.0],
+		"weapon": "blade",
+		"offhand": "shield",
+		"head": "visor",
+		"back": "power_pack",
+		"boss": false,
+	}
 
 
 func _add_mesh(parent: Node3D, node_name: String, mesh: Mesh, local_position: Vector3, material: Material) -> MeshInstance3D:

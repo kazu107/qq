@@ -1020,7 +1020,23 @@ func _configure_battle_stage() -> void:
 	var opponent_unit: UnitState = _engine.battle_state.get_opponent(_local_side)
 	if local_unit == null or opponent_unit == null:
 		return
-	_battle_stage.configure_combatants(local_unit.unit_id, opponent_unit.unit_id, _local_side)
+	var local_visual_id: String = "default_player"
+	var opponent_visual_id: String = "default_enemy"
+	if _lan_mode:
+		if _local_run != null:
+			local_visual_id = _local_run.starter_id
+		if _opponent_run != null:
+			opponent_visual_id = _opponent_run.starter_id
+	elif Game.current_run != null:
+		local_visual_id = Game.current_run.starter_id
+		opponent_visual_id = Game.pending_enemy_id
+	_battle_stage.configure_combatants(
+		local_unit.unit_id,
+		opponent_unit.unit_id,
+		_local_side,
+		local_visual_id,
+		opponent_visual_id
+	)
 
 
 func _uses_compact_lan_events() -> bool:

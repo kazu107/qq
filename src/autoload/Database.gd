@@ -8,6 +8,7 @@ const META_PROGRESS_PATH := "res://data/meta_progress.json"
 const RELICS_PATH := "res://data/relics.json"
 const EVENTS_PATH := "res://data/events.json"
 const ACHIEVEMENTS_PATH := "res://data/achievements.json"
+const BATTLE_VISUALS_PATH := "res://data/battle_visuals.json"
 
 var cards: Dictionary = {}
 var enemies: Dictionary = {}
@@ -19,6 +20,7 @@ var events: Dictionary = {}
 var event_order: Array[String] = []
 var achievements: Dictionary = {}
 var achievement_order: Array[String] = []
+var battle_visuals: Dictionary = {}
 var load_errors: Array[String] = []
 
 
@@ -33,6 +35,7 @@ func load_all() -> void:
 	event_order.clear()
 	achievements.clear()
 	achievement_order.clear()
+	battle_visuals.clear()
 	load_errors.clear()
 
 	_load_cards()
@@ -43,6 +46,7 @@ func load_all() -> void:
 	_load_relics()
 	_load_events()
 	_load_achievements()
+	battle_visuals = _load_json_dictionary(BATTLE_VISUALS_PATH)
 	_apply_localization()
 
 	if load_errors.is_empty():
@@ -72,6 +76,26 @@ func get_starter(starter_id: String) -> Dictionary:
 		if String(starter.get("id", "")) == starter_id:
 			return starter
 	return {}
+
+
+func get_battle_visual_profile(profile_id: String, fallback_id: String = "default_player") -> Dictionary:
+	var profile: Dictionary = Dictionary(battle_visuals.get(profile_id, {}))
+	if profile.is_empty():
+		profile = Dictionary(battle_visuals.get(fallback_id, {}))
+	return profile.duplicate(true)
+
+
+func get_all_battle_visual_profiles() -> Array[Dictionary]:
+	var profiles: Array[Dictionary] = []
+	var profile_ids: Array[String] = []
+	for raw_profile_id: Variant in battle_visuals.keys():
+		profile_ids.append(String(raw_profile_id))
+	profile_ids.sort()
+	for profile_id: String in profile_ids:
+		var profile: Dictionary = Dictionary(battle_visuals.get(profile_id, {})).duplicate(true)
+		profile["id"] = profile_id
+		profiles.append(profile)
+	return profiles
 
 
 func get_card_ids_by_rarity(rarity: String) -> Array[String]:

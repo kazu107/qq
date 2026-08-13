@@ -40,11 +40,21 @@ func _run() -> void:
 	await get_tree().process_frame
 	var start_button: Button = battle.find_child("BattleStartButton", true, false) as Button
 	var ready_count: Label = battle.find_child("BattleReadyCountLabel", true, false) as Label
+	var player_actor: BattleActor3D = battle.find_child("PlayerBattleActor3D", true, false) as BattleActor3D
+	var enemy_actor: BattleActor3D = battle.find_child("EnemyBattleActor3D", true, false) as BattleActor3D
 	if start_button == null or start_button.visible:
 		_fail("Spectator could access the battle start button")
 		return
 	if ready_count == null or ready_count.visible:
 		_fail("Spectator battle displayed participant readiness controls")
+		return
+	if player_actor == null \
+	or enemy_actor == null \
+	or player_actor.get_visual_profile_id() != "balanced" \
+	or enemy_actor.get_visual_profile_id() != "tempo" \
+	or player_actor.get_weapon_type() != "blade" \
+	or enemy_actor.get_weapon_type() != "rapier":
+		_fail("Spectator battle did not reproduce both starter appearances")
 		return
 	if not NetworkManager.is_local_match_spectator() or NetworkManager.can_local_control_match():
 		_fail("Spectator network role could issue battle commands")

@@ -64,6 +64,8 @@ var _cast_counts: Dictionary = {}
 var _local_unit_id: String = "player"
 var _opponent_unit_id: String = "enemy"
 var _local_engine_side: String = "player"
+var _local_visual_id: String = "default_player"
+var _opponent_visual_id: String = "default_enemy"
 
 
 func _ready() -> void:
@@ -81,10 +83,18 @@ func _process(delta: float) -> void:
 	_update_camera(delta)
 
 
-func configure_combatants(local_unit_id: String, opponent_unit_id: String, local_engine_side: String = "player") -> void:
+func configure_combatants(
+	local_unit_id: String,
+	opponent_unit_id: String,
+	local_engine_side: String = "player",
+	local_visual_id: String = "default_player",
+	opponent_visual_id: String = "default_enemy"
+) -> void:
 	_local_unit_id = local_unit_id
 	_opponent_unit_id = opponent_unit_id
 	_local_engine_side = local_engine_side if local_engine_side == "enemy" else "player"
+	_local_visual_id = local_visual_id if local_visual_id != "" else "default_player"
+	_opponent_visual_id = opponent_visual_id if opponent_visual_id != "" else "default_enemy"
 	_cast_counts.clear()
 	_queued_events.clear()
 	_active_event.clear()
@@ -93,8 +103,16 @@ func configure_combatants(local_unit_id: String, opponent_unit_id: String, local
 	_clear_effects()
 	_clear_floating_combat_texts()
 	if _player_actor != null:
+		_player_actor.configure_visual(
+			_local_visual_id,
+			Database.get_battle_visual_profile(_local_visual_id, "default_player")
+		)
 		_player_actor.reset_performance()
 	if _enemy_actor != null:
+		_enemy_actor.configure_visual(
+			_opponent_visual_id,
+			Database.get_battle_visual_profile(_opponent_visual_id, "default_enemy")
+		)
 		_enemy_actor.reset_performance()
 
 

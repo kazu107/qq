@@ -845,6 +845,13 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle scene should include the 3D greybox stage")
 		get_tree().quit(1)
 		return
+	if battle_player_actor.get_visual_profile_id() != "balanced" \
+	or battle_enemy_actor.get_visual_profile_id() != "scout" \
+	or battle_player_actor.get_weapon_type() != "blade" \
+	or battle_enemy_actor.get_weapon_type() != "rapier":
+		push_error("Card UI smoke failed: battle scene should resolve starter and enemy 3D appearances")
+		get_tree().quit(1)
+		return
 	if battle_stage_hud == null \
 	or enemy_stage_hud == null \
 	or player_stage_hud == null \

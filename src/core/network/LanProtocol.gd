@@ -23,6 +23,7 @@ const CONTENT_PATHS: Array[String] = [
 	"res://data/cards.json",
 	"res://data/relics.json",
 	"res://data/starters.json",
+	"res://data/battle_visuals.json",
 ]
 
 static var _cached_content_hash: String = ""

@@ -1,9 +1,29 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.14.0",
+  "current_version": "QQ-0.15.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.15.0",
+      "date": "2026-08-13",
+      "title_ja": "戦闘キャラクター外見差分",
+      "title_en": "Combat character visual identities",
+      "changes_ja": [
+        "開始デッキ7種、敵18種の全25体に専用の3D外見を追加しました。",
+        "剣、細剣、大剣、槌、杖、銃、砲、爪、鎌、槍と左手装備を組み替えられるようにしました。",
+        "頭部と背面の装飾、配色、縦横の体格差で各キャラクターを判別できるようにしました。",
+        "4体のボスに大型化、王冠、翼、回転オーラを追加しました。",
+        "通常戦、Web対戦、観戦で開始デッキと敵IDから同じ外見を再現し、全メッシュを起動時にキャッシュするようにしました。"
+      ],
+      "changes_en": [
+        "Added dedicated 3D appearances for all seven starters and eighteen enemies.",
+        "Added interchangeable swords, rapiers, greatswords, hammers, staves, guns, cannons, claws, scythes, spears, and off-hand equipment.",
+        "Made every combatant identifiable through head and back accessories, palette, and body proportions.",
+        "Added enlarged silhouettes, crowns, wings, and rotating auras to all four bosses.",
+        "Resolved the same appearance from starter and enemy ids in local, Web, and spectator battles, with startup mesh caching."
+      ]
+    },
     {
       "version": "QQ-0.14.0",
       "date": "2026-08-13",
