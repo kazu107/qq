@@ -47,6 +47,15 @@ func _run() -> void:
 	if stage.find_child("BattleProjectile3D", true, false) == null or stage.find_child("BattleImpact3D", true, false) == null:
 		_fail("3D battle stage smoke failed: damage resolution should spawn projectile and impact VFX")
 		return
+	var first_floating_values: Array[String] = stage.get_floating_combat_text_values()
+	if not first_floating_values.has("-6") or not first_floating_values.has("-3"):
+		_fail("3D battle stage smoke failed: HP and shield damage should appear over the 3D target (%s)" % [first_floating_values])
+		return
+	var player_screen_position: Vector2 = stage.get_actor_screen_position("player")
+	var enemy_screen_position: Vector2 = stage.get_actor_screen_position("scout")
+	if player_screen_position.distance_to(enemy_screen_position) < 40.0:
+		_fail("3D battle stage smoke failed: actor HUD projection should produce separate screen positions")
+		return
 
 	_advance(stage, player_actor, enemy_actor, 0.82)
 	stage.play_battle_event(_resolution_event(
@@ -137,6 +146,9 @@ func _run() -> void:
 		return
 
 	stage.configure_combatants("enemy", "player", "enemy")
+	if stage.get_floating_combat_text_count() != 0:
+		_fail("3D battle stage smoke failed: configuring a new match should clear stale combat text")
+		return
 	stage.play_battle_event({
 		"event_type": "prepare_card",
 		"actor_id": "enemy",
@@ -146,8 +158,36 @@ func _run() -> void:
 	if player_actor.get_action_name() != "cast" or enemy_actor.get_action_name() != "idle":
 		_fail("3D battle stage smoke failed: Web opponent-side mapping should keep the local actor on the player side")
 		return
+	_advance(stage, player_actor, enemy_actor, 0.24)
+	stage.play_battle_event(_resolution_event(
+		"enemy",
+		"player",
+		"strike",
+		{"hp": 30, "shield": 2},
+		{"hp": 24, "shield": 0},
+		{"hp": 44, "shield": 0},
+		{"hp": 48, "shield": 3}
+	))
+	var web_floating_values: Array[String] = stage.get_floating_combat_text_values()
+	if player_actor.get_action_name() != "attack" \
+	or enemy_actor.get_action_name() != "hit" \
+	or not web_floating_values.has("+4") \
+	or not web_floating_values.has("+3") \
+	or not web_floating_values.has("-6") \
+	or not web_floating_values.has("-2"):
+		_fail("3D battle stage smoke failed: compact Web events should map HUD values to local 3D actors (%s)" % [web_floating_values])
+		return
+	var floating_count_before_decay: int = stage.get_floating_combat_text_count()
+	stage.play_battle_event({
+		"event_type": "shield_decay",
+		"target_id": "enemy",
+		"shield_delta": -1,
+	})
+	if stage.get_floating_combat_text_count() != floating_count_before_decay:
+		_fail("3D battle stage smoke failed: shield decay should stay silent on the 3D combat text layer")
+		return
 
-	print("BATTLE_STAGE_3D_SMOKE_OK event-driven combat animation validated")
+	print("BATTLE_STAGE_3D_SMOKE_OK stage HUD and event-driven combat animation validated")
 	get_tree().quit()
 
 

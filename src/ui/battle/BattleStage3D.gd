@@ -12,6 +12,9 @@ const HEAL_COLOR := Color(0.24, 1.0, 0.48, 1.0)
 const STATUS_COLOR := Color(1.0, 0.72, 0.16, 1.0)
 const INTERRUPT_COLOR := Color(0.92, 0.32, 1.0, 1.0)
 const START_COLOR := Color(0.32, 0.86, 1.0, 1.0)
+const FLOATING_TEXT_LIFETIME: float = 1.75
+const FLOATING_TEXT_FADE_START: float = 0.58
+const FLOATING_TEXT_SIZE := Vector2(132.0, 58.0)
 
 
 class StageEffect:
@@ -28,9 +31,21 @@ class StageEffect:
 	var duration: float = 0.5
 	var elapsed: float = 0.0
 
+
+class FloatingCombatText:
+	extends RefCounted
+
+	var label: Label
+	var actor: BattleActor3D
+	var screen_offset: Vector2 = Vector2.ZERO
+	var drift: Vector2 = Vector2(0.0, -34.0)
+	var lifetime: float = FLOATING_TEXT_LIFETIME
+	var elapsed: float = 0.0
+
 var _viewport: SubViewport
 var _world_root: Node3D
 var _camera: Camera3D
+var _floating_text_layer: Control
 var _player_actor: BattleActor3D
 var _enemy_actor: BattleActor3D
 var _projectile_mesh: SphereMesh
@@ -43,6 +58,8 @@ var _active_event: Dictionary = {}
 var _active_event_elapsed: float = 0.0
 var _active_event_duration: float = 0.0
 var _effects: Array[StageEffect] = []
+var _floating_texts: Array[FloatingCombatText] = []
+var _floating_text_serial: int = 0
 var _cast_counts: Dictionary = {}
 var _local_unit_id: String = "player"
 var _opponent_unit_id: String = "enemy"
@@ -60,6 +77,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_update_event_queue(delta)
 	_update_effects(delta)
+	_update_floating_combat_texts(delta)
 	_update_camera(delta)
 
 
@@ -73,6 +91,7 @@ func configure_combatants(local_unit_id: String, opponent_unit_id: String, local
 	_active_event_elapsed = 0.0
 	_active_event_duration = 0.0
 	_clear_effects()
+	_clear_floating_combat_texts()
 	if _player_actor != null:
 		_player_actor.reset_performance()
 	if _enemy_actor != null:
@@ -82,6 +101,7 @@ func configure_combatants(local_unit_id: String, opponent_unit_id: String, local
 func play_battle_event(event_data: Dictionary) -> void:
 	if event_data.is_empty():
 		return
+	_emit_event_combat_text(event_data)
 	_queued_events.append(event_data.duplicate(true))
 	while _queued_events.size() > MAX_QUEUED_EVENTS:
 		_queued_events.pop_front()
@@ -95,6 +115,22 @@ func get_pending_event_count() -> int:
 
 func get_active_effect_count() -> int:
 	return _effects.size()
+
+
+func get_floating_combat_text_count() -> int:
+	return _floating_texts.size()
+
+
+func get_floating_combat_text_values() -> Array[String]:
+	var values: Array[String] = []
+	for floating_text in _floating_texts:
+		if floating_text != null and floating_text.label != null and is_instance_valid(floating_text.label):
+			values.append(floating_text.label.text)
+	return values
+
+
+func get_actor_screen_position(unit_id: String) -> Vector2:
+	return _project_actor_position(_actor_for_unit_id(unit_id))
 
 
 func _build_stage() -> void:
@@ -116,6 +152,16 @@ func _build_stage() -> void:
 	_build_arena()
 	_build_actors()
 	_build_camera()
+	_build_floating_text_layer()
+
+
+func _build_floating_text_layer() -> void:
+	_floating_text_layer = Control.new()
+	_floating_text_layer.name = "BattleStageFloatingTextLayer"
+	_floating_text_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_floating_text_layer.z_index = 40
+	add_child(_floating_text_layer)
+	_floating_text_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 
 func _build_effect_resources() -> void:
@@ -236,6 +282,73 @@ func _build_camera() -> void:
 	_camera.look_at(Vector3(0.0, 0.82, -0.15), Vector3.UP)
 	_camera.current = true
 	_camera_home_position = _camera.position
+
+
+func _emit_event_combat_text(event_data: Dictionary) -> void:
+	match String(event_data.get("event_type", "")):
+		"prepare_card":
+			var prepare_actor: BattleActor3D = _actor_for_unit_id(String(event_data.get("actor_id", "")))
+			var prepare_result: Dictionary = Dictionary(event_data.get("result", {}))
+			var shield_cost: int = maxi(0, int(prepare_result.get("shield_cost", 0)))
+			if shield_cost > 0:
+				_spawn_floating_combat_text(prepare_actor, "-%d" % shield_cost, SHIELD_COLOR, 0)
+		"resolve_card":
+			var result: Dictionary = Dictionary(event_data.get("result", {}))
+			_emit_unit_delta_text(_player_actor, _unit_delta(result, _player_actor))
+			_emit_unit_delta_text(_enemy_actor, _unit_delta(result, _enemy_actor))
+		"status_damage":
+			var status_target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
+			var damage_amount: int = maxi(0, -int(event_data.get("hp_delta", 0)))
+			if damage_amount <= 0:
+				var status_result: Dictionary = Dictionary(event_data.get("result", {}))
+				damage_amount = maxi(0, int(status_result.get("amount", 0)))
+			if damage_amount > 0:
+				_spawn_floating_combat_text(status_target, "-%d" % damage_amount, DAMAGE_COLOR, 0)
+
+
+func _emit_unit_delta_text(actor: BattleActor3D, delta_data: Dictionary) -> void:
+	if actor == null or delta_data.is_empty():
+		return
+	var hp_delta: int = int(delta_data.get("hp", 0))
+	var shield_delta: int = int(delta_data.get("shield", 0))
+	if hp_delta < 0:
+		_spawn_floating_combat_text(actor, "-%d" % absi(hp_delta), DAMAGE_COLOR, -1 if shield_delta != 0 else 0)
+	elif hp_delta > 0:
+		_spawn_floating_combat_text(actor, "+%d" % hp_delta, HEAL_COLOR, -1 if shield_delta != 0 else 0)
+	if shield_delta != 0:
+		var shield_text: String = "+%d" % shield_delta if shield_delta > 0 else "-%d" % absi(shield_delta)
+		_spawn_floating_combat_text(actor, shield_text, SHIELD_COLOR, 1 if hp_delta != 0 else 0)
+
+
+func _spawn_floating_combat_text(actor: BattleActor3D, value_text: String, color: Color, lane: int) -> void:
+	if actor == null or value_text == "" or _floating_text_layer == null:
+		return
+	var label := Label.new()
+	label.name = "FloatingCombatText"
+	label.text = value_text
+	label.size = FLOATING_TEXT_SIZE
+	label.custom_minimum_size = FLOATING_TEXT_SIZE
+	label.pivot_offset = FLOATING_TEXT_SIZE * 0.5
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 36)
+	label.add_theme_color_override("font_color", color.lightened(0.12))
+	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.98))
+	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.84))
+	label.add_theme_constant_override("outline_size", 7)
+	label.add_theme_constant_override("shadow_offset_x", 2)
+	label.add_theme_constant_override("shadow_offset_y", 4)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_floating_text_layer.add_child(label)
+
+	var floating_text := FloatingCombatText.new()
+	floating_text.label = label
+	floating_text.actor = actor
+	var serial_lane: float = float((_floating_text_serial % 3) - 1) * 11.0
+	floating_text.screen_offset = Vector2(float(lane) * 50.0 + serial_lane, -24.0)
+	_floating_text_serial += 1
+	_floating_texts.append(floating_text)
+	_update_floating_combat_text(floating_text)
 
 
 func _update_event_queue(delta: float) -> void:
@@ -490,6 +603,7 @@ func _opponent_engine_side() -> String:
 
 func _reset_stage_performance() -> void:
 	_cast_counts.clear()
+	_clear_floating_combat_texts()
 	if _player_actor != null:
 		_player_actor.reset_performance()
 	if _enemy_actor != null:
@@ -586,6 +700,60 @@ func _clear_effects() -> void:
 		if effect != null and effect.node != null and is_instance_valid(effect.node):
 			effect.node.queue_free()
 	_effects.clear()
+
+
+func _update_floating_combat_texts(delta: float) -> void:
+	for index in range(_floating_texts.size() - 1, -1, -1):
+		var floating_text: FloatingCombatText = _floating_texts[index]
+		if floating_text == null or floating_text.label == null or not is_instance_valid(floating_text.label):
+			_floating_texts.remove_at(index)
+			continue
+		floating_text.elapsed += delta
+		_update_floating_combat_text(floating_text)
+		if floating_text.elapsed >= floating_text.lifetime:
+			floating_text.label.queue_free()
+			_floating_texts.remove_at(index)
+
+
+func _update_floating_combat_text(floating_text: FloatingCombatText) -> void:
+	if floating_text == null or floating_text.label == null or floating_text.actor == null:
+		return
+	var progress: float = clampf(floating_text.elapsed / maxf(0.01, floating_text.lifetime), 0.0, 1.0)
+	var actor_position: Vector2 = _project_actor_position(floating_text.actor)
+	floating_text.label.position = actor_position \
+		+ floating_text.screen_offset \
+		+ floating_text.drift * progress \
+		- FLOATING_TEXT_SIZE * 0.5
+	var fade_progress: float = clampf(
+		(progress - FLOATING_TEXT_FADE_START) / (1.0 - FLOATING_TEXT_FADE_START),
+		0.0,
+		1.0
+	)
+	floating_text.label.modulate.a = 1.0 - fade_progress
+	var pop_scale: float = lerpf(1.28, 1.0, clampf(progress / 0.16, 0.0, 1.0))
+	floating_text.label.scale = Vector2.ONE * pop_scale
+
+
+func _clear_floating_combat_texts() -> void:
+	for floating_text in _floating_texts:
+		if floating_text != null and floating_text.label != null and is_instance_valid(floating_text.label):
+			floating_text.label.queue_free()
+	_floating_texts.clear()
+	_floating_text_serial = 0
+
+
+func _project_actor_position(actor: BattleActor3D) -> Vector2:
+	if actor == null or _camera == null or _viewport == null:
+		return size * 0.5
+	var viewport_position: Vector2 = _camera.unproject_position(_actor_effect_position(actor) + Vector3(0.0, 0.42, 0.0))
+	var viewport_size := Vector2(_viewport.size)
+	var display_size: Vector2 = size
+	if display_size.x <= 1.0 or display_size.y <= 1.0:
+		display_size = Vector2(DEFAULT_VIEWPORT_SIZE)
+	return Vector2(
+		viewport_position.x * display_size.x / maxf(1.0, viewport_size.x),
+		viewport_position.y * display_size.y / maxf(1.0, viewport_size.y)
+	)
 
 
 func _add_camera_shake(amount: float) -> void:

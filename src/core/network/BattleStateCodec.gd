@@ -9,6 +9,10 @@ const NETWORK_RESULT_UNIT_KEYS: Array[String] = [
 	"enemy_before",
 	"enemy_after",
 ]
+const NETWORK_RESULT_SCALAR_KEYS: Array[String] = [
+	"shield_cost",
+	"amount",
+]
 const NETWORK_SUMMARY_KEYS: Array[String] = [
 	"battle_id",
 	"winner",
@@ -106,6 +110,9 @@ static func _encode_network_result(result: Dictionary) -> Dictionary:
 			"hp": int(unit_data.get("hp", 0)),
 			"shield": int(unit_data.get("shield", 0)),
 		}
+	for key: String in NETWORK_RESULT_SCALAR_KEYS:
+		if result.has(key):
+			compact_result[key] = int(result[key])
 	return compact_result
 
 

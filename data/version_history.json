@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.12.0",
+  "current_version": "QQ-0.13.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.13.0",
+      "date": "2026-08-13",
+      "title_ja": "3D戦闘HUD統合",
+      "title_en": "3D combat HUD integration",
+      "changes_ja": [
+        "HP、シールド、状態、スロット、カードを3Dフィールド上のHUDへ移動しました。",
+        "ダメージ、回復、シールド増減の数値を3Dキャラクターの頭上へ追従表示するようにしました。",
+        "ポートレート上の数値と旧2D解決エフェクトを廃止し、戦闘演出を3D側へ統合しました。"
+      ],
+      "changes_en": [
+        "Moved HP, shield, status, slots, and card controls onto the 3D field HUD.",
+        "Made damage, healing, and shield values follow the corresponding 3D combatant.",
+        "Removed portrait-local values and the legacy 2D resolution effects in favor of the 3D presentation."
+      ]
+    },
     {
       "version": "QQ-0.12.0",
       "date": "2026-08-13",

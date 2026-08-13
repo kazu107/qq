@@ -207,6 +207,9 @@ func _assert_compact_snapshot_budget(state: BattleState) -> bool:
 	if player_before.keys().size() != 2 or not player_before.has("hp") or not player_before.has("shield"):
 		_fail("LAN smoke failed: compact snapshot retained oversized unit event data")
 		return false
+	if int(newest_result.get("shield_cost", -1)) != 3 or int(newest_result.get("amount", -1)) != 7:
+		_fail("LAN smoke failed: compact snapshot lost 3D combat text values")
+		return false
 	print("LAN compact snapshot budget passed: %d -> %d bytes across %d events" % [
 		first_size,
 		final_size,
@@ -282,6 +285,8 @@ func _append_heavy_events(
 				"player_after": heavy_unit,
 				"enemy_before": heavy_unit,
 				"enemy_after": heavy_unit,
+				"shield_cost": 3,
+				"amount": 7,
 			},
 			"hp_delta": -4,
 			"shield_delta": 0,

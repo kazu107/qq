@@ -2,10 +2,12 @@ extends Control
 
 const BOTTOM_PANEL_MIN_HEIGHT: float = 324.0
 const BATTLE_INFO_MIN_WIDTH: float = 280.0
-const BATTLE_CARD_TILE_SIZE: Vector2 = Vector2(100.0, 100.0)
-const BATTLE_LOADOUT_WIDTH: float = 320.0
-const BATTLE_SIDE_PANEL_WIDTH: float = BATTLE_LOADOUT_WIDTH + 34.0
-const BATTLE_STAGE_MIN_WIDTH: float = 420.0
+const BATTLE_CARD_TILE_SIZE: Vector2 = Vector2(88.0, 88.0)
+const BATTLE_STAGE_MIN_WIDTH: float = 720.0
+const BATTLE_OVERLAY_HUD_WIDTH: float = 326.0
+const BATTLE_OVERLAY_HUD_HEIGHT: float = 188.0
+const BATTLE_OVERLAY_CARD_WIDTH: float = 506.0
+const BATTLE_OVERLAY_CARD_HEIGHT: float = 216.0
 const TIMELINE_PREVIEW_INSTANCE_ID: int = 999999
 const LAN_SNAPSHOT_INTERVAL: float = 1.0 / 12.0
 
@@ -15,7 +17,6 @@ var _enemy_cards_panel: CardHandPanel
 var _player_panel: UnitPanel
 var _card_hand_panel: CardHandPanel
 var _timeline_panel: TimelinePanel
-var _vfx_layer: BattleVfxLayer
 var _battle_stage: BattleStage3D
 var _run_info_banner: RunInfoBanner
 var _log_button: Button
@@ -33,7 +34,6 @@ var _last_countdown_second: int = -1
 var _transition_timer: float = -1.0
 var _handled_finish: bool = false
 var _hovered_player_runtime_id: String = ""
-var _processed_battle_event_count: int = 0
 var _processed_vfx_event_count: int = 0
 var _lan_battle_event_total: int = 0
 var _lan_snapshot_initialized: bool = false
@@ -76,12 +76,9 @@ func _ready() -> void:
 
 	var enemy_id: String = Game.prepare_next_battle()
 	_engine.setup(Game.current_run, enemy_id)
-	_processed_battle_event_count = 0
 	_processed_vfx_event_count = 0
 	_configure_battle_stage()
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
-	_player_panel.configure_visual("player", Game.current_run.starter_id)
-	_enemy_panel.configure_visual("enemy", enemy_id)
 	set_process(true)
 	_refresh_ui(SlowModeController.NORMAL_SCALE)
 	if Game.is_developer_mode_enabled():
@@ -138,7 +135,6 @@ func _setup_lan_battle() -> bool:
 		String(payload.get("player_name", "Player 1")),
 		String(payload.get("enemy_name", "Player 2"))
 	)
-	_processed_battle_event_count = 0
 	_processed_vfx_event_count = 0
 	_lan_battle_event_total = 0
 	_lan_snapshot_initialized = false
@@ -150,8 +146,6 @@ func _setup_lan_battle() -> bool:
 		_engine.start_battle()
 	_configure_battle_stage()
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
-	_player_panel.configure_visual("player", _local_run.starter_id)
-	_enemy_panel.configure_visual("enemy", _opponent_run.starter_id)
 	_card_hand_panel.set_interactive(not _spectator_mode)
 	if _spectator_mode:
 		_slow_mode_label.text = Localization.get_text("online.battle.spectating", "SPECTATING")
@@ -241,7 +235,6 @@ func _apply_lan_snapshot(snapshot: Dictionary) -> void:
 		int(snapshot.get("battle_event_total", decoded_state.battle_events.size()))
 	)
 	if snapshot_client and not _lan_snapshot_initialized:
-		_processed_battle_event_count = _lan_battle_event_total
 		_processed_vfx_event_count = _lan_battle_event_total
 	_lan_snapshot_initialized = true
 	_engine.apply_network_snapshot(decoded_state, snapshot_started)
@@ -390,27 +383,8 @@ func _build_ui() -> void:
 	main_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	main_split.alignment = BoxContainer.ALIGNMENT_CENTER
-	main_split.add_theme_constant_override("separation", 16)
+	main_split.add_theme_constant_override("separation", 0)
 	outer.add_child(main_split)
-
-	var left_panel := _create_section(main_split, Localization.get_text("battle.section.enemy", "Enemy"), false, true, false)
-	left_panel.name = "EnemySection"
-	_set_section_min_width(left_panel, BATTLE_SIDE_PANEL_WIDTH)
-	_enemy_panel = UnitPanel.new()
-	_enemy_panel.name = "EnemyUnitPanel"
-	left_panel.add_child(_enemy_panel)
-	_enemy_panel.set_title(Localization.get_text("battle.enemy_status", "Enemy Status"))
-
-	var enemy_cards_title := Label.new()
-	enemy_cards_title.text = Localization.get_text("battle.enemy_loadout", "Enemy Loadout")
-	left_panel.add_child(enemy_cards_title)
-
-	_enemy_cards_panel = CardHandPanel.new()
-	_enemy_cards_panel.name = "EnemyLoadoutPanel"
-	_enemy_cards_panel.set_interactive(false)
-	_enemy_cards_panel.custom_minimum_size = Vector2(BATTLE_LOADOUT_WIDTH, 0.0)
-	_enemy_cards_panel.set_tile_size(BATTLE_CARD_TILE_SIZE)
-	left_panel.add_child(_enemy_cards_panel)
 
 	var battle_stage_region := Control.new()
 	battle_stage_region.name = "BattleStageRegion"
@@ -425,10 +399,17 @@ func _build_ui() -> void:
 	battle_stage_region.add_child(_battle_stage)
 	_battle_stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
+	var stage_hud_overlay := Control.new()
+	stage_hud_overlay.name = "BattleStageHudOverlay"
+	stage_hud_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stage_hud_overlay.z_index = 20
+	battle_stage_region.add_child(stage_hud_overlay)
+	stage_hud_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 	var center_overlay := VBoxContainer.new()
-	center_overlay.name = "BattleStageHudOverlay"
+	center_overlay.name = "BattleStageCenterOverlay"
 	center_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	battle_stage_region.add_child(center_overlay)
+	stage_hud_overlay.add_child(center_overlay)
 	center_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center_overlay.offset_left = 14.0
 	center_overlay.offset_top = 12.0
@@ -484,27 +465,8 @@ func _build_ui() -> void:
 	_battle_info_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	center_panel.add_child(_battle_info_label)
 
-	var right_panel := _create_section(main_split, Localization.get_text("battle.section.player", "Player"), false, true, false)
-	right_panel.name = "PlayerSection"
-	_set_section_min_width(right_panel, BATTLE_SIDE_PANEL_WIDTH)
-	_player_panel = UnitPanel.new()
-	_player_panel.name = "PlayerUnitPanel"
-	right_panel.add_child(_player_panel)
-	_player_panel.set_title(Localization.get_text("battle.player_status", "Player Status"))
-
-	var hand_title := Label.new()
-	hand_title.text = Localization.get_text("battle.cards", "Cards")
-	right_panel.add_child(hand_title)
-
-	_card_hand_panel = CardHandPanel.new()
-	_card_hand_panel.name = "PlayerHandPanel"
-	_card_hand_panel.set_interactive(true)
-	_card_hand_panel.custom_minimum_size = Vector2(BATTLE_LOADOUT_WIDTH, 0.0)
-	_card_hand_panel.set_tile_size(BATTLE_CARD_TILE_SIZE)
-	_card_hand_panel.card_requested.connect(_on_card_requested)
-	_card_hand_panel.card_hovered.connect(_on_player_card_hovered)
-	_card_hand_panel.card_unhovered.connect(_on_player_card_unhovered)
-	right_panel.add_child(_card_hand_panel)
+	_build_stage_unit_overlays(stage_hud_overlay)
+	_build_stage_card_overlays(stage_hud_overlay)
 
 	var bottom_split := HBoxContainer.new()
 	bottom_split.name = "BottomSplit"
@@ -521,14 +483,140 @@ func _build_ui() -> void:
 	timeline_section.add_child(_timeline_panel)
 
 	_build_log_popup()
-
-	_vfx_layer = BattleVfxLayer.new()
-	_vfx_layer.name = "BattleVfxLayer"
-	_vfx_layer.z_index = 70
-	_vfx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_vfx_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(_vfx_layer)
 	_build_round_results_overlay()
+
+
+func _build_stage_unit_overlays(parent: Control) -> void:
+	var enemy_box: VBoxContainer = _create_stage_overlay_frame(
+		parent,
+		"EnemyStageHudFrame",
+		BATTLE_OVERLAY_HUD_WIDTH,
+		BATTLE_OVERLAY_HUD_HEIGHT,
+		false,
+		false,
+		Color(0.92, 0.22, 0.18, 0.92)
+	)
+	_enemy_panel = UnitPanel.new()
+	_enemy_panel.name = "EnemyUnitPanel"
+	_enemy_panel.set_stage_overlay_mode(true)
+	enemy_box.add_child(_enemy_panel)
+	_enemy_panel.set_title(Localization.get_text("battle.enemy_status", "Enemy Status"))
+
+	var player_box: VBoxContainer = _create_stage_overlay_frame(
+		parent,
+		"PlayerStageHudFrame",
+		BATTLE_OVERLAY_HUD_WIDTH,
+		BATTLE_OVERLAY_HUD_HEIGHT,
+		true,
+		false,
+		Color(0.18, 0.68, 1.0, 0.92)
+	)
+	_player_panel = UnitPanel.new()
+	_player_panel.name = "PlayerUnitPanel"
+	_player_panel.set_stage_overlay_mode(true)
+	player_box.add_child(_player_panel)
+	_player_panel.set_title(Localization.get_text("battle.player_status", "Player Status"))
+
+
+func _build_stage_card_overlays(parent: Control) -> void:
+	var enemy_box: VBoxContainer = _create_stage_overlay_frame(
+		parent,
+		"EnemyStageCardsFrame",
+		BATTLE_OVERLAY_CARD_WIDTH,
+		BATTLE_OVERLAY_CARD_HEIGHT,
+		false,
+		true,
+		Color(0.92, 0.22, 0.18, 0.84)
+	)
+	var enemy_title := Label.new()
+	enemy_title.name = "EnemyStageCardsTitle"
+	enemy_title.text = Localization.get_text("battle.enemy_loadout", "Enemy Loadout")
+	enemy_title.add_theme_color_override("font_color", Color(1.0, 0.62, 0.56, 1.0))
+	enemy_box.add_child(enemy_title)
+	_enemy_cards_panel = CardHandPanel.new()
+	_enemy_cards_panel.name = "EnemyLoadoutPanel"
+	_enemy_cards_panel.set_interactive(false)
+	_enemy_cards_panel.custom_minimum_size = Vector2(BATTLE_OVERLAY_CARD_WIDTH - 24.0, BATTLE_CARD_TILE_SIZE.y)
+	_enemy_cards_panel.set_tile_size(BATTLE_CARD_TILE_SIZE)
+	enemy_box.add_child(_enemy_cards_panel)
+
+	var player_box: VBoxContainer = _create_stage_overlay_frame(
+		parent,
+		"PlayerStageCardsFrame",
+		BATTLE_OVERLAY_CARD_WIDTH,
+		BATTLE_OVERLAY_CARD_HEIGHT,
+		true,
+		true,
+		Color(0.18, 0.68, 1.0, 0.84)
+	)
+	var player_title := Label.new()
+	player_title.name = "PlayerStageCardsTitle"
+	player_title.text = Localization.get_text("battle.cards", "Cards")
+	player_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	player_title.add_theme_color_override("font_color", Color(0.56, 0.88, 1.0, 1.0))
+	player_box.add_child(player_title)
+	_card_hand_panel = CardHandPanel.new()
+	_card_hand_panel.name = "PlayerHandPanel"
+	_card_hand_panel.set_interactive(true)
+	_card_hand_panel.custom_minimum_size = Vector2(BATTLE_OVERLAY_CARD_WIDTH - 24.0, BATTLE_CARD_TILE_SIZE.y)
+	_card_hand_panel.set_tile_size(BATTLE_CARD_TILE_SIZE)
+	_card_hand_panel.card_requested.connect(_on_card_requested)
+	_card_hand_panel.card_hovered.connect(_on_player_card_hovered)
+	_card_hand_panel.card_unhovered.connect(_on_player_card_unhovered)
+	player_box.add_child(_card_hand_panel)
+
+
+func _create_stage_overlay_frame(
+	parent: Control,
+	node_name: String,
+	frame_width: float,
+	frame_height: float,
+	align_right: bool,
+	align_bottom: bool,
+	accent: Color
+) -> VBoxContainer:
+	var frame := PanelContainer.new()
+	frame.name = node_name
+	frame.mouse_filter = Control.MOUSE_FILTER_PASS
+	frame.z_index = 24
+	frame.anchor_left = 1.0 if align_right else 0.0
+	frame.anchor_right = frame.anchor_left
+	frame.anchor_top = 1.0 if align_bottom else 0.0
+	frame.anchor_bottom = frame.anchor_top
+	frame.offset_left = -frame_width - 18.0 if align_right else 18.0
+	frame.offset_right = -18.0 if align_right else frame_width + 18.0
+	frame.offset_top = -frame_height - 18.0 if align_bottom else 18.0
+	frame.offset_bottom = -18.0 if align_bottom else frame_height + 18.0
+	frame.add_theme_stylebox_override("panel", _make_stage_overlay_style(accent))
+	parent.add_child(frame)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 9)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 9)
+	frame.add_child(margin)
+	var box := VBoxContainer.new()
+	box.name = "%sContent" % node_name
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 6)
+	margin.add_child(box)
+	return box
+
+
+func _make_stage_overlay_style(accent: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.018, 0.030, 0.044, 0.86)
+	style.border_color = accent
+	style.set_border_width_all(2)
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.48)
+	style.shadow_size = 8
+	return style
 
 
 func _build_log_popup() -> void:
@@ -842,7 +930,6 @@ func _refresh_ui(time_scale: float) -> void:
 	var preview_runtime_state: CardRuntimeState = _get_hovered_player_runtime_state(battle_state)
 	var preview_card_def: CardDef = _get_hover_preview_card_def(preview_runtime_state)
 	var preview_slot_cost: int = _get_hover_preview_slot_cost(preview_runtime_state, preview_card_def)
-	var suppressed_shield_losses: Dictionary = _consume_suppressed_shield_decay_losses(battle_state)
 	var local_unit: UnitState = battle_state.get_unit(_local_side)
 	var opponent_unit: UnitState = battle_state.get_opponent(_local_side)
 	if _lan_mode:
@@ -853,8 +940,8 @@ func _refresh_ui(time_scale: float) -> void:
 			_run_info_banner.refresh_run(_local_run, local_unit.hp, local_unit.max_hp, "ONLINE" if NetworkManager.is_online_session() else "LAN")
 		else:
 			_run_info_banner.refresh(local_unit.hp, local_unit.max_hp)
-	_enemy_panel.refresh_unit(opponent_unit, 0, int(suppressed_shield_losses.get(opponent_unit.unit_id, 0)))
-	_player_panel.refresh_unit(local_unit, preview_slot_cost, int(suppressed_shield_losses.get(local_unit.unit_id, 0)))
+	_enemy_panel.refresh_unit(opponent_unit)
+	_player_panel.refresh_unit(local_unit, preview_slot_cost)
 	_enemy_cards_panel.refresh_cards(opponent_unit, _opponent_run if _lan_mode else null, "player" if _lan_mode else "enemy")
 	_card_hand_panel.refresh_cards(local_unit, _local_run if _lan_mode else Game.current_run, "player")
 	var preview_entry: TimelineEntry = _build_hover_preview_entry(battle_state, preview_runtime_state, preview_card_def)
@@ -893,31 +980,8 @@ func _refresh_ui(time_scale: float) -> void:
 	_process_resolution_vfx(battle_state)
 
 
-func _consume_suppressed_shield_decay_losses(battle_state: BattleState) -> Dictionary:
-	var suppressed_by_unit: Dictionary = {}
-	if battle_state == null:
-		return suppressed_by_unit
-
-	var battle_events: Array[Dictionary] = battle_state.battle_events
-	var compact_lan_events: bool = _uses_compact_lan_events()
-	var start_index: int = 0 if compact_lan_events else clampi(_processed_battle_event_count, 0, battle_events.size())
-	for event_index in range(start_index, battle_events.size()):
-		var event_data: Dictionary = Dictionary(battle_events[event_index])
-		if compact_lan_events and int(event_data.get("_event_index", -1)) < _processed_battle_event_count:
-			continue
-		if String(event_data.get("event_type", "")) != "shield_decay":
-			continue
-		var target_id: String = String(event_data.get("target_id", ""))
-		var shield_loss: int = max(0, -int(event_data.get("shield_delta", 0)))
-		if target_id == "" or shield_loss <= 0:
-			continue
-		suppressed_by_unit[target_id] = int(suppressed_by_unit.get(target_id, 0)) + shield_loss
-	_processed_battle_event_count = _lan_battle_event_total if compact_lan_events else battle_events.size()
-	return suppressed_by_unit
-
-
 func _process_resolution_vfx(battle_state: BattleState) -> void:
-	if battle_state == null or (_vfx_layer == null and _battle_stage == null):
+	if battle_state == null or _battle_stage == null:
 		return
 
 	var battle_events: Array[Dictionary] = battle_state.battle_events
@@ -928,14 +992,10 @@ func _process_resolution_vfx(battle_state: BattleState) -> void:
 		if compact_lan_events and int(event_data.get("_event_index", -1)) < _processed_vfx_event_count:
 			continue
 		var event_type: String = String(event_data.get("event_type", ""))
-		if _battle_stage != null and event_type != "shield_decay":
+		if event_type != "shield_decay":
 			_battle_stage.play_battle_event(event_data)
 		if event_type != "resolve_card":
 			continue
-		var actor_panel: UnitPanel = _resolve_unit_panel(String(event_data.get("actor_id", "")), battle_state)
-		var target_panel: UnitPanel = _resolve_unit_panel(String(event_data.get("target_id", "")), battle_state)
-		if _vfx_layer != null:
-			_vfx_layer.play_resolution(event_data, actor_panel, target_panel, _player_panel, _enemy_panel)
 		if compact_lan_events:
 			var card_def: CardDef = Database.get_card(String(event_data.get("card_id", "")))
 			var result: Dictionary = Dictionary(event_data.get("result", {}))
@@ -965,18 +1025,6 @@ func _configure_battle_stage() -> void:
 
 func _uses_compact_lan_events() -> bool:
 	return _lan_mode and (NetworkManager.is_parallel_arena_round() or not NetworkManager.is_host())
-
-
-func _resolve_unit_panel(unit_id: String, battle_state: BattleState) -> UnitPanel:
-	if battle_state == null:
-		return null
-	var local_unit: UnitState = battle_state.get_unit(_local_side)
-	var opponent_unit: UnitState = battle_state.get_opponent(_local_side)
-	if unit_id == local_unit.unit_id or unit_id == _local_side:
-		return _player_panel
-	if unit_id == opponent_unit.unit_id or unit_id != "" and unit_id == ("enemy" if _local_side == "player" else "player"):
-		return _enemy_panel
-	return null
 
 
 func _on_card_requested(runtime_id: String) -> void:

@@ -795,47 +795,9 @@ func _run() -> void:
 	player_unit.shield = 5
 	unit_panel.refresh_unit(player_unit)
 	await get_tree().process_frame
-
-	var effect_layer: Control = unit_panel.get_node("BodyRow/PortraitFrame/PortraitMargin/PortraitAnchor/EffectLayer") as Control
-	if effect_layer == null or effect_layer.get_child_count() < 2:
-		push_error("Card UI smoke failed: unit portrait should emit floating battle text")
-		get_tree().quit(1)
-		return
-
-	var floating_labels: Array[Label] = _collect_floating_text_labels(effect_layer)
-	var floating_texts: Array[String] = []
-	for effect_label in floating_labels:
-		floating_texts.append(effect_label.text)
-		if effect_label.get_theme_font_size("font_size") < 30 \
-		or effect_label.get_theme_constant("outline_size") < 4 \
-		or effect_label.get_parent() != effect_layer:
-			push_error("Card UI smoke failed: floating battle numbers should be large direct labels without badge backgrounds")
-			get_tree().quit(1)
-			return
-		if effect_label.text.find("Shield") != -1:
-			push_error("Card UI smoke failed: floating shield changes should render as numbers only")
-			get_tree().quit(1)
-			return
-	if effect_layer.find_child("FloatingStatBadge", true, false) != null:
-		push_error("Card UI smoke failed: floating battle numbers should not use a background badge")
-		get_tree().quit(1)
-		return
-	if not floating_texts.has("-9") or not floating_texts.has("+2"):
-		push_error("Card UI smoke failed: floating battle numbers should show damage and shield gain as numbers only")
-		get_tree().quit(1)
-		return
-	unit_panel._process(1.0)
-	await get_tree().process_frame
-	if _collect_floating_text_labels(effect_layer).size() < 2:
-		push_error("Card UI smoke failed: floating battle text should stay visible slightly longer")
-		get_tree().quit(1)
-		return
-	var floating_count_before_decay: int = _collect_floating_text_labels(effect_layer).size()
-	player_unit.shield = 4
-	unit_panel.refresh_unit(player_unit, 0, 1)
-	await get_tree().process_frame
-	if _collect_floating_text_labels(effect_layer).size() != floating_count_before_decay:
-		push_error("Card UI smoke failed: natural shield decay should not emit floating battle text")
+	if unit_panel.find_child("EffectLayer", true, false) != null \
+	or unit_panel.find_child("FloatingStatLabel", true, false) != null:
+		push_error("Card UI smoke failed: portrait-local battle numbers should be removed in favor of the 3D stage")
 		get_tree().quit(1)
 		return
 
@@ -852,7 +814,12 @@ func _run() -> void:
 	var log_button: Button = battle_scene.find_child("BattleLogButton", true, false) as Button
 	var log_popup: PanelContainer = battle_scene.find_child("BattleLogPopup", true, false) as PanelContainer
 	var log_panel: LogPanel = battle_scene.find_child("BattleLogPanel", true, false) as LogPanel
-	var battle_vfx_layer: BattleVfxLayer = battle_scene.find_child("BattleVfxLayer", true, false) as BattleVfxLayer
+	var battle_vfx_layer: Node = battle_scene.find_child("BattleVfxLayer", true, false)
+	var battle_stage_hud: Control = battle_scene.find_child("BattleStageHudOverlay", true, false) as Control
+	var enemy_stage_hud: PanelContainer = battle_scene.find_child("EnemyStageHudFrame", true, false) as PanelContainer
+	var player_stage_hud: PanelContainer = battle_scene.find_child("PlayerStageHudFrame", true, false) as PanelContainer
+	var enemy_stage_cards: PanelContainer = battle_scene.find_child("EnemyStageCardsFrame", true, false) as PanelContainer
+	var player_stage_cards: PanelContainer = battle_scene.find_child("PlayerStageCardsFrame", true, false) as PanelContainer
 	var battle_stage_region: Control = battle_scene.find_child("BattleStageRegion", true, false) as Control
 	var battle_stage: BattleStage3D = battle_scene.find_child("BattleStage3D", true, false) as BattleStage3D
 	var battle_stage_viewport: SubViewport = battle_scene.find_child("BattleStageViewport", true, false) as SubViewport
@@ -861,8 +828,12 @@ func _run() -> void:
 	var battle_enemy_actor: BattleActor3D = battle_scene.find_child("EnemyBattleActor3D", true, false) as BattleActor3D
 	var battle_player_unit_panel: UnitPanel = battle_scene.find_child("PlayerUnitPanel", true, false) as UnitPanel
 	var battle_enemy_unit_panel: UnitPanel = battle_scene.find_child("EnemyUnitPanel", true, false) as UnitPanel
-	if bottom_split == null or timeline_section == null or battle_timeline_panel == null or log_button == null or log_popup == null or log_panel == null or battle_vfx_layer == null:
+	if bottom_split == null or timeline_section == null or battle_timeline_panel == null or log_button == null or log_popup == null or log_panel == null:
 		push_error("Card UI smoke failed: battle scene layout sections were not created")
+		get_tree().quit(1)
+		return
+	if battle_vfx_layer != null:
+		push_error("Card UI smoke failed: portrait-based BattleVfxLayer should be removed after 3D integration")
 		get_tree().quit(1)
 		return
 	if battle_stage_region == null \
@@ -872,6 +843,21 @@ func _run() -> void:
 	or battle_player_actor == null \
 	or battle_enemy_actor == null:
 		push_error("Card UI smoke failed: battle scene should include the 3D greybox stage")
+		get_tree().quit(1)
+		return
+	if battle_stage_hud == null \
+	or enemy_stage_hud == null \
+	or player_stage_hud == null \
+	or enemy_stage_cards == null \
+	or player_stage_cards == null:
+		push_error("Card UI smoke failed: unit status and card controls should be overlaid on the 3D field")
+		get_tree().quit(1)
+		return
+	if not battle_stage_region.is_ancestor_of(enemy_stage_hud) \
+	or not battle_stage_region.is_ancestor_of(player_stage_hud) \
+	or not battle_stage_region.is_ancestor_of(enemy_stage_cards) \
+	or not battle_stage_region.is_ancestor_of(player_stage_cards):
+		push_error("Card UI smoke failed: stage HUD and cards should stay inside the 3D stage region")
 		get_tree().quit(1)
 		return
 	if battle_stage_region.size_flags_horizontal != Control.SIZE_EXPAND_FILL \
@@ -891,8 +877,16 @@ func _run() -> void:
 		push_error("Card UI smoke failed: 3D player actor idle animation should update its pose")
 		get_tree().quit(1)
 		return
-	if battle_player_unit_panel == null or battle_enemy_unit_panel == null:
-		push_error("Card UI smoke failed: battle unit panels should be available for resolution VFX")
+	if battle_player_unit_panel == null \
+	or battle_enemy_unit_panel == null \
+	or not battle_player_unit_panel.is_stage_overlay_mode() \
+	or not battle_enemy_unit_panel.is_stage_overlay_mode():
+		push_error("Card UI smoke failed: battle unit panels should use compact 3D overlay mode")
+		get_tree().quit(1)
+		return
+	if battle_player_unit_panel.find_child("PortraitFrame", true, false).visible \
+	or battle_enemy_unit_panel.find_child("PortraitFrame", true, false).visible:
+		push_error("Card UI smoke failed: 2D portraits should be hidden when 3D actors are present")
 		get_tree().quit(1)
 		return
 	var resolution_vfx_event: Dictionary = {
@@ -909,24 +903,6 @@ func _run() -> void:
 			"enemy_after": {"hp": 24, "shield": 2},
 		},
 	}
-	battle_vfx_layer.play_resolution(resolution_vfx_event, battle_player_unit_panel, battle_enemy_unit_panel, battle_player_unit_panel, battle_enemy_unit_panel)
-	await get_tree().process_frame
-	if battle_vfx_layer.get_child_count() < 6:
-		push_error("Card UI smoke failed: card resolution VFX should spawn multiple rich effect nodes")
-		get_tree().quit(1)
-		return
-	if battle_vfx_layer.find_child("DamageImpact", true, false) == null \
-	or battle_vfx_layer.find_child("HealRing", true, false) == null \
-	or battle_vfx_layer.find_child("ShieldRing", true, false) == null \
-	or battle_vfx_layer.find_child("ShieldHit", true, false) == null:
-		push_error("Card UI smoke failed: card resolution VFX should cover damage, heal, and shield changes")
-		get_tree().quit(1)
-		return
-	if battle_vfx_layer.find_child("ResolveBeam", true, false) != null \
-	or battle_vfx_layer.find_child("DamageProjectile", true, false) != null:
-		push_error("Card UI smoke failed: card resolution VFX should not render trajectory effects")
-		get_tree().quit(1)
-		return
 	var stage_integration_state := BattleState.new()
 	stage_integration_state.player = UnitState.new()
 	stage_integration_state.player.unit_id = "player"
@@ -937,6 +913,32 @@ func _run() -> void:
 	battle_scene.call("_process_resolution_vfx", stage_integration_state)
 	if battle_player_actor.get_action_name() != "attack" or battle_enemy_actor.get_action_name() != "hit":
 		push_error("Card UI smoke failed: BattleScreen should forward resolution events to the 3D stage")
+		get_tree().quit(1)
+		return
+	var floating_values: Array[String] = battle_stage.get_floating_combat_text_values()
+	for expected_value in ["+4", "+3", "-6", "-3"]:
+		if not floating_values.has(expected_value):
+			push_error("Card UI smoke failed: 3D stage did not show combat value %s (%s)" % [expected_value, floating_values])
+			get_tree().quit(1)
+			return
+	var floating_layer: Control = battle_scene.find_child("BattleStageFloatingTextLayer", true, false) as Control
+	var floating_label: Label = battle_scene.find_child("FloatingCombatText", true, false) as Label
+	if floating_layer == null \
+	or floating_label == null \
+	or floating_label.get_parent() != floating_layer \
+	or floating_label.get_theme_font_size("font_size") < 34 \
+	or floating_label.get_theme_constant("outline_size") < 6:
+		push_error("Card UI smoke failed: 3D combat values should use large outlined labels over the actors")
+		get_tree().quit(1)
+		return
+	var floating_count_before_decay: int = battle_stage.get_floating_combat_text_count()
+	battle_stage.play_battle_event({
+		"event_type": "shield_decay",
+		"target_id": "player",
+		"shield_delta": -1,
+	})
+	if battle_stage.get_floating_combat_text_count() != floating_count_before_decay:
+		push_error("Card UI smoke failed: natural shield decay should not create 3D combat text")
 		get_tree().quit(1)
 		return
 	if obsolete_log_section != null:
@@ -966,17 +968,16 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	var battle_enemy_card: CardButton = battle_enemy_loadout_panel.get_child(0) as CardButton
-	if battle_enemy_card == null or battle_enemy_card.custom_minimum_size != Vector2(100.0, 100.0):
+	var battle_player_card: CardButton = battle_player_hand_panel.get_child(0) as CardButton
+	if battle_enemy_card == null \
+	or battle_player_card == null \
+	or battle_enemy_card.custom_minimum_size != battle_player_card.custom_minimum_size \
+	or battle_enemy_card.custom_minimum_size.x < 84.0:
 		push_error("Card UI smoke failed: enemy loadout cards should match player card size")
 		get_tree().quit(1)
 		return
-	if battle_enemy_loadout_panel.custom_minimum_size.x < 320.0 or battle_player_hand_panel.custom_minimum_size.x < 320.0:
-		push_error("Card UI smoke failed: battle side loadouts should reserve three card columns")
-		get_tree().quit(1)
-		return
-	var battle_player_card: CardButton = battle_player_hand_panel.get_child(0) as CardButton
-	if battle_player_card == null:
-		push_error("Card UI smoke failed: battle player hand card was not rendered")
+	if battle_enemy_loadout_panel.custom_minimum_size.x < 470.0 or battle_player_hand_panel.custom_minimum_size.x < 470.0:
+		push_error("Card UI smoke failed: 3D stage loadouts should reserve five compact card columns")
 		get_tree().quit(1)
 		return
 	battle_player_card.emit_signal("mouse_entered")
@@ -1074,8 +1075,11 @@ func _run() -> void:
 	var battle_info_section: VBoxContainer = battle_scene.find_child("BattleInfoSection", true, false) as VBoxContainer
 	var enemy_section: VBoxContainer = battle_scene.find_child("EnemySection", true, false) as VBoxContainer
 	var player_section: VBoxContainer = battle_scene.find_child("PlayerSection", true, false) as VBoxContainer
-	if main_split == null or main_split.alignment != BoxContainer.ALIGNMENT_CENTER:
-		push_error("Card UI smoke failed: battle sections should be centered together")
+	if main_split == null \
+	or main_split.alignment != BoxContainer.ALIGNMENT_CENTER \
+	or main_split.get_child_count() != 1 \
+	or main_split.get_child(0) != battle_stage_region:
+		push_error("Card UI smoke failed: the upper battle area should be one full-width 3D stage")
 		get_tree().quit(1)
 		return
 	var battle_info_frame: Control = null
@@ -1089,18 +1093,15 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle info should keep enough width to avoid vertical text wrapping")
 		get_tree().quit(1)
 		return
-	var enemy_frame: Control = null
-	if enemy_section != null:
-		enemy_frame = enemy_section.get_parent() as Control
-	var player_frame: Control = null
-	if player_section != null:
-		player_frame = player_section.get_parent() as Control
-	if enemy_frame == null or player_frame == null or enemy_frame.size_flags_horizontal != Control.SIZE_SHRINK_CENTER or player_frame.size_flags_horizontal != Control.SIZE_SHRINK_CENTER:
-		push_error("Card UI smoke failed: player and enemy frames should move toward center")
+	if enemy_section != null or player_section != null:
+		push_error("Card UI smoke failed: legacy portrait side sections should be removed")
 		get_tree().quit(1)
 		return
-	if enemy_frame.custom_minimum_size.x < 340.0 or player_frame.custom_minimum_size.x < 340.0:
-		push_error("Card UI smoke failed: player and enemy frames should fit three card columns")
+	if enemy_stage_hud.anchor_left != 0.0 \
+	or player_stage_hud.anchor_left != 1.0 \
+	or enemy_stage_cards.anchor_bottom != 1.0 \
+	or player_stage_cards.anchor_bottom != 1.0:
+		push_error("Card UI smoke failed: actor HUDs and card rows should occupy the 3D stage corners")
 		get_tree().quit(1)
 		return
 	var battle_player_slots: Label = battle_scene.find_child("SlotLabel", true, false) as Label
@@ -1273,24 +1274,6 @@ func _find_timeline_card(cards_track: Control, runtime_id: String) -> CardButton
 		if button != null and button.runtime_id == runtime_id:
 			return button
 	return null
-
-
-func _collect_floating_text_labels(effect_layer: Control) -> Array[Label]:
-	var labels: Array[Label] = []
-	if effect_layer == null:
-		return labels
-	for child in effect_layer.get_children():
-		var direct_label: Label = child as Label
-		if direct_label != null:
-			labels.append(direct_label)
-			continue
-		var child_control: Control = child as Control
-		if child_control == null:
-			continue
-		var nested_label: Label = child_control.find_child("FloatingStatLabel", true, false) as Label
-		if nested_label != null:
-			labels.append(nested_label)
-	return labels
 
 
 func _count_labels_with_text(root: Node, text: String) -> int:

@@ -19,12 +19,6 @@ const SLOT_OVERFLOW_BORDER := Color(1.0, 0.18, 0.16, 1.0)
 const SLOT_PREVIEW_ALPHA_MAX: float = 0.58
 const SLOT_PREVIEW_ALPHA_MIN: float = 0.32
 const SLOT_PREVIEW_ALPHA_CYCLE_SECONDS: float = 1.0
-const DAMAGE_COLOR := Color(1.0, 0.40, 0.35, 1.0)
-const HEAL_COLOR := Color(0.48, 0.95, 0.58, 1.0)
-const SHIELD_COLOR := Color(0.47, 0.82, 1.0, 1.0)
-const FLOATING_TEXT_LIFETIME: float = 1.75
-const FLOATING_TEXT_FADE_START: float = 0.58
-const FLOATING_TEXT_FONT_SIZE: int = 32
 const STATUS_ICON_SIZE: Vector2 = Vector2(26.0, 26.0)
 const STAT_ICON_SIZE: Vector2 = Vector2(22.0, 22.0)
 const SHIELD_ICON_SIZE: Vector2 = Vector2(44.0, 44.0)
@@ -34,15 +28,6 @@ const STATUS_FALLBACK_DURATIONS: Dictionary = {
 	"slow": 36.0,
 	"vulnerable": 30.0,
 }
-
-class FloatingStatText:
-	extends RefCounted
-
-	var control: Control
-	var label: Label
-	var lifetime: float = FLOATING_TEXT_LIFETIME
-	var elapsed: float = 0.0
-	var drift: Vector2 = Vector2.ZERO
 
 static var _portrait_cache: Dictionary = {}
 static var _status_icon_cache: Dictionary = {}
@@ -77,8 +62,10 @@ var _title_label: Label
 var _portrait_key: String = ""
 var _unit_side: String = "player"
 var _name_label: Label
+var _body_row: HBoxContainer
+var _portrait_frame: PanelContainer
 var _portrait_rect: TextureRect
-var _portrait_effect_layer: Control
+var _info_column: VBoxContainer
 var _hp_bar: ProgressBar
 var _hp_label: Label
 var _shield_icon_rect: TextureRect
@@ -100,18 +87,15 @@ var _status_hovered_id: String = ""
 var _status_hovered_icon: TextureRect
 var _status_tooltip_popup: PanelContainer
 var _status_tooltip_label: Label
-var _floating_texts: Array[FloatingStatText] = []
-var _last_hp: int = -1
-var _last_shield: int = -1
 var _last_stat_line: String = ""
 var _last_status_line: String = ""
-var _has_previous_snapshot: bool = false
 var _slot_preview_active: bool = false
 var _slot_preview_key: String = ""
 var _slot_preview_elapsed: float = 0.0
 var _slot_preview_used: int = 0
 var _slot_preview_total: int = 0
 var _slot_preview_cost: int = 0
+var _stage_overlay_mode: bool = false
 
 
 func _ready() -> void:
@@ -122,17 +106,17 @@ func _ready() -> void:
 	_title_label.visible = false
 	add_child(_title_label)
 
-	var body_row: HBoxContainer = HBoxContainer.new()
-	body_row.name = "BodyRow"
-	body_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	body_row.add_theme_constant_override("separation", 14)
-	add_child(body_row)
+	_body_row = HBoxContainer.new()
+	_body_row.name = "BodyRow"
+	_body_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_body_row.add_theme_constant_override("separation", 14)
+	add_child(_body_row)
 
-	var portrait_frame: PanelContainer = PanelContainer.new()
-	portrait_frame.name = "PortraitFrame"
-	portrait_frame.custom_minimum_size = Vector2(152.0, 152.0)
-	portrait_frame.add_theme_stylebox_override("panel", _make_frame_stylebox())
-	body_row.add_child(portrait_frame)
+	_portrait_frame = PanelContainer.new()
+	_portrait_frame.name = "PortraitFrame"
+	_portrait_frame.custom_minimum_size = Vector2(152.0, 152.0)
+	_portrait_frame.add_theme_stylebox_override("panel", _make_frame_stylebox())
+	_body_row.add_child(_portrait_frame)
 
 	var portrait_root: MarginContainer = MarginContainer.new()
 	portrait_root.name = "PortraitMargin"
@@ -140,7 +124,7 @@ func _ready() -> void:
 	portrait_root.add_theme_constant_override("margin_top", 6)
 	portrait_root.add_theme_constant_override("margin_right", 6)
 	portrait_root.add_theme_constant_override("margin_bottom", 6)
-	portrait_frame.add_child(portrait_root)
+	_portrait_frame.add_child(portrait_root)
 
 	var portrait_anchor: Control = Control.new()
 	portrait_anchor.name = "PortraitAnchor"
@@ -155,29 +139,22 @@ func _ready() -> void:
 	_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	portrait_anchor.add_child(_portrait_rect)
 
-	_portrait_effect_layer = Control.new()
-	_portrait_effect_layer.name = "EffectLayer"
-	_portrait_effect_layer.anchor_right = 1.0
-	_portrait_effect_layer.anchor_bottom = 1.0
-	_portrait_effect_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	portrait_anchor.add_child(_portrait_effect_layer)
-
-	var info_column: VBoxContainer = VBoxContainer.new()
-	info_column.name = "InfoColumn"
-	info_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info_column.add_theme_constant_override("separation", 8)
-	body_row.add_child(info_column)
+	_info_column = VBoxContainer.new()
+	_info_column.name = "InfoColumn"
+	_info_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_info_column.add_theme_constant_override("separation", 8)
+	_body_row.add_child(_info_column)
 
 	_name_label = Label.new()
 	_name_label.name = "UnitName"
 	_name_label.add_theme_font_size_override("font_size", 18)
-	info_column.add_child(_name_label)
+	_info_column.add_child(_name_label)
 
 	var hp_stack: Control = Control.new()
 	hp_stack.name = "HpStack"
 	hp_stack.custom_minimum_size = Vector2(0.0, 34.0)
 	hp_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info_column.add_child(hp_stack)
+	_info_column.add_child(hp_stack)
 
 	_hp_bar = ProgressBar.new()
 	_hp_bar.name = "HpBar"
@@ -238,7 +215,7 @@ func _ready() -> void:
 	slot_battery.name = "SlotBattery"
 	slot_battery.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slot_battery.add_theme_constant_override("separation", 10)
-	info_column.add_child(slot_battery)
+	_info_column.add_child(slot_battery)
 
 	_slots_label = Label.new()
 	_slots_label.name = "SlotLabel"
@@ -254,19 +231,19 @@ func _ready() -> void:
 	_stats_row = HBoxContainer.new()
 	_stats_row.name = "StatsIconRow"
 	_stats_row.add_theme_constant_override("separation", 14)
-	info_column.add_child(_stats_row)
+	_info_column.add_child(_stats_row)
 	_attack_value_label = _add_stat_icon_item("Attack", "attack")
 	_speed_value_label = _add_stat_icon_item("Speed", "speed")
 
 	_status_label = Label.new()
 	_status_label.name = "StatusLabel"
 	_status_label.text = Localization.get_text("unit.status_icons", "Status")
-	info_column.add_child(_status_label)
+	_info_column.add_child(_status_label)
 
 	_status_icons_box = HBoxContainer.new()
 	_status_icons_box.name = "StatusIconRow"
 	_status_icons_box.add_theme_constant_override("separation", 6)
-	info_column.add_child(_status_icons_box)
+	_info_column.add_child(_status_icons_box)
 
 	_status_none_label = Label.new()
 	_status_none_label.name = "StatusNoneLabel"
@@ -274,6 +251,7 @@ func _ready() -> void:
 	_status_none_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_status_icons_box.add_child(_status_none_label)
 
+	_apply_stage_overlay_mode()
 	set_process(true)
 
 
@@ -313,6 +291,27 @@ func set_title(title: String) -> void:
 	_title_label.text = title
 
 
+func set_stage_overlay_mode(enabled: bool) -> void:
+	_stage_overlay_mode = enabled
+	if is_node_ready():
+		_apply_stage_overlay_mode()
+
+
+func is_stage_overlay_mode() -> bool:
+	return _stage_overlay_mode
+
+
+func _apply_stage_overlay_mode() -> void:
+	if _portrait_frame == null or _body_row == null or _info_column == null:
+		return
+	_portrait_frame.visible = not _stage_overlay_mode
+	_body_row.add_theme_constant_override("separation", 0 if _stage_overlay_mode else 14)
+	_info_column.add_theme_constant_override("separation", 5 if _stage_overlay_mode else 8)
+	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if _stage_overlay_mode else HORIZONTAL_ALIGNMENT_LEFT
+	_status_label.visible = not _stage_overlay_mode
+	custom_minimum_size = Vector2(292.0, 0.0) if _stage_overlay_mode else Vector2.ZERO
+
+
 func configure_visual(unit_side: String, portrait_key: String) -> void:
 	_unit_side = unit_side
 	_portrait_key = portrait_key
@@ -320,7 +319,7 @@ func configure_visual(unit_side: String, portrait_key: String) -> void:
 		_portrait_rect.texture = _get_portrait_texture(portrait_key)
 
 
-func refresh_unit(unit: UnitState, preview_slot_cost: int = 0, suppressed_shield_loss: int = 0) -> void:
+func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 	if _portrait_rect != null and _portrait_rect.texture == null:
 		_portrait_rect.texture = _get_portrait_texture(_portrait_key)
 
@@ -328,9 +327,6 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0, suppressed_shield
 	var max_hp_value: int = max(1, unit.max_hp)
 	var shield_value: int = max(0, unit.shield)
 	var status_line: String = unit.get_status_summary()
-
-	if _has_previous_snapshot:
-		_emit_delta_popups(hp_value, shield_value, suppressed_shield_loss)
 
 	_name_label.text = unit.display_name
 	_hp_bar.max_value = float(max_hp_value)
@@ -344,11 +340,8 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0, suppressed_shield
 	_status_label.text = Localization.get_text("unit.status_icons", "Status")
 	_refresh_status_icons(unit.statuses)
 
-	_last_hp = hp_value
-	_last_shield = shield_value
 	_last_stat_line = "%d:%d" % [unit.get_attack_value(), max(0, unit.speed)]
 	_last_status_line = status_line
-	_has_previous_snapshot = true
 
 
 func _refresh_status_icons(statuses: Dictionary) -> void:
@@ -617,68 +610,6 @@ func _process(delta: float) -> void:
 	if _slot_preview_active:
 		_slot_preview_elapsed = fposmod(_slot_preview_elapsed + delta, SLOT_PREVIEW_ALPHA_CYCLE_SECONDS)
 		_apply_slot_battery_styles()
-
-	for index in range(_floating_texts.size() - 1, -1, -1):
-		var floating_text: FloatingStatText = _floating_texts[index]
-		if floating_text == null or floating_text.control == null or not is_instance_valid(floating_text.control):
-			_floating_texts.remove_at(index)
-			continue
-		floating_text.elapsed += delta
-		var progress: float = clampf(floating_text.elapsed / floating_text.lifetime, 0.0, 1.0)
-		floating_text.control.position += floating_text.drift * delta
-		var fade_progress: float = clampf((progress - FLOATING_TEXT_FADE_START) / (1.0 - FLOATING_TEXT_FADE_START), 0.0, 1.0)
-		floating_text.control.modulate.a = 1.0 - fade_progress
-		var pop_scale: float = 1.0
-		if progress < 0.16:
-			pop_scale = lerpf(1.18, 1.0, progress / 0.16)
-		floating_text.control.scale = Vector2(pop_scale, pop_scale)
-		if floating_text.elapsed >= floating_text.lifetime:
-			floating_text.control.queue_free()
-			_floating_texts.remove_at(index)
-
-
-func _emit_delta_popups(current_hp: int, current_shield: int, suppressed_shield_loss: int = 0) -> void:
-	if current_hp < _last_hp:
-		_spawn_floating_text("-%d" % (_last_hp - current_hp), DAMAGE_COLOR, 0.0)
-	elif current_hp > _last_hp:
-		_spawn_floating_text("+%d" % (current_hp - _last_hp), HEAL_COLOR, 18.0)
-
-	if current_shield < _last_shield:
-		var shield_loss: int = _last_shield - current_shield
-		var visible_shield_loss: int = max(0, shield_loss - max(0, suppressed_shield_loss))
-		if visible_shield_loss <= 0:
-			return
-		_spawn_floating_text("-%d" % visible_shield_loss, SHIELD_COLOR, 32.0)
-	elif current_shield > _last_shield:
-		_spawn_floating_text("+%d" % (current_shield - _last_shield), SHIELD_COLOR, -26.0)
-
-
-func _spawn_floating_text(text: String, color: Color, x_offset: float) -> void:
-	if _portrait_effect_layer == null or text == "":
-		return
-
-	var label: Label = Label.new()
-	label.name = "FloatingStatLabel"
-	label.text = text
-	label.position = Vector2(22.0 + x_offset, 58.0)
-	label.custom_minimum_size = Vector2(58.0, 0.0)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", FLOATING_TEXT_FONT_SIZE)
-	label.add_theme_color_override("font_color", color.lightened(0.12))
-	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.96))
-	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.80))
-	label.add_theme_constant_override("outline_size", 5)
-	label.add_theme_constant_override("shadow_offset_x", 2)
-	label.add_theme_constant_override("shadow_offset_y", 3)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_portrait_effect_layer.add_child(label)
-
-	var floating_text: FloatingStatText = FloatingStatText.new()
-	floating_text.control = label
-	floating_text.label = label
-	floating_text.drift = Vector2(0.0, -24.0)
-	_floating_texts.append(floating_text)
 
 
 func _get_portrait_texture(portrait_key: String) -> Texture2D:
