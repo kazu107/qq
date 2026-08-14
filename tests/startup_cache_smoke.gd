@@ -54,7 +54,9 @@ func _run() -> void:
 		return
 	if Database.battle_visuals.size() < 27 \
 	or int(summary.get("battle_3d_meshes", 0)) < 80 \
-	or CommonBattleHumanoid3D.get_cached_mesh_count() < 80:
+	or CommonBattleHumanoid3D.get_cached_mesh_count() < 80 \
+	or int(summary.get("battle_3d_models", 0)) < 2 \
+	or BattleActor3D.get_cached_authored_model_count() < 2:
 		_fail("Startup cache smoke failed: all 3D battle appearance meshes were not cached")
 		return
 	if not _boot_loading_screen_has_progress_ui():

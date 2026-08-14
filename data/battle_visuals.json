@@ -25,6 +25,7 @@
   },
   "balanced": {
     "kind": "starter",
+    "model_scene": "res://assets/models/battle/balanced.glb",
     "primary": "#1674E8",
     "secondary": "#081B31",
     "accent": "#45E5FF",
@@ -109,6 +110,7 @@
   },
   "scout": {
     "kind": "enemy",
+    "model_scene": "res://assets/models/battle/scout.glb",
     "primary": "#B83224",
     "secondary": "#230C09",
     "accent": "#FF9C36",

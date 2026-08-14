@@ -5,6 +5,7 @@
 Thumbs.db
 *.tmp
 *.bak
+*.blend1
 __pycache__/
 *.pyc
 node_modules/

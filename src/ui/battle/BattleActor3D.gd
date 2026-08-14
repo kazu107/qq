@@ -31,8 +31,14 @@ const ACTION_DURATIONS: Dictionary = {
 	ACTION_DEFEAT: 1.10,
 }
 
+static var _authored_scene_cache: Dictionary = {}
+
 var actor_side: String = "player"
 var _humanoid: CommonBattleHumanoid3D
+var _authored_model: Node3D
+var _authored_skeleton: Skeleton3D
+var _authored_model_path: String = ""
+var _authored_bone_pairs: Array[Vector2i] = []
 var _platform_mesh: MeshInstance3D
 var _platform_material: StandardMaterial3D
 var _platform_base_scale: Vector3 = Vector3.ONE
@@ -159,6 +165,38 @@ func get_humanoid_model() -> CommonBattleHumanoid3D:
 	return _humanoid
 
 
+func is_using_authored_model() -> bool:
+	return _authored_model != null and is_instance_valid(_authored_model) and _authored_skeleton != null
+
+
+func get_authored_model_path() -> String:
+	return _authored_model_path
+
+
+func get_authored_model_root() -> Node3D:
+	return _authored_model
+
+
+func get_authored_skeleton() -> Skeleton3D:
+	return _authored_skeleton
+
+
+func get_authored_mesh_count() -> int:
+	return _count_meshes(_authored_model) if _authored_model != null else 0
+
+
+static func warm_authored_model_cache(profiles: Array[Dictionary]) -> int:
+	for profile: Dictionary in profiles:
+		var model_path: String = String(profile.get("model_scene", ""))
+		if model_path != "":
+			_get_authored_scene(model_path)
+	return _authored_scene_cache.size()
+
+
+static func get_cached_authored_model_count() -> int:
+	return _authored_scene_cache.size()
+
+
 func get_visual_profile_id() -> String:
 	return _visual_profile_id
 
@@ -261,6 +299,7 @@ func _update_pose() -> void:
 			_apply_defeat_pose(action_progress)
 	_humanoid.set_accent_energy((0.72 if _action == ACTION_IDLE else 1.18) + (slow_wave + 1.0) * 0.18)
 	_humanoid.finish_pose()
+	_sync_authored_pose()
 	if _platform_mesh != null:
 		_platform_mesh.scale = _platform_base_scale * (1.0 + sin(_elapsed * 3.2) * 0.018)
 
@@ -405,6 +444,135 @@ func _apply_palette() -> void:
 		var team_accent: Color = PLAYER_ACCENT if actor_side == "player" else ENEMY_ACCENT
 		_platform_material.albedo_color = team_primary.darkened(0.32)
 		_platform_material.emission = team_accent.darkened(0.32)
+	_configure_authored_model()
+
+
+func _configure_authored_model() -> void:
+	var model_path: String = String(_visual_profile.get("model_scene", ""))
+	if model_path == "":
+		_clear_authored_model()
+		_set_procedural_geometry_visible(true)
+		return
+	if model_path == _authored_model_path and is_using_authored_model():
+		_authored_model.scale = _humanoid.get_body_scale()
+		_set_procedural_geometry_visible(false)
+		_sync_authored_pose()
+		return
+
+	_clear_authored_model()
+	var authored_scene: PackedScene = _get_authored_scene(model_path)
+	if authored_scene == null:
+		push_warning("Authored battle model could not be loaded: %s" % model_path)
+		_set_procedural_geometry_visible(true)
+		return
+	_authored_model = authored_scene.instantiate() as Node3D
+	if _authored_model == null:
+		push_warning("Authored battle model is not a Node3D: %s" % model_path)
+		_set_procedural_geometry_visible(true)
+		return
+	_authored_model.name = "AuthoredBattleModel"
+	_authored_model.scale = _humanoid.get_body_scale()
+	add_child(_authored_model)
+	_authored_skeleton = _find_skeleton(_authored_model)
+	if _authored_skeleton == null:
+		push_warning("Authored battle model has no Skeleton3D: %s" % model_path)
+		_clear_authored_model()
+		_set_procedural_geometry_visible(true)
+		return
+	_authored_model_path = model_path
+	_build_authored_bone_pairs()
+	if _authored_bone_pairs.is_empty():
+		push_warning("Authored battle model has no compatible bones: %s" % model_path)
+		_clear_authored_model()
+		_set_procedural_geometry_visible(true)
+		return
+	_set_procedural_geometry_visible(false)
+	_sync_authored_pose()
+
+
+func _clear_authored_model() -> void:
+	_authored_bone_pairs.clear()
+	_authored_skeleton = null
+	_authored_model_path = ""
+	if _authored_model != null and is_instance_valid(_authored_model):
+		_authored_model.free()
+	_authored_model = null
+
+
+func _build_authored_bone_pairs() -> void:
+	_authored_bone_pairs.clear()
+	var source_skeleton: Skeleton3D = _humanoid.get_skeleton() if _humanoid != null else null
+	if source_skeleton == null or _authored_skeleton == null:
+		return
+	for source_index in range(source_skeleton.get_bone_count()):
+		var bone_name: String = source_skeleton.get_bone_name(source_index)
+		var target_index: int = _authored_skeleton.find_bone(bone_name)
+		if target_index >= 0:
+			_authored_bone_pairs.append(Vector2i(source_index, target_index))
+
+
+func _sync_authored_pose() -> void:
+	if not is_using_authored_model() or _humanoid == null:
+		return
+	var source_skeleton: Skeleton3D = _humanoid.get_skeleton()
+	if source_skeleton == null:
+		return
+	for bone_pair: Vector2i in _authored_bone_pairs:
+		_authored_skeleton.set_bone_pose_position(
+			bone_pair.y,
+			source_skeleton.get_bone_pose_position(bone_pair.x)
+		)
+		_authored_skeleton.set_bone_pose_rotation(
+			bone_pair.y,
+			source_skeleton.get_bone_pose_rotation(bone_pair.x)
+		)
+		_authored_skeleton.set_bone_pose_scale(
+			bone_pair.y,
+			source_skeleton.get_bone_pose_scale(bone_pair.x)
+		)
+	_authored_skeleton.force_update_all_bone_transforms()
+
+
+func _set_procedural_geometry_visible(geometry_visible: bool) -> void:
+	if _humanoid == null:
+		return
+	var geometry_nodes: Array[Node] = _humanoid.find_children("*", "MeshInstance3D", true, false)
+	for geometry_node: Node in geometry_nodes:
+		var mesh_instance: MeshInstance3D = geometry_node as MeshInstance3D
+		if mesh_instance != null:
+			mesh_instance.visible = geometry_visible
+
+
+func _find_skeleton(root: Node) -> Skeleton3D:
+	if root is Skeleton3D:
+		return root as Skeleton3D
+	for child: Node in root.get_children():
+		var found: Skeleton3D = _find_skeleton(child)
+		if found != null:
+			return found
+	return null
+
+
+func _count_meshes(root: Node) -> int:
+	if root == null:
+		return 0
+	var count: int = 1 if root is MeshInstance3D else 0
+	for child: Node in root.get_children():
+		count += _count_meshes(child)
+	return count
+
+
+static func _get_authored_scene(model_path: String) -> PackedScene:
+	if model_path == "" or not model_path.begins_with("res://"):
+		return null
+	if _authored_scene_cache.has(model_path):
+		return _authored_scene_cache[model_path] as PackedScene
+	if not ResourceLoader.exists(model_path, "PackedScene"):
+		return null
+	var packed_scene: PackedScene = load(model_path) as PackedScene
+	if packed_scene != null:
+		_authored_scene_cache[model_path] = packed_scene
+	return packed_scene
 
 
 func _default_visual_profile() -> Dictionary:

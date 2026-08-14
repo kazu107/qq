@@ -183,6 +183,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/BattleVisualProfilesSmoke.tscn"
     )
+    Invoke-GodotCheck "[9d/31] Running authored 3D battle models smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/AuthoredBattleModelsSmoke.tscn"
+    )
     Invoke-GodotCheck "[10/31] Running map/facility smoke" $godotExe @(
         "--no-header",
         "--headless",

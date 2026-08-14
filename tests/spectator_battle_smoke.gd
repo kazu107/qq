@@ -52,6 +52,8 @@ func _run() -> void:
 	or enemy_actor == null \
 	or player_actor.get_visual_profile_id() != "balanced" \
 	or enemy_actor.get_visual_profile_id() != "tempo" \
+	or not player_actor.is_using_authored_model() \
+	or enemy_actor.is_using_authored_model() \
 	or player_actor.get_weapon_type() != "blade" \
 	or enemy_actor.get_weapon_type() != "rapier":
 		_fail("Spectator battle did not reproduce both starter appearances")

@@ -24,6 +24,8 @@ const CONTENT_PATHS: Array[String] = [
 	"res://data/relics.json",
 	"res://data/starters.json",
 	"res://data/battle_visuals.json",
+	"res://assets/models/battle/balanced.glb",
+	"res://assets/models/battle/scout.glb",
 ]
 
 static var _cached_content_hash: String = ""
@@ -34,11 +36,10 @@ static func build_content_hash() -> String:
 		return _cached_content_hash
 	var parts: Array[String] = [str(PROTOCOL_VERSION), "relic-resolver:%d" % RELIC_RESOLVER_VERSION]
 	for file_path in CONTENT_PATHS:
-		var file: FileAccess = FileAccess.open(file_path, FileAccess.READ)
-		if file == null:
+		if not FileAccess.file_exists(file_path):
 			parts.append("missing:%s" % file_path)
 			continue
-		parts.append(file.get_as_text().sha256_text())
+		parts.append(FileAccess.get_sha256(file_path))
 	_cached_content_hash = "\n".join(parts).sha256_text()
 	return _cached_content_hash
 

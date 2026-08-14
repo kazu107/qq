@@ -1,9 +1,29 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.15.0",
+  "current_version": "QQ-0.16.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.16.0",
+      "date": "2026-08-14",
+      "title_ja": "Blender製戦闘モデル試作",
+      "title_en": "Authored Blender combat models",
+      "changes_ja": [
+        "BalancedとScoutを、顔、髪・フード、衣装、装甲、小物、固有武器を持つBlender製ローポリモデルへ置き換えました。",
+        "両モデルを既存の18ボーン戦闘リグへ接続し、待機、詠唱、攻撃、防御、被弾、回復、勝敗の動作を維持しました。",
+        "通常戦、Web対戦、観戦で同じモデルを使用し、未制作キャラクターは従来の生成モデルへ戻るようにしました。",
+        "各キャラクターを単一スキンメッシュへ統合し、Balancedは1,146頂点、Scoutは1,228頂点に抑えました。",
+        "編集可能なBlend原本、プレビュー、再生成用Blender Python、GLBインポート検証を追加しました。"
+      ],
+      "changes_en": [
+        "Replaced Balanced and Scout with authored low-poly Blender models featuring faces, hair or hood, clothing, armor, props, and unique weapons.",
+        "Connected both models to the existing 18-bone combat rig while preserving idle, cast, attack, block, hit, heal, victory, and defeat performances.",
+        "Used the same models in local, Web, and spectator battles, with procedural fallback for combatants that have not been authored yet.",
+        "Merged each character into a single skinned mesh, keeping Balanced at 1,146 vertices and Scout at 1,228 vertices.",
+        "Added editable Blend source, a preview render, deterministic Blender Python generation, and GLB import validation."
+      ]
+    },
     {
       "version": "QQ-0.15.0",
       "date": "2026-08-13",

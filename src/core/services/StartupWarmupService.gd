@@ -37,6 +37,9 @@ static func warm_all() -> Dictionary:
 	var battle_3d_mesh_count: int = CommonBattleHumanoid3D.warm_visual_profile_cache(
 		Database.get_all_battle_visual_profiles()
 	)
+	var battle_3d_model_count: int = BattleActor3D.warm_authored_model_cache(
+		Database.get_all_battle_visual_profiles()
+	)
 
 	return {
 		"scenes": SceneRouter.get_cached_scene_count(),
@@ -50,6 +53,7 @@ static func warm_all() -> Dictionary:
 		"stat_icons": stat_icon_count,
 		"map_icons": map_icon_count,
 		"battle_3d_meshes": battle_3d_mesh_count,
+		"battle_3d_models": battle_3d_model_count,
 		"network_hash": LanProtocol.build_content_hash().left(12),
 	}
 
@@ -90,6 +94,9 @@ static func warm_all_async(progress_callback: Callable = Callable()) -> Dictiona
 	data.summary["stat_icons"] = StatIconFactory.warm_cache()
 	data.summary["map_icons"] = MapNodeButton.warm_icon_cache()
 	data.summary["battle_3d_meshes"] = CommonBattleHumanoid3D.warm_visual_profile_cache(
+		Database.get_all_battle_visual_profiles()
+	)
+	data.summary["battle_3d_models"] = BattleActor3D.warm_authored_model_cache(
 		Database.get_all_battle_visual_profiles()
 	)
 

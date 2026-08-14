@@ -847,6 +847,8 @@ func _run() -> void:
 		return
 	if battle_player_actor.get_visual_profile_id() != "balanced" \
 	or battle_enemy_actor.get_visual_profile_id() != "scout" \
+	or not battle_player_actor.is_using_authored_model() \
+	or not battle_enemy_actor.is_using_authored_model() \
 	or battle_player_actor.get_weapon_type() != "blade" \
 	or battle_enemy_actor.get_weapon_type() != "rapier":
 		push_error("Card UI smoke failed: battle scene should resolve starter and enemy 3D appearances")
