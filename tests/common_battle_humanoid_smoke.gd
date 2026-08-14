@@ -88,6 +88,15 @@ func _run() -> void:
 	var entry_blend: float = actor.get_timeline_stance_blend()
 	actor._process(0.20)
 	var held_blend: float = actor.get_timeline_stance_blend()
+	var chest_position: Vector3 = actor.get_bone_model_position("chest")
+	var left_hand_depth: float = chest_position.z - actor.get_bone_model_position("left_hand").z
+	var right_hand_depth: float = chest_position.z - actor.get_bone_model_position("right_hand").z
+	if left_hand_depth < 0.18 or right_hand_depth < 0.18:
+		_fail("Common humanoid smoke failed: ready hands must stay in front of the chest (left %.3f, right %.3f)" % [
+			left_hand_depth,
+			right_hand_depth,
+		])
+		return
 	actor.stop_timeline_stance()
 	actor._process(0.08)
 	var exit_blend: float = actor.get_timeline_stance_blend()

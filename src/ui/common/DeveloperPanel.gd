@@ -51,13 +51,24 @@ func set_actions(actions: Array) -> void:
 		var action_data: Dictionary = Dictionary(raw_action)
 		_add_action_button(action_data)
 
-	if Game.is_developer_mode_enabled() and not _contains_action(actions, "DevSfxLab"):
-		_add_action_button({
-			"id": "DevSfxLab",
-			"label": Localization.get_text("developer.sfx_lab", "SE Lab"),
-			"tooltip": Localization.get_text("developer.sfx_lab.tooltip", "Play and inspect every registered sound effect."),
-			"callback": Callable(SceneRouter, "go_to_sfx_lab"),
-		})
+	if Game.is_developer_mode_enabled():
+		if not _contains_action(actions, "DevBattleAnimationLab"):
+			_add_action_button({
+				"id": "DevBattleAnimationLab",
+				"label": Localization.get_text("developer.battle_animation_lab", "Animation Lab"),
+				"tooltip": Localization.get_text(
+					"developer.battle_animation_lab.tooltip",
+					"Inspect combat models, skeletal actions, camera angles, and playback speed."
+				),
+				"callback": Callable(SceneRouter, "go_to_battle_animation_lab"),
+			})
+		if not _contains_action(actions, "DevSfxLab"):
+			_add_action_button({
+				"id": "DevSfxLab",
+				"label": Localization.get_text("developer.sfx_lab", "SE Lab"),
+				"tooltip": Localization.get_text("developer.sfx_lab.tooltip", "Play and inspect every registered sound effect."),
+				"callback": Callable(SceneRouter, "go_to_sfx_lab"),
+			})
 
 
 func _add_action_button(action_data: Dictionary) -> void:

@@ -159,6 +159,46 @@ func get_environment_detail_counts() -> Dictionary:
 	return _environment_detail_counts.duplicate(true)
 
 
+func get_combat_actor(unit_id: String) -> BattleActor3D:
+	return _actor_for_unit_id(unit_id)
+
+
+func set_camera_preset(preset_id: String, focus_unit_id: String = "") -> void:
+	if _camera == null:
+		return
+	_camera_shake = 0.0
+	_camera_shake_elapsed = 0.0
+	if preset_id == "battle":
+		_camera.position = Vector3(0.0, 6.75, 10.35)
+		_camera.fov = 40.0
+		_camera.look_at(Vector3(0.0, 0.78, -0.42), Vector3.UP)
+		_camera_home_position = _camera.position
+		return
+
+	var actor: BattleActor3D = _actor_for_unit_id(focus_unit_id)
+	if actor == null:
+		actor = _player_actor
+	if actor == null:
+		return
+	var focus: Vector3 = actor.position + Vector3(0.0, 1.18, 0.0)
+	var forward: Vector3 = -actor.transform.basis.z.normalized()
+	var right: Vector3 = actor.transform.basis.x.normalized()
+	match preset_id:
+		"side":
+			_camera.position = focus + right * 4.6 + Vector3.UP * 1.05
+		"rear":
+			_camera.position = focus - forward * 4.4 + Vector3.UP * 1.05
+		_:
+			_camera.position = focus + forward * 4.4 + Vector3.UP * 1.05
+	_camera.fov = 34.0
+	_camera.look_at(focus, Vector3.UP)
+	_camera_home_position = _camera.position
+
+
+func get_camera_position() -> Vector3:
+	return _camera.position if _camera != null else Vector3.ZERO
+
+
 func _build_stage() -> void:
 	_build_effect_resources()
 	_viewport = SubViewport.new()

@@ -1389,6 +1389,8 @@
   "online.details.empty": "表示できるアリーナ情報はまだありません。",
   "common.close": "閉じる",
   "online.dev.summary": "WebRTC接続とハンドシェイクの確認用操作です。",
+  "developer.battle_animation_lab": "戦闘アニメーションラボ",
+  "developer.battle_animation_lab.tooltip": "戦闘モデル、ボーン動作、カメラ角度、再生速度を確認します。",
   "developer.sfx_lab": "SE再生ラボ",
   "developer.sfx_lab.tooltip": "登録済みのすべての効果音を検索・再生します。"
 }

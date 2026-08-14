@@ -56,10 +56,20 @@ func _run() -> void:
 	var ready_guard_angle: float = Quaternion.IDENTITY.angle_to(
 		player_actor.get_bone_pose_rotation("left_upper_arm")
 	)
+	var ready_chest: Vector3 = player_actor.get_bone_model_position("chest")
+	var ready_left_depth: float = ready_chest.z - player_actor.get_bone_model_position("left_hand").z
+	var ready_right_depth: float = ready_chest.z - player_actor.get_bone_model_position("right_hand").z
 	if player_actor.get_timeline_stance_blend() < 0.99 \
 	or ready_weapon_angle < 0.45 \
-	or ready_guard_angle < 0.60:
-		_fail("3D battle stage smoke failed: the timeline stance should visibly brace weapon and guard arms")
+	or ready_guard_angle < 0.60 \
+	or ready_left_depth < 0.18 \
+	or ready_right_depth < 0.18:
+		_fail("3D battle stage smoke failed: timeline stance angles %.3f/%.3f and hand depths %.3f/%.3f were invalid" % [
+			ready_weapon_angle,
+			ready_guard_angle,
+			ready_left_depth,
+			ready_right_depth,
+		])
 		return
 	stage.play_battle_event(_resolution_event(
 		"player",

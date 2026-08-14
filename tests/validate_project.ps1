@@ -189,6 +189,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/AuthoredBattleModelsSmoke.tscn"
     )
+    Invoke-GodotCheck "[9e/31] Running battle animation lab smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/BattleAnimationLabSmoke.tscn"
+    )
     Invoke-GodotCheck "[10/31] Running map/facility smoke" $godotExe @(
         "--no-header",
         "--headless",

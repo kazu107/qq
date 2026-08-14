@@ -53,6 +53,7 @@ var _action_elapsed: float = 0.0
 var _action_duration: float = 0.0
 var _casting: bool = false
 var _timeline_stance_blend: float = 0.0
+var _animation_speed_scale: float = 1.0
 var _defeated: bool = false
 var _home_position: Vector3 = Vector3.ZERO
 var _home_rotation: Vector3 = Vector3.ZERO
@@ -92,18 +93,19 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	_elapsed = fmod(_elapsed + delta, TAU * 8.0)
+	var animation_delta: float = delta * _animation_speed_scale
+	_elapsed = fmod(_elapsed + animation_delta, TAU * 8.0)
 	_timeline_stance_blend = move_toward(
 		_timeline_stance_blend,
 		1.0 if _casting else 0.0,
-		delta * 4.8
+		animation_delta * 4.8
 	)
 	if not _home_position_initialized:
 		_home_position = position
 		_home_rotation = rotation
 		_home_position_initialized = true
 	if _action != ACTION_IDLE and _action != ACTION_READY and _action != ACTION_CAST:
-		_action_elapsed = minf(_action_elapsed + delta, _action_duration)
+		_action_elapsed = minf(_action_elapsed + animation_delta, _action_duration)
 		if _action_elapsed >= _action_duration and _action != ACTION_VICTORY and _action != ACTION_DEFEAT:
 			_action = ACTION_READY if _casting else ACTION_IDLE
 			_action_elapsed = 0.0
@@ -197,6 +199,14 @@ func get_timeline_stance_blend() -> float:
 	return _timeline_stance_blend
 
 
+func set_animation_speed_scale(speed_scale: float) -> void:
+	_animation_speed_scale = clampf(speed_scale, 0.0, 2.0)
+
+
+func get_animation_speed_scale() -> float:
+	return _animation_speed_scale
+
+
 func get_humanoid_model() -> CommonBattleHumanoid3D:
 	return _humanoid
 
@@ -271,6 +281,16 @@ func get_equipment_socket(socket_id: String) -> BoneAttachment3D:
 
 func get_bone_pose_rotation(bone_name: String) -> Quaternion:
 	return _humanoid.get_bone_rotation(bone_name) if _humanoid != null else Quaternion.IDENTITY
+
+
+func get_bone_model_position(bone_name: String) -> Vector3:
+	var skeleton: Skeleton3D = get_skeleton()
+	if skeleton == null:
+		return Vector3.ZERO
+	var bone_index: int = skeleton.find_bone(bone_name)
+	if bone_index < 0:
+		return Vector3.ZERO
+	return skeleton.get_bone_global_pose(bone_index).origin
 
 
 func get_effect_world_position() -> Vector3:
@@ -396,19 +416,19 @@ func _apply_ready_pose(wave: float, slow_wave: float, blend: float) -> void:
 		weight
 	))
 	_humanoid.set_bone_rotation("left_upper_arm", idle_left_upper_arm.lerp(
-		Vector3(-0.82 + breath * 0.025, -0.20, -0.54 + shift * 0.028),
+		Vector3(0.62 + breath * 0.020, -0.10 + shift * 0.018, 0.22 + shift * 0.024),
 		weight
 	))
 	_humanoid.set_bone_rotation("left_forearm", idle_left_forearm.lerp(
-		Vector3(-0.62 - breath * 0.018, 0.08, 0.18),
+		Vector3(1.04 + breath * 0.018, -0.05, -0.10),
 		weight
 	))
 	_humanoid.set_bone_rotation("right_upper_arm", idle_right_upper_arm.lerp(
-		Vector3(-0.54 - breath * 0.025, -0.14, 0.56 - shift * 0.030),
+		Vector3(0.68 - breath * 0.020, 0.08 - shift * 0.018, -0.28 - shift * 0.024),
 		weight
 	))
 	_humanoid.set_bone_rotation("right_forearm", idle_right_forearm.lerp(
-		Vector3(-0.78 + breath * 0.020, 0.04, -0.18),
+		Vector3(0.80 - breath * 0.018, 0.06, 0.12),
 		weight
 	))
 	_humanoid.set_bone_rotation("left_upper_leg", idle_left_upper_leg.lerp(

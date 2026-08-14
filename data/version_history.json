@@ -1,9 +1,27 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.17.1",
+  "current_version": "QQ-0.17.2",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.17.2",
+      "date": "2026-08-14",
+      "title_ja": "戦闘構え修正・アニメーションラボ",
+      "title_en": "Ready stance fix and animation lab",
+      "changes_ja": [
+        "タイムライン中の構えで腕が背後へ伸びていたローカル回転方向を修正し、武器と盾を身体の前で保持する姿勢にしました。",
+        "胸と両手のボーン座標を検証し、両手が前方に出ていることを保証する回帰テストを追加しました。",
+        "開発者モードに、モデル、アクション、対象、カメラ角度、再生速度を切り替えられる戦闘アニメーションラボを追加しました。",
+        "ラボに両手の前方距離をリアルタイム表示し、崩れた姿勢を数値でも確認できるようにしました。"
+      ],
+      "changes_en": [
+        "Corrected the local arm rotation direction that placed the timeline-ready arms behind the body, keeping weapon and guard in front instead.",
+        "Added coordinate-based regression checks that require both hand bones to remain in front of the chest.",
+        "Added a developer Battle Animation Lab with model, action, target, camera-angle, and playback-speed controls.",
+        "Added live hand-forward depth metrics to the lab so malformed poses can be identified numerically."
+      ]
+    },
     {
       "version": "QQ-0.17.1",
       "date": "2026-08-14",
