@@ -43,11 +43,24 @@ func _run() -> void:
 		"target_id": "scout",
 		"card_id": "strike",
 	})
-	if player_actor.get_action_name() != "cast" or stage.get_active_effect_count() < 1:
-		_fail("3D battle stage smoke failed: preparing a card should start casting VFX")
+	if player_actor.get_action_name() != "ready" \
+	or not player_actor.is_timeline_stance_active() \
+	or stage.get_active_effect_count() < 1:
+		_fail("3D battle stage smoke failed: preparing a card should enter the timeline-ready stance")
 		return
 
 	_advance(stage, player_actor, enemy_actor, 0.24)
+	var ready_weapon_angle: float = Quaternion.IDENTITY.angle_to(
+		player_actor.get_bone_pose_rotation("right_upper_arm")
+	)
+	var ready_guard_angle: float = Quaternion.IDENTITY.angle_to(
+		player_actor.get_bone_pose_rotation("left_upper_arm")
+	)
+	if player_actor.get_timeline_stance_blend() < 0.99 \
+	or ready_weapon_angle < 0.45 \
+	or ready_guard_angle < 0.60:
+		_fail("3D battle stage smoke failed: the timeline stance should visibly brace weapon and guard arms")
+		return
 	stage.play_battle_event(_resolution_event(
 		"player",
 		"scout",
@@ -171,7 +184,7 @@ func _run() -> void:
 		"target_id": "player",
 		"card_id": "strike",
 	})
-	if player_actor.get_action_name() != "cast" or enemy_actor.get_action_name() != "idle":
+	if player_actor.get_action_name() != "ready" or enemy_actor.get_action_name() != "idle":
 		_fail("3D battle stage smoke failed: Web opponent-side mapping should keep the local actor on the player side")
 		return
 	_advance(stage, player_actor, enemy_actor, 0.24)
@@ -203,7 +216,45 @@ func _run() -> void:
 		_fail("3D battle stage smoke failed: shield decay should stay silent on the 3D combat text layer")
 		return
 
-	print("BATTLE_STAGE_3D_SMOKE_OK stage HUD and event-driven combat animation validated")
+	stage.configure_combatants("player", "scout", "player")
+	for _card_index in range(2):
+		stage.play_battle_event({
+			"event_type": "prepare_card",
+			"actor_id": "player",
+			"target_id": "scout",
+			"card_id": "strike",
+		})
+		_advance(stage, player_actor, enemy_actor, 0.24)
+	stage.play_battle_event(_resolution_event(
+		"player",
+		"scout",
+		"strike",
+		{"hp": 50, "shield": 0},
+		{"hp": 50, "shield": 0},
+		{"hp": 35, "shield": 0},
+		{"hp": 29, "shield": 0}
+	))
+	_advance(stage, player_actor, enemy_actor, 0.82)
+	if player_actor.get_action_name() != "ready" or not player_actor.is_timeline_stance_active():
+		_fail("3D battle stage smoke failed: resolving one of multiple cards should return to the ready stance")
+		return
+	stage.play_battle_event(_resolution_event(
+		"player",
+		"scout",
+		"strike",
+		{"hp": 50, "shield": 0},
+		{"hp": 50, "shield": 0},
+		{"hp": 29, "shield": 0},
+		{"hp": 23, "shield": 0}
+	))
+	_advance(stage, player_actor, enemy_actor, 0.82)
+	if player_actor.get_action_name() != "idle" \
+	or player_actor.is_timeline_stance_active() \
+	or player_actor.get_timeline_stance_blend() > 0.001:
+		_fail("3D battle stage smoke failed: resolving the final card should leave the ready stance")
+		return
+
+	print("BATTLE_STAGE_3D_SMOKE_OK stage HUD, ready stance, and event-driven combat animation validated")
 	get_tree().quit()
 
 

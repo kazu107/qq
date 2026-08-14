@@ -7,6 +7,7 @@ const PLAYER_ACCENT := Color(0.22, 0.88, 1.0, 1.0)
 const ENEMY_PRIMARY := Color(0.76, 0.12, 0.11, 1.0)
 const ENEMY_ACCENT := Color(1.0, 0.46, 0.18, 1.0)
 const ACTION_IDLE: StringName = &"idle"
+const ACTION_READY: StringName = &"ready"
 const ACTION_CAST: StringName = &"cast"
 const ACTION_ATTACK: StringName = &"attack"
 const ACTION_HIT: StringName = &"hit"
@@ -51,6 +52,7 @@ var _action: StringName = ACTION_IDLE
 var _action_elapsed: float = 0.0
 var _action_duration: float = 0.0
 var _casting: bool = false
+var _timeline_stance_blend: float = 0.0
 var _defeated: bool = false
 var _home_position: Vector3 = Vector3.ZERO
 var _home_rotation: Vector3 = Vector3.ZERO
@@ -91,14 +93,19 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_elapsed = fmod(_elapsed + delta, TAU * 8.0)
+	_timeline_stance_blend = move_toward(
+		_timeline_stance_blend,
+		1.0 if _casting else 0.0,
+		delta * 4.8
+	)
 	if not _home_position_initialized:
 		_home_position = position
 		_home_rotation = rotation
 		_home_position_initialized = true
-	if _action != ACTION_IDLE and _action != ACTION_CAST:
+	if _action != ACTION_IDLE and _action != ACTION_READY and _action != ACTION_CAST:
 		_action_elapsed = minf(_action_elapsed + delta, _action_duration)
 		if _action_elapsed >= _action_duration and _action != ACTION_VICTORY and _action != ACTION_DEFEAT:
-			_action = ACTION_CAST if _casting else ACTION_IDLE
+			_action = ACTION_READY if _casting else ACTION_IDLE
 			_action_elapsed = 0.0
 			_action_duration = 0.0
 	_update_pose()
@@ -108,9 +115,12 @@ func play_action(action: StringName, duration: float = -1.0) -> void:
 	if _defeated and action != ACTION_DEFEAT:
 		return
 	_last_action = action
+	if action == ACTION_READY:
+		start_timeline_stance()
+		return
 	if action == ACTION_CAST:
 		_casting = true
-		if _action == ACTION_IDLE or _action == ACTION_CAST:
+		if _action == ACTION_IDLE or _action == ACTION_READY or _action == ACTION_CAST:
 			_action = ACTION_CAST
 			_action_elapsed = 0.0
 			_action_duration = 0.0
@@ -131,14 +141,32 @@ func play_action(action: StringName, duration: float = -1.0) -> void:
 	_action_duration = duration if duration > 0.0 else float(ACTION_DURATIONS.get(action, 0.62))
 
 
-func stop_casting() -> void:
+func start_timeline_stance() -> void:
+	if _defeated:
+		return
+	_casting = true
+	_last_action = ACTION_READY
+	if _action == ACTION_IDLE or _action == ACTION_READY or _action == ACTION_CAST:
+		_action = ACTION_READY
+		_action_elapsed = 0.0
+		_action_duration = 0.0
+
+
+func stop_timeline_stance() -> void:
 	_casting = false
-	if _action == ACTION_CAST:
-		play_action(ACTION_IDLE)
+	if _action == ACTION_READY or _action == ACTION_CAST:
+		_action = ACTION_IDLE
+		_action_elapsed = 0.0
+		_action_duration = 0.0
+
+
+func stop_casting() -> void:
+	stop_timeline_stance()
 
 
 func reset_performance() -> void:
 	_casting = false
+	_timeline_stance_blend = 0.0
 	_defeated = false
 	_action = ACTION_IDLE
 	_last_action = ACTION_IDLE
@@ -159,6 +187,14 @@ func get_action_name() -> String:
 
 func get_last_action_name() -> String:
 	return String(_last_action)
+
+
+func is_timeline_stance_active() -> bool:
+	return _casting
+
+
+func get_timeline_stance_blend() -> float:
+	return _timeline_stance_blend
 
 
 func get_humanoid_model() -> CommonBattleHumanoid3D:
@@ -275,8 +311,12 @@ func _update_pose() -> void:
 	rotation = _home_rotation
 	_humanoid.begin_pose()
 	_apply_idle_pose(wave, slow_wave)
+	if (_action == ACTION_IDLE or _action == ACTION_READY) and _timeline_stance_blend > 0.001:
+		_apply_ready_pose(wave, slow_wave, _timeline_stance_blend)
 	var action_progress: float = clampf(_action_elapsed / maxf(0.001, _action_duration), 0.0, 1.0)
 	match _action:
+		ACTION_READY:
+			pass
 		ACTION_CAST:
 			_apply_cast_pose(wave)
 		ACTION_ATTACK:
@@ -297,7 +337,12 @@ func _update_pose() -> void:
 			_apply_victory_pose()
 		ACTION_DEFEAT:
 			_apply_defeat_pose(action_progress)
-	_humanoid.set_accent_energy((0.72 if _action == ACTION_IDLE else 1.18) + (slow_wave + 1.0) * 0.18)
+	var action_energy: float = 0.72
+	if _action == ACTION_READY:
+		action_energy = 0.94
+	elif _action != ACTION_IDLE:
+		action_energy = 1.18
+	_humanoid.set_accent_energy(action_energy + (slow_wave + 1.0) * 0.18)
 	_humanoid.finish_pose()
 	_sync_authored_pose()
 	if _platform_mesh != null:
@@ -315,6 +360,67 @@ func _apply_idle_pose(wave: float, slow_wave: float) -> void:
 	_humanoid.set_bone_rotation("right_forearm", Vector3(-0.10, 0.0, 0.04))
 	_humanoid.set_bone_rotation("left_upper_leg", Vector3(-wave * 0.018, 0.0, 0.0))
 	_humanoid.set_bone_rotation("right_upper_leg", Vector3(wave * 0.018, 0.0, 0.0))
+
+
+func _apply_ready_pose(wave: float, slow_wave: float, blend: float) -> void:
+	var weight: float = smoothstep(0.0, 1.0, clampf(blend, 0.0, 1.0))
+	var shift: float = sin(_elapsed * 0.72 + _phase_offset)
+	var breath: float = sin(_elapsed * 1.62 + _phase_offset)
+	var idle_root := Vector3(0.0, wave * 0.035, 0.0)
+	var ready_root := Vector3(0.0, -0.045 + breath * 0.018, -0.025 + shift * 0.012)
+	var idle_spine := Vector3(slow_wave * 0.012, 0.0, slow_wave * 0.020)
+	var idle_chest := Vector3(-slow_wave * 0.008, 0.0, -slow_wave * 0.012)
+	var idle_head := Vector3(0.0, slow_wave * 0.035, 0.0)
+	var idle_left_upper_arm := Vector3(wave * 0.028, 0.0, -0.18 - wave * 0.045)
+	var idle_right_upper_arm := Vector3(-wave * 0.035, 0.0, 0.22 + wave * 0.060)
+	var idle_left_forearm := Vector3(-0.12, 0.0, -0.04)
+	var idle_right_forearm := Vector3(-0.10, 0.0, 0.04)
+	var idle_left_upper_leg := Vector3(-wave * 0.018, 0.0, 0.0)
+	var idle_right_upper_leg := Vector3(wave * 0.018, 0.0, 0.0)
+
+	_humanoid.set_bone_position_offset("root", idle_root.lerp(ready_root, weight))
+	_humanoid.set_bone_rotation("hips", Vector3.ZERO.lerp(
+		Vector3(0.08 + breath * 0.012, -0.08 + shift * 0.025, 0.0),
+		weight
+	))
+	_humanoid.set_bone_rotation("spine", idle_spine.lerp(
+		Vector3(-0.11 + breath * 0.012, 0.10 + shift * 0.025, -0.025),
+		weight
+	))
+	_humanoid.set_bone_rotation("chest", idle_chest.lerp(
+		Vector3(-0.07 - breath * 0.010, -0.08 - shift * 0.020, 0.018),
+		weight
+	))
+	_humanoid.set_bone_rotation("head", idle_head.lerp(
+		Vector3(0.035 - breath * 0.008, shift * 0.022, -0.012),
+		weight
+	))
+	_humanoid.set_bone_rotation("left_upper_arm", idle_left_upper_arm.lerp(
+		Vector3(-0.82 + breath * 0.025, -0.20, -0.54 + shift * 0.028),
+		weight
+	))
+	_humanoid.set_bone_rotation("left_forearm", idle_left_forearm.lerp(
+		Vector3(-0.62 - breath * 0.018, 0.08, 0.18),
+		weight
+	))
+	_humanoid.set_bone_rotation("right_upper_arm", idle_right_upper_arm.lerp(
+		Vector3(-0.54 - breath * 0.025, -0.14, 0.56 - shift * 0.030),
+		weight
+	))
+	_humanoid.set_bone_rotation("right_forearm", idle_right_forearm.lerp(
+		Vector3(-0.78 + breath * 0.020, 0.04, -0.18),
+		weight
+	))
+	_humanoid.set_bone_rotation("left_upper_leg", idle_left_upper_leg.lerp(
+		Vector3(0.14 + shift * 0.015, -0.05, -0.02),
+		weight
+	))
+	_humanoid.set_bone_rotation("right_upper_leg", idle_right_upper_leg.lerp(
+		Vector3(0.10 - shift * 0.015, 0.05, 0.02),
+		weight
+	))
+	_humanoid.set_bone_rotation("left_lower_leg", Vector3.ZERO.lerp(Vector3(-0.18, 0.0, 0.0), weight))
+	_humanoid.set_bone_rotation("right_lower_leg", Vector3.ZERO.lerp(Vector3(-0.15, 0.0, 0.0), weight))
 
 
 func _apply_cast_pose(wave: float) -> void:

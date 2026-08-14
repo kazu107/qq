@@ -691,7 +691,7 @@ func _begin_prepare(event_data: Dictionary) -> void:
 	if actor == null:
 		return
 	_cast_counts[actor_id] = int(_cast_counts.get(actor_id, 0)) + 1
-	actor.play_action(BattleActor3D.ACTION_CAST)
+	actor.start_timeline_stance()
 	_spawn_impact(_actor_effect_position(actor), _color_for_actor(actor), 0.38, 1.24)
 
 
@@ -752,9 +752,9 @@ func _begin_battle_end(event_data: Dictionary) -> void:
 	var winner_actor: BattleActor3D = _actor_for_engine_side(winner)
 	if winner_actor == null:
 		if _player_actor != null:
-			_player_actor.stop_casting()
+			_player_actor.stop_timeline_stance()
 		if _enemy_actor != null:
-			_enemy_actor.stop_casting()
+			_enemy_actor.stop_timeline_stance()
 		return
 	var loser_actor: BattleActor3D = _enemy_actor if winner_actor == _player_actor else _player_actor
 	winner_actor.play_action(BattleActor3D.ACTION_VICTORY)
@@ -840,7 +840,7 @@ func _decrement_cast(unit_id: String, actor: BattleActor3D) -> void:
 	var remaining: int = maxi(0, int(_cast_counts.get(unit_id, 0)) - 1)
 	_cast_counts[unit_id] = remaining
 	if remaining == 0 and actor != null:
-		actor.stop_casting()
+		actor.stop_timeline_stance()
 
 
 func _actor_for_unit_id(unit_id: String) -> BattleActor3D:

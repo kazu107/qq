@@ -61,6 +61,8 @@ func _run() -> void:
 			_fail("Common humanoid smoke failed: %s exceeded the sphere segment budget" % mesh_instance.name)
 			return
 
+	if not _assert_bone_action(actor, BattleActor3D.ACTION_READY, "right_upper_arm", 0.45):
+		return
 	if not _assert_bone_action(actor, BattleActor3D.ACTION_CAST, "right_upper_arm", 0.70):
 		return
 	if not _assert_bone_action(actor, BattleActor3D.ACTION_ATTACK, "right_upper_arm", 0.65):
@@ -78,6 +80,26 @@ func _run() -> void:
 	if not _assert_bone_action(actor, BattleActor3D.ACTION_INTERRUPT, "spine", 0.10):
 		return
 	if not _assert_bone_action(actor, BattleActor3D.ACTION_VICTORY, "right_upper_arm", 1.20):
+		return
+
+	actor.reset_performance()
+	actor.start_timeline_stance()
+	actor._process(0.05)
+	var entry_blend: float = actor.get_timeline_stance_blend()
+	actor._process(0.20)
+	var held_blend: float = actor.get_timeline_stance_blend()
+	actor.stop_timeline_stance()
+	actor._process(0.08)
+	var exit_blend: float = actor.get_timeline_stance_blend()
+	actor._process(0.24)
+	if entry_blend <= 0.0 \
+	or entry_blend >= 1.0 \
+	or held_blend < 0.99 \
+	or exit_blend <= 0.0 \
+	or exit_blend >= held_blend \
+	or actor.get_timeline_stance_blend() > 0.001 \
+	or actor.get_action_name() != "idle":
+		_fail("Common humanoid smoke failed: timeline stance did not blend in and out smoothly")
 		return
 
 	actor.reset_performance()

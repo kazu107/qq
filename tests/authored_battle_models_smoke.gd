@@ -104,6 +104,17 @@ func _validate_actor_integration() -> bool:
 		_fail("Authored model smoke failed: attack pose was not synchronized to the GLB skeleton")
 		return false
 
+	actor.reset_performance()
+	actor.start_timeline_stance()
+	actor.call("_process", 0.24)
+	if actor.get_action_name() != "ready" \
+	or Quaternion.IDENTITY.angle_to(source_skeleton.get_bone_pose_rotation(source_arm)) < 0.45 \
+	or not source_skeleton.get_bone_pose_rotation(source_arm).is_equal_approx(
+		authored_skeleton.get_bone_pose_rotation(authored_arm)
+	):
+		_fail("Authored model smoke failed: timeline-ready pose was not synchronized to the GLB skeleton")
+		return false
+
 	actor.configure_visual("scout", Database.get_battle_visual_profile("scout", "default_enemy"))
 	if not actor.is_using_authored_model() \
 	or actor.get_authored_model_path() != String(MODEL_PATHS["scout"]) \
