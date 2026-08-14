@@ -18,6 +18,36 @@ releases/current.json
 
 `current.json`だけを更新し、既存PCKは上書きしません。同じ内容のPCKは再利用されます。
 
+## 最新3版とローカルアーカイブ
+
+R2を最新3リリースに整理するときは、Windows側のアーカイブツールを使用します。GitHub ActionsはユーザーPCへ直接書き込めないため、公開ワークフローは安全のため旧版を自動削除しません。
+
+```powershell
+# 削除対象を確認するだけ
+powershell -ExecutionPolicy Bypass -File tools\archive_r2_releases.ps1 `
+  -ArchiveRoot "D:\qq-r2-archive" -DryRun
+
+# 旧版をローカルへ保存する。R2からは削除しない
+powershell -ExecutionPolicy Bypass -File tools\archive_r2_releases.ps1 `
+  -ArchiveRoot "D:\qq-r2-archive"
+
+# 保存済みPCKのサイズとSHA-256を検証後、R2を最新3版に整理する
+powershell -ExecutionPolicy Bypass -File tools\archive_r2_releases.ps1 `
+  -ArchiveRoot "D:\qq-r2-archive" -Prune
+```
+
+`R2_BUCKET_NAME`と`R2_ENDPOINT`（または`R2_ACCOUNT_ID`）を環境変数へ設定し、AWS CLIがR2認証情報を利用できる状態で実行します。AWSプロファイルを使う場合は`-Profile`を指定できます。
+
+ローカルには次の構成で保存されます。
+
+```text
+archive-index.json
+objects/<sha256>.pck
+releases/<git-commit>.json
+```
+
+`-Prune`を指定しても、ローカルPCKのサイズとSHA-256が一致しない限りR2から削除しません。`current.json`と、それを含む最新3リリースが参照するPCKは常に保持します。同一PCKを複数リリースが参照している場合は1ファイルだけ保存し、保持中のリリースと共有されるPCKは削除しません。
+
 ## GitHub設定
 
 Actions Secrets:

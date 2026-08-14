@@ -5,6 +5,9 @@ const DEFAULT_VIEWPORT_SIZE := Vector2i(960, 540)
 const TILE_COLUMNS: int = 7
 const TILE_ROWS: int = 5
 const MAX_QUEUED_EVENTS: int = 32
+const GRASS_INSTANCE_COUNT: int = 112
+const ROCK_INSTANCE_COUNT: int = 18
+const FLOWER_INSTANCE_COUNT: int = 16
 
 const DAMAGE_COLOR := Color(1.0, 0.22, 0.12, 1.0)
 const SHIELD_COLOR := Color(0.18, 0.74, 1.0, 1.0)
@@ -66,6 +69,7 @@ var _opponent_unit_id: String = "enemy"
 var _local_engine_side: String = "player"
 var _local_visual_id: String = "default_player"
 var _opponent_visual_id: String = "default_enemy"
+var _environment_detail_counts: Dictionary = {}
 
 
 func _ready() -> void:
@@ -151,6 +155,10 @@ func get_actor_screen_position(unit_id: String) -> Vector2:
 	return _project_actor_position(_actor_for_unit_id(unit_id))
 
 
+func get_environment_detail_counts() -> Dictionary:
+	return _environment_detail_counts.duplicate(true)
+
+
 func _build_stage() -> void:
 	_build_effect_resources()
 	_viewport = SubViewport.new()
@@ -195,56 +203,105 @@ func _build_environment() -> void:
 	var world_environment := WorldEnvironment.new()
 	world_environment.name = "BattleWorldEnvironment"
 	var environment := Environment.new()
-	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color(0.018, 0.035, 0.055, 1.0)
-	environment.background_energy_multiplier = 0.82
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color(0.012, 0.040, 0.072, 1.0)
+	sky_material.sky_horizon_color = Color(0.18, 0.29, 0.30, 1.0)
+	sky_material.ground_horizon_color = Color(0.15, 0.23, 0.18, 1.0)
+	sky_material.ground_bottom_color = Color(0.025, 0.055, 0.040, 1.0)
+	var battle_sky := Sky.new()
+	battle_sky.sky_material = sky_material
+	environment.background_mode = Environment.BG_SKY
+	environment.sky = battle_sky
+	environment.background_energy_multiplier = 0.68
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.32, 0.48, 0.64, 1.0)
-	environment.ambient_light_energy = 0.72
+	environment.ambient_light_color = Color(0.38, 0.51, 0.58, 1.0)
+	environment.ambient_light_energy = 0.64
+	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	world_environment.environment = environment
 	_world_root.add_child(world_environment)
 
 	var key_light := DirectionalLight3D.new()
 	key_light.name = "BattleKeyLight"
-	key_light.rotation_degrees = Vector3(-54.0, -32.0, 0.0)
-	key_light.light_color = Color(0.84, 0.91, 1.0, 1.0)
-	key_light.light_energy = 1.25
+	key_light.rotation_degrees = Vector3(-52.0, -38.0, 0.0)
+	key_light.light_color = Color(0.88, 0.94, 1.0, 1.0)
+	key_light.light_energy = 1.34
 	key_light.shadow_enabled = true
 	_world_root.add_child(key_light)
 
 	var warm_fill := OmniLight3D.new()
 	warm_fill.name = "BattleWarmFill"
-	warm_fill.position = Vector3(-3.5, 3.2, -1.5)
-	warm_fill.light_color = Color(1.0, 0.45, 0.22, 1.0)
-	warm_fill.light_energy = 1.25
-	warm_fill.omni_range = 7.0
+	warm_fill.position = Vector3(-4.2, 2.8, -1.7)
+	warm_fill.light_color = Color(1.0, 0.50, 0.24, 1.0)
+	warm_fill.light_energy = 1.12
+	warm_fill.omni_range = 8.5
 	warm_fill.shadow_enabled = false
 	_world_root.add_child(warm_fill)
 
+	var cool_fill := OmniLight3D.new()
+	cool_fill.name = "BattleCoolFill"
+	cool_fill.position = Vector3(4.2, 2.6, 1.8)
+	cool_fill.light_color = Color(0.18, 0.62, 1.0, 1.0)
+	cool_fill.light_energy = 0.92
+	cool_fill.omni_range = 8.0
+	cool_fill.shadow_enabled = false
+	_world_root.add_child(cool_fill)
+
 
 func _build_arena() -> void:
-	var base_material: StandardMaterial3D = _make_material(Color(0.025, 0.075, 0.09, 1.0), 0.0)
-	var tile_a: StandardMaterial3D = _make_material(Color(0.075, 0.14, 0.16, 1.0), 0.0)
-	var tile_b: StandardMaterial3D = _make_material(Color(0.055, 0.105, 0.13, 1.0), 0.0)
-	var blue_line: StandardMaterial3D = _make_material(Color(0.08, 0.62, 0.92, 1.0), 0.78)
-	var red_line: StandardMaterial3D = _make_material(Color(0.92, 0.20, 0.12, 1.0), 0.72)
-	var prop_material: StandardMaterial3D = _make_material(Color(0.07, 0.09, 0.12, 1.0), 0.0)
+	var terrain_material: StandardMaterial3D = _make_material(Color(0.055, 0.13, 0.065, 1.0), 0.0)
+	var base_material: StandardMaterial3D = _make_material(Color(0.105, 0.13, 0.115, 1.0), 0.0)
+	var tile_a: StandardMaterial3D = _make_material(Color(0.245, 0.235, 0.195, 1.0), 0.0)
+	var tile_b: StandardMaterial3D = _make_material(Color(0.195, 0.205, 0.170, 1.0), 0.0)
+	var tile_edge: StandardMaterial3D = _make_material(Color(0.44, 0.38, 0.25, 1.0), 0.0)
+	var moss_material: StandardMaterial3D = _make_material(Color(0.12, 0.25, 0.09, 1.0), 0.0)
+	var blue_line: StandardMaterial3D = _make_material(Color(0.08, 0.62, 0.92, 1.0), 0.48)
+	var red_line: StandardMaterial3D = _make_material(Color(0.92, 0.20, 0.12, 1.0), 0.44)
+	var stone_material: StandardMaterial3D = _make_material(Color(0.24, 0.27, 0.24, 1.0), 0.0)
+	var stone_dark_material: StandardMaterial3D = _make_material(Color(0.12, 0.15, 0.14, 1.0), 0.0)
+	var wood_material: StandardMaterial3D = _make_material(Color(0.29, 0.13, 0.045, 1.0), 0.0)
+	var metal_material: StandardMaterial3D = _make_material(Color(0.22, 0.25, 0.24, 1.0), 0.0)
+	var grass_material: StandardMaterial3D = _make_material(Color(0.16, 0.34, 0.10, 1.0), 0.0)
+	var rock_material: StandardMaterial3D = _make_material(Color(0.21, 0.25, 0.21, 1.0), 0.0)
+	var flower_material: StandardMaterial3D = _make_material(Color(1.0, 0.54, 0.16, 1.0), 0.16)
+
+	var terrain_mesh := BoxMesh.new()
+	terrain_mesh.size = Vector3(17.8, 0.42, 11.8)
+	_add_mesh("BattleMeadow", terrain_mesh, Vector3(0.0, -0.38, -0.1), terrain_material)
 
 	var arena_base := BoxMesh.new()
-	arena_base.size = Vector3(13.4, 0.28, 8.4)
-	_add_mesh("ArenaBase", arena_base, Vector3(0.0, -0.14, 0.0), base_material)
+	arena_base.size = Vector3(13.5, 0.22, 8.5)
+	_add_mesh("ArenaBase", arena_base, Vector3(0.0, -0.16, 0.0), base_material)
 
 	var tile_mesh := BoxMesh.new()
-	tile_mesh.size = Vector3(1.62, 0.10, 1.30)
+	tile_mesh.size = Vector3(1.61, 0.105, 1.29)
 	for row in range(TILE_ROWS):
 		for column in range(TILE_COLUMNS):
 			var tile_x: float = (float(column) - float(TILE_COLUMNS - 1) * 0.5) * 1.76
 			var tile_z: float = (float(row) - float(TILE_ROWS - 1) * 0.5) * 1.44
 			var tile_name: String = "ArenaTile_%d_%d" % [column, row]
-			_add_mesh(tile_name, tile_mesh, Vector3(tile_x, 0.01, tile_z), tile_a if (column + row) % 2 == 0 else tile_b)
+			var tile: MeshInstance3D = _add_mesh(
+				tile_name,
+				tile_mesh,
+				Vector3(tile_x, 0.006 + float((column * 3 + row) % 3) * 0.007, tile_z),
+				tile_a if (column + row) % 2 == 0 else tile_b
+			)
+			tile.rotation.y = float(((column * 5 + row * 3) % 5) - 2) * 0.004
+
+	var border_x_mesh := BoxMesh.new()
+	border_x_mesh.size = Vector3(13.25, 0.055, 0.085)
+	_add_mesh("ArenaBorderNear", border_x_mesh, Vector3(0.0, 0.10, 3.58), tile_edge)
+	_add_mesh("ArenaBorderFar", border_x_mesh, Vector3(0.0, 0.10, -3.58), tile_edge)
+	var border_z_mesh := BoxMesh.new()
+	border_z_mesh.size = Vector3(0.085, 0.055, 7.12)
+	_add_mesh("ArenaBorderLeft", border_z_mesh, Vector3(-6.20, 0.10, 0.0), tile_edge)
+	_add_mesh("ArenaBorderRight", border_z_mesh, Vector3(6.20, 0.10, 0.0), tile_edge)
+	var moss_strip := BoxMesh.new()
+	moss_strip.size = Vector3(12.9, 0.035, 0.15)
+	_add_mesh("ArenaMossFar", moss_strip, Vector3(0.0, 0.115, -3.45), moss_material)
+	_add_mesh("ArenaMossNear", moss_strip, Vector3(0.0, 0.115, 3.45), moss_material)
 
 	var lane_mesh := BoxMesh.new()
-	lane_mesh.size = Vector3(0.08, 0.025, 6.96)
+	lane_mesh.size = Vector3(0.075, 0.025, 6.92)
 	_add_mesh("PlayerLaneGlow", lane_mesh, Vector3(0.88, 0.08, 0.0), blue_line)
 	_add_mesh("EnemyLaneGlow", lane_mesh, Vector3(-0.88, 0.08, 0.0), red_line)
 
@@ -255,20 +312,217 @@ func _build_arena() -> void:
 	var prop_mesh := BoxMesh.new()
 	prop_mesh.size = Vector3(1.0, 1.0, 1.0)
 	var prop_positions: Array[Vector3] = [
-		Vector3(-5.6, 0.5, -3.7),
-		Vector3(-4.3, 0.34, -3.85),
-		Vector3(5.5, 0.46, -3.7),
-		Vector3(4.2, 0.28, -3.9),
+		Vector3(-5.55, 0.43, -4.05),
+		Vector3(-4.72, 0.31, -4.28),
+		Vector3(5.48, 0.42, -4.08),
+		Vector3(4.70, 0.29, -4.32),
 	]
 	var prop_scales: Array[Vector3] = [
-		Vector3(0.9, 1.0, 0.9),
-		Vector3(0.62, 0.68, 0.62),
-		Vector3(0.82, 0.92, 0.82),
-		Vector3(0.54, 0.56, 0.54),
+		Vector3(0.92, 0.86, 0.78),
+		Vector3(0.62, 0.58, 0.56),
+		Vector3(0.84, 0.84, 0.72),
+		Vector3(0.58, 0.54, 0.52),
 	]
 	for index in range(prop_positions.size()):
-		var prop: MeshInstance3D = _add_mesh("ArenaProp_%d" % index, prop_mesh, prop_positions[index], prop_material)
+		var prop: MeshInstance3D = _add_mesh("ArenaProp_%d" % index, prop_mesh, prop_positions[index], wood_material)
 		prop.scale = prop_scales[index]
+		prop.rotation.y = (-0.18 + float(index) * 0.21)
+
+	_add_ruin_cluster(Vector3(-6.05, 0.0, -3.85), -0.12, stone_material, stone_dark_material)
+	_add_ruin_cluster(Vector3(6.02, 0.0, -3.82), PI + 0.10, stone_material, stone_dark_material)
+	_add_barrel("ArenaBarrelLeft", Vector3(-6.58, 0.43, -2.74), wood_material, metal_material)
+	_add_barrel("ArenaBarrelRight", Vector3(6.50, 0.43, -2.58), wood_material, metal_material)
+
+	var random := RandomNumberGenerator.new()
+	random.seed = 0x51425A
+	var grass_transforms: Array[Transform3D] = []
+	for index in range(GRASS_INSTANCE_COUNT):
+		var side: int = index % 4
+		var grass_x: float = random.randf_range(-8.45, 8.45)
+		var grass_z: float = random.randf_range(-5.35, 5.25)
+		if side == 0:
+			grass_x = random.randf_range(-8.45, -6.42)
+		elif side == 1:
+			grass_x = random.randf_range(6.42, 8.45)
+		elif side == 2:
+			grass_z = random.randf_range(-5.35, -3.66)
+		else:
+			grass_z = random.randf_range(3.66, 5.25)
+		var grass_scale := Vector3(
+			random.randf_range(0.72, 1.24),
+			random.randf_range(0.72, 1.46),
+			random.randf_range(0.72, 1.24)
+		)
+		var grass_basis := Basis(Vector3.UP, random.randf_range(-PI, PI)).scaled(grass_scale)
+		grass_transforms.append(Transform3D(grass_basis, Vector3(grass_x, -0.05, grass_z)))
+	var grass_mesh := PrismMesh.new()
+	grass_mesh.size = Vector3(0.11, 0.48, 0.05)
+	_add_multimesh("BattleGrass", grass_mesh, grass_material, grass_transforms, false)
+
+	var rock_transforms: Array[Transform3D] = []
+	for index in range(ROCK_INSTANCE_COUNT):
+		var rock_side: float = -1.0 if index % 2 == 0 else 1.0
+		var rock_position := Vector3(
+			rock_side * random.randf_range(6.48, 8.05),
+			-0.04,
+			random.randf_range(-4.85, 4.72)
+		)
+		var rock_scale := Vector3(
+			random.randf_range(0.28, 0.68),
+			random.randf_range(0.22, 0.56),
+			random.randf_range(0.32, 0.76)
+		)
+		rock_transforms.append(Transform3D(
+			Basis(Vector3.UP, random.randf_range(-PI, PI)).scaled(rock_scale),
+			rock_position
+		))
+	var rock_mesh := SphereMesh.new()
+	rock_mesh.radius = 0.48
+	rock_mesh.height = 0.76
+	rock_mesh.radial_segments = 6
+	rock_mesh.rings = 3
+	_add_multimesh("BattleRocks", rock_mesh, rock_material, rock_transforms, true)
+
+	var flower_transforms: Array[Transform3D] = []
+	for index in range(FLOWER_INSTANCE_COUNT):
+		var flower_side: float = -1.0 if index % 2 == 0 else 1.0
+		flower_transforms.append(Transform3D(
+			Basis.IDENTITY.scaled(Vector3.ONE * random.randf_range(0.75, 1.18)),
+			Vector3(
+				flower_side * random.randf_range(6.55, 8.12),
+				0.12,
+				random.randf_range(-4.72, 4.55)
+			)
+		))
+	var flower_mesh := SphereMesh.new()
+	flower_mesh.radius = 0.095
+	flower_mesh.height = 0.13
+	flower_mesh.radial_segments = 6
+	flower_mesh.rings = 2
+	_add_multimesh("BattleFlowers", flower_mesh, flower_material, flower_transforms, false)
+
+	_environment_detail_counts = {
+		"grass": grass_transforms.size(),
+		"rocks": rock_transforms.size(),
+		"flowers": flower_transforms.size(),
+		"ruin_clusters": 2,
+		"barrels": 2,
+		"crates": prop_positions.size(),
+	}
+
+
+func _add_ruin_cluster(
+	origin: Vector3,
+	yaw: float,
+	stone_material: Material,
+	dark_material: Material
+) -> void:
+	var cluster := Node3D.new()
+	cluster.name = "BattleRuinClusterLeft" if origin.x < 0.0 else "BattleRuinClusterRight"
+	cluster.position = origin
+	cluster.rotation.y = yaw
+	_world_root.add_child(cluster)
+
+	var wall_mesh := BoxMesh.new()
+	wall_mesh.size = Vector3(2.20, 1.12, 0.34)
+	var wall := MeshInstance3D.new()
+	wall.name = "BrokenRuinWall"
+	wall.mesh = wall_mesh
+	wall.position = Vector3(0.0, 0.56, 0.0)
+	wall.rotation.z = -0.035
+	wall.material_override = stone_material
+	cluster.add_child(wall)
+
+	var broken_mesh := BoxMesh.new()
+	broken_mesh.size = Vector3(0.74, 0.72, 0.38)
+	var broken_section := MeshInstance3D.new()
+	broken_section.name = "BrokenRuinSection"
+	broken_section.mesh = broken_mesh
+	broken_section.position = Vector3(1.13, 0.34, 0.04)
+	broken_section.rotation = Vector3(0.0, 0.08, 0.12)
+	broken_section.material_override = dark_material
+	cluster.add_child(broken_section)
+
+	var column_mesh := CylinderMesh.new()
+	column_mesh.top_radius = 0.23
+	column_mesh.bottom_radius = 0.29
+	column_mesh.height = 1.72
+	column_mesh.radial_segments = 8
+	var column := MeshInstance3D.new()
+	column.name = "RuinColumn"
+	column.mesh = column_mesh
+	column.position = Vector3(-1.04, 0.86, -0.02)
+	column.rotation.z = 0.045
+	column.material_override = stone_material
+	cluster.add_child(column)
+
+	var cap_mesh := BoxMesh.new()
+	cap_mesh.size = Vector3(0.68, 0.18, 0.68)
+	for index in range(2):
+		var cap := MeshInstance3D.new()
+		cap.name = "RuinColumnCap%d" % index
+		cap.mesh = cap_mesh
+		cap.position = Vector3(-1.04, 0.08 + float(index) * 1.56, -0.02)
+		cap.rotation.y = 0.10 * float(index)
+		cap.material_override = dark_material
+		cluster.add_child(cap)
+
+
+func _add_barrel(
+	node_name: String,
+	position_3d: Vector3,
+	wood_material: Material,
+	metal_material: Material
+) -> void:
+	var barrel := Node3D.new()
+	barrel.name = node_name
+	barrel.position = position_3d
+	_world_root.add_child(barrel)
+	var body_mesh := CylinderMesh.new()
+	body_mesh.top_radius = 0.34
+	body_mesh.bottom_radius = 0.34
+	body_mesh.height = 0.82
+	body_mesh.radial_segments = 10
+	var body := MeshInstance3D.new()
+	body.name = "BarrelBody"
+	body.mesh = body_mesh
+	body.material_override = wood_material
+	barrel.add_child(body)
+	var band_mesh := CylinderMesh.new()
+	band_mesh.top_radius = 0.355
+	band_mesh.bottom_radius = 0.355
+	band_mesh.height = 0.075
+	band_mesh.radial_segments = 10
+	for index in range(2):
+		var band := MeshInstance3D.new()
+		band.name = "BarrelBand%d" % index
+		band.mesh = band_mesh
+		band.position.y = -0.25 + float(index) * 0.50
+		band.material_override = metal_material
+		barrel.add_child(band)
+
+
+func _add_multimesh(
+	node_name: String,
+	mesh: Mesh,
+	material: Material,
+	transforms: Array[Transform3D],
+	cast_shadows: bool
+) -> MultiMeshInstance3D:
+	var multi_mesh := MultiMesh.new()
+	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
+	multi_mesh.instance_count = transforms.size()
+	multi_mesh.mesh = mesh
+	for index in range(transforms.size()):
+		multi_mesh.set_instance_transform(index, transforms[index])
+	var instance := MultiMeshInstance3D.new()
+	instance.name = node_name
+	instance.multimesh = multi_mesh
+	instance.material_override = material
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON \
+		if cast_shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_world_root.add_child(instance)
+	return instance
 
 
 func _build_actors() -> void:
@@ -293,11 +547,11 @@ func _build_actors() -> void:
 func _build_camera() -> void:
 	_camera = Camera3D.new()
 	_camera.name = "BattleStageCamera"
-	_camera.position = Vector3(0.0, 7.4, 10.6)
-	_camera.fov = 42.0
+	_camera.position = Vector3(0.0, 6.75, 10.35)
+	_camera.fov = 40.0
 	_camera.keep_aspect = Camera3D.KEEP_HEIGHT
 	_world_root.add_child(_camera)
-	_camera.look_at(Vector3(0.0, 0.82, -0.15), Vector3.UP)
+	_camera.look_at(Vector3(0.0, 0.78, -0.42), Vector3.UP)
 	_camera.current = true
 	_camera_home_position = _camera.position
 

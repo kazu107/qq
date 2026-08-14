@@ -324,12 +324,14 @@ def balanced_materials() -> dict[str, bpy.types.Material]:
         "skin_light": make_material("Balanced_SkinLight", (0.93, 0.70, 0.50, 1.0), roughness=0.82),
         "hair": make_material("Balanced_Hair", (0.025, 0.035, 0.055, 1.0), roughness=0.92),
         "cloth": make_material("Balanced_CreamCloth", (0.74, 0.70, 0.58, 1.0), roughness=0.95),
+        "cloth_shadow": make_material("Balanced_ClothShadow", (0.36, 0.34, 0.29, 1.0), roughness=0.98),
         "blue": make_material("Balanced_BlueArmor", (0.035, 0.24, 0.52, 1.0), metallic=0.32, roughness=0.48),
         "blue_light": make_material("Balanced_BlueEdge", (0.08, 0.48, 0.82, 1.0), metallic=0.42, roughness=0.40),
         "dark": make_material("Balanced_DarkLeather", (0.025, 0.045, 0.075, 1.0), metallic=0.08, roughness=0.78),
         "leather": make_material("Balanced_BrownLeather", (0.22, 0.10, 0.045, 1.0), roughness=0.88),
         "metal": make_material("Balanced_Steel", (0.34, 0.43, 0.50, 1.0), metallic=0.88, roughness=0.26),
         "metal_light": make_material("Balanced_BladeEdge", (0.72, 0.84, 0.90, 1.0), metallic=0.92, roughness=0.18),
+        "gold": make_material("Balanced_WarmBrass", (0.64, 0.36, 0.08, 1.0), metallic=0.76, roughness=0.34),
         "accent": make_material(
             "Balanced_CyanRune",
             (0.05, 0.72, 0.88, 1.0),
@@ -349,6 +351,7 @@ def scout_materials() -> dict[str, bpy.types.Material]:
         "hood": make_material("Scout_Hood", (0.20, 0.035, 0.025, 1.0), roughness=0.96),
         "red": make_material("Scout_RedCloth", (0.43, 0.055, 0.035, 1.0), roughness=0.88),
         "olive": make_material("Scout_OliveCloth", (0.19, 0.22, 0.11, 1.0), roughness=0.96),
+        "olive_light": make_material("Scout_OliveEdge", (0.34, 0.39, 0.18, 1.0), roughness=0.92),
         "dark": make_material("Scout_DarkLeather", (0.035, 0.028, 0.023, 1.0), roughness=0.86),
         "leather": make_material("Scout_TanLeather", (0.29, 0.13, 0.055, 1.0), roughness=0.88),
         "metal": make_material("Scout_DarkSteel", (0.22, 0.25, 0.25, 1.0), metallic=0.82, roughness=0.34),
@@ -362,6 +365,7 @@ def scout_materials() -> dict[str, bpy.types.Material]:
             emission_strength=1.8,
         ),
         "wrap": make_material("Scout_Bandage", (0.58, 0.48, 0.34, 1.0), roughness=0.97),
+        "bone": make_material("Scout_BoneCharm", (0.68, 0.60, 0.43, 1.0), roughness=0.94),
     }
 
 
@@ -373,12 +377,16 @@ def build_balanced(collection: bpy.types.Collection) -> bpy.types.Object:
     add_cone(collection, armature, "Balanced_TorsoCloth", (0.0, 0.0, 1.47), 0.29, 0.37, 0.62, materials["cloth"], "spine", 0.72, 10)
     add_cone(collection, armature, "Balanced_WaistArmor", (0.0, 0.0, 1.08), 0.27, 0.31, 0.28, materials["blue"], "hips", 0.72, 10)
     add_cube(collection, armature, "Balanced_ChestPlate", (0.0, 0.235, 1.55), (0.62, 0.16, 0.38), materials["blue"], "spine", bevel=0.065)
+    add_prism(collection, armature, "Balanced_Tabbard", [(-0.19, 1.43), (0.19, 1.43), (0.15, 1.03), (0.0, 0.92), (-0.15, 1.03)], 0.305, 0.055, materials["cloth"], "spine", 0.015)
+    add_cube(collection, armature, "Balanced_LeftChestTrim", (-0.255, 0.326, 1.55), (0.055, 0.035, 0.33), materials["gold"], "spine", rotation=(0.0, -0.08, 0.0), bevel=0.01)
+    add_cube(collection, armature, "Balanced_RightChestTrim", (0.255, 0.326, 1.55), (0.055, 0.035, 0.33), materials["gold"], "spine", rotation=(0.0, 0.08, 0.0), bevel=0.01)
     add_prism(collection, armature, "Balanced_ChestV", [(-0.18, 1.68), (0.0, 1.48), (0.18, 1.68), (0.0, 1.61)], 0.33, 0.045, materials["blue_light"], "spine", 0.01)
     add_prism(collection, armature, "Balanced_ChestRune", [(0.0, 1.64), (-0.075, 1.55), (0.0, 1.46), (0.075, 1.55)], 0.366, 0.035, materials["accent"], "spine", 0.008)
     add_cube(collection, armature, "Balanced_Belt", (0.0, 0.0, 1.02), (0.60, 0.36, 0.105), materials["leather"], "hips", bevel=0.025)
     add_cube(collection, armature, "Balanced_BeltBuckle", (0.0, 0.205, 1.02), (0.13, 0.055, 0.13), materials["metal"], "hips", bevel=0.02)
     add_cube(collection, armature, "Balanced_LeftPouch", (-0.30, 0.02, 0.95), (0.17, 0.19, 0.22), materials["leather"], "hips", rotation=(0.0, 0.12, -0.08), bevel=0.035)
     add_cube(collection, armature, "Balanced_RightPouch", (0.31, 0.01, 0.97), (0.15, 0.18, 0.18), materials["leather"], "hips", rotation=(0.0, -0.10, 0.08), bevel=0.03)
+    add_cylinder(collection, armature, "Balanced_Collar", (0.0, 0.0, 1.91), 0.22, 0.12, materials["cloth_shadow"], "neck", 0.82, 10)
 
     add_cylinder(collection, armature, "Balanced_Neck", (0.0, 0.0, 1.99), 0.115, 0.20, materials["skin"], "neck", 0.88, 8)
     add_ellipsoid(collection, armature, "Balanced_Head", (0.0, 0.018, 2.24), (0.46, 0.40, 0.57), materials["skin_light"], "head", 2, True)
@@ -387,6 +395,11 @@ def build_balanced(collection: bpy.types.Collection) -> bpy.types.Object:
     add_ellipsoid(collection, armature, "Balanced_RightEye", (0.105, 0.218, 2.31), (0.074, 0.035, 0.050), materials["eye"], "head", 1, True)
     add_cube(collection, armature, "Balanced_LeftBrow", (-0.11, 0.225, 2.365), (0.13, 0.025, 0.025), materials["hair"], "head", rotation=(0.08, 0.0, -0.10), bevel=0.008)
     add_cube(collection, armature, "Balanced_RightBrow", (0.11, 0.225, 2.365), (0.13, 0.025, 0.025), materials["hair"], "head", rotation=(-0.08, 0.0, 0.10), bevel=0.008)
+    add_cube(collection, armature, "Balanced_Mouth", (0.0, 0.222, 2.105), (0.13, 0.022, 0.025), materials["hair"], "head", bevel=0.006)
+    add_prism(collection, armature, "Balanced_LeftCheekMark", [(-0.19, 2.25), (-0.09, 2.22), (-0.10, 2.19), (-0.20, 2.21)], 0.224, 0.018, materials["gold"], "head", 0.003)
+    add_prism(collection, armature, "Balanced_RightCheekMark", [(0.09, 2.22), (0.19, 2.25), (0.20, 2.21), (0.10, 2.19)], 0.224, 0.018, materials["gold"], "head", 0.003)
+    add_ellipsoid(collection, armature, "Balanced_LeftEar", (-0.235, 0.0, 2.24), (0.075, 0.08, 0.14), materials["skin"], "head", 1, True)
+    add_ellipsoid(collection, armature, "Balanced_RightEar", (0.235, 0.0, 2.24), (0.075, 0.08, 0.14), materials["skin"], "head", 1, True)
 
     add_ellipsoid(collection, armature, "Balanced_HairCap", (0.0, -0.005, 2.43), (0.51, 0.43, 0.34), materials["hair"], "head", 2, False)
     hair_specs = [
@@ -407,6 +420,7 @@ def build_balanced(collection: bpy.types.Collection) -> bpy.types.Object:
         add_cone(collection, armature, f"Balanced_{side}Sleeve", (0.50 * sign, 0.0, 1.59), 0.12, 0.16, 0.40, materials["cloth"], upper_bone, 0.82, 8)
         add_ellipsoid(collection, armature, f"Balanced_{side}Pauldron", (0.50 * sign, 0.0, 1.80), (0.32, 0.31, 0.24), materials["blue"], upper_bone, 1, False)
         add_prism(collection, armature, f"Balanced_{side}PauldronEdge", [(-0.12 + 0.50 * sign, 1.86), (0.12 + 0.50 * sign, 1.86), (0.10 + 0.50 * sign, 1.78), (-0.10 + 0.50 * sign, 1.78)], 0.17, 0.055, materials["blue_light"], upper_bone, 0.008)
+        add_cube(collection, armature, f"Balanced_{side}PauldronRidge", (0.50 * sign, 0.12, 1.84), (0.08, 0.13, 0.27), materials["gold"], upper_bone, bevel=0.018)
         add_cone(collection, armature, f"Balanced_{side}Bracer", (0.50 * sign, 0.0, 1.18), 0.105, 0.13, 0.35, materials["blue"], forearm_bone, 0.80, 8)
         add_cube(collection, armature, f"Balanced_{side}BracerStripe", (0.50 * sign, 0.095, 1.25), (0.17, 0.055, 0.08), materials["accent"], forearm_bone, bevel=0.012)
         add_ellipsoid(collection, armature, f"Balanced_{side}Hand", (0.50 * sign, 0.0, 0.91), (0.19, 0.17, 0.20), materials["skin"], hand_bone, 1, True)
@@ -420,6 +434,7 @@ def build_balanced(collection: bpy.types.Collection) -> bpy.types.Object:
         add_cone(collection, armature, f"Balanced_{side}Shin", (0.23 * sign, 0.0, 0.28), 0.105, 0.13, 0.37, materials["leather"], lower_bone, 0.86, 8)
         add_cube(collection, armature, f"Balanced_{side}Boot", (0.23 * sign, 0.075, 0.10), (0.29, 0.43, 0.21), materials["dark"], foot_bone, bevel=0.045)
         add_cube(collection, armature, f"Balanced_{side}BootCuff", (0.23 * sign, 0.0, 0.22), (0.27, 0.29, 0.12), materials["blue"], lower_bone, bevel=0.025)
+        add_cube(collection, armature, f"Balanced_{side}BootToe", (0.23 * sign, 0.215, 0.105), (0.24, 0.12, 0.12), materials["metal"], foot_bone, bevel=0.025)
 
     # Back mantle and two cloth tails provide a readable silhouette from the isometric camera.
     add_cube(collection, armature, "Balanced_BackMantle", (0.0, -0.205, 1.59), (0.58, 0.10, 0.30), materials["blue"], "spine", bevel=0.055)
@@ -439,6 +454,8 @@ def build_balanced(collection: bpy.types.Collection) -> bpy.types.Object:
     add_prism(collection, armature, "Balanced_ShieldInset", inner_points, 0.235, 0.045, materials["dark"], "left_hand", 0.018)
     add_prism(collection, armature, "Balanced_ShieldRune", [(-0.50, 1.08), (-0.59, 0.87), (-0.50, 0.66), (-0.41, 0.87)], 0.268, 0.026, materials["accent"], "left_hand", 0.009)
     add_cube(collection, armature, "Balanced_ShieldSpine", (-0.50, 0.282, 0.87), (0.075, 0.035, 0.55), materials["metal"], "left_hand", bevel=0.015)
+    for index, (x, z) in enumerate(((-0.66, 1.04), (-0.34, 1.04), (-0.66, 0.72), (-0.34, 0.72))):
+        add_ellipsoid(collection, armature, f"Balanced_ShieldRivet{index}", (x, 0.286, z), (0.055, 0.032, 0.055), materials["gold"], "left_hand", 1, False)
 
     return armature
 
@@ -450,11 +467,17 @@ def build_scout(collection: bpy.types.Collection) -> bpy.types.Object:
     add_cone(collection, armature, "Scout_Torso", (0.0, 0.0, 1.47), 0.25, 0.31, 0.61, materials["olive"], "spine", 0.68, 9)
     add_cone(collection, armature, "Scout_Hips", (0.0, 0.0, 1.07), 0.24, 0.27, 0.27, materials["dark"], "hips", 0.68, 9)
     add_prism(collection, armature, "Scout_LeatherVest", [(-0.25, 1.72), (0.25, 1.72), (0.20, 1.27), (0.0, 1.17), (-0.20, 1.27)], 0.225, 0.12, materials["leather"], "spine", 0.03)
+    add_prism(collection, armature, "Scout_LeftVestLapel", [(-0.24, 1.70), (-0.03, 1.55), (-0.10, 1.30), (-0.28, 1.50)], 0.299, 0.035, materials["olive_light"], "spine", 0.008)
+    add_prism(collection, armature, "Scout_RightVestLapel", [(0.03, 1.55), (0.24, 1.70), (0.28, 1.50), (0.10, 1.30)], 0.299, 0.035, materials["olive_light"], "spine", 0.008)
     add_cube(collection, armature, "Scout_CrossStrap", (0.0, 0.30, 1.52), (0.13, 0.055, 0.57), materials["dark"], "spine", rotation=(0.0, -0.55, 0.0), bevel=0.018)
     add_cube(collection, armature, "Scout_Belt", (0.0, 0.0, 1.02), (0.53, 0.31, 0.09), materials["leather"], "hips", bevel=0.022)
     add_cube(collection, armature, "Scout_Buckle", (0.0, 0.185, 1.02), (0.11, 0.045, 0.11), materials["metal"], "hips", bevel=0.015)
     add_cube(collection, armature, "Scout_MapCase", (0.28, -0.01, 0.96), (0.16, 0.18, 0.25), materials["leather"], "hips", rotation=(0.0, -0.10, 0.08), bevel=0.03)
     add_cube(collection, armature, "Scout_LeftPouch", (-0.27, 0.0, 0.98), (0.14, 0.17, 0.17), materials["dark"], "hips", bevel=0.025)
+    for index in range(3):
+        add_cube(collection, armature, f"Scout_VestBuckle{index}", (0.08, 0.323, 1.36 + index * 0.13), (0.17, 0.035, 0.038), materials["metal"], "spine", bevel=0.006)
+    add_cylinder(collection, armature, "Scout_PoisonVial", (-0.34, 0.11, 1.03), 0.045, 0.18, materials["accent"], "hips", 0.70, 7, (0.10, 0.0, 0.08))
+    add_cylinder(collection, armature, "Scout_PoisonVialCap", (-0.34, 0.11, 1.13), 0.052, 0.05, materials["metal"], "hips", 0.70, 7, (0.10, 0.0, 0.08))
 
     add_cylinder(collection, armature, "Scout_Neck", (0.0, 0.0, 1.98), 0.105, 0.18, materials["skin"], "neck", 0.84, 7)
     add_ellipsoid(collection, armature, "Scout_Head", (0.0, 0.015, 2.23), (0.43, 0.38, 0.54), materials["skin_light"], "head", 2, True)
@@ -462,8 +485,12 @@ def build_scout(collection: bpy.types.Collection) -> bpy.types.Object:
     add_prism(collection, armature, "Scout_FaceOpening", [(-0.18, 2.39), (0.18, 2.39), (0.16, 2.18), (0.0, 2.11), (-0.16, 2.18)], 0.245, 0.055, materials["skin_light"], "head", 0.012)
     add_cube(collection, armature, "Scout_FaceMask", (0.0, 0.284, 2.18), (0.36, 0.06, 0.17), materials["red"], "head", bevel=0.028)
     add_cube(collection, armature, "Scout_EyeBand", (0.0, 0.292, 2.33), (0.37, 0.052, 0.095), materials["dark"], "head", bevel=0.018)
+    add_prism(collection, armature, "Scout_HoodBrow", [(-0.25, 2.45), (0.25, 2.45), (0.18, 2.37), (-0.18, 2.37)], 0.282, 0.045, materials["red"], "head", 0.012)
     add_ellipsoid(collection, armature, "Scout_LeftLens", (-0.105, 0.327, 2.34), (0.095, 0.035, 0.068), materials["accent"], "head", 1, True)
     add_ellipsoid(collection, armature, "Scout_RightLens", (0.105, 0.327, 2.34), (0.095, 0.035, 0.068), materials["accent"], "head", 1, True)
+    add_cube(collection, armature, "Scout_LensBridge", (0.0, 0.336, 2.34), (0.075, 0.028, 0.028), materials["metal"], "head", bevel=0.006)
+    for index in range(3):
+        add_cube(collection, armature, f"Scout_MaskVent{index}", (-0.09 + index * 0.09, 0.319, 2.17), (0.045, 0.018, 0.055), materials["dark"], "head", rotation=(0.0, 0.0, -0.22 + index * 0.22), bevel=0.004)
     add_cone(collection, armature, "Scout_HoodTip", (-0.13, -0.07, 2.53), 0.15, 0.015, 0.36, materials["hood"], "head", 0.78, 6, (0.10, -0.34, -0.20))
     add_cylinder(collection, armature, "Scout_ScarfCollar", (0.0, 0.0, 1.98), 0.21, 0.18, materials["red"], "neck", 0.78, 9)
     add_prism(collection, armature, "Scout_ScarfTailLong", [(-0.16, 1.93), (0.02, 1.93), (-0.02, 1.20), (-0.21, 1.38)], -0.21, 0.055, materials["red"], "chest", 0.012)
@@ -493,6 +520,7 @@ def build_scout(collection: bpy.types.Collection) -> bpy.types.Object:
         add_cone(collection, armature, f"Scout_{side}Shin", (0.23 * sign, 0.0, 0.28), 0.09, 0.115, 0.37, materials["dark"], lower_bone, 0.74, 7)
         add_cube(collection, armature, f"Scout_{side}Boot", (0.23 * sign, 0.09, 0.10), (0.25, 0.42, 0.20), materials["dark"], foot_bone, bevel=0.035)
         add_cube(collection, armature, f"Scout_{side}BootStrap", (0.23 * sign, 0.105, 0.24), (0.22, 0.055, 0.065), materials["red"], lower_bone, bevel=0.008)
+        add_cube(collection, armature, f"Scout_{side}BootToe", (0.23 * sign, 0.22, 0.10), (0.20, 0.11, 0.10), materials["leather"], foot_bone, bevel=0.018)
 
     # Asymmetric short cloak and quiver distinguish the enemy at timeline camera distance.
     add_prism(collection, armature, "Scout_Cloak", [(-0.30, 1.72), (0.28, 1.70), (0.23, 0.96), (-0.06, 0.79), (-0.31, 1.03)], -0.20, 0.06, materials["hood"], "spine", 0.012)
@@ -501,6 +529,8 @@ def build_scout(collection: bpy.types.Collection) -> bpy.types.Object:
         x = -0.31 + index * 0.055
         add_cylinder(collection, armature, f"Scout_Arrow{index}", (x, -0.25, 1.72 + index * 0.025), 0.018, 0.58, materials["metal_light"], "chest", 1.0, 6, (0.0, -0.30, -0.18))
         add_cone(collection, armature, f"Scout_ArrowHead{index}", (x - 0.03, -0.24, 2.00 + index * 0.025), 0.045, 0.0, 0.13, materials["metal"], "chest", 0.72, 5, (0.0, -0.30, -0.18))
+    add_prism(collection, armature, "Scout_HipDagger", [(0.22, 1.02), (0.31, 1.01), (0.34, 0.58), (0.27, 0.48), (0.20, 0.59)], -0.18, 0.05, materials["metal_light"], "hips", 0.008)
+    add_cube(collection, armature, "Scout_HipDaggerGrip", (0.265, -0.18, 1.09), (0.17, 0.08, 0.08), materials["bone"], "hips", bevel=0.012)
 
     # Rapier with a faceted basket guard.
     add_cylinder(collection, armature, "Scout_RapierGrip", (0.50, 0.0, 0.83), 0.036, 0.24, materials["leather"], "right_hand", 1.0, 7)
@@ -514,6 +544,8 @@ def build_scout(collection: bpy.types.Collection) -> bpy.types.Object:
     add_prism(collection, armature, "Scout_Buckler", buckler_points, 0.13, 0.10, materials["metal"], "left_hand", 0.025)
     add_prism(collection, armature, "Scout_BucklerLeather", [(-0.50, 1.08), (-0.64, 0.99), (-0.64, 0.81), (-0.50, 0.72), (-0.36, 0.81), (-0.36, 0.99)], 0.195, 0.045, materials["leather"], "left_hand", 0.012)
     add_ellipsoid(collection, armature, "Scout_BucklerBoss", (-0.50, 0.238, 0.90), (0.16, 0.075, 0.16), materials["accent"], "left_hand", 1, False)
+    for index, (x, z) in enumerate(((-0.61, 1.00), (-0.39, 1.00), (-0.61, 0.80), (-0.39, 0.80))):
+        add_ellipsoid(collection, armature, f"Scout_BucklerRivet{index}", (x, 0.232, z), (0.042, 0.026, 0.042), materials["bone"], "left_hand", 1, False)
 
     return armature
 
@@ -620,8 +652,13 @@ def add_preview_scene(
     balanced_armature.rotation_euler.z = 0.10
 
     floor_material = make_material("Preview_Grass", (0.08, 0.16, 0.075, 1.0), roughness=0.98)
+    grass_light_material = make_material("Preview_GrassLight", (0.18, 0.32, 0.10, 1.0), roughness=0.98)
+    grass_dark_material = make_material("Preview_GrassDark", (0.045, 0.11, 0.04, 1.0), roughness=0.99)
     tile_material = make_material("Preview_Tile", (0.19, 0.16, 0.12, 1.0), roughness=0.93)
     line_material = make_material("Preview_TileLine", (0.50, 0.43, 0.27, 1.0), roughness=0.88)
+    stone_material = make_material("Preview_Stone", (0.22, 0.25, 0.22, 1.0), roughness=0.96)
+    wood_material = make_material("Preview_Wood", (0.22, 0.095, 0.035, 1.0), roughness=0.92)
+    flower_material = make_material("Preview_Flower", (0.86, 0.42, 0.12, 1.0), roughness=0.82)
     bpy.ops.mesh.primitive_plane_add(size=14.0, location=(0.0, 0.0, -0.025))
     floor = bpy.context.object
     floor.name = "PreviewGround"
@@ -645,6 +682,60 @@ def add_preview_scene(
         apply_object_transform(line)
         assign_material(line, line_material)
         move_to_collection(line, preview)
+
+    # Lightweight scenic dressing communicates the target meadow-ruin battlefield.
+    for index in range(52):
+        angle = index * 2.399963
+        radius = 2.55 + (index % 7) * 0.24
+        x = math.cos(angle) * radius
+        y = math.sin(angle) * radius * 0.62
+        if abs(x) < 2.05 and abs(y) < 1.45:
+            x *= 1.65
+            y *= 1.65
+        bpy.ops.mesh.primitive_cone_add(
+            vertices=5,
+            radius1=0.055 + (index % 3) * 0.012,
+            radius2=0.005,
+            depth=0.24 + (index % 4) * 0.035,
+            location=(x, y, 0.11),
+            rotation=(0.08 * math.sin(angle), 0.12 * math.cos(angle), angle),
+        )
+        grass = bpy.context.object
+        grass.name = f"PreviewGrass_{index}"
+        assign_material(grass, grass_light_material if index % 3 == 0 else grass_dark_material)
+        move_to_collection(grass, preview)
+
+    for index, (x, y, scale) in enumerate((
+        (-3.45, -1.65, 0.38), (-2.85, 2.05, 0.30), (3.25, 1.90, 0.42),
+        (3.70, -1.45, 0.34), (-3.85, 0.65, 0.26), (2.95, -2.15, 0.24),
+    )):
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=scale, location=(x, y, scale * 0.48))
+        stone = bpy.context.object
+        stone.name = f"PreviewRock_{index}"
+        stone.scale = (1.25, 0.82, 0.72)
+        stone.rotation_euler.z = index * 0.67
+        apply_object_transform(stone)
+        assign_material(stone, stone_material)
+        move_to_collection(stone, preview)
+
+    for index, (x, y) in enumerate(((-3.1, -0.5), (-2.75, -0.85), (3.15, 0.55), (3.45, 0.88))):
+        bpy.ops.mesh.primitive_cube_add(location=(x, y, 0.32), rotation=(0.0, 0.0, index * 0.21))
+        crate = bpy.context.object
+        crate.name = f"PreviewCrate_{index}"
+        crate.dimensions = (0.52, 0.52, 0.62)
+        apply_object_transform(crate)
+        apply_bevel(crate, 0.035, 1)
+        assign_material(crate, wood_material)
+        move_to_collection(crate, preview)
+
+    for index, (x, y) in enumerate(((-2.55, 1.85), (2.70, -1.90), (3.75, 1.35), (-3.65, -1.05))):
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=8, ring_count=4, radius=0.055, location=(x, y, 0.18))
+        flower = bpy.context.object
+        flower.name = f"PreviewFlower_{index}"
+        flower.scale.z = 0.55
+        apply_object_transform(flower)
+        assign_material(flower, flower_material)
+        move_to_collection(flower, preview)
 
     world = bpy.context.scene.world or bpy.data.worlds.new("BattlePreviewWorld")
     bpy.context.scene.world = world
@@ -682,8 +773,8 @@ def add_preview_scene(
 
     camera_data = bpy.data.cameras.new("PreviewCamera")
     camera = bpy.data.objects.new("PreviewCamera", camera_data)
-    camera.location = (4.8, 7.4, 3.7)
-    camera_data.lens = 64.0
+    camera.location = (4.9, 7.6, 3.85)
+    camera_data.lens = 66.0
     look_at(camera, Vector((0.0, 0.0, 1.18)))
     preview.objects.link(camera)
     bpy.context.scene.camera = camera
@@ -693,8 +784,8 @@ def add_preview_scene(
 def render_preview() -> None:
     scene = bpy.context.scene
     scene.render.engine = "BLENDER_EEVEE"
-    scene.render.resolution_x = 1100
-    scene.render.resolution_y = 700
+    scene.render.resolution_x = 1200
+    scene.render.resolution_y = 760
     scene.render.resolution_percentage = 100
     scene.render.image_settings.file_format = "PNG"
     scene.render.filepath = str(PREVIEW_PATH)

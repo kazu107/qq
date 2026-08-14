@@ -7,6 +7,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { prepareR2Release } from "../tools/prepare_r2_release.mjs";
+import { buildRetentionPlan, mergeArchiveEntries } from "../tools/archive_r2_releases.mjs";
 
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -94,4 +95,97 @@ test("the Godot Web shell loads a validated R2 PCK while preserving local develo
     .replace("const GODOT_CONFIG = $GODOT_CONFIG;", "const GODOT_CONFIG = { executable: 'index', args: [], fileSizes: { 'index.pck': 1, 'index.wasm': 1 } };")
     .replace("const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;", "const GODOT_THREADS_ENABLED = false;");
   assert.doesNotThrow(() => new Function(syntaxCheck));
+});
+
+function retentionManifest(commit, day, hash, size = 100) {
+  return {
+    schema_version: 1,
+    game_version: "QQ-0.17.0",
+    commit,
+    published_at: `2026-08-${String(day).padStart(2, "0")}T00:00:00.000Z`,
+    pck: {
+      url: `https://qq.example.test/objects/${hash}.pck`,
+      key: `objects/${hash}.pck`,
+      size,
+      sha256: hash,
+    },
+  };
+}
+
+test("R2 retention keeps current plus the newest releases and archives the rest", () => {
+  const hashes = ["a", "b", "c", "d", "e"].map((letter) => letter.repeat(64));
+  const releases = hashes.map((hash, index) => ({
+    key: `releases/commit-${index + 1}.json`,
+    manifest: retentionManifest(`commit-${index + 1}`, index + 1, hash),
+  }));
+  const plan = buildRetentionPlan({
+    releaseManifests: releases,
+    currentManifest: releases[3].manifest,
+    keep: 3,
+  });
+
+  assert.deepEqual(plan.retained.map((release) => release.commit), ["commit-4", "commit-5", "commit-3"]);
+  assert.deepEqual(plan.archived.map((release) => release.commit), ["commit-2", "commit-1"]);
+  assert.deepEqual(plan.prunableObjectKeys, [`objects/${hashes[0]}.pck`, `objects/${hashes[1]}.pck`]);
+});
+
+test("R2 retention never prunes a PCK shared by a retained release", () => {
+  const sharedHash = "f".repeat(64);
+  const oldHash = "1".repeat(64);
+  const releases = [
+    { key: "releases/old.json", manifest: retentionManifest("old", 1, sharedHash) },
+    { key: "releases/older.json", manifest: retentionManifest("older", 2, oldHash) },
+    { key: "releases/new.json", manifest: retentionManifest("new", 3, sharedHash) },
+  ];
+  const plan = buildRetentionPlan({
+    releaseManifests: releases,
+    currentManifest: releases[2].manifest,
+    keep: 1,
+  });
+
+  assert.deepEqual(plan.archived.map((release) => release.commit), ["older", "old"]);
+  assert.deepEqual(plan.prunableObjectKeys, [`objects/${oldHash}.pck`]);
+});
+
+test("R2 retention reserves one of the three slots for current when its immutable manifest is missing", () => {
+  const currentHash = "9".repeat(64);
+  const releases = [1, 2, 3].map((day) => ({
+    key: `releases/release-${day}.json`,
+    manifest: retentionManifest(`release-${day}`, day, String(day).repeat(64)),
+  }));
+  const plan = buildRetentionPlan({
+    releaseManifests: releases,
+    currentManifest: retentionManifest("rollback-current", 1, currentHash),
+    keep: 3,
+  });
+
+  assert.deepEqual(plan.retained.map((release) => release.commit), ["rollback-current", "release-3", "release-2"]);
+  assert.deepEqual(plan.archived.map((release) => release.commit), ["release-1"]);
+  assert.ok(!plan.prunableObjectKeys.includes(`objects/${currentHash}.pck`));
+});
+
+test("R2 retention rejects manifests whose object key does not match the hash", () => {
+  const invalid = retentionManifest("invalid", 1, "a".repeat(64));
+  invalid.pck.key = `objects/${"b".repeat(64)}.pck`;
+  assert.throws(() => buildRetentionPlan({
+    releaseManifests: [{ key: "releases/invalid.json", manifest: invalid }],
+    currentManifest: invalid,
+    keep: 3,
+  }), /inconsistent PCK metadata/);
+});
+
+test("R2 local archive index keeps prior releases and updates duplicate commits", () => {
+  const previous = [
+    { commit: "old", published_at: "2026-08-01T00:00:00.000Z", verified: true },
+    { commit: "same", published_at: "2026-08-02T00:00:00.000Z", verified: false },
+  ];
+  const incoming = [
+    { commit: "same", published_at: "2026-08-02T00:00:00.000Z", verified: true },
+    { commit: "new", published_at: "2026-08-03T00:00:00.000Z", verified: true },
+  ];
+  assert.deepEqual(mergeArchiveEntries(previous, incoming), [
+    incoming[1],
+    incoming[0],
+    previous[0],
+  ]);
 });

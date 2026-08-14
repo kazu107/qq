@@ -14,6 +14,16 @@ func _run() -> void:
 	add_child(stage)
 	await get_tree().process_frame
 	stage.configure_combatants("player", "scout", "player")
+	var detail_counts: Dictionary = stage.get_environment_detail_counts()
+	if int(detail_counts.get("grass", 0)) != 112 \
+	or int(detail_counts.get("rocks", 0)) != 18 \
+	or int(detail_counts.get("flowers", 0)) != 16 \
+	or int(detail_counts.get("ruin_clusters", 0)) != 2 \
+	or stage.find_child("BattleGrass", true, false) == null \
+	or stage.find_child("BattleRuinClusterLeft", true, false) == null \
+	or stage.find_child("BattleCoolFill", true, false) == null:
+		_fail("3D battle stage smoke failed: optimized meadow and ruin dressing is incomplete (%s)" % [detail_counts])
+		return
 
 	var player_actor: BattleActor3D = stage.find_child("PlayerBattleActor3D", true, false) as BattleActor3D
 	var enemy_actor: BattleActor3D = stage.find_child("EnemyBattleActor3D", true, false) as BattleActor3D
