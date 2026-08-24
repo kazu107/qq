@@ -923,8 +923,13 @@ func _run() -> void:
 	stage_integration_state.battle_events.append(resolution_vfx_event)
 	battle_scene.set("_processed_vfx_event_count", 0)
 	battle_scene.call("_process_resolution_vfx", stage_integration_state)
-	if battle_player_actor.get_action_name() != "attack" or battle_enemy_actor.get_action_name() != "hit":
-		push_error("Card UI smoke failed: BattleScreen should forward resolution events to the 3D stage")
+	if battle_player_actor.get_action_name() != "attack" or battle_enemy_actor.get_action_name() == "hit":
+		push_error("Card UI smoke failed: BattleScreen should enqueue marker-synchronized 3D resolution events")
+		get_tree().quit(1)
+		return
+	_advance_battle_stage(battle_stage, battle_player_actor, battle_enemy_actor, 0.76)
+	if battle_enemy_actor.get_action_name() != "hit":
+		push_error("Card UI smoke failed: BattleScreen resolution should reach the 3D impact marker")
 		get_tree().quit(1)
 		return
 	var floating_values: Array[String] = battle_stage.get_floating_combat_text_values()
@@ -1265,6 +1270,21 @@ func _make_runtime_state(card_id: String, runtime_id: String, loadout_index: int
 	runtime_state.state = state
 	runtime_state.cooldown_remaining = cooldown_remaining
 	return runtime_state
+
+
+func _advance_battle_stage(
+	stage: BattleStage3D,
+	player_actor: BattleActor3D,
+	enemy_actor: BattleActor3D,
+	duration: float
+) -> void:
+	var remaining: float = duration
+	while remaining > 0.0:
+		var step: float = minf(0.05, remaining)
+		stage._process(step)
+		player_actor._process(step)
+		enemy_actor._process(step)
+		remaining -= step
 
 
 func _make_timeline_entry(card_id: String, owner_side: String, scheduled_time: float, created_at: float, instance_id: int) -> TimelineEntry:

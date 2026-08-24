@@ -71,6 +71,7 @@ func _run() -> void:
 			ready_right_depth,
 		])
 		return
+	AudioManager.clear_play_history()
 	stage.play_battle_event(_resolution_event(
 		"player",
 		"scout",
@@ -80,11 +81,26 @@ func _run() -> void:
 		{"hp": 35, "shield": 3, "statuses": {}},
 		{"hp": 29, "shield": 0, "statuses": {}}
 	))
-	if player_actor.get_action_name() != "attack" or enemy_actor.get_action_name() != "hit":
-		_fail("3D battle stage smoke failed: damage resolution should animate attack and hit")
+	if player_actor.get_action_name() != "attack" \
+	or enemy_actor.get_action_name() == "hit" \
+	or AudioManager.get_last_sfx_id() != "":
+		_fail("3D battle stage smoke failed: target reaction should wait for the impact marker")
+		return
+	_advance(stage, player_actor, enemy_actor, 0.76)
+	if enemy_actor.get_action_name() != "hit":
+		_fail("3D battle stage smoke failed: impact marker should animate the target hit")
+		return
+	if AudioManager.get_last_sfx_id() != "card_strike":
+		_fail("3D battle stage smoke failed: card SE should play on the impact marker")
 		return
 	if stage.find_child("BattleProjectile3D", true, false) == null or stage.find_child("BattleImpact3D", true, false) == null:
-		_fail("3D battle stage smoke failed: damage resolution should spawn projectile and impact VFX")
+		_fail("3D battle stage smoke failed: release and impact markers should spawn synchronized VFX")
+		return
+	var cue_markers: Array[String] = []
+	for cue_data: Dictionary in stage.get_animation_cue_log():
+		cue_markers.append(String(cue_data.get("marker", "")))
+	if not cue_markers.has("release") or not cue_markers.has("impact"):
+		_fail("3D battle stage smoke failed: attack cue order was incomplete (%s)" % [cue_markers])
 		return
 	var first_floating_values: Array[String] = stage.get_floating_combat_text_values()
 	if not first_floating_values.has("-6") or not first_floating_values.has("-3"):
@@ -96,7 +112,7 @@ func _run() -> void:
 		_fail("3D battle stage smoke failed: actor HUD projection should produce separate screen positions")
 		return
 
-	_advance(stage, player_actor, enemy_actor, 0.82)
+	_advance(stage, player_actor, enemy_actor, 1.10)
 	stage.play_battle_event(_resolution_event(
 		"scout",
 		"player",
@@ -106,11 +122,15 @@ func _run() -> void:
 		{"hp": 29, "shield": 0, "statuses": {}},
 		{"hp": 29, "shield": 0, "statuses": {}}
 	))
-	if enemy_actor.get_action_name() != "attack" or player_actor.get_action_name() != "block":
+	if enemy_actor.get_action_name() != "attack":
+		_fail("3D battle stage smoke failed: blocked damage should begin with an attack")
+		return
+	_advance(stage, player_actor, enemy_actor, 0.76)
+	if player_actor.get_action_name() != "block":
 		_fail("3D battle stage smoke failed: fully blocked damage should animate attack and guard")
 		return
 
-	_advance(stage, player_actor, enemy_actor, 0.82)
+	_advance(stage, player_actor, enemy_actor, 1.10)
 	stage.play_battle_event(_resolution_event(
 		"player",
 		"scout",
@@ -124,7 +144,7 @@ func _run() -> void:
 		_fail("3D battle stage smoke failed: shield gain should animate the caster")
 		return
 
-	_advance(stage, player_actor, enemy_actor, 0.82)
+	_advance(stage, player_actor, enemy_actor, 1.10)
 	stage.play_battle_event(_resolution_event(
 		"player",
 		"scout",
@@ -138,7 +158,7 @@ func _run() -> void:
 		_fail("3D battle stage smoke failed: healing should take priority over shield pose")
 		return
 
-	_advance(stage, player_actor, enemy_actor, 0.82)
+	_advance(stage, player_actor, enemy_actor, 1.10)
 	stage.play_battle_event(_resolution_event(
 		"scout",
 		"player",
@@ -148,7 +168,11 @@ func _run() -> void:
 		{"hp": 29, "shield": 0, "statuses": {}},
 		{"hp": 29, "shield": 0, "statuses": {}}
 	))
-	if enemy_actor.get_action_name() != "attack" or player_actor.get_action_name() != "status":
+	if enemy_actor.get_action_name() != "attack":
+		_fail("3D battle stage smoke failed: status attack should begin on the source actor")
+		return
+	_advance(stage, player_actor, enemy_actor, 0.76)
+	if player_actor.get_action_name() != "status":
 		_fail("3D battle stage smoke failed: status cards should animate source and target (%s / %s, pending %d)" % [
 			enemy_actor.get_action_name(),
 			player_actor.get_action_name(),
@@ -156,7 +180,7 @@ func _run() -> void:
 		])
 		return
 
-	_advance(stage, player_actor, enemy_actor, 0.82)
+	_advance(stage, player_actor, enemy_actor, 1.10)
 	stage.play_battle_event({
 		"event_type": "prepare_card",
 		"actor_id": "scout",
@@ -170,11 +194,12 @@ func _run() -> void:
 		"target_id": "scout",
 		"card_id": "strike",
 	})
+	_advance(stage, player_actor, enemy_actor, 0.76)
 	if enemy_actor.get_action_name() != "interrupt":
 		_fail("3D battle stage smoke failed: interrupted casts should play a stagger animation")
 		return
 
-	_advance(stage, player_actor, enemy_actor, 0.68)
+	_advance(stage, player_actor, enemy_actor, 1.05)
 	stage.play_battle_event({
 		"event_type": "battle_end",
 		"actor_id": "player",
@@ -207,9 +232,12 @@ func _run() -> void:
 		{"hp": 44, "shield": 0},
 		{"hp": 48, "shield": 3}
 	))
+	if player_actor.get_action_name() != "attack":
+		_fail("3D battle stage smoke failed: compact Web event should start the mapped local attack")
+		return
+	_advance(stage, player_actor, enemy_actor, 0.76)
 	var web_floating_values: Array[String] = stage.get_floating_combat_text_values()
-	if player_actor.get_action_name() != "attack" \
-	or enemy_actor.get_action_name() != "hit" \
+	if enemy_actor.get_action_name() != "hit" \
 	or not web_floating_values.has("+4") \
 	or not web_floating_values.has("+3") \
 	or not web_floating_values.has("-6") \
@@ -244,7 +272,7 @@ func _run() -> void:
 		{"hp": 35, "shield": 0},
 		{"hp": 29, "shield": 0}
 	))
-	_advance(stage, player_actor, enemy_actor, 0.82)
+	_advance(stage, player_actor, enemy_actor, 1.10)
 	if player_actor.get_action_name() != "ready" or not player_actor.is_timeline_stance_active():
 		_fail("3D battle stage smoke failed: resolving one of multiple cards should return to the ready stance")
 		return
@@ -257,7 +285,7 @@ func _run() -> void:
 		{"hp": 29, "shield": 0},
 		{"hp": 23, "shield": 0}
 	))
-	_advance(stage, player_actor, enemy_actor, 0.82)
+	_advance(stage, player_actor, enemy_actor, 1.10)
 	if player_actor.get_action_name() != "idle" \
 	or player_actor.is_timeline_stance_active() \
 	or player_actor.get_timeline_stance_blend() > 0.001:

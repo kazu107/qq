@@ -55,6 +55,7 @@ var _round_results_acknowledged: bool = false
 
 func _ready() -> void:
 	_build_ui()
+	_engine.set_defer_resolution_audio(true)
 	_lan_mode = NetworkManager.has_active_match() or NetworkManager.is_local_waiting_for_round_results()
 	if _lan_mode:
 		_connect_lan_signals()

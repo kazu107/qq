@@ -28,6 +28,13 @@ func _run() -> void:
 	var action_option: OptionButton = lab.find_child("BattleAnimationLabAction", true, false) as OptionButton
 	var camera_option: OptionButton = lab.find_child("BattleAnimationLabCamera", true, false) as OptionButton
 	var speed_slider: HSlider = lab.find_child("BattleAnimationLabSpeed", true, false) as HSlider
+	var pause_button: Button = lab.find_child("BattleAnimationLabPause", true, false) as Button
+	var step_forward_button: Button = lab.find_child("BattleAnimationLabStepForward", true, false) as Button
+	var scrub_slider: HSlider = lab.find_child("BattleAnimationLabScrub", true, false) as HSlider
+	var clip_label: Label = lab.find_child("BattleAnimationLabClipLabel", true, false) as Label
+	var playback_time: Label = lab.find_child("BattleAnimationLabPlaybackTime", true, false) as Label
+	var marker_track: Control = lab.find_child("BattleAnimationLabMarkerTrack", true, false) as Control
+	var events_label: Label = lab.find_child("BattleAnimationLabEvents", true, false) as Label
 	var play_button: Button = lab.find_child("BattleAnimationLabPlay", true, false) as Button
 	var status_label: Label = lab.find_child("BattleAnimationLabStatus", true, false) as Label
 	if stage == null \
@@ -36,6 +43,13 @@ func _run() -> void:
 	or action_option == null \
 	or camera_option == null \
 	or speed_slider == null \
+	or pause_button == null \
+	or step_forward_button == null \
+	or scrub_slider == null \
+	or clip_label == null \
+	or playback_time == null \
+	or marker_track == null \
+	or events_label == null \
 	or play_button == null \
 	or status_label == null:
 		var missing_controls: Array[String] = []
@@ -46,6 +60,13 @@ func _run() -> void:
 			"BattleAnimationLabAction",
 			"BattleAnimationLabCamera",
 			"BattleAnimationLabSpeed",
+			"BattleAnimationLabPause",
+			"BattleAnimationLabStepForward",
+			"BattleAnimationLabScrub",
+			"BattleAnimationLabClipLabel",
+			"BattleAnimationLabPlaybackTime",
+			"BattleAnimationLabMarkerTrack",
+			"BattleAnimationLabEvents",
 			"BattleAnimationLabPlay",
 			"BattleAnimationLabStatus",
 		]:
@@ -92,15 +113,33 @@ func _run() -> void:
 
 	_select_by_metadata(action_option, "block")
 	play_button.pressed.emit()
+	lab._process(0.0)
 	if player.get_action_name() != "block":
 		_fail("Battle animation lab smoke failed: action playback did not target the selected actor")
 		return
+	if player.get_active_animation_clip() != "block" \
+	or not clip_label.text.contains("block") \
+	or not playback_time.text.contains("fps") \
+	or not events_label.text.contains("guard_up") \
+	or marker_track.get_child_count() < 4:
+		_fail("Battle animation lab smoke failed: clip time or marker inspector was incomplete")
+		return
 
-	speed_slider.value = 0.0
-	speed_slider.value_changed.emit(speed_slider.value)
+	pause_button.pressed.emit()
 	if not is_equal_approx(player.get_animation_speed_scale(), 0.0) \
 	or not is_equal_approx(enemy.get_animation_speed_scale(), 0.0):
-		_fail("Battle animation lab smoke failed: playback speed was not applied to both actors")
+		_fail("Battle animation lab smoke failed: pause did not freeze both actors")
+		return
+	var time_before_step: float = player.get_animation_normalized_time()
+	step_forward_button.pressed.emit()
+	if player.get_animation_normalized_time() <= time_before_step:
+		_fail("Battle animation lab smoke failed: frame stepping did not advance the selected actor")
+		return
+	scrub_slider.drag_started.emit()
+	scrub_slider.value = 0.5
+	scrub_slider.drag_ended.emit(true)
+	if absf(player.get_animation_normalized_time() - 0.5) > 0.01:
+		_fail("Battle animation lab smoke failed: scrubber did not seek to the requested time")
 		return
 
 	var panel := DeveloperPanel.new()
@@ -111,7 +150,7 @@ func _run() -> void:
 		return
 
 	Game.settings["developer_mode"] = _previous_developer_mode
-	print("BATTLE_ANIMATION_LAB_SMOKE_OK %d models, poses, cameras, and speed controls validated" % profile_count)
+	print("BATTLE_ANIMATION_LAB_SMOKE_OK %d models, poses, cameras, pause, scrub, markers, and frame stepping validated" % profile_count)
 	get_tree().quit()
 
 

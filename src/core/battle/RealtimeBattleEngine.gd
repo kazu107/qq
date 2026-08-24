@@ -15,10 +15,15 @@ var _manual_start_required: bool = false
 var _enemy_name: String = ""
 var _pvp_mode: bool = false
 var _audio_enabled: bool = true
+var _defer_resolution_audio: bool = false
 
 
 func set_audio_enabled(enabled: bool) -> void:
 	_audio_enabled = enabled
+
+
+func set_defer_resolution_audio(enabled: bool) -> void:
+	_defer_resolution_audio = enabled
 
 
 func dispose() -> void:
@@ -35,7 +40,7 @@ func _play_sfx(sfx_id: String, pitch_scale: float = 1.0, volume_db: float = 0.0)
 
 
 func _play_card_resolution(card_def: CardDef, fully_blocked: bool) -> void:
-	if _audio_enabled:
+	if _audio_enabled and not _defer_resolution_audio:
 		AudioManager.play_card_resolution(card_def, fully_blocked)
 
 
@@ -738,6 +743,7 @@ func _resolve_due_entries() -> void:
 				"target_hp_after": target_unit.hp,
 				"target_shield_before": target_shield_before,
 				"target_shield_after": target_unit.shield,
+				"fully_blocked": fully_blocked,
 			},
 			target_unit.hp - target_hp_before,
 			target_unit.shield - target_shield_before,

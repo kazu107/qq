@@ -1,6 +1,14 @@
 extends Node3D
 class_name BattleActor3D
 
+signal action_marker(
+	actor: BattleActor3D,
+	action_id: String,
+	clip_id: String,
+	marker_id: String,
+	marker_time: float
+)
+
 const HUMANOID_SCENE: PackedScene = preload("res://scenes/battle/CommonBattleHumanoid3D.tscn")
 const PLAYER_PRIMARY := Color(0.08, 0.42, 0.96, 1.0)
 const PLAYER_ACCENT := Color(0.22, 0.88, 1.0, 1.0)
@@ -43,6 +51,15 @@ var _authored_bone_pairs: Array[Vector2i] = []
 var _platform_mesh: MeshInstance3D
 var _platform_material: StandardMaterial3D
 var _platform_base_scale: Vector3 = Vector3.ONE
+var _visual_motion_root: Node3D
+var _animation_player: AnimationPlayer
+var _animation_tree: AnimationTree
+var _animation_state_machine: AnimationNodeStateMachine
+var _animation_playback: AnimationNodeStateMachinePlayback
+var _animation_graph_ready: bool = false
+var _active_clip_name: String = "idle"
+var _clip_elapsed: float = 0.0
+var _marker_history: Array[Dictionary] = []
 var _visual_profile_id: String = ""
 var _visual_profile: Dictionary = {}
 var _elapsed: float = 0.0
@@ -73,6 +90,7 @@ func configure(side: String, visual_profile_id: String = "", visual_profile: Dic
 		_visual_profile_id = "default_player" if actor_side == "player" else "default_enemy"
 		_visual_profile = _default_visual_profile()
 	_apply_palette()
+	_sync_animation_state(true)
 	set_process(true)
 
 
@@ -82,11 +100,14 @@ func configure_visual(visual_profile_id: String, visual_profile: Dictionary) -> 
 	if _visual_profile.is_empty():
 		_visual_profile = _default_visual_profile()
 	_apply_palette()
+	_sync_animation_state(true)
 
 
 func _ready() -> void:
 	if not _visual_built:
 		configure(actor_side)
+	_build_animation_graph()
+	_sync_animation_state(true, true)
 	_home_position = position
 	_home_rotation = rotation
 	_home_position_initialized = true
@@ -110,6 +131,9 @@ func _process(delta: float) -> void:
 			_action = ACTION_READY if _casting else ACTION_IDLE
 			_action_elapsed = 0.0
 			_action_duration = 0.0
+	if _animation_graph_ready:
+		_sync_animation_state()
+		_advance_animation_graph(animation_delta)
 	_update_pose()
 
 
@@ -126,12 +150,14 @@ func play_action(action: StringName, duration: float = -1.0) -> void:
 			_action = ACTION_CAST
 			_action_elapsed = 0.0
 			_action_duration = 0.0
+			_sync_animation_state(true)
 		return
 	if action == ACTION_IDLE:
 		_casting = false
 		_action = ACTION_IDLE
 		_action_elapsed = 0.0
 		_action_duration = 0.0
+		_sync_animation_state(true)
 		return
 	if action == ACTION_DEFEAT:
 		_defeated = true
@@ -140,7 +166,12 @@ func play_action(action: StringName, duration: float = -1.0) -> void:
 		_casting = false
 	_action = action
 	_action_elapsed = 0.0
-	_action_duration = duration if duration > 0.0 else float(ACTION_DURATIONS.get(action, 0.62))
+	var resolved_clip: String = _resolve_clip_for_action(action)
+	_action_duration = duration if duration > 0.0 else BattleAnimationCatalog.get_clip_duration(
+		resolved_clip,
+		float(ACTION_DURATIONS.get(action, 0.62))
+	)
+	_sync_animation_state(true)
 
 
 func start_timeline_stance() -> void:
@@ -152,6 +183,7 @@ func start_timeline_stance() -> void:
 		_action = ACTION_READY
 		_action_elapsed = 0.0
 		_action_duration = 0.0
+		_sync_animation_state(true)
 
 
 func stop_timeline_stance() -> void:
@@ -160,6 +192,7 @@ func stop_timeline_stance() -> void:
 		_action = ACTION_IDLE
 		_action_elapsed = 0.0
 		_action_duration = 0.0
+		_sync_animation_state(true)
 
 
 func stop_casting() -> void:
@@ -174,6 +207,7 @@ func reset_performance() -> void:
 	_last_action = ACTION_IDLE
 	_action_elapsed = 0.0
 	_action_duration = 0.0
+	_sync_animation_state(true, true)
 	_update_pose()
 
 
@@ -205,6 +239,79 @@ func set_animation_speed_scale(speed_scale: float) -> void:
 
 func get_animation_speed_scale() -> float:
 	return _animation_speed_scale
+
+
+func is_animation_graph_ready() -> bool:
+	return _animation_graph_ready
+
+
+func get_animation_player() -> AnimationPlayer:
+	return _animation_player
+
+
+func get_animation_tree() -> AnimationTree:
+	return _animation_tree
+
+
+func get_animation_state_count() -> int:
+	return BattleAnimationCatalog.get_clip_ids().size() if _animation_graph_ready else 0
+
+
+func get_active_animation_clip() -> String:
+	return _active_clip_name
+
+
+func get_active_animation_duration() -> float:
+	return BattleAnimationCatalog.get_clip_duration(_active_clip_name)
+
+
+func get_animation_normalized_time() -> float:
+	return clampf(_clip_elapsed / maxf(0.001, get_active_animation_duration()), 0.0, 1.0)
+
+
+func get_active_animation_events() -> Array[Dictionary]:
+	return BattleAnimationCatalog.get_clip_events(_active_clip_name)
+
+
+func get_visual_motion_position() -> Vector3:
+	return _visual_motion_root.position if _visual_motion_root != null else Vector3.ZERO
+
+
+func get_visual_motion_rotation() -> Vector3:
+	return _visual_motion_root.rotation if _visual_motion_root != null else Vector3.ZERO
+
+
+func get_animation_marker_history() -> Array[Dictionary]:
+	return _marker_history.duplicate(true)
+
+
+func clear_animation_marker_history() -> void:
+	_marker_history.clear()
+
+
+func set_animation_normalized_time(normalized_time: float) -> void:
+	if not _animation_graph_ready or _animation_playback == null:
+		return
+	var target_time: float = clampf(normalized_time, 0.0, 1.0) * get_active_animation_duration()
+	_animation_playback.start(StringName(_active_clip_name), true)
+	_clip_elapsed = 0.0
+	_animation_tree.advance(0.0)
+	_animation_tree.advance(target_time)
+	_clip_elapsed = target_time
+	if _action != ACTION_IDLE and _action != ACTION_READY and _action != ACTION_CAST:
+		_action_elapsed = minf(target_time, _action_duration)
+	_update_clip_visuals()
+
+
+func step_animation_frames(frame_count: int = 1) -> void:
+	if not _animation_graph_ready:
+		return
+	var target_time: float = clampf(
+		_clip_elapsed + float(frame_count) / float(BattleAnimationCatalog.get_fps()),
+		0.0,
+		get_active_animation_duration()
+	)
+	set_animation_normalized_time(target_time / maxf(0.001, get_active_animation_duration()))
 
 
 func get_humanoid_model() -> CommonBattleHumanoid3D:
@@ -313,17 +420,23 @@ func _build_visual() -> void:
 	platform_mesh.radial_segments = 16
 	platform_mesh.rings = 1
 	_platform_mesh = _add_mesh(self, "Platform", platform_mesh, Vector3(0.0, 0.06, 0.0), _platform_material)
+	_visual_motion_root = Node3D.new()
+	_visual_motion_root.name = "VisualMotionRoot"
+	add_child(_visual_motion_root)
 
 	_humanoid = HUMANOID_SCENE.instantiate() as CommonBattleHumanoid3D
 	if _humanoid == null:
 		push_error("Common battle humanoid scene could not be instantiated")
 		return
 	_humanoid.name = "CommonBattleHumanoid3D"
-	add_child(_humanoid)
+	_visual_motion_root.add_child(_humanoid)
 
 
 func _update_pose() -> void:
 	if _humanoid == null:
+		return
+	if _animation_graph_ready:
+		_update_clip_visuals()
 		return
 	var wave: float = sin(_elapsed * 2.1 + _phase_offset)
 	var slow_wave: float = sin(_elapsed * 1.05 + _phase_offset)
@@ -367,6 +480,140 @@ func _update_pose() -> void:
 	_sync_authored_pose()
 	if _platform_mesh != null:
 		_platform_mesh.scale = _platform_base_scale * (1.0 + sin(_elapsed * 3.2) * 0.018)
+
+
+func _build_animation_graph() -> void:
+	if _animation_graph_ready or _humanoid == null or _humanoid.get_skeleton() == null:
+		return
+	var animation_library: AnimationLibrary = BattleAnimationCatalog.get_animation_library()
+	if animation_library == null or BattleAnimationCatalog.get_clip_ids().is_empty():
+		push_warning("Battle animation graph unavailable: %s" % BattleAnimationCatalog.get_load_error())
+		return
+
+	_animation_player = AnimationPlayer.new()
+	_animation_player.name = "BattleAnimationPlayer"
+	_animation_player.root_node = NodePath("..")
+	_animation_player.add_animation_library(&"", animation_library)
+	add_child(_animation_player)
+
+	_animation_state_machine = AnimationNodeStateMachine.new()
+	var clip_ids: Array[String] = BattleAnimationCatalog.get_clip_ids()
+	for clip_index in range(clip_ids.size()):
+		var clip_id: String = clip_ids[clip_index]
+		var animation_node := AnimationNodeAnimation.new()
+		animation_node.animation = StringName(clip_id)
+		var node_position := Vector2(
+			float(clip_index % 6) * 190.0,
+			float(clip_index / 6) * 100.0
+		)
+		_animation_state_machine.add_node(StringName(clip_id), animation_node, node_position)
+	for from_clip: String in clip_ids:
+		for to_clip: String in clip_ids:
+			if from_clip == to_clip:
+				continue
+			var transition := AnimationNodeStateMachineTransition.new()
+			transition.xfade_time = BattleAnimationCatalog.get_blend_time()
+			transition.reset = true
+			_animation_state_machine.add_transition(StringName(from_clip), StringName(to_clip), transition)
+
+	_animation_tree = AnimationTree.new()
+	_animation_tree.name = "BattleAnimationTree"
+	_animation_tree.tree_root = _animation_state_machine
+	add_child(_animation_tree)
+	_animation_tree.anim_player = _animation_tree.get_path_to(_animation_player)
+	_animation_tree.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+	_animation_tree.callback_mode_method = AnimationMixer.ANIMATION_CALLBACK_MODE_METHOD_IMMEDIATE
+	_animation_tree.active = true
+	_animation_playback = _animation_tree.get("parameters/playback") as AnimationNodeStateMachinePlayback
+	if _animation_playback == null:
+		push_warning("Battle animation state machine playback could not be created")
+		_animation_tree.active = false
+		return
+	_animation_graph_ready = true
+	_active_clip_name = "idle"
+	_clip_elapsed = 0.0
+	_animation_playback.start(&"idle", true)
+	_animation_tree.advance(0.0)
+
+
+func _resolve_clip_for_action(action: StringName) -> String:
+	return BattleAnimationCatalog.resolve_clip(
+		String(action),
+		get_weapon_type(),
+		get_offhand_type()
+	)
+
+
+func _sync_animation_state(force_restart: bool = false, immediate: bool = false) -> void:
+	if not _animation_graph_ready or _animation_playback == null:
+		return
+	var desired_clip: String = _resolve_clip_for_action(_action)
+	var same_clip: bool = desired_clip == _active_clip_name
+	if same_clip and not force_restart:
+		return
+	_active_clip_name = desired_clip
+	_clip_elapsed = 0.0
+	if immediate or same_clip and force_restart:
+		_animation_playback.start(StringName(desired_clip), true)
+	else:
+		_animation_playback.travel(StringName(desired_clip))
+	_animation_tree.advance(0.0)
+
+
+func _advance_animation_graph(delta: float) -> void:
+	if not _animation_graph_ready or _animation_tree == null or delta <= 0.0:
+		return
+	var duration: float = get_active_animation_duration()
+	_clip_elapsed += delta
+	if BattleAnimationCatalog.is_looping(_active_clip_name):
+		_clip_elapsed = fmod(_clip_elapsed, duration)
+	else:
+		_clip_elapsed = minf(_clip_elapsed, duration)
+	_animation_tree.advance(delta)
+
+
+func _update_clip_visuals() -> void:
+	if _humanoid == null:
+		return
+	position = _home_position
+	rotation = _home_rotation
+	if _visual_motion_root != null and _action == ACTION_DEFEAT:
+		var motion_rotation: Vector3 = _visual_motion_root.rotation
+		motion_rotation.z = absf(motion_rotation.z) * (1.0 if actor_side == "player" else -1.0)
+		_visual_motion_root.rotation = motion_rotation
+	var progress: float = get_animation_normalized_time()
+	_humanoid.set_shield_pulse(1.0, 0.54)
+	if _action == ACTION_BLOCK:
+		_humanoid.set_shield_pulse(1.06 + sin(progress * PI) * 0.08, 1.8 + sin(progress * PI * 4.0) * 0.24)
+	elif _action == ACTION_SHIELD:
+		var shield_pulse: float = sin(progress * PI)
+		_humanoid.set_shield_pulse(1.0 + shield_pulse * 0.34, 1.45 + shield_pulse * 1.15)
+	var slow_wave: float = sin(_elapsed * 1.05 + _phase_offset)
+	var action_energy: float = 0.72
+	if _action == ACTION_READY:
+		action_energy = 0.94
+	elif _action != ACTION_IDLE:
+		action_energy = 1.18
+	_humanoid.set_accent_energy(action_energy + (slow_wave + 1.0) * 0.18)
+	_humanoid.finish_pose()
+	_sync_authored_pose()
+	if _platform_mesh != null:
+		_platform_mesh.scale = _platform_base_scale * (1.0 + sin(_elapsed * 3.2) * 0.018)
+
+
+func _on_animation_marker_from_clip(clip_id: String, marker_id: String, marker_time: float) -> void:
+	if clip_id != _active_clip_name or marker_id == "":
+		return
+	var marker_data: Dictionary = {
+		"action": String(_action),
+		"clip": clip_id,
+		"marker": marker_id,
+		"time": marker_time,
+	}
+	_marker_history.append(marker_data)
+	while _marker_history.size() > 32:
+		_marker_history.pop_front()
+	action_marker.emit(self, String(_action), clip_id, marker_id, marker_time)
 
 
 func _apply_idle_pose(wave: float, slow_wave: float) -> void:
@@ -598,7 +845,7 @@ func _configure_authored_model() -> void:
 		return
 	_authored_model.name = "AuthoredBattleModel"
 	_authored_model.scale = _humanoid.get_body_scale()
-	add_child(_authored_model)
+	_visual_motion_root.add_child(_authored_model)
 	_authored_skeleton = _find_skeleton(_authored_model)
 	if _authored_skeleton == null:
 		push_warning("Authored battle model has no Skeleton3D: %s" % model_path)

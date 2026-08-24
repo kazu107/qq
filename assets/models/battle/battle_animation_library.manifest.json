@@ -1,0 +1,28 @@
+{
+  "format_version": 1,
+  "fps": 30,
+  "source": "data/battle_animations.json",
+  "source_sha256": "bee48835871951f40f50c1d162facb6a279ba0ef1f668ad876f53cc89b64f6f9",
+  "clips": [
+    "attack_arcane",
+    "attack_heavy",
+    "attack_melee",
+    "attack_ranged",
+    "block",
+    "cast",
+    "defeat",
+    "heal",
+    "hit",
+    "idle",
+    "interrupt",
+    "ready_arcane",
+    "ready_guard",
+    "ready_melee",
+    "ready_ranged",
+    "shield",
+    "status",
+    "victory"
+  ],
+  "glb": "assets/models/battle/battle_animation_library.glb",
+  "blend": "art_src/blender/battle_animation_library.blend"
+}

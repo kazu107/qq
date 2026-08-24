@@ -121,8 +121,9 @@ func _run() -> void:
 
 	actor.reset_performance()
 	actor.play_action(BattleActor3D.ACTION_DEFEAT)
-	actor._process(0.42)
-	if absf(actor.rotation.z) < 0.22:
+	for _frame_index in range(17):
+		actor._process(0.05)
+	if absf(actor.get_visual_motion_rotation().z) < 0.22:
 		_fail("Common humanoid smoke failed: defeat animation did not move the whole skeleton")
 		return
 
@@ -133,7 +134,11 @@ func _run() -> void:
 func _assert_bone_action(actor: BattleActor3D, action: StringName, bone_name: String, minimum_angle: float) -> bool:
 	actor.reset_performance()
 	actor.play_action(action)
-	actor._process(0.18)
+	var sample_time: float = minf(0.24, actor.get_active_animation_duration() * 0.5)
+	var events: Array[Dictionary] = actor.get_active_animation_events()
+	if not events.is_empty():
+		sample_time = float(events[0].get("time", sample_time))
+	actor.set_animation_normalized_time(sample_time / maxf(0.001, actor.get_active_animation_duration()))
 	var rotation_angle: float = Quaternion.IDENTITY.angle_to(actor.get_bone_pose_rotation(bone_name))
 	if actor.get_action_name() != String(action) or rotation_angle < minimum_angle:
 		_fail("Common humanoid smoke failed: %s did not animate %s (%.3f)" % [action, bone_name, rotation_angle])

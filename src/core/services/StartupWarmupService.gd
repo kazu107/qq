@@ -40,6 +40,7 @@ static func warm_all() -> Dictionary:
 	var battle_3d_model_count: int = BattleActor3D.warm_authored_model_cache(
 		Database.get_all_battle_visual_profiles()
 	)
+	var battle_animation_count: int = BattleAnimationCatalog.warm_cache()
 
 	return {
 		"scenes": SceneRouter.get_cached_scene_count(),
@@ -54,6 +55,7 @@ static func warm_all() -> Dictionary:
 		"map_icons": map_icon_count,
 		"battle_3d_meshes": battle_3d_mesh_count,
 		"battle_3d_models": battle_3d_model_count,
+		"battle_animations": battle_animation_count,
 		"network_hash": LanProtocol.build_content_hash().left(12),
 	}
 
@@ -99,6 +101,7 @@ static func warm_all_async(progress_callback: Callable = Callable()) -> Dictiona
 	data.summary["battle_3d_models"] = BattleActor3D.warm_authored_model_cache(
 		Database.get_all_battle_visual_profiles()
 	)
+	data.summary["battle_animations"] = BattleAnimationCatalog.warm_cache()
 
 	_report_progress(progress_callback, "boot.caching_network", 0.99)
 	await _next_frame()

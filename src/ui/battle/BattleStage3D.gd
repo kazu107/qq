@@ -60,6 +60,9 @@ var _queued_events: Array[Dictionary] = []
 var _active_event: Dictionary = {}
 var _active_event_elapsed: float = 0.0
 var _active_event_duration: float = 0.0
+var _pending_resolution_visual: Dictionary = {}
+var _pending_interrupt_visual: Dictionary = {}
+var _animation_cue_log: Array[Dictionary] = []
 var _effects: Array[StageEffect] = []
 var _floating_texts: Array[FloatingCombatText] = []
 var _floating_text_serial: int = 0
@@ -104,6 +107,9 @@ func configure_combatants(
 	_active_event.clear()
 	_active_event_elapsed = 0.0
 	_active_event_duration = 0.0
+	_pending_resolution_visual.clear()
+	_pending_interrupt_visual.clear()
+	_animation_cue_log.clear()
 	_clear_effects()
 	_clear_floating_combat_texts()
 	if _player_actor != null:
@@ -123,7 +129,8 @@ func configure_combatants(
 func play_battle_event(event_data: Dictionary) -> void:
 	if event_data.is_empty():
 		return
-	_emit_event_combat_text(event_data)
+	if String(event_data.get("event_type", "")) != "resolve_card":
+		_emit_event_combat_text(event_data)
 	_queued_events.append(event_data.duplicate(true))
 	while _queued_events.size() > MAX_QUEUED_EVENTS:
 		_queued_events.pop_front()
@@ -197,6 +204,10 @@ func set_camera_preset(preset_id: String, focus_unit_id: String = "") -> void:
 
 func get_camera_position() -> Vector3:
 	return _camera.position if _camera != null else Vector3.ZERO
+
+
+func get_animation_cue_log() -> Array[Dictionary]:
+	return _animation_cue_log.duplicate(true)
 
 
 func _build_stage() -> void:
@@ -571,12 +582,14 @@ func _build_actors() -> void:
 	_enemy_actor.configure("enemy")
 	_enemy_actor.position = Vector3(-2.55, 0.08, -0.75)
 	_world_root.add_child(_enemy_actor)
+	_enemy_actor.action_marker.connect(_on_actor_action_marker)
 
 	_player_actor = BattleActor3D.new()
 	_player_actor.name = "PlayerBattleActor3D"
 	_player_actor.configure("player")
 	_player_actor.position = Vector3(2.55, 0.08, 0.85)
 	_world_root.add_child(_player_actor)
+	_player_actor.action_marker.connect(_on_actor_action_marker)
 
 	_enemy_actor.look_at(_player_actor.position, Vector3.UP)
 	_player_actor.look_at(_enemy_actor.position, Vector3.UP)
@@ -670,6 +683,7 @@ func _update_event_queue(delta: float) -> void:
 	_active_event_elapsed += delta
 	if _active_event_elapsed < _active_event_duration:
 		return
+	_flush_pending_animation_cues()
 	_active_event.clear()
 	_active_event_elapsed = 0.0
 	_active_event_duration = 0.0
@@ -681,6 +695,8 @@ func _start_next_event() -> void:
 		return
 	_active_event = _queued_events.pop_front()
 	_active_event_elapsed = 0.0
+	_pending_resolution_visual.clear()
+	_pending_interrupt_visual.clear()
 	_active_event_duration = _begin_event(_active_event)
 	if _active_event_duration <= 0.0:
 		_active_event_duration = 0.08
@@ -697,8 +713,7 @@ func _begin_event(event_data: Dictionary) -> float:
 			_begin_prepare(event_data)
 			return 0.18
 		"resolve_card":
-			_begin_resolution(event_data)
-			return 0.76
+			return _begin_resolution(event_data)
 		"status_damage":
 			var status_target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
 			if status_target != null:
@@ -707,8 +722,7 @@ func _begin_event(event_data: Dictionary) -> float:
 			_add_camera_shake(0.10)
 			return 0.46
 		"interrupt_card":
-			_begin_interrupt(event_data)
-			return 0.58
+			return _begin_interrupt(event_data)
 		"boss_passive":
 			var boss_actor: BattleActor3D = _actor_for_unit_id(String(event_data.get("actor_id", "")))
 			var passive_target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
@@ -735,7 +749,7 @@ func _begin_prepare(event_data: Dictionary) -> void:
 	_spawn_impact(_actor_effect_position(actor), _color_for_actor(actor), 0.38, 1.24)
 
 
-func _begin_resolution(event_data: Dictionary) -> void:
+func _begin_resolution(event_data: Dictionary) -> float:
 	var actor_id: String = String(event_data.get("actor_id", ""))
 	var target_id: String = String(event_data.get("target_id", ""))
 	var actor: BattleActor3D = _actor_for_unit_id(actor_id)
@@ -750,40 +764,167 @@ func _begin_resolution(event_data: Dictionary) -> void:
 	var offensive: bool = bool(profile.get("offensive", false)) \
 		or int(target_delta.get("hp", 0)) < 0 \
 		or int(target_delta.get("shield", 0)) < 0
+	var action_id: StringName = BattleActor3D.ACTION_ATTACK
 
 	if actor != null:
 		if offensive and target != null and target != actor:
-			actor.play_action(BattleActor3D.ACTION_ATTACK)
-			_spawn_projectile(actor, target, _resolve_card_color(card_def), 0.42)
+			action_id = BattleActor3D.ACTION_ATTACK
 		elif int(actor_delta.get("hp", 0)) > 0 or bool(profile.get("heal", false)):
-			actor.play_action(BattleActor3D.ACTION_HEAL)
+			action_id = BattleActor3D.ACTION_HEAL
 		elif int(actor_delta.get("shield", 0)) > 0 or bool(profile.get("shield", false)):
-			actor.play_action(BattleActor3D.ACTION_SHIELD)
+			action_id = BattleActor3D.ACTION_SHIELD
 		elif bool(profile.get("status", false)):
-			actor.play_action(BattleActor3D.ACTION_STATUS)
-		else:
-			actor.play_action(BattleActor3D.ACTION_ATTACK)
+			action_id = BattleActor3D.ACTION_STATUS
+		actor.play_action(action_id)
 
-	_apply_unit_delta(actor, actor_delta, profile, actor == target)
-	if target != actor:
-		_apply_unit_delta(target, target_delta, profile, true)
-	if bool(profile.get("status", false)) and target != null:
-		_spawn_impact(_actor_effect_position(target), STATUS_COLOR, 0.62, 1.68)
-	if offensive:
-		_add_camera_shake(0.13 if int(target_delta.get("hp", 0)) < 0 else 0.08)
+	_pending_resolution_visual = {
+		"actor": actor,
+		"target": target,
+		"card_def": card_def,
+		"profile": profile,
+		"actor_delta": actor_delta,
+		"target_delta": target_delta,
+		"offensive": offensive,
+		"projectile_spawned": false,
+		"resolved": false,
+	}
+	if actor == null:
+		_apply_pending_resolution_visuals()
+		return 0.16
+	return maxf(
+		0.76,
+		actor.get_active_animation_duration() + BattleAnimationCatalog.get_blend_time() + 0.08
+	)
 
 
-func _begin_interrupt(event_data: Dictionary) -> void:
+func _begin_interrupt(event_data: Dictionary) -> float:
 	var actor: BattleActor3D = _actor_for_unit_id(String(event_data.get("actor_id", "")))
 	var target_id: String = String(event_data.get("target_id", ""))
 	var target: BattleActor3D = _actor_for_unit_id(target_id)
 	_decrement_cast(target_id, target)
 	if actor != null and actor != target:
 		actor.play_action(BattleActor3D.ACTION_ATTACK)
+	_pending_interrupt_visual = {
+		"actor": actor,
+		"target": target,
+		"projectile_spawned": false,
+		"resolved": false,
+	}
+	if actor == null or actor == target:
+		_apply_pending_interrupt_visuals()
+		return 0.58
+	return maxf(
+		0.58,
+		actor.get_active_animation_duration() + BattleAnimationCatalog.get_blend_time() + 0.06
+	)
+
+
+func _on_actor_action_marker(
+	actor: BattleActor3D,
+	action_id: String,
+	clip_id: String,
+	marker_id: String,
+	marker_time: float
+) -> void:
+	var event_type: String = String(_active_event.get("event_type", ""))
+	var cue_data: Dictionary = {
+		"event_type": event_type,
+		"actor": actor.name if actor != null else "",
+		"action": action_id,
+		"clip": clip_id,
+		"marker": marker_id,
+		"time": marker_time,
+	}
+	_animation_cue_log.append(cue_data)
+	while _animation_cue_log.size() > 64:
+		_animation_cue_log.pop_front()
+
+	var resolution_actor: BattleActor3D = _pending_resolution_visual.get("actor") as BattleActor3D
+	var interrupt_actor: BattleActor3D = _pending_interrupt_visual.get("actor") as BattleActor3D
+	if event_type == "resolve_card" and actor == resolution_actor:
+		var offensive: bool = bool(_pending_resolution_visual.get("offensive", false))
+		if marker_id == "release" and offensive:
+			_spawn_pending_resolution_projectile()
+		elif marker_id == "impact" and offensive:
+			_apply_pending_resolution_visuals()
+		elif marker_id == "effect" and not offensive:
+			_apply_pending_resolution_visuals()
+	elif event_type == "interrupt_card" and actor == interrupt_actor:
+		if marker_id == "release":
+			_spawn_pending_interrupt_projectile()
+		elif marker_id == "impact":
+			_apply_pending_interrupt_visuals()
+
+
+func _spawn_pending_resolution_projectile() -> void:
+	if _pending_resolution_visual.is_empty() \
+	or bool(_pending_resolution_visual.get("projectile_spawned", false)):
+		return
+	var actor: BattleActor3D = _pending_resolution_visual.get("actor") as BattleActor3D
+	var target: BattleActor3D = _pending_resolution_visual.get("target") as BattleActor3D
+	var card_def: CardDef = _pending_resolution_visual.get("card_def") as CardDef
+	if actor != null and target != null and actor != target:
+		var release_time: float = BattleAnimationCatalog.get_marker_time(actor.get_active_animation_clip(), "release", 0.0)
+		var impact_time: float = BattleAnimationCatalog.get_marker_time(actor.get_active_animation_clip(), "impact", release_time + 0.24)
+		_spawn_projectile(actor, target, _resolve_card_color(card_def), maxf(0.12, impact_time - release_time))
+	_pending_resolution_visual["projectile_spawned"] = true
+
+
+func _apply_pending_resolution_visuals() -> void:
+	if _pending_resolution_visual.is_empty() \
+	or bool(_pending_resolution_visual.get("resolved", false)):
+		return
+	var actor: BattleActor3D = _pending_resolution_visual.get("actor") as BattleActor3D
+	var target: BattleActor3D = _pending_resolution_visual.get("target") as BattleActor3D
+	var card_def: CardDef = _pending_resolution_visual.get("card_def") as CardDef
+	var profile: Dictionary = Dictionary(_pending_resolution_visual.get("profile", {}))
+	var actor_delta: Dictionary = Dictionary(_pending_resolution_visual.get("actor_delta", {}))
+	var target_delta: Dictionary = Dictionary(_pending_resolution_visual.get("target_delta", {}))
+	var offensive: bool = bool(_pending_resolution_visual.get("offensive", false))
+	var result: Dictionary = Dictionary(_active_event.get("result", {}))
+	if offensive:
+		_spawn_pending_resolution_projectile()
+	AudioManager.play_card_resolution(card_def, bool(result.get("fully_blocked", false)))
+	_apply_unit_delta(actor, actor_delta, profile, false)
+	if target != actor:
+		_apply_unit_delta(target, target_delta, profile, true)
+	if bool(profile.get("status", false)) and target != null:
+		_spawn_impact(_actor_effect_position(target), STATUS_COLOR, 0.62, 1.68)
+	if offensive:
+		_add_camera_shake(0.13 if int(target_delta.get("hp", 0)) < 0 else 0.08)
+	_emit_event_combat_text(_active_event)
+	_pending_resolution_visual["resolved"] = true
+
+
+func _spawn_pending_interrupt_projectile() -> void:
+	if _pending_interrupt_visual.is_empty() \
+	or bool(_pending_interrupt_visual.get("projectile_spawned", false)):
+		return
+	var actor: BattleActor3D = _pending_interrupt_visual.get("actor") as BattleActor3D
+	var target: BattleActor3D = _pending_interrupt_visual.get("target") as BattleActor3D
+	if actor != null and target != null and actor != target:
+		var release_time: float = BattleAnimationCatalog.get_marker_time(actor.get_active_animation_clip(), "release", 0.0)
+		var impact_time: float = BattleAnimationCatalog.get_marker_time(actor.get_active_animation_clip(), "impact", release_time + 0.24)
+		_spawn_projectile(actor, target, INTERRUPT_COLOR, maxf(0.12, impact_time - release_time))
+	_pending_interrupt_visual["projectile_spawned"] = true
+
+
+func _apply_pending_interrupt_visuals() -> void:
+	if _pending_interrupt_visual.is_empty() \
+	or bool(_pending_interrupt_visual.get("resolved", false)):
+		return
+	var target: BattleActor3D = _pending_interrupt_visual.get("target") as BattleActor3D
+	_spawn_pending_interrupt_projectile()
 	if target != null:
 		target.play_action(BattleActor3D.ACTION_INTERRUPT)
 		_spawn_impact(_actor_effect_position(target), INTERRUPT_COLOR, 0.52, 1.64)
 	_add_camera_shake(0.10)
+	_pending_interrupt_visual["resolved"] = true
+
+
+func _flush_pending_animation_cues() -> void:
+	_apply_pending_resolution_visuals()
+	_apply_pending_interrupt_visuals()
 
 
 func _begin_battle_end(event_data: Dictionary) -> void:
