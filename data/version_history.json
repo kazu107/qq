@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.18.0",
+  "current_version": "QQ-0.18.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.18.1",
+      "date": "2026-08-28",
+      "title_ja": "画像・アイコン資産台帳",
+      "title_en": "Visual asset inventory",
+      "changes_ja": [
+        "ゲーム本体、Web、3D制作、開発用を含む画像・アイコン資産を全件監査しました。",
+        "全カード、遺物、ポートレート、状態アイコンと、コード生成されるUI・マップ・フォールバック画像の詳細台帳を追加しました。",
+        "Godot標準ブランド画像や制作証跡が不足している素材を特定し、自前素材への入稿仕様と差し替え優先順位を定義しました。"
+      ],
+      "changes_en": [
+        "Audited every visual asset used by the game, Web build, 3D production pipeline, and development tooling.",
+        "Added a detailed inventory of all cards, relics, portraits, status icons, and runtime-generated UI, map, and fallback textures.",
+        "Identified default Godot branding and assets without complete provenance, then defined replacement specifications and priorities for fully owned artwork."
+      ]
+    },
     {
       "version": "QQ-0.18.0",
       "date": "2026-08-24",
