@@ -294,15 +294,20 @@ func _run() -> void:
 		if starter_button == null:
 			_fail("Meta progress smoke failed: unlocked starter %s did not appear in RunSetup" % starter_id)
 			return
-	var portrait_rect: TextureRect = unlocked_setup_scene.find_child("StarterPortrait", true, false) as TextureRect
-	if portrait_rect == null or portrait_rect.texture == null:
-		_fail("Meta progress smoke failed: RunSetup starter portrait did not render")
+	var model_preview: StarterModelPreview = unlocked_setup_scene.find_child("StarterModelPreview", true, false) as StarterModelPreview
+	if model_preview == null or not model_preview.is_preview_ready():
+		_fail("Meta progress smoke failed: RunSetup animated starter model did not render")
 		return
 	var vanguard_button: Button = unlocked_setup_scene.find_child("StarterButton_vanguard", true, false) as Button
 	vanguard_button.emit_signal("pressed")
 	await get_tree().process_frame
-	if portrait_rect.texture == null or portrait_rect.texture.resource_path != "res://assets/portraits/vanguard.png":
-		_fail("Meta progress smoke failed: selecting a starter should update the character portrait")
+	await get_tree().process_frame
+	var preview_actor: BattleActor3D = model_preview.get_preview_actor()
+	if model_preview.get_selected_starter_id() != "vanguard" \
+	or preview_actor == null \
+	or preview_actor.get_visual_profile_id() != "vanguard" \
+	or preview_actor.get_action_name() != "ready":
+		_fail("Meta progress smoke failed: selecting a starter should update the animated 3D model")
 		return
 	unlocked_setup_scene.queue_free()
 	await get_tree().process_frame

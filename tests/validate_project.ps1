@@ -249,6 +249,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/MetaProgressSmoke.tscn"
     )
+    Invoke-GodotCheck "[15a/31] Running run setup 3D preview smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/RunSetup3DPreviewSmoke.tscn"
+    )
     Invoke-GodotCheck "[16/31] Running replay export smoke" $godotExe @(
         "--no-header",
         "--headless",

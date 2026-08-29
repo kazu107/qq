@@ -30,11 +30,11 @@
 | --- | --- | --- | --- |
 | カード | `assets/icons/cards/{card_id}.png` | `CardButton.gd`、`CardIconPicker.gd` | ID由来の256x256模様を生成 |
 | 遺物 | `assets/icons/relics/{relic_id}.png` | `RelicIcon.gd`、`RelicIconRow.gd` | ID由来の128x128四角模様を生成 |
-| ポートレート | `assets/portraits/{starter_or_enemy_id}.png` | `RunSetupScreen.gd`、`UnitPanel.gd`、`ArenaScreen.gd` | IDと陣営色由来の320x320人物プレースホルダーを生成 |
+| ポートレート | `assets/portraits/{starter_or_enemy_id}.png` | `UnitPanel.gd`、`ArenaScreen.gd` | IDと陣営色由来の320x320人物プレースホルダーを生成。開始デッキ選択では3Dモデルへ移行済み |
 | 状態 | `assets/icons/status/{status_id}.png` | `UnitPanel.gd` | ID由来の96x96単色四角を生成 |
 | アプリアイコン | `icon.svg` | `project.godot`の`config/icon` | Godot側の既定処理 |
 | Web画像 | `build/web/index*.png` | `build/web/index.html` | Web再出力時に再生成 |
-| 3Dモデル | `assets/models/battle/*.glb` | `data/battle_visuals.json`、`BattleActor3D.gd` | 共通のプロシージャル人型へフォールバック |
+| 3Dモデル | `assets/models/battle/*.glb` | `data/battle_visuals.json`、`BattleActor3D.gd`、`StarterModelPreview.gd` | 戦闘と開始デッキ選択で使用。共通のプロシージャル人型へフォールバック |
 
 `build/web/index.icon.png`、`build/web/index.apple-touch-icon.png`、`build/web/index.png`はビルド成果物です。直接編集せず、アプリ原本とWebスプラッシュ設定を変更してから`tools/build_web.ps1`で再生成します。
 
