@@ -16,6 +16,9 @@ const COOLDOWN_SHADE := Color(0.01, 0.02, 0.03, 0.70)
 const PROGRESS_EDGE := Color(1.0, 0.95, 0.72, 0.38)
 const BLEACH_COLOR := Color(1.0, 1.0, 1.0, 0.34)
 const TIMELINE_NEXT_BADGE := Color(1.0, 0.70, 0.16, 0.96)
+const EFFECT_CHIP_FILL := Color(0.025, 0.035, 0.050, 0.91)
+const EFFECT_CHIP_BORDER := Color(0.66, 0.78, 0.84, 0.58)
+const EFFECT_REMAINDER_FILL := Color(0.08, 0.12, 0.16, 0.94)
 const COMMON_BORDER := Color(0.88, 0.80, 0.67, 1.0)
 const RARE_BORDER := Color(0.47, 0.86, 0.90, 1.0)
 const EPIC_BORDER := Color(0.97, 0.69, 0.34, 1.0)
@@ -70,6 +73,18 @@ var _meta_badge: ColorRect
 var _meta_label: Label
 var _timeline_next_badge: ColorRect
 var _timeline_next_label: Label
+var _timing_badge: ColorRect
+var _timing_icon: TextureRect
+var _timing_label: Label
+var _effect_strip: Control
+var _effect_chip_panels: Array[Panel] = []
+var _effect_chip_icons: Array[TextureRect] = []
+var _effect_chip_labels: Array[RichTextLabel] = []
+var _effect_remainder_badge: Panel
+var _effect_remainder_label: Label
+var _name_type_icon: TextureRect
+var _face_summaries: Array[Dictionary] = []
+var _face_cast_time: float = 0.0
 
 
 func _ready() -> void:
@@ -78,6 +93,8 @@ func _ready() -> void:
 
 func set_tile_size(size: Vector2) -> void:
 	custom_minimum_size = size
+	if _art_rect != null:
+		call_deferred("_refresh_card_face")
 
 
 func set_bleach_enabled(enabled: bool, amount: float = BLEACH_COLOR.a) -> void:
@@ -106,6 +123,7 @@ func bind(
 	_art_rect.texture = _get_card_texture(card_def.id)
 	_set_card_name(card_def.name)
 	_set_cost_value(card_def.active_slot_cost)
+	_set_card_face_data(card_def)
 
 	var meta_text: String = "%dS" % card_def.active_slot_cost
 	var tooltip_state: String = Localization.get_text("card.state.ready", "Ready")
@@ -177,6 +195,7 @@ func bind_preview(
 	_art_rect.texture = _get_card_texture(card_def.id)
 	_set_card_name(card_def.name)
 	_set_cost_value(card_def.active_slot_cost)
+	_set_card_face_data(card_def)
 	_state_label.text = ""
 	_state_badge.visible = false
 	_set_timeline_indicators(false, false)
@@ -206,6 +225,7 @@ func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: f
 	_art_rect.texture = _get_card_texture(card_def.id)
 	_set_card_name(card_def.name)
 	_set_cost_value(card_def.active_slot_cost)
+	_set_card_face_data(card_def)
 	_state_label.text = ""
 	_state_badge.visible = false
 	_set_timeline_indicators(false, false)
@@ -244,6 +264,7 @@ func bind_timeline(
 	_art_rect.texture = _get_card_texture(card_def.id)
 	_set_card_name(card_def.name)
 	_set_cost_value(card_def.active_slot_cost)
+	_set_card_face_data(card_def)
 	_state_label.text = ""
 	_state_badge.visible = false
 
@@ -351,6 +372,8 @@ func _ensure_visuals() -> void:
 		resized.connect(_update_cooldown_mask)
 	if not resized.is_connected(_fit_name_label_to_text):
 		resized.connect(_fit_name_label_to_text)
+	if not resized.is_connected(_refresh_card_face):
+		resized.connect(_refresh_card_face)
 	if not mouse_entered.is_connected(_on_mouse_entered):
 		mouse_entered.connect(_on_mouse_entered)
 	if not mouse_exited.is_connected(_on_mouse_exited):
@@ -426,6 +449,42 @@ func _ensure_visuals() -> void:
 	_configure_overlay(_name_label)
 	_name_bar.add_child(_name_label)
 
+	_name_type_icon = TextureRect.new()
+	_name_type_icon.name = "CardTypeIcon"
+	_name_type_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_name_type_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_configure_overlay(_name_type_icon)
+	_name_bar.add_child(_name_type_icon)
+
+	_effect_strip = Control.new()
+	_effect_strip.name = "EffectStrip"
+	_effect_strip.anchor_right = 1.0
+	_effect_strip.anchor_bottom = 1.0
+	_configure_overlay(_effect_strip)
+	add_child(_effect_strip)
+	for chip_index in range(2):
+		_create_effect_chip(chip_index)
+
+	_effect_remainder_badge = Panel.new()
+	_effect_remainder_badge.name = "EffectRemainder"
+	_effect_remainder_badge.add_theme_stylebox_override("panel", _make_effect_chip_style(EFFECT_REMAINDER_FILL, EFFECT_CHIP_BORDER))
+	_effect_remainder_badge.visible = false
+	_configure_overlay(_effect_remainder_badge)
+	_effect_strip.add_child(_effect_remainder_badge)
+
+	_effect_remainder_label = Label.new()
+	_effect_remainder_label.name = "Count"
+	_effect_remainder_label.anchor_right = 1.0
+	_effect_remainder_label.anchor_bottom = 1.0
+	_effect_remainder_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_effect_remainder_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_effect_remainder_label.add_theme_color_override("font_color", TEXT_LIGHT)
+	_effect_remainder_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.86))
+	_effect_remainder_label.add_theme_constant_override("outline_size", 2)
+	_effect_remainder_label.add_theme_font_size_override("font_size", 11)
+	_configure_overlay(_effect_remainder_label)
+	_effect_remainder_badge.add_child(_effect_remainder_label)
+
 	_state_badge = ColorRect.new()
 	_state_badge.name = "StateBadge"
 	_state_badge.visible = false
@@ -482,6 +541,32 @@ func _ensure_visuals() -> void:
 	_configure_overlay(_meta_label)
 	_meta_badge.add_child(_meta_label)
 
+	_timing_badge = ColorRect.new()
+	_timing_badge.name = "TimingBadge"
+	_timing_badge.color = BADGE_DARK
+	_timing_badge.visible = false
+	_configure_overlay(_timing_badge)
+	add_child(_timing_badge)
+
+	_timing_icon = TextureRect.new()
+	_timing_icon.name = "Icon"
+	_timing_icon.texture = CardEffectIconFactory.get_icon("time")
+	_timing_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_timing_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_configure_overlay(_timing_icon)
+	_timing_badge.add_child(_timing_icon)
+
+	_timing_label = Label.new()
+	_timing_label.name = "Value"
+	_timing_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_timing_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_timing_label.add_theme_color_override("font_color", TEXT_LIGHT)
+	_timing_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.84))
+	_timing_label.add_theme_constant_override("outline_size", 2)
+	_timing_label.add_theme_font_size_override("font_size", 11)
+	_configure_overlay(_timing_label)
+	_timing_badge.add_child(_timing_label)
+
 	_timeline_next_badge = ColorRect.new()
 	_timeline_next_badge.name = "TimelineNextBadge"
 	_timeline_next_badge.visible = false
@@ -506,10 +591,201 @@ func _ensure_visuals() -> void:
 
 	_apply_frame(COMMON_BORDER)
 	_update_cooldown_mask()
+	_refresh_card_face()
 
 
 func _configure_overlay(control: Control) -> void:
 	control.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _create_effect_chip(chip_index: int) -> void:
+	var panel: Panel = Panel.new()
+	panel.name = "EffectChip%d" % (chip_index + 1)
+	panel.add_theme_stylebox_override("panel", _make_effect_chip_style(EFFECT_CHIP_FILL, EFFECT_CHIP_BORDER))
+	panel.visible = false
+	_configure_overlay(panel)
+	_effect_strip.add_child(panel)
+	_effect_chip_panels.append(panel)
+
+	var icon: TextureRect = TextureRect.new()
+	icon.name = "Icon"
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_configure_overlay(icon)
+	panel.add_child(icon)
+	_effect_chip_icons.append(icon)
+
+	var value_label: RichTextLabel = RichTextLabel.new()
+	value_label.name = "Value"
+	value_label.bbcode_enabled = true
+	value_label.fit_content = false
+	value_label.scroll_active = false
+	value_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	value_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	value_label.add_theme_color_override("default_color", TEXT_LIGHT)
+	value_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.88))
+	value_label.add_theme_constant_override("outline_size", 2)
+	value_label.add_theme_font_size_override("normal_font_size", 11)
+	_configure_overlay(value_label)
+	panel.add_child(value_label)
+	_effect_chip_labels.append(value_label)
+
+
+func _make_effect_chip_style(fill_color: Color, border_color: Color) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = fill_color
+	style.border_color = border_color
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.content_margin_left = 0.0
+	style.content_margin_top = 0.0
+	style.content_margin_right = 0.0
+	style.content_margin_bottom = 0.0
+	return style
+
+
+func _set_card_face_data(card_def: CardDef) -> void:
+	_face_summaries = CardFaceSummaryResolver.build_summaries(card_def, _get_comparison_card(card_def))
+	_face_cast_time = maxf(0.0, card_def.cast_time)
+	_refresh_card_face()
+	call_deferred("_refresh_card_face")
+
+
+func _refresh_card_face() -> void:
+	if _effect_strip == null or _name_bar == null:
+		return
+
+	var resolved_width: float = size.x if size.x > 1.0 else custom_minimum_size.x
+	var resolved_height: float = size.y if size.y > 1.0 else custom_minimum_size.y
+	resolved_width = maxf(48.0, resolved_width)
+	resolved_height = maxf(48.0, resolved_height)
+
+	var name_height: float = 34.0 if resolved_height >= 140.0 else (28.0 if resolved_height >= 88.0 else 23.0)
+	var strip_height: float = 26.0 if resolved_height >= 140.0 else (21.0 if resolved_height >= 88.0 else 18.0)
+	var strip_gap: float = 4.0 if resolved_height >= 104.0 else 2.0
+	var strip_y: float = maxf(28.0, resolved_height - name_height - strip_height - strip_gap)
+	_name_bar.offset_top = -name_height
+
+	var has_summary: bool = not _face_summaries.is_empty()
+	var show_type_icon: bool = has_summary and resolved_width >= 84.0 and resolved_height >= 84.0
+	_name_type_icon.visible = show_type_icon
+	if show_type_icon:
+		var type_icon_size: float = 18.0 if name_height >= 28.0 else 15.0
+		_name_type_icon.texture = CardEffectIconFactory.get_icon(String(_face_summaries[0].get("icon_id", "effect")))
+		_name_type_icon.position = Vector2(5.0, (name_height - type_icon_size) * 0.5)
+		_name_type_icon.size = Vector2(type_icon_size, type_icon_size)
+	_name_label.offset_left = 26.0 if show_type_icon else 5.0
+	_name_label.offset_top = 2.0
+	_name_label.offset_right = -5.0
+	_name_label.offset_bottom = -2.0
+
+	var meta_width: float = clampf(resolved_width * 0.52, 48.0, 66.0)
+	_meta_badge.offset_left = -meta_width - 7.0
+	_meta_badge.offset_top = 7.0
+	_meta_badge.offset_right = -7.0
+	_meta_badge.offset_bottom = 29.0
+
+	var show_timing: bool = has_summary and resolved_width >= 112.0 and resolved_height >= 112.0
+	_timing_badge.visible = show_timing
+	if show_timing:
+		var timing_width: float = 61.0
+		var timing_y: float = 33.0 if _meta_badge.visible else 7.0
+		_timing_badge.position = Vector2(resolved_width - timing_width - 7.0, timing_y)
+		_timing_badge.size = Vector2(timing_width, 20.0)
+		_timing_icon.position = Vector2(3.0, 2.0)
+		_timing_icon.size = Vector2(16.0, 16.0)
+		_timing_label.position = Vector2(18.0, 0.0)
+		_timing_label.size = Vector2(timing_width - 20.0, 20.0)
+		_timing_label.text = "%ss" % _format_face_number(_face_cast_time, 1, false)
+
+	if _timeline_next_badge != null:
+		_timeline_next_badge.offset_left = 38.0
+		_timeline_next_badge.offset_top = 7.0
+		_timeline_next_badge.offset_right = minf(94.0, resolved_width - meta_width - 11.0)
+		_timeline_next_badge.offset_bottom = 29.0
+
+	_effect_strip.visible = has_summary
+	if not has_summary:
+		for hidden_panel in _effect_chip_panels:
+			hidden_panel.visible = false
+		_effect_remainder_badge.visible = false
+		_fit_name_label_to_text()
+		return
+
+	var visible_limit: int = 2 if resolved_width >= 104.0 else 1
+	var visible_count: int = mini(visible_limit, _face_summaries.size())
+	var remaining_count: int = maxi(0, _face_summaries.size() - visible_count)
+	var outer_margin: float = 4.0
+	var chip_gap: float = 3.0
+	var remainder_width: float = 25.0 if remaining_count > 0 else 0.0
+	var occupied_gaps: int = maxi(0, visible_count - 1) + (1 if remaining_count > 0 else 0)
+	var available_chip_width: float = resolved_width - outer_margin * 2.0 - remainder_width - chip_gap * float(occupied_gaps)
+	var chip_width: float = maxf(26.0, available_chip_width / float(maxi(1, visible_count)))
+	var cursor_x: float = outer_margin
+	var icon_size: float = 18.0 if strip_height >= 24.0 else (15.0 if strip_height >= 20.0 else 13.0)
+	var show_delta: bool = chip_width >= 50.0
+
+	for chip_index in range(_effect_chip_panels.size()):
+		var panel: Panel = _effect_chip_panels[chip_index]
+		if chip_index >= visible_count:
+			panel.visible = false
+			continue
+		var summary: Dictionary = _face_summaries[chip_index]
+		panel.visible = true
+		panel.position = Vector2(cursor_x, strip_y)
+		panel.size = Vector2(chip_width, strip_height)
+		var icon: TextureRect = _effect_chip_icons[chip_index]
+		icon.texture = CardEffectIconFactory.get_icon(String(summary.get("icon_id", "effect")))
+		icon.position = Vector2(3.0, (strip_height - icon_size) * 0.5)
+		icon.size = Vector2(icon_size, icon_size)
+		var value_label: RichTextLabel = _effect_chip_labels[chip_index]
+		value_label.position = Vector2(icon_size + 4.0, 0.0)
+		value_label.size = Vector2(maxf(1.0, chip_width - icon_size - 6.0), strip_height)
+		value_label.add_theme_font_size_override("normal_font_size", 12 if strip_height >= 24.0 else 10)
+		value_label.text = _build_face_value_bbcode(summary, show_delta)
+		cursor_x += chip_width + chip_gap
+
+	_effect_remainder_badge.visible = remaining_count > 0
+	if remaining_count > 0:
+		_effect_remainder_badge.position = Vector2(cursor_x, strip_y)
+		_effect_remainder_badge.size = Vector2(remainder_width, strip_height)
+		_effect_remainder_label.text = "+%d" % remaining_count
+		_effect_remainder_label.add_theme_font_size_override("font_size", 12 if strip_height >= 24.0 else 10)
+
+	_fit_name_label_to_text()
+
+
+func _build_face_value_bbcode(summary: Dictionary, show_delta: bool) -> String:
+	var value_text: String = String(summary.get("value_text", ""))
+	var delta_text: String = String(summary.get("delta_text", ""))
+	var delta_state: String = String(summary.get("delta_state", "neutral"))
+	if value_text == "":
+		return ""
+	if delta_text == "" or delta_state == "neutral":
+		return "[center]%s[/center]" % value_text
+
+	var color: String = TOOLTIP_BUFF_COLOR if delta_state == "buff" else TOOLTIP_NERF_COLOR
+	if show_delta:
+		return "[center]%s[font_size=9][color=%s](%s)[/color][/font_size][/center]" % [value_text, color, delta_text]
+	return "[center][color=%s]%s[/color][/center]" % [color, value_text]
+
+
+func _format_face_number(value: float, decimals: int, force_sign: bool) -> String:
+	var value_text: String
+	if decimals <= 0 or is_equal_approx(value, roundf(value)):
+		value_text = "%d" % int(roundf(value))
+	else:
+		var pattern: String = "%." + str(decimals) + "f"
+		value_text = pattern % value
+	if force_sign and value > 0.0:
+		return "+%s" % value_text
+	return value_text
 
 
 func _set_card_name(card_name: String) -> void:
@@ -523,12 +799,15 @@ func _set_card_name(card_name: String) -> void:
 func _fit_name_label_to_text() -> void:
 	if _name_label == null:
 		return
-	var available_width: float = maxf(24.0, (size.x if size.x > 1.0 else custom_minimum_size.x) - 16.0)
+	var resolved_width: float = size.x if size.x > 1.0 else custom_minimum_size.x
+	var available_width: float = maxf(24.0, resolved_width - (31.0 if _name_type_icon != null and _name_type_icon.visible else 10.0))
 	var font: Font = _name_label.get_theme_font("font")
-	var chosen_size: int = NAME_FONT_MAX_SIZE
+	var maximum_size: int = NAME_FONT_MAX_SIZE if resolved_width >= 104.0 else (13 if resolved_width >= 84.0 else 11)
+	var minimum_size: int = mini(NAME_FONT_MIN_SIZE, maximum_size)
+	var chosen_size: int = maximum_size
 	if font != null and _name_label.text != "":
-		chosen_size = NAME_FONT_MIN_SIZE
-		for candidate_size: int in range(NAME_FONT_MAX_SIZE, NAME_FONT_MIN_SIZE - 1, -1):
+		chosen_size = minimum_size
+		for candidate_size: int in range(maximum_size, minimum_size - 1, -1):
 			var measured_size: Vector2 = font.get_string_size(_name_label.text, HORIZONTAL_ALIGNMENT_CENTER, -1.0, candidate_size)
 			if measured_size.x <= available_width:
 				chosen_size = candidate_size

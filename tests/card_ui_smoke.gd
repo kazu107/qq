@@ -76,6 +76,28 @@ func _run() -> void:
 		push_error("Card UI smoke failed: card cost should render in a green top-left badge")
 		get_tree().quit(1)
 		return
+	var ready_effect_strip: Control = ready_button.get_node("EffectStrip") as Control
+	var ready_effect_chip: Panel = ready_button.get_node("EffectStrip/EffectChip1") as Panel
+	var ready_effect_icon: TextureRect = ready_button.get_node("EffectStrip/EffectChip1/Icon") as TextureRect
+	var ready_type_icon: TextureRect = ready_button.get_node("NameBar/CardTypeIcon") as TextureRect
+	var ready_timing_badge: ColorRect = ready_button.get_node("TimingBadge") as ColorRect
+	var ready_timing_value: Label = ready_button.get_node("TimingBadge/Value") as Label
+	if ready_effect_strip == null \
+	or not ready_effect_strip.visible \
+	or ready_effect_chip == null \
+	or not ready_effect_chip.visible \
+	or ready_effect_icon == null \
+	or ready_effect_icon.texture == null \
+	or ready_type_icon == null \
+	or not ready_type_icon.visible \
+	or ready_type_icon.texture == null:
+		push_error("Card UI smoke failed: readable effect and card-type icons should be visible")
+		get_tree().quit(1)
+		return
+	if ready_timing_badge == null or not ready_timing_badge.visible or ready_timing_value == null or ready_timing_value.text != "3.6s":
+		push_error("Card UI smoke failed: large cards should show their current cast time")
+		get_tree().quit(1)
+		return
 
 	var preparing_state: CardRuntimeState = CardRuntimeState.new()
 	preparing_state.runtime_id = "prep_probe"
@@ -219,6 +241,14 @@ func _run() -> void:
 		push_error("Card UI smoke failed: base character attack should appear as a positive tooltip modifier")
 		get_tree().quit(1)
 		return
+	var dynamic_face_value: RichTextLabel = dynamic_button.get_node("EffectStrip/EffectChip1/Value") as RichTextLabel
+	if dynamic_face_value == null \
+	or dynamic_face_value.text.find("7") == -1 \
+	or dynamic_face_value.text.find("(+3)") == -1 \
+	or dynamic_face_value.text.find("#72d36f") == -1:
+		push_error("Card UI smoke failed: card face should show the effective damage and green character bonus")
+		get_tree().quit(1)
+		return
 	var base_rich: Control = dynamic_button._make_custom_tooltip(dynamic_button.tooltip_text) as Control
 	var base_rich_label: RichTextLabel = base_rich.find_child("CardTooltipText", true, false) as RichTextLabel
 	if base_rich_label == null or base_rich_label.text.find("7[color=#72d36f](+3)[/color]") == -1:
@@ -237,6 +267,12 @@ func _run() -> void:
 	)
 	if dynamic_button.tooltip_text.find("Deal 9(+2) damage") == -1:
 		push_error("Card UI smoke failed: character attack buffs should update card damage tooltips")
+		get_tree().quit(1)
+		return
+	if dynamic_face_value.text.find("9") == -1 \
+	or dynamic_face_value.text.find("(+2)") == -1 \
+	or dynamic_face_value.text.find("#72d36f") == -1:
+		push_error("Card UI smoke failed: card face should refresh a buffed effective damage value")
 		get_tree().quit(1)
 		return
 	var buffed_rich: Control = dynamic_button._make_custom_tooltip(dynamic_button.tooltip_text) as Control
@@ -261,6 +297,12 @@ func _run() -> void:
 		push_error("Card UI smoke failed: weak should update card damage tooltips in real time")
 		get_tree().quit(1)
 		return
+	if dynamic_face_value.text.find("5") == -1 \
+	or dynamic_face_value.text.find("(-2)") == -1 \
+	or dynamic_face_value.text.find("#ff6868") == -1:
+		push_error("Card UI smoke failed: card face should refresh a weakened damage value in red")
+		get_tree().quit(1)
+		return
 	var nerfed_rich: Control = dynamic_button._make_custom_tooltip(dynamic_button.tooltip_text) as Control
 	var nerfed_rich_label: RichTextLabel = nerfed_rich.find_child("CardTooltipText", true, false) as RichTextLabel
 	if nerfed_rich_label == null or nerfed_rich_label.text.find("5[color=#ff6868](-2)[/color]") == -1:
@@ -268,6 +310,54 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	nerfed_rich.free()
+	for card_id in Database.get_all_card_ids():
+		var face_card: CardDef = Database.get_card(card_id)
+		if face_card == null:
+			continue
+		var face_summaries: Array[Dictionary] = CardFaceSummaryResolver.build_summaries(face_card)
+		if not face_card.effects.is_empty() and face_summaries.is_empty():
+			push_error("Card UI smoke failed: card face summary missing for %s" % card_id)
+			get_tree().quit(1)
+			return
+		for face_summary in face_summaries:
+			var face_icon: Texture2D = CardEffectIconFactory.get_icon(String(face_summary.get("icon_id", "effect")))
+			if face_icon == null:
+				push_error("Card UI smoke failed: card face icon missing for %s" % card_id)
+				get_tree().quit(1)
+				return
+	var shield_spend_summaries: Array[Dictionary] = CardFaceSummaryResolver.build_summaries(Database.get_card("last_bastion"))
+	if shield_spend_summaries.size() < 2 \
+	or String(shield_spend_summaries[0].get("effect_type", "")) != "consume_shield" \
+	or String(shield_spend_summaries[1].get("effect_type", "")) != "deal_damage":
+		push_error("Card UI smoke failed: shield cost and damage should be the primary values on shield-spend cards")
+		get_tree().quit(1)
+		return
+
+	var complex_card: CardDef = Database.get_card("deus_ex_machina")
+	var compact_button: CardButton = CardButton.new()
+	compact_button.set_tile_size(Vector2(76.0, 76.0))
+	compact_button.size = Vector2(76.0, 76.0)
+	add_child(compact_button)
+	compact_button.bind_preview(complex_card, "compact_complex")
+	await get_tree().process_frame
+	var compact_first_chip: Panel = compact_button.get_node("EffectStrip/EffectChip1") as Panel
+	var compact_second_chip: Panel = compact_button.get_node("EffectStrip/EffectChip2") as Panel
+	var compact_remainder: Panel = compact_button.get_node("EffectStrip/EffectRemainder") as Panel
+	var compact_remainder_count: Label = compact_button.get_node("EffectStrip/EffectRemainder/Count") as Label
+	var compact_timing_badge: ColorRect = compact_button.get_node("TimingBadge") as ColorRect
+	if compact_first_chip == null \
+	or not compact_first_chip.visible \
+	or compact_second_chip == null \
+	or compact_second_chip.visible \
+	or compact_remainder == null \
+	or not compact_remainder.visible \
+	or compact_remainder_count == null \
+	or compact_remainder_count.text != "+3" \
+	or compact_timing_badge == null \
+	or compact_timing_badge.visible:
+		push_error("Card UI smoke failed: compact cards should show one primary effect and a remaining-effect count")
+		get_tree().quit(1)
+		return
 	if absf(first_button.size.x - first_button.size.y) > 0.1:
 		push_error("Card UI smoke failed: battle hand tile is not square")
 		get_tree().quit(1)

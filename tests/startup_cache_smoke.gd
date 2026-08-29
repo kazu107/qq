@@ -49,6 +49,9 @@ func _run() -> void:
 	if StatIconFactory.get_cached_icon_count() < 12:
 		_fail("Startup cache smoke failed: generated stat icons were not cached")
 		return
+	if CardEffectIconFactory.get_cached_icon_count() < 17 or int(summary.get("card_effect_icons", 0)) < 17:
+		_fail("Startup cache smoke failed: generated card-effect icons were not cached")
+		return
 	if MapNodeButton.get_cached_type_icon_count() < 8 or not MapNodeButton.has_cached_lock_icon():
 		_fail("Startup cache smoke failed: map node icons were not cached")
 		return

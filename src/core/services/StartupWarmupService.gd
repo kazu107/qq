@@ -33,6 +33,7 @@ static func warm_all() -> Dictionary:
 		card_picker_popup_count = CardIconPicker.get_cached_popup_icon_count()
 		relic_count = RelicIcon.warm_texture_cache(data.relic_ids)
 	var stat_icon_count: int = StatIconFactory.warm_cache()
+	var card_effect_icon_count: int = CardEffectIconFactory.warm_cache(data.status_ids)
 	var map_icon_count: int = MapNodeButton.warm_icon_cache()
 	var battle_3d_mesh_count: int = CommonBattleHumanoid3D.warm_visual_profile_cache(
 		Database.get_all_battle_visual_profiles()
@@ -52,6 +53,7 @@ static func warm_all() -> Dictionary:
 		"portraits": int(unit_counts.get("portraits", 0)),
 		"status_icons": int(unit_counts.get("statuses", 0)),
 		"stat_icons": stat_icon_count,
+		"card_effect_icons": card_effect_icon_count,
 		"map_icons": map_icon_count,
 		"battle_3d_meshes": battle_3d_mesh_count,
 		"battle_3d_models": battle_3d_model_count,
@@ -94,6 +96,7 @@ static func warm_all_async(progress_callback: Callable = Callable()) -> Dictiona
 	_report_progress(progress_callback, "boot.caching_ui", 0.96)
 	await _next_frame()
 	data.summary["stat_icons"] = StatIconFactory.warm_cache()
+	data.summary["card_effect_icons"] = CardEffectIconFactory.warm_cache(data.status_ids)
 	data.summary["map_icons"] = MapNodeButton.warm_icon_cache()
 	data.summary["battle_3d_meshes"] = CommonBattleHumanoid3D.warm_visual_profile_cache(
 		Database.get_all_battle_visual_profiles()

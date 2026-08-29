@@ -77,7 +77,24 @@
 
 `card`は実際に使用中ですが専用分岐がないため、共通UIの自前化時に必ず専用アイコンを作ります。未知のIDも同じ汎用四角へフォールバックします。
 
-### 4.2 マップアイコン
+### 4.2 カード効果アイコン
+
+`src/ui/common/CardEffectIconFactory.gd`がカード面の効果サマリー用に64x64 RGBAを生成してキャッシュします。攻撃、シールド、HP、速度、時間は`StatIconFactory.gd`を共有し、状態付与は`assets/icons/status/{status_id}.png`を共有します。
+
+| ID | 意味 | 状態 |
+| --- | --- | --- |
+| `shield_spend` | シールド消費 | 専用生成 |
+| `delay` / `haste` | タイムライン遅延・加速 | 専用生成 |
+| `recast` | 再使用短縮 | 専用生成 |
+| `interrupt` | カード中断 | 専用生成 |
+| `cleanse` | 状態解除 | 専用生成 |
+| `empower` | 戦闘中カード強化 | 専用生成 |
+| `auto_queue` | カード自動投入 | 専用生成 |
+| `timeline_stop` / `timeline_reverse` | タイムライン停止・逆流 | 専用生成 |
+| `status:{id}` | 個別の状態付与 | 既存状態PNGを共有 |
+| `status` / `effect` | 不明な状態・効果 | 専用フォールバック |
+
+### 4.3 マップアイコン
 
 `src/ui/map/MapNodeButton.gd`が96x96 RGBAを生成します。表示時は種類アイコン42x42、ロック52x52です。
 
@@ -93,7 +110,7 @@
 | `hazard` | 危険地帯 |
 | `lock` | 未解放ノードの錠前 |
 
-### 4.3 UIテーマ画像
+### 4.4 UIテーマ画像
 
 `src/autoload/UiTheme.gd`が次の小型テクスチャを起動時に生成します。
 
@@ -103,7 +120,7 @@
 | CheckBox | 4 | 24x24 | ON、OFF、ON無効、OFF無効 |
 | HSliderつまみ | 2 | 22x22 | 通常、ハイライト |
 
-### 4.4 背景・3D・フォールバック
+### 4.5 背景・3D・フォールバック
 
 | 対象 | 実装 | 内容 |
 | --- | --- | --- |
