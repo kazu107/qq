@@ -1,6 +1,8 @@
 extends RefCounted
 class_name StatIconFactory
 
+const AUTHORED_ICON_PATH_TEMPLATE: String = "res://assets/icons/ui/%s.png"
+
 static var _texture_cache: Dictionary = {}
 
 
@@ -44,6 +46,12 @@ static func get_icon(stat_id: String) -> Texture2D:
 
 
 static func _build_icon(stat_id: String) -> Texture2D:
+	var authored_path: String = AUTHORED_ICON_PATH_TEMPLATE % stat_id
+	if ResourceLoader.exists(authored_path):
+		var authored_resource: Resource = ResourceLoader.load(authored_path)
+		if authored_resource is Texture2D:
+			return authored_resource as Texture2D
+
 	match stat_id:
 		"attack":
 			return _build_attack_icon()

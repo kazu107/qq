@@ -1,0 +1,33 @@
+{
+  "format_version": 1,
+  "generator": "tools/blender/build_battle_vertical_slice.py",
+  "blender_version": "5.2.1 LTS",
+  "blend": "art_src/blender/battle_vertical_slice.blend",
+  "blend_sha256": "ca80b89b7c829a5000bd4d4d2fbeeb0dea709e3e223a1d0adf187e980d27bf33",
+  "preview": "art_src/blender/previews/battle_vertical_slice.png",
+  "preview_sha256": "e87d39acf8571ca9892ce221ed6f27e1dc4ea0ec7adface103c8321f2aaeff95",
+  "assets": [
+    {
+      "id": "balanced",
+      "target": "assets/models/battle/balanced.glb",
+      "detail_tier": "vertical_slice_hd",
+      "vertices": 6656,
+      "polygons": 7470,
+      "materials": 14,
+      "authored_pieces": 97,
+      "bones": 18,
+      "glb_sha256": "98aade13c99fc741ee34daa2bc5762f39dbd279e42c4544f0fbc93f844fb4fdb"
+    },
+    {
+      "id": "scout",
+      "target": "assets/models/battle/scout.glb",
+      "detail_tier": "vertical_slice_hd",
+      "vertices": 7105,
+      "polygons": 7795,
+      "materials": 13,
+      "authored_pieces": 103,
+      "bones": 18,
+      "glb_sha256": "6aa3fe530e55405d4d740344d78973de2c99d8556a35625211b4a036a168fd62"
+    }
+  ]
+}

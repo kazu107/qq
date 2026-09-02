@@ -49,6 +49,13 @@ func _run() -> void:
 	if StatIconFactory.get_cached_icon_count() < 12:
 		_fail("Startup cache smoke failed: generated stat icons were not cached")
 		return
+	var authored_attack_path: String = "res://assets/icons/ui/attack.png"
+	var authored_attack_icon: Texture2D = StatIconFactory.get_icon("attack")
+	if not ResourceLoader.exists(authored_attack_path) \
+	or authored_attack_icon == null \
+	or authored_attack_icon.resource_path != authored_attack_path:
+		_fail("Startup cache smoke failed: authored attack icon did not replace the generated fallback")
+		return
 	if CardEffectIconFactory.get_cached_icon_count() < 17 or int(summary.get("card_effect_icons", 0)) < 17:
 		_fail("Startup cache smoke failed: generated card-effect icons were not cached")
 		return

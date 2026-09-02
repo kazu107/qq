@@ -359,6 +359,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/CardArtSmoke.tscn"
     )
+    Invoke-GodotCheck "[26a/31] Running Blender art provenance smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/ArtProvenanceSmoke.tscn"
+    )
     Invoke-GodotCheck "[27/31] Running legendary cards smoke" $godotExe @(
         "--no-header",
         "--headless",

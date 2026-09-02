@@ -1,0 +1,137 @@
+{
+  "format_version": 1,
+  "updated_at": "2026-09-03",
+  "batch_id": "blender_vertical_slice_01",
+  "author": "QQ project",
+  "tool": "Blender 5.2.1 LTS",
+  "third_party_inputs": [],
+  "license": "project-original",
+  "assets": [
+    {
+      "asset_id": "balanced",
+      "category": "character_3d",
+      "runtime_path": "assets/models/battle/balanced.glb",
+      "source_path": "art_src/blender/battle_vertical_slice.blend",
+      "generator": "tools/blender/build_battle_vertical_slice.py",
+      "export_sha256": "98aade13c99fc741ee34daa2bc5762f39dbd279e42c4544f0fbc93f844fb4fdb",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "scout",
+      "category": "character_3d",
+      "runtime_path": "assets/models/battle/scout.glb",
+      "source_path": "art_src/blender/battle_vertical_slice.blend",
+      "generator": "tools/blender/build_battle_vertical_slice.py",
+      "export_sha256": "6aa3fe530e55405d4d740344d78973de2c99d8556a35625211b4a036a168fd62",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "quick_slash",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/quick_slash.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "e7893b562a7f7aeb67f330c3e0e1f37fe1716a4cb91ecc5c1af47d1ef4f51aae",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "guard",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/guard.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "b0f8c648656271d6a0bb18aeb987c9d645c67fac558e9a25125dd34d281d700b",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "delay_step",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/delay_step.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "4a401c4bbb7bdf9b6559f5836f35e8b3d881a3a959999f2027b15d0efeffc7d8",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "repair_burst",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/repair_burst.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "9395fef269170b3a3729fafeb9fd6cb0970c36a4144a64d974ece63304d1ae67",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "auto_turret",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/auto_turret.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "87797f8269cd654da264a0f8c38d68c3d044a3e9274aa03ba85cfca06b9ba89d",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "event_horizon",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/event_horizon.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "abdeeaa2e1a8526770da427880ce286bf0a761e43a1f5fb37e3407f8148e598e",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "iron_plating",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/iron_plating.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "173d4dec35e974cb665701dd83b241643d8f35f3bb547da295826d3cf00930e2",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "auxiliary_core",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/auxiliary_core.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "aab757d3ed757c9b4905d15631adde2b4ab6563790b694539f18d5268d1434ab",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "chrono_shard",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/chrono_shard.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "2ca5f9c275c3c1c4c0bdafe5b0255ea8ea41d7545774c8ec0c774a425cb5589e",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "salvage_magnet",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/salvage_magnet.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "8c8e69fa8788830f8e41db29b64242757ba905ff21ef5e031e9307f796ae0039",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "bleed",
+      "category": "status",
+      "runtime_path": "assets/icons/status/bleed.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "88596d6a795dc4d9316bd6c150d6b97f9f5cd8567ece4d87af3f365a65459cb6",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "attack",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/attack.png",
+      "source_path": "art_src/blender/art_vertical_slice.blend",
+      "generator": "tools/blender/build_art_vertical_slice.py",
+      "export_sha256": "66caa696dc9e79d69ec07f8f145df2a0571b26e52cd22658deb78ca9d5480b5c",
+      "replacement_status": "approved"
+    }
+  ]
+}

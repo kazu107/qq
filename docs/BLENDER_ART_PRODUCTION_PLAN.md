@@ -454,3 +454,15 @@
 | UI | `attack` | カード面とステータス欄の両方で小サイズを確認できる |
 
 このバッチでアート方向、レンダー時間、512pxの読みやすさ、Web容量、キャラクターの動作を承認してから、キャラクター25体、遺物86個、カード93枚の順で量産します。
+
+### 第一弾の実装結果（2026-09-03）
+
+14点の縦切りバッチを完了しました。
+
+- `balanced`と`scout`は共通18ボーンを維持し、ベベル、曲面分割、装甲リベット、縫い目、装備金具を追加した軽量GLBへ更新しました。
+- カード6枚、遺物4個、`bleed`、`attack`は`art_vertical_slice.blend`の独立コレクションとして制作し、1024pxレンダーからゲーム用サイズへ縮小しました。
+- `tools/build_blender_art_vertical_slice.ps1`でBlender生成、Godot取り込み、カード・遺物・小型アイコンのコンタクトシート作成を一括再現できます。
+- `art_vertical_slice.manifest.json`と`battle_vertical_slice.manifest.json`へBlender版、生成元、出力ハッシュ、形状統計を記録します。
+- 高精細なBlendと1024px中間画像はPCKへ入れず、ランタイムにはPNGと軽量GLBだけを含めます。
+
+次バッチへ進む前の基準画像は`art_src/blender/previews/art_vertical_slice_*.png`と`battle_vertical_slice.png`です。

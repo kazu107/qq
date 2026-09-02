@@ -12,8 +12,12 @@ const EXPECTED_BONES: Array[String] = [
 	"right_upper_arm", "right_forearm", "right_hand",
 ]
 const MINIMUM_VERTICES: Dictionary = {
-	"balanced": 1400,
-	"scout": 1600,
+	"balanced": 22000,
+	"scout": 22000,
+}
+const MAXIMUM_VERTICES: Dictionary = {
+	"balanced": 36000,
+	"scout": 36000,
 }
 const MINIMUM_SURFACES: Dictionary = {
 	"balanced": 14,
@@ -57,7 +61,7 @@ func _run() -> void:
 		var surface_count: int = _count_surfaces(instance)
 		if mesh_count != 1 \
 		or vertex_count < int(MINIMUM_VERTICES[visual_id]) \
-		or vertex_count > 8000 \
+		or vertex_count > int(MAXIMUM_VERTICES[visual_id]) \
 		or surface_count < int(MINIMUM_SURFACES[visual_id]):
 			_fail("Authored model smoke failed: %s detail/optimization budget is invalid (%d meshes, %d vertices, %d surfaces)" % [
 				visual_id, mesh_count, vertex_count, surface_count,

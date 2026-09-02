@@ -1,6 +1,6 @@
 # 画像・アイコン資産台帳と自前化計画
 
-最終監査日: 2026-08-28
+最終監査日: 2026-09-03
 
 この文書は、ゲーム本体、Web出力、3D制作、開発用ファイルに含まれる視覚資産を、将来すべて自前の素材へ置き換えるための基準としてまとめたものです。`.import`、フォント、SE、動画、コードだけで構成される通常のパネルや文字装飾はファイル数に含めません。ただし、コードから画像として生成されるアイコン、フォールバック、背景は別表に含めます。
 
@@ -10,19 +10,20 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 | 区分 | 数 | 現在の形式 | 容量・仕様 | 主な用途 |
 | --- | ---: | --- | --- | --- |
-| カード画像 | 93 | PNG RGBA | 全て512x512、35.87 MiB | 戦闘、タイムライン、報酬、図鑑、ロードアウト、デバッグ |
-| 遺物画像 | 86 | PNG RGBA | 全て512x512、30.71 MiB | バナー、報酬、イベント、アリーナ、ツールチップ |
+| カード画像 | 93 | PNG RGBA | 全て512x512、35.11 MiB | 戦闘、タイムライン、報酬、図鑑、ロードアウト、デバッグ |
+| 遺物画像 | 86 | PNG RGBA | 全て512x512、30.26 MiB | バナー、報酬、イベント、アリーナ、ツールチップ |
 | キャラクター・敵画像 | 25 | PNG RGB | 21枚が1254x1254、4枚が1024x1024、60.90 MiB | ラン開始、戦闘、アリーナ |
-| 状態アイコン | 4 | PNG RGBA | 全て96x96、12.46 KiB | 戦闘中の状態表示とツールチップ |
+| 状態アイコン | 4 | PNG RGBA | 全て96x96、21.51 KiB | 戦闘中の状態表示とツールチップ |
+| Blender製UIアイコン | 1 | PNG RGBA | 64x64、5.69 KiB | 攻撃力、カード効果 |
 | アプリ用原本 | 1 | SVG | 128x128相当 | Windows/Godotアプリアイコン、Webアイコン生成元 |
 | Web出力画像 | 3 | PNG RGBA | 128x128、180x180、800x600 | favicon、Apple touch icon、起動スプラッシュ |
-| 3Dランタイム資産 | 3 | GLB | 合計807.52 KiB | プレイヤー、敵、共有アニメーション |
-| 3D制作原本 | 2 | Blend | 合計421.40 KiB | Blenderでのモデル・アニメーション再生成 |
-| 開発・文書専用画像 | 2 | PNG RGBA | 1200x760、221x256 | Blender確認画像、GD-EOS文書ロゴ |
+| 3Dランタイム資産 | 3 | GLB | 合計2.57 MiB | プレイヤー、敵、共有アニメーション |
+| Blender制作原本 | 3 | Blend | 合計1.76 MiB | キャラ、静止画、アニメーションの再生成 |
+| 開発・文書専用画像 | 5 | PNG RGBA | 合計1.42 MiB | Blender確認画像、コンタクトシート、GD-EOS文書ロゴ |
 
-- Git管理中の視覚ファイルは合計219個です。内訳はPNG 213、SVG 1、GLB 3、Blend 2です。
-- ゲーム固有の2Dアートは208 PNGで、`icon.svg`を含めた原本容量は127.50 MiBです。
-- 213 PNGをSHA-256で比較した結果、完全に同一の重複ファイルはありません。
+- Git管理対象の視覚ファイルは合計224個です。内訳はPNG 217、SVG 1、GLB 3、Blend 3です。
+- ゲーム固有の2Dアートは209 PNGで、`icon.svg`を含めた容量は126.30 MiBです。
+- 第一弾14点は個別のSHA-256を制作証跡へ記録し、同一出力の取り違えがないことを確認しています。
 - カード、遺物、ポートレート、状態アイコンは現在のデータIDと1対1で揃っています。
 - Webでは容量を抑えるため、起動時の全画像展開は行わず、必要時にGodotのインポート済みテクスチャを読み込みます。ネイティブ版は起動時キャッシュ対象です。
 
@@ -44,11 +45,11 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 | 区分 | 現状 | 自前化に向けた判断 |
 | --- | --- | --- |
-| カード | `tools/generate_card_icons.py`でデータから再生成可能。Git履歴上も生成画像として管理 | 制作手順はリポジトリ内にある。将来の手描き・自作3Dレンダーへ段階的に差し替え可能 |
-| 遺物 | `tools/import_generated_relic_art.gd`は外部画像の取り込みのみ。原本、プロンプト、作者、生成モデルの台帳は未収録 | 権利証跡が不足。自前化の優先度は高い |
+| カード | 6枚はBlender原本と再生成スクリプトが揃う。残り87枚は`tools/generate_card_icons.py`または既存PNG | 第一弾を基準にシリーズ単位でBlender化する |
+| 遺物 | 4個はBlender原本と再生成スクリプトが揃う。残り82個は取り込み済みPNGのみ | 第一弾の台座・機構キットを再利用して優先的に展開する |
 | ポートレート | PNGのみで、編集可能な原本や生成手順は未収録 | 権利証跡と再現性が不足。自前化の優先度は高い |
-| 状態アイコン | PNGのみで、原本や生成手順は未収録 | 小規模なので早期にSVG原本を作る |
-| 共通UI・マップアイコン | GDScriptの矩形・円・色から生成 | リポジトリ内で完結しているが、統一した自作SVGへ置き換える余地がある |
+| 状態アイコン | `bleed`はBlender原本あり。残り3個はPNGのみ | 同じ立体メダリオンへ展開する |
+| 共通UI・マップアイコン | `attack`はBlender PNGを優先しコード生成へフォールバック。残りはGDScript生成 | 第一弾と同じ正投影・材質体系へ段階移行する |
 | 3D | `.blend`、生成Python、GLB、manifestが揃う | 現時点で最も再現性が高い。今後もBlendを原本、GLBを成果物とする |
 | アプリ・Webブランド | 現在はGodot標準ロゴと標準スプラッシュ | 独自ブランドではないため最優先で交換する |
 | GD-EOSロゴ | プラグイン文書用の第三者ロゴ。Web出力から除外済み | ゲーム内では使わない。プラグイン文書を配布する間は出典を維持する |
@@ -59,11 +60,11 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 ### 4.1 共通ステータスアイコン
 
-`src/ui/common/StatIconFactory.gd`が64x64 RGBAを生成してキャッシュします。
+`src/ui/common/StatIconFactory.gd`が64x64 RGBAを生成してキャッシュします。`assets/icons/ui/{id}.png`が存在するIDはBlender製PNGを優先します。
 
 | ID | 見た目・意味 | 主な使用場所 | 状態 |
 | --- | --- | --- | --- |
-| `attack` | 剣・攻撃力 | 戦闘、開始デッキ、イベント | 専用生成 |
+| `attack` | 剣・攻撃力 | 戦闘、開始デッキ、イベント | Blender製PNG、コード生成フォールバック |
 | `speed` | 二重シェブロン・速度 | 戦闘、開始デッキ、イベント、アリーナ報酬 | 専用生成 |
 | `shield` | シールド | 戦闘、アリーナ報酬 | 専用生成 |
 | `hp` | ハート・HP | ランバナー、報酬、イベント、サマリー | 専用生成 |
@@ -182,6 +183,8 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | `license` | 自作、購入、CC0などの利用条件 |
 | `export_sha256` | ゲーム用成果物の検証ハッシュ |
 | `replacement_status` | current、planned、in_progress、approved |
+
+第一弾で承認済みのIDは、カード`quick_slash`、`guard`、`delay_step`、`repair_burst`、`auto_turret`、`event_horizon`、遺物`iron_plating`、`auxiliary_core`、`chrono_shard`、`salvage_magnet`、状態`bleed`、UI`attack`、3D`balanced`、`scout`です。詳細は`data/art_provenance.json`、生成統計は各`*.manifest.json`を参照します。
 
 ## 8. 全カード画像
 
@@ -434,8 +437,11 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | `assets/models/battle/scout.glb` | スカウト固有モデル | 使用 |
 | `assets/models/battle/battle_animation_library.glb` | 共有18ボーン・18クリップのアニメーション供給 | 使用 |
 | `art_src/blender/battle_vertical_slice.blend` | バランス、スカウト、戦闘縦切り制作原本 | 不使用、制作原本 |
+| `art_src/blender/art_vertical_slice.blend` | カード6、遺物4、状態1、UI1の制作原本 | 不使用、制作原本 |
 | `art_src/blender/battle_animation_library.blend` | 共有アニメーション制作原本 | 不使用、制作原本 |
 | `art_src/blender/previews/battle_vertical_slice.png` | 3D検証用レンダー、1200x760 | 不使用、開発用 |
+| `art_src/blender/previews/art_vertical_slice_*.png` | カード、遺物、小型アイコンの縮小コンタクトシート | 不使用、開発用 |
+| `art_src/blender/*.manifest.json` | Blender版、生成元、形状統計、SHA-256 | 不使用、制作証跡 |
 | `addons/gd-eos/doc/logo.png` | GD-EOSプラグイン文書ロゴ、221x256 | 不使用、Web出力から除外 |
 
 `art_src/blender/battle_animation_library.blend1`はローカルのBlenderバックアップで、`.gitignore`対象です。正式な原本には数えず、必要な変更は`.blend`へ保存します。
