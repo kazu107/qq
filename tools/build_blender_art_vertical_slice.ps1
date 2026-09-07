@@ -29,7 +29,7 @@ New-Item -ItemType Directory -Path $previewRoot -Force | Out-Null
 $env:QQ_ART_RENDER_SIZE = [string]$RenderSize
 
 try {
-    & $BlenderPath --background --python $blenderScript
+    & $BlenderPath --background --python-exit-code 1 --python $blenderScript
     if ($LASTEXITCODE -ne 0) {
         throw "Blender art generation failed with exit code $LASTEXITCODE"
     }
@@ -48,6 +48,23 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "Small icon art import failed with exit code $LASTEXITCODE"
     }
+
+    $provenancePath = Join-Path $projectRoot "data\art_provenance.json"
+    $provenance = Get-Content -LiteralPath $provenancePath -Raw | ConvertFrom-Json
+    $sourceManifest = Get-Content -LiteralPath (Join-Path $projectRoot "art_src\blender\art_vertical_slice.manifest.json") -Raw | ConvertFrom-Json
+    foreach ($render in $sourceManifest.assets) {
+        $entry = @($provenance.assets | Where-Object asset_id -eq $render.id)
+        if ($entry.Count -ne 1 -or $entry[0].runtime_path -ne $render.target) {
+            throw "Art provenance has no unique matching entry for $($render.id)"
+        }
+        $entry[0].export_sha256 = (Get-FileHash -LiteralPath (Join-Path $projectRoot $render.target) -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($render.category -in @("card", "relic")) {
+            $entry[0] | Add-Member -NotePropertyName presentation -NotePropertyValue $render.presentation -Force
+            $entry[0] | Add-Member -NotePropertyName art_revision -NotePropertyValue $sourceManifest.art_revision -Force
+        }
+    }
+    $provenance.updated_at = Get-Date -Format "yyyy-MM-dd"
+    $provenance | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $provenancePath -Encoding utf8
 }
 finally {
     Remove-Item Env:QQ_ART_RENDER_SIZE -ErrorAction SilentlyContinue

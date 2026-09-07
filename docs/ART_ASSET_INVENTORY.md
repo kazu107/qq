@@ -46,7 +46,7 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | 区分 | 現状 | 自前化に向けた判断 |
 | --- | --- | --- |
 | カード | 6枚はBlender原本と再生成スクリプトが揃う。残り87枚は`tools/generate_card_icons.py`または既存PNG | 第一弾を基準にシリーズ単位でBlender化する |
-| 遺物 | 4個はBlender原本と再生成スクリプトが揃う。残り82個は取り込み済みPNGのみ | 第一弾の台座・機構キットを再利用して優先的に展開する |
+| 遺物 | 4個はBlender原本と再生成スクリプトが揃う。残り82個は取り込み済みPNGのみ | 第一弾の機構キットを再利用し、台座なしの透過アイコンへ展開する |
 | ポートレート | PNGのみで、編集可能な原本や生成手順は未収録 | 権利証跡と再現性が不足。自前化の優先度は高い |
 | 状態アイコン | `bleed`はBlender原本あり。残り3個はPNGのみ | 同じ立体メダリオンへ展開する |
 | 共通UI・マップアイコン | `attack`はBlender PNGを優先しコード生成へフォールバック。残りはGDScript生成 | 第一弾と同じ正投影・材質体系へ段階移行する |
@@ -184,7 +184,7 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | `export_sha256` | ゲーム用成果物の検証ハッシュ |
 | `replacement_status` | current、planned、in_progress、approved |
 
-第一弾で承認済みのIDは、カード`quick_slash`、`guard`、`delay_step`、`repair_burst`、`auto_turret`、`event_horizon`、遺物`iron_plating`、`auxiliary_core`、`chrono_shard`、`salvage_magnet`、状態`bleed`、UI`attack`、3D`balanced`、`scout`です。詳細は`data/art_provenance.json`、生成統計は各`*.manifest.json`を参照します。
+第一弾で実装済みのIDは、カード`quick_slash`、`guard`、`delay_step`、`repair_burst`、`auto_turret`、`event_horizon`、遺物`iron_plating`、`auxiliary_core`、`chrono_shard`、`salvage_magnet`、状態`bleed`、UI`attack`、3D`balanced`、`scout`です。2026-09-07のrevision 02ではカード6枚を個別のアクション場面へ、遺物4個を台座なしの透過画像へ変更しました。詳細は`data/art_provenance.json`、生成統計は各`*.manifest.json`を参照します。
 
 ## 8. 全カード画像
 

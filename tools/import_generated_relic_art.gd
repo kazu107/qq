@@ -162,7 +162,12 @@ func _save_contact_sheet(images: Array[Image], path: String) -> Error:
 			column * CONTACT_CELL_SIZE + CONTACT_INSET,
 			row * CONTACT_CELL_SIZE + CONTACT_INSET
 		)
-		sheet.blit_rect(thumbnail, Rect2i(Vector2i.ZERO, thumbnail.get_size()), destination)
+		# Checkered previews expose opaque backgrounds and accidental shadow plates.
+		for tile_y: int in range(0, thumbnail_size, 8):
+			for tile_x: int in range(0, thumbnail_size, 8):
+				var tile_color: Color = Color("35414b") if (tile_x / 8 + tile_y / 8) % 2 == 0 else Color("202a33")
+				sheet.fill_rect(Rect2i(destination + Vector2i(tile_x, tile_y), Vector2i(8, 8)), tile_color)
+		sheet.blend_rect(thumbnail, Rect2i(Vector2i.ZERO, thumbnail.get_size()), destination)
 	return sheet.save_png(path)
 
 

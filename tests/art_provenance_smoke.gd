@@ -77,6 +77,9 @@ func _run() -> void:
 			if load_error != OK or image.get_width() != expected_size or image.get_height() != expected_size:
 				_fail("Art provenance smoke failed: invalid image size for %s" % asset_id)
 				return
+			if String(asset.get("category", "")) == "relic" and not _has_icon_transparency(image):
+				_fail("Art provenance smoke failed: relic needs transparent padding and a visible object: %s" % asset_id)
+				return
 
 		var source_path: String = "res://%s" % String(asset.get("source_path", ""))
 		if not FileAccess.file_exists(source_path):
@@ -96,6 +99,21 @@ func _sha256(bytes: PackedByteArray) -> String:
 		return ""
 	context.update(bytes)
 	return context.finish().hex_encode()
+
+
+func _has_icon_transparency(image: Image) -> bool:
+	var visible_samples: int = 0
+	var sample_count: int = 0
+	for y: int in range(0, image.get_height(), 8):
+		for x: int in range(0, image.get_width(), 8):
+			var alpha: float = image.get_pixel(x, y).a
+			if (x == 0 or y == 0 or x >= image.get_width() - 8 or y >= image.get_height() - 8) and alpha > 0.01:
+				return false
+			if alpha > 0.1:
+				visible_samples += 1
+			sample_count += 1
+	var coverage: float = float(visible_samples) / float(sample_count)
+	return coverage > 0.15 and coverage < 0.8
 
 
 func _fail(message: String) -> void:

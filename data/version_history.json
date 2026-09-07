@@ -1,9 +1,23 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.20.0",
+  "current_version": "QQ-0.20.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.20.1",
+      "date": "2026-09-07",
+      "title_ja": "カードの構図と遺物アイコンを改善",
+      "title_en": "Action card artwork and transparent relics",
+      "changes_ja": [
+        "第一弾のカード6枚を、斬撃、防御、時間操作、修復、射撃、重力場の場面に作り直しました。カードごとに構図、背景、照明を変えています。",
+        "第一弾の遺物4個から台座と背景を取り除き、本体を大きく表示する透過アイコンにしました。"
+      ],
+      "changes_en": [
+        "Rebuilt the first six cards as distinct slash, guard, delay, repair, firing, and gravity scenes with individual compositions, backgrounds, and lighting.",
+        "Removed display stands and backgrounds from the first four relics, framing each object as a larger transparent icon."
+      ]
+    },
     {
       "version": "QQ-0.20.0",
       "date": "2026-09-03",

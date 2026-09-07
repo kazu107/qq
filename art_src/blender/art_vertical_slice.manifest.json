@@ -1,9 +1,11 @@
 {
   "format_version": 1,
   "generator": "tools/blender/build_art_vertical_slice.py",
+  "card_scene_generator": "tools/blender/card_action_scenes.py",
+  "art_revision": 2,
   "blender_version": "5.2.1 LTS",
   "render_engine": "BLENDER_EEVEE",
-  "render_size": 1024,
+  "render_size": 2048,
   "blend": "art_src/blender/art_vertical_slice.blend",
   "intermediate_root": "tools/.local/blender_art_vertical_slice",
   "assets": [
@@ -11,73 +13,85 @@
       "id": "auto_turret",
       "category": "card",
       "target": "assets/icons/cards/auto_turret.png",
-      "render_sha256": "8e76b94840564cbd3c06804fbe3a3a676af3dba0d608abc4335e07e42b2eba5a"
+      "render_sha256": "044306bcdf6358b16861e1e27a8cd520c1d3aff6d53f70dd31cdd5d69b302272",
+      "presentation": "action_illustration"
     },
     {
       "id": "delay_step",
       "category": "card",
       "target": "assets/icons/cards/delay_step.png",
-      "render_sha256": "b6b95a5b496e055642821e71e810a6a6585db8494cc28843b2d28befd19f90b2"
+      "render_sha256": "5fec9645e172ba0ebe18c68203e68a315850efae1b6cccf2f3c7bb06b8583abf",
+      "presentation": "action_illustration"
     },
     {
       "id": "event_horizon",
       "category": "card",
       "target": "assets/icons/cards/event_horizon.png",
-      "render_sha256": "a79aa3447972d9e90148134d035915716c28f55064170a406cc66010502303b2"
+      "render_sha256": "48c3ffeaeb39ed25c35521d0a069468acb6450938cd6263cfe27fa5ba26cb393",
+      "presentation": "action_illustration"
     },
     {
       "id": "guard",
       "category": "card",
       "target": "assets/icons/cards/guard.png",
-      "render_sha256": "63a2819dc2304e427d429d3b673af4b3a15d6d459c7dac960b70fba5f3d52245"
+      "render_sha256": "554e1bb41d6f18096178fb73f09a9da7f2dc3af5609621fda37fa32eb99af293",
+      "presentation": "action_illustration"
     },
     {
       "id": "quick_slash",
       "category": "card",
       "target": "assets/icons/cards/quick_slash.png",
-      "render_sha256": "a346d05c0bd5184ca382fd7c2360d552ff06b9b902445ccc165ffa9c9bdcad5c"
+      "render_sha256": "52fb3a792334feaca878889200974a91ea949dc7d733169753fca776ea6dd9e8",
+      "presentation": "action_illustration"
     },
     {
       "id": "repair_burst",
       "category": "card",
       "target": "assets/icons/cards/repair_burst.png",
-      "render_sha256": "b6387a27199a41f1502695fc279835be1e3ee70fe1487456e7f65620e8cdb79f"
+      "render_sha256": "e68a27b4149dabdea3a4f0c7a5e48177e82d5c2f0d1e4e4e8c02f1c30331660d",
+      "presentation": "action_illustration"
     },
     {
       "id": "attack",
       "category": "icon",
       "target": "assets/icons/ui/attack.png",
-      "render_sha256": "06e5b97371d370c4ea34ccb2531432fdfffc6991ba346f8ac47b037f0fcd97ae"
+      "render_sha256": "8d13c679a3eb45adc4190f33a633b6c4e1df399557382b450ebbcaed614c0975",
+      "presentation": "transparent_object"
     },
     {
       "id": "bleed",
       "category": "icon",
       "target": "assets/icons/status/bleed.png",
-      "render_sha256": "b3d8c299b8997d160e86a037d2b8e97bc8db24867934781e03424f980da1c305"
+      "render_sha256": "928ece6b98e3715107ed6fee978e3ed82b65e8a9fa550ac67912a03f3072f307",
+      "presentation": "transparent_object"
     },
     {
       "id": "auxiliary_core",
       "category": "relic",
       "target": "assets/icons/relics/auxiliary_core.png",
-      "render_sha256": "2bef6959cf8ea22fc6bc4d0b6c1cd2d4da5a73e875786ab06a3be2d15053c835"
+      "render_sha256": "f34233066fbd586546de35f679220a3e87938da6e1531ea16b2a7e4f5db8bcee",
+      "presentation": "transparent_object"
     },
     {
       "id": "chrono_shard",
       "category": "relic",
       "target": "assets/icons/relics/chrono_shard.png",
-      "render_sha256": "48860c7f25a54260cf23acccf9294837528ba108a8c4358afdd3815650415c2c"
+      "render_sha256": "a7bbf2718a91d6093a3bb8f32d57ebb117c8db9032b01fddf05b4404b57a0621",
+      "presentation": "transparent_object"
     },
     {
       "id": "iron_plating",
       "category": "relic",
       "target": "assets/icons/relics/iron_plating.png",
-      "render_sha256": "94c8f911d720e40d059d1cb5189af6a4cea5c7abb88848cdcb40cecd50a8a6e2"
+      "render_sha256": "6c6d65c9a53df5e1ce2821ae25b9f562ac175311f9aadd3d95dee6b436c4a1c6",
+      "presentation": "transparent_object"
     },
     {
       "id": "salvage_magnet",
       "category": "relic",
       "target": "assets/icons/relics/salvage_magnet.png",
-      "render_sha256": "440697bb797a71c11d960419d4af0a6693ab32439757fd986f2de8ce2817c9e1"
+      "render_sha256": "1ca71b30bd6a05cb55c761b73bad6c7f0a1d908c8d08fb1db08f25f0f96cbecf",
+      "presentation": "transparent_object"
     }
   ]
 }

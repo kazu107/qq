@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "updated_at": "2026-09-03",
+  "updated_at": "2026-09-07",
   "batch_id": "blender_vertical_slice_01",
   "author": "QQ project",
   "tool": "Blender 5.2.1 LTS",
@@ -31,8 +31,10 @@
       "runtime_path": "assets/icons/cards/quick_slash.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "e7893b562a7f7aeb67f330c3e0e1f37fe1716a4cb91ecc5c1af47d1ef4f51aae",
-      "replacement_status": "approved"
+      "export_sha256": "e8a0bd0fe2edb2aa4b9d25473d3a991f2fde80e434145048da801b67584b7312",
+      "replacement_status": "approved",
+      "presentation": "action_illustration",
+      "art_revision": 2
     },
     {
       "asset_id": "guard",
@@ -40,8 +42,10 @@
       "runtime_path": "assets/icons/cards/guard.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "b0f8c648656271d6a0bb18aeb987c9d645c67fac558e9a25125dd34d281d700b",
-      "replacement_status": "approved"
+      "export_sha256": "b16ab9fdfbcfa9dce96552b5d13babd8037c06bdb46a7ec49a49d2e5d256627b",
+      "replacement_status": "approved",
+      "presentation": "action_illustration",
+      "art_revision": 2
     },
     {
       "asset_id": "delay_step",
@@ -49,8 +53,10 @@
       "runtime_path": "assets/icons/cards/delay_step.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "4a401c4bbb7bdf9b6559f5836f35e8b3d881a3a959999f2027b15d0efeffc7d8",
-      "replacement_status": "approved"
+      "export_sha256": "b72b2c596263837ae9d44c1eb5561db08547b60d18c14fc3f72294109dc0107b",
+      "replacement_status": "approved",
+      "presentation": "action_illustration",
+      "art_revision": 2
     },
     {
       "asset_id": "repair_burst",
@@ -58,8 +64,10 @@
       "runtime_path": "assets/icons/cards/repair_burst.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "9395fef269170b3a3729fafeb9fd6cb0970c36a4144a64d974ece63304d1ae67",
-      "replacement_status": "approved"
+      "export_sha256": "10e4e0a274da3119778409e4569d45c1dfaa9bde2795245751584879d21125f2",
+      "replacement_status": "approved",
+      "presentation": "action_illustration",
+      "art_revision": 2
     },
     {
       "asset_id": "auto_turret",
@@ -67,8 +75,10 @@
       "runtime_path": "assets/icons/cards/auto_turret.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "87797f8269cd654da264a0f8c38d68c3d044a3e9274aa03ba85cfca06b9ba89d",
-      "replacement_status": "approved"
+      "export_sha256": "7774de3ca1672288e3f20c6b2c4cdc73e5cf3ebe67eafc7ec4f90c11e0d25e35",
+      "replacement_status": "approved",
+      "presentation": "action_illustration",
+      "art_revision": 2
     },
     {
       "asset_id": "event_horizon",
@@ -76,8 +86,10 @@
       "runtime_path": "assets/icons/cards/event_horizon.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "abdeeaa2e1a8526770da427880ce286bf0a761e43a1f5fb37e3407f8148e598e",
-      "replacement_status": "approved"
+      "export_sha256": "9a25c3bd984f9fd0fb7a61a570342f87e79455c0528a051242e1b63eca9655eb",
+      "replacement_status": "approved",
+      "presentation": "action_illustration",
+      "art_revision": 2
     },
     {
       "asset_id": "iron_plating",
@@ -85,8 +97,10 @@
       "runtime_path": "assets/icons/relics/iron_plating.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "173d4dec35e974cb665701dd83b241643d8f35f3bb547da295826d3cf00930e2",
-      "replacement_status": "approved"
+      "export_sha256": "ea733ebe18864f7a8a911aed7da3ad294e61b120c65598d7227cba8606004c37",
+      "replacement_status": "approved",
+      "presentation": "transparent_object",
+      "art_revision": 2
     },
     {
       "asset_id": "auxiliary_core",
@@ -94,8 +108,10 @@
       "runtime_path": "assets/icons/relics/auxiliary_core.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "aab757d3ed757c9b4905d15631adde2b4ab6563790b694539f18d5268d1434ab",
-      "replacement_status": "approved"
+      "export_sha256": "ee8888dece8cddb3bb1b2eeefc802198991d56feb583168976410da2ed338f4f",
+      "replacement_status": "approved",
+      "presentation": "transparent_object",
+      "art_revision": 2
     },
     {
       "asset_id": "chrono_shard",
@@ -103,8 +119,10 @@
       "runtime_path": "assets/icons/relics/chrono_shard.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "2ca5f9c275c3c1c4c0bdafe5b0255ea8ea41d7545774c8ec0c774a425cb5589e",
-      "replacement_status": "approved"
+      "export_sha256": "abb176490b383f439d5cae1b83f208570a348f874bd1ef0c0db7ca494304e198",
+      "replacement_status": "approved",
+      "presentation": "transparent_object",
+      "art_revision": 2
     },
     {
       "asset_id": "salvage_magnet",
@@ -112,8 +130,10 @@
       "runtime_path": "assets/icons/relics/salvage_magnet.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "8c8e69fa8788830f8e41db29b64242757ba905ff21ef5e031e9307f796ae0039",
-      "replacement_status": "approved"
+      "export_sha256": "7b817cb13fa479431261d1b2f5f1de5a2c7c36ac30f7b8c99aa2c7a24f97df55",
+      "replacement_status": "approved",
+      "presentation": "transparent_object",
+      "art_revision": 2
     },
     {
       "asset_id": "bleed",
@@ -121,7 +141,7 @@
       "runtime_path": "assets/icons/status/bleed.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "88596d6a795dc4d9316bd6c150d6b97f9f5cd8567ece4d87af3f365a65459cb6",
+      "export_sha256": "5afb6d4607caa7e0621b6cbe65c91e47dac04512863ded3b737b3288ff3853dc",
       "replacement_status": "approved"
     },
     {
@@ -130,7 +150,7 @@
       "runtime_path": "assets/icons/ui/attack.png",
       "source_path": "art_src/blender/art_vertical_slice.blend",
       "generator": "tools/blender/build_art_vertical_slice.py",
-      "export_sha256": "66caa696dc9e79d69ec07f8f145df2a0571b26e52cd22658deb78ca9d5480b5c",
+      "export_sha256": "2854a4ff3292cb95a146f6063e28bb795ce474b691425e71030d121e9f127248",
       "replacement_status": "approved"
     }
   ]

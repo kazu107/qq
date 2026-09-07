@@ -11,11 +11,16 @@ import hashlib
 import json
 import math
 import os
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Callable
 
 import bpy
 from mathutils import Vector
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import card_action_scenes
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -563,54 +568,6 @@ def add_radial_bolts(
         )
 
 
-def add_platform(collection: bpy.types.Collection, prefix: str, accent: bpy.types.Material) -> None:
-    add_box(collection, f"{prefix}_Base", (0.0, 0.15, 0.06), (3.65, 2.55, 0.18), MATERIALS["gunmetal"], bevel=0.10)
-    add_box(collection, f"{prefix}_Inset", (0.0, -0.02, 0.17), (3.20, 2.12, 0.10), MATERIALS["floor"], bevel=0.06)
-    add_box(collection, f"{prefix}_FrontTrim", (0.0, -1.08, 0.20), (2.78, 0.055, 0.055), accent, bevel=0.02)
-    add_box(collection, f"{prefix}_FrontRail", (0.0, -1.01, 0.245), (3.18, 0.035, 0.035), MATERIALS["steel_edge"], bevel=0.012)
-    for x in (-1.53, 1.53):
-        add_box(collection, f"{prefix}_SideRail_{x}", (x, -0.02, 0.235), (0.045, 1.78, 0.045), MATERIALS["steel"], bevel=0.012)
-    for x in (-0.82, 0.82):
-        add_box(collection, f"{prefix}_PanelSeam_{x}", (x, 0.12, 0.235), (0.022, 1.58, 0.018), MATERIALS["black"], bevel=0.004)
-    for index in range(4):
-        add_box(
-            collection,
-            f"{prefix}_Vent{index}",
-            (1.18 + index * 0.10, 0.70, 0.245),
-            (0.045, 0.34, 0.025),
-            MATERIALS["black"],
-            rotation_degrees=(0.0, 0.0, -12.0),
-            bevel=0.006,
-        )
-    for x in (-1.48, 1.48):
-        for y in (-0.82, 0.82):
-            add_cylinder(collection, f"{prefix}_DeckBolt_{x}_{y}", (x, y, 0.25), 0.055, 0.045, MATERIALS["brass_edge"], vertices=16, bevel=0.01)
-    for x in (-1.67, 1.67):
-        for y in (-1.05, 1.05):
-            add_box(collection, f"{prefix}_Corner_{x}_{y}", (x, y, 0.17), (0.18, 0.18, 0.16), MATERIALS["steel"], bevel=0.035)
-
-
-def add_pedestal(collection: bpy.types.Collection, prefix: str) -> None:
-    add_cylinder(collection, f"{prefix}_Foot", (0.0, 0.0, 0.08), 1.18, 0.16, MATERIALS["black"], vertices=64, bevel=0.05)
-    add_cylinder(collection, f"{prefix}_Base", (0.0, 0.0, 0.20), 1.02, 0.18, MATERIALS["gunmetal"], vertices=64, bevel=0.045)
-    add_cylinder(collection, f"{prefix}_BrassRing", (0.0, 0.0, 0.31), 0.86, 0.10, MATERIALS["brass"], vertices=64, bevel=0.025)
-    add_cylinder(collection, f"{prefix}_Top", (0.0, 0.0, 0.39), 0.76, 0.10, MATERIALS["floor"], vertices=64, bevel=0.025)
-    add_torus(collection, f"{prefix}_TopInset", (0.0, 0.0, 0.455), 0.62, 0.025, MATERIALS["steel_edge"])
-    add_box(collection, f"{prefix}_FrontBadge", (0.0, -0.79, 0.22), (0.34, 0.08, 0.18), MATERIALS["brass"], bevel=0.035)
-    for index in range(8):
-        angle = math.tau * float(index) / 8.0
-        add_cylinder(
-            collection,
-            f"{prefix}_PedestalBolt{index:02d}",
-            (math.cos(angle) * 0.91, math.sin(angle) * 0.91, 0.34),
-            0.035,
-            0.055,
-            MATERIALS["brass_edge"],
-            vertices=16,
-            bevel=0.008,
-        )
-
-
 def add_target_plate(collection: bpy.types.Collection, prefix: str, location: tuple[float, float, float]) -> None:
     add_profile(
         collection,
@@ -740,104 +697,8 @@ def new_asset_collection(category: str, asset_id: str) -> bpy.types.Collection:
     return collection
 
 
-def build_quick_slash() -> bpy.types.Collection:
-    collection = new_asset_collection("card", "quick_slash")
-    add_platform(collection, "QuickSlash", MATERIALS["cyan"])
-    add_target_plate(collection, "QuickSlash", (0.72, 0.50, 1.20))
-    add_sword(collection, "QuickSlash", (-0.55, -0.24, 1.14), (0.0, -42.0, -7.0))
-    arc_points = []
-    for index in range(9):
-        angle = math.radians(212.0 - index * 21.0)
-        arc_points.append((math.cos(angle) * 1.35 - 0.05, -0.42, math.sin(angle) * 1.15 + 1.18))
-    add_curve(collection, "QuickSlash_Arc", arc_points, 0.045, MATERIALS["cyan"])
-    add_curve(collection, "QuickSlash_Cut", [(0.35, 0.38, 0.68), (0.68, 0.34, 1.20), (1.02, 0.38, 1.67)], 0.032, MATERIALS["amber"])
-    for index, (x, z, rotation) in enumerate(((0.38, 0.92, -24.0), (0.92, 1.41, 31.0), (1.04, 0.92, 58.0))):
-        add_box(
-            collection,
-            f"QuickSlash_CutFragment{index}",
-            (x, 0.18, z),
-            (0.16, 0.12, 0.26),
-            MATERIALS["ceramic_light"],
-            rotation_degrees=(rotation, rotation * 0.4, rotation * 0.7),
-            bevel=0.025,
-        )
-    add_curve(collection, "QuickSlash_BladeWake", [(-0.86, -0.22, 0.52), (-0.42, -0.30, 1.04), (0.10, -0.32, 1.55)], 0.018, MATERIALS["steel_edge"])
-    for index, offset in enumerate(((-0.22, -0.02), (0.04, 0.16), (0.24, -0.18), (0.38, 0.06))):
-        add_cone(collection, f"QuickSlash_Spark{index}", (0.72 + offset[0], 0.18, 1.20 + offset[1]), 0.055, 0.0, 0.28, MATERIALS["amber"], vertices=12, rotation_degrees=(0.0, 75.0 + index * 28.0, 0.0))
-    return collection
-
-
-def build_guard() -> bpy.types.Collection:
-    collection = new_asset_collection("card", "guard")
-    add_platform(collection, "Guard", MATERIALS["cyan"])
-    add_cylinder(collection, "Guard_EmitterBase", (0.0, 0.38, 0.50), 0.72, 0.22, MATERIALS["gunmetal"], vertices=64, bevel=0.05)
-    add_torus(collection, "Guard_EmitterRing", (0.0, 0.36, 0.62), 0.62, 0.085, MATERIALS["cyan"], rotation_degrees=(0.0, 0.0, 0.0))
-    add_torus(collection, "Guard_FieldOuter", (0.0, -0.34, 1.42), 1.16, 0.028, MATERIALS["cyan"], rotation_degrees=(90.0, 0.0, 0.0))
-    add_torus(collection, "Guard_FieldInner", (0.0, -0.35, 1.42), 0.88, 0.018, MATERIALS["cyan_soft"], rotation_degrees=(90.0, 0.0, 0.0))
-    add_shield(collection, "Guard", (0.0, -0.16, 1.42), 1.05)
-    for index in range(8):
-        angle = math.tau * float(index) / 8.0
-        start = (math.cos(angle) * 0.67, -0.38, 1.42 + math.sin(angle) * 0.67)
-        end = (math.cos(angle) * 0.84, -0.38, 1.42 + math.sin(angle) * 0.84)
-        add_rod_between(collection, f"Guard_FieldSpoke{index:02d}", start, end, 0.018, MATERIALS["cyan_soft"], vertices=12)
-    for x in (-1.14, 1.14):
-        add_box(collection, f"Guard_Pylon_{x}", (x, 0.40, 0.75), (0.24, 0.30, 1.08), MATERIALS["gunmetal"], bevel=0.07)
-        add_sphere(collection, f"Guard_PylonCore_{x}", (x, 0.20, 1.08), (0.12, 0.10, 0.12), MATERIALS["cyan"])
-        add_curve(collection, f"Guard_PylonCable_{x}", [(x, 0.35, 0.70), (x * 0.72, 0.10, 0.42), (x * 0.34, -0.05, 0.46)], 0.035, MATERIALS["brass"])
-    return collection
-
-
-def build_delay_step() -> bpy.types.Collection:
-    collection = new_asset_collection("card", "delay_step")
-    add_platform(collection, "DelayStep", MATERIALS["amber"])
-    for y in (-0.38, 0.34):
-        add_box(collection, f"DelayStep_Rail_{y}", (0.18, y, 0.36), (2.70, 0.11, 0.11), MATERIALS["steel"], bevel=0.035)
-    for index in range(9):
-        x = -1.10 + index * 0.28
-        add_box(collection, f"DelayStep_Tick{index}", (x, -0.62, 0.39), (0.035, 0.18, 0.16 if index % 2 == 0 else 0.10), MATERIALS["brass_edge"], bevel=0.008)
-    add_box(collection, "DelayStep_CardCarriage", (0.50, -0.03, 0.62), (0.72, 0.82, 0.16), MATERIALS["ceramic"], rotation_degrees=(0.0, 0.0, -8.0), bevel=0.08)
-    add_box(collection, "DelayStep_CardInset", (0.50, -0.12, 0.72), (0.44, 0.52, 0.055), MATERIALS["red"], rotation_degrees=(0.0, 0.0, -8.0), bevel=0.035)
-    for x in (0.24, 0.76):
-        for y in (-0.42, 0.34):
-            add_cylinder(collection, f"DelayStep_CarriageWheel_{x}_{y}", (x, y, 0.49), 0.105, 0.07, MATERIALS["brass"], vertices=24, rotation_degrees=(90.0, 0.0, 0.0), bevel=0.018)
-    for index in range(3):
-        add_box(collection, f"DelayStep_CarriageVent{index}", (0.37 + index * 0.13, -0.45, 0.72), (0.055, 0.025, 0.22), MATERIALS["black"], rotation_degrees=(0.0, 0.0, -8.0), bevel=0.005)
-    add_clock_face(collection, "DelayStep", (-0.98, 0.42, 1.46), 0.62, MATERIALS["amber"])
-    add_cylinder(collection, "DelayStep_Weight", (1.28, 0.38, 1.17), 0.30, 0.56, MATERIALS["gunmetal"], vertices=48, bevel=0.045)
-    add_torus(collection, "DelayStep_WeightBand", (1.28, 0.38, 1.17), 0.30, 0.055, MATERIALS["red"])
-    add_curve(collection, "DelayStep_PullCable", [(0.78, 0.23, 0.68), (1.08, 0.34, 0.82), (1.28, 0.38, 0.92)], 0.035, MATERIALS["brass"])
-    return collection
-
-
-def build_repair_burst() -> bpy.types.Collection:
-    collection = new_asset_collection("card", "repair_burst")
-    add_platform(collection, "RepairBurst", MATERIALS["green"])
-    add_profile(collection, "RepairBurst_BrokenPlate", [(-0.70, 0.76), (0.70, 0.76), (0.82, -0.35), (0.0, -0.86), (-0.82, -0.35)], 0.15, MATERIALS["ceramic"], location=(0.0, 0.38, 1.22), bevel=0.055)
-    add_curve(collection, "RepairBurst_CrackA", [(-0.06, 0.25, 1.88), (0.12, 0.24, 1.52), (-0.08, 0.23, 1.19), (0.13, 0.22, 0.76)], 0.028, MATERIALS["black"])
-    add_curve(collection, "RepairBurst_CrackB", [(0.10, 0.23, 1.50), (0.42, 0.23, 1.34), (0.57, 0.23, 1.12)], 0.022, MATERIALS["black"])
-    add_profile(collection, "RepairBurst_Patch", [(-0.24, 0.18), (0.22, 0.26), (0.30, -0.16), (-0.17, -0.24)], 0.20, MATERIALS["steel"], location=(0.20, 0.12, 1.38), rotation_degrees=(0.0, 0.0, 8.0), bevel=0.035)
-    for index, angle in enumerate((-52.0, -22.0, 18.0, 48.0)):
-        radians = math.radians(angle)
-        add_rod_between(
-            collection,
-            f"RepairBurst_WeldSpark{index}",
-            (0.06, -0.30, 1.43),
-            (0.06 + math.sin(radians) * 0.42, -0.34, 1.43 + math.cos(radians) * 0.42),
-            0.018,
-            MATERIALS["amber"],
-            vertices=10,
-        )
-    add_robot_arm(collection, "RepairBurst_LeftArm", (-1.25, 0.24, 0.42), (-0.90, 0.05, 1.14), (-0.42, -0.02, 1.34), MATERIALS["green"])
-    add_robot_arm(collection, "RepairBurst_RightArm", (1.25, 0.24, 0.42), (0.93, 0.04, 1.08), (0.44, -0.03, 1.34), MATERIALS["cyan"])
-    add_torus(collection, "RepairBurst_FieldRing", (0.0, 0.14, 1.22), 1.02, 0.045, MATERIALS["green"], rotation_degrees=(90.0, 0.0, 0.0))
-    add_cylinder(collection, "RepairBurst_Vial", (-1.26, -0.58, 0.64), 0.14, 0.62, MATERIALS["green"], vertices=32, bevel=0.035)
-    add_cylinder(collection, "RepairBurst_VialCap", (-1.26, -0.58, 0.98), 0.19, 0.12, MATERIALS["brass"], vertices=32, bevel=0.025)
-    return collection
-
-
 def build_auto_turret() -> bpy.types.Collection:
     collection = new_asset_collection("card", "auto_turret")
-    add_platform(collection, "AutoTurret", MATERIALS["amber"])
     add_cylinder(collection, "AutoTurret_PivotBase", (0.0, 0.20, 0.46), 0.72, 0.34, MATERIALS["gunmetal"], vertices=64, bevel=0.06)
     add_torus(collection, "AutoTurret_PivotRing", (0.0, 0.20, 0.64), 0.58, 0.07, MATERIALS["amber"])
     add_box(collection, "AutoTurret_Body", (0.0, 0.10, 1.18), (1.18, 0.82, 0.72), MATERIALS["steel"], rotation_degrees=(0.0, 0.0, -4.0), bevel=0.12)
@@ -867,38 +728,8 @@ def build_auto_turret() -> bpy.types.Collection:
     return collection
 
 
-def build_event_horizon() -> bpy.types.Collection:
-    collection = new_asset_collection("card", "event_horizon")
-    add_platform(collection, "EventHorizon", MATERIALS["purple"])
-    ring_materials = (MATERIALS["gunmetal"], MATERIALS["cyan_soft"], MATERIALS["purple"])
-    for index, radius in enumerate((1.22, 0.94, 0.70)):
-        add_torus(collection, f"EventHorizon_Ring{index}", (0.0, 0.20 + index * 0.05, 1.32), radius, 0.075 - index * 0.012, ring_materials[index], rotation_degrees=(90.0, 0.0, index * 24.0))
-    add_torus(collection, "EventHorizon_OuterGlow", (0.0, 0.15, 1.32), 1.23, 0.018, MATERIALS["purple"], rotation_degrees=(90.0, 0.0, 0.0))
-    add_sphere(collection, "EventHorizon_Core", (0.0, 0.02, 1.32), (0.68, 0.48, 0.68), MATERIALS["black"])
-    add_torus(collection, "EventHorizon_Accretion", (0.0, -0.28, 1.32), 0.76, 0.075, MATERIALS["amber"], rotation_degrees=(72.0, 0.0, 18.0))
-    for index in range(8):
-        angle = math.tau * float(index) / 8.0
-        add_box(
-            collection,
-            f"EventHorizon_RingClamp{index:02d}",
-            (math.cos(angle) * 1.22, -0.02, 1.32 + math.sin(angle) * 1.22),
-            (0.16, 0.13, 0.09),
-            MATERIALS["brass"],
-            rotation_degrees=(0.0, 0.0, -math.degrees(angle)),
-            bevel=0.025,
-        )
-    for lane in (-0.72, 0.72):
-        add_curve(collection, f"EventHorizon_Rail_{lane}", [(lane * 1.9, 0.58, 0.48), (lane * 1.25, 0.42, 0.68), (lane * 0.62, 0.26, 1.02), (lane * 0.20, 0.10, 1.28)], 0.055, MATERIALS["steel"])
-    for index in range(11):
-        angle = math.tau * float(index) / 11.0
-        radius = 1.52 + (index % 3) * 0.13
-        add_box(collection, f"EventHorizon_Debris{index:02d}", (math.cos(angle) * radius, 0.05 + 0.12 * math.sin(angle * 2.0), 1.32 + math.sin(angle) * radius * 0.72), (0.12, 0.08, 0.22), MATERIALS["ceramic_light"] if index % 3 == 0 else MATERIALS["steel"], rotation_degrees=(index * 29.0, index * 41.0, index * 17.0), bevel=0.025)
-    return collection
-
-
 def build_iron_plating() -> bpy.types.Collection:
     collection = new_asset_collection("relic", "iron_plating")
-    add_pedestal(collection, "IronPlating")
     add_profile(collection, "IronPlating_Chest", [(-0.92, 0.76), (-0.55, 1.02), (0.0, 0.83), (0.55, 1.02), (0.92, 0.76), (0.72, -0.62), (0.0, -0.94), (-0.72, -0.62)], 0.30, MATERIALS["steel"], location=(0.0, 0.0, 1.42), bevel=0.09)
     add_profile(collection, "IronPlating_Inset", [(-0.63, 0.59), (0.0, 0.38), (0.63, 0.59), (0.51, -0.42), (0.0, -0.67), (-0.51, -0.42)], 0.34, MATERIALS["gunmetal"], location=(0.0, -0.18, 1.42), bevel=0.06)
     add_box(collection, "IronPlating_Spine", (0.0, -0.35, 1.42), (0.13, 0.07, 1.34), MATERIALS["brass"], bevel=0.025)
@@ -915,7 +746,6 @@ def build_iron_plating() -> bpy.types.Collection:
 
 def build_auxiliary_core() -> bpy.types.Collection:
     collection = new_asset_collection("relic", "auxiliary_core")
-    add_pedestal(collection, "AuxiliaryCore")
     add_cylinder(collection, "AuxiliaryCore_Back", (0.0, 0.08, 1.44), 0.92, 0.26, MATERIALS["gunmetal"], vertices=64, rotation_degrees=(90.0, 0.0, 0.0), bevel=0.06)
     add_torus(collection, "AuxiliaryCore_Outer", (0.0, -0.10, 1.44), 0.92, 0.12, MATERIALS["brass"], rotation_degrees=(90.0, 0.0, 0.0))
     add_torus(collection, "AuxiliaryCore_Inner", (0.0, -0.22, 1.44), 0.56, 0.075, MATERIALS["steel_edge"], rotation_degrees=(90.0, 0.0, 0.0))
@@ -942,7 +772,6 @@ def build_auxiliary_core() -> bpy.types.Collection:
 
 def build_chrono_shard() -> bpy.types.Collection:
     collection = new_asset_collection("relic", "chrono_shard")
-    add_pedestal(collection, "ChronoShard")
     add_clock_face(collection, "ChronoShard", (0.0, 0.12, 1.42), 0.92, MATERIALS["cyan"])
     shard_root = add_empty(collection, "ChronoShard_CrystalRoot", (0.0, -0.38, 1.40), (0.0, 0.0, -13.0))
     add_profile(collection, "ChronoShard_Crystal", [(-0.27, -0.84), (0.35, -0.50), (0.24, 0.78), (0.0, 1.05), (-0.32, 0.55)], 0.26, MATERIALS["crystal"], parent=shard_root, bevel=0.045)
@@ -958,7 +787,6 @@ def build_chrono_shard() -> bpy.types.Collection:
 
 def build_salvage_magnet() -> bpy.types.Collection:
     collection = new_asset_collection("relic", "salvage_magnet")
-    add_pedestal(collection, "SalvageMagnet")
     add_curve(collection, "SalvageMagnet_Horseshoe", [(-0.72, 0.0, 1.75), (-0.78, 0.0, 1.15), (-0.55, 0.0, 0.78), (0.0, 0.0, 0.62), (0.55, 0.0, 0.78), (0.78, 0.0, 1.15), (0.72, 0.0, 1.75)], 0.22, MATERIALS["gunmetal"])
     add_box(collection, "SalvageMagnet_LeftPole", (-0.70, -0.02, 1.83), (0.46, 0.42, 0.48), MATERIALS["gunmetal"], bevel=0.08)
     add_box(collection, "SalvageMagnet_RightPole", (0.70, -0.02, 1.83), (0.46, 0.42, 0.48), MATERIALS["gunmetal"], bevel=0.08)
@@ -1055,10 +883,6 @@ def setup_render_scene() -> None:
     scene.world = world
 
     BACKDROP_COLLECTION = make_collection("RENDER_BACKDROP")
-    add_box(BACKDROP_COLLECTION, "BackdropFloor", (0.0, 0.0, -0.20), (12.0, 12.0, 0.30), MATERIALS["floor"], bevel=0.12)
-    add_box(BACKDROP_COLLECTION, "BackdropWall", (0.0, 3.20, 3.20), (12.0, 0.30, 6.4), MATERIALS["black"], bevel=0.15)
-    for x in (-3.8, -1.9, 0.0, 1.9, 3.8):
-        add_box(BACKDROP_COLLECTION, f"BackdropLine_{x}", (x, 3.01, 1.65), (0.028, 0.025, 3.30), MATERIALS["gunmetal"], bevel=0.008)
 
     LIGHT_COLLECTION = make_collection("RENDER_LIGHTS")
     add_area_light(LIGHT_COLLECTION, "KeyLight", (-3.8, -4.5, 6.8), 1080.0, (0.62, 0.80, 1.0), 4.0, (0.0, 0.0, 1.1))
@@ -1092,15 +916,36 @@ def render_asset(
         raise RuntimeError("Render rig has not been initialized")
     for asset_collection in ASSET_COLLECTIONS:
         set_collection_visibility(asset_collection, asset_collection == collection)
-    set_collection_visibility(BACKDROP_COLLECTION, not transparent)
+    set_collection_visibility(BACKDROP_COLLECTION, False)
 
-    if camera_mode == "front":
+    if category == "card":
+        position, target, ortho_scale = card_action_scenes.CAMERAS[asset_id]
+        CAMERA.location = position
+        look_at(CAMERA, Vector(target))
+        key_color, rim_color = card_action_scenes.LIGHT_COLORS[asset_id]
+        bpy.data.lights["KeyLight"].color = key_color
+        bpy.data.lights["RimLight"].color = rim_color
+    elif category == "relic":
+        CAMERA.location = (2.3, -9.0, 3.0)
+        look_at(CAMERA, Vector((0.0, 0.0, 1.43)))
+        bpy.data.lights["KeyLight"].color = (0.78, 0.86, 1.0)
+        bpy.data.lights["RimLight"].color = (1.0, 0.62, 0.28)
+    elif camera_mode == "front":
         CAMERA.location = (0.0, -8.4, 0.92)
         look_at(CAMERA, Vector((0.0, 0.0, 0.92)))
+        bpy.data.lights["KeyLight"].color = (0.62, 0.80, 1.0)
+        bpy.data.lights["RimLight"].color = (1.0, 0.30, 0.08)
     else:
         CAMERA.location = (4.55, -7.30, 4.25)
         look_at(CAMERA, Vector((0.0, 0.0, 1.10)))
     CAMERA.data.ortho_scale = ortho_scale
+    CAMERA.data.type = "PERSP" if category == "card" else "ORTHO"
+    CAMERA.data.dof.use_dof = category == "card"
+    if category == "card":
+        distance = (Vector(target) - CAMERA.location).length
+        CAMERA.data.lens = 36.0 * distance / ortho_scale
+        CAMERA.data.dof.focus_distance = distance
+        CAMERA.data.dof.aperture_fstop = 1.4
 
     output_dir = {"card": CARD_RENDER_DIR, "relic": RELIC_RENDER_DIR, "icon": ICON_RENDER_DIR}[category]
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1153,11 +998,14 @@ def write_manifests(outputs: dict[str, dict[str, Path]]) -> None:
                     "category": category,
                     "target": target,
                     "render_sha256": sha256_file(output_path),
+                    "presentation": "action_illustration" if category == "card" else "transparent_object",
                 }
             )
     source_manifest = {
         "format_version": 1,
         "generator": "tools/blender/build_art_vertical_slice.py",
+        "card_scene_generator": "tools/blender/card_action_scenes.py",
+        "art_revision": 2,
         "blender_version": bpy.app.version_string,
         "render_engine": bpy.context.scene.render.engine,
         "render_size": RENDER_SIZE,
@@ -1176,14 +1024,6 @@ def main() -> None:
     build_materials()
     setup_render_scene()
 
-    card_builders: dict[str, Callable[[], bpy.types.Collection]] = {
-        "quick_slash": build_quick_slash,
-        "guard": build_guard,
-        "delay_step": build_delay_step,
-        "repair_burst": build_repair_burst,
-        "auto_turret": build_auto_turret,
-        "event_horizon": build_event_horizon,
-    }
     relic_builders: dict[str, Callable[[], bpy.types.Collection]] = {
         "iron_plating": build_iron_plating,
         "auxiliary_core": build_auxiliary_core,
@@ -1196,8 +1036,9 @@ def main() -> None:
     }
 
     collections: dict[str, dict[str, bpy.types.Collection]] = {"card": {}, "relic": {}, "icon": {}}
+    modeling_kit = SimpleNamespace(**globals())
     for asset_id in CARD_IDS:
-        collections["card"][asset_id] = card_builders[asset_id]()
+        collections["card"][asset_id] = card_action_scenes.BUILDERS[asset_id](modeling_kit)
     for asset_id in RELIC_IDS:
         collections["relic"][asset_id] = relic_builders[asset_id]()
     for asset_id in ICON_SPECS:
@@ -1207,7 +1048,7 @@ def main() -> None:
     for asset_id in CARD_IDS:
         outputs["card"][asset_id] = render_asset(asset_id, "card", collections["card"][asset_id], ortho_scale=4.65)
     for asset_id in RELIC_IDS:
-        outputs["relic"][asset_id] = render_asset(asset_id, "relic", collections["relic"][asset_id], ortho_scale=3.65)
+        outputs["relic"][asset_id] = render_asset(asset_id, "relic", collections["relic"][asset_id], ortho_scale=2.9, transparent=True)
     outputs["icon"]["bleed"] = render_asset("bleed", "icon", collections["icon"]["bleed"], ortho_scale=2.65, camera_mode="front", transparent=True)
     outputs["icon"]["attack"] = render_asset("attack", "icon", collections["icon"]["attack"], ortho_scale=2.65, camera_mode="front", transparent=True)
 
@@ -1216,7 +1057,18 @@ def main() -> None:
         set_collection_visibility(asset_collection, False)
     set_collection_visibility(collections["card"]["quick_slash"], True)
     if BACKDROP_COLLECTION is not None:
-        set_collection_visibility(BACKDROP_COLLECTION, True)
+        set_collection_visibility(BACKDROP_COLLECTION, False)
+    position, target, scale = card_action_scenes.CAMERAS["quick_slash"]
+    CAMERA.location = position
+    look_at(CAMERA, Vector(target))
+    CAMERA.data.ortho_scale = scale
+    CAMERA.data.type = "PERSP"
+    CAMERA.data.lens = 36.0 * (Vector(target) - CAMERA.location).length / scale
+    CAMERA.data.dof.use_dof = True
+    CAMERA.data.dof.focus_distance = (Vector(target) - CAMERA.location).length
+    key_color, rim_color = card_action_scenes.LIGHT_COLORS["quick_slash"]
+    bpy.data.lights["KeyLight"].color = key_color
+    bpy.data.lights["RimLight"].color = rim_color
     bpy.context.scene.render.film_transparent = False
     bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE_PATH), check_existing=False)
 

@@ -7,12 +7,23 @@ UI vertical slice. The source collection names preserve category and data ID,
 while `art_vertical_slice.manifest.json` records the renderer and source-render
 hashes.
 
+Revision 02 uses `tools/blender/card_action_scenes.py` to compose six separate
+action illustrations, each with its own scenery, camera, and lighting. Relics
+are isolated objects with transparent film and no display stand or floor.
+The importer preserves alpha and previews relics over a checkerboard. Runtime
+hashes in `data/art_provenance.json` are refreshed after a successful import.
+
 Regenerate the Blend, render all 12 source images at 1024x1024, import the
 runtime sizes, and rebuild the three contact sheets with:
 
 ```powershell
 .\tools\build_blender_art_vertical_slice.ps1 -RenderSize 1024
 ```
+
+Use `-RenderSize 2048` for the final card/relic revision renders. To review the
+images alongside actual 168px card controls and 48px relic controls, run
+`res://tools/BlenderArtReview.tscn` in Godot. Setting `QQ_ART_REVIEW_CAPTURE` to
+an absolute PNG path makes the review scene save a screenshot and exit.
 
 The batch currently owns these runtime assets:
 
