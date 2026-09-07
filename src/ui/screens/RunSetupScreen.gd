@@ -394,9 +394,13 @@ func _build_detail_column(parent: HBoxContainer) -> void:
 	_starter_cards_panel.name = "StarterCards"
 	_starter_cards_panel.set_interactive(false)
 	_starter_cards_panel.set_tile_size(Vector2(78.0, 78.0) if _compact_layout else Vector2(112.0, 112.0))
-	_starter_cards_panel.custom_minimum_size = Vector2(0.0, 158.0 if _compact_layout else 242.0)
-	_starter_cards_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(_starter_cards_panel)
+	var cards_scroll: ScrollContainer = ScrollContainer.new()
+	cards_scroll.name = "StarterCardsScroll"
+	cards_scroll.custom_minimum_size = Vector2(0.0, 158.0 if _compact_layout else 242.0)
+	cards_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cards_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root.add_child(cards_scroll)
+	cards_scroll.add_child(_starter_cards_panel)
 
 	_start_button = Button.new()
 	_start_button.name = "ArenaStartSelectedButton" if _is_arena_setup else "RunStartSelectedButton"

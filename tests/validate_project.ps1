@@ -165,6 +165,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/CardUiSmoke.tscn"
     )
+    Invoke-GodotCheck "[9-layout/31] Running external card layout smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/CardLayoutSmoke.tscn"
+    )
     Invoke-GodotCheck "[9a/31] Running 3D battle stage smoke" $godotExe @(
         "--no-header",
         "--headless",

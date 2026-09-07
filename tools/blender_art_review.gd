@@ -5,8 +5,8 @@ const RELICS: Array[String] = ["iron_plating", "auxiliary_core", "chrono_shard",
 
 
 func _ready() -> void:
-	get_window().size = Vector2i(1440, 940)
-	get_window().content_scale_size = Vector2i(1440, 940)
+	get_window().size = Vector2i(1440, 1040)
+	get_window().content_scale_size = Vector2i(1440, 1040)
 	Database.load_all()
 	call_deferred("_build")
 
@@ -35,7 +35,7 @@ func _build() -> void:
 	_label("Card illustration + real 168px card UI   |   Relic alpha + real 48px icon UI", Vector2(36, 62))
 	for index: int in CARDS.size():
 		var card_id: String = CARDS[index]
-		var origin: Vector2 = Vector2(36 + index % 3 * 468, 108 + index / 3 * 278)
+		var origin: Vector2 = Vector2(36 + index % 3 * 468, 108 + index / 3 * 320)
 		_label(card_id, origin)
 		_image(load("res://assets/icons/cards/%s.png" % card_id), origin + Vector2(0, 30), 224)
 		var state: CardRuntimeState = CardRuntimeState.new()
@@ -47,11 +47,11 @@ func _build() -> void:
 		card.position = origin + Vector2(246, 34)
 		add_child(card)
 		card.bind(Database.get_card(card_id), state, true)
-		_label("168 px / hover for details", origin + Vector2(236, 220), 15)
-	_label("RELICS / no display stand, transparent background", Vector2(36, 681), 22)
+		_label("168 px / hover for details", origin + Vector2(236, 290), 15)
+	_label("RELICS / no display stand, transparent background", Vector2(36, 758), 22)
 	for index: int in RELICS.size():
 		var relic_id: String = RELICS[index]
-		var origin: Vector2 = Vector2(36 + index * 350, 729)
+		var origin: Vector2 = Vector2(36 + index * 350, 810)
 		_label(relic_id, origin, 16)
 		for y: int in 8:
 			for x: int in 8:

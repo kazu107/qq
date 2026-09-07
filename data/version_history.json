@@ -1,9 +1,23 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.20.1",
+  "current_version": "QQ-0.20.2",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.20.2",
+      "date": "2026-09-08",
+      "title_ja": "カード情報を画像の外へ配置",
+      "title_en": "Card information outside the artwork",
+      "changes_ja": [
+        "カード画像の上にコスト、秒数、効果を、下にカード名を表示し、名前横のタイプアイコンを削除しました。",
+        "画像の正方形サイズを維持し、タイムライン、戦闘カード欄、開始デッキ、施設の選択肢を新しい高さに対応させました。"
+      ],
+      "changes_en": [
+        "Moved costs, timing, and effects above card artwork, placed names below, and removed the type icon beside card names.",
+        "Preserved square artwork sizes and adapted timeline, battle hands, starter decks, and facility choices to the taller cards."
+      ]
+    },
     {
       "version": "QQ-0.20.1",
       "date": "2026-09-07",

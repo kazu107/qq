@@ -71,15 +71,13 @@ func _run() -> void:
 	or ready_cost == null \
 	or ready_cost.text != str(strike_def.active_slot_cost) \
 	or ready_cost_badge.color.g < 0.6 \
-	or ready_cost_badge.offset_left >= 0.0 \
-	or ready_cost_badge.offset_top >= 0.0:
+	or ready_cost_badge.get_rect().end.y > ready_button.get_art_rect().position.y:
 		push_error("Card UI smoke failed: card cost should render in a green top-left badge")
 		get_tree().quit(1)
 		return
 	var ready_effect_strip: Control = ready_button.get_node("EffectStrip") as Control
 	var ready_effect_chip: Panel = ready_button.get_node("EffectStrip/EffectChip1") as Panel
 	var ready_effect_icon: TextureRect = ready_button.get_node("EffectStrip/EffectChip1/Icon") as TextureRect
-	var ready_type_icon: TextureRect = ready_button.get_node("NameBar/CardTypeIcon") as TextureRect
 	var ready_timing_badge: ColorRect = ready_button.get_node("TimingBadge") as ColorRect
 	var ready_timing_value: Label = ready_button.get_node("TimingBadge/Value") as Label
 	if ready_effect_strip == null \
@@ -88,14 +86,12 @@ func _run() -> void:
 	or not ready_effect_chip.visible \
 	or ready_effect_icon == null \
 	or ready_effect_icon.texture == null \
-	or ready_type_icon == null \
-	or not ready_type_icon.visible \
-	or ready_type_icon.texture == null:
+	or ready_button.has_node("NameBar/CardTypeIcon"):
 		push_error("Card UI smoke failed: readable effect and card-type icons should be visible")
 		get_tree().quit(1)
 		return
 	if ready_timing_badge == null or not ready_timing_badge.visible or ready_timing_value == null or ready_timing_value.text != "3.6s":
-		push_error("Card UI smoke failed: large cards should show their current cast time")
+		push_error("Card UI smoke failed: medium cards should keep cast time above the artwork")
 		get_tree().quit(1)
 		return
 
@@ -358,8 +354,8 @@ func _run() -> void:
 		push_error("Card UI smoke failed: compact cards should show one primary effect and a remaining-effect count")
 		get_tree().quit(1)
 		return
-	if absf(first_button.size.x - first_button.size.y) > 0.1:
-		push_error("Card UI smoke failed: battle hand tile is not square")
+	if absf(first_button.get_art_rect().size.x - first_button.get_art_rect().size.y) > 0.1:
+		push_error("Card UI smoke failed: battle card artwork is not square")
 		get_tree().quit(1)
 		return
 	var hovered_runtime_ids: Array[String] = []
@@ -413,7 +409,7 @@ func _run() -> void:
 		push_error("Card UI smoke failed: timeline entries were not sorted by earliest cast")
 		get_tree().quit(1)
 		return
-	if earliest_button.custom_minimum_size != Vector2(168.0, 168.0):
+	if earliest_button.get_art_rect().size != Vector2(168.0, 168.0) or earliest_button.custom_minimum_size != CardButton.get_tile_extent(Vector2(168.0, 168.0)):
 		push_error("Card UI smoke failed: timeline card tile should be four-card area size")
 		get_tree().quit(1)
 		return

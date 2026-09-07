@@ -435,7 +435,7 @@ func _build_event_choice_button(choice_data: Dictionary, pressed_callback: Calla
 			var preview: CardButton = CardButton.new()
 			preview.name = "ChoiceCardPreview_%s_%s" % [choice_id, preview_card_id]
 			preview.set_tile_size(Vector2(74.0, 74.0))
-			preview.custom_minimum_size = Vector2(74.0, 74.0)
+			button.custom_minimum_size.y = maxf(button_height, preview.custom_minimum_size.y + 24.0)
 			preview.mouse_filter = Control.MOUSE_FILTER_PASS
 			preview.bind_preview(card_def, preview_card_id, false, "CARD")
 			body_row.add_child(preview)

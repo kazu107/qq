@@ -82,7 +82,7 @@ var _effect_chip_icons: Array[TextureRect] = []
 var _effect_chip_labels: Array[RichTextLabel] = []
 var _effect_remainder_badge: Panel
 var _effect_remainder_label: Label
-var _name_type_icon: TextureRect
+var _tile_size: Vector2 = Vector2(108.0, 108.0)
 var _face_summaries: Array[Dictionary] = []
 var _face_cast_time: float = 0.0
 
@@ -91,10 +91,38 @@ func _ready() -> void:
 	_ensure_visuals()
 
 
-func set_tile_size(size: Vector2) -> void:
-	custom_minimum_size = size
+static func get_tile_extent(art_size: Vector2) -> Vector2:
+	var width: float = maxf(48.0, art_size.x)
+	return Vector2(width, width + _header_height(width) + _name_height(width))
+
+
+static func _header_height(width: float) -> float:
+	return 48.0 if width >= 112.0 else 40.0
+
+
+static func _name_height(width: float) -> float:
+	return 30.0 if width >= 140.0 else 28.0
+
+
+func set_tile_size(art_size: Vector2) -> void:
+	_tile_size = Vector2.ONE * maxf(48.0, art_size.x)
+	custom_minimum_size = get_tile_extent(_tile_size)
+	size = custom_minimum_size
 	if _art_rect != null:
 		call_deferred("_refresh_card_face")
+
+
+func get_art_rect() -> Rect2:
+	var width: float = minf(_tile_size.x, maxf(48.0, size.x))
+	return Rect2(Vector2((size.x - width) * 0.5, _header_height(width)), Vector2.ONE * width)
+
+
+func _place_rect(control: Control, rect: Rect2) -> void:
+	if control.get_rect().is_equal_approx(rect) and control.anchor_left == 0.0 and control.anchor_top == 0.0 and control.anchor_right == 0.0 and control.anchor_bottom == 0.0:
+		return
+	control.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	control.position = rect.position
+	control.size = rect.size
 
 
 func set_bleach_enabled(enabled: bool, amount: float = BLEACH_COLOR.a) -> void:
@@ -305,12 +333,16 @@ func _on_pressed() -> void:
 
 
 func _on_mouse_entered() -> void:
+	if _frame_overlay != null:
+		_frame_overlay.self_modulate = Color(1.2, 1.2, 1.2)
 	if runtime_id == "":
 		return
 	card_hovered.emit(runtime_id)
 
 
 func _on_mouse_exited() -> void:
+	if _frame_overlay != null:
+		_frame_overlay.self_modulate = Color.WHITE
 	if runtime_id == "":
 		return
 	card_unhovered.emit(runtime_id)
@@ -364,7 +396,7 @@ func _ensure_visuals() -> void:
 	size_flags_horizontal = 0
 	size_flags_vertical = 0
 	if custom_minimum_size == Vector2.ZERO:
-		custom_minimum_size = Vector2(108.0, 108.0)
+		set_tile_size(_tile_size)
 
 	if not pressed.is_connected(_on_pressed):
 		pressed.connect(_on_pressed)
@@ -448,13 +480,6 @@ func _ensure_visuals() -> void:
 	_name_label.add_theme_color_override("font_color", TEXT_LIGHT)
 	_configure_overlay(_name_label)
 	_name_bar.add_child(_name_label)
-
-	_name_type_icon = TextureRect.new()
-	_name_type_icon.name = "CardTypeIcon"
-	_name_type_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_name_type_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_configure_overlay(_name_type_icon)
-	_name_bar.add_child(_name_type_icon)
 
 	_effect_strip = Control.new()
 	_effect_strip.name = "EffectStrip"
@@ -661,54 +686,52 @@ func _refresh_card_face() -> void:
 	if _effect_strip == null or _name_bar == null:
 		return
 
-	var resolved_width: float = size.x if size.x > 1.0 else custom_minimum_size.x
-	var resolved_height: float = size.y if size.y > 1.0 else custom_minimum_size.y
-	resolved_width = maxf(48.0, resolved_width)
-	resolved_height = maxf(48.0, resolved_height)
-
-	var name_height: float = 34.0 if resolved_height >= 140.0 else (28.0 if resolved_height >= 88.0 else 23.0)
-	var strip_height: float = 26.0 if resolved_height >= 140.0 else (21.0 if resolved_height >= 88.0 else 18.0)
-	var strip_gap: float = 4.0 if resolved_height >= 104.0 else 2.0
-	var strip_y: float = maxf(28.0, resolved_height - name_height - strip_height - strip_gap)
-	_name_bar.offset_top = -name_height
+	var art: Rect2 = get_art_rect()
+	var resolved_width: float = art.size.x
+	var name_height: float = _name_height(resolved_width)
+	var strip_height: float = 24.0 if resolved_width >= 112.0 else 18.0
+	var strip_y: float = art.position.y - strip_height - 4.0
+	_place_rect(_art_rect, art)
+	_place_rect(_frame_overlay, art)
+	_place_rect(_bleach_overlay, art)
+	_place_rect(_name_bar, Rect2(Vector2(art.position.x, art.end.y + 3.0), Vector2(resolved_width, name_height - 3.0)))
+	_place_rect(_effect_strip, Rect2(Vector2(art.position.x, 0.0), Vector2(resolved_width, art.position.y)))
 
 	var has_summary: bool = not _face_summaries.is_empty()
-	var show_type_icon: bool = has_summary and resolved_width >= 84.0 and resolved_height >= 84.0
-	_name_type_icon.visible = show_type_icon
-	if show_type_icon:
-		var type_icon_size: float = 18.0 if name_height >= 28.0 else 15.0
-		_name_type_icon.texture = CardEffectIconFactory.get_icon(String(_face_summaries[0].get("icon_id", "effect")))
-		_name_type_icon.position = Vector2(5.0, (name_height - type_icon_size) * 0.5)
-		_name_type_icon.size = Vector2(type_icon_size, type_icon_size)
-	_name_label.offset_left = 26.0 if show_type_icon else 5.0
-	_name_label.offset_top = 2.0
-	_name_label.offset_right = -5.0
-	_name_label.offset_bottom = -2.0
+	_name_label.offset_left = 4.0
+	_name_label.offset_top = 1.0
+	_name_label.offset_right = -4.0
+	_name_label.offset_bottom = -1.0
 
-	var meta_width: float = clampf(resolved_width * 0.52, 48.0, 66.0)
-	_meta_badge.offset_left = -meta_width - 7.0
-	_meta_badge.offset_top = 7.0
-	_meta_badge.offset_right = -7.0
-	_meta_badge.offset_bottom = 29.0
+	var row_height: float = 20.0 if resolved_width >= 112.0 else 18.0
+	var cost_width: float = row_height
+	_place_rect(_cost_badge, Rect2(Vector2(art.position.x, 0.0), Vector2(cost_width, row_height)))
+	_cost_label.add_theme_font_size_override("font_size", 14 if resolved_width >= 112.0 else 12)
+	var meta_width: float = minf(62.0, resolved_width - cost_width - 4.0)
+	if resolved_width >= 112.0:
+		meta_width = clampf(resolved_width * 0.4, 44.0, 62.0)
+	_place_rect(_meta_badge, Rect2(Vector2(art.end.x - meta_width, 0.0), Vector2(meta_width, row_height)))
+	_meta_label.add_theme_font_size_override("font_size", 13 if resolved_width >= 156.0 else 11)
 
-	var show_timing: bool = has_summary and resolved_width >= 112.0 and resolved_height >= 112.0
+	# Keep both cast time and live readiness in the top row on medium/large cards.
+	var timing_width: float = 52.0
+	if _meta_badge.visible:
+		timing_width = minf(timing_width, resolved_width - cost_width - meta_width - 8.0)
+	var show_timing: bool = has_summary and resolved_width >= 112.0 and not _timeline_next_badge.visible
 	_timing_badge.visible = show_timing
 	if show_timing:
-		var timing_width: float = 61.0
-		var timing_y: float = 33.0 if _meta_badge.visible else 7.0
-		_timing_badge.position = Vector2(resolved_width - timing_width - 7.0, timing_y)
-		_timing_badge.size = Vector2(timing_width, 20.0)
-		_timing_icon.position = Vector2(3.0, 2.0)
-		_timing_icon.size = Vector2(16.0, 16.0)
-		_timing_label.position = Vector2(18.0, 0.0)
-		_timing_label.size = Vector2(timing_width - 20.0, 20.0)
+		var timing_x: float = art.position.x + cost_width + 4.0 if _meta_badge.visible else art.end.x - timing_width
+		_place_rect(_timing_badge, Rect2(Vector2(timing_x, 0.0), Vector2(timing_width, row_height)))
+		_timing_icon.position = Vector2(2.0, 2.0)
+		_timing_icon.size = Vector2(12.0, 12.0)
+		_timing_label.position = Vector2(14.0, 0.0)
+		_timing_label.size = Vector2(timing_width - 14.0, row_height)
+		_timing_label.add_theme_font_size_override("font_size", 10 if timing_width < 48.0 else 11)
 		_timing_label.text = "%ss" % _format_face_number(_face_cast_time, 1, false)
 
-	if _timeline_next_badge != null:
-		_timeline_next_badge.offset_left = 38.0
-		_timeline_next_badge.offset_top = 7.0
-		_timeline_next_badge.offset_right = minf(94.0, resolved_width - meta_width - 11.0)
-		_timeline_next_badge.offset_bottom = 29.0
+	_place_rect(_timeline_next_badge, Rect2(Vector2(art.position.x + cost_width + 4.0, 0.0), Vector2(maxf(0.0, resolved_width - cost_width - meta_width - 8.0), row_height)))
+	_timeline_next_label.add_theme_font_size_override("font_size", 12)
+	_update_cooldown_mask()
 
 	_effect_strip.visible = has_summary
 	if not has_summary:
@@ -800,7 +823,7 @@ func _fit_name_label_to_text() -> void:
 	if _name_label == null:
 		return
 	var resolved_width: float = size.x if size.x > 1.0 else custom_minimum_size.x
-	var available_width: float = maxf(24.0, resolved_width - (31.0 if _name_type_icon != null and _name_type_icon.visible else 10.0))
+	var available_width: float = maxf(24.0, resolved_width - 10.0)
 	var font: Font = _name_label.get_theme_font("font")
 	var maximum_size: int = NAME_FONT_MAX_SIZE if resolved_width >= 104.0 else (13 if resolved_width >= 84.0 else 11)
 	var minimum_size: int = mini(NAME_FONT_MIN_SIZE, maximum_size)
@@ -833,20 +856,17 @@ func _apply_frame(border_color: Color, border_width: int = 2, overlay_width: int
 		_frame_overlay.add_theme_stylebox_override("panel", _make_overlay_stylebox(border_color, overlay_width))
 
 
-func _make_stylebox(border_color: Color, border_width: int) -> StyleBoxFlat:
+func _make_stylebox(border_color: Color, _border_width: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
-	style.bg_color = FRAME_FILL
+	style.bg_color = Color.TRANSPARENT
 	style.border_color = border_color
-	style.border_width_left = border_width
-	style.border_width_top = border_width
-	style.border_width_right = border_width
-	style.border_width_bottom = border_width
+	style.set_border_width_all(0)
 	style.corner_radius_top_left = 14
 	style.corner_radius_top_right = 14
 	style.corner_radius_bottom_left = 14
 	style.corner_radius_bottom_right = 14
 	style.shadow_color = Color(0.0, 0.0, 0.0, 0.24)
-	style.shadow_size = 6
+	style.shadow_size = 0
 	style.content_margin_left = 0.0
 	style.content_margin_top = 0.0
 	style.content_margin_right = 0.0
@@ -894,11 +914,9 @@ func _update_cooldown_mask() -> void:
 	if _cooldown_shade == null or _progress_edge == null:
 		return
 
-	var hidden_width: float = size.x * (1.0 - _recovery_ratio)
-	_cooldown_shade.offset_left = 0.0
-	_cooldown_shade.offset_top = 0.0
-	_cooldown_shade.offset_right = hidden_width
-	_cooldown_shade.offset_bottom = 0.0
+	var art: Rect2 = get_art_rect()
+	var hidden_width: float = art.size.x * (1.0 - _recovery_ratio)
+	_place_rect(_cooldown_shade, Rect2(art.position, Vector2(hidden_width, art.size.y)))
 	_cooldown_shade.visible = hidden_width > 1.0
 
 	if hidden_width <= 1.0 or _recovery_ratio <= 0.0 or _recovery_ratio >= 1.0:
@@ -906,10 +924,9 @@ func _update_cooldown_mask() -> void:
 		return
 
 	_progress_edge.visible = true
-	_progress_edge.offset_left = maxf(0.0, hidden_width - 3.0)
-	_progress_edge.offset_top = 0.0
-	_progress_edge.offset_right = minf(size.x, hidden_width + 1.0)
-	_progress_edge.offset_bottom = 0.0
+	var edge_left: float = maxf(0.0, hidden_width - 3.0)
+	var edge_right: float = minf(art.size.x, hidden_width + 1.0)
+	_place_rect(_progress_edge, Rect2(art.position + Vector2(edge_left, 0.0), Vector2(edge_right - edge_left, art.size.y)))
 
 
 func _compute_cooldown_ratio(card_def: CardDef, runtime_state: CardRuntimeState) -> float:

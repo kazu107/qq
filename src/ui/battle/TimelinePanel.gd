@@ -2,8 +2,8 @@ extends VBoxContainer
 class_name TimelinePanel
 
 const TIMELINE_TILE_SIZE: Vector2 = Vector2(168.0, 168.0)
-const TIMELINE_PANEL_MIN_HEIGHT: float = 264.0
-const TIMELINE_SCROLL_MIN_HEIGHT: float = 188.0
+const TIMELINE_PANEL_MIN_HEIGHT: float = 322.0
+const TIMELINE_SCROLL_MIN_HEIGHT: float = 258.0
 const TIMELINE_SCALE_MARK_COUNT: int = 5
 const DEFAULT_TIMELINE_HORIZON: float = 3.0
 const FALLBACK_TRACK_WIDTH: float = 960.0
@@ -208,7 +208,7 @@ func _ensure_card_count(count: int) -> void:
 	while _cards.size() < count:
 		var button: CardButton = CardButton.new()
 		button.set_tile_size(TIMELINE_TILE_SIZE)
-		button.size = TIMELINE_TILE_SIZE
+		button.size = CardButton.get_tile_extent(TIMELINE_TILE_SIZE)
 		_cards_track.add_child(button)
 		if _preview_button != null:
 			_cards_track.move_child(button, _cards.size())
@@ -221,7 +221,7 @@ func _ensure_preview_button() -> void:
 	_preview_button = CardButton.new()
 	_preview_button.name = "TimelinePreviewCard"
 	_preview_button.set_tile_size(TIMELINE_TILE_SIZE)
-	_preview_button.size = TIMELINE_TILE_SIZE
+	_preview_button.size = CardButton.get_tile_extent(TIMELINE_TILE_SIZE)
 	_preview_button.visible = false
 	_preview_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_preview_button.z_index = PREVIEW_Z_INDEX
@@ -361,7 +361,7 @@ func _layout_cards() -> void:
 		track_width = FALLBACK_TRACK_WIDTH
 	var usable_width: float = maxf(1.0, track_width - TIMELINE_TILE_SIZE.x)
 	var horizon: float = maxf(0.1, _timeline_horizon)
-	var y_position: float = maxf(0.0, (_cards_scroll.custom_minimum_size.y - TIMELINE_TILE_SIZE.y) * 0.5)
+	var y_position: float = maxf(0.0, (_cards_scroll.size.y - CardButton.get_tile_extent(TIMELINE_TILE_SIZE).y) * 0.5)
 
 	for layout_index in range(_card_layouts.size()):
 		var layout_data: Dictionary = _card_layouts[layout_index]
@@ -386,7 +386,7 @@ func _position_timeline_card(
 	var clamped_remaining: float = clampf(remaining, 0.0, horizon)
 	var ratio: float = clamped_remaining / horizon
 	button.position = Vector2(usable_width * ratio, y_position)
-	button.size = TIMELINE_TILE_SIZE
+	button.size = CardButton.get_tile_extent(TIMELINE_TILE_SIZE)
 	button.z_index = z_index
 
 

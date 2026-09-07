@@ -1,12 +1,12 @@
 extends Control
 
-const BOTTOM_PANEL_MIN_HEIGHT: float = 324.0
+const BOTTOM_PANEL_MIN_HEIGHT: float = 366.0
 const BATTLE_INFO_MIN_WIDTH: float = 280.0
 const BATTLE_CARD_TILE_SIZE: Vector2 = Vector2(88.0, 88.0)
 const BATTLE_STAGE_MIN_WIDTH: float = 720.0
 const BATTLE_OVERLAY_HUD_WIDTH: float = 326.0
 const BATTLE_OVERLAY_HUD_HEIGHT: float = 188.0
-const BATTLE_OVERLAY_CARD_WIDTH: float = 506.0
+const BATTLE_OVERLAY_CARD_WIDTH: float = 530.0
 const BATTLE_OVERLAY_CARD_HEIGHT: float = 216.0
 const TIMELINE_PREVIEW_INSTANCE_ID: int = 999999
 const LAN_SNAPSHOT_INTERVAL: float = 1.0 / 12.0
@@ -539,7 +539,7 @@ func _build_stage_card_overlays(parent: Control) -> void:
 	_enemy_cards_panel.set_interactive(false)
 	_enemy_cards_panel.custom_minimum_size = Vector2(BATTLE_OVERLAY_CARD_WIDTH - 24.0, BATTLE_CARD_TILE_SIZE.y)
 	_enemy_cards_panel.set_tile_size(BATTLE_CARD_TILE_SIZE)
-	enemy_box.add_child(_enemy_cards_panel)
+	_add_card_overlay_scroll(enemy_box, _enemy_cards_panel)
 
 	var player_box: VBoxContainer = _create_stage_overlay_frame(
 		parent,
@@ -564,7 +564,20 @@ func _build_stage_card_overlays(parent: Control) -> void:
 	_card_hand_panel.card_requested.connect(_on_card_requested)
 	_card_hand_panel.card_hovered.connect(_on_player_card_hovered)
 	_card_hand_panel.card_unhovered.connect(_on_player_card_unhovered)
-	player_box.add_child(_card_hand_panel)
+	_add_card_overlay_scroll(player_box, _card_hand_panel)
+
+
+func _add_card_overlay_scroll(parent: VBoxContainer, cards: CardHandPanel) -> void:
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.name = "%sScroll" % cards.name
+	scroll.custom_minimum_size.y = CardButton.get_tile_extent(BATTLE_CARD_TILE_SIZE).y
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	# Reserve scrollbar width so five cards still fit when a second row appears.
+	cards.custom_minimum_size.x = BATTLE_OVERLAY_CARD_WIDTH - 24.0 - 14.0
+	parent.add_child(scroll)
+	scroll.add_child(cards)
 
 
 func _create_stage_overlay_frame(
