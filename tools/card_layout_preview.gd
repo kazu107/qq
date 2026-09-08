@@ -40,8 +40,8 @@ func _card(id: String, art_width: float, at: Vector2, mode: int = 0) -> CardButt
 
 
 func _build() -> void:
-	_label("CARD LAYOUT / 02", Vector2(40, 24), 30)
-	_label("上：コスト・秒数・効果    下：カード名", Vector2(40, 70), 22)
+	_label("CARD LAYOUT / 03", Vector2(40, 24), 30)
+	_label("画像上：コスト・秒数    外側：効果・カード名", Vector2(40, 70), 22)
 	for index: int in IDS.size():
 		_card(IDS[index], 180, Vector2(42 + index * 233, 118))
 	_label("使用可能 / 再使用 / casting", Vector2(40, 408), 20)

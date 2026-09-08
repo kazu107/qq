@@ -1,9 +1,23 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.20.2",
+  "current_version": "QQ-0.20.3",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.20.3",
+      "date": "2026-09-08",
+      "title_ja": "カードのコストと秒数の配置を調整",
+      "title_en": "Restore card cost and timing overlays",
+      "changes_ja": [
+        "コストをカード画像の左上、秒数や使用状態を右上へ戻しました。効果は画像の上側、カード名は下側に表示します。",
+        "カード上部の余白を縮め、各画面とタイムラインで情報が重ならないように調整しました。"
+      ],
+      "changes_en": [
+        "Restored cost to the artwork's top-left and timing/state to its top-right, keeping effects above and names below the artwork.",
+        "Reduced the external header height and kept card overlays separated across screens and the timeline."
+      ]
+    },
     {
       "version": "QQ-0.20.2",
       "date": "2026-09-08",

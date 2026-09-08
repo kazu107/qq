@@ -30,14 +30,25 @@ func _run() -> void:
 				card.bind(card_def, state, mode == 0)
 				await get_tree().process_frame
 				if card.size != original_size or not _valid_layout(card, width):
-					_fail("live state changed bounds or overlapped art: %s/%s/%s" % [width, card_id, mode])
+					_fail("live state changed bounds or misplaced information: %s/%s/%s" % [width, card_id, mode])
 					return
 				var shade: ColorRect = card.get_node("CooldownShade") as ColorRect
 				if shade.visible and not card.get_art_rect().encloses(shade.get_rect()):
 					_fail("cooldown shade escaped artwork")
 					return
+			if width >= 168.0:
+				var entry: TimelineEntry = TimelineEntry.new()
+				entry.card_id = card_id
+				entry.runtime_id = "layout"
+				entry.scheduled_time = 4.0
+				for is_next: bool in [true, false]:
+					card.bind_timeline(card_def, entry, 1.0, is_next)
+					await get_tree().process_frame
+					if card.size != original_size or not _valid_layout(card, width):
+						_fail("timeline badges overlap: %s/%s/%s" % [width, card_id, is_next])
+						return
 			card.free()
-	print("CARD_LAYOUT_SMOKE_OK square art, external text, stable states, masks, 11 sizes")
+	print("CARD_LAYOUT_SMOKE_OK square art, external effects/names, overlay cost/timing, stable states, masks, 11 sizes")
 	get_tree().quit()
 
 
@@ -51,17 +62,27 @@ func _valid_layout(card: CardButton, width: float) -> bool:
 	var name_bar: Control = card.get_node("NameBar") as Control
 	if name_bar.position.y < art.end.y or not bounds.encloses(name_bar.get_rect()):
 		return false
-	for path: String in ["CostBadge", "MetaBadge", "TimingBadge", "EffectStrip/EffectChip1", "EffectStrip/EffectChip2", "EffectStrip/EffectRemainder"]:
+	for path: String in ["EffectStrip/EffectChip1", "EffectStrip/EffectChip2", "EffectStrip/EffectRemainder"]:
 		var control: Control = card.get_node(path) as Control
 		if not control.is_visible_in_tree():
 			continue
 		var rect: Rect2 = Rect2(control.global_position - card.global_position, control.size)
 		if rect.end.y > art.position.y or not bounds.encloses(rect):
 			return false
-	var meta: Control = card.get_node("MetaBadge") as Control
-	var timing: Control = card.get_node("TimingBadge") as Control
-	if meta.visible and timing.visible and meta.get_rect().intersects(timing.get_rect()):
-		return false
+	var overlays: Array[Rect2] = []
+	for path: String in ["CostBadge", "MetaBadge", "TimingBadge", "TimelineNextBadge"]:
+		var control: Control = card.get_node(path) as Control
+		if not control.is_visible_in_tree():
+			continue
+		var rect: Rect2 = control.get_rect()
+		if not bounds.encloses(rect) or not art.intersects(rect):
+			return false
+		if path != "CostBadge" and not art.encloses(rect):
+			return false
+		for other: Rect2 in overlays:
+			if rect.intersects(other):
+				return false
+		overlays.append(rect)
 	return true
 
 

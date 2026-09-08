@@ -71,7 +71,7 @@ func _run() -> void:
 	or ready_cost == null \
 	or ready_cost.text != str(strike_def.active_slot_cost) \
 	or ready_cost_badge.color.g < 0.6 \
-	or ready_cost_badge.get_rect().end.y > ready_button.get_art_rect().position.y:
+	or not ready_cost_badge.get_rect().intersects(ready_button.get_art_rect()):
 		push_error("Card UI smoke failed: card cost should render in a green top-left badge")
 		get_tree().quit(1)
 		return
@@ -87,11 +87,11 @@ func _run() -> void:
 	or ready_effect_icon == null \
 	or ready_effect_icon.texture == null \
 	or ready_button.has_node("NameBar/CardTypeIcon"):
-		push_error("Card UI smoke failed: readable effect and card-type icons should be visible")
+		push_error("Card UI smoke failed: effect icons should be visible without the name type icon")
 		get_tree().quit(1)
 		return
 	if ready_timing_badge == null or not ready_timing_badge.visible or ready_timing_value == null or ready_timing_value.text != "3.6s":
-		push_error("Card UI smoke failed: medium cards should keep cast time above the artwork")
+		push_error("Card UI smoke failed: medium cards should keep cast time over the artwork")
 		get_tree().quit(1)
 		return
 

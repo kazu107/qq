@@ -1,11 +1,13 @@
 # Card layout
 
-Updated: 2026-09-08 / QQ-0.20.2
+Updated: 2026-09-08 / QQ-0.20.3
 
 `CardButton` uses three non-overlapping regions:
 
-1. Above the artwork: cost and current state/timing, then effect chips.
-2. Square artwork: rarity/team border and the cooldown mask only.
+1. Above the artwork: effect chips only.
+2. Square artwork: cost at the top-left, state/timing at the top-right,
+   rarity/team border, and the cooldown mask. The cost overlaps the top edge
+   slightly; cast time sits below the live state on medium and large cards.
 3. Below the artwork: centered card name without a type icon.
 
 `set_tile_size(Vector2(w, w))` specifies **artwork** size. The control's full
@@ -29,5 +31,5 @@ full extent vertically and the unchanged artwork width along its time axis.
 Run `res://tools/CardLayoutPreview.tscn` for the Japanese visual preview. Set
 `QQ_CARD_LAYOUT_CAPTURE` to an absolute PNG path to capture and exit. The
 committed preview is `art_src/blender/previews/card_layout_v2.png`.
-Run `res://tests/CardLayoutSmoke.tscn` for square artwork, information bounds,
+Run `res://tests/CardLayoutSmoke.tscn` for square artwork, overlay separation,
 stable state sizes, cooldown mask clipping, and the 74px through 180px sizes.
