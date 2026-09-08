@@ -1,6 +1,8 @@
 # 画像・アイコン資産台帳と自前化計画
 
-最終監査日: 2026-09-03
+最終監査日: 2026-09-09
+
+第二弾でスターター6体のGLBと全7体のポートレートを自前化しました。以下の集計表は第一弾時点の記録です。第二弾の追加分・寸法・個別ハッシュは`docs/BLENDER_STARTER_BATCH.md`と`art_src/blender/characters/qq_starters.manifest.json`を参照してください。
 
 この文書は、ゲーム本体、Web出力、3D制作、開発用ファイルに含まれる視覚資産を、将来すべて自前の素材へ置き換えるための基準としてまとめたものです。`.import`、フォント、SE、動画、コードだけで構成される通常のパネルや文字装飾はファイル数に含めません。ただし、コードから画像として生成されるアイコン、フォールバック、背景は別表に含めます。
 
@@ -47,7 +49,7 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | --- | --- | --- |
 | カード | 6枚はBlender原本と再生成スクリプトが揃う。残り87枚は`tools/generate_card_icons.py`または既存PNG | 第一弾を基準にシリーズ単位でBlender化する |
 | 遺物 | 4個はBlender原本と再生成スクリプトが揃う。残り82個は取り込み済みPNGのみ | 第一弾の機構キットを再利用し、台座なしの透過アイコンへ展開する |
-| ポートレート | PNGのみで、編集可能な原本や生成手順は未収録 | 権利証跡と再現性が不足。自前化の優先度は高い |
+| ポートレート | スターター7枚はBlender原本・再生成スクリプトあり。敵18枚は既存PNG | 敵側は第三弾で同一3Dモデルから生成する |
 | 状態アイコン | `bleed`はBlender原本あり。残り3個はPNGのみ | 同じ立体メダリオンへ展開する |
 | 共通UI・マップアイコン | `attack`はBlender PNGを優先しコード生成へフォールバック。残りはGDScript生成 | 第一弾と同じ正投影・材質体系へ段階移行する |
 | 3D | `.blend`、生成Python、GLB、manifestが揃う | 現時点で最も再現性が高い。今後もBlendを原本、GLBを成果物とする |
@@ -383,9 +385,9 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 | ID | 区分 | 日本語名 | 現在のサイズ | パス |
 | --- | --- | --- | --- | --- |
-| `balanced` | スターター | バランスフレーム | 1254x1254 | `assets/portraits/balanced.png` |
-| `tempo` | スターター | テンポフレーム | 1254x1254 | `assets/portraits/tempo.png` |
-| `fortress` | スターター | フォートレスフレーム | 1254x1254 | `assets/portraits/fortress.png` |
+| `balanced` | スターター | バランスフレーム | 1024x1024 | `assets/portraits/balanced.png` |
+| `tempo` | スターター | テンポフレーム | 1024x1024 | `assets/portraits/tempo.png` |
+| `fortress` | スターター | フォートレスフレーム | 1024x1024 | `assets/portraits/fortress.png` |
 | `vanguard` | スターター | ヴァンガードフレーム | 1024x1024 | `assets/portraits/vanguard.png` |
 | `aegis` | スターター | イージスフレーム | 1024x1024 | `assets/portraits/aegis.png` |
 | `chrono` | スターター | クロノフレーム | 1024x1024 | `assets/portraits/chrono.png` |

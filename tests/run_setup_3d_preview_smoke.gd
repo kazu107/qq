@@ -105,6 +105,16 @@ func _run() -> void:
 	if start_button.disabled or start_button.custom_minimum_size.y < 54.0:
 		_fail("Run setup 3D preview smoke failed: primary start action was not stable and available")
 		return
+	for starter_id: String in ["balanced", "tempo", "fortress", "vanguard", "aegis", "chrono", "turret"]:
+		var starter_button: Button = screen.find_child("StarterButton_" + starter_id, true, false) as Button
+		starter_button.pressed.emit()
+		await get_tree().process_frame
+		actor = preview.get_preview_actor()
+		if not actor.is_using_authored_model() or actor.get_authored_model_path() != "res://assets/models/battle/%s.glb" % starter_id:
+			_fail("Run setup 3D preview smoke failed: starter still uses procedural geometry: " + starter_id)
+			return
+	chrono_button.pressed.emit()
+	await get_tree().process_frame
 
 	var capture_path: String = OS.get_environment("QQ_RUN_SETUP_CAPTURE")
 	if capture_path != "":

@@ -1,9 +1,27 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.20.3",
+  "current_version": "QQ-0.21.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.21.0",
+      "date": "2026-09-09",
+      "title_ja": "スターター3Dモデル第二弾",
+      "title_en": "Second Blender batch: starter characters",
+      "changes_ja": [
+        "テンポ、フォートレス、ヴァンガード、イージス、クロノ、タレットの3DモデルをBlenderで制作し、デッキ選択と戦闘に反映しました。",
+        "スターター全7体のキャラクター画像を、同じ3Dモデルから作り直しました。",
+        "共通部品の制作原本、再生成ツール、18アニメーションと装備位置のテストを追加し、起動時のキャッシュにも対応しました。",
+        "Web版の文字を読みやすい太さに調整しました。"
+      ],
+      "changes_en": [
+        "Added authored Blender models for Tempo, Fortress, Vanguard, Aegis, Chrono, and Turret to deck selection and battles.",
+        "Replaced all seven starter portraits with renders of their matching 3D characters.",
+        "Added a reusable linked parts library, regeneration tools, animation/socket tests, and startup cache coverage.",
+        "Pinned the embedded font to Regular weight to restore readable Web UI text."
+      ]
+    },
     {
       "version": "QQ-0.20.3",
       "date": "2026-09-08",

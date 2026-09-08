@@ -38,6 +38,7 @@
   },
   "tempo": {
     "kind": "starter",
+    "model_scene": "res://assets/models/battle/tempo.glb",
     "primary": "#0AA6A0",
     "secondary": "#062522",
     "accent": "#B9FF45",
@@ -50,6 +51,7 @@
   },
   "fortress": {
     "kind": "starter",
+    "model_scene": "res://assets/models/battle/fortress.glb",
     "primary": "#34547A",
     "secondary": "#111A25",
     "accent": "#91D9FF",
@@ -62,6 +64,7 @@
   },
   "vanguard": {
     "kind": "starter",
+    "model_scene": "res://assets/models/battle/vanguard.glb",
     "primary": "#C43B1E",
     "secondary": "#2B100A",
     "accent": "#FFC247",
@@ -74,6 +77,7 @@
   },
   "aegis": {
     "kind": "starter",
+    "model_scene": "res://assets/models/battle/aegis.glb",
     "primary": "#B18424",
     "secondary": "#211B0B",
     "accent": "#45FFE0",
@@ -86,6 +90,7 @@
   },
   "chrono": {
     "kind": "starter",
+    "model_scene": "res://assets/models/battle/chrono.glb",
     "primary": "#5541B8",
     "secondary": "#100C2E",
     "accent": "#62EDFF",
@@ -98,7 +103,8 @@
   },
   "turret": {
     "kind": "starter",
-    "primary": "#54713A",
+    "model_scene": "res://assets/models/battle/turret.glb",
+    "primary": "#B17B24",
     "secondary": "#101B0C",
     "accent": "#FF9A32",
     "body_scale": [1.04, 0.98, 1.04],

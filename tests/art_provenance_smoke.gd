@@ -16,6 +16,19 @@ const EXPECTED_ASSETS: Dictionary = {
 	"salvage_magnet": {"path": "res://assets/icons/relics/salvage_magnet.png", "size": 512},
 	"bleed": {"path": "res://assets/icons/status/bleed.png", "size": 96},
 	"attack": {"path": "res://assets/icons/ui/attack.png", "size": 64},
+	"tempo": {"path": "res://assets/models/battle/tempo.glb", "size": 0},
+	"fortress": {"path": "res://assets/models/battle/fortress.glb", "size": 0},
+	"vanguard": {"path": "res://assets/models/battle/vanguard.glb", "size": 0},
+	"aegis": {"path": "res://assets/models/battle/aegis.glb", "size": 0},
+	"chrono": {"path": "res://assets/models/battle/chrono.glb", "size": 0},
+	"turret": {"path": "res://assets/models/battle/turret.glb", "size": 0},
+	"portrait_balanced": {"path": "res://assets/portraits/balanced.png", "size": 1024},
+	"portrait_tempo": {"path": "res://assets/portraits/tempo.png", "size": 1024},
+	"portrait_fortress": {"path": "res://assets/portraits/fortress.png", "size": 1024},
+	"portrait_vanguard": {"path": "res://assets/portraits/vanguard.png", "size": 1024},
+	"portrait_aegis": {"path": "res://assets/portraits/aegis.png", "size": 1024},
+	"portrait_chrono": {"path": "res://assets/portraits/chrono.png", "size": 1024},
+	"portrait_turret": {"path": "res://assets/portraits/turret.png", "size": 1024},
 }
 
 

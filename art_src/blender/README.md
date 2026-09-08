@@ -1,5 +1,20 @@
 # Blender-authored game art
 
+## Starter character batch 02
+
+Six additional starter GLBs and seven matching 1024px portraits are assembled
+from `library/qq_starter_parts.blend`. The saved assembly, linked references,
+and render rig are in `characters/qq_starters.blend`; source/output hashes and
+geometry statistics are in `characters/qq_starters.manifest.json`.
+
+Run `tools/build_blender_starter_batch.ps1 -RenderSize 2048` from the project
+root. It uses isolated background Blender processes, validates a cold reload,
+and updates provenance without touching a running Blender MCP scene. See
+`docs/BLENDER_STARTER_BATCH.md` for the reuse contract and related tests.
+
+Review actual animated models next to their matching portraits with
+`res://tools/StarterArtReview.tscn` or `previews/starter_batch_game_ui.png`.
+
 ## Static art vertical slice
 
 `art_vertical_slice.blend` contains the first authored card, relic, status, and

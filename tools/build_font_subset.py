@@ -11,6 +11,7 @@ from pathlib import Path
 
 from fontTools import subset
 from fontTools.ttLib import TTFont
+from fontTools.varLib.instancer import instantiateVariableFont
 
 TEXT_RESOURCE_SUFFIXES = {".cfg", ".gd", ".godot", ".json", ".tres", ".tscn"}
 DEFAULT_SCAN_ROOTS = (Path("data"), Path("src"), Path("scenes"))
@@ -70,6 +71,10 @@ def main() -> None:
     options.glyph_names = True
 
     font = TTFont(args.source)
+    # Noto's variable source defaults to weight 100. Embed Regular so Godot/Web
+    # does not silently render all UI text with the thin master after a rebuild.
+    if "fvar" in font and any(axis.axisTag == "wght" for axis in font["fvar"].axes):
+        font = instantiateVariableFont(font, {"wght": 400}, inplace=True)
     subsetter = subset.Subsetter(options=options)
     subsetter.populate(text="".join(sorted(characters)))
     subsetter.subset(font)

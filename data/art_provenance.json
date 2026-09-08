@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "updated_at": "2026-09-07",
+  "updated_at": "2026-09-09",
   "batch_id": "blender_vertical_slice_01",
   "author": "QQ project",
   "tool": "Blender 5.2.1 LTS",
@@ -152,6 +152,166 @@
       "generator": "tools/blender/build_art_vertical_slice.py",
       "export_sha256": "2854a4ff3292cb95a146f6063e28bb795ce474b691425e71030d121e9f127248",
       "replacement_status": "approved"
+    },
+    {
+      "asset_id": "portrait_balanced",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/balanced.png",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "4676f53fcb50fab1bcb93cc2b8207aa19fcdacc4e90266b12276f1b0298da4d2",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "same_model_portrait"
+    },
+    {
+      "asset_id": "tempo",
+      "category": "character_3d",
+      "runtime_path": "assets/models/battle/tempo.glb",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "b54440d331ecbc997b7c441282481af07b7d74fef927b994e23438d3fbf4ff07",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "rigged_character"
+    },
+    {
+      "asset_id": "portrait_tempo",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/tempo.png",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "43520fd9478438e055613293a15033625cfbbb051ac3369d37bca85887780209",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "same_model_portrait"
+    },
+    {
+      "asset_id": "fortress",
+      "category": "character_3d",
+      "runtime_path": "assets/models/battle/fortress.glb",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "5ff8dd9a2658f679cf1f699daf81b06cc7708aa4e1b5130e9e0e054c66e44c8d",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "rigged_character"
+    },
+    {
+      "asset_id": "portrait_fortress",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/fortress.png",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "f3a275d51d5fa95b5b8b59e706267621c6aca78219707ea4b427fe4f776c7e95",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "same_model_portrait"
+    },
+    {
+      "asset_id": "vanguard",
+      "category": "character_3d",
+      "runtime_path": "assets/models/battle/vanguard.glb",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "07b9fe8ae9f095397081f112fe1bdf020dd76ce9edd245ea01287714a4455d70",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "rigged_character"
+    },
+    {
+      "asset_id": "portrait_vanguard",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/vanguard.png",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "af7129bb4ad762c5f20ca437e1e7d1d3d03183a1e83efa574b91afa8c7cdef12",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "same_model_portrait"
+    },
+    {
+      "asset_id": "aegis",
+      "category": "character_3d",
+      "runtime_path": "assets/models/battle/aegis.glb",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "42f45ab4b31b7b0da621bf58d9c2038b7f3ceb9e40695c942d308ec77cee7faa",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "rigged_character"
+    },
+    {
+      "asset_id": "portrait_aegis",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/aegis.png",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "2aab570ecb48ac04c47b9b30fbafbf76a44bf1287dceb795518365783736eb80",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "same_model_portrait"
+    },
+    {
+      "asset_id": "chrono",
+      "category": "character_3d",
+      "runtime_path": "assets/models/battle/chrono.glb",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "e855b3e8d73d0d3c146eab54738b2c62a6ac468e677a12bf0ff435cec8272436",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "rigged_character"
+    },
+    {
+      "asset_id": "portrait_chrono",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/chrono.png",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "bd48ef389c85d4b04b19e68c98a82426af8ba43838032adbc85212b0676cb5f8",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "same_model_portrait"
+    },
+    {
+      "asset_id": "turret",
+      "category": "character_3d",
+      "runtime_path": "assets/models/battle/turret.glb",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "f6c2e7958aa37d2bb5ad33a538ab7d1651d6bad5cc01457dabeb5e0be19f21ee",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "rigged_character"
+    },
+    {
+      "asset_id": "portrait_turret",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/turret.png",
+      "source_path": "art_src/blender/characters/qq_starters.blend",
+      "generator": "tools/blender/build_starter_batch.py",
+      "source_library": "art_src/blender/library/qq_starter_parts.blend",
+      "export_sha256": "d41074e88933fa582bb72d0254b1b2f842b277849ff893190d82d2d122c8f8c9",
+      "replacement_status": "implemented",
+      "batch_id": "blender_starters_02",
+      "presentation": "same_model_portrait"
     }
+  ],
+  "batch_ids": [
+    "blender_vertical_slice_01",
+    "blender_starters_02"
   ]
 }

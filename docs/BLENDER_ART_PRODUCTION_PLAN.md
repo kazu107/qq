@@ -483,3 +483,16 @@
 
 遺物4個は本体を拡大してRGBAへ出力し、透過の余白を回帰テストで確認します。
 `tools/BlenderArtReview.tscn`で、実カード168px・実遺物48pxと透過チェック背景を並べて確認できます。
+
+### 第二弾: スターター完成バッチ（2026-09-09 / QQ-0.21.0）
+
+残りのスターター6体（tempo、fortress、vanguard、aegis、chrono、turret）を制作し、全7体のポートレートを同じモデルから生成しました。
+
+- 共通体型、追加装甲、頭部、武器、盾、背面装備を26コレクションの部品ライブラリにしました。第一弾のBalancedとScoutのGLBは変更していません。
+- 保存原本は`art_src/blender/characters/qq_starters.blend`、リンク元は`art_src/blender/library/qq_starter_parts.blend`です。相対リンクで他PCでも再利用できます。
+- 出力用メッシュは共通部品をコピーして材質を差し替え、1スキンへ結合します。部品の変更は再生成で反映する方式です。
+- 18ボーン、既存18アニメーション、5ソケットを維持し、デッキ選択・戦闘・対戦相手・アニメーションラボへ共通プロフィールから接続しています。
+- 全ポートレートは2048pxから1024pxへ縮小し、従来のIDパスを差し替えます。原本と中間画像はPCKに含めません。
+- `tools/build_blender_starter_batch.ps1`で生成、原本の再読込検証、来歴登録を再現できます。
+
+詳細は`docs/BLENDER_STARTER_BATCH.md`、比較画像は`art_src/blender/previews/starter_batch_game_ui.png`です。次の第三弾は敵・ボス側の量産と同一モデルのポートレート生成を扱います。
