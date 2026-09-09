@@ -1342,6 +1342,12 @@ func _record_run_battle(summary: Dictionary, active_node: Dictionary) -> void:
 
 	for raw_event in Array(summary.get("battle_events", [])):
 		var event_data: Dictionary = Dictionary(raw_event)
+		if String(event_data.get("event_type", "")) == "fatigue_card":
+			var result: Dictionary = Dictionary(event_data.get("result", {}))
+			var before: int = int(result.get("player_before", {}).get("hp", 0))
+			var after: int = int(result.get("player_after", {}).get("hp", before))
+			current_run.hp_damage_taken += maxi(0, before - after)
+			continue
 		if String(event_data.get("target_id", "")) != "player":
 			continue
 		var hp_delta: int = int(event_data.get("hp_delta", 0))

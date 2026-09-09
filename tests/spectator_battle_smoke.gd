@@ -3,6 +3,8 @@ extends Node
 
 func _ready() -> void:
 	Database.load_all()
+	Game.ensure_meta_initialized()
+	Game.settings["developer_mode"] = true
 	call_deferred("_run")
 
 
@@ -53,13 +55,23 @@ func _run() -> void:
 	or player_actor.get_visual_profile_id() != "balanced" \
 	or enemy_actor.get_visual_profile_id() != "tempo" \
 	or not player_actor.is_using_authored_model() \
-	or enemy_actor.is_using_authored_model() \
+	or not enemy_actor.is_using_authored_model() \
 	or player_actor.get_weapon_type() != "blade" \
 	or enemy_actor.get_weapon_type() != "rapier":
 		_fail("Spectator battle did not reproduce both starter appearances")
 		return
 	if not NetworkManager.is_local_match_spectator() or NetworkManager.can_local_control_match():
 		_fail("Spectator network role could issue battle commands")
+		return
+	var fatigue_button: Button = battle.find_child("DevFatigue", true, false) as Button
+	if fatigue_button == null or not fatigue_button.disabled:
+		_fail("Spectator could queue fatigue through developer controls")
+		return
+	var spectator_engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+	var fatigue_next_at: float = spectator_engine.battle_state.fatigue_next_at
+	battle.call("_on_dev_fatigue")
+	if spectator_engine.battle_state.fatigue_next_at != fatigue_next_at or NetworkManager.developer_schedule_local_fatigue():
+		_fail("Spectator developer callback mutated fatigue state")
 		return
 	NetworkManager._apply_match_finished({
 		"match_id": "spectator-smoke",

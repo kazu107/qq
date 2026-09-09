@@ -973,6 +973,18 @@ func acknowledge_arena_round_results() -> bool:
 	return true
 
 
+func developer_schedule_local_fatigue() -> bool:
+	if not _is_host or not is_parallel_arena_round() or not Game.is_developer_mode_enabled() or is_local_spectator():
+		return false
+	var match_id: String = String(_match_payload.get("match_id", ""))
+	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+	var engine: RealtimeBattleEngine = context.get("engine") as RealtimeBattleEngine
+	if engine == null or bool(context.get("finished", false)) or not engine.debug_schedule_fatigue():
+		return false
+	_publish_parallel_context_snapshot(match_id, true)
+	return true
+
+
 func developer_force_local_match(winner_side: String) -> bool:
 	if not _is_host or not is_parallel_arena_round():
 		return false

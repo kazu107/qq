@@ -2,6 +2,8 @@ extends RefCounted
 class_name BattleState
 
 var battle_time: float = 0.0
+var fatigue_waves: int = 0
+var fatigue_next_at: float = FatigueRules.START_TIME
 var player: UnitState
 var enemy: UnitState
 var active_instances: Array[ActiveCardInstance] = []

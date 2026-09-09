@@ -53,6 +53,8 @@ static func encode(state: BattleState, battle_started: bool, compact_for_network
 		"battle_event_total": state.battle_events.size(),
 		"battle_started": battle_started,
 		"battle_time": state.battle_time,
+		"fatigue_waves": state.fatigue_waves,
+		"fatigue_next_at": state.fatigue_next_at,
 		"player": _encode_unit(state.player),
 		"enemy": _encode_unit(state.enemy),
 		"active_instances": active_instances,
@@ -121,6 +123,8 @@ static func decode(payload: Dictionary) -> BattleState:
 		return null
 	var state: BattleState = BattleState.new()
 	state.battle_time = maxf(0.0, float(payload.get("battle_time", 0.0)))
+	state.fatigue_waves = maxi(0, int(payload.get("fatigue_waves", 0)))
+	state.fatigue_next_at = float(payload.get("fatigue_next_at", FatigueRules.START_TIME))
 	state.player = _decode_unit(Dictionary(payload.get("player", {})))
 	state.enemy = _decode_unit(Dictionary(payload.get("enemy", {})))
 	if state.player == null or state.enemy == null:
@@ -214,6 +218,7 @@ static func _encode_active_instance(instance: ActiveCardInstance) -> Dictionary:
 		"owner_side": instance.owner_side,
 		"runtime_id": instance.runtime_id,
 		"card_id": instance.card_id,
+		"fatigue_damage": instance.fatigue_damage,
 		"card_name": instance.card_name,
 		"scheduled_time": instance.scheduled_time,
 		"sort_key": instance.sort_key,
@@ -245,6 +250,7 @@ static func _decode_active_instance(payload: Dictionary) -> ActiveCardInstance:
 	instance.owner_side = String(payload.get("owner_side", ""))
 	instance.runtime_id = String(payload.get("runtime_id", ""))
 	instance.card_id = String(payload.get("card_id", ""))
+	instance.fatigue_damage = maxi(0, int(payload.get("fatigue_damage", 0)))
 	instance.card_name = String(payload.get("card_name", instance.card_id))
 	instance.scheduled_time = float(payload.get("scheduled_time", 0.0))
 	instance.sort_key = float(payload.get("sort_key", instance.scheduled_time))
@@ -276,6 +282,7 @@ static func _encode_timeline_entry(entry: TimelineEntry) -> Dictionary:
 		"owner_side": entry.owner_side,
 		"runtime_id": entry.runtime_id,
 		"card_id": entry.card_id,
+		"fatigue_damage": entry.fatigue_damage,
 		"card_name": entry.card_name,
 		"scheduled_time": entry.scheduled_time,
 		"created_at": entry.created_at,
@@ -295,6 +302,7 @@ static func _decode_timeline_entry(payload: Dictionary) -> TimelineEntry:
 	entry.owner_side = String(payload.get("owner_side", ""))
 	entry.runtime_id = String(payload.get("runtime_id", ""))
 	entry.card_id = String(payload.get("card_id", ""))
+	entry.fatigue_damage = maxi(0, int(payload.get("fatigue_damage", 0)))
 	entry.card_name = String(payload.get("card_name", entry.card_id))
 	entry.scheduled_time = float(payload.get("scheduled_time", 0.0))
 	entry.created_at = float(payload.get("created_at", 0.0))

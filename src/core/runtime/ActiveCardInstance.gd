@@ -5,6 +5,7 @@ var instance_id: int = 0
 var owner_side: String = ""
 var runtime_id: String = ""
 var card_id: String = ""
+var fatigue_damage: int = 0
 var card_name: String = ""
 var scheduled_time: float = 0.0
 var sort_key: float = 0.0

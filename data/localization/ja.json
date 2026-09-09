@@ -1,4 +1,13 @@
 {
+  "fatigue.name": "疲労",
+  "fatigue.effect": "両者に{damage}ダメージを与える。シールドと被ダメージ補正が適用される。",
+  "fatigue.rules": "環境カード。スロットを消費せず、攻撃力補正を受けない。タイムライン全体への時間操作は有効。自分・敵のカードだけを対象とする効果は無効。10秒ごとに次のカードが投入され、威力が10ずつ増加する。",
+  "fatigue.timing": "詠唱: 5秒 / 投入間隔: 10秒 / ロードアウトコスト: 0",
+  "fatigue.queued": "疲労を投入: 両者に{damage}ダメージ",
+  "fatigue.resolved": "疲労が発動: 両者に{damage}ダメージ",
+  "fatigue.countdown": "疲労投入まで {seconds}秒",
+  "fatigue.next": "次の疲労 {damage} / あと{seconds}秒",
+  "fatigue.dev": "1秒後に疲労を投入",
   "boot.loading": "データを読み込み中...",
   "boot.loaded": "{cards} 枚のカード / {enemies} 体の敵を読み込みました",
   "boot.title": "ロード中",

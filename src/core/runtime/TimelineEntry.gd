@@ -5,6 +5,7 @@ var instance_id: int = 0
 var owner_side: String = ""
 var runtime_id: String = ""
 var card_id: String = ""
+var fatigue_damage: int = 0
 var card_name: String = ""
 var scheduled_time: float = 0.0
 var created_at: float = 0.0
@@ -23,6 +24,7 @@ static func from_instance(instance: ActiveCardInstance) -> TimelineEntry:
 	entry.owner_side = instance.owner_side
 	entry.runtime_id = instance.runtime_id
 	entry.card_id = instance.card_id
+	entry.fatigue_damage = instance.fatigue_damage
 	entry.card_name = instance.card_name
 	entry.scheduled_time = instance.scheduled_time
 	entry.created_at = instance.created_at

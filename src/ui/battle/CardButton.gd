@@ -302,6 +302,9 @@ func bind_timeline(
 	_meta_badge.color = BADGE_ACTIVE if is_next else BADGE_DARK
 	set_bleach_enabled(false)
 	var display_side: String = "player" if entry.owner_side == friendly_side else "enemy"
+	if entry.owner_side == FatigueRules.SIDE:
+		display_side = FatigueRules.SIDE
+		_cost_badge.visible = false
 	_apply_frame(_get_active_border(display_side), 4 if is_next else 2, 8 if is_next else 4)
 	_set_mouse_cursor(false)
 	_set_recovery_ratio(1.0)
@@ -312,6 +315,9 @@ func bind_timeline(
 		_build_legacy_tooltip(card_def, "", false),
 		_build_legacy_tooltip(card_def, "", true)
 	)
+	if entry.owner_side == FatigueRules.SIDE:
+		var fatigue_tooltip: String = FatigueRules.get_tooltip(entry.fatigue_damage)
+		_set_tooltip_variants(fatigue_tooltip, _escape_bbcode(fatigue_tooltip), fatigue_tooltip, _escape_bbcode(fatigue_tooltip))
 
 
 func append_tooltip_line(line_text: String, line_bbcode: String = "") -> void:
@@ -1193,6 +1199,8 @@ func _get_rarity_border(rarity: String) -> Color:
 
 
 func _get_active_border(owner_side: String) -> Color:
+	if owner_side == FatigueRules.SIDE:
+		return FatigueRules.BORDER_COLOR
 	if owner_side == "enemy":
 		return ACTIVE_ENEMY_BORDER
 	return ACTIVE_PLAYER_BORDER
@@ -1206,7 +1214,7 @@ static func _load_card_texture(card_id: String) -> Texture2D:
 	if _texture_cache.has(card_id):
 		return _texture_cache[card_id] as Texture2D
 
-	var path: String = ART_PATH_TEMPLATE % card_id
+	var path: String = FatigueRules.ART_PATH if card_id == FatigueRules.CARD_ID else ART_PATH_TEMPLATE % card_id
 	var texture: Texture2D = null
 	if ResourceLoader.exists(path):
 		var resource: Resource = load(path)

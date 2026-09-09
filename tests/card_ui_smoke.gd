@@ -1226,8 +1226,8 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	var battle_max_marker: Label = battle_timeline_scale.get_child(battle_timeline_scale.get_child_count() - 1) as Label
-	if battle_max_marker == null or battle_max_marker.text != "4s":
-		push_error("Card UI smoke failed: battle timeline scale should use both loadouts' max cast time")
+	if battle_max_marker == null or battle_max_marker.text != "8s":
+		push_error("Card UI smoke failed: fixed battle timeline scale should include both loadouts and the 5s fatigue cast")
 		get_tree().quit(1)
 		return
 	var timeline_header: HBoxContainer = battle_timeline_panel.get_node("TimelineHeader") as HBoxContainer
@@ -1405,13 +1405,15 @@ func _count_labels_with_text(root: Node, text: String) -> int:
 	return count
 
 
-func _expected_timeline_x(timeline_panel: TimelinePanel, remaining: float, horizon: float) -> float:
+func _expected_timeline_x(timeline_panel: TimelinePanel, remaining: float, _horizon: float) -> float:
 	var timeline_scroll: Control = timeline_panel.get_node("TimelineScroll") as Control
-	var track_width: float = timeline_scroll.size.x
-	if track_width <= 168.0:
-		track_width = 960.0
-	var usable_width: float = maxf(1.0, track_width - 168.0)
-	return usable_width * clampf(remaining, 0.0, horizon) / horizon
+	var scale: HBoxContainer = timeline_panel.get_node("TimelineScale") as HBoxContainer
+	var first: Label = scale.get_child(0) as Label
+	var last: Label = scale.get_child(scale.get_child_count() - 1) as Label
+	var start_x: float = first.global_position.x + first.size.x * 0.5
+	var end_x: float = last.global_position.x + last.size.x * 0.5
+	var visible_seconds: float = last.text.trim_suffix("s").to_float()
+	return lerpf(start_x, end_x, clampf(remaining / visible_seconds, 0.0, 1.0)) - timeline_scroll.global_position.x - 84.0
 
 
 func _has_slot_preview(slot_bars: HBoxContainer) -> bool:

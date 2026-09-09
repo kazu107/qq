@@ -111,8 +111,66 @@ func update(delta: float) -> void:
 	if not _pvp_mode:
 		_process_boss_passive(delta)
 		_enemy_ai.update(self, delta)
+	_tick_fatigue()
 	_tick_timeline_flows(delta)
 	_resolve_due_entries()
+	_check_victory()
+
+
+func debug_schedule_fatigue() -> bool:
+	if battle_state == null or battle_state.winner != "":
+		return false
+	# Do not fast-forward cooldowns, statuses, or Web readiness/countdowns.
+	battle_state.fatigue_next_at = battle_state.battle_time + 1.0
+	return true
+
+
+func _tick_fatigue() -> void:
+	while battle_state.battle_time >= battle_state.fatigue_next_at:
+		battle_state.fatigue_waves += 1
+		var instance: ActiveCardInstance = ActiveCardInstance.new()
+		instance.instance_id = battle_state.next_instance_id
+		battle_state.next_instance_id += 1
+		instance.owner_side = FatigueRules.SIDE
+		instance.card_id = FatigueRules.CARD_ID
+		instance.card_name = Localization.get_text("fatigue.name", "Fatigue")
+		instance.fatigue_damage = battle_state.fatigue_waves * FatigueRules.DAMAGE_STEP
+		instance.created_at = battle_state.fatigue_next_at
+		instance.scheduled_time = instance.created_at + FatigueRules.CAST_TIME
+		instance.sort_key = instance.scheduled_time
+		instance.slot_cost = 0
+		instance.target_type = "all"
+		battle_state.active_instances.append(instance)
+		battle_state.fatigue_next_at += FatigueRules.INTERVAL
+		battle_state.add_log(Localization.get_textf("fatigue.queued", "Fatigue queued: {damage} damage to both combatants", {"damage": instance.fatigue_damage}))
+
+
+func _resolve_fatigue(instance: ActiveCardInstance) -> void:
+	var player_before: Dictionary = _snapshot_unit(battle_state.player)
+	var enemy_before: Dictionary = _snapshot_unit(battle_state.enemy)
+	var timeline_before: Array[Dictionary] = _snapshot_timeline()
+	DamageResolver.apply_fixed_damage(battle_state.player, instance.fatigue_damage)
+	DamageResolver.apply_fixed_damage(battle_state.enemy, instance.fatigue_damage)
+	# Both damage applications precede lethal protection and the victory check.
+	prevent_lethal("player")
+	prevent_lethal("enemy")
+	battle_state.remove_active_instance(instance.instance_id)
+	_timeline_resolver.rebuild_timeline(battle_state)
+	battle_state.add_log(Localization.get_textf("fatigue.resolved", "Fatigue struck both combatants for {damage} damage", {"damage": instance.fatigue_damage}))
+	var result: Dictionary = {
+		"amount": instance.fatigue_damage,
+		"player_before": player_before,
+		"enemy_before": enemy_before,
+		"player_after": _snapshot_unit(battle_state.player),
+		"enemy_after": _snapshot_unit(battle_state.enemy),
+	}
+	_record_event(_build_basic_event("fatigue_card", FatigueRules.SIDE, FatigueRules.CARD_ID, "all", result,
+		battle_state.player.hp + battle_state.enemy.hp - int(player_before["hp"]) - int(enemy_before["hp"]),
+		battle_state.player.shield + battle_state.enemy.shield - int(player_before["shield"]) - int(enemy_before["shield"]),
+		timeline_before, _snapshot_timeline()))
+	if not _defer_resolution_audio:
+		var blocked: bool = battle_state.player.hp == int(player_before["hp"]) and battle_state.enemy.hp == int(enemy_before["hp"])
+		_play_sfx("battle_full_block" if blocked else "status_bleed_tick", 0.85)
 	_check_victory()
 
 
@@ -651,7 +709,7 @@ func _tick_timeline_flows(delta: float) -> void:
 		if String(flow.get("mode", "stop")) == "reverse":
 			reverse_distance = active_delta * maxf(0.0, float(flow.get("speed", 1.0)))
 			shift_amount = active_delta + reverse_distance
-		if _apply_flow_shift(flow, shift_amount, reverse_distance) > 0:
+		if _apply_flow_shift(flow, shift_amount, reverse_distance, delta, active_delta) > 0:
 			shifted_any = true
 		remaining = maxf(0.0, remaining - delta)
 		if remaining > 0.0:
@@ -681,6 +739,12 @@ func _resolve_due_entries() -> void:
 		var instance := battle_state.get_active_instance_by_id(next_entry.instance_id)
 		if instance == null:
 			_timeline_resolver.rebuild_timeline(battle_state)
+			continue
+
+		if instance.owner_side == FatigueRules.SIDE:
+			_resolve_fatigue(instance)
+			if battle_state.winner != "":
+				return
 			continue
 
 		var unit := battle_state.get_unit(instance.owner_side)
@@ -782,6 +846,8 @@ func _snapshot_timeline() -> Array[Dictionary]:
 
 
 func _force_interrupt(instance: ActiveCardInstance) -> bool:
+	if instance.owner_side == FatigueRules.SIDE:
+		return false
 	var unit := battle_state.get_unit(instance.owner_side)
 	var slots_before: int = unit.active_slots_used
 	var runtime_state := unit.get_runtime_state(instance.runtime_id)
@@ -941,13 +1007,19 @@ func _count_flow_targets(flow: Dictionary) -> int:
 	return _get_flow_targets(flow).size()
 
 
-func _apply_flow_shift(flow: Dictionary, shift_amount: float, reverse_distance: float = 0.0) -> int:
+func _apply_flow_shift(flow: Dictionary, shift_amount: float, reverse_distance: float = 0.0, tick_delta: float = 0.0, active_delta: float = 0.0) -> int:
 	if shift_amount <= 0.0:
 		return 0
 	var targets: Array[ActiveCardInstance] = _get_flow_targets(flow)
 	for instance in targets:
-		instance.shift_schedule(shift_amount, battle_state.battle_time, true)
-		if String(flow.get("mode", "stop")) == "reverse":
+		var fraction: float = 1.0
+		if instance.owner_side == FatigueRules.SIDE and active_delta > 0.0:
+			var start: float = battle_state.battle_time - tick_delta
+			fraction = clampf((start + active_delta - maxf(start, instance.created_at)) / active_delta, 0.0, 1.0)
+		if fraction <= 0.0:
+			continue
+		instance.shift_schedule(shift_amount * fraction, battle_state.battle_time, true)
+		if String(flow.get("mode", "stop")) == "reverse" and instance.owner_side != FatigueRules.SIDE:
 			_relic_controller.on_reverse_shift(instance.owner_side, instance, reverse_distance)
 	return targets.size()
 

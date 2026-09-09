@@ -61,6 +61,7 @@ func _ready() -> void:
 	_scale_row = HBoxContainer.new()
 	_scale_row.name = "TimelineScale"
 	_scale_row.add_theme_constant_override("separation", 8)
+	_scale_row.resized.connect(_layout_cards)
 	add_child(_scale_row)
 
 	_cards_scroll = Control.new()
@@ -201,6 +202,7 @@ func _refresh_scale(horizon: float) -> void:
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var seconds: float = scale_horizon * float(scale_index) / float(TIMELINE_SCALE_MARK_COUNT - 1)
 		label.text = _format_scale_seconds(seconds)
+		label.item_rect_changed.connect(_layout_cards)
 		_scale_row.add_child(label)
 
 
@@ -356,11 +358,21 @@ func _cleanup_entry_state(active_instance_ids: Array[int]) -> void:
 
 
 func _layout_cards() -> void:
+	if _cards_scroll == null:
+		return
 	var track_width: float = _cards_scroll.size.x
 	if track_width <= TIMELINE_TILE_SIZE.x:
 		track_width = FALLBACK_TRACK_WIDTH
-	var usable_width: float = maxf(1.0, track_width - TIMELINE_TILE_SIZE.x)
-	var horizon: float = maxf(0.1, _timeline_horizon)
+	var axis_start: float = track_width / float(TIMELINE_SCALE_MARK_COUNT * 2)
+	var axis_end: float = track_width - axis_start
+	if _scale_row.get_child_count() == TIMELINE_SCALE_MARK_COUNT:
+		var first: Control = _scale_row.get_child(0) as Control
+		var last: Control = _scale_row.get_child(TIMELINE_SCALE_MARK_COUNT - 1) as Control
+		if first.size.x > 0.0 and last.position.x > first.position.x:
+			axis_start = first.global_position.x + first.size.x * 0.5 - _cards_scroll.global_position.x
+			axis_end = last.global_position.x + last.size.x * 0.5 - _cards_scroll.global_position.x
+	var usable_width: float = maxf(1.0, axis_end - axis_start)
+	var horizon: float = _ceil_to_multiple(maxf(0.1, _timeline_horizon), 4)
 	var y_position: float = maxf(0.0, (_cards_scroll.size.y - CardButton.get_tile_extent(TIMELINE_TILE_SIZE).y) * 0.5)
 
 	for layout_index in range(_card_layouts.size()):
@@ -369,10 +381,10 @@ func _layout_cards() -> void:
 		if button == null:
 			continue
 		var remaining: float = clampf(float(layout_data.get("remaining", 0.0)), 0.0, horizon)
-		_position_timeline_card(button, remaining, usable_width, y_position, horizon, _card_layouts.size() - layout_index)
+		_position_timeline_card(button, remaining, usable_width, y_position, horizon, _card_layouts.size() - layout_index, axis_start)
 
 	if _preview_button != null and _preview_button.visible:
-		_position_timeline_card(_preview_button, _preview_remaining, usable_width, y_position, horizon, PREVIEW_Z_INDEX)
+		_position_timeline_card(_preview_button, _preview_remaining, usable_width, y_position, horizon, PREVIEW_Z_INDEX, axis_start)
 
 
 func _position_timeline_card(
@@ -381,11 +393,12 @@ func _position_timeline_card(
 	usable_width: float,
 	y_position: float,
 	horizon: float,
-	z_index: int
+	z_index: int,
+	axis_start: float
 ) -> void:
 	var clamped_remaining: float = clampf(remaining, 0.0, horizon)
 	var ratio: float = clamped_remaining / horizon
-	button.position = Vector2(usable_width * ratio, y_position)
+	button.position = Vector2(axis_start + usable_width * ratio - TIMELINE_TILE_SIZE.x * 0.5, y_position)
 	button.size = CardButton.get_tile_extent(TIMELINE_TILE_SIZE)
 	button.z_index = z_index
 
@@ -417,6 +430,8 @@ func _resolve_card_context(
 	local_unit: UnitState,
 	opponent_unit: UnitState
 ) -> Dictionary:
+	if entry.owner_side == FatigueRules.SIDE:
+		return {"card": FatigueRules.get_card(entry.fatigue_damage), "comparison": null}
 	if entry.owner_side == local_side and run_state != null:
 		return CardTooltipResolver.build_context(entry.card_id, run_state, local_unit)
 	if entry.owner_side != local_side:

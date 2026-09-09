@@ -4,6 +4,10 @@ class_name DamageResolver
 
 static func apply_damage(attacker: UnitState, defender: UnitState, base_amount: int) -> Dictionary:
 	var raw: int = max(0, base_amount) + attacker.get_attack_value()
+	return apply_fixed_damage(defender, raw)
+
+
+static func apply_fixed_damage(defender: UnitState, raw: int) -> Dictionary:
 	var mitigated: int = max(1, raw)
 	mitigated += defender.get_incoming_damage_bonus()
 	var shield_absorb: int = min(defender.shield, mitigated)

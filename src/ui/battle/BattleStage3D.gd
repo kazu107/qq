@@ -617,7 +617,7 @@ func _emit_event_combat_text(event_data: Dictionary) -> void:
 			var shield_cost: int = maxi(0, int(prepare_result.get("shield_cost", 0)))
 			if shield_cost > 0:
 				_spawn_floating_combat_text(prepare_actor, "-%d" % shield_cost, SHIELD_COLOR, 0)
-		"resolve_card":
+		"resolve_card", "fatigue_card":
 			var result: Dictionary = Dictionary(event_data.get("result", {}))
 			_emit_unit_delta_text(_player_actor, _unit_delta(result, _player_actor))
 			_emit_unit_delta_text(_enemy_actor, _unit_delta(result, _enemy_actor))
@@ -714,6 +714,18 @@ func _begin_event(event_data: Dictionary) -> float:
 			return 0.18
 		"resolve_card":
 			return _begin_resolution(event_data)
+		"fatigue_card":
+			var result: Dictionary = Dictionary(event_data.get("result", {}))
+			var fully_blocked: bool = true
+			for actor: BattleActor3D in [_player_actor, _enemy_actor]:
+				var delta_data: Dictionary = _unit_delta(result, actor)
+				var hp_loss: bool = int(delta_data.get("hp", 0)) < 0
+				fully_blocked = fully_blocked and not hp_loss
+				actor.play_action(BattleActor3D.ACTION_HIT if hp_loss else BattleActor3D.ACTION_BLOCK)
+				_spawn_impact(_actor_effect_position(actor), FatigueRules.BORDER_COLOR if hp_loss else SHIELD_COLOR, 0.55, 1.6)
+			AudioManager.play_sfx("battle_full_block" if fully_blocked else "status_bleed_tick", 0.85)
+			_add_camera_shake(0.08)
+			return 0.55
 		"status_damage":
 			var status_target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
 			if status_target != null:

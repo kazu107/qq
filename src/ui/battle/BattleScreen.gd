@@ -990,7 +990,14 @@ func _refresh_ui(time_scale: float) -> void:
 			}),
 			Localization.get_textf("battle.info.current_enemy", "Current Enemy: {value}", {"value": battle_state.enemy.display_name}),
 		])
-	_battle_info_label.text = "[center]%s[/center]" % battle_info_text
+	var fatigue_remaining: float = maxf(0.0, battle_state.fatigue_next_at - battle_state.battle_time)
+	var fatigue_text: String = Localization.get_textf("fatigue.countdown", "Fatigue in {seconds}s", {"seconds": ceili(fatigue_remaining)})
+	if battle_state.fatigue_waves > 0:
+		fatigue_text = Localization.get_textf("fatigue.next", "Next fatigue: {damage} / {seconds}s", {
+			"damage": (battle_state.fatigue_waves + 1) * FatigueRules.DAMAGE_STEP,
+			"seconds": ceili(fatigue_remaining),
+		})
+	_battle_info_label.text = "[center]%s\n[color=#e6a35a]%s[/color][/center]" % [battle_info_text, fatigue_text]
 	_process_resolution_vfx(battle_state)
 
 
@@ -1186,7 +1193,7 @@ func _build_hover_preview_entry(
 func _compute_timeline_horizon() -> float:
 	if _engine.battle_state == null:
 		return TimelinePanel.DEFAULT_TIMELINE_HORIZON
-	var max_cast_time: float = TimelinePanel.DEFAULT_TIMELINE_HORIZON
+	var max_cast_time: float = maxf(TimelinePanel.DEFAULT_TIMELINE_HORIZON, FatigueRules.CAST_TIME)
 	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(
 		_engine.battle_state.player,
 		NetworkManager.get_match_run("player") if _lan_mode else Game.current_run
@@ -1273,9 +1280,24 @@ func _refresh_developer_panel() -> void:
 			{"id": "DevWinBattle", "label": Localization.get_text("battle.dev.force_victory", "Force Victory"), "callback": Callable(self, "_on_dev_force_victory")},
 			{"id": "DevLoseBattle", "label": Localization.get_text("battle.dev.force_defeat", "Force Defeat"), "callback": Callable(self, "_on_dev_force_defeat")},
 			{"id": "DevRestoreHp", "label": Localization.get_text("map.dev.restore_hp", "Restore HP"), "callback": Callable(self, "_on_dev_restore_hp")},
+			{"id": "DevFatigue", "label": Localization.get_text("fatigue.dev", "Queue fatigue in 1s"), "callback": Callable(self, "_on_dev_fatigue"), "disabled": _lan_mode and (not NetworkManager.is_host() or _spectator_mode)},
 		],
 		Localization.get_text("battle.dev.summary", "Battle shortcuts for deterministic manual testing.")
 	)
+
+
+func _on_dev_fatigue() -> void:
+	if not Game.is_developer_mode_enabled() or _engine.battle_state == null:
+		return
+	if _lan_mode and (not NetworkManager.is_host() or _spectator_mode):
+		return
+	if _lan_mode and NetworkManager.is_parallel_arena_round():
+		NetworkManager.developer_schedule_local_fatigue()
+	else:
+		_engine.debug_schedule_fatigue()
+		if _lan_mode:
+			_publish_lan_snapshot(true)
+	_refresh_ui(1.0)
 
 
 func _on_dev_force_victory() -> void:
