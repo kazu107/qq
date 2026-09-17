@@ -40,7 +40,10 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 					var required_status := String(effect.get("bonus_if_target_has_status", ""))
 					if target.has_status(required_status):
 						amount += int(effect.get("bonus_amount", 0))
+				var hp_before: int = target.hp
 				var result := DamageResolver.apply_damage(actor, target, amount)
+				engine.resolution_metrics["damage"] = int(engine.resolution_metrics.get("damage", 0)) + mini(hp_before, int(result["hp_damage"]))
+				engine.resolution_metrics["absorbed"] = int(engine.resolution_metrics.get("absorbed", 0)) + int(result["shield_absorb"])
 				engine.prevent_lethal(_opponent_side(instance.owner_side))
 				messages.append(Localization.get_textf("battle.log.card_damage", "{card_name} dealt {amount} to {target_name}", {
 					"card_name": card_def.name,
@@ -49,12 +52,14 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 				}))
 			"gain_shield":
 				var shield_amount := DamageResolver.gain_shield(_resolve_target_unit(actor, target, effect), int(effect.get("amount", 0)))
+				engine.resolution_metrics["shield"] = int(engine.resolution_metrics.get("shield", 0)) + shield_amount
 				messages.append(Localization.get_textf("battle.log.card_shield", "{card_name} gained {amount} shield", {
 					"card_name": card_def.name,
 					"amount": shield_amount,
 				}))
 			"heal":
 				var healed := DamageResolver.heal(_resolve_target_unit(actor, target, effect), int(effect.get("amount", 0)))
+				engine.resolution_metrics["heal"] = int(engine.resolution_metrics.get("heal", 0)) + healed
 				messages.append(Localization.get_textf("battle.log.card_heal", "{card_name} healed {amount} HP", {
 					"card_name": card_def.name,
 					"amount": healed,

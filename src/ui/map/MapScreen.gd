@@ -91,6 +91,15 @@ func _build_ui() -> void:
 
 	var loadout_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.loadout", "Loadout"))
 	loadout_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var presets: DeckPresetBar = DeckPresetBar.new()
+	presets.get_cards = func() -> Array[String]: return Game.current_run.equipped_cards
+	presets.get_run = func() -> RunState: return Game.current_run
+	presets.apply_requested.connect(func(cards: Array[String]) -> void:
+		if DeckPresetService.apply(Game.current_run, cards):
+			SaveManager.save_game("map")
+			_refresh_ui()
+	)
+	loadout_panel.add_child(presets)
 
 	_equipped_summary_label = Label.new()
 	_equipped_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

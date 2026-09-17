@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "updated_at": "2026-09-09",
+  "updated_at": "2026-09-17",
   "batch_id": "blender_vertical_slice_01",
   "author": "QQ project",
   "tool": "Blender 5.2.1 LTS",
@@ -308,10 +308,101 @@
       "replacement_status": "implemented",
       "batch_id": "blender_starters_02",
       "presentation": "same_model_portrait"
+    },
+    {
+      "asset_id": "guardian",
+      "category": "enemy_3d",
+      "runtime_path": "assets/models/battle/guardian.glb",
+      "source_path": "art_src/blender/characters/qq_enemies_03.blend",
+      "generator": "tools/blender/build_enemy_batch.py",
+      "export_sha256": "059e8ac63464f230abaf4caf6d3d5f4f135d0e6963e790ebcbc3af4527d1242e",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "portrait_guardian",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/guardian.png",
+      "source_path": "art_src/blender/characters/qq_enemies_03.blend",
+      "generator": "tools/blender/build_enemy_batch.py",
+      "export_sha256": "c2fbce10262199c23ee040a9161f60c27e3dfd55c0d32d9a759bf4eed2fadc79",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "boss_timekeeper",
+      "category": "enemy_3d",
+      "runtime_path": "assets/models/battle/boss_timekeeper.glb",
+      "source_path": "art_src/blender/characters/qq_enemies_03.blend",
+      "generator": "tools/blender/build_enemy_batch.py",
+      "export_sha256": "45ace9bc50df5152652703199c9ceead6f8c6384fc9cddf821675f4b10897788",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "portrait_boss_timekeeper",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/boss_timekeeper.png",
+      "source_path": "art_src/blender/characters/qq_enemies_03.blend",
+      "generator": "tools/blender/build_enemy_batch.py",
+      "export_sha256": "8c7fbad1cb91991a29970babab9dc9cd70a8df0805be5de47e82306157660cd4",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "boss_paradox_core",
+      "category": "enemy_3d",
+      "runtime_path": "assets/models/battle/boss_paradox_core.glb",
+      "source_path": "art_src/blender/characters/qq_enemies_03.blend",
+      "generator": "tools/blender/build_enemy_batch.py",
+      "export_sha256": "fa97793b66e46dbee1ba19aafb239cd11816fd32f04e69ccfbb0771a96e578d3",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "portrait_boss_paradox_core",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/boss_paradox_core.png",
+      "source_path": "art_src/blender/characters/qq_enemies_03.blend",
+      "generator": "tools/blender/build_enemy_batch.py",
+      "export_sha256": "f8db7a39ef8864160af16ff61a89de0c8d27477a08268c1305a1237375ba9edc",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "boss_axiom_breaker",
+      "category": "enemy_3d",
+      "runtime_path": "assets/models/battle/boss_axiom_breaker.glb",
+      "source_path": "art_src/blender/characters/qq_enemies_03.blend",
+      "generator": "tools/blender/build_enemy_batch.py",
+      "export_sha256": "d7d917d6ccebda04fff3809a0674ad6e53ddfc665c9e00a3277bf3ddfd8b8d21",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "portrait_boss_axiom_breaker",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/boss_axiom_breaker.png",
+      "source_path": "art_src/blender/characters/qq_enemies_03.blend",
+      "generator": "tools/blender/build_enemy_batch.py",
+      "export_sha256": "5bb6013f37995202a2d4f2808b9cb6caee93410c74af9347c1aa7d7a525b7b02",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "boss_eternity_zero",
+      "category": "enemy_3d",
+      "runtime_path": "assets/models/battle/boss_eternity_zero.glb",
+      "source_path": "art_src/blender/characters/qq_enemies_03.blend",
+      "generator": "tools/blender/build_enemy_batch.py",
+      "export_sha256": "d92b54a94b63580b802710ac99709d7167f7240a3887206151eeaeebfd8cf5e7",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "portrait_boss_eternity_zero",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/boss_eternity_zero.png",
+      "source_path": "art_src/blender/characters/qq_enemies_03.blend",
+      "generator": "tools/blender/build_enemy_batch.py",
+      "export_sha256": "fb1ae80280ec74537af7718a267579f59137bedb67828f9fdd589db166ec5dac",
+      "replacement_status": "approved"
     }
   ],
   "batch_ids": [
     "blender_vertical_slice_01",
-    "blender_starters_02"
+    "blender_starters_02",
+    "blender_enemies_03"
   ]
 }

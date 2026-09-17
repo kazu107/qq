@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="qq"
+run/main_scene.qq_validation="res://tests/WebArenaHarness.tscn"
 run/main_scene="res://scenes/boot/Boot.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"

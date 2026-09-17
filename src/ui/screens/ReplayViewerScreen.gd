@@ -5,6 +5,7 @@ var _summary_label: RichTextLabel
 var _events_box: VBoxContainer
 var _retry_button: Button
 var _developer_panel: DeveloperPanel
+var _visual_player: ReplayVisualPlayer
 
 
 func _ready() -> void:
@@ -26,11 +27,18 @@ func _build_ui() -> void:
 	margin.offset_bottom = -24.0
 	add_child(margin)
 
+	var tabs: TabContainer = TabContainer.new()
+	tabs.name = "ReplayTabs"
+	margin.add_child(tabs)
+	_visual_player = ReplayVisualPlayer.new()
+	_visual_player.name = Localization.get_text("replay.visual", "Playback")
+	tabs.add_child(_visual_player)
 	var root: HBoxContainer = HBoxContainer.new()
+	root.name = Localization.get_text("replay.inspection", "Events and analysis")
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 18)
-	margin.add_child(root)
+	tabs.add_child(root)
 
 	var summary_panel: VBoxContainer = _create_panel(root, Localization.get_text("replay.panel.summary", "Replay Summary"))
 	_title_label = Label.new()
@@ -39,7 +47,8 @@ func _build_ui() -> void:
 
 	_summary_label = RichTextLabel.new()
 	_summary_label.name = "ReplaySummary"
-	_summary_label.fit_content = true
+	_summary_label.fit_content = false
+	_summary_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	summary_panel.add_child(_summary_label)
 
 	var button_row: HBoxContainer = HBoxContainer.new()
@@ -103,6 +112,7 @@ func _refresh_ui() -> void:
 		return
 
 	var summary: Dictionary = Dictionary(replay_data.get("summary", {}))
+	_visual_player.load_replay(replay_data)
 	var battle_events: Array = Array(replay_data.get("battle_events", []))
 	var run_seed: int = int(summary.get("run_seed", 0))
 	var starter_id: String = String(summary.get("starter_id", ""))
@@ -127,12 +137,14 @@ func _refresh_ui() -> void:
 		Localization.get_textf("replay.summary.path", "Replay path: {path}", {"path": Game.get_replay_view_path()}),
 	])
 	_retry_button.disabled = run_seed <= 0 or starter_id == ""
+	_summary_label.text += "\n\n" + BattleAnalysis.describe(Dictionary(summary.get("analysis", BattleAnalysis.from_events(battle_events))))
 
 	for child in _events_box.get_children():
 		_events_box.remove_child(child)
 		child.queue_free()
 
-	for event_index in range(battle_events.size()):
+	# Keep inspection useful without building thousands of controls in one frame.
+	for event_index in range(mini(battle_events.size(), 300)):
 		var event_data: Dictionary = Dictionary(battle_events[event_index])
 		var row: VBoxContainer = VBoxContainer.new()
 		row.name = "ReplayEvent_%d" % event_index
@@ -140,6 +152,7 @@ func _refresh_ui() -> void:
 		_events_box.add_child(row)
 
 		var header: Label = Label.new()
+		header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		header.text = Localization.get_textf("replay.event_header", "[{time}] {event_type} | actor={actor} | card={card} | target={target}", {
 			"time": "%.1f" % float(event_data.get("time", 0.0)),
 			"event_type": String(event_data.get("event_type", "")),
@@ -152,7 +165,13 @@ func _refresh_ui() -> void:
 		var body: Label = Label.new()
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body.text = JSON.stringify(Dictionary(event_data.get("result", {})))
+		body.max_lines_visible = 5
 		row.add_child(body)
+	if battle_events.size() > 300:
+		var more: Label = Label.new()
+		more.text = Localization.get_text("replay.event_limit", "Showing the first 300 events. All events remain in the exported JSON and visual playback.")
+		more.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_events_box.add_child(more)
 
 
 func _on_back() -> void:

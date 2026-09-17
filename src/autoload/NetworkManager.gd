@@ -1,4 +1,5 @@
 extends Node
+var diagnostics: NetworkDiagnostics = NetworkDiagnostics.new()
 
 signal connection_state_changed(state: int, message: String)
 signal lobby_changed(snapshot: Dictionary)
@@ -904,6 +905,8 @@ func publish_battle_snapshot(snapshot: Dictionary, reliable: bool = false) -> bo
 	outgoing["match_id"] = String(_match_payload.get("match_id", ""))
 	outgoing["server_ticks_msec"] = Time.get_ticks_msec()
 	_last_snapshot = outgoing.duplicate(true)
+	var recipients: Array[int] = _get_all_peer_ids()
+	diagnostics.sent(outgoing, recipients.size() - recipients.count(1))
 	if reliable:
 		_receive_battle_snapshot_reliable_rpc.rpc(outgoing)
 	else:
@@ -1853,6 +1856,8 @@ func _start_parallel_round_matches() -> bool:
 			"standings": _arena_standings.duplicate(true),
 		}
 		var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+		# Online uses compact snapshots; local visual replay is not broadcast or retained.
+		engine.record_visuals = false
 		engine.set_audio_enabled(false)
 		engine.setup_pvp(
 			player_run,
@@ -2007,6 +2012,7 @@ func _publish_parallel_context_snapshot(match_id: String, reliable: bool) -> boo
 	context["last_snapshot"] = outgoing.duplicate(true)
 	_parallel_match_contexts[match_id] = context
 	var viewer_peer_ids: Array[int] = _to_int_array(context.get("viewer_peer_ids", []))
+	diagnostics.sent(outgoing, viewer_peer_ids.size() - viewer_peer_ids.count(1))
 	for peer_id in viewer_peer_ids:
 		if peer_id == 1:
 			if String(_match_payload.get("match_id", "")) == match_id:
@@ -2508,6 +2514,9 @@ func _apply_match_started(payload: Dictionary) -> void:
 
 
 func _apply_battle_snapshot(snapshot: Dictionary) -> void:
+	var accepted: bool = String(snapshot.get("match_id", "")) == String(_match_payload.get("match_id", "")) and int(snapshot.get("sequence", 0)) > _last_received_snapshot_sequence
+	if not _is_host:
+		diagnostics.received(snapshot, accepted)
 	if String(snapshot.get("match_id", "")) != String(_match_payload.get("match_id", "")):
 		return
 	var sequence: int = int(snapshot.get("sequence", 0))
@@ -2855,6 +2864,7 @@ func _to_int_array(value: Variant) -> Array[int]:
 
 
 func _clear_session(clear_profile: bool) -> void:
+	diagnostics = NetworkDiagnostics.new()
 	_web_failure_pending = false
 	_web_signaling.close()
 	_close_peer_only()

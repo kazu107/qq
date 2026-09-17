@@ -16,6 +16,10 @@ var _enemy_name: String = ""
 var _pvp_mode: bool = false
 var _audio_enabled: bool = true
 var _defer_resolution_audio: bool = false
+var analysis: BattleAnalysis = BattleAnalysis.new()
+var recording: BattleRecording = BattleRecording.new()
+var resolution_metrics: Dictionary = {}
+var record_visuals: bool = true
 
 
 func set_audio_enabled(enabled: bool) -> void:
@@ -32,6 +36,7 @@ func dispose() -> void:
 	_player_run = null
 	_enemy_run = null
 	_timeline_flows.clear()
+	recording.frames.clear()
 
 
 func _play_sfx(sfx_id: String, pitch_scale: float = 1.0, volume_db: float = 0.0) -> void:
@@ -59,6 +64,8 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 	_manual_start_required = false
 	_enemy_name = scaled_enemy_def.name
 	battle_state = BattleState.new()
+	analysis = BattleAnalysis.new()
+	recording = BattleRecording.new()
 	battle_state.player = _build_player_unit(player_run)
 	battle_state.enemy = _build_enemy_unit(scaled_enemy_def)
 	_relic_controller.setup(self, battle_state, _player_run, _enemy_run)
@@ -85,6 +92,8 @@ func setup_pvp(
 	_manual_start_required = true
 	_enemy_name = opponent_name
 	battle_state = BattleState.new()
+	analysis = BattleAnalysis.new()
+	recording = BattleRecording.new()
 	battle_state.player = _build_run_unit(player_run, "player", player_name)
 	battle_state.enemy = _build_run_unit(opponent_run, "enemy", opponent_name)
 	_relic_controller.setup(self, battle_state, _player_run, _enemy_run)
@@ -115,6 +124,8 @@ func update(delta: float) -> void:
 	_tick_timeline_flows(delta)
 	_resolve_due_entries()
 	_check_victory()
+	if record_visuals:
+		recording.capture(battle_state, battle_state.winner != "")
 
 
 func debug_schedule_fatigue() -> bool:
@@ -510,6 +521,12 @@ func build_summary(include_battle_events: bool = true) -> Dictionary:
 	}
 	if include_battle_events:
 		summary["battle_events"] = battle_state.battle_events.duplicate(true)
+		summary["visual_replay"] = {
+			"frames": recording.frames.duplicate(true), "interval": recording.interval,
+			"player_visual": _player_run.starter_id if _player_run != null else "default_player",
+			"enemy_visual": _enemy_run.starter_id if _enemy_run != null else battle_state.enemy.unit_id,
+		}
+	summary["analysis"] = analysis.to_dict()
 	return summary
 
 
@@ -577,6 +594,8 @@ func _tick_cooldowns(delta: float) -> void:
 
 
 func _start_battle() -> void:
+	if record_visuals:
+		recording.capture(battle_state, true)
 	if _battle_started or battle_state == null:
 		return
 	_battle_started = true
@@ -764,6 +783,7 @@ func _resolve_due_entries() -> void:
 		var target_hp_before: int = target_unit.hp
 		var target_shield_before: int = target_unit.shield
 		var resolved_card_def: CardDef = _relic_controller.prepare_resolution_card(instance.owner_side, instance, card_def)
+		resolution_metrics = {"damage": 0, "absorbed": 0, "shield": 0, "heal": 0}
 		var messages := CardEffectResolver.resolve(self, battle_state, instance, resolved_card_def)
 		var resolved_instance := battle_state.remove_active_instance(instance.instance_id)
 		if resolved_instance != null:
@@ -799,6 +819,7 @@ func _resolve_due_entries() -> void:
 			{
 				"card_name": card_def.name,
 				"messages": messages,
+				"metrics": resolution_metrics.duplicate(),
 				"player_before": player_before,
 				"player_after": _snapshot_unit(battle_state.player),
 				"enemy_before": enemy_before,
@@ -1147,6 +1168,9 @@ func _record_event(record: BattleEventRecord) -> void:
 	if battle_state == null or record == null:
 		return
 	battle_state.record_event(record.to_dict())
+	analysis.record(record.to_dict())
+	if record_visuals and record.event_type in ["prepare_card", "resolve_card", "fatigue_card"]:
+		recording.capture(battle_state, true)
 
 
 func _build_basic_event(

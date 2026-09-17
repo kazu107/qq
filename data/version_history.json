@@ -1,9 +1,29 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.22.0",
+  "current_version": "QQ-0.23.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.23.0",
+      "date": "2026-09-17",
+      "title_ja": "戦闘分析・デッキ保存・視覚リプレイ",
+      "title_en": "Battle analysis, deck presets and visual replays",
+      "changes_ja": [
+        "開発者パネルに通信診断と自動対戦ラボを追加しました。検証専用の時間上限・未決着率・平均時間・カード別の実数値を確認できます。",
+        "名前付きデッキを20件まで保存し、マップ・アリーナ・デバッグで呼び出せるようにしました。所持枚数とコストを確認してから一括適用します。",
+        "新しく記録した戦闘を3Dフィールドとタイムラインで再生できます。一時停止・速度変更・シーク・次の発動送りに対応しました。",
+        "ガーディアンと主要ボス4体を、共通骨格を使うBlender製モデルと対応ポートレートに置き換えました。",
+        "本番とは分離したWebRTC検証用ビルドと、2人・4人対戦および観戦の自動テストを追加しました。"
+      ],
+      "changes_en": [
+        "Added network diagnostics and a time-budgeted automated battle lab with direct-effect analytics.",
+        "Save up to 20 named deck presets and validate ownership and cost before applying locally or on the host.",
+        "New recordings support 3D/timeline playback, pause, speed, seeking and next-resolution stepping; legacy JSON inspection remains available.",
+        "Added original Blender models and matching portraits for Guardian and all four main bosses.",
+        "Added an isolated WebRTC validation export and multiplayer/spectator browser tests."
+      ]
+    },
     {
       "version": "QQ-0.22.0",
       "date": "2026-09-10",

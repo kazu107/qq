@@ -31,6 +31,17 @@ func apply_action(run_state: RunState, action: String, payload: Dictionary, deve
 
 	var gold_before: int = run_state.gold
 	match action:
+		"apply_deck":
+			var raw_cards: Variant = payload.get("cards", [])
+			if not raw_cards is Array or raw_cards.size() > DeckPresetService.MAX_CARDS:
+				return result
+			var cards: Array[String] = []
+			for card: Variant in raw_cards:
+				if not card is String:
+					return result
+				cards.append(card)
+			if not DeckPresetService.apply(run_state, cards):
+				return result
 		"buy_card":
 			var bought_card_id: String = _arena_service.buy_card_offer(run_state, int(payload.get("index", -1)))
 			if bought_card_id == "":

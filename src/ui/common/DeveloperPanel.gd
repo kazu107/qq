@@ -52,6 +52,8 @@ func set_actions(actions: Array) -> void:
 		_add_action_button(action_data)
 
 	if Game.is_developer_mode_enabled():
+		_add_action_button({"id": "DevNetworkDiagnostics", "label": Localization.get_text("network.diagnostics", "Network diagnostics"), "callback": func() -> void: NetworkDiagnosticsWindow.open(get_tree().current_scene)})
+		_add_action_button({"id": "DevAutomatedBattleLab", "label": Localization.get_text("analysis.lab", "Automated battle lab"), "callback": Callable(SceneRouter, "go_to_automated_battle_lab")})
 		if not _contains_action(actions, "DevBattleAnimationLab"):
 			_add_action_button({
 				"id": "DevBattleAnimationLab",

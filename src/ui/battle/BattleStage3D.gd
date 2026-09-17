@@ -73,6 +73,7 @@ var _local_engine_side: String = "player"
 var _local_visual_id: String = "default_player"
 var _opponent_visual_id: String = "default_enemy"
 var _environment_detail_counts: Dictionary = {}
+var _playback_speed: float = 1.0
 
 
 func _ready() -> void:
@@ -84,10 +85,41 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	delta *= _playback_speed
 	_update_event_queue(delta)
 	_update_effects(delta)
 	_update_floating_combat_texts(delta)
 	_update_camera(delta)
+
+
+func set_playback_speed(value: float) -> void:
+	_playback_speed = clampf(value, 0.0, 2.0)
+	for actor: BattleActor3D in [_player_actor, _enemy_actor]:
+		if actor != null:
+			actor.set_animation_speed_scale(_playback_speed)
+
+
+func reset_replay_pose(entries: Array, player_hp: int, enemy_hp: int) -> void:
+	_queued_events.clear()
+	_active_event.clear()
+	_active_event_elapsed = 0.0
+	_active_event_duration = 0.0
+	_pending_resolution_visual.clear()
+	_pending_interrupt_visual.clear()
+	_clear_effects()
+	_reset_stage_performance()
+	for raw: Dictionary in entries:
+		var side: String = String(raw.get("owner_side", ""))
+		if side not in ["player", "enemy"]:
+			continue
+		var actor: BattleActor3D = _actor_for_engine_side(side)
+		var id: String = _local_unit_id if side == _local_engine_side else _opponent_unit_id
+		_cast_counts[id] = int(_cast_counts.get(id, 0)) + 1
+		actor.start_timeline_stance()
+	if player_hp <= 0:
+		_actor_for_engine_side("player").play_action(BattleActor3D.ACTION_DEFEAT)
+	if enemy_hp <= 0:
+		_actor_for_engine_side("enemy").play_action(BattleActor3D.ACTION_DEFEAT)
 
 
 func configure_combatants(

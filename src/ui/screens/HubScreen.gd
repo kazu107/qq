@@ -337,6 +337,19 @@ func _build_debug_battle_lab(parent: Control) -> void:
 	var cards_label: Label = Label.new()
 	cards_label.text = Localization.get_text("hub.debug_loadout", "Loadout")
 	box.add_child(cards_label)
+	var presets: DeckPresetBar = DeckPresetBar.new()
+	presets.max_cards = DEBUG_CARD_SLOT_COUNT
+	presets.get_cards = func() -> Array[String]:
+		var cards: Array[String] = []
+		for picker in _debug_card_options:
+			if picker.get_selected_card_id() != "":
+				cards.append(picker.get_selected_card_id())
+		return cards
+	presets.apply_requested.connect(func(cards: Array[String]) -> void:
+		for i in range(_debug_card_options.size()):
+			_debug_card_options[i].set_selected_card_id(cards[i] if i < cards.size() else "")
+	)
+	box.add_child(presets)
 
 	var card_grid: GridContainer = GridContainer.new()
 	card_grid.name = "DebugCardSlotGrid"

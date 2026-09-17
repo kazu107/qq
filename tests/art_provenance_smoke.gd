@@ -2,6 +2,16 @@ extends Node
 
 const PROVENANCE_PATH: String = "res://data/art_provenance.json"
 const EXPECTED_ASSETS: Dictionary = {
+	"guardian": {"path": "res://assets/models/battle/guardian.glb", "size": 0},
+	"portrait_guardian": {"path": "res://assets/portraits/guardian.png", "size": 1024},
+	"boss_timekeeper": {"path": "res://assets/models/battle/boss_timekeeper.glb", "size": 0},
+	"portrait_boss_timekeeper": {"path": "res://assets/portraits/boss_timekeeper.png", "size": 1024},
+	"boss_paradox_core": {"path": "res://assets/models/battle/boss_paradox_core.glb", "size": 0},
+	"portrait_boss_paradox_core": {"path": "res://assets/portraits/boss_paradox_core.png", "size": 1024},
+	"boss_axiom_breaker": {"path": "res://assets/models/battle/boss_axiom_breaker.glb", "size": 0},
+	"portrait_boss_axiom_breaker": {"path": "res://assets/portraits/boss_axiom_breaker.png", "size": 1024},
+	"boss_eternity_zero": {"path": "res://assets/models/battle/boss_eternity_zero.glb", "size": 0},
+	"portrait_boss_eternity_zero": {"path": "res://assets/portraits/boss_eternity_zero.png", "size": 1024},
 	"balanced": {"path": "res://assets/models/battle/balanced.glb", "size": 0},
 	"scout": {"path": "res://assets/models/battle/scout.glb", "size": 0},
 	"quick_slash": {"path": "res://assets/icons/cards/quick_slash.png", "size": 512},

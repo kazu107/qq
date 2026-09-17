@@ -152,6 +152,7 @@
     "boss": false
   },
   "guardian": {
+    "model_scene": "res://assets/models/battle/guardian.glb",
     "kind": "enemy",
     "primary": "#496273",
     "secondary": "#10191F",
@@ -200,6 +201,7 @@
     "boss": false
   },
   "boss_timekeeper": {
+    "model_scene": "res://assets/models/battle/boss_timekeeper.glb",
     "kind": "boss",
     "primary": "#402069",
     "secondary": "#0C0717",
@@ -248,6 +250,7 @@
     "boss": false
   },
   "boss_paradox_core": {
+    "model_scene": "res://assets/models/battle/boss_paradox_core.glb",
     "kind": "boss",
     "primary": "#421654",
     "secondary": "#08040D",
@@ -284,6 +287,7 @@
     "boss": false
   },
   "boss_axiom_breaker": {
+    "model_scene": "res://assets/models/battle/boss_axiom_breaker.glb",
     "kind": "boss",
     "primary": "#6B1E20",
     "secondary": "#120506",
@@ -320,6 +324,7 @@
     "boss": false
   },
   "boss_eternity_zero": {
+    "model_scene": "res://assets/models/battle/boss_eternity_zero.glb",
     "kind": "boss",
     "primary": "#222831",
     "secondary": "#030405",

@@ -215,6 +215,19 @@ func _build_shop_panel(parent: Control) -> void:
 func _build_loadout_panel(parent: Control) -> void:
 	var box: VBoxContainer = _create_panel(parent, Localization.get_text("arena.panel.loadout", "Arena Loadout"), Vector2(420.0, 0.0))
 	box.name = "ArenaLoadoutPanelBody"
+	var presets: DeckPresetBar = DeckPresetBar.new()
+	presets.get_run = _get_active_run
+	presets.get_cards = func() -> Array[String]:
+		var run: RunState = _get_active_run()
+		return run.equipped_cards if run != null else []
+	presets.apply_requested.connect(func(cards: Array[String]) -> void:
+		if _lan_mode:
+			NetworkManager.submit_arena_action("apply_deck", {"cards": cards})
+		elif DeckPresetService.apply(_get_active_run(), cards):
+			SaveManager.save_game("arena")
+			_refresh_ui()
+	)
+	box.add_child(presets)
 	box.add_theme_constant_override("separation", 12)
 
 	_loadout_summary_label = Label.new()

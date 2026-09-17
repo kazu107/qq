@@ -2,6 +2,7 @@ extends RefCounted
 class_name EnemyAI
 
 var think_interval: float = 2.4
+var side: String = "enemy"
 var _think_timer: float = 0.0
 
 
@@ -19,7 +20,7 @@ func update(engine: RealtimeBattleEngine, delta: float) -> void:
 	if battle_state == null or battle_state.winner != "":
 		return
 
-	var enemy := battle_state.enemy
+	var enemy := battle_state.get_unit(side)
 	if not enemy.is_alive():
 		return
 
@@ -40,13 +41,14 @@ func update(engine: RealtimeBattleEngine, delta: float) -> void:
 			best_score = score
 			best_runtime = runtime_state
 	if best_runtime != null:
-		engine.request_use_card("enemy", best_runtime.runtime_id)
+		engine.request_use_card(side, best_runtime.runtime_id)
 
 
 func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, card_def: CardDef) -> float:
 	var score := 0.0
-	var player := engine.battle_state.player
-	var enemy := engine.battle_state.enemy
+	var player := engine.battle_state.get_opponent(side)
+	var enemy := engine.battle_state.get_unit(side)
+	var opponent_side: String = "enemy" if side == "player" else "player"
 
 	for effect in card_def.effects:
 		var effect_type := String(effect.get("type", ""))
@@ -71,12 +73,12 @@ func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, 
 				else:
 					score += 2.0
 			"delay_enemy_active_card", "interrupt_card":
-				if engine.has_heavy_preparing_card("player"):
+				if engine.has_heavy_preparing_card(opponent_side):
 					score += 11.0
-				elif engine.battle_state.get_active_instances_for_side("player").size() > 0:
+				elif engine.battle_state.get_active_instances_for_side(opponent_side).size() > 0:
 					score += 5.0
 			"haste_own_active_card":
-				score += float(engine.battle_state.get_active_instances_for_side("enemy", -1).size()) * 3.5
+				score += float(engine.battle_state.get_active_instances_for_side(side, -1).size()) * 3.5
 			"apply_status":
 				score += 4.0
 				var status_id: String = String(effect.get("status", ""))

@@ -103,6 +103,11 @@ func set_fixed_horizon(horizon: float) -> void:
 		_layout_cards()
 
 
+func clear_display_history() -> void:
+	_last_scheduled_times.clear()
+	_delay_animation_states.clear()
+
+
 func refresh_timeline(
 	entries: Array[TimelineEntry],
 	battle_time: float,

@@ -1,7 +1,7 @@
 extends RefCounted
 class_name ReplayData
 
-const FORMAT_VERSION := 1
+const FORMAT_VERSION := 2
 
 var format_version: int = FORMAT_VERSION
 var exported_at: String = ""
@@ -16,6 +16,7 @@ static func from_summary(summary_data: Dictionary) -> ReplayData:
 	replay_data.battle_id = String(summary_data.get("battle_id", ""))
 	replay_data.summary = Dictionary(summary_data.duplicate(true))
 	replay_data.battle_events = _to_dictionary_array(summary_data.get("battle_events", []))
+	replay_data.summary.erase("battle_events")
 	return replay_data
 
 

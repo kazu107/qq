@@ -180,11 +180,16 @@ func build_save_data(scene_hint: String) -> SaveData:
 		save_data.current_run = {}
 	save_data.suspended_runs = suspended_runs.duplicate(true)
 	save_data.meta_progress = meta_progress.duplicate(true)
-	save_data.settings = settings.duplicate(true)
+	save_data.settings = settings.duplicate(false)
+	save_data.settings.erase("last_battle_summary")
+	save_data.settings = save_data.settings.duplicate(true)
 	save_data.settings["screen_hint"] = current_screen_hint
 	save_data.settings["pending_enemy_id"] = pending_enemy_id
 	save_data.settings["reward_options"] = reward_options.duplicate()
-	save_data.settings["last_battle_summary"] = last_battle_summary.duplicate(true)
+	# Visual frames live in the replay file, not every shop/settings autosave.
+	var saved_summary: Dictionary = last_battle_summary.duplicate(false)
+	saved_summary.erase("visual_replay")
+	save_data.settings["last_battle_summary"] = saved_summary.duplicate(true)
 	save_data.settings["last_reward_bundle"] = last_reward_bundle.duplicate(true)
 	save_data.settings["last_replay_export_path"] = last_replay_export_path
 	return save_data
