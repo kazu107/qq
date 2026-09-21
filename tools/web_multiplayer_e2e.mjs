@@ -61,6 +61,13 @@ try {
     for (const page of players) await wait(page, data => data.phase === 'battle');
     for (const page of players) await command(page, 'start');
     for (const page of players) await wait(page, data => data.battle_time > 1);
+    const reconnectTarget = players[1];
+    const reconnectMatchId = (await state(reconnectTarget)).matches.match_id;
+    await command(reconnectTarget, 'drop_transport');
+    await wait(reconnectTarget, data => data.reconnecting && !data.connected);
+    await wait(reconnectTarget, data => data.connected && !data.reconnecting, 30000);
+    const reconnectedState = await wait(reconnectTarget, data => data.battle_time > 1.2, 30000);
+    assert.equal(reconnectedState.matches.match_id, reconnectMatchId, 'Guest did not return to the same match');
     await command(players[0], 'marker_hp');
     for (const page of players) await wait(page, data => data.player_hp >= 30 && data.player_hp <= 40);
     const snapshots = await Promise.all(players.map(state));
@@ -83,11 +90,11 @@ try {
     assert.equal(final.results.standings.length, count, 'Spectator entered scoring');
     assert.deepEqual(final.run, {});
     assert.ok((await state(players[1])).diagnostics.accepted > 10, 'No sustained WebRTC snapshots');
-    report.cases.push(`${count} players + spectator: preparation, countdown, parallel independent HP, fatigue simultaneous death, result barrier, spectator exclusion`);
+    report.cases.push(`${count} players + spectator: preparation, countdown, same-match guest reconnect, parallel independent HP, fatigue simultaneous death, result barrier, spectator exclusion`);
     report.states.push(await Promise.all([...players, spectator].map(state)));
     for (const page of players) await command(page, 'ack');
     for (const page of players) await wait(page, data => data.phase === 'preparation');
-    // Web disconnect ends a session rather than promising LAN's automatic resume.
+    // Host authority cannot be reconstructed; clients exit when the host closes the room.
     await command(players[0], 'leave');
     for (const page of [...players.slice(1), spectator]) {
       await wait(page, data => !data.connected);

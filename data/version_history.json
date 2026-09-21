@@ -1,9 +1,29 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.23.0",
+  "current_version": "QQ-0.24.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.24.0",
+      "date": "2026-09-22",
+      "title_ja": "対戦復帰・戦闘分析・実戦チュートリアル",
+      "title_en": "Match recovery, battle reports and practical tutorial",
+      "changes_ja": [
+        "Web対戦のゲストが一時切断した場合、15秒間同じ席と試合を保持し、同じpeer IDで復帰できるようにしました。並列試合では切断された組だけを一時停止します。",
+        "戦闘終了時に、勝敗、戦闘時間、ダメージ、シールド、回復、主要カードを比べられる分析画面を追加しました。",
+        "オンライン戦の視覚リプレイを、試合終了後に圧縮・分割転送して両対戦者が確認できるようにしました。",
+        "実際の戦闘エンジンを使う短い操作チュートリアルをハブに追加しました。攻撃、防御、遅延、疲労を順に体験できます。",
+        "自動戦闘ラボに、同じシード値でデッキや敵をA/B対比する機能を追加しました。"
+      ],
+      "changes_en": [
+        "Web guests now retain their seat and match for a 15-second reconnect window using the same peer ID; only the affected parallel match pauses.",
+        "Added a post-battle report with outcome, duration, damage, shield, healing and key-card comparisons.",
+        "Online visual replays are compressed and transferred in chunks after battle resolution for both competitors.",
+        "Added a short hands-on tutorial using the real battle engine for attack, defense, delay and fatigue.",
+        "Automated Battle Lab can now compare A/B configurations with identical random sequences."
+      ]
+    },
     {
       "version": "QQ-0.23.0",
       "date": "2026-09-17",

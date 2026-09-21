@@ -1,4 +1,4 @@
-# Quality tools (QQ-0.23.0)
+# Quality tools (QQ-0.24.0)
 
 ## In-game entry points
 
@@ -9,7 +9,7 @@
 
 ## Automated battle lab
 
-Choose a starter, an enemy and optionally a saved deck, then set the number of matches, seed and simulation-only duration cap. The player-side bot varies its initial thinking phase from the seeded RNG. The normal enemy AI, battle engine, relic/status rules and fatigue rules remain in use.
+Choose a starter, an enemy and optionally a saved deck, then set the number of matches, seed and simulation-only duration cap. Enable A/B comparison to choose a second starter, enemy and deck. Both configurations receive the same seeded bot-phase sequence, and the final block reports win-rate and mean-duration deltas. The normal enemy AI, battle engine, relic/status rules and fatigue rules remain in use.
 
 Each run uses a fresh clone. No progression, live loadout or rewards change. Results show wins, draws, unresolved battles, win/unresolved percentages, mean elapsed time (including capped samples) and aggregate direct card metrics. A capped sample has an empty winner and is **not** converted to a gameplay timeout verdict. These bot results are not estimates of human PvP win rates.
 
@@ -23,7 +23,13 @@ Analysis counts resolved cards, actual HP removed (excluding overkill), shield a
 
 Visual frames sample at 4 Hz and at card queue/resolution events. At 3,000 frames the recorder downsamples older frames while preserving the initial and latest states. The event stream is separate. Full per-card cooldown arrays are stored only in the initial visual frame; live card modifiers are retained. Visual frames are omitted from ordinary autosaves and all network packets. Replay files remain separate under `user://replays`.
 
-Visual playback currently covers **local normal/arena battles and the automated lab**. Online matches retain compact final analysis but do not export a complete synchronized visual replay. No new online replay traffic or per-match visual frame buffers are introduced.
+Visual playback covers **local normal/arena battles, the automated lab and completed Web arena matches**. Web hosts retain 4 Hz visual frames in memory during the match. After resolution, the replay is compressed, split into bounded reliable chunks and exported separately on each viewer; visual frames are still excluded from live snapshots and ordinary saves. A replay that exceeds the 512-chunk/16 MiB safety limits is skipped rather than affecting the session.
+
+Every normal battle now opens a result-analysis modal before progression. It compares direct damage, shield and healing totals and lists the six highest-impact cards. Web competitors see the same local-match report before the all-match result barrier; spectators go directly to the barrier.
+
+## Practical tutorial
+
+The Hub's **Battle Tutorial** opens an isolated battle that never changes run or meta progression. It uses the production engine, cards and timeline, and guides Quick Slash, Guard, Delay Step and an accelerated neutral Fatigue card. It can be repeated at any time outside an active network session.
 
 ## Network diagnostics and real browser tests
 
@@ -39,12 +45,12 @@ node tools/web_multiplayer_e2e.mjs
 
 The runner needs Playwright and installed Chrome. Set `QQ_NODE_MODULES` to an existing Node dependency directory containing Playwright, or provide Playwright in the local Node environment. It starts its own localhost signaling/static server and closes only its own browser contexts/server. The validation-only main scene is selected using the `qq_validation` export feature; production exports exclude `tests/*`. Never deploy `build/web-validation`.
 
-The harness uses five isolated browser contexts: 2 players + spectator, then 4 players + spectator. It checks lobby/arena readiness, countdown, parallel match IDs and independent HP, fatigue simultaneous death, all-match result barrier, spectator exclusion from runs/standings, continuation, host disconnect responsiveness, and joining a fresh room. Reports go to `tools/.local/web-multiplayer/report.json`.
+The harness uses five isolated browser contexts: 2 players + spectator, then 4 players + spectator. It checks lobby/arena readiness, countdown, same-match guest reconnection, parallel match IDs and independent HP, fatigue simultaneous death, all-match result barrier, spectator exclusion from runs/standings, continuation and host-disconnect responsiveness. Reports go to `tools/.local/web-multiplayer/report.json`.
 
-This is real localhost WebRTC, not an Internet/NAT/TURN test. Web transport currently ends a session on host disconnect; LAN's old automatic reconnect routine does not apply. Do not describe a new-room rejoin as mid-match reconnection.
+This is real localhost WebRTC, not an Internet/NAT/TURN test. A Web guest has 15 seconds to reconnect with its private token and receives the same signaling peer ID, payload, snapshot and countdown state. During a parallel round only that pairing pauses; timeout awards the opponent a forfeit. The host remains authoritative, so a host disconnect still closes the room and cannot restore the in-memory match without a dedicated server or host migration.
 
 ## Checks
 
 `tools/test_quality.ps1` runs the related Godot smoke tests and restores the existing save file afterward. `tools/QualityReview.tscn` captures native replay, analysis and lab screenshots while preserving the save. `npm test` covers signaling and R2 deployment/retention logic. Test logs and screenshots are local artifacts, not bundled game data.
 
-QQ-0.23.0 validation: eleven related Godot smoke tests, 15 Node tests, the 2/4-player browser harness, native rendered screens, and a production Web startup capture passed. Older network/replay smoke drivers still report resource-cleanup warnings at process exit; the new quality smoke disposes its engines and rigs. External-network conditions, low-end/mobile devices, and long-duration multiplayer soak tests remain separate checks.
+QQ-0.24.0 validation covers eleven related Godot smoke tests, 16 Node tests, a direct tutorial-scene boot and the 2/4-player browser harness. External-network guest recovery, host migration, low-end/mobile devices and long-duration multiplayer soak tests remain separate checks.

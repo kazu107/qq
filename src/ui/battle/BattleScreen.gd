@@ -51,6 +51,8 @@ var _round_results_status: Label
 var _round_results_outcome: Label
 var _round_results_continue: Button
 var _round_results_acknowledged: bool = false
+var _analysis_panel: BattleResultAnalysisPanel
+var _analysis_returns_to_round_results: bool = false
 
 
 func _ready() -> void:
@@ -103,16 +105,10 @@ func _process(delta: float) -> void:
 
 	if _engine.battle_state.winner != "" and not _handled_finish:
 		_handled_finish = true
-		Game.complete_battle(_engine.build_summary())
-		_transition_timer = 2.0
-		_result_label.visible = true
-		match _engine.battle_state.winner:
-			"player":
-				_result_label.text = Localization.get_text("battle.result.victory", "Victory")
-			"enemy":
-				_result_label.text = Localization.get_text("battle.result.defeat", "Defeat")
-			_:
-				_result_label.text = Localization.get_text("battle.result.draw", "Draw")
+		var summary: Dictionary = _engine.build_summary()
+		Game.complete_battle(summary)
+		_result_label.visible = false
+		_show_analysis(summary, false)
 
 	if _transition_timer > 0.0:
 		_transition_timer -= delta
@@ -166,7 +162,7 @@ func _process_lan_battle(delta: float) -> void:
 			_publish_lan_snapshot(false)
 	else:
 		var state: BattleState = _engine.battle_state
-		if not NetworkManager.is_waiting_for_reconnect() and _engine.has_battle_started() and state.winner == "":
+		if not NetworkManager.is_local_match_waiting_for_reconnect() and _engine.has_battle_started() and state.winner == "":
 			state.battle_time = _network_clock.advance(delta, NetworkManager.get_connection_ping_ms())
 
 	_refresh_ui(1.0)
@@ -287,20 +283,14 @@ func _on_lan_match_finished(result: Dictionary) -> void:
 	_handled_finish = true
 	if NetworkManager.is_parallel_arena_round():
 		_result_label.visible = false
-		_show_round_results_overlay()
-		call_deferred("_refresh_round_results_overlay")
+		if _spectator_mode:
+			_show_round_results_overlay()
+			call_deferred("_refresh_round_results_overlay")
+		else:
+			_show_analysis(result, true)
 		return
-	_transition_timer = 2.0
-	_result_label.visible = true
-	var winner: String = String(result.get("winner", "draw"))
-	if _spectator_mode:
-		_result_label.text = Localization.get_text("online.battle.match_complete", "MATCH COMPLETE")
-	elif winner == "draw":
-		_result_label.text = Localization.get_text("battle.result.draw", "Draw")
-	elif winner == _local_side:
-		_result_label.text = Localization.get_text("battle.result.victory", "Victory")
-	else:
-		_result_label.text = Localization.get_text("battle.result.defeat", "Defeat")
+	_result_label.visible = false
+	_show_analysis(result, false)
 
 
 func _on_arena_round_results_changed(_snapshot: Dictionary) -> void:
@@ -485,6 +475,52 @@ func _build_ui() -> void:
 
 	_build_log_popup()
 	_build_round_results_overlay()
+	_build_analysis_panel()
+
+
+func _build_analysis_panel() -> void:
+	_analysis_panel = BattleResultAnalysisPanel.new()
+	_analysis_panel.name = "BattleResultAnalysisPanel"
+	_analysis_panel.continue_requested.connect(_on_analysis_continue_requested)
+	_analysis_panel.replay_requested.connect(_on_analysis_replay_requested)
+	add_child(_analysis_panel)
+	if not NetworkManager.online_replay_ready.is_connected(_on_online_replay_ready):
+		NetworkManager.online_replay_ready.connect(_on_online_replay_ready)
+
+
+func _show_analysis(summary: Dictionary, return_to_round_results: bool) -> void:
+	if _analysis_panel == null:
+		return
+	_analysis_returns_to_round_results = return_to_round_results
+	var replay_available: bool = Game.get_last_replay_export_path() != ""
+	if _lan_mode:
+		replay_available = NetworkManager.get_last_online_replay_path() != ""
+	_analysis_panel.show_result(summary, _local_side, _spectator_mode, replay_available)
+
+
+func _on_analysis_continue_requested() -> void:
+	if _analysis_panel != null:
+		_analysis_panel.visible = false
+	if _analysis_returns_to_round_results:
+		_show_round_results_overlay()
+		_refresh_round_results_overlay()
+	else:
+		_advance_after_battle()
+
+
+func _on_analysis_replay_requested() -> void:
+	var replay_path: String = NetworkManager.get_last_online_replay_path() if _lan_mode else Game.get_last_replay_export_path()
+	if replay_path == "":
+		AudioManager.play_sfx("ui_error")
+		return
+	var return_hint: String = "online" if _lan_mode else Game.current_screen_hint
+	if Game.open_replay_view(replay_path, return_hint):
+		SceneRouter.go_to_replay_viewer()
+
+
+func _on_online_replay_ready(_path: String) -> void:
+	if _analysis_panel != null and _analysis_panel.visible:
+		_analysis_panel.set_replay_available(true)
 
 
 func _build_stage_unit_overlays(parent: Control) -> void:
@@ -874,7 +910,7 @@ func _refresh_ui(time_scale: float) -> void:
 		return
 
 	if _lan_mode:
-		if NetworkManager.is_waiting_for_reconnect():
+		if NetworkManager.is_local_match_waiting_for_reconnect():
 			_slow_mode_label.text = Localization.get_text("lan.battle.reconnecting", "Connection interrupted - battle paused")
 		elif _spectator_mode:
 			_slow_mode_label.text = Localization.get_text("online.battle.spectating", "SPECTATING")
@@ -903,7 +939,7 @@ func _refresh_ui(time_scale: float) -> void:
 				var local_ready: bool = NetworkManager.is_local_battle_ready()
 				var countdown_active: bool = NetworkManager.is_battle_countdown_active()
 				_start_battle_button.visible = can_start and not countdown_active
-				_start_battle_button.disabled = not can_start or NetworkManager.is_waiting_for_reconnect()
+				_start_battle_button.disabled = not can_start or NetworkManager.is_local_match_waiting_for_reconnect()
 				_start_battle_button.text = Localization.get_text("lan.battle.cancel_start", "CANCEL START") if local_ready else Localization.get_text("lan.battle.start_ready", "BATTLE START")
 				_battle_ready_count_label.visible = can_start
 				_battle_ready_count_label.text = Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
@@ -939,7 +975,7 @@ func _refresh_ui(time_scale: float) -> void:
 		_reserved_seat_toggle.visible = not _spectator_mode and toggle_run != null and toggle_run.relics.has("reserved_seat_tag")
 		if _reserved_seat_toggle.visible:
 			_reserved_seat_toggle.set_pressed_no_signal(_engine.is_relic_enabled(_local_side, "reserved_seat_tag"))
-			_reserved_seat_toggle.disabled = _lan_mode and NetworkManager.is_waiting_for_reconnect()
+			_reserved_seat_toggle.disabled = _lan_mode and NetworkManager.is_local_match_waiting_for_reconnect()
 
 	var preview_runtime_state: CardRuntimeState = _get_hovered_player_runtime_state(battle_state)
 	var preview_card_def: CardDef = _get_hover_preview_card_def(preview_runtime_state)

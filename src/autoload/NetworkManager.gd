@@ -20,6 +20,7 @@ signal battle_countdown_finished()
 signal online_host_status_changed(status: Dictionary)
 signal online_rooms_changed(rooms: Array[Dictionary])
 signal arena_round_results_changed(snapshot: Dictionary)
+signal online_replay_ready(path: String)
 
 enum ConnectionState {
 	OFFLINE,
@@ -56,6 +57,9 @@ const ONLINE_MIN_REROLL_COST: int = 0
 const ONLINE_MAX_REROLL_COST: int = 100
 const ONLINE_MIN_SHOP_OFFER_COUNT: int = 2
 const ONLINE_MAX_SHOP_OFFER_COUNT: int = 10
+const ONLINE_REPLAY_CHUNK_SIZE: int = 12000
+const ONLINE_REPLAY_MAX_CHUNKS: int = 512
+const ONLINE_REPLAY_MAX_BYTES: int = 16 * 1024 * 1024
 
 var _state: int = ConnectionState.OFFLINE
 var _peer: MultiplayerPeer
@@ -142,6 +146,10 @@ var _arena_round_results_complete: bool = false
 var _arena_round_continue_by_peer: Dictionary = {}
 var _arena_public_details: Array[Dictionary] = []
 var _arena_details_auto_open_pending: bool = false
+var _online_reconnect_reservations: Dictionary = {}
+var _online_rejoin_pending: bool = false
+var _online_replay_transfers: Dictionary = {}
+var _last_online_replay_path: String = ""
 
 
 func _ready() -> void:
@@ -311,7 +319,8 @@ func join_online_lobby(
 		_online_room_code,
 		LanProtocol.PROTOCOL_VERSION,
 		LanProtocol.build_content_hash(),
-		spectator
+		spectator,
+		String(_local_profile.get("reconnect_token", ""))
 	)
 	if start_error != OK:
 		_set_state(ConnectionState.OFFLINE, "Web multiplayer is unavailable")
@@ -334,6 +343,10 @@ func stop_online_room_directory() -> void:
 
 func get_online_rooms() -> Array[Dictionary]:
 	return _to_dictionary_array(_online_rooms)
+
+
+func get_last_online_replay_path() -> String:
+	return _last_online_replay_path
 
 
 func get_online_target_wins() -> int:
@@ -795,6 +808,30 @@ func is_waiting_for_reconnect() -> bool:
 	return _waiting_for_reconnect or _reconnecting
 
 
+func is_local_match_waiting_for_reconnect() -> bool:
+	if _reconnecting:
+		return true
+	if _session_scope == SESSION_SCOPE_ONLINE and not _parallel_match_contexts.is_empty():
+		var context: Dictionary = _get_local_parallel_match_context()
+		return int(context.get("reconnecting_peer_id", -1)) > 0
+	return _waiting_for_reconnect
+
+
+func developer_drop_online_transport() -> bool:
+	if (_is_host or _session_scope != SESSION_SCOPE_ONLINE or not (_match_active or _arena_session_active)):
+		return false
+	if not Game.is_developer_mode_enabled() and not OS.has_feature("qq_validation"):
+		return false
+	_web_signaling.close(false)
+	_close_peer_only()
+	_reconnecting = true
+	_online_rejoin_pending = false
+	_reconnect_deadline_msec = Time.get_ticks_msec() + int(LanProtocol.RECONNECT_GRACE_SECONDS * 1000.0)
+	_next_reconnect_attempt_msec = Time.get_ticks_msec() + 250
+	_set_state(ConnectionState.RECONNECTING, "Validation transport drop; reconnecting")
+	return true
+
+
 func get_connection_state() -> int:
 	return _state
 
@@ -1206,16 +1243,19 @@ func _on_peer_disconnected(peer_id: int) -> void:
 	_explicit_peer_leaves.erase(peer_id)
 	var disconnected_profile: Dictionary = Dictionary(_profiles_by_peer.get(peer_id, {})).duplicate(true)
 	var disconnected_role: String = String(disconnected_profile.get("role", LanProtocol.ROLE_PLAYER))
-	_profiles_by_peer.erase(peer_id)
-	_peer_sides.erase(peer_id)
 	_peer_pings.erase(peer_id)
 	if disconnected_role == LanProtocol.ROLE_SPECTATOR:
+		_profiles_by_peer.erase(peer_id)
+		_peer_sides.erase(peer_id)
 		_broadcast_lobby_state()
 		return
+	if _session_scope == SESSION_SCOPE_ONLINE and _arena_session_active and not was_explicit and not disconnected_profile.is_empty():
+		_reserve_online_peer(peer_id, disconnected_profile)
+		return
+	_profiles_by_peer.erase(peer_id)
+	_peer_sides.erase(peer_id)
 	if _session_scope == SESSION_SCOPE_ONLINE and _arena_session_active:
-		var winner_peer_id: int = -1
-		if _active_match_peer_ids.size() == 2:
-			winner_peer_id = _active_match_peer_ids[1] if _active_match_peer_ids[0] == peer_id else _active_match_peer_ids[0]
+		var winner_peer_id: int = _opponent_peer_id(peer_id)
 		_finish_arena_session("disconnect", "player_left", winner_peer_id)
 		return
 	if _arena_session_active and not was_explicit and not disconnected_profile.is_empty():
@@ -1241,6 +1281,8 @@ func _on_peer_disconnected(peer_id: int) -> void:
 func _on_connected_to_server() -> void:
 	if _is_host:
 		return
+	_online_rejoin_pending = false
+	_reconnecting = false
 	_submit_profile_rpc.rpc_id(1, _local_profile, _online_room_proof)
 
 
@@ -1250,7 +1292,8 @@ func _on_web_transport_ready(peer: WebRTCMultiplayerPeer, host_role: bool, room_
 		return
 	_peer = peer
 	_is_host = host_role
-	_reconnecting = false
+	if not _online_rejoin_pending:
+		_reconnecting = false
 	multiplayer.multiplayer_peer = _peer
 	if _is_host:
 		_profiles_by_peer[1] = _local_profile.duplicate(true)
@@ -1302,6 +1345,12 @@ func _finalize_web_signaling_failure(code: String, message: String) -> void:
 	_web_failure_pending = false
 	if _session_scope != SESSION_SCOPE_ONLINE:
 		return
+	if _reconnecting or _online_rejoin_pending:
+		_web_signaling.close(false)
+		_online_rejoin_pending = false
+		_next_reconnect_attempt_msec = Time.get_ticks_msec() + int(RECONNECT_RETRY_INTERVAL * 1000.0)
+		_set_state(ConnectionState.RECONNECTING, "Connection lost; retrying Web room")
+		return
 	_web_signaling.close()
 	_close_peer_only()
 	_is_host = false
@@ -1325,11 +1374,16 @@ func _on_server_disconnected() -> void:
 	if _closing_peer:
 		return
 	if _session_scope == SESSION_SCOPE_ONLINE:
+		_web_signaling.close(false)
 		_close_peer_only()
-		_match_active = false
-		_arena_session_active = false
-		_arena_phase = ""
-		_set_state(ConnectionState.OFFLINE, "Web opponent disconnected")
+		if _match_active or _arena_session_active:
+			_reconnecting = true
+			_online_rejoin_pending = false
+			_reconnect_deadline_msec = Time.get_ticks_msec() + int(LanProtocol.RECONNECT_GRACE_SECONDS * 1000.0)
+			_next_reconnect_attempt_msec = Time.get_ticks_msec() + 250
+			_set_state(ConnectionState.RECONNECTING, "Connection lost; reconnecting to the same match")
+			return
+		_set_state(ConnectionState.OFFLINE, "Web host disconnected")
 		session_ended.emit("host_disconnected")
 		return
 	if _match_active or _arena_session_active:
@@ -1359,13 +1413,17 @@ func _submit_profile_rpc(raw_profile: Dictionary, room_proof: String = "") -> vo
 		_reject_peer(sender_id, String(validation.get("error", "invalid_profile")))
 		return
 	var profile: Dictionary = Dictionary(validation.get("profile", {})).duplicate(true)
-	var rejoining: bool = _waiting_for_reconnect and (
+	var online_reservation: Dictionary = Dictionary(_online_reconnect_reservations.get(sender_id, {}))
+	var online_rejoining: bool = _session_scope == SESSION_SCOPE_ONLINE and not online_reservation.is_empty() and (
+		String(profile.get("reconnect_token", "")) == String(online_reservation.get("reconnect_token", "reserved"))
+	)
+	var rejoining: bool = _session_scope != SESSION_SCOPE_ONLINE and _waiting_for_reconnect and (
 		String(profile.get("reconnect_token", "")) == String(_reserved_remote_profile.get("reconnect_token", "reserved"))
 	)
-	if _waiting_for_reconnect and not rejoining:
+	if _session_scope != SESSION_SCOPE_ONLINE and _waiting_for_reconnect and not rejoining:
 		_reject_peer(sender_id, "seat_reserved")
 		return
-	if not _profiles_by_peer.has(sender_id) and not rejoining:
+	if not _profiles_by_peer.has(sender_id) and not rejoining and not online_rejoining:
 		var participant_role: String = String(profile.get("role", LanProtocol.ROLE_PLAYER))
 		if participant_role == LanProtocol.ROLE_SPECTATOR:
 			if _get_spectator_peer_ids().size() >= LanProtocol.MAX_SPECTATORS:
@@ -1422,6 +1480,9 @@ func _submit_profile_rpc(raw_profile: Dictionary, room_proof: String = "") -> vo
 		else:
 			_receive_arena_preparation_state_rpc.rpc_id(sender_id, _build_arena_snapshot(sender_id))
 			_set_state(ConnectionState.ARENA_PREPARATION, "Opponent reconnected")
+		return
+	if online_rejoining:
+		_restore_online_peer(sender_id)
 		return
 	_set_state(ConnectionState.LOBBY, "%s lobby ready" % _session_display_name())
 	_broadcast_lobby_state()
@@ -1856,8 +1917,8 @@ func _start_parallel_round_matches() -> bool:
 			"standings": _arena_standings.duplicate(true),
 		}
 		var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
-		# Online uses compact snapshots; local visual replay is not broadcast or retained.
-		engine.record_visuals = false
+		# Visual frames stay on the host during battle and are transferred only after resolution.
+		engine.record_visuals = true
 		engine.set_audio_enabled(false)
 		engine.setup_pvp(
 			player_run,
@@ -1966,6 +2027,8 @@ func _process_parallel_matches(delta: float) -> void:
 		var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
 		if context.is_empty() or bool(context.get("finished", false)):
 			continue
+		if int(context.get("reconnecting_peer_id", -1)) > 0:
+			continue
 		var engine: RealtimeBattleEngine = context.get("engine") as RealtimeBattleEngine
 		if engine == null or engine.battle_state == null:
 			continue
@@ -2017,6 +2080,8 @@ func _publish_parallel_context_snapshot(match_id: String, reliable: bool) -> boo
 		if peer_id == 1:
 			if String(_match_payload.get("match_id", "")) == match_id:
 				_apply_battle_snapshot(outgoing)
+		elif _online_reconnect_reservations.has(peer_id):
+			continue
 		elif reliable:
 			_receive_battle_snapshot_reliable_rpc.rpc_id(peer_id, outgoing)
 		else:
@@ -2069,6 +2134,8 @@ func _broadcast_parallel_battle_start_state(match_id: String) -> void:
 		if peer_id == 1:
 			if String(_match_payload.get("match_id", "")) == match_id:
 				_apply_battle_start_state(state)
+		elif _online_reconnect_reservations.has(peer_id):
+			continue
 		else:
 			_receive_battle_start_state_rpc.rpc_id(peer_id, state)
 
@@ -2080,6 +2147,8 @@ func _emit_parallel_countdown_finished(match_id: String) -> void:
 		if peer_id == 1:
 			if String(_match_payload.get("match_id", "")) == match_id:
 				battle_countdown_finished.emit()
+		elif _online_reconnect_reservations.has(peer_id):
+			continue
 		else:
 			_receive_battle_countdown_finished_rpc.rpc_id(peer_id, match_id)
 
@@ -2132,12 +2201,16 @@ func _apply_parallel_battle_command(peer_id: int, command: Dictionary) -> bool:
 	return accepted
 
 
-func _finish_parallel_match(match_id: String) -> bool:
+func _finish_parallel_match(match_id: String, forced_winner: String = "", finish_reason: String = "") -> bool:
 	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
 	var engine: RealtimeBattleEngine = context.get("engine") as RealtimeBattleEngine
 	if context.is_empty() or engine == null or engine.battle_state == null or bool(context.get("finished", false)):
 		return false
-	var summary: Dictionary = engine.build_summary(false)
+	var summary: Dictionary = engine.build_summary(true)
+	if forced_winner == "player" or forced_winner == "enemy" or forced_winner == "draw":
+		summary["winner"] = forced_winner
+	if finish_reason != "":
+		summary["reason"] = finish_reason
 	var result: Dictionary = BattleStateCodec.encode_match_summary(summary)
 	var player_peer_id: int = int(context.get("player_peer_id", -1))
 	var enemy_peer_id: int = int(context.get("enemy_peer_id", -1))
@@ -2154,6 +2227,7 @@ func _finish_parallel_match(match_id: String) -> bool:
 	result["arena_session_id"] = _arena_session_id
 	result["round_index"] = _arena_round_index
 	result["pair_index"] = int(context.get("pair_index", 0))
+	_publish_online_replay(context, ReplayData.from_summary(summary).to_dict())
 	var player_run: RunState = _arena_runs_by_peer.get(player_peer_id) as RunState
 	var enemy_run: RunState = _arena_runs_by_peer.get(enemy_peer_id) as RunState
 	if player_run == null or enemy_run == null:
@@ -2209,6 +2283,8 @@ func _finish_parallel_match(match_id: String) -> bool:
 		if peer_id == 1:
 			if String(_match_payload.get("match_id", "")) == match_id:
 				_apply_match_finished(result)
+		elif _online_reconnect_reservations.has(peer_id):
+			continue
 		else:
 			_receive_match_finished_rpc.rpc_id(peer_id, result)
 	_arena_round_results_complete = _are_all_parallel_matches_finished()
@@ -2219,6 +2295,76 @@ func _finish_parallel_match(match_id: String) -> bool:
 	_broadcast_arena_round_results()
 	_broadcast_lobby_state()
 	return true
+
+
+func _publish_online_replay(context: Dictionary, replay_dict: Dictionary) -> void:
+	if _session_scope != SESSION_SCOPE_ONLINE or replay_dict.is_empty():
+		return
+	var json_bytes: PackedByteArray = JSON.stringify(replay_dict).to_utf8_buffer()
+	var compressed: PackedByteArray = json_bytes.compress(FileAccess.COMPRESSION_GZIP)
+	if compressed.is_empty() or compressed.size() > ONLINE_REPLAY_MAX_BYTES:
+		return
+	var encoded: String = Marshalls.raw_to_base64(compressed)
+	var total: int = ceili(float(encoded.length()) / float(ONLINE_REPLAY_CHUNK_SIZE))
+	if total <= 0 or total > ONLINE_REPLAY_MAX_CHUNKS:
+		return
+	var transfer_id: String = "%s:%d" % [String(context.get("match_id", "match")), Time.get_ticks_msec()]
+	var viewer_peer_ids: Array[int] = _to_int_array(context.get("viewer_peer_ids", []))
+	for peer_id in viewer_peer_ids:
+		if peer_id == 1:
+			_store_online_replay(replay_dict)
+			continue
+		if not _profiles_by_peer.has(peer_id):
+			continue
+		for chunk_index in range(total):
+			var start: int = chunk_index * ONLINE_REPLAY_CHUNK_SIZE
+			var chunk: String = encoded.substr(start, mini(ONLINE_REPLAY_CHUNK_SIZE, encoded.length() - start))
+			_receive_online_replay_chunk_rpc.rpc_id(peer_id, transfer_id, chunk_index, total, chunk)
+
+
+@rpc("authority", "call_remote", "reliable", 0)
+func _receive_online_replay_chunk_rpc(
+	transfer_id: String,
+	chunk_index: int,
+	total: int,
+	chunk: String
+) -> void:
+	if transfer_id == "" or total <= 0 or total > ONLINE_REPLAY_MAX_CHUNKS or chunk_index < 0 or chunk_index >= total:
+		return
+	var transfer: Dictionary = Dictionary(_online_replay_transfers.get(transfer_id, {
+		"total": total,
+		"chunks": {},
+	}))
+	if int(transfer.get("total", 0)) != total:
+		_online_replay_transfers.erase(transfer_id)
+		return
+	var chunks: Dictionary = Dictionary(transfer.get("chunks", {}))
+	chunks[chunk_index] = chunk
+	transfer["chunks"] = chunks
+	_online_replay_transfers[transfer_id] = transfer
+	if chunks.size() != total:
+		return
+	var encoded: String = ""
+	for index in range(total):
+		encoded += String(chunks.get(index, ""))
+	_online_replay_transfers.erase(transfer_id)
+	var compressed: PackedByteArray = Marshalls.base64_to_raw(encoded)
+	if compressed.is_empty() or compressed.size() > ONLINE_REPLAY_MAX_BYTES:
+		return
+	var json_bytes: PackedByteArray = compressed.decompress_dynamic(ONLINE_REPLAY_MAX_BYTES, FileAccess.COMPRESSION_GZIP)
+	if json_bytes.is_empty():
+		return
+	var parsed: Variant = JSON.parse_string(json_bytes.get_string_from_utf8())
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	_store_online_replay(Dictionary(parsed))
+
+
+func _store_online_replay(replay_dict: Dictionary) -> void:
+	var replay_data: ReplayData = ReplayData.from_dict(replay_dict)
+	_last_online_replay_path = SaveManager.export_replay(replay_data, replay_data.battle_id + "_online")
+	if _last_online_replay_path != "":
+		online_replay_ready.emit(_last_online_replay_path)
 
 
 func _are_all_parallel_matches_finished() -> bool:
@@ -2277,8 +2423,11 @@ func _broadcast_arena_round_results() -> void:
 	if not _is_host or not _arena_session_active:
 		return
 	var snapshot: Dictionary = _build_arena_round_results_snapshot()
-	_receive_arena_round_results_rpc.rpc(snapshot)
 	_apply_arena_round_results_snapshot(snapshot)
+	for peer_id in _get_all_peer_ids():
+		if peer_id == 1 or _online_reconnect_reservations.has(peer_id):
+			continue
+		_receive_arena_round_results_rpc.rpc_id(peer_id, snapshot)
 
 
 func _apply_arena_round_results_snapshot(snapshot: Dictionary) -> void:
@@ -2577,7 +2726,10 @@ func _finish_arena_session(winner: String, reason: String, winner_peer_id: int =
 		result["player_run"] = player_run.to_dict()
 	if enemy_run != null:
 		result["enemy_run"] = enemy_run.to_dict()
-	_receive_arena_session_finished_rpc.rpc(result)
+	for peer_id in _get_all_peer_ids():
+		if peer_id == 1 or _online_reconnect_reservations.has(peer_id):
+			continue
+		_receive_arena_session_finished_rpc.rpc_id(peer_id, result)
 	_apply_arena_session_finished(result)
 	_broadcast_lobby_state()
 
@@ -2644,7 +2796,10 @@ func _broadcast_lobby_state() -> void:
 		"arena_round_results_complete": _arena_round_results_complete,
 		"arena_public_details": _arena_public_details.duplicate(true),
 	}
-	_receive_lobby_state_rpc.rpc(_public_lobby_snapshot)
+	for peer_id in peer_ids:
+		if peer_id == 1 or _online_reconnect_reservations.has(peer_id):
+			continue
+		_receive_lobby_state_rpc.rpc_id(peer_id, _public_lobby_snapshot)
 	lobby_changed.emit(_public_lobby_snapshot.duplicate(true))
 
 
@@ -2684,6 +2839,7 @@ func _process_ping(delta: float) -> void:
 
 func _process_reconnect() -> void:
 	if _session_scope == SESSION_SCOPE_ONLINE:
+		_process_online_reconnect()
 		return
 	var now_msec: int = Time.get_ticks_msec()
 	if _is_host and _waiting_for_reconnect and now_msec >= _reconnect_deadline_msec:
@@ -2716,6 +2872,130 @@ func _process_reconnect() -> void:
 		return
 	_next_reconnect_attempt_msec = now_msec + int(RECONNECT_RETRY_INTERVAL * 1000.0)
 	_connect_client(true)
+
+
+func _process_online_reconnect() -> void:
+	var now_msec: int = Time.get_ticks_msec()
+	if _is_host:
+		var expired_peer_ids: Array[int] = []
+		for raw_peer_id in _online_reconnect_reservations.keys():
+			var peer_id: int = int(raw_peer_id)
+			var reservation: Dictionary = Dictionary(_online_reconnect_reservations.get(peer_id, {}))
+			if now_msec >= int(reservation.get("deadline_msec", 0)):
+				expired_peer_ids.append(peer_id)
+		for peer_id in expired_peer_ids:
+			_forfeit_online_peer(peer_id)
+		_waiting_for_reconnect = not _online_reconnect_reservations.is_empty()
+		return
+	if not _reconnecting:
+		return
+	if now_msec >= _reconnect_deadline_msec:
+		_reconnecting = false
+		_online_rejoin_pending = false
+		_match_active = false
+		_arena_session_active = false
+		_arena_phase = ""
+		_web_signaling.close(false)
+		_close_peer_only()
+		_set_state(ConnectionState.OFFLINE, "Web reconnection timed out")
+		session_ended.emit("reconnect_timeout")
+		return
+	if _online_rejoin_pending or now_msec < _next_reconnect_attempt_msec:
+		return
+	_next_reconnect_attempt_msec = now_msec + int(RECONNECT_RETRY_INTERVAL * 1000.0)
+	_online_rejoin_pending = true
+	var start_error: Error = _web_signaling.start_join(
+		_online_room_code,
+		LanProtocol.PROTOCOL_VERSION,
+		LanProtocol.build_content_hash(),
+		_local_participant_role == LanProtocol.ROLE_SPECTATOR,
+		String(_local_profile.get("reconnect_token", ""))
+	)
+	if start_error != OK:
+		_online_rejoin_pending = false
+
+
+func _reserve_online_peer(peer_id: int, profile: Dictionary) -> void:
+	var match_id: String = String(_match_id_by_peer.get(peer_id, ""))
+	var deadline_msec: int = Time.get_ticks_msec() + int(LanProtocol.RECONNECT_GRACE_SECONDS * 1000.0)
+	_online_reconnect_reservations[peer_id] = {
+		"reconnect_token": String(profile.get("reconnect_token", "")),
+		"deadline_msec": deadline_msec,
+		"match_id": match_id,
+	}
+	_waiting_for_reconnect = true
+	if match_id != "" and _parallel_match_contexts.has(match_id):
+		var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+		context["reconnecting_peer_id"] = peer_id
+		if bool(context.get("countdown_active", false)):
+			context["reconnect_countdown_remaining_msec"] = maxi(
+				0,
+				int(context.get("countdown_deadline_msec", 0)) - Time.get_ticks_msec()
+			)
+			context["countdown_active"] = false
+		_parallel_match_contexts[match_id] = context
+		_broadcast_parallel_battle_start_state(match_id)
+	_set_state(ConnectionState.MATCH if _match_active else ConnectionState.ARENA_PREPARATION, "Player disconnected; waiting up to 15 seconds")
+	_broadcast_lobby_state()
+
+
+func _restore_online_peer(peer_id: int) -> void:
+	var reservation: Dictionary = Dictionary(_online_reconnect_reservations.get(peer_id, {}))
+	var match_id: String = String(reservation.get("match_id", _match_id_by_peer.get(peer_id, "")))
+	_online_reconnect_reservations.erase(peer_id)
+	_waiting_for_reconnect = not _online_reconnect_reservations.is_empty()
+	if match_id != "" and _parallel_match_contexts.has(match_id):
+		var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+		context.erase("reconnecting_peer_id")
+		var remaining_msec: int = int(context.get("reconnect_countdown_remaining_msec", 0))
+		context.erase("reconnect_countdown_remaining_msec")
+		if remaining_msec > 0:
+			context["countdown_active"] = true
+			context["countdown_deadline_msec"] = Time.get_ticks_msec() + remaining_msec
+		_parallel_match_contexts[match_id] = context
+		_match_id_by_peer[peer_id] = match_id
+		var payload: Dictionary = Dictionary(context.get("payload", {}))
+		_peer_sides[peer_id] = String(Dictionary(payload.get("peer_sides", {})).get(str(peer_id), "waiting"))
+		_receive_match_started_rpc.rpc_id(peer_id, payload)
+		var snapshot: Dictionary = Dictionary(context.get("last_snapshot", {}))
+		if not snapshot.is_empty():
+			_receive_battle_snapshot_reliable_rpc.rpc_id(peer_id, snapshot)
+		_receive_battle_start_state_rpc.rpc_id(peer_id, _build_parallel_battle_start_state(context))
+		if bool(context.get("finished", false)):
+			_receive_match_finished_rpc.rpc_id(peer_id, Dictionary(context.get("result", {})))
+	else:
+		_receive_arena_preparation_state_rpc.rpc_id(peer_id, _build_arena_snapshot(peer_id))
+	_set_state(ConnectionState.MATCH if _match_active else ConnectionState.ARENA_PREPARATION, "Player reconnected")
+	_broadcast_lobby_state()
+
+
+func _forfeit_online_peer(peer_id: int) -> void:
+	var reservation: Dictionary = Dictionary(_online_reconnect_reservations.get(peer_id, {}))
+	_online_reconnect_reservations.erase(peer_id)
+	_profiles_by_peer.erase(peer_id)
+	_peer_sides.erase(peer_id)
+	var match_id: String = String(reservation.get("match_id", _match_id_by_peer.get(peer_id, "")))
+	if match_id != "" and _parallel_match_contexts.has(match_id):
+		var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+		var winner: String = "enemy" if int(context.get("player_peer_id", -1)) == peer_id else "player"
+		context.erase("reconnecting_peer_id")
+		_parallel_match_contexts[match_id] = context
+		_finish_parallel_match(match_id, winner, "reconnect_timeout")
+	elif _arena_session_active:
+		_finish_arena_session("disconnect", "reconnect_timeout", _opponent_peer_id(peer_id))
+	_waiting_for_reconnect = not _online_reconnect_reservations.is_empty()
+
+
+func _opponent_peer_id(peer_id: int) -> int:
+	var match_id: String = String(_match_id_by_peer.get(peer_id, ""))
+	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
+	if not context.is_empty():
+		var player_peer_id: int = int(context.get("player_peer_id", -1))
+		var enemy_peer_id: int = int(context.get("enemy_peer_id", -1))
+		return enemy_peer_id if player_peer_id == peer_id else player_peer_id
+	if _active_match_peer_ids.size() == 2:
+		return _active_match_peer_ids[1] if _active_match_peer_ids[0] == peer_id else _active_match_peer_ids[0]
+	return -1
 
 
 func _process_discovery(delta: float) -> void:
@@ -2921,6 +3201,10 @@ func _clear_session(clear_profile: bool) -> void:
 	_online_reroll_cost = ArenaService.REROLL_COST
 	_online_shop_offer_count = ArenaService.SHOP_OFFER_COUNT
 	_online_max_players = LanProtocol.DEFAULT_PLAYERS
+	_online_reconnect_reservations.clear()
+	_online_rejoin_pending = false
+	_online_replay_transfers.clear()
+	_last_online_replay_path = ""
 	_local_participant_role = LanProtocol.ROLE_PLAYER
 	_pending_participant_role = ""
 	_dispose_parallel_match_contexts()

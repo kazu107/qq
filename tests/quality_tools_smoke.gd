@@ -50,6 +50,7 @@ func _run() -> void:
 	_check(run.equipped_cards == original and before_hp == run.max_hp, "Simulation changed live run")
 	var replay: Dictionary = ReplayData.from_summary(summary).to_dict()
 	_check(int(replay["format_version"]) == 2 and not replay["summary"].has("battle_events"), "Replay duplicated event stream")
+	_check(ReplayData.from_dict(replay).to_dict() == replay, "Replay transfer round trip changed data")
 	_check(not Array(summary["visual_replay"]["frames"]).is_empty(), "No visual frames")
 	var saved_summary: Dictionary = Game.last_battle_summary
 	Game.last_battle_summary = summary
@@ -81,6 +82,18 @@ func _run() -> void:
 	visual.load_replay({"summary": {}, "battle_events": []})
 	_check(visual._play_button.disabled, "Legacy replay should show fallback")
 	visual.queue_free()
+	var analysis_panel: BattleResultAnalysisPanel = BattleResultAnalysisPanel.new()
+	add_child(analysis_panel)
+	analysis_panel.show_result(summary, "player", false, true)
+	_check(analysis_panel.visible, "Battle result analysis panel did not open")
+	analysis_panel.queue_free()
+	var tutorial_scene: PackedScene = load("res://scenes/tutorial/BattleTutorial.tscn") as PackedScene
+	_check(tutorial_scene != null, "Battle tutorial scene is missing")
+	if tutorial_scene != null:
+		var tutorial: Node = tutorial_scene.instantiate()
+		add_child(tutorial)
+		_check(tutorial.get_node_or_null("BattleTutorialButton") == null, "Tutorial scene instantiated invalid hub state")
+		tutorial.queue_free()
 	for id: String in ["guardian", "boss_timekeeper", "boss_paradox_core", "boss_axiom_breaker", "boss_eternity_zero"]:
 		var profile: Dictionary = Database.get_battle_visual_profile(id)
 		_check(ResourceLoader.exists(String(profile.get("model_scene", ""))), "Missing enemy model " + id)

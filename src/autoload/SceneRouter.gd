@@ -17,6 +17,7 @@ const REPLAY_SCENE := "res://scenes/replay/ReplayViewer.tscn"
 const SFX_LAB_SCENE := "res://scenes/debug/SfxLab.tscn"
 const BATTLE_ANIMATION_LAB_SCENE := "res://scenes/debug/BattleAnimationLab.tscn"
 const AUTOMATED_BATTLE_LAB_SCENE := "res://scenes/debug/AutomatedBattleLab.tscn"
+const BATTLE_TUTORIAL_SCENE := "res://scenes/tutorial/BattleTutorial.tscn"
 const TRANSITION_COVER_NAME := "SceneTransitionCover"
 const GOLD_DELTA_POPUP_NAME := "GoldDeltaPopup"
 
@@ -46,6 +47,7 @@ func warm_scene_cache() -> void:
 		SFX_LAB_SCENE,
 		BATTLE_ANIMATION_LAB_SCENE,
 		AUTOMATED_BATTLE_LAB_SCENE,
+		BATTLE_TUTORIAL_SCENE,
 	]
 	if Game.WEB_MULTIPLAYER_ENABLED:
 		scene_paths.append(ONLINE_LOBBY_SCENE)
@@ -120,6 +122,12 @@ func go_to_settings() -> void:
 
 func go_to_replay_viewer() -> void:
 	_change_scene(REPLAY_SCENE)
+
+
+func go_to_battle_tutorial() -> void:
+	if NetworkManager.is_session_connected():
+		return
+	_change_scene(BATTLE_TUTORIAL_SCENE)
 
 
 func go_to_sfx_lab() -> void:

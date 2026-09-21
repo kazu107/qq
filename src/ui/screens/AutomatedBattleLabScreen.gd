@@ -10,6 +10,12 @@ var _output: RichTextLabel
 var _start: Button
 var _replay: Button
 var _cards: Array[String] = []
+var _compare_cards: Array[String] = []
+var _compare_toggle: CheckButton
+var _compare_row: HBoxContainer
+var _compare_presets: DeckPresetBar
+var _compare_starter: OptionButton
+var _compare_enemy: OptionButton
 var _simulation: BattleSimulation
 var _completed: int = 0
 var _wins: int = 0
@@ -24,6 +30,8 @@ var _cap: float
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _last_summary: Dictionary = {}
 var _aggregate: Dictionary = {}
+var _configuration_index: int = 0
+var _reports: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -55,6 +63,21 @@ func _ready() -> void:
 	root.add_child(presets)
 	_starter.item_selected.connect(func(_i: int) -> void: _select_starter())
 	_select_starter()
+	_compare_toggle = CheckButton.new()
+	_compare_toggle.text = Localization.get_text("analysis.compare", "Compare A/B with the same seeds")
+	_compare_toggle.toggled.connect(_set_compare_visible)
+	root.add_child(_compare_toggle)
+	_compare_row = HBoxContainer.new()
+	root.add_child(_compare_row)
+	_compare_starter = _option(_compare_row, Game.get_debug_battle_starter_entries())
+	_compare_enemy = _option(_compare_row, Game.get_debug_battle_enemy_entries())
+	_compare_presets = DeckPresetBar.new()
+	_compare_presets.get_cards = func() -> Array[String]: return _compare_cards
+	_compare_presets.apply_requested.connect(func(cards: Array[String]) -> void: _compare_cards = cards.duplicate())
+	root.add_child(_compare_presets)
+	_compare_starter.item_selected.connect(func(_i: int) -> void: _select_compare_starter())
+	_select_compare_starter()
+	_set_compare_visible(false)
 	var settings: HBoxContainer = HBoxContainer.new()
 	root.add_child(settings)
 	_count = _spin(settings, "analysis.matches", "Matches", 1, 200, 20)
@@ -108,15 +131,43 @@ func _select_starter() -> void:
 	_cards = RunState.from_starter(Database.get_starter(String(_starter.get_selected_metadata())), 1).equipped_cards
 
 
+func _select_compare_starter() -> void:
+	_compare_cards = RunState.from_starter(Database.get_starter(String(_compare_starter.get_selected_metadata())), 1).equipped_cards
+
+
+func _set_compare_visible(enabled: bool) -> void:
+	if _compare_row != null:
+		_compare_row.visible = enabled
+	if _compare_presets != null:
+		_compare_presets.visible = enabled
+
+
 func _begin() -> void:
 	if _running or not DeckPresetService.valid_cards(_cards):
 		return
-	_run = RunState.from_starter(Database.get_starter(String(_starter.get_selected_metadata())), int(_seed.value))
-	_run.player_cards = _cards.duplicate()
-	_run.equipped_cards = _cards.duplicate()
-	_enemy_id = String(_enemy.get_selected_metadata())
+	if _compare_toggle.button_pressed and not DeckPresetService.valid_cards(_compare_cards):
+		return
 	_total = int(_count.value)
 	_cap = _limit.value
+	_configuration_index = 0
+	_reports.clear()
+	_running = true
+	_start.disabled = true
+	_replay.disabled = true
+	_activate_configuration(0)
+	_start_match()
+
+
+func _activate_configuration(index: int) -> void:
+	_configuration_index = index
+	var use_compare: bool = index == 1
+	var starter_option: OptionButton = _compare_starter if use_compare else _starter
+	var enemy_option: OptionButton = _compare_enemy if use_compare else _enemy
+	var cards: Array[String] = _compare_cards if use_compare else _cards
+	_run = RunState.from_starter(Database.get_starter(String(starter_option.get_selected_metadata())), int(_seed.value))
+	_run.player_cards = cards.duplicate()
+	_run.equipped_cards = cards.duplicate()
+	_enemy_id = String(enemy_option.get_selected_metadata())
 	_rng.seed = int(_seed.value)
 	_completed = 0
 	_wins = 0
@@ -124,10 +175,6 @@ func _begin() -> void:
 	_unresolved = 0
 	_duration = 0.0
 	_aggregate.clear()
-	_running = true
-	_start.disabled = true
-	_replay.disabled = true
-	_start_match()
 
 
 func _start_match() -> void:
@@ -153,13 +200,61 @@ func _process(_delta: float) -> void:
 		_merge_analysis(Dictionary(_last_summary.get("analysis", {})))
 		_simulation.dispose()
 		if _completed >= _total:
-			_running = false
-			_start.disabled = false
+			_reports.append(_current_report())
+			if _compare_toggle.button_pressed and _configuration_index == 0:
+				_activate_configuration(1)
+				_start_match()
+			else:
+				_running = false
+				_start.disabled = false
 		else:
 			_start_match()
 		_replay.disabled = false
-		_progress.value = float(_completed) / _total * 100.0
-		_output.text = Localization.get_text("analysis.result", "Completed / wins / draws / unresolved / mean duration") + "\n%d / %d (%.1f%%) / %d / %d (%.1f%%) / %.1fs\n\n" % [_completed, _wins, 100.0 * _wins / _completed, _draws, _unresolved, 100.0 * _unresolved / _completed, _duration / _completed] + BattleAnalysis.describe(_aggregate)
+		var configuration_count: int = 2 if _compare_toggle.button_pressed else 1
+		var overall_completed: int = _configuration_index * _total + _completed
+		_progress.value = float(overall_completed) / float(_total * configuration_count) * 100.0
+		_output.text = _format_reports()
+
+
+func _current_report() -> Dictionary:
+	return {
+		"label": "B" if _configuration_index == 1 else "A",
+		"completed": _completed,
+		"wins": _wins,
+		"draws": _draws,
+		"unresolved": _unresolved,
+		"duration": _duration,
+		"analysis": _aggregate.duplicate(true),
+	}
+
+
+func _format_reports() -> String:
+	var display_reports: Array[Dictionary] = _reports.duplicate(true)
+	if _running or display_reports.is_empty():
+		display_reports.append(_current_report())
+	var blocks: PackedStringArray = []
+	for report: Dictionary in display_reports:
+		var completed: int = maxi(1, int(report.get("completed", 0)))
+		blocks.append("[ %s ]  %d / %d wins (%.1f%%) | draw %d | unresolved %d | mean %.1fs\n%s" % [
+			String(report.get("label", "A")),
+			int(report.get("wins", 0)),
+			completed,
+			100.0 * float(report.get("wins", 0)) / completed,
+			int(report.get("draws", 0)),
+			int(report.get("unresolved", 0)),
+			float(report.get("duration", 0.0)) / completed,
+			BattleAnalysis.describe(Dictionary(report.get("analysis", {}))),
+		])
+	if display_reports.size() == 2 and not _running:
+		var a: Dictionary = display_reports[0]
+		var b: Dictionary = display_reports[1]
+		var a_count: float = maxf(1.0, float(a.get("completed", 0)))
+		var b_count: float = maxf(1.0, float(b.get("completed", 0)))
+		blocks.append("[ B - A ]  win rate %+0.1f pt | mean duration %+0.1fs" % [
+			100.0 * float(b.get("wins", 0)) / b_count - 100.0 * float(a.get("wins", 0)) / a_count,
+			float(b.get("duration", 0.0)) / b_count - float(a.get("duration", 0.0)) / a_count,
+		])
+	return "\n\n".join(blocks)
 
 
 func _merge_analysis(data: Dictionary) -> void:

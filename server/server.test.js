@@ -94,7 +94,7 @@ test("host and guest receive stable peer ids and relay signaling", async () => {
   assert.equal(hostAssigned.participantRole, "player");
 
   const hostPeerJoined = receive(host);
-  send(guest, { type: "join", room: "ABC123", protocolVersion: 8, contentHash: BUILD_HASH });
+  send(guest, { type: "join", room: "ABC123", protocolVersion: 8, contentHash: BUILD_HASH, reconnectToken: "guest-token-abc123" });
   const guestAssigned = await receive(guest);
   assert.equal(guestAssigned.id, 2);
   assert.deepEqual(guestAssigned.peers, [1]);
@@ -143,7 +143,7 @@ test("room directory tracks compatible rooms, player counts, and host rules", as
 
   const joinedList = receive(directory);
   const hostPeerJoined = receive(host);
-  send(guest, { type: "join", room: "LIST42", protocolVersion: 8, contentHash: BUILD_HASH });
+  send(guest, { type: "join", room: "LIST42", protocolVersion: 8, contentHash: BUILD_HASH, reconnectToken: "guest-token-list42" });
   await receive(guest);
   await hostPeerJoined;
   const joinedRoom = (await joinedList).rooms[0];
@@ -167,11 +167,11 @@ test("room validation rejects missing, mismatched, and full rooms", async () => 
 
   const guest = await connect(app.port);
   const hostJoined = receive(host);
-  send(guest, { type: "join", room: "ROOM42", protocolVersion: 8, contentHash: BUILD_HASH });
+  send(guest, { type: "join", room: "ROOM42", protocolVersion: 8, contentHash: BUILD_HASH, reconnectToken: "guest-token-room42" });
   await receive(guest);
   await hostJoined;
   const extra = await connect(app.port);
-  send(extra, { type: "join", room: "ROOM42", protocolVersion: 8, contentHash: BUILD_HASH });
+  send(extra, { type: "join", room: "ROOM42", protocolVersion: 8, contentHash: BUILD_HASH, reconnectToken: "extra-token-room42" });
   assert.equal((await receive(extra)).code, "room_full");
   await stop(app, [host, missing, mismatch, guest, extra]);
 });
@@ -193,7 +193,7 @@ test("even-capacity rooms accept multiple players and separate spectators", asyn
     const guest = await connect(app.port);
     guests.push(guest);
     const hostPeerJoined = receive(host);
-    send(guest, { type: "join", room: "MULTI8", protocolVersion: 8, contentHash: BUILD_HASH });
+    send(guest, { type: "join", room: "MULTI8", protocolVersion: 8, contentHash: BUILD_HASH, reconnectToken: `guest-token-multi-${index}` });
     const assigned = await receive(guest);
     assert.equal(assigned.id, index + 2);
     assert.equal(assigned.participantRole, "player");
@@ -202,12 +202,12 @@ test("even-capacity rooms accept multiple players and separate spectators", asyn
   }
 
   const extra = await connect(app.port);
-  send(extra, { type: "join", room: "MULTI8", protocolVersion: 8, contentHash: BUILD_HASH });
+  send(extra, { type: "join", room: "MULTI8", protocolVersion: 8, contentHash: BUILD_HASH, reconnectToken: "extra-token-multi8" });
   assert.equal((await receive(extra)).code, "room_full");
 
   const spectator = await connect(app.port);
   const hostSpectatorJoined = receive(host);
-  send(spectator, { type: "join", room: "MULTI8", protocolVersion: 8, contentHash: BUILD_HASH, spectator: true });
+  send(spectator, { type: "join", room: "MULTI8", protocolVersion: 8, contentHash: BUILD_HASH, spectator: true, reconnectToken: "spectator-token-multi8" });
   const spectatorAssigned = await receive(spectator);
   assert.equal(spectatorAssigned.id, 5);
   assert.equal(spectatorAssigned.participantRole, "spectator");
@@ -250,4 +250,32 @@ test("TURN credentials are only sourced from server environment", () => {
     username: "user",
     credential: "secret",
   });
+});
+
+test("unexpected guest disconnect reserves and restores the same peer id", async () => {
+  const app = await startServer();
+  const host = await connect(app.port);
+  const guest = await connect(app.port);
+  const token = "stable-reconnect-token";
+  send(host, { type: "host", room: "BACK42", protocolVersion: 8, contentHash: BUILD_HASH });
+  await receive(host);
+  const firstJoined = receive(host);
+  send(guest, { type: "join", room: "BACK42", protocolVersion: 8, contentHash: BUILD_HASH, reconnectToken: token });
+  assert.equal((await receive(guest)).id, 2);
+  await firstJoined;
+
+  const temporarilyLeft = receive(host);
+  guest.terminate();
+  const leftMessage = await temporarilyLeft;
+  assert.equal(leftMessage.id, 2);
+  assert.equal(leftMessage.reconnectable, true);
+
+  const replacement = await connect(app.port);
+  const rejoined = receive(host);
+  send(replacement, { type: "join", room: "BACK42", protocolVersion: 8, contentHash: BUILD_HASH, reconnectToken: token });
+  const assignment = await receive(replacement);
+  assert.equal(assignment.id, 2);
+  assert.equal(assignment.reconnected, true);
+  assert.equal((await rejoined).reconnected, true);
+  await stop(app, [host, replacement]);
 });

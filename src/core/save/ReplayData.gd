@@ -20,6 +20,16 @@ static func from_summary(summary_data: Dictionary) -> ReplayData:
 	return replay_data
 
 
+static func from_dict(data: Dictionary) -> ReplayData:
+	var replay_data: ReplayData = ReplayData.new()
+	replay_data.format_version = int(data.get("format_version", FORMAT_VERSION))
+	replay_data.exported_at = String(data.get("exported_at", ""))
+	replay_data.battle_id = String(data.get("battle_id", ""))
+	replay_data.summary = Dictionary(data.get("summary", {})).duplicate(true)
+	replay_data.battle_events = _to_dictionary_array(data.get("battle_events", []))
+	return replay_data
+
+
 func to_dict() -> Dictionary:
 	return {
 		"format_version": format_version,

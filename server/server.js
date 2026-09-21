@@ -15,6 +15,8 @@ const MIN_PLAYERS = 2;
 const MAX_PLAYERS = 8;
 const DEFAULT_PLAYERS = 2;
 const MAX_SPECTATORS = 4;
+const RECONNECT_GRACE_MS = 15 * 1000;
+const RECONNECT_TOKEN_PATTERN = /^[A-Za-z0-9_-]{8,64}$/;
 const MIME_TYPES = new Map([
   [".html", "text/html; charset=utf-8"],
   [".js", "text/javascript; charset=utf-8"],
@@ -68,7 +70,7 @@ function createQqServer(options = {}) {
   });
 
   websocketServer.on("connection", (socket) => {
-    clients.set(socket, { room: "", id: 0, role: "", participantRole: "", alive: true });
+    clients.set(socket, { room: "", id: 0, role: "", participantRole: "", reconnectToken: "", explicitLeave: false, alive: true });
     socket.on("pong", () => {
       const client = clients.get(socket);
       if (client) client.alive = true;
@@ -92,6 +94,9 @@ function createQqServer(options = {}) {
   });
 
   const heartbeat = setInterval(() => {
+    let reservationsChanged = false;
+    for (const room of rooms.values()) reservationsChanged = pruneReservations(room) || reservationsChanged;
+    if (reservationsChanged) broadcastRoomLists(rooms, clients);
     for (const [socket, client] of clients.entries()) {
       if (!client.alive) {
         socket.terminate();
@@ -120,6 +125,12 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
   const type = String(message.type || "");
   const client = clients.get(socket);
   if (!client) return;
+
+  if (type === "leave") {
+    client.explicitLeave = true;
+    socket.close(1000, "client_left");
+    return;
+  }
 
   if (type === "list_rooms") {
     const protocolVersion = Number(message.protocolVersion);
@@ -209,6 +220,7 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
         targetWins: sanitizeTargetWins(message.targetWins) ?? DEFAULT_TARGET_WINS,
         maxPlayers: sanitizeMaxPlayers(message.maxPlayers) ?? DEFAULT_PLAYERS,
         peers: new Map([[1, socket]]),
+        reservations: new Map(),
       };
       rooms.set(roomCode, room);
       Object.assign(client, { room: roomCode, id: 1, role: "host", participantRole: "player" });
@@ -225,20 +237,28 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
       sendError(socket, "build_mismatch", "Both players must use the same game build.");
       return;
     }
-    const participantRole = message.spectator === true ? "spectator" : "player";
+    pruneReservations(room);
+    const reconnectToken = String(message.reconnectToken || "").trim();
+    if (!RECONNECT_TOKEN_PATTERN.test(reconnectToken)) {
+      sendError(socket, "invalid_reconnect_token", "The reconnect identity is invalid.");
+      return;
+    }
+    const reservation = room.reservations.get(reconnectToken);
+    const participantRole = reservation?.participantRole || (message.spectator === true ? "spectator" : "player");
     const roleCount = countParticipants(room, clients, participantRole);
     const roleLimit = participantRole === "spectator" ? MAX_SPECTATORS : room.maxPlayers;
-    if (roleCount >= roleLimit) {
+    if (!reservation && roleCount >= roleLimit) {
       sendError(socket, participantRole === "spectator" ? "spectator_full" : "room_full", "That room has no open slot for the selected role.");
       return;
     }
-    const guestId = nextPeerId(room);
+    const guestId = reservation?.id || nextPeerId(room);
+    if (reservation) room.reservations.delete(reconnectToken);
     room.peers.set(guestId, socket);
-    Object.assign(client, { room: roomCode, id: guestId, role: "guest", participantRole });
+    Object.assign(client, { room: roomCode, id: guestId, role: "guest", participantRole, reconnectToken });
     // WebRTCMultiplayerPeer clients may only add peer ID 1. Godot relays
     // MultiplayerAPI traffic between guests through the host connection.
-    send(socket, { type: "assigned", id: guestId, role: "guest", participantRole, room: roomCode, peers: [1], iceServers });
-    send(room.peers.get(1), { type: "peer_joined", id: guestId, participantRole });
+    send(socket, { type: "assigned", id: guestId, role: "guest", participantRole, room: roomCode, peers: [1], iceServers, reconnected: Boolean(reservation) });
+    send(room.peers.get(1), { type: "peer_joined", id: guestId, participantRole, reconnected: Boolean(reservation) });
     broadcastRoomLists(rooms, clients);
     return;
   }
@@ -292,8 +312,16 @@ function removeClient(socket, rooms, clients) {
     broadcastRoomLists(rooms, clients);
     return;
   }
+  const reconnectable = !client.explicitLeave && RECONNECT_TOKEN_PATTERN.test(client.reconnectToken || "");
+  if (reconnectable) {
+    room.reservations.set(client.reconnectToken, {
+      id: client.id,
+      participantRole: client.participantRole,
+      expiresAt: Date.now() + RECONNECT_GRACE_MS,
+    });
+  }
   for (const peerSocket of room.peers.values()) {
-    send(peerSocket, { type: "peer_left", id: client.id });
+    send(peerSocket, { type: "peer_left", id: client.id, reconnectable, graceSeconds: RECONNECT_GRACE_MS / 1000 });
   }
   broadcastRoomLists(rooms, clients);
 }
@@ -316,17 +344,34 @@ function sanitizeMaxPlayers(value) {
 }
 
 function countParticipants(room, clients, participantRole) {
+  pruneReservations(room);
   let count = 0;
   for (const socket of room.peers.values()) {
     if (clients.get(socket)?.participantRole === participantRole) count += 1;
+  }
+  for (const reservation of (room.reservations || new Map()).values()) {
+    if (reservation.participantRole === participantRole) count += 1;
   }
   return count;
 }
 
 function nextPeerId(room) {
   let peerId = 2;
-  while (room.peers.has(peerId)) peerId += 1;
+  const reservedIds = new Set([...((room.reservations || new Map()).values())].map((entry) => entry.id));
+  while (room.peers.has(peerId) || reservedIds.has(peerId)) peerId += 1;
   return peerId;
+}
+
+function pruneReservations(room) {
+  if (!room.reservations) room.reservations = new Map();
+  const now = Date.now();
+  let changed = false;
+  for (const [token, reservation] of room.reservations.entries()) {
+    if (reservation.expiresAt > now) continue;
+    room.reservations.delete(token);
+    changed = true;
+  }
+  return changed;
 }
 
 function sendParticipantRoleResult(socket, participantRole, accepted, code = "", message = "") {

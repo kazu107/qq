@@ -25,6 +25,7 @@ var _host_name: String = ""
 var _target_wins: int = ArenaService.TARGET_WINS
 var _max_players: int = LanProtocol.DEFAULT_PLAYERS
 var _spectator_join: bool = false
+var _reconnect_token: String = ""
 
 
 func start_host(
@@ -43,10 +44,17 @@ func start_host(
 	return start_error
 
 
-func start_join(room_code: String, protocol_version: int, content_hash: String, spectator: bool = false) -> Error:
+func start_join(
+	room_code: String,
+	protocol_version: int,
+	content_hash: String,
+	spectator: bool = false,
+	reconnect_token: String = ""
+) -> Error:
 	var start_error: Error = _start("join", room_code, protocol_version, content_hash)
 	if start_error == OK:
 		_spectator_join = spectator
+		_reconnect_token = reconnect_token
 	return start_error
 
 
@@ -105,9 +113,11 @@ func poll() -> void:
 			return
 
 
-func close() -> void:
+func close(notify_server: bool = true) -> void:
 	_closing = true
 	if _socket != null:
+		if notify_server and _socket.get_ready_state() == WebSocketPeer.STATE_OPEN and (_role == "host" or _role == "join"):
+			_send({"type": "leave"})
 		_socket.close(1000, "client_closed")
 	_socket = null
 	if _rtc_peer != null:
@@ -125,6 +135,7 @@ func close() -> void:
 	_target_wins = ArenaService.TARGET_WINS
 	_max_players = LanProtocol.DEFAULT_PLAYERS
 	_spectator_join = false
+	_reconnect_token = ""
 	_last_socket_state = WebSocketPeer.STATE_CLOSED
 	_closing = false
 
@@ -150,7 +161,7 @@ static func resolve_signaling_url() -> String:
 
 
 func _start(role: String, room_code: String, protocol_version: int, content_hash: String) -> Error:
-	close()
+	close(false)
 	if not OS.has_feature("web"):
 		_fail("web_only", "Web multiplayer is available in the browser edition.")
 		return ERR_UNAVAILABLE
@@ -192,6 +203,7 @@ func _send_join_request() -> void:
 		request["maxPlayers"] = _max_players
 	elif _role == "join":
 		request["spectator"] = _spectator_join
+		request["reconnectToken"] = _reconnect_token
 	_send(request)
 	if _role != "directory":
 		status_changed.emit("Creating room..." if _role == "host" else "Joining room...")
@@ -279,9 +291,10 @@ func _create_connection(peer_id: int) -> void:
 
 
 func _remove_connection(peer_id: int) -> void:
+	var had_connection: bool = _connections.has(peer_id)
 	_connections.erase(peer_id)
 	_pending_candidates.erase(peer_id)
-	if _rtc_peer != null and peer_id > 0:
+	if had_connection and _rtc_peer != null and peer_id > 0 and _rtc_peer.get_peers().has(peer_id):
 		_rtc_peer.remove_peer(peer_id)
 
 

@@ -55,6 +55,12 @@ func _ready() -> void:
 		)
 		root.add_child(online_button)
 
+	var tutorial_button: Button = Button.new()
+	tutorial_button.name = "BattleTutorialButton"
+	tutorial_button.text = Localization.get_text("hub.tutorial", "Battle Tutorial")
+	tutorial_button.pressed.connect(SceneRouter.go_to_battle_tutorial)
+	root.add_child(tutorial_button)
+
 	if Game.is_infinite_mode_unlocked():
 		var infinite_button: Button = Button.new()
 		infinite_button.name = "InfiniteModeStartButton"

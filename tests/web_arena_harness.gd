@@ -49,6 +49,8 @@ func _command(args: Array) -> void:
 				engine.battle_state.player.hp = 30 + index * 10
 				engine.battle_state.enemy.hp = 31 + index * 10
 				index += 1
+		"drop_transport":
+			NetworkManager.developer_drop_online_transport()
 		"ack":
 			NetworkManager.acknowledge_arena_round_results()
 		"leave":
@@ -67,6 +69,7 @@ func _process(delta: float) -> void:
 	var snapshot: Dictionary = NetworkManager.get_last_snapshot()
 	var state: Dictionary = {"ticks": _ticks, "error": _error, "players": NetworkManager.get_lobby_players(),
 		"phase": NetworkManager.get_lan_arena_phase(), "connected": NetworkManager.is_session_connected(),
+		"reconnecting": NetworkManager.is_waiting_for_reconnect(),
 		"matches": NetworkManager.get_match_payload(), "side": NetworkManager.get_local_side(),
 		"battle_time": snapshot.get("battle_time", 0), "player_hp": Dictionary(snapshot.get("player", {})).get("hp", 0),
 		"enemy_hp": Dictionary(snapshot.get("enemy", {})).get("hp", 0),
