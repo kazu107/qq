@@ -65,6 +65,24 @@ func _run() -> void:
 	if player_actor == null or enemy_actor == null:
 		_fail("3D battle stage smoke failed: combat actors are missing")
 		return
+	var enemy_plate: MeshInstance3D = enemy_status.find_child("StatusPlate", true, false) as MeshInstance3D
+	var player_plate: MeshInstance3D = player_status.find_child("StatusPlate", true, false) as MeshInstance3D
+	var enemy_plate_mesh: QuadMesh = enemy_plate.mesh as QuadMesh if enemy_plate != null else null
+	var player_plate_mesh: QuadMesh = player_plate.mesh as QuadMesh if player_plate != null else null
+	var enemy_plate_material: StandardMaterial3D = enemy_plate.material_override as StandardMaterial3D if enemy_plate != null else null
+	if enemy_status.position.z >= enemy_actor.position.z \
+	or player_status.position.z >= player_actor.position.z \
+	or enemy_status.rotation_degrees.y <= 0.0 \
+	or player_status.rotation_degrees.y >= 0.0 \
+	or enemy_plate_mesh == null \
+	or player_plate_mesh == null \
+	or enemy_plate_mesh.size.x > 2.8 \
+	or player_plate_mesh.size.x > 2.8 \
+	or enemy_plate_material == null \
+	or enemy_plate_material.billboard_mode != BaseMaterial3D.BILLBOARD_DISABLED \
+	or enemy_plate_material.no_depth_test:
+		_fail("3D battle stage smoke failed: compact status plates should sit behind actors with opposing yaw")
+		return
 	if player_actor.get_skeleton() == null \
 	or enemy_actor.get_skeleton() == null \
 	or player_actor.get_equipment_socket("right_hand") == null \

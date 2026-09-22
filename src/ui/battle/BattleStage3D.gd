@@ -791,13 +791,15 @@ func _build_unit_status_models() -> void:
 	_enemy_status = BattleUnitStatus3D.new()
 	_enemy_status.name = "EnemyUnitStatus3D"
 	_enemy_status.configure(false)
-	_enemy_status.position = Vector3(-3.95, 3.22, -0.72)
+	_enemy_status.position = Vector3(-3.42, 2.68, -1.38)
+	_enemy_status.rotation_degrees.y = 6.0
 	_world_root.add_child(_enemy_status)
 
 	_player_status = BattleUnitStatus3D.new()
 	_player_status.name = "PlayerUnitStatus3D"
 	_player_status.configure(true)
-	_player_status.position = Vector3(3.95, 3.22, 0.42)
+	_player_status.position = Vector3(3.42, 2.68, 0.20)
+	_player_status.rotation_degrees.y = -6.0
 	_world_root.add_child(_player_status)
 
 

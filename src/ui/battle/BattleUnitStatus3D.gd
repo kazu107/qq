@@ -1,8 +1,9 @@
 extends Node3D
 class_name BattleUnitStatus3D
 
-const PANEL_SIZE: Vector2 = Vector2(3.35, 1.58)
-const HP_BAR_SIZE: Vector2 = Vector2(2.40, 0.22)
+const PANEL_SIZE: Vector2 = Vector2(2.72, 1.58)
+const HP_BAR_SIZE: Vector2 = Vector2(1.96, 0.22)
+const HP_BAR_CENTER_X: float = 0.14
 const SLOT_SIZE: Vector2 = Vector2(0.14, 0.28)
 const SLOT_GAP: float = 0.07
 const PANEL_COLOR: Color = Color(0.018, 0.030, 0.040, 0.92)
@@ -45,7 +46,7 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 	_last_hp_ratio = clampf(float(hp_value) / float(max_hp_value), 0.0, 1.0)
 	var fill_width: float = HP_BAR_SIZE.x * _last_hp_ratio
 	_hp_fill_mesh.size = Vector2(maxf(0.001, fill_width), HP_BAR_SIZE.y)
-	_hp_fill.position.x = -HP_BAR_SIZE.x * 0.5 + fill_width * 0.5
+	_hp_fill.position.x = HP_BAR_CENTER_X - HP_BAR_SIZE.x * 0.5 + fill_width * 0.5
 	_hp_fill.visible = hp_value > 0
 	_name_label.text = unit.display_name
 	_hp_label.text = "%d / %d" % [hp_value, max_hp_value]
@@ -93,7 +94,7 @@ func _build_model() -> void:
 	add_child(_name_label)
 
 	var hp_background: MeshInstance3D = _create_quad("HpBarBackground3D", HP_BAR_SIZE, HP_BACKGROUND_COLOR, 2)
-	hp_background.position = Vector3(0.18, 0.24, 0.025)
+	hp_background.position = Vector3(HP_BAR_CENTER_X, 0.24, 0.025)
 	add_child(hp_background)
 
 	_hp_fill_mesh = QuadMesh.new()
@@ -102,32 +103,32 @@ func _build_model() -> void:
 	_hp_fill.name = "HpBarFill3D"
 	_hp_fill.mesh = _hp_fill_mesh
 	_hp_fill.material_override = _create_billboard_material(HP_FILL_COLOR, 3)
-	_hp_fill.position = Vector3(0.18, 0.24, 0.04)
+	_hp_fill.position = Vector3(HP_BAR_CENTER_X, 0.24, 0.04)
 	add_child(_hp_fill)
 
-	var hp_icon: Sprite3D = _create_icon("HpIcon3D", "hp", Vector3(-1.28, 0.24, 0.06), 0.0062)
+	var hp_icon: Sprite3D = _create_icon("HpIcon3D", "hp", Vector3(-1.10, 0.24, 0.06), 0.0062)
 	add_child(hp_icon)
 
 	_hp_label = _create_label("HpValue3D", 27, TEXT_COLOR)
-	_hp_label.position = Vector3(0.18, 0.24, 0.07)
+	_hp_label.position = Vector3(HP_BAR_CENTER_X, 0.24, 0.07)
 	add_child(_hp_label)
 
-	var shield_icon: Sprite3D = _create_icon("ShieldIcon3D", "shield", Vector3(-1.30, -0.08, 0.06), 0.0058)
+	var shield_icon: Sprite3D = _create_icon("ShieldIcon3D", "shield", Vector3(-1.08, -0.08, 0.06), 0.0058)
 	add_child(shield_icon)
 	_shield_label = _create_label("ShieldValue3D", 25, SHIELD_COLOR)
-	_shield_label.position = Vector3(-1.04, -0.08, 0.07)
+	_shield_label.position = Vector3(-0.82, -0.08, 0.07)
 	add_child(_shield_label)
 
-	var attack_icon: Sprite3D = _create_icon("AttackIcon3D", "attack", Vector3(-0.48, -0.08, 0.06), 0.0052)
+	var attack_icon: Sprite3D = _create_icon("AttackIcon3D", "attack", Vector3(-0.34, -0.08, 0.06), 0.0052)
 	add_child(attack_icon)
 	_attack_label = _create_label("AttackValue3D", 24, TEXT_COLOR)
-	_attack_label.position = Vector3(-0.22, -0.08, 0.07)
+	_attack_label.position = Vector3(-0.08, -0.08, 0.07)
 	add_child(_attack_label)
 
-	var speed_icon: Sprite3D = _create_icon("SpeedIcon3D", "speed", Vector3(0.34, -0.08, 0.06), 0.0052)
+	var speed_icon: Sprite3D = _create_icon("SpeedIcon3D", "speed", Vector3(0.42, -0.08, 0.06), 0.0052)
 	add_child(speed_icon)
 	_speed_label = _create_label("SpeedValue3D", 24, TEXT_COLOR)
-	_speed_label.position = Vector3(0.60, -0.08, 0.07)
+	_speed_label.position = Vector3(0.68, -0.08, 0.07)
 	add_child(_speed_label)
 
 	_status_label = _create_label("StatusValue3D", 21, STATUS_COLOR)
@@ -201,8 +202,8 @@ func _create_billboard_material(color: Color, priority: int) -> StandardMaterial
 	material.albedo_color = color
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	material.no_depth_test = true
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_DISABLED
+	material.no_depth_test = false
 	material.render_priority = priority
 	return material
 
@@ -211,7 +212,7 @@ func _create_label(node_name: String, font_size: int, color: Color) -> Label3D:
 	var label: Label3D = Label3D.new()
 	label.name = node_name
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.no_depth_test = true
+	label.no_depth_test = false
 	label.render_priority = 7
 	label.font_size = font_size
 	label.pixel_size = 0.006
@@ -229,6 +230,6 @@ func _create_icon(node_name: String, icon_id: String, icon_position: Vector3, pi
 	icon.position = icon_position
 	icon.pixel_size = pixel_size
 	icon.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	icon.no_depth_test = true
+	icon.no_depth_test = false
 	icon.render_priority = 6
 	return icon
