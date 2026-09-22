@@ -1,9 +1,27 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.28.0",
+  "current_version": "QQ-0.28.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.28.1",
+      "date": "2026-09-23",
+      "title_ja": "基本チュートリアルの実戦確認を強化",
+      "title_en": "Stronger practical checks in Battle Basics",
+      "changes_ja": [
+        "シールド獲得後に敵クイックスラッシュを発動し、HPを減らさずシールドがダメージを肩代わりする手順を追加しました。",
+        "ディレイステップの残り約1秒で敵カードを投入し、予定時刻が実際に後ろへ移動するところまで確認するよう変更しました。",
+        "疲労カードを登録表示だけで終えず、0秒で両者へ発動するところまで進行するよう変更しました。",
+        "3Dステータスプレート内の文字とアイコンを、プレート本体と同じyawへ追従させました。"
+      ],
+      "changes_en": [
+        "Added an enemy Quick Slash after shield gain so the lesson verifies that shield absorbs the damage without reducing HP.",
+        "Queues the enemy card when Delay Step has about one second remaining and verifies that its scheduled activation actually moves later.",
+        "Continues the fatigue lesson through activation at zero seconds instead of stopping after the card is queued.",
+        "Made all text and icons inside 3D status plates inherit the same yaw as the plate itself."
+      ]
+    },
     {
       "version": "QQ-0.28.0",
       "date": "2026-09-22",

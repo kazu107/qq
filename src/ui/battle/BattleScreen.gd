@@ -192,6 +192,8 @@ func _get_tutorial_target_rect() -> Rect2:
 		return _control_target_rect(_card_hand_panel.get_button_for_runtime_id(runtime_id))
 	if target_kind == "player_status" and _player_panel != null:
 		return _world_target_rect(_player_panel.global_position, Vector2(300.0, 150.0))
+	if target_kind == "player_shield" and _player_panel != null:
+		return _world_target_rect(_player_panel.get_shield_focus_global_position(), Vector2(76.0, 36.0))
 	if target_kind == "enemy_status" and _enemy_panel != null:
 		return _world_target_rect(_enemy_panel.global_position, Vector2(300.0, 150.0))
 	return Rect2(size * 0.5 - Vector2(100.0, 50.0), Vector2(200.0, 100.0))

@@ -81,6 +81,10 @@ func get_preview_slot_overflow() -> int:
 	return _last_slot_overflow
 
 
+func get_shield_focus_global_position() -> Vector3:
+	return to_global(Vector3(-0.95, -0.13, 0.07))
+
+
 func _build_model() -> void:
 	var panel: MeshInstance3D = _create_quad("StatusPlate", PANEL_SIZE, PANEL_COLOR, 1)
 	add_child(panel)
@@ -212,7 +216,7 @@ func _create_label(node_name: String, font_size: int, color: Color) -> Label3D:
 	var label: Label3D = Label3D.new()
 	label.name = node_name
 	label.font = UiTheme.GAME_FONT
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	label.no_depth_test = false
 	label.render_priority = 7
 	label.font_size = font_size
@@ -230,7 +234,7 @@ func _create_icon(node_name: String, icon_id: String, icon_position: Vector3, pi
 	icon.texture = StatIconFactory.get_icon(icon_id)
 	icon.position = icon_position
 	icon.pixel_size = pixel_size
-	icon.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	icon.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	icon.no_depth_test = false
 	icon.render_priority = 6
 	return icon

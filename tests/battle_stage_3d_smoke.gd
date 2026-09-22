@@ -93,12 +93,24 @@ func _run() -> void:
 	var battle_info_post: MeshInstance3D = battle_info_sign.find_child("BattleInfoPost", true, false) as MeshInstance3D
 	var battle_info_title: Label3D = battle_info_sign.find_child("BattleInfoTitle3D", true, false) as Label3D
 	var player_name_label: Label3D = player_status.find_child("UnitName3D", true, false) as Label3D
+	var player_shield_icon: Sprite3D = player_status.find_child("ShieldIcon3D", true, false) as Sprite3D
+	var status_elements_follow_yaw: bool = true
+	for status_model: BattleUnitStatus3D in [player_status, enemy_status]:
+		for child: Node in status_model.get_children():
+			if child is Label3D and (child as Label3D).billboard != BaseMaterial3D.BILLBOARD_DISABLED:
+				status_elements_follow_yaw = false
+			elif child is Sprite3D and (child as Sprite3D).billboard != BaseMaterial3D.BILLBOARD_DISABLED:
+				status_elements_follow_yaw = false
 	if battle_info_board == null \
 	or battle_info_post == null \
 	or battle_info_title == null \
 	or player_name_label == null \
 	or battle_info_title.font != UiTheme.GAME_FONT \
 	or player_name_label.font != UiTheme.GAME_FONT \
+	or player_name_label.billboard != BaseMaterial3D.BILLBOARD_DISABLED \
+	or player_shield_icon == null \
+	or player_shield_icon.billboard != BaseMaterial3D.BILLBOARD_DISABLED \
+	or not status_elements_follow_yaw \
 	or battle_info_sign.position.z > -3.8 \
 	or battle_info_sign.get_board_size().x < 2.9 \
 	or battle_info_sign.get_board_size().x > 3.2 \

@@ -157,7 +157,33 @@ func _matches_event(event_data: Dictionary) -> bool:
 	if String(event_data.get("event_type", "")) != String(step.get("event_type", "")):
 		return false
 	var expected_card: String = String(step.get("event_card_id", ""))
-	return expected_card == "" or String(event_data.get("card_id", "")) == expected_card
+	if expected_card != "" and String(event_data.get("card_id", "")) != expected_card:
+		return false
+	var result_flag: String = String(step.get("result_flag", ""))
+	if result_flag != "":
+		var result: Dictionary = Dictionary(event_data.get("result", {}))
+		if bool(result.get(result_flag, false)) != bool(step.get("result_value", true)):
+			return false
+	var shifted_card_id: String = String(step.get("timeline_shifted_card_id", ""))
+	if shifted_card_id != "" and not _event_shifted_card(event_data, shifted_card_id, float(step.get("timeline_shift_min", 0.1))):
+		return false
+	return true
+
+
+func _event_shifted_card(event_data: Dictionary, card_id: String, minimum_shift: float) -> bool:
+	var before_by_instance: Dictionary = {}
+	for raw_entry: Variant in Array(event_data.get("timeline_before", [])):
+		var entry: Dictionary = Dictionary(raw_entry)
+		if String(entry.get("card_id", "")) == card_id:
+			before_by_instance[int(entry.get("instance_id", -1))] = float(entry.get("scheduled_time", 0.0))
+	for raw_entry: Variant in Array(event_data.get("timeline_after", [])):
+		var entry: Dictionary = Dictionary(raw_entry)
+		if String(entry.get("card_id", "")) != card_id:
+			continue
+		var instance_id: int = int(entry.get("instance_id", -1))
+		if before_by_instance.has(instance_id) and float(entry.get("scheduled_time", 0.0)) - float(before_by_instance[instance_id]) >= minimum_shift:
+			return true
+	return false
 
 
 func _check_condition() -> void:
@@ -196,6 +222,13 @@ func _condition_met(condition: String, step: Dictionary) -> bool:
 					return true
 		"wait_seconds":
 			return _step_elapsed >= float(step.get("seconds", 1.0))
+		"active_card_remaining":
+			var side: String = String(step.get("side", "player"))
+			var card_id: String = String(step.get("card_id", ""))
+			var maximum: float = float(step.get("maximum", 1.0))
+			for instance: ActiveCardInstance in state.active_instances:
+				if instance.owner_side == side and instance.card_id == card_id and instance.get_remaining(state.battle_time) <= maximum:
+					return true
 	return false
 
 
@@ -299,13 +332,19 @@ func _basic_steps() -> Array[Dictionary]:
 		_s("basic_queue_guard", "queue_card", 4, 8, "Prepare shield", "Select Guard to protect HP.", "card:guard", {"card_id": "guard"}),
 		_s("basic_guard_timeline", "continue", 4, 8, "Defense also casts", "Guard uses the same timeline as attacks.", "timeline", {"button_key": "tutorial.guide.resume", "button": "Resume time"}),
 		_s("basic_wait_guard", "wait_event", 4, 8, "Watch Guard resolve", "The guide pauses when Guard activates.", "timeline", {"event_type": "resolve_card", "event_card_id": "guard"}),
-		_s("basic_shield", "continue", 5, 8, "Check shield", "Shield appears on your 3D status plate and slowly decays.", "player_status"),
-		_s("basic_queue_delay", "queue_card", 6, 8, "Delay an enemy card", "Select Delay Step to push enemy timing back.", "card:delay_step", {"card_id": "delay_step", "action": "queue_enemy:quick_slash"}),
-		_s("basic_delay_timeline", "continue", 6, 8, "Watch the target move", "The enemy card slides right when Delay Step resolves.", "timeline", {"button_key": "tutorial.guide.resume", "button": "Resume time"}),
-		_s("basic_wait_delay", "wait_event", 6, 8, "Resolve Delay Step", "Watch Delay Step approach 0 seconds.", "timeline", {"event_type": "resolve_card", "event_card_id": "delay_step"}),
+		_s("basic_shield", "continue", 5, 8, "Check shield", "The shield icon and value are highlighted on your 3D status plate.", "player_shield", {"button": "Queue an enemy attack"}),
+		_s("basic_enemy_attack", "continue", 5, 8, "Test the shield", "The enemy Quick Slash is queued. Resume time and watch the shield absorb all damage.", "timeline", {"action": "queue_enemy:quick_slash", "button_key": "tutorial.guide.resume", "button": "Resume time"}),
+		_s("basic_wait_block", "wait_event", 5, 8, "Watch the shield block", "The enemy attack is approaching 0 seconds.", "timeline", {"event_type": "resolve_card", "event_card_id": "quick_slash", "result_flag": "fully_blocked"}),
+		_s("basic_block_result", "continue", 5, 8, "Damage was absorbed", "HP did not decrease. The shield value paid for the incoming damage.", "player_shield"),
+		_s("basic_queue_delay", "queue_card", 6, 8, "Delay an enemy card", "Select Delay Step. The enemy card will be queued just before it activates.", "card:delay_step", {"card_id": "delay_step"}),
+		_s("basic_delay_approach", "wait_condition", 6, 8, "Prepare the timing test", "Time advances until Delay Step has about 1 second remaining.", "timeline", {"condition": "active_card_remaining", "side": "player", "card_id": "delay_step", "maximum": 1.0}),
+		_s("basic_delay_timeline", "continue", 6, 8, "Enemy card queued at the last moment", "Quick Slash entered while Delay Step has about 1 second left. Resume and watch it slide right.", "timeline", {"action": "queue_enemy:quick_slash", "button_key": "tutorial.guide.resume", "button": "Resume time"}),
+		_s("basic_wait_delay", "wait_event", 6, 8, "Resolve Delay Step", "Delay Step activates first and pushes the enemy card farther from 0 seconds.", "timeline", {"event_type": "resolve_card", "event_card_id": "delay_step", "timeline_shifted_card_id": "quick_slash", "timeline_shift_min": 1.0}),
 		_s("basic_delay_result", "continue", 7, 8, "Timeline changed", "Delay creates time for another action. Next, observe the neutral fatigue card.", "timeline", {"button": "Show fatigue"}),
 		_s("basic_wait_fatigue", "wait_condition", 8, 8, "Fatigue is approaching", "Fatigue belongs to the battlefield and prevents endless battles.", "timeline", {"condition": "fatigue_queued", "action": "debug_fatigue", "waiting_key": "tutorial.guide.wait_fatigue"}),
-		_complete("basic_complete", 8, "Battle basics complete", "You used attack, shield and delay, then found fatigue on the real timeline."),
+		_s("basic_fatigue_queued", "continue", 8, 8, "Fatigue entered the timeline", "Fatigue targets both combatants. Resume time and watch it activate at 0 seconds.", "timeline", {"button_key": "tutorial.guide.resume", "button": "Resolve fatigue"}),
+		_s("basic_wait_fatigue_resolution", "wait_event", 8, 8, "Watch fatigue activate", "The neutral card is moving toward 0 seconds.", "timeline", {"event_type": "fatigue_card", "event_card_id": "environment_fatigue"}),
+		_complete("basic_complete", 8, "Battle basics complete", "You attacked, blocked damage with shield, delayed an enemy card and resolved fatigue."),
 	]
 
 

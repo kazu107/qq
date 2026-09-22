@@ -72,8 +72,10 @@ func _draw() -> void:
 		var line_end: Vector2 = focus.get_center()
 		if line_end.y < callout_rect.position.y:
 			line_start.y = callout_rect.position.y
+			line_end.y = focus.end.y
 		elif line_end.y > callout_rect.end.y:
 			line_start.y = callout_rect.end.y
+			line_end.y = focus.position.y
 		line_start.x = clampf(line_end.x, callout_rect.position.x + 24.0, callout_rect.end.x - 24.0)
 		draw_line(line_start, line_end, Color(1.0, 0.77, 0.22, 0.92), 4.0, true)
 		draw_circle(line_end, 7.0, Color(1.0, 0.77, 0.22, 1.0))

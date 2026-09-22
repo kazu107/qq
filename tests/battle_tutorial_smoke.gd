@@ -73,9 +73,15 @@ func _run_lesson(tutorial_id: String) -> void:
 	_check(bool(battle.call("is_tutorial_time_paused")), "Tutorial should start paused: %s" % tutorial_id)
 	var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
 	var completed: bool = false
+	var shield_focus_checked: bool = false
 	for _iteration: int in range(1000):
 		var step: Dictionary = battle.call("get_tutorial_step_data")
 		var mode: String = String(step.get("mode", ""))
+		if tutorial_id == "battle_basics" and String(step.get("key", "")) == "basic_shield" and not shield_focus_checked:
+			shield_focus_checked = true
+			var shield_rect: Rect2 = battle.call("_get_tutorial_target_rect")
+			_check(String(step.get("target", "")) == "player_shield", "Battle Basics should target only the shield value in lesson 5")
+			_check(shield_rect.size.x >= 64.0 and shield_rect.size.x < 100.0 and shield_rect.size.y >= 30.0 and shield_rect.size.y < 50.0, "Battle Basics shield focus rectangle is invalid: %s" % [shield_rect])
 		if mode == "complete":
 			completed = true
 			break
@@ -97,6 +103,9 @@ func _run_lesson(tutorial_id: String) -> void:
 	_check(completed, "Tutorial did not reach completion: %s at step %d (%s)" % [tutorial_id, int(battle.call("get_tutorial_step")), str(battle.call("get_tutorial_step_data"))])
 	if completed:
 		_check(bool(battle.call("is_tutorial_time_paused")), "Completed tutorial should pause on its summary: %s" % tutorial_id)
+	if tutorial_id == "battle_basics":
+		_check(shield_focus_checked, "Battle Basics did not show the lesson 5 shield focus")
+		_assert_basic_lesson_events(engine)
 	battle.queue_free()
 	await get_tree().process_frame
 	Game.clear_battle_tutorial()
@@ -106,5 +115,49 @@ func _try_queue_tutorial_card(battle: Node, engine: RealtimeBattleEngine, card_i
 	for runtime_state: CardRuntimeState in engine.battle_state.player.card_runtime_states:
 		if runtime_state.card_id == card_id and runtime_state.can_use():
 			battle.call("_on_card_requested", runtime_state.runtime_id)
+			return true
+	return false
+
+
+func _assert_basic_lesson_events(engine: RealtimeBattleEngine) -> void:
+	var shield_blocked: bool = false
+	var delayed_enemy_card: bool = false
+	var enemy_queued_near_delay: bool = false
+	var fatigue_resolved: bool = false
+	for event_data: Dictionary in engine.battle_state.battle_events:
+		var event_type: String = String(event_data.get("event_type", ""))
+		var card_id: String = String(event_data.get("card_id", ""))
+		var result: Dictionary = Dictionary(event_data.get("result", {}))
+		if event_type == "resolve_card" and card_id == "quick_slash" and bool(result.get("fully_blocked", false)):
+			shield_blocked = true
+		elif event_type == "resolve_card" and card_id == "delay_step":
+			delayed_enemy_card = _timeline_card_shifted(event_data, "quick_slash", 1.0)
+		elif event_type == "prepare_card" and card_id == "quick_slash":
+			var event_time: float = float(event_data.get("time", 0.0))
+			for raw_entry: Variant in Array(event_data.get("timeline_after", [])):
+				var entry: Dictionary = Dictionary(raw_entry)
+				if String(entry.get("owner_side", "")) == "player" and String(entry.get("card_id", "")) == "delay_step":
+					var remaining: float = float(entry.get("scheduled_time", 0.0)) - event_time
+					enemy_queued_near_delay = remaining >= 0.0 and remaining <= 1.1
+		elif event_type == "fatigue_card":
+			fatigue_resolved = true
+	_check(shield_blocked, "Battle Basics did not fully block the enemy Quick Slash with shield")
+	_check(enemy_queued_near_delay, "Battle Basics did not queue the enemy Quick Slash near 1 second remaining")
+	_check(delayed_enemy_card, "Battle Basics did not move the enemy Quick Slash later on the timeline")
+	_check(fatigue_resolved, "Battle Basics did not resolve the fatigue card")
+
+
+func _timeline_card_shifted(event_data: Dictionary, card_id: String, minimum_shift: float) -> bool:
+	var before_by_instance: Dictionary = {}
+	for raw_entry: Variant in Array(event_data.get("timeline_before", [])):
+		var entry: Dictionary = Dictionary(raw_entry)
+		if String(entry.get("card_id", "")) == card_id:
+			before_by_instance[int(entry.get("instance_id", -1))] = float(entry.get("scheduled_time", 0.0))
+	for raw_entry: Variant in Array(event_data.get("timeline_after", [])):
+		var entry: Dictionary = Dictionary(raw_entry)
+		var instance_id: int = int(entry.get("instance_id", -1))
+		if String(entry.get("card_id", "")) == card_id \
+		and before_by_instance.has(instance_id) \
+		and float(entry.get("scheduled_time", 0.0)) - float(before_by_instance[instance_id]) >= minimum_shift:
 			return true
 	return false

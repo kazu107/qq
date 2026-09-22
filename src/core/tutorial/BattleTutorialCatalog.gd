@@ -11,7 +11,7 @@ const TUTORIALS: Array[Dictionary] = [
 		"topics_key": "tutorial.basics.topics",
 		"topics_fallback": "Cards / Timeline / Shield / Delay / Fatigue",
 		"duration_key": "tutorial.basics.duration",
-		"duration_fallback": "About 3 minutes",
+		"duration_fallback": "About 4 minutes",
 		"difficulty_key": "tutorial.difficulty.intro",
 		"difficulty_fallback": "Intro",
 		"cards": ["quick_slash", "guard", "delay_step"],
