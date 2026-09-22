@@ -55,6 +55,7 @@ var _player_actor: BattleActor3D
 var _enemy_actor: BattleActor3D
 var _player_status: BattleUnitStatus3D
 var _enemy_status: BattleUnitStatus3D
+var _battle_info_sign: BattleInfoSign3D
 var _projectile_mesh: SphereMesh
 var _impact_mesh: SphereMesh
 var _camera_home_position: Vector3 = Vector3.ZERO
@@ -214,6 +215,24 @@ func get_enemy_status_model() -> BattleUnitStatus3D:
 	return _enemy_status
 
 
+func get_battle_info_sign() -> BattleInfoSign3D:
+	return _battle_info_sign
+
+
+func project_world_position(world_position: Vector3) -> Vector2:
+	if _camera == null or _viewport == null:
+		return size * 0.5
+	var viewport_position: Vector2 = _camera.unproject_position(world_position)
+	var viewport_size: Vector2 = Vector2(_viewport.size)
+	var display_size: Vector2 = size
+	if display_size.x <= 1.0 or display_size.y <= 1.0:
+		display_size = Vector2(DEFAULT_VIEWPORT_SIZE)
+	return Vector2(
+		viewport_position.x * display_size.x / maxf(1.0, viewport_size.x),
+		viewport_position.y * display_size.y / maxf(1.0, viewport_size.y)
+	)
+
+
 func refresh_unit_status(local_unit: UnitState, opponent_unit: UnitState, preview_slot_cost: int = 0) -> void:
 	if _player_status != null:
 		_player_status.refresh_unit(local_unit, preview_slot_cost)
@@ -280,6 +299,7 @@ func _build_stage() -> void:
 	_build_arena()
 	_build_actors()
 	_build_camera()
+	_build_battle_info_sign()
 	_build_unit_status_models()
 	_build_floating_text_layer()
 
@@ -791,16 +811,23 @@ func _build_unit_status_models() -> void:
 	_enemy_status = BattleUnitStatus3D.new()
 	_enemy_status.name = "EnemyUnitStatus3D"
 	_enemy_status.configure(false)
-	_enemy_status.position = Vector3(-3.42, 2.68, -1.38)
-	_enemy_status.rotation_degrees.y = 6.0
+	_enemy_status.position = Vector3(-4.12, 3.14, -1.38)
+	_enemy_status.rotation_degrees.y = 9.0
 	_world_root.add_child(_enemy_status)
 
 	_player_status = BattleUnitStatus3D.new()
 	_player_status.name = "PlayerUnitStatus3D"
 	_player_status.configure(true)
-	_player_status.position = Vector3(3.42, 2.68, 0.20)
-	_player_status.rotation_degrees.y = -6.0
+	_player_status.position = Vector3(4.12, 3.14, 0.20)
+	_player_status.rotation_degrees.y = -9.0
 	_world_root.add_child(_player_status)
+
+
+func _build_battle_info_sign() -> void:
+	_battle_info_sign = BattleInfoSign3D.new()
+	_battle_info_sign.name = "BattleInfoSign3D"
+	_battle_info_sign.position = Vector3(0.0, 2.35, -4.30)
+	_world_root.add_child(_battle_info_sign)
 
 
 func _emit_event_combat_text(event_data: Dictionary) -> void:
@@ -1404,15 +1431,7 @@ func _clear_floating_combat_texts() -> void:
 func _project_actor_position(actor: BattleActor3D) -> Vector2:
 	if actor == null or _camera == null or _viewport == null:
 		return size * 0.5
-	var viewport_position: Vector2 = _camera.unproject_position(_actor_effect_position(actor) + Vector3(0.0, 0.42, 0.0))
-	var viewport_size := Vector2(_viewport.size)
-	var display_size: Vector2 = size
-	if display_size.x <= 1.0 or display_size.y <= 1.0:
-		display_size = Vector2(DEFAULT_VIEWPORT_SIZE)
-	return Vector2(
-		viewport_position.x * display_size.x / maxf(1.0, viewport_size.x),
-		viewport_position.y * display_size.y / maxf(1.0, viewport_size.y)
-	)
+	return project_world_position(_actor_effect_position(actor) + Vector3(0.0, 0.42, 0.0))
 
 
 func _add_camera_shake(amount: float) -> void:

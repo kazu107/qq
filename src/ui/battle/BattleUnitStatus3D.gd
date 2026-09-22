@@ -211,6 +211,7 @@ func _create_billboard_material(color: Color, priority: int) -> StandardMaterial
 func _create_label(node_name: String, font_size: int, color: Color) -> Label3D:
 	var label: Label3D = Label3D.new()
 	label.name = node_name
+	label.font = UiTheme.GAME_FONT
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = false
 	label.render_priority = 7

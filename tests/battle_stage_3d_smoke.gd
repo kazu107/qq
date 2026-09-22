@@ -16,6 +16,7 @@ func _run() -> void:
 	stage.configure_combatants("player", "scout", "player")
 	var player_status: BattleUnitStatus3D = stage.get_player_status_model()
 	var enemy_status: BattleUnitStatus3D = stage.get_enemy_status_model()
+	var battle_info_sign: BattleInfoSign3D = stage.get_battle_info_sign()
 	var player_state: UnitState = UnitState.new()
 	player_state.display_name = "Player"
 	player_state.hp = 42
@@ -35,6 +36,7 @@ func _run() -> void:
 	stage.refresh_unit_status(player_state, enemy_state, 1)
 	if player_status == null \
 	or enemy_status == null \
+	or battle_info_sign == null \
 	or player_status.position.x <= 0.0 \
 	or enemy_status.position.x >= 0.0 \
 	or player_status.get_hp_text() != "42 / 60" \
@@ -70,18 +72,36 @@ func _run() -> void:
 	var enemy_plate_mesh: QuadMesh = enemy_plate.mesh as QuadMesh if enemy_plate != null else null
 	var player_plate_mesh: QuadMesh = player_plate.mesh as QuadMesh if player_plate != null else null
 	var enemy_plate_material: StandardMaterial3D = enemy_plate.material_override as StandardMaterial3D if enemy_plate != null else null
+	var enemy_inner_corner_x: float = enemy_status.position.x + enemy_plate_mesh.size.x * 0.5 if enemy_plate_mesh != null else -100.0
+	var player_inner_corner_x: float = player_status.position.x - player_plate_mesh.size.x * 0.5 if player_plate_mesh != null else 100.0
 	if enemy_status.position.z >= enemy_actor.position.z \
 	or player_status.position.z >= player_actor.position.z \
-	or enemy_status.rotation_degrees.y <= 0.0 \
-	or player_status.rotation_degrees.y >= 0.0 \
+	or enemy_status.rotation_degrees.y < 8.0 \
+	or player_status.rotation_degrees.y > -8.0 \
 	or enemy_plate_mesh == null \
 	or player_plate_mesh == null \
+	or absf(enemy_inner_corner_x - enemy_actor.position.x) > 0.35 \
+	or absf(player_inner_corner_x - player_actor.position.x) > 0.35 \
 	or enemy_plate_mesh.size.x > 2.8 \
 	or player_plate_mesh.size.x > 2.8 \
 	or enemy_plate_material == null \
 	or enemy_plate_material.billboard_mode != BaseMaterial3D.BILLBOARD_DISABLED \
 	or enemy_plate_material.no_depth_test:
 		_fail("3D battle stage smoke failed: compact status plates should sit behind actors with opposing yaw")
+		return
+	var battle_info_board: MeshInstance3D = battle_info_sign.find_child("BattleInfoBoard", true, false) as MeshInstance3D
+	var battle_info_post: MeshInstance3D = battle_info_sign.find_child("BattleInfoPost", true, false) as MeshInstance3D
+	var battle_info_title: Label3D = battle_info_sign.find_child("BattleInfoTitle3D", true, false) as Label3D
+	var player_name_label: Label3D = player_status.find_child("UnitName3D", true, false) as Label3D
+	if battle_info_board == null \
+	or battle_info_post == null \
+	or battle_info_title == null \
+	or player_name_label == null \
+	or battle_info_title.font != UiTheme.GAME_FONT \
+	or player_name_label.font != UiTheme.GAME_FONT \
+	or battle_info_sign.position.z > -3.8 \
+	or battle_info_sign.get_board_size().x < 3.5:
+		_fail("3D battle stage smoke failed: battle information should use a freestanding sign beyond the grid")
 		return
 	if player_actor.get_skeleton() == null \
 	or enemy_actor.get_skeleton() == null \

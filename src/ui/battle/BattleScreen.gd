@@ -16,6 +16,8 @@ var _player_panel: BattleUnitStatus3D
 var _card_hand_panel: CardHandPanel
 var _timeline_panel: TimelinePanel
 var _battle_stage: BattleStage3D
+var _battle_info_sign: BattleInfoSign3D
+var _battle_sign_controls: Control
 var _run_info_banner: RunInfoBanner
 var _log_button: Button
 var _log_popup: PanelContainer
@@ -343,6 +345,7 @@ func _build_ui() -> void:
 	_battle_stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_enemy_panel = _battle_stage.get_enemy_status_model()
 	_player_panel = _battle_stage.get_player_status_model()
+	_battle_info_sign = _battle_stage.get_battle_info_sign()
 
 	var margin := MarginContainer.new()
 	margin.anchor_right = 1.0
@@ -387,20 +390,13 @@ func _build_ui() -> void:
 	stage_hud_overlay.z_index = 20
 	main_split.add_child(stage_hud_overlay)
 
-	var center_overlay := VBoxContainer.new()
-	center_overlay.name = "BattleStageCenterOverlay"
-	center_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	stage_hud_overlay.add_child(center_overlay)
-	center_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center_overlay.offset_left = 14.0
-	center_overlay.offset_top = -8.0
-	center_overlay.offset_right = -14.0
-	center_overlay.offset_bottom = -12.0
-	center_overlay.alignment = BoxContainer.ALIGNMENT_BEGIN
+	_battle_sign_controls = Control.new()
+	_battle_sign_controls.name = "BattleInfoInteractionLayer"
+	_battle_sign_controls.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_battle_sign_controls.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_battle_sign_controls.z_index = 35
+	add_child(_battle_sign_controls)
 
-	var center_panel := _create_section(center_overlay, Localization.get_text("battle.section.battle", "Battle"), false, false)
-	center_panel.name = "BattleInfoSection"
-	_set_section_min_width(center_panel, BATTLE_INFO_MIN_WIDTH)
 	_start_battle_button = Button.new()
 	_start_battle_button.name = "BattleStartButton"
 	_start_battle_button.text = Localization.get_text("battle.start_button", "START")
@@ -409,14 +405,16 @@ func _build_ui() -> void:
 	_start_battle_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_start_battle_button.clip_text = true
 	_start_battle_button.pressed.connect(_on_start_battle_pressed)
-	center_panel.add_child(_start_battle_button)
+	_battle_sign_controls.add_child(_start_battle_button)
 	_battle_ready_count_label = Label.new()
 	_battle_ready_count_label.name = "BattleReadyCountLabel"
 	_battle_ready_count_label.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH, 24.0)
 	_battle_ready_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_battle_ready_count_label.add_theme_color_override("font_color", Color(0.42, 0.95, 0.70, 1.0))
 	_battle_ready_count_label.visible = false
-	center_panel.add_child(_battle_ready_count_label)
+	_battle_ready_count_label.self_modulate.a = 0.0
+	_battle_ready_count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_battle_sign_controls.add_child(_battle_ready_count_label)
 	_reserved_seat_toggle = CheckButton.new()
 	_reserved_seat_toggle.name = "ReservedSeatToggle"
 	_reserved_seat_toggle.text = Localization.get_text("battle.relic.reserved_seat_toggle", "Reserve last slot for interrupts")
@@ -424,7 +422,7 @@ func _build_ui() -> void:
 	_reserved_seat_toggle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_reserved_seat_toggle.toggled.connect(_on_reserved_seat_toggled)
 	_reserved_seat_toggle.visible = false
-	center_panel.add_child(_reserved_seat_toggle)
+	_battle_sign_controls.add_child(_reserved_seat_toggle)
 	_countdown_label = Label.new()
 	_countdown_label.name = "BattleCountdownLabel"
 	_countdown_label.visible = false
@@ -435,7 +433,9 @@ func _build_ui() -> void:
 	_countdown_label.add_theme_color_override("font_color", Color(1.0, 0.82, 0.32, 1.0))
 	_countdown_label.add_theme_color_override("font_outline_color", Color(0.02, 0.03, 0.04, 0.96))
 	_countdown_label.add_theme_constant_override("outline_size", 6)
-	center_panel.add_child(_countdown_label)
+	_countdown_label.self_modulate.a = 0.0
+	_countdown_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_battle_sign_controls.add_child(_countdown_label)
 	_battle_info_label = RichTextLabel.new()
 	_battle_info_label.name = "BattleInfoLabel"
 	_battle_info_label.bbcode_enabled = true
@@ -445,20 +445,27 @@ func _build_ui() -> void:
 	_battle_info_label.custom_minimum_size = Vector2(BATTLE_INFO_MIN_WIDTH, 0.0)
 	_battle_info_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_battle_info_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	center_panel.add_child(_battle_info_label)
+	_battle_info_label.visible = false
+	_battle_sign_controls.add_child(_battle_info_label)
 
 	_slow_mode_label = Label.new()
 	_slow_mode_label.name = "BattleTransientStatusLabel"
 	_slow_mode_label.visible = false
 	_slow_mode_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_slow_mode_label.add_theme_color_override("font_color", Color(1.0, 0.80, 0.30, 1.0))
-	center_panel.add_child(_slow_mode_label)
+	_slow_mode_label.self_modulate.a = 0.0
+	_slow_mode_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_battle_sign_controls.add_child(_slow_mode_label)
 
 	_result_label = Label.new()
 	_result_label.name = "BattleResultLabel"
 	_result_label.visible = false
 	_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	center_panel.add_child(_result_label)
+	_result_label.self_modulate.a = 0.0
+	_result_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_battle_sign_controls.add_child(_result_label)
+	resized.connect(_layout_battle_sign_controls)
+	_layout_battle_sign_controls()
 
 	_build_stage_card_overlays(stage_hud_overlay)
 
@@ -876,6 +883,30 @@ func _set_section_min_width(section_box: Control, min_width: float) -> void:
 		frame.custom_minimum_size = Vector2(min_width, frame.custom_minimum_size.y)
 
 
+func _layout_battle_sign_controls() -> void:
+	if _battle_stage == null or _battle_info_sign == null or _start_battle_button == null:
+		return
+	var display_scale: float = clampf(_battle_stage.size.x / 1920.0, 0.72, 1.10)
+	var requested_button_size: Vector2 = Vector2(BATTLE_INFO_MIN_WIDTH - 24.0, 38.0) * display_scale
+	var button_minimum: Vector2 = _start_battle_button.get_combined_minimum_size()
+	var button_size: Vector2 = Vector2(
+		maxf(requested_button_size.x, button_minimum.x),
+		maxf(requested_button_size.y, button_minimum.y)
+	)
+	var button_center: Vector2 = _battle_stage.project_world_position(
+		_battle_info_sign.get_button_anchor_world_position()
+	)
+	_start_battle_button.size = button_size
+	_start_battle_button.position = button_center - button_size * 0.5
+	if _reserved_seat_toggle != null:
+		var toggle_center: Vector2 = _battle_stage.project_world_position(
+			_battle_info_sign.get_toggle_anchor_world_position()
+		)
+		var toggle_size: Vector2 = Vector2(BATTLE_INFO_MIN_WIDTH + 24.0, 30.0) * display_scale
+		_reserved_seat_toggle.size = toggle_size
+		_reserved_seat_toggle.position = toggle_center - toggle_size * 0.5
+
+
 func _refresh_ui(time_scale: float) -> void:
 	var battle_state := _engine.battle_state
 	if battle_state == null:
@@ -1000,6 +1031,20 @@ func _refresh_ui(time_scale: float) -> void:
 			"seconds": ceili(fatigue_remaining),
 		})
 	_battle_info_label.text = "[center]%s\n[color=#e6a35a]%s[/color][/center]" % [battle_info_text, fatigue_text]
+	if _battle_info_sign != null:
+		var transient_text: String = _result_label.text if _result_label.visible else _slow_mode_label.text
+		var transient_visible: bool = _result_label.visible or _slow_mode_label.visible
+		_battle_info_sign.refresh_content(
+			battle_info_text,
+			fatigue_text,
+			_battle_ready_count_label.text,
+			_battle_ready_count_label.visible and not _countdown_label.visible,
+			_countdown_label.text,
+			_countdown_label.visible,
+			transient_text,
+			transient_visible
+		)
+	_layout_battle_sign_controls()
 	_process_resolution_vfx(battle_state)
 
 

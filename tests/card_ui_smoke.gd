@@ -1190,6 +1190,11 @@ func _run() -> void:
 			return
 	var main_split: HBoxContainer = battle_scene.find_child("MainSplit", true, false) as HBoxContainer
 	var battle_info_section: VBoxContainer = battle_scene.find_child("BattleInfoSection", true, false) as VBoxContainer
+	var battle_info_sign: BattleInfoSign3D = battle_scene.find_child("BattleInfoSign3D", true, false) as BattleInfoSign3D
+	var battle_info_board: MeshInstance3D = battle_scene.find_child("BattleInfoBoard", true, false) as MeshInstance3D
+	var battle_info_text_3d: Label3D = battle_scene.find_child("BattleInfoText3D", true, false) as Label3D
+	var battle_info_fatigue_3d: Label3D = battle_scene.find_child("BattleInfoFatigue3D", true, false) as Label3D
+	var battle_info_interaction: Control = battle_scene.find_child("BattleInfoInteractionLayer", true, false) as Control
 	var enemy_section: VBoxContainer = battle_scene.find_child("EnemySection", true, false) as VBoxContainer
 	var player_section: VBoxContainer = battle_scene.find_child("PlayerSection", true, false) as VBoxContainer
 	if main_split == null \
@@ -1199,11 +1204,30 @@ func _run() -> void:
 		push_error("Card UI smoke failed: the upper battle area should be a UI overlay above the full-screen 3D stage")
 		get_tree().quit(1)
 		return
-	var battle_info_frame: Control = null
-	if battle_info_section != null:
-		battle_info_frame = battle_info_section.get_parent() as Control
-	if battle_info_frame == null or battle_info_frame.size_flags_horizontal != Control.SIZE_SHRINK_CENTER or battle_info_frame.size_flags_vertical != Control.SIZE_SHRINK_CENTER:
-		push_error("Card UI smoke failed: battle info frame should fit its text")
+	if battle_info_section != null \
+	or battle_info_sign == null \
+	or battle_info_board == null \
+	or battle_info_text_3d == null \
+	or battle_info_fatigue_3d == null \
+	or battle_info_interaction == null \
+	or not battle_stage.is_ancestor_of(battle_info_sign) \
+	or battle_start_button.get_parent() != battle_info_interaction:
+		push_error("Card UI smoke failed: battle info should be a 3D sign with projected interactive controls")
+		get_tree().quit(1)
+		return
+	if battle_info_text_3d.text == "" or battle_info_fatigue_3d.text == "":
+		push_error("Card UI smoke failed: the 3D battle sign should receive live battle and fatigue information")
+		get_tree().quit(1)
+		return
+	var expected_start_center: Vector2 = battle_stage.global_position + battle_stage.project_world_position(
+		battle_info_sign.get_button_anchor_world_position()
+	)
+	var actual_start_center: Vector2 = battle_start_button.global_position + battle_start_button.size * 0.5
+	if expected_start_center.distance_to(actual_start_center) > 2.0:
+		push_error("Card UI smoke failed: battle start button should stay projected onto the 3D sign (%s vs %s)" % [
+			expected_start_center,
+			actual_start_center,
+		])
 		get_tree().quit(1)
 		return
 	if battle_info.custom_minimum_size.x < 240.0 or battle_info.autowrap_mode != TextServer.AUTOWRAP_OFF:
