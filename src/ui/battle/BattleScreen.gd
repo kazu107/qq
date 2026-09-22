@@ -99,6 +99,16 @@ func _exit_tree() -> void:
 	_engine.dispose()
 
 
+func detach_battle_stage_for_cache() -> BattleStage3D:
+	if _battle_stage == null or not is_instance_valid(_battle_stage):
+		return null
+	set_process(false)
+	var stage: BattleStage3D = _battle_stage
+	stage.get_parent().remove_child(stage)
+	_battle_stage = null
+	return stage
+
+
 func _process(delta: float) -> void:
 	if _engine.battle_state == null:
 		return
@@ -485,10 +495,15 @@ func _build_ui() -> void:
 	battle_stage_region.clip_contents = true
 	add_child(battle_stage_region)
 
-	_battle_stage = BattleStage3D.new()
+	_battle_stage = SceneRouter.take_cached_battle_stage()
 	_battle_stage.name = "BattleStage3D"
 	battle_stage_region.add_child(_battle_stage)
 	_battle_stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_battle_stage.offset_left = 0.0
+	_battle_stage.offset_top = 0.0
+	_battle_stage.offset_right = 0.0
+	_battle_stage.offset_bottom = 0.0
+	_battle_stage.resume_from_cache()
 	_enemy_panel = _battle_stage.get_enemy_status_model()
 	_player_panel = _battle_stage.get_player_status_model()
 	_battle_info_sign = _battle_stage.get_battle_info_sign()

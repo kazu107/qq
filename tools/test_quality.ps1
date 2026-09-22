@@ -3,12 +3,11 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $output = Join-Path $PSScriptRoot ".local\quality-tests"
 New-Item -ItemType Directory -Force $output | Out-Null
-$save = Join-Path $env:APPDATA "Godot\app_userdata\qq\save.json"
-$backup = Join-Path $output "save-before-tests.json"
-$existed = Test-Path -LiteralPath $save
-if ($existed) { Copy-Item -LiteralPath $save -Destination $backup -Force }
+$previousAppData = $env:APPDATA
+$env:APPDATA = Join-Path $output "appdata"
+New-Item -ItemType Directory -Force $env:APPDATA | Out-Null
 try {
-    foreach ($scene in @("QualityToolsSmoke", "FatigueSmoke", "LanMultiplayerSmoke", "ReplayExportSmoke", "ReplayViewerSmoke", "ArtProvenanceSmoke", "StarterArtSmoke", "BattleStage3DSmoke", "LocalizationSmoke", "HubVersionSmoke", "WebExportSmoke")) {
+    foreach ($scene in @("QualityToolsSmoke", "FatigueSmoke", "LanMultiplayerSmoke", "ReplayExportSmoke", "ReplayViewerSmoke", "ArtProvenanceSmoke", "StarterArtSmoke", "StartupCacheSmoke", "BattleStageCacheSmoke", "BattleStage3DSmoke", "FlowSmoke", "ArenaFlowSmoke", "LocalizationSmoke", "HubVersionSmoke", "WebExportSmoke")) {
         $log = Join-Path $output "$scene.log"
 		$ErrorActionPreference = "Continue"
         & $GodotPath --headless --path $root "res://tests/$scene.tscn" *> $log
@@ -19,10 +18,5 @@ try {
         Write-Host "$scene passed"
     }
 } finally {
-    if ($existed) {
-        Copy-Item -LiteralPath $backup -Destination $save -Force
-    } elseif (Test-Path -LiteralPath $save) {
-        # This is only the exact save file created by the test run, never a directory.
-        Remove-Item -LiteralPath $save
-    }
+    $env:APPDATA = $previousAppData
 }

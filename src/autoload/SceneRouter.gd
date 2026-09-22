@@ -26,7 +26,105 @@ var _transition_cover: ColorRect
 var _gold_popup_layer: CanvasLayer
 var _gold_popup_index: int = 0
 var _scene_cache: Dictionary = {}
+var _battle_stage_cache: BattleStage3D
+var _pending_battle_card_ids: Array[String] = []
 var _debug_return_scene_path: String = HUB_SCENE
+
+
+func _ready() -> void:
+	set_process(false)
+
+
+func _process(_delta: float) -> void:
+	if _pending_battle_card_ids.is_empty():
+		set_process(false)
+		return
+	CardButton.warm_texture_cache([_pending_battle_card_ids.pop_front()])
+
+
+func warm_battle_stage_cache_async() -> bool:
+	if _battle_stage_cache != null and is_instance_valid(_battle_stage_cache):
+		return true
+	var stage: BattleStage3D = BattleStage3D.new()
+	stage.name = "CachedBattleStage3D"
+	stage.position = Vector2(-2048.0, -2048.0)
+	stage.size = Vector2(BattleStage3D.DEFAULT_VIEWPORT_SIZE)
+	add_child(stage)
+	_battle_stage_cache = stage
+	await get_tree().process_frame
+	await get_tree().process_frame
+	stage.suspend_for_cache()
+	return true
+
+
+func has_cached_battle_stage() -> bool:
+	return _battle_stage_cache != null and is_instance_valid(_battle_stage_cache)
+
+
+func take_cached_battle_stage() -> BattleStage3D:
+	if not has_cached_battle_stage():
+		return BattleStage3D.new()
+	var stage: BattleStage3D = _battle_stage_cache
+	_battle_stage_cache = null
+	remove_child(stage)
+	return stage
+
+
+func warm_current_battle_cards_async() -> int:
+	if not Game.is_web_build():
+		return 0
+	var card_ids: Array[String] = _current_battle_card_ids()
+	var warmed: int = 0
+	for card_id: String in card_ids:
+		warmed += CardButton.warm_texture_cache([card_id])
+		await get_tree().process_frame
+	return warmed
+
+
+func schedule_current_battle_cards() -> void:
+	if not Game.is_web_build():
+		return
+	for card_id: String in _current_battle_card_ids():
+		if not _pending_battle_card_ids.has(card_id):
+			_pending_battle_card_ids.append(card_id)
+	if not _pending_battle_card_ids.is_empty():
+		set_process(true)
+
+
+func _current_battle_card_ids() -> Array[String]:
+	var card_ids: Array[String] = []
+	if Game.is_battle_tutorial_active():
+		var tutorial: Dictionary = BattleTutorialCatalog.get_tutorial(Game.active_battle_tutorial_id)
+		for raw_card_id: Variant in Array(tutorial.get("cards", [])):
+			var card_id: String = String(raw_card_id)
+			if not card_ids.has(card_id):
+				card_ids.append(card_id)
+		var tutorial_enemy: EnemyDef = Database.get_enemy(String(tutorial.get("enemy_id", "")))
+		if tutorial_enemy != null:
+			for card_id: String in tutorial_enemy.cards:
+				if not card_ids.has(card_id):
+					card_ids.append(card_id)
+	if Game.current_run != null:
+		for card_id: String in Game.current_run.equipped_cards:
+			if not card_ids.has(card_id):
+				card_ids.append(card_id)
+		var enemy_id: String = Game.pending_enemy_id
+		if enemy_id == "":
+			enemy_id = String(Game.get_active_map_node().get("enemy_id", ""))
+		var enemy: EnemyDef = Database.get_enemy(enemy_id)
+		if enemy != null:
+			for card_id: String in enemy.cards:
+				if not card_ids.has(card_id):
+					card_ids.append(card_id)
+	if NetworkManager.has_active_match():
+		for side: String in ["player", "enemy"]:
+			var match_run: RunState = NetworkManager.get_match_run(side)
+			if match_run == null:
+				continue
+			for card_id: String in match_run.equipped_cards:
+				if not card_ids.has(card_id):
+					card_ids.append(card_id)
+	return card_ids
 
 
 func warm_scene_cache() -> void:
@@ -285,12 +383,34 @@ func _change_scene(scene_path: String) -> void:
 	var current_scene: CanvasItem = get_tree().current_scene as CanvasItem
 	if current_scene != null:
 		current_scene.visible = false
+		if current_scene.has_method("detach_battle_stage_for_cache"):
+			var stage: BattleStage3D = current_scene.call("detach_battle_stage_for_cache") as BattleStage3D
+			if stage != null:
+				_store_battle_stage(stage)
+	if scene_path == BATTLE_SCENE:
+		_pending_battle_card_ids.clear()
+		set_process(false)
+		if Game.is_web_build():
+			CardButton.warm_texture_cache(_current_battle_card_ids())
+	else:
+		schedule_current_battle_cards()
 	var packed_scene: PackedScene = _get_preloaded_scene(scene_path)
 	if packed_scene != null:
 		get_tree().change_scene_to_packed(packed_scene)
 	else:
 		get_tree().change_scene_to_file(scene_path)
 	call_deferred("_release_transition_cover")
+
+
+func _store_battle_stage(stage: BattleStage3D) -> void:
+	if has_cached_battle_stage():
+		stage.queue_free()
+		return
+	stage.suspend_for_cache()
+	stage.position = Vector2(-2048.0, -2048.0)
+	stage.size = Vector2(BattleStage3D.DEFAULT_VIEWPORT_SIZE)
+	add_child(stage)
+	_battle_stage_cache = stage
 
 
 func _get_preloaded_scene(scene_path: String) -> PackedScene:

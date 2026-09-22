@@ -89,6 +89,20 @@ func _ready() -> void:
 	set_process(true)
 
 
+func suspend_for_cache() -> void:
+	set_playback_speed(1.0)
+	_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	process_mode = Node.PROCESS_MODE_DISABLED
+	visible = false
+
+
+func resume_from_cache() -> void:
+	visible = true
+	process_mode = Node.PROCESS_MODE_INHERIT
+	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	set_camera_preset("battle")
+
+
 func _process(delta: float) -> void:
 	delta *= _playback_speed
 	_update_event_queue(delta)

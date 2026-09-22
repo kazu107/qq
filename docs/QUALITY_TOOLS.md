@@ -51,6 +51,8 @@ This is real localhost WebRTC, not an Internet/NAT/TURN test. A Web guest has 15
 
 ## Checks
 
-`tools/test_quality.ps1` runs the related Godot smoke tests and restores the existing save file afterward. `tools/QualityReview.tscn` captures native replay, analysis and lab screenshots while preserving the save. `npm test` covers signaling and R2 deployment/retention logic. Test logs and screenshots are local artifacts, not bundled game data.
+`tools/test_quality.ps1` runs the related Godot smoke tests with a dedicated `tools/.local/quality-tests/appdata` profile, leaving the normal player save untouched. Run tests that call `Game.start_new_run` or `Game.start_arena_run` through this script rather than launching their scenes directly. `tools/QualityReview.tscn` captures native replay, analysis and lab screenshots while preserving the save. `npm test` covers signaling and R2 deployment/retention logic. Test logs and screenshots are local artifacts, not bundled game data.
+
+`tools/BattleLoadProfile.tscn` prints scene load, construction and first-frame timings. Set `QQ_PROFILE_WARM=1` to measure after startup warmup. `tests/BattleStageCacheSmoke.tscn` verifies that one 3D stage is reused and disabled between battles. `tools/web_battle_load_review.mjs` captures first and repeated battle entry in the production Web build.
 
 QQ-0.24.0 validation covers eleven related Godot smoke tests, 16 Node tests, a direct tutorial-scene boot and the 2/4-player browser harness. External-network guest recovery, host migration, low-end/mobile devices and long-duration multiplayer soak tests remain separate checks.

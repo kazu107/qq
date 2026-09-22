@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.28.2",
+  "current_version": "QQ-0.28.3",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.28.3",
+      "date": "2026-09-23",
+      "title_ja": "戦闘画面の先読みと再利用",
+      "title_en": "Battle screen preloading and reuse",
+      "changes_ja": [
+        "起動時に3D戦闘画面を準備し、戦闘を離れても次の戦闘で再利用するようにしました。",
+        "Web版では現在のデッキと敵に必要なカード画像を画面遷移前に少しずつ読み込みます。",
+        "戦闘画面の読み込み時間と再利用を確認するテストを追加し、自動テストの保存先を専用フォルダにしました。"
+      ],
+      "changes_en": [
+        "Build the 3D battle stage during startup and reuse it after leaving a battle.",
+        "On Web, load only the current deck and enemy card images over several frames before battle.",
+        "Added checks for battle screen load time and stage reuse, and isolated automated test saves from the player profile."
+      ]
+    },
     {
       "version": "QQ-0.28.2",
       "date": "2026-09-23",
