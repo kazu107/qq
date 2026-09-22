@@ -85,6 +85,14 @@ func get_shield_focus_global_position() -> Vector3:
 	return to_global(Vector3(-0.95, -0.13, 0.07))
 
 
+func get_slot_focus_global_position() -> Vector3:
+	return to_global(Vector3(0.0, -0.37, 0.07))
+
+
+func get_status_focus_global_position() -> Vector3:
+	return to_global(Vector3(0.0, -0.61, 0.07))
+
+
 func _build_model() -> void:
 	var panel: MeshInstance3D = _create_quad("StatusPlate", PANEL_SIZE, PANEL_COLOR, 1)
 	add_child(panel)

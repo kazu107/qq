@@ -350,10 +350,10 @@ func _basic_steps() -> Array[Dictionary]:
 
 func _slot_steps() -> Array[Dictionary]:
 	return [
-		_s("slots_intro", "continue", 1, 6, "Three active slots", "The battery cells show how many active slots are occupied. Card cost is shown at the upper-left.", "player_status"),
+		_s("slots_intro", "continue", 1, 6, "Three active slots", "The battery cells show how many active slots are occupied. Card cost is shown at the upper-left.", "player_slots"),
 		_s("slots_heavy", "queue_card", 2, 6, "Spend two slots", "Queue Heavy Swing. Its cost of 2 fills two battery cells.", "card:heavy_swing", {"card_id": "heavy_swing"}),
 		_s("slots_guard", "queue_card", 3, 6, "Fill the last slot", "Queue Guard to use the third slot.", "card:guard", {"card_id": "guard"}),
-		_s("slots_full", "continue", 4, 6, "No slots remain", "All three cells are occupied. Cards that would overflow the limit cannot be committed.", "player_status", {"button_key": "tutorial.guide.resume", "button": "Wait for Guard"}),
+		_s("slots_full", "continue", 4, 6, "No slots remain", "All three cells are occupied. Cards that would overflow the limit cannot be committed.", "player_slots", {"button_key": "tutorial.guide.resume", "button": "Wait for Guard"}),
 		_s("slots_wait_open", "wait_event", 4, 6, "A slot opens on resolution", "Guard releases its slot when it resolves.", "timeline", {"event_type": "resolve_card", "event_card_id": "guard"}),
 		_s("slots_quick", "queue_card", 5, 6, "Use the open slot", "Queue Quick Slash in the newly opened slot.", "card:quick_slash", {"card_id": "quick_slash"}),
 		_s("slots_wait_quick", "wait_event", 5, 6, "Resolve Quick Slash", "After activation the card changes from casting to a recast countdown.", "timeline", {"event_type": "resolve_card", "event_card_id": "quick_slash"}),
@@ -375,9 +375,9 @@ func _interrupt_steps() -> Array[Dictionary]:
 
 func _status_steps() -> Array[Dictionary]:
 	return [
-		_s("status_intro", "continue", 1, 5, "Negative statuses", "Bleed and Weak were applied. Hover their icons to inspect the live duration and effect.", "player_status", {"action": "apply_statuses", "button_key": "tutorial.guide.resume", "button": "Observe bleed"}),
-		_s("status_tick", "wait_event", 2, 5, "Bleed deals periodic damage", "Time is moving until the next bleed tick.", "player_status", {"event_type": "status_damage"}),
-		_s("status_result", "continue", 3, 5, "Read the remaining time", "The seconds beside each icon show how long the status remains.", "player_status"),
+		_s("status_intro", "continue", 1, 5, "Negative statuses", "Bleed and Weak are shown by name with their live remaining seconds on the status row.", "player_status_row", {"action": "apply_statuses", "button_key": "tutorial.guide.resume", "button": "Observe bleed"}),
+		_s("status_tick", "wait_event", 2, 5, "Bleed deals periodic damage", "Time is moving until the next bleed tick.", "player_status_row", {"event_type": "status_damage"}),
+		_s("status_result", "continue", 3, 5, "Read the remaining time", "The seconds beside each status name show how long it remains.", "player_status_row"),
 		_s("status_cleanse", "queue_card", 4, 5, "Cleanse the statuses", "Use Field Medic to remove Bleed and Weak while healing HP.", "card:field_medic", {"card_id": "field_medic"}),
 		_s("status_wait_cleanse", "wait_event", 4, 5, "Wait for the cleanse", "Field Medic removes the negative statuses when it resolves.", "timeline", {"event_type": "resolve_card", "event_card_id": "field_medic"}),
 		_complete("status_complete", 5, "Status lesson complete", "You inspected status duration, observed bleed damage and cleansed negative effects."),
@@ -389,7 +389,7 @@ func _shield_steps() -> Array[Dictionary]:
 		_s("shield_resource_intro", "continue", 1, 5, "Shield can be spent", "Aegis Ram is unavailable without enough shield. First build the required resource.", "card:aegis_ram"),
 		_s("shield_resource_guard", "queue_card", 2, 5, "Build shield", "Queue Guard.", "card:guard", {"card_id": "guard"}),
 		_s("shield_resource_wait_guard", "wait_event", 2, 5, "Wait for Guard", "Guard grants shield when it resolves.", "timeline", {"event_type": "resolve_card", "event_card_id": "guard"}),
-		_s("shield_resource_value", "continue", 3, 5, "Shield requirement met", "Aegis Ram is now usable. Its shield cost is paid immediately when committed.", "player_status"),
+		_s("shield_resource_value", "continue", 3, 5, "Shield requirement met", "Aegis Ram is now usable. Its shield cost is paid immediately when committed.", "player_shield"),
 		_s("shield_resource_ram", "queue_card", 4, 5, "Spend shield", "Queue Aegis Ram and watch the shield value decrease.", "card:aegis_ram", {"card_id": "aegis_ram"}),
 		_s("shield_resource_wait_ram", "wait_event", 4, 5, "Resolve the attack", "The paid shield powers Aegis Ram's damage.", "timeline", {"event_type": "resolve_card", "event_card_id": "aegis_ram"}),
 		_complete("shield_resource_complete", 5, "Shield resource complete", "You built shield, paid a shield cost and converted defense into an attack."),
@@ -449,14 +449,14 @@ func _auto_queue_steps() -> Array[Dictionary]:
 		_s("auto_queue_turret", "queue_card", 4, 5, "Start Auto Turret", "Queue Auto Turret. It can create another copy of itself without a chain limit.", "card:auto_turret", {"card_id": "auto_turret"}),
 		_s("auto_queue_wait_turret", "wait_event", 4, 5, "Resolve Auto Turret", "The first turret creates the next one.", "timeline", {"event_type": "resolve_card", "event_card_id": "auto_turret"}),
 		_s("auto_queue_find_turret", "wait_condition", 5, 5, "Recursive copy found", "The highlighted timeline now contains an automatically queued Auto Turret.", "timeline", {"condition": "auto_queued", "card_id": "auto_turret"}),
-		_complete("auto_queue_complete", 5, "Automatic queues complete", "You created both a different card and a recursive copy automatically."),
+		_s("auto_queue_complete", "complete", 5, 5, "Automatic queues complete", "You created both a different card and a recursive copy automatically.", "timeline"),
 	]
 
 
 func _exam_steps() -> Array[Dictionary]:
 	return [
 		_s("exam_intro", "continue", 1, 2, "Final combat exercise", "Defeat the Brute without step-by-step prompts. Use shield, delay, cleanse and interrupts as needed.", "battle_sign", {"button": "Start exercise"}),
-		_s("exam_battle", "free_battle", 1, 2, "Win the battle", "All cards are available. Read the enemy timeline and manage your three slots.", "battle_sign", {"action": "start_exam", "waiting": "Battle in progress..."}),
+		_s("exam_battle", "free_battle", 1, 2, "Win the battle", "All cards are available. Read the enemy timeline and manage your three slots.", "timeline", {"action": "start_exam", "waiting": "Battle in progress..."}),
 		_complete("exam_complete", 2, "Exercise complete", "You won a normal battle using the systems from the previous lessons."),
 	]
 

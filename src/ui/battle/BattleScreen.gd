@@ -194,6 +194,10 @@ func _get_tutorial_target_rect() -> Rect2:
 		return _world_target_rect(_player_panel.global_position, Vector2(300.0, 150.0))
 	if target_kind == "player_shield" and _player_panel != null:
 		return _world_target_rect(_player_panel.get_shield_focus_global_position(), Vector2(76.0, 36.0))
+	if target_kind == "player_slots" and _player_panel != null:
+		return _world_target_rect(_player_panel.get_slot_focus_global_position(), Vector2(112.0, 42.0))
+	if target_kind == "player_status_row" and _player_panel != null:
+		return _world_target_rect(_player_panel.get_status_focus_global_position(), Vector2(230.0, 40.0))
 	if target_kind == "enemy_status" and _enemy_panel != null:
 		return _world_target_rect(_enemy_panel.global_position, Vector2(300.0, 150.0))
 	return Rect2(size * 0.5 - Vector2(100.0, 50.0), Vector2(200.0, 100.0))
