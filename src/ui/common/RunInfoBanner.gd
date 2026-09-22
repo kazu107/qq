@@ -9,15 +9,29 @@ var _hp_label: Label
 var _gold_label: Label
 var _step_label: Label
 var _relic_row: RelicIconRow
+var _row: HBoxContainer
+var _trailing_controls: HBoxContainer
 
 
 func _ready() -> void:
 	name = "RunInfoBanner"
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mouse_filter = Control.MOUSE_FILTER_PASS
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_theme_stylebox_override("panel", _make_banner_stylebox())
 	_build_ui()
 	refresh()
+
+
+func add_trailing_control(control: Control) -> void:
+	if control == null:
+		return
+	if _trailing_controls == null:
+		call_deferred("add_trailing_control", control)
+		return
+	if control.get_parent() != null:
+		control.reparent(_trailing_controls)
+	else:
+		_trailing_controls.add_child(control)
 
 
 func refresh(live_hp: int = -1, live_max_hp: int = -1) -> void:
@@ -62,21 +76,21 @@ func _build_ui() -> void:
 	margin.add_theme_constant_override("margin_bottom", 7)
 	add_child(margin)
 
-	var row: HBoxContainer = HBoxContainer.new()
-	row.name = "RunInfoBannerRow"
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_theme_constant_override("separation", 12)
-	margin.add_child(row)
+	_row = HBoxContainer.new()
+	_row.name = "RunInfoBannerRow"
+	_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_row.add_theme_constant_override("separation", 12)
+	margin.add_child(_row)
 
-	_hp_label = _add_icon_value(row, "Hp", "hp")
-	_gold_label = _add_icon_value(row, "Gold", "gold")
-	_step_label = _add_icon_value(row, "Step", "step")
+	_hp_label = _add_icon_value(_row, "Hp", "hp")
+	_gold_label = _add_icon_value(_row, "Gold", "gold")
+	_step_label = _add_icon_value(_row, "Step", "step")
 
 	var relic_group: HBoxContainer = HBoxContainer.new()
 	relic_group.name = "RunRelicGroup"
 	relic_group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	relic_group.add_theme_constant_override("separation", 8)
-	row.add_child(relic_group)
+	_row.add_child(relic_group)
 
 	var relic_icon: TextureRect = _build_icon_rect("relic")
 	relic_group.add_child(relic_icon)
@@ -89,7 +103,13 @@ func _build_ui() -> void:
 	var spacer: Control = Control.new()
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(spacer)
+	_row.add_child(spacer)
+
+	_trailing_controls = HBoxContainer.new()
+	_trailing_controls.name = "RunInfoTrailingControls"
+	_trailing_controls.alignment = BoxContainer.ALIGNMENT_END
+	_trailing_controls.add_theme_constant_override("separation", 8)
+	_row.add_child(_trailing_controls)
 
 
 func _add_icon_value(parent: Control, node_prefix: String, icon_id: String) -> Label:

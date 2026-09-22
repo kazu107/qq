@@ -14,6 +14,34 @@ func _run() -> void:
 	add_child(stage)
 	await get_tree().process_frame
 	stage.configure_combatants("player", "scout", "player")
+	var player_status: BattleUnitStatus3D = stage.get_player_status_model()
+	var enemy_status: BattleUnitStatus3D = stage.get_enemy_status_model()
+	var player_state: UnitState = UnitState.new()
+	player_state.display_name = "Player"
+	player_state.hp = 42
+	player_state.max_hp = 60
+	player_state.shield = 7
+	player_state.attack = 4
+	player_state.speed = 6
+	player_state.active_slots_used = 1
+	player_state.active_slot_max = 3
+	player_state.add_status("slow", 4.5)
+	var enemy_state: UnitState = UnitState.new()
+	enemy_state.display_name = "Scout"
+	enemy_state.hp = 21
+	enemy_state.max_hp = 35
+	enemy_state.attack = 2
+	enemy_state.speed = 8
+	stage.refresh_unit_status(player_state, enemy_state, 1)
+	if player_status == null \
+	or enemy_status == null \
+	or player_status.position.x <= 0.0 \
+	or enemy_status.position.x >= 0.0 \
+	or player_status.get_hp_text() != "42 / 60" \
+	or not is_equal_approx(player_status.get_hp_ratio(), 0.7) \
+	or player_status.get_status_text().find("4.5s") == -1:
+		_fail("3D battle stage smoke failed: world-space unit status models did not refresh correctly")
+		return
 	var detail_counts: Dictionary = stage.get_environment_detail_counts()
 	if int(detail_counts.get("grass", 0)) != 112 \
 	or int(detail_counts.get("rocks", 0)) != 18 \
@@ -292,7 +320,7 @@ func _run() -> void:
 		_fail("3D battle stage smoke failed: resolving the final card should leave the ready stance")
 		return
 
-	print("BATTLE_STAGE_3D_SMOKE_OK stage HUD, ready stance, and event-driven combat animation validated")
+	print("BATTLE_STAGE_3D_SMOKE_OK world status models, ready stance, and event-driven combat animation validated")
 	get_tree().quit()
 
 

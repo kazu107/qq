@@ -81,8 +81,13 @@ func _ready() -> void:
 	_cards_scroll.add_child(_cards_track)
 
 	_empty_label = Label.new()
+	_empty_label.name = "TimelineEmptyLabel"
 	_empty_label.text = Localization.get_text("timeline.empty", "No scheduled actions")
-	add_child(_empty_label)
+	_empty_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_empty_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_cards_scroll.add_child(_empty_label)
 	_timeline_horizon = _fixed_horizon
 	_refresh_scale(_timeline_horizon)
 

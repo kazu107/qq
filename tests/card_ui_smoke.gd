@@ -386,12 +386,24 @@ func _run() -> void:
 	timeline_panel.size = Vector2(900.0, 300.0)
 	timeline_panel.set_fixed_horizon(6.0)
 	add_child(timeline_panel)
+	timeline_panel.refresh_timeline([], 0.0)
+	await get_tree().process_frame
+	var empty_timeline_size: Vector2 = timeline_panel.size
+	var empty_timeline_label: Label = timeline_panel.get_node("TimelineScroll/TimelineEmptyLabel") as Label
+	if empty_timeline_label == null or empty_timeline_label.get_parent().name != "TimelineScroll":
+		push_error("Card UI smoke failed: empty timeline text should overlay the fixed card region")
+		get_tree().quit(1)
+		return
 	timeline_panel.refresh_timeline([
 		_make_timeline_entry("reload", "player", 4.2, 1.0, 2),
 		_make_timeline_entry("heavy_swing", "enemy", 2.8, 0.5, 1),
 		_make_timeline_entry("guard", "player", 3.4, 0.8, 3),
 	], 1.5)
 	await get_tree().process_frame
+	if not timeline_panel.size.is_equal_approx(empty_timeline_size):
+		push_error("Card UI smoke failed: registering cards must not resize the timeline panel")
+		get_tree().quit(1)
+		return
 
 	if timeline_panel.custom_minimum_size.y < 260.0:
 		push_error("Card UI smoke failed: timeline panel height should stay fixed")
@@ -902,8 +914,8 @@ func _run() -> void:
 	var log_panel: LogPanel = battle_scene.find_child("BattleLogPanel", true, false) as LogPanel
 	var battle_vfx_layer: Node = battle_scene.find_child("BattleVfxLayer", true, false)
 	var battle_stage_hud: Control = battle_scene.find_child("BattleStageHudOverlay", true, false) as Control
-	var enemy_stage_hud: PanelContainer = battle_scene.find_child("EnemyStageHudFrame", true, false) as PanelContainer
-	var player_stage_hud: PanelContainer = battle_scene.find_child("PlayerStageHudFrame", true, false) as PanelContainer
+	var enemy_status_3d: BattleUnitStatus3D = battle_scene.find_child("EnemyUnitStatus3D", true, false) as BattleUnitStatus3D
+	var player_status_3d: BattleUnitStatus3D = battle_scene.find_child("PlayerUnitStatus3D", true, false) as BattleUnitStatus3D
 	var enemy_stage_cards: PanelContainer = battle_scene.find_child("EnemyStageCardsFrame", true, false) as PanelContainer
 	var player_stage_cards: PanelContainer = battle_scene.find_child("PlayerStageCardsFrame", true, false) as PanelContainer
 	var battle_stage_region: Control = battle_scene.find_child("BattleStageRegion", true, false) as Control
@@ -912,8 +924,8 @@ func _run() -> void:
 	var battle_stage_camera: Camera3D = battle_scene.find_child("BattleStageCamera", true, false) as Camera3D
 	var battle_player_actor: BattleActor3D = battle_scene.find_child("PlayerBattleActor3D", true, false) as BattleActor3D
 	var battle_enemy_actor: BattleActor3D = battle_scene.find_child("EnemyBattleActor3D", true, false) as BattleActor3D
-	var battle_player_unit_panel: UnitPanel = battle_scene.find_child("PlayerUnitPanel", true, false) as UnitPanel
-	var battle_enemy_unit_panel: UnitPanel = battle_scene.find_child("EnemyUnitPanel", true, false) as UnitPanel
+	var legacy_player_unit_panel: UnitPanel = battle_scene.find_child("PlayerUnitPanel", true, false) as UnitPanel
+	var legacy_enemy_unit_panel: UnitPanel = battle_scene.find_child("EnemyUnitPanel", true, false) as UnitPanel
 	if bottom_split == null or timeline_section == null or battle_timeline_panel == null or log_button == null or log_popup == null or log_panel == null:
 		push_error("Card UI smoke failed: battle scene layout sections were not created")
 		get_tree().quit(1)
@@ -941,24 +953,26 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	if battle_stage_hud == null \
-	or enemy_stage_hud == null \
-	or player_stage_hud == null \
+	or enemy_status_3d == null \
+	or player_status_3d == null \
 	or enemy_stage_cards == null \
 	or player_stage_cards == null:
-		push_error("Card UI smoke failed: unit status and card controls should be overlaid on the 3D field")
+		push_error("Card UI smoke failed: 3D unit status models and card controls should be present")
 		get_tree().quit(1)
 		return
-	if not battle_stage_region.is_ancestor_of(enemy_stage_hud) \
-	or not battle_stage_region.is_ancestor_of(player_stage_hud) \
-	or not battle_stage_region.is_ancestor_of(enemy_stage_cards) \
-	or not battle_stage_region.is_ancestor_of(player_stage_cards):
-		push_error("Card UI smoke failed: stage HUD and cards should stay inside the 3D stage region")
+	if not battle_stage.is_ancestor_of(enemy_status_3d) \
+	or not battle_stage.is_ancestor_of(player_status_3d) \
+	or not battle_stage_hud.is_ancestor_of(enemy_stage_cards) \
+	or not battle_stage_hud.is_ancestor_of(player_stage_cards):
+		push_error("Card UI smoke failed: status models should live in 3D while card controls stay in the UI overlay")
 		get_tree().quit(1)
 		return
-	if battle_stage_region.size_flags_horizontal != Control.SIZE_EXPAND_FILL \
+	if battle_stage_region.get_parent() != battle_scene \
+	or battle_stage_region.anchor_right != 1.0 \
+	or battle_stage_region.anchor_bottom != 1.0 \
 	or battle_stage_viewport.render_target_update_mode != SubViewport.UPDATE_ALWAYS \
 	or not battle_stage_camera.current:
-		push_error("Card UI smoke failed: 3D greybox stage should fill the center and render continuously")
+		push_error("Card UI smoke failed: 3D stage should fill the whole battle screen and render continuously")
 		get_tree().quit(1)
 		return
 	var player_skeleton: Skeleton3D = battle_player_actor.get_skeleton()
@@ -975,16 +989,18 @@ func _run() -> void:
 		push_error("Card UI smoke failed: 3D player actor idle animation should update its skeleton pose")
 		get_tree().quit(1)
 		return
-	if battle_player_unit_panel == null \
-	or battle_enemy_unit_panel == null \
-	or not battle_player_unit_panel.is_stage_overlay_mode() \
-	or not battle_enemy_unit_panel.is_stage_overlay_mode():
-		push_error("Card UI smoke failed: battle unit panels should use compact 3D overlay mode")
+	if legacy_player_unit_panel != null \
+	or legacy_enemy_unit_panel != null \
+	or not player_status_3d.is_player_status() \
+	or enemy_status_3d.is_player_status():
+		push_error("Card UI smoke failed: legacy 2D unit panels should be replaced by side-aware 3D models")
 		get_tree().quit(1)
 		return
-	if battle_player_unit_panel.find_child("PortraitFrame", true, false).visible \
-	or battle_enemy_unit_panel.find_child("PortraitFrame", true, false).visible:
-		push_error("Card UI smoke failed: 2D portraits should be hidden when 3D actors are present")
+	if enemy_status_3d.position.x >= 0.0 \
+	or player_status_3d.position.x <= 0.0 \
+	or player_status_3d.get_hp_text().find("/") == -1 \
+	or enemy_status_3d.get_hp_text().find("/") == -1:
+		push_error("Card UI smoke failed: 3D status plates should be above the left enemy and right player")
 		get_tree().quit(1)
 		return
 	var resolution_vfx_event: Dictionary = {
@@ -1109,20 +1125,18 @@ func _run() -> void:
 		push_error("Card UI smoke failed: battle timeline preview alpha should stay within the transparent pulse range")
 		get_tree().quit(1)
 		return
-	var battle_player_panel: UnitPanel = battle_scene.find_child("PlayerUnitPanel", true, false) as UnitPanel
-	if battle_player_panel == null:
-		push_error("Card UI smoke failed: battle player panel should exist for slot preview")
-		get_tree().quit(1)
-		return
-	var battle_slot_bars: HBoxContainer = battle_player_panel.get_node("BodyRow/InfoColumn/SlotBattery/SlotBatteryBars") as HBoxContainer
-	if battle_slot_bars == null or not _has_slot_preview(battle_slot_bars):
-		push_error("Card UI smoke failed: battle hand hover should preview slot usage")
+	if player_status_3d.get_preview_slot_cost() <= 0:
+		push_error("Card UI smoke failed: battle hand hover should preview slot usage on the 3D status model")
 		get_tree().quit(1)
 		return
 	battle_player_card.emit_signal("mouse_exited")
 	await get_tree().process_frame
 	if battle_preview.visible:
 		push_error("Card UI smoke failed: battle hand hover preview should hide on mouse exit")
+		get_tree().quit(1)
+		return
+	if player_status_3d.get_preview_slot_cost() != 0:
+		push_error("Card UI smoke failed: 3D slot preview should clear when card hover ends")
 		get_tree().quit(1)
 		return
 	var battle_timeline_scale: HBoxContainer = battle_timeline_panel.get_node("TimelineScale") as HBoxContainer
@@ -1181,8 +1195,8 @@ func _run() -> void:
 	if main_split == null \
 	or main_split.alignment != BoxContainer.ALIGNMENT_CENTER \
 	or main_split.get_child_count() != 1 \
-	or main_split.get_child(0) != battle_stage_region:
-		push_error("Card UI smoke failed: the upper battle area should be one full-width 3D stage")
+	or main_split.get_child(0) != battle_stage_hud:
+		push_error("Card UI smoke failed: the upper battle area should be a UI overlay above the full-screen 3D stage")
 		get_tree().quit(1)
 		return
 	var battle_info_frame: Control = null
@@ -1200,16 +1214,14 @@ func _run() -> void:
 		push_error("Card UI smoke failed: legacy portrait side sections should be removed")
 		get_tree().quit(1)
 		return
-	if enemy_stage_hud.anchor_left != 0.0 \
-	or player_stage_hud.anchor_left != 1.0 \
-	or enemy_stage_cards.anchor_bottom != 1.0 \
+	if enemy_stage_cards.anchor_bottom != 1.0 \
 	or player_stage_cards.anchor_bottom != 1.0:
-		push_error("Card UI smoke failed: actor HUDs and card rows should occupy the 3D stage corners")
+		push_error("Card UI smoke failed: card rows should occupy the lower stage-overlay corners")
 		get_tree().quit(1)
 		return
 	var battle_player_slots: Label = battle_scene.find_child("SlotLabel", true, false) as Label
-	if battle_player_slots == null or battle_player_slots.visible or battle_player_slots.text != "":
-		push_error("Card UI smoke failed: player unit panel should hide active slot text")
+	if battle_player_slots != null:
+		push_error("Card UI smoke failed: the removed 2D unit panel should not leave slot text behind")
 		get_tree().quit(1)
 		return
 	var battle_banner: RunInfoBanner = battle_scene.find_child("RunInfoBanner", true, false) as RunInfoBanner
@@ -1223,6 +1235,15 @@ func _run() -> void:
 	or battle_banner_gold == null \
 	or battle_banner_hp.text.find("/") == -1:
 		push_error("Card UI smoke failed: battle scene should render the shared run info banner")
+		get_tree().quit(1)
+		return
+	if log_button.get_parent() == null or log_button.get_parent().name != "RunInfoTrailingControls":
+		push_error("Card UI smoke failed: LOG should be the rightmost run-banner control")
+		get_tree().quit(1)
+		return
+	var transient_status: Label = battle_scene.find_child("BattleTransientStatusLabel", true, false) as Label
+	if transient_status == null or transient_status.visible or transient_status.text.find("Space") != -1:
+		push_error("Card UI smoke failed: the normal battle layout should not show the Space slow-mode hint")
 		get_tree().quit(1)
 		return
 	var battle_max_marker: Label = battle_timeline_scale.get_child(battle_timeline_scale.get_child_count() - 1) as Label

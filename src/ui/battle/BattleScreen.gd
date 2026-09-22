@@ -4,17 +4,15 @@ const BOTTOM_PANEL_MIN_HEIGHT: float = 366.0
 const BATTLE_INFO_MIN_WIDTH: float = 280.0
 const BATTLE_CARD_TILE_SIZE: Vector2 = Vector2(88.0, 88.0)
 const BATTLE_STAGE_MIN_WIDTH: float = 720.0
-const BATTLE_OVERLAY_HUD_WIDTH: float = 326.0
-const BATTLE_OVERLAY_HUD_HEIGHT: float = 188.0
 const BATTLE_OVERLAY_CARD_WIDTH: float = 530.0
 const BATTLE_OVERLAY_CARD_HEIGHT: float = 216.0
 const TIMELINE_PREVIEW_INSTANCE_ID: int = 999999
 const LAN_SNAPSHOT_INTERVAL: float = 1.0 / 12.0
 
 var _engine := RealtimeBattleEngine.new()
-var _enemy_panel: UnitPanel
+var _enemy_panel: BattleUnitStatus3D
 var _enemy_cards_panel: CardHandPanel
-var _player_panel: UnitPanel
+var _player_panel: BattleUnitStatus3D
 var _card_hand_panel: CardHandPanel
 var _timeline_panel: TimelinePanel
 var _battle_stage: BattleStage3D
@@ -146,8 +144,9 @@ func _setup_lan_battle() -> bool:
 	_card_hand_panel.set_interactive(not _spectator_mode)
 	if _spectator_mode:
 		_slow_mode_label.text = Localization.get_text("online.battle.spectating", "SPECTATING")
+		_slow_mode_label.visible = true
 	else:
-		_slow_mode_label.text = Localization.get_text("online.battle.host", "WEB HOST") if NetworkManager.is_host() else Localization.get_text("online.battle.client", "WEB GUEST")
+		_slow_mode_label.visible = false
 	return true
 
 
@@ -318,6 +317,7 @@ func _on_lan_connection_state_changed(_state: int, message: String) -> void:
 		return
 	if NetworkManager.is_waiting_for_reconnect():
 		_slow_mode_label.text = message
+		_slow_mode_label.visible = true
 
 
 func _on_lan_session_ended(_reason: String) -> void:
@@ -330,6 +330,20 @@ func _on_lan_session_ended(_reason: String) -> void:
 
 
 func _build_ui() -> void:
+	var battle_stage_region := Control.new()
+	battle_stage_region.name = "BattleStageRegion"
+	battle_stage_region.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	battle_stage_region.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	battle_stage_region.clip_contents = true
+	add_child(battle_stage_region)
+
+	_battle_stage = BattleStage3D.new()
+	_battle_stage.name = "BattleStage3D"
+	battle_stage_region.add_child(_battle_stage)
+	_battle_stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_enemy_panel = _battle_stage.get_enemy_status_model()
+	_player_panel = _battle_stage.get_player_status_model()
+
 	var margin := MarginContainer.new()
 	margin.anchor_right = 1.0
 	margin.anchor_bottom = 1.0
@@ -347,19 +361,6 @@ func _build_ui() -> void:
 	_run_info_banner = RunInfoBanner.new()
 	outer.add_child(_run_info_banner)
 
-	var top_bar := HBoxContainer.new()
-	outer.add_child(top_bar)
-
-	_slow_mode_label = Label.new()
-	_slow_mode_label.text = Localization.get_text("battle.slow_mode_hold", "Hold Space for Slow Mode")
-	top_bar.add_child(_slow_mode_label)
-
-	_result_label = Label.new()
-	_result_label.visible = false
-	_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_result_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top_bar.add_child(_result_label)
-
 	_log_button = Button.new()
 	_log_button.name = "BattleLogButton"
 	_log_button.text = Localization.get_text("battle.log_button", "LOG")
@@ -367,7 +368,7 @@ func _build_ui() -> void:
 	_log_button.custom_minimum_size = Vector2(56.0, 32.0)
 	_log_button.z_index = 80
 	_log_button.pressed.connect(_on_log_button_pressed)
-	top_bar.add_child(_log_button)
+	_run_info_banner.add_trailing_control(_log_button)
 
 	var main_split := HBoxContainer.new()
 	main_split.name = "MainSplit"
@@ -377,25 +378,14 @@ func _build_ui() -> void:
 	main_split.add_theme_constant_override("separation", 0)
 	outer.add_child(main_split)
 
-	var battle_stage_region := Control.new()
-	battle_stage_region.name = "BattleStageRegion"
-	battle_stage_region.custom_minimum_size = Vector2(BATTLE_STAGE_MIN_WIDTH, 0.0)
-	battle_stage_region.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	battle_stage_region.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	battle_stage_region.clip_contents = true
-	main_split.add_child(battle_stage_region)
-
-	_battle_stage = BattleStage3D.new()
-	_battle_stage.name = "BattleStage3D"
-	battle_stage_region.add_child(_battle_stage)
-	_battle_stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-
 	var stage_hud_overlay := Control.new()
 	stage_hud_overlay.name = "BattleStageHudOverlay"
+	stage_hud_overlay.custom_minimum_size = Vector2(BATTLE_STAGE_MIN_WIDTH, 0.0)
+	stage_hud_overlay.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage_hud_overlay.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	stage_hud_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stage_hud_overlay.z_index = 20
-	battle_stage_region.add_child(stage_hud_overlay)
-	stage_hud_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_split.add_child(stage_hud_overlay)
 
 	var center_overlay := VBoxContainer.new()
 	center_overlay.name = "BattleStageCenterOverlay"
@@ -403,9 +393,10 @@ func _build_ui() -> void:
 	stage_hud_overlay.add_child(center_overlay)
 	center_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center_overlay.offset_left = 14.0
-	center_overlay.offset_top = 12.0
+	center_overlay.offset_top = -8.0
 	center_overlay.offset_right = -14.0
 	center_overlay.offset_bottom = -12.0
+	center_overlay.alignment = BoxContainer.ALIGNMENT_BEGIN
 
 	var center_panel := _create_section(center_overlay, Localization.get_text("battle.section.battle", "Battle"), false, false)
 	center_panel.name = "BattleInfoSection"
@@ -456,12 +447,25 @@ func _build_ui() -> void:
 	_battle_info_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	center_panel.add_child(_battle_info_label)
 
-	_build_stage_unit_overlays(stage_hud_overlay)
+	_slow_mode_label = Label.new()
+	_slow_mode_label.name = "BattleTransientStatusLabel"
+	_slow_mode_label.visible = false
+	_slow_mode_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_slow_mode_label.add_theme_color_override("font_color", Color(1.0, 0.80, 0.30, 1.0))
+	center_panel.add_child(_slow_mode_label)
+
+	_result_label = Label.new()
+	_result_label.name = "BattleResultLabel"
+	_result_label.visible = false
+	_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	center_panel.add_child(_result_label)
+
 	_build_stage_card_overlays(stage_hud_overlay)
 
 	var bottom_split := HBoxContainer.new()
 	bottom_split.name = "BottomSplit"
 	bottom_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom_split.size_flags_vertical = Control.SIZE_SHRINK_END
 	bottom_split.custom_minimum_size = Vector2(0.0, BOTTOM_PANEL_MIN_HEIGHT)
 	bottom_split.add_theme_constant_override("separation", 16)
 	outer.add_child(bottom_split)
@@ -521,38 +525,6 @@ func _on_analysis_replay_requested() -> void:
 func _on_online_replay_ready(_path: String) -> void:
 	if _analysis_panel != null and _analysis_panel.visible:
 		_analysis_panel.set_replay_available(true)
-
-
-func _build_stage_unit_overlays(parent: Control) -> void:
-	var enemy_box: VBoxContainer = _create_stage_overlay_frame(
-		parent,
-		"EnemyStageHudFrame",
-		BATTLE_OVERLAY_HUD_WIDTH,
-		BATTLE_OVERLAY_HUD_HEIGHT,
-		false,
-		false,
-		Color(0.92, 0.22, 0.18, 0.92)
-	)
-	_enemy_panel = UnitPanel.new()
-	_enemy_panel.name = "EnemyUnitPanel"
-	_enemy_panel.set_stage_overlay_mode(true)
-	enemy_box.add_child(_enemy_panel)
-	_enemy_panel.set_title(Localization.get_text("battle.enemy_status", "Enemy Status"))
-
-	var player_box: VBoxContainer = _create_stage_overlay_frame(
-		parent,
-		"PlayerStageHudFrame",
-		BATTLE_OVERLAY_HUD_WIDTH,
-		BATTLE_OVERLAY_HUD_HEIGHT,
-		true,
-		false,
-		Color(0.18, 0.68, 1.0, 0.92)
-	)
-	_player_panel = UnitPanel.new()
-	_player_panel.name = "PlayerUnitPanel"
-	_player_panel.set_stage_overlay_mode(true)
-	player_box.add_child(_player_panel)
-	_player_panel.set_title(Localization.get_text("battle.player_status", "Player Status"))
 
 
 func _build_stage_card_overlays(parent: Control) -> void:
@@ -909,23 +881,18 @@ func _refresh_ui(time_scale: float) -> void:
 	if battle_state == null:
 		return
 
-	if _lan_mode:
-		if NetworkManager.is_local_match_waiting_for_reconnect():
-			_slow_mode_label.text = Localization.get_text("lan.battle.reconnecting", "Connection interrupted - battle paused")
-		elif _spectator_mode:
-			_slow_mode_label.text = Localization.get_text("online.battle.spectating", "SPECTATING")
-		else:
-			var ping_key: String = "online.battle.ping" if NetworkManager.is_online_session() else "lan.battle.ping"
-			var ping_fallback: String = "ONLINE | Ping {ping} ms" if NetworkManager.is_online_session() else "LAN | Ping {ping} ms"
-			_slow_mode_label.text = Localization.get_textf(ping_key, ping_fallback, {
-				"ping": NetworkManager.get_connection_ping_ms(),
-			})
-	elif time_scale < 1.0:
+	_slow_mode_label.visible = false
+	if _lan_mode and NetworkManager.is_local_match_waiting_for_reconnect():
+		_slow_mode_label.text = Localization.get_text("lan.battle.reconnecting", "Connection interrupted - battle paused")
+		_slow_mode_label.visible = true
+	elif _lan_mode and _spectator_mode:
+		_slow_mode_label.text = Localization.get_text("online.battle.spectating", "SPECTATING")
+		_slow_mode_label.visible = true
+	elif not _lan_mode and time_scale < 1.0:
 		_slow_mode_label.text = Localization.get_textf("battle.slow_mode_rate", "Slow Mode {rate}%", {
 			"rate": int(round(time_scale * 100.0)),
 		})
-	else:
-		_slow_mode_label.text = Localization.get_text("battle.slow_mode_hold", "Hold Space for Slow Mode")
+		_slow_mode_label.visible = true
 	if _start_battle_button != null:
 		var can_start: bool = not _engine.has_battle_started() and battle_state.winner == ""
 		if _lan_mode:
@@ -990,8 +957,7 @@ func _refresh_ui(time_scale: float) -> void:
 			_run_info_banner.refresh_run(_local_run, local_unit.hp, local_unit.max_hp, "ONLINE" if NetworkManager.is_online_session() else "LAN")
 		else:
 			_run_info_banner.refresh(local_unit.hp, local_unit.max_hp)
-	_enemy_panel.refresh_unit(opponent_unit)
-	_player_panel.refresh_unit(local_unit, preview_slot_cost)
+	_battle_stage.refresh_unit_status(local_unit, opponent_unit, preview_slot_cost)
 	_enemy_cards_panel.refresh_cards(opponent_unit, _opponent_run if _lan_mode else null, "player" if _lan_mode else "enemy")
 	_card_hand_panel.refresh_cards(local_unit, _local_run if _lan_mode else Game.current_run, "player")
 	var preview_entry: TimelineEntry = _build_hover_preview_entry(battle_state, preview_runtime_state, preview_card_def)

@@ -75,6 +75,10 @@ func _process_battle(scene: Node) -> void:
 	_input_interval = 0.1
 
 	var battle_screen: Control = scene as Control
+	var analysis_panel: BattleResultAnalysisPanel = battle_screen.find_child("BattleResultAnalysisPanel", true, false) as BattleResultAnalysisPanel
+	if analysis_panel != null and analysis_panel.visible:
+		battle_screen.call("_on_analysis_continue_requested")
+		return
 	var engine: RealtimeBattleEngine = battle_screen.get("_engine") as RealtimeBattleEngine
 	if engine == null or engine.battle_state == null:
 		return

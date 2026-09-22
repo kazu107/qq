@@ -51,6 +51,8 @@ var _camera: Camera3D
 var _floating_text_layer: Control
 var _player_actor: BattleActor3D
 var _enemy_actor: BattleActor3D
+var _player_status: BattleUnitStatus3D
+var _enemy_status: BattleUnitStatus3D
 var _projectile_mesh: SphereMesh
 var _impact_mesh: SphereMesh
 var _camera_home_position: Vector3 = Vector3.ZERO
@@ -202,6 +204,21 @@ func get_combat_actor(unit_id: String) -> BattleActor3D:
 	return _actor_for_unit_id(unit_id)
 
 
+func get_player_status_model() -> BattleUnitStatus3D:
+	return _player_status
+
+
+func get_enemy_status_model() -> BattleUnitStatus3D:
+	return _enemy_status
+
+
+func refresh_unit_status(local_unit: UnitState, opponent_unit: UnitState, preview_slot_cost: int = 0) -> void:
+	if _player_status != null:
+		_player_status.refresh_unit(local_unit, preview_slot_cost)
+	if _enemy_status != null:
+		_enemy_status.refresh_unit(opponent_unit)
+
+
 func set_camera_preset(preset_id: String, focus_unit_id: String = "") -> void:
 	if _camera == null:
 		return
@@ -261,6 +278,7 @@ func _build_stage() -> void:
 	_build_arena()
 	_build_actors()
 	_build_camera()
+	_build_unit_status_models()
 	_build_floating_text_layer()
 
 
@@ -639,6 +657,20 @@ func _build_camera() -> void:
 	_camera.look_at(Vector3(0.0, 0.78, -0.42), Vector3.UP)
 	_camera.current = true
 	_camera_home_position = _camera.position
+
+
+func _build_unit_status_models() -> void:
+	_enemy_status = BattleUnitStatus3D.new()
+	_enemy_status.name = "EnemyUnitStatus3D"
+	_enemy_status.configure(false)
+	_enemy_status.position = Vector3(-3.95, 3.22, -0.72)
+	_world_root.add_child(_enemy_status)
+
+	_player_status = BattleUnitStatus3D.new()
+	_player_status.name = "PlayerUnitStatus3D"
+	_player_status.configure(true)
+	_player_status.position = Vector3(3.95, 3.22, 0.42)
+	_world_root.add_child(_player_status)
 
 
 func _emit_event_combat_text(event_data: Dictionary) -> void:
