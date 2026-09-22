@@ -1,9 +1,23 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.26.0",
+  "current_version": "QQ-0.26.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.26.1",
+      "date": "2026-09-22",
+      "title_ja": "3D戦況パネルの形を調整",
+      "title_en": "Matched the original battle panel layout",
+      "changes_ja": [
+        "3D戦況パネルの大きさ、比率、角の形、細い枠線を元の戦況パネルに合わせました。",
+        "タイトルを左上、開始ボタンを中央、その下に戦闘情報と疲労表示を置く元の文字配置へ戻しました。"
+      ],
+      "changes_en": [
+        "Matched the 3D battle sign size, proportions, rounded corners and thin border to the original panel.",
+        "Restored the original text layout with a top-left title, centered start button, battle information and fatigue line."
+      ]
+    },
     {
       "version": "QQ-0.26.0",
       "date": "2026-09-22",

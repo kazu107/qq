@@ -100,7 +100,9 @@ func _run() -> void:
 	or battle_info_title.font != UiTheme.GAME_FONT \
 	or player_name_label.font != UiTheme.GAME_FONT \
 	or battle_info_sign.position.z > -3.8 \
-	or battle_info_sign.get_board_size().x < 3.5:
+	or battle_info_sign.get_board_size().x < 2.9 \
+	or battle_info_sign.get_board_size().x > 3.2 \
+	or not is_equal_approx(battle_info_sign.get_board_size().x / battle_info_sign.get_board_size().y, 3.05 / 2.10):
 		_fail("3D battle stage smoke failed: battle information should use a freestanding sign beyond the grid")
 		return
 	if player_actor.get_skeleton() == null \
