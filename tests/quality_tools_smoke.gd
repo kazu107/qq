@@ -92,7 +92,8 @@ func _run() -> void:
 	if tutorial_scene != null:
 		var tutorial: Node = tutorial_scene.instantiate()
 		add_child(tutorial)
-		_check(tutorial.get_node_or_null("BattleTutorialButton") == null, "Tutorial scene instantiated invalid hub state")
+		_check(int(tutorial.call("get_tutorial_count")) >= 1, "Tutorial catalog has no selectable lessons")
+		_check(tutorial.find_child("TutorialStart_battle_basics", true, false) != null, "Battle Basics tutorial entry is missing")
 		tutorial.queue_free()
 	for id: String in ["guardian", "boss_timekeeper", "boss_paradox_core", "boss_axiom_breaker", "boss_eternity_zero"]:
 		var profile: Dictionary = Database.get_battle_visual_profile(id)

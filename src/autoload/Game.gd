@@ -47,6 +47,7 @@ var last_reward_bundle: Dictionary = {}
 var last_replay_export_path: String = ""
 var current_screen_hint: String = "hub"
 var run_setup_mode: String = RUN_SETUP_MODE_NORMAL
+var active_battle_tutorial_id: String = ""
 var _map_generator: MapGenerator = MapGenerator.new()
 var _reward_resolver: RewardResolver = RewardResolver.new()
 var _shop_service: ShopService = ShopService.new()
@@ -208,6 +209,21 @@ func get_unlocked_starters() -> Array[Dictionary]:
 func prepare_run_setup(mode: String = RUN_SETUP_MODE_NORMAL) -> void:
 	run_setup_mode = RUN_SETUP_MODE_ARENA if mode == RUN_SETUP_MODE_ARENA else RUN_SETUP_MODE_NORMAL
 	current_screen_hint = "run_setup"
+
+
+func begin_battle_tutorial(tutorial_id: String) -> bool:
+	if tutorial_id == "" or NetworkManager.is_session_connected():
+		return false
+	active_battle_tutorial_id = tutorial_id
+	return true
+
+
+func clear_battle_tutorial() -> void:
+	active_battle_tutorial_id = ""
+
+
+func is_battle_tutorial_active() -> bool:
+	return active_battle_tutorial_id != ""
 
 
 func get_run_setup_mode() -> String:

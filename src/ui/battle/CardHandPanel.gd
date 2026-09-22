@@ -26,6 +26,13 @@ func set_tile_size(size: Vector2) -> void:
 		button.set_tile_size(size)
 
 
+func get_button_for_runtime_id(runtime_id: String) -> CardButton:
+	for button in _buttons:
+		if button.visible and button.runtime_id == runtime_id:
+			return button
+	return null
+
+
 func refresh_cards(unit: UnitState, run_state: RunState = null, _owner_side: String = "") -> void:
 	var runtime_states: Array[CardRuntimeState] = unit.get_sorted_runtime_states()
 	_ensure_button_count(runtime_states.size())

@@ -127,7 +127,15 @@ func go_to_replay_viewer() -> void:
 func go_to_battle_tutorial() -> void:
 	if NetworkManager.is_session_connected():
 		return
+	Game.clear_battle_tutorial()
 	_change_scene(BATTLE_TUTORIAL_SCENE)
+
+
+func start_battle_tutorial(tutorial_id: String) -> void:
+	if not Game.begin_battle_tutorial(tutorial_id):
+		AudioManager.play_sfx("ui_error")
+		return
+	_change_scene(BATTLE_SCENE)
 
 
 func go_to_sfx_lab() -> void:

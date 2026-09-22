@@ -8,6 +8,22 @@ const BATTLE_OVERLAY_CARD_WIDTH: float = 530.0
 const BATTLE_OVERLAY_CARD_HEIGHT: float = 216.0
 const TIMELINE_PREVIEW_INSTANCE_ID: int = 999999
 const LAN_SNAPSHOT_INTERVAL: float = 1.0 / 12.0
+const TUTORIAL_CARDS: Array[String] = ["quick_slash", "guard", "delay_step"]
+const TUTORIAL_INTRO: int = 0
+const TUTORIAL_QUEUE_ATTACK: int = 1
+const TUTORIAL_TIMELINE_ATTACK: int = 2
+const TUTORIAL_WAIT_ATTACK: int = 3
+const TUTORIAL_ATTACK_RESULT: int = 4
+const TUTORIAL_QUEUE_GUARD: int = 5
+const TUTORIAL_TIMELINE_GUARD: int = 6
+const TUTORIAL_WAIT_GUARD: int = 7
+const TUTORIAL_GUARD_RESULT: int = 8
+const TUTORIAL_QUEUE_DELAY: int = 9
+const TUTORIAL_TIMELINE_DELAY: int = 10
+const TUTORIAL_WAIT_DELAY: int = 11
+const TUTORIAL_DELAY_RESULT: int = 12
+const TUTORIAL_WAIT_FATIGUE: int = 13
+const TUTORIAL_COMPLETE: int = 14
 
 var _engine := RealtimeBattleEngine.new()
 var _enemy_panel: BattleUnitStatus3D
@@ -53,11 +69,21 @@ var _round_results_continue: Button
 var _round_results_acknowledged: bool = false
 var _analysis_panel: BattleResultAnalysisPanel
 var _analysis_returns_to_round_results: bool = false
+var _tutorial_mode: bool = false
+var _tutorial_step: int = TUTORIAL_INTRO
+var _tutorial_time_paused: bool = false
+var _tutorial_event_cursor: int = 0
+var _tutorial_overlay: BattleTutorialOverlay
+var _tutorial_target_kind: String = ""
 
 
 func _ready() -> void:
 	_build_ui()
 	_engine.set_defer_resolution_audio(true)
+	_tutorial_mode = Game.is_battle_tutorial_active()
+	if _tutorial_mode:
+		_setup_tutorial_battle()
+		return
 	_lan_mode = NetworkManager.has_active_match() or NetworkManager.is_local_waiting_for_round_results()
 	if _lan_mode:
 		_connect_lan_signals()
@@ -95,6 +121,9 @@ func _exit_tree() -> void:
 func _process(delta: float) -> void:
 	if _engine.battle_state == null:
 		return
+	if _tutorial_mode:
+		_process_tutorial_battle(delta)
+		return
 	if _lan_mode:
 		_process_lan_battle(delta)
 		return
@@ -114,6 +143,294 @@ func _process(delta: float) -> void:
 		_transition_timer -= delta
 		if _transition_timer <= 0.0:
 			_advance_after_battle()
+
+
+func _setup_tutorial_battle() -> void:
+	var starter: Dictionary = Database.get_starter("balanced")
+	if starter.is_empty() or Game.active_battle_tutorial_id != "battle_basics":
+		Game.clear_battle_tutorial()
+		SceneRouter.go_to_battle_tutorial()
+		return
+	_local_side = "player"
+	_local_run = RunState.from_starter(starter, 4242)
+	_local_run.player_cards = TUTORIAL_CARDS.duplicate()
+	_local_run.equipped_cards = TUTORIAL_CARDS.duplicate()
+	_engine.setup(_local_run, "scout")
+	_processed_vfx_event_count = 0
+	_tutorial_event_cursor = 0
+	_configure_battle_stage()
+	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
+	_build_tutorial_overlay()
+	set_process(true)
+	_refresh_ui(1.0)
+	call_deferred("_set_tutorial_step", TUTORIAL_INTRO)
+
+
+func _process_tutorial_battle(delta: float) -> void:
+	if not _tutorial_time_paused:
+		_engine.update(delta)
+	_refresh_ui(1.0)
+	_scan_tutorial_progress()
+	_refresh_tutorial_target()
+
+
+func _build_tutorial_overlay() -> void:
+	_tutorial_overlay = BattleTutorialOverlay.new()
+	_tutorial_overlay.continued.connect(_on_tutorial_continued)
+	_tutorial_overlay.exit_requested.connect(_exit_tutorial_to_list)
+	add_child(_tutorial_overlay)
+
+
+func _on_tutorial_continued() -> void:
+	match _tutorial_step:
+		TUTORIAL_INTRO:
+			_set_tutorial_step(TUTORIAL_QUEUE_ATTACK)
+		TUTORIAL_TIMELINE_ATTACK:
+			_set_tutorial_step(TUTORIAL_WAIT_ATTACK)
+		TUTORIAL_ATTACK_RESULT:
+			_set_tutorial_step(TUTORIAL_QUEUE_GUARD)
+		TUTORIAL_TIMELINE_GUARD:
+			_set_tutorial_step(TUTORIAL_WAIT_GUARD)
+		TUTORIAL_GUARD_RESULT:
+			_set_tutorial_step(TUTORIAL_QUEUE_DELAY)
+		TUTORIAL_TIMELINE_DELAY:
+			_set_tutorial_step(TUTORIAL_WAIT_DELAY)
+		TUTORIAL_DELAY_RESULT:
+			_engine.debug_schedule_fatigue()
+			_set_tutorial_step(TUTORIAL_WAIT_FATIGUE)
+		TUTORIAL_COMPLETE:
+			_exit_tutorial_to_list()
+
+
+func _set_tutorial_step(step: int) -> void:
+	_tutorial_step = step
+	_tutorial_time_paused = step not in [
+		TUTORIAL_WAIT_ATTACK,
+		TUTORIAL_WAIT_GUARD,
+		TUTORIAL_WAIT_DELAY,
+		TUTORIAL_WAIT_FATIGUE,
+	]
+	_show_tutorial_step()
+	_refresh_ui(1.0)
+
+
+func _show_tutorial_step() -> void:
+	if _tutorial_overlay == null:
+		return
+	var progress: String = ""
+	var title: String = ""
+	var body: String = ""
+	var button: String = ""
+	var waiting: String = ""
+	match _tutorial_step:
+		TUTORIAL_INTRO:
+			progress = _tutorial_progress_text(1)
+			title = Localization.get_text("tutorial.guide.intro_title", "The real battle screen")
+			body = Localization.get_text("tutorial.guide.intro_body", "This tutorial uses the same screen and rules as a normal battle. Time pauses while an important control is being explained.")
+			button = Localization.get_text("tutorial.guide.next", "Next")
+			_tutorial_target_kind = "start"
+		TUTORIAL_QUEUE_ATTACK:
+			progress = _tutorial_progress_text(2)
+			title = Localization.get_text("tutorial.guide.queue_attack_title", "Queue an attack card")
+			body = Localization.get_text("tutorial.guide.queue_attack_body", "Select Quick Slash. The battle remains paused until the card is placed on the timeline.")
+			waiting = Localization.get_text("tutorial.guide.wait_card", "Waiting for the highlighted card...")
+			_tutorial_target_kind = "card:quick_slash"
+		TUTORIAL_TIMELINE_ATTACK:
+			progress = _tutorial_progress_text(2)
+			title = Localization.get_text("tutorial.guide.timeline_title", "Read the timeline")
+			body = Localization.get_text("tutorial.guide.timeline_body", "Queued cards move from right to left. They activate at 0 seconds, and shorter cast times resolve sooner.")
+			button = Localization.get_text("tutorial.guide.resume", "Resume time")
+			_tutorial_target_kind = "timeline"
+		TUTORIAL_WAIT_ATTACK:
+			progress = _tutorial_progress_text(2)
+			title = Localization.get_text("tutorial.guide.resolving_title", "Watch it resolve")
+			body = Localization.get_text("tutorial.guide.resolving_body", "Time is moving now. Watch the card slide to 0 seconds and activate.")
+			waiting = Localization.get_text("tutorial.guide.wait_resolution", "Waiting for activation...")
+			_tutorial_target_kind = "timeline"
+		TUTORIAL_ATTACK_RESULT:
+			progress = _tutorial_progress_text(3)
+			title = Localization.get_text("tutorial.guide.damage_title", "Damage and recast")
+			body = Localization.get_text("tutorial.guide.damage_body", "Damage appears on the 3D fighter, and the enemy HP plate updates. The used card cannot be queued again until its recast finishes.")
+			button = Localization.get_text("tutorial.guide.next", "Next")
+			_tutorial_target_kind = "enemy_status"
+		TUTORIAL_QUEUE_GUARD:
+			progress = _tutorial_progress_text(4)
+			title = Localization.get_text("tutorial.guide.queue_guard_title", "Prepare a shield")
+			body = Localization.get_text("tutorial.guide.queue_guard_body", "Select Guard. Shield absorbs damage before HP and is shown beside the HP bar.")
+			waiting = Localization.get_text("tutorial.guide.wait_card", "Waiting for the highlighted card...")
+			_tutorial_target_kind = "card:guard"
+		TUTORIAL_TIMELINE_GUARD:
+			progress = _tutorial_progress_text(4)
+			title = Localization.get_text("tutorial.guide.guard_timeline_title", "Shield cards also cast")
+			body = Localization.get_text("tutorial.guide.guard_timeline_body", "Defensive cards use the same timeline. Resume time and let Guard activate.")
+			button = Localization.get_text("tutorial.guide.resume", "Resume time")
+			_tutorial_target_kind = "timeline"
+		TUTORIAL_WAIT_GUARD:
+			progress = _tutorial_progress_text(4)
+			title = Localization.get_text("tutorial.guide.resolving_title", "Watch it resolve")
+			body = Localization.get_text("tutorial.guide.guard_wait_body", "Guard is casting. The guide pauses again as soon as it activates.")
+			waiting = Localization.get_text("tutorial.guide.wait_resolution", "Waiting for activation...")
+			_tutorial_target_kind = "timeline"
+		TUTORIAL_GUARD_RESULT:
+			progress = _tutorial_progress_text(5)
+			title = Localization.get_text("tutorial.guide.shield_title", "Check your shield")
+			body = Localization.get_text("tutorial.guide.shield_body", "Your shield value is now visible on the 3D status plate. Shield slowly decays during battle, so timing matters.")
+			button = Localization.get_text("tutorial.guide.next", "Next")
+			_tutorial_target_kind = "player_status"
+		TUTORIAL_QUEUE_DELAY:
+			progress = _tutorial_progress_text(6)
+			title = Localization.get_text("tutorial.guide.queue_delay_title", "Control enemy timing")
+			body = Localization.get_text("tutorial.guide.queue_delay_body", "Select Delay Step. Timing-control effects push an enemy card farther to the right.")
+			waiting = Localization.get_text("tutorial.guide.wait_card", "Waiting for the highlighted card...")
+			_tutorial_target_kind = "card:delay_step"
+		TUTORIAL_TIMELINE_DELAY:
+			progress = _tutorial_progress_text(6)
+			title = Localization.get_text("tutorial.guide.delay_timeline_title", "Watch the enemy card move")
+			body = Localization.get_text("tutorial.guide.delay_timeline_body", "When Delay Step activates, its target slides smoothly to its new later activation time.")
+			button = Localization.get_text("tutorial.guide.resume", "Resume time")
+			_tutorial_target_kind = "timeline"
+		TUTORIAL_WAIT_DELAY:
+			progress = _tutorial_progress_text(6)
+			title = Localization.get_text("tutorial.guide.resolving_title", "Watch it resolve")
+			body = Localization.get_text("tutorial.guide.delay_wait_body", "Time is moving while Delay Step approaches 0 seconds.")
+			waiting = Localization.get_text("tutorial.guide.wait_resolution", "Waiting for activation...")
+			_tutorial_target_kind = "timeline"
+		TUTORIAL_DELAY_RESULT:
+			progress = _tutorial_progress_text(7)
+			title = Localization.get_text("tutorial.guide.delay_result_title", "The timeline was changed")
+			body = Localization.get_text("tutorial.guide.delay_result_body", "Control cards create time to recover or prepare another action. Next, an environmental card will be added.")
+			button = Localization.get_text("tutorial.guide.show_fatigue", "Show fatigue")
+			_tutorial_target_kind = "timeline"
+		TUTORIAL_WAIT_FATIGUE:
+			progress = _tutorial_progress_text(8)
+			title = Localization.get_text("tutorial.guide.fatigue_wait_title", "An environmental card is approaching")
+			body = Localization.get_text("tutorial.guide.fatigue_wait_body", "Fatigue is queued by the battlefield, not either fighter. It prevents battles from continuing forever.")
+			waiting = Localization.get_text("tutorial.guide.wait_fatigue", "Waiting for fatigue to enter the timeline...")
+			_tutorial_target_kind = "timeline"
+		TUTORIAL_COMPLETE:
+			progress = _tutorial_progress_text(8)
+			title = Localization.get_text("tutorial.guide.complete_title", "Battle basics complete")
+			body = Localization.get_text("tutorial.guide.complete_body", "You queued attack, shield and delay cards, read their cast order, and found the neutral fatigue card. You can now use the same controls in every battle mode.")
+			button = Localization.get_text("tutorial.guide.return_list", "Return to tutorials")
+			_tutorial_target_kind = "timeline"
+	_tutorial_overlay.show_step(progress, title, body, _get_tutorial_target_rect(), button, waiting)
+
+
+func _tutorial_progress_text(current: int) -> String:
+	return Localization.get_textf("tutorial.guide.progress", "LESSON {current}/{total}", {
+		"current": current,
+		"total": 8,
+	})
+
+
+func _scan_tutorial_progress() -> void:
+	var battle_state: BattleState = _engine.battle_state
+	if battle_state == null:
+		return
+	var events: Array[Dictionary] = battle_state.battle_events
+	for event_index in range(_tutorial_event_cursor, events.size()):
+		var event_data: Dictionary = events[event_index]
+		if String(event_data.get("event_type", "")) != "resolve_card":
+			continue
+		var card_id: String = String(event_data.get("card_id", ""))
+		if _tutorial_step == TUTORIAL_WAIT_ATTACK and card_id == "quick_slash":
+			_set_tutorial_step(TUTORIAL_ATTACK_RESULT)
+		elif _tutorial_step == TUTORIAL_WAIT_GUARD and card_id == "guard":
+			_set_tutorial_step(TUTORIAL_GUARD_RESULT)
+		elif _tutorial_step == TUTORIAL_WAIT_DELAY and card_id == "delay_step":
+			_set_tutorial_step(TUTORIAL_DELAY_RESULT)
+	_tutorial_event_cursor = events.size()
+
+	if _tutorial_step == TUTORIAL_WAIT_FATIGUE:
+		for entry: TimelineEntry in battle_state.timeline:
+			if entry.owner_side == FatigueRules.SIDE:
+				_set_tutorial_step(TUTORIAL_COMPLETE)
+				break
+	if battle_state.winner != "" and _tutorial_step != TUTORIAL_COMPLETE:
+		_set_tutorial_step(TUTORIAL_COMPLETE)
+
+
+func _expected_tutorial_card_id() -> String:
+	match _tutorial_step:
+		TUTORIAL_QUEUE_ATTACK:
+			return "quick_slash"
+		TUTORIAL_QUEUE_GUARD:
+			return "guard"
+		TUTORIAL_QUEUE_DELAY:
+			return "delay_step"
+	return ""
+
+
+func _on_tutorial_card_committed(card_id: String) -> void:
+	match card_id:
+		"quick_slash":
+			_set_tutorial_step(TUTORIAL_TIMELINE_ATTACK)
+		"guard":
+			_set_tutorial_step(TUTORIAL_TIMELINE_GUARD)
+		"delay_step":
+			_set_tutorial_step(TUTORIAL_TIMELINE_DELAY)
+
+
+func _refresh_tutorial_target() -> void:
+	if _tutorial_overlay != null:
+		_tutorial_overlay.set_target_rect(_get_tutorial_target_rect())
+
+
+func _get_tutorial_target_rect() -> Rect2:
+	if _tutorial_target_kind == "start":
+		return _control_target_rect(_start_battle_button)
+	if _tutorial_target_kind == "timeline":
+		return _control_target_rect(_timeline_panel)
+	if _tutorial_target_kind.begins_with("card:"):
+		var card_id: String = _tutorial_target_kind.trim_prefix("card:")
+		var runtime_id: String = _find_runtime_id_for_card(card_id)
+		return _control_target_rect(_card_hand_panel.get_button_for_runtime_id(runtime_id))
+	if _tutorial_target_kind == "player_status" and _player_panel != null:
+		return _world_target_rect(_player_panel.global_position, Vector2(300.0, 150.0))
+	if _tutorial_target_kind == "enemy_status" and _enemy_panel != null:
+		return _world_target_rect(_enemy_panel.global_position, Vector2(300.0, 150.0))
+	return Rect2(size * 0.5 - Vector2(100.0, 50.0), Vector2(200.0, 100.0))
+
+
+func _control_target_rect(control: Control) -> Rect2:
+	if control == null or not is_instance_valid(control):
+		return Rect2()
+	return Rect2(control.global_position - global_position, control.size)
+
+
+func _world_target_rect(world_position: Vector3, target_size: Vector2) -> Rect2:
+	var center: Vector2 = _battle_stage.project_world_position(world_position)
+	return Rect2(center - target_size * 0.5, target_size)
+
+
+func _find_runtime_id_for_card(card_id: String) -> String:
+	if _engine.battle_state == null:
+		return ""
+	for runtime_state: CardRuntimeState in _engine.battle_state.player.card_runtime_states:
+		if runtime_state.card_id == card_id:
+			return runtime_state.runtime_id
+	return ""
+
+
+func _exit_tutorial_to_list() -> void:
+	Game.clear_battle_tutorial()
+	SceneRouter.go_to_battle_tutorial()
+
+
+func is_tutorial_mode() -> bool:
+	return _tutorial_mode
+
+
+func get_tutorial_step() -> int:
+	return _tutorial_step
+
+
+func is_tutorial_time_paused() -> bool:
+	return _tutorial_time_paused
+
+
+func debug_tutorial_continue() -> void:
+	_on_tutorial_continued()
 
 
 func _setup_lan_battle() -> bool:
@@ -965,11 +1282,11 @@ func _refresh_ui(time_scale: float) -> void:
 		else:
 			_battle_ready_count_label.visible = false
 			_start_battle_button.visible = can_start
-			_start_battle_button.disabled = not can_start
+			_start_battle_button.disabled = not can_start or _tutorial_mode
 			if _countdown_label != null:
 				_countdown_label.visible = false
 	if _reserved_seat_toggle != null:
-		var toggle_run: RunState = _local_run if _lan_mode else Game.current_run
+		var toggle_run: RunState = _get_active_run()
 		_reserved_seat_toggle.visible = not _spectator_mode and toggle_run != null and toggle_run.relics.has("reserved_seat_tag")
 		if _reserved_seat_toggle.visible:
 			_reserved_seat_toggle.set_pressed_no_signal(_engine.is_relic_enabled(_local_side, "reserved_seat_tag"))
@@ -986,16 +1303,18 @@ func _refresh_ui(time_scale: float) -> void:
 	if _run_info_banner != null:
 		if _lan_mode:
 			_run_info_banner.refresh_run(_local_run, local_unit.hp, local_unit.max_hp, "ONLINE" if NetworkManager.is_online_session() else "LAN")
+		elif _tutorial_mode:
+			_run_info_banner.refresh_run(_local_run, local_unit.hp, local_unit.max_hp, Localization.get_text("tutorial.banner", "TUTORIAL"))
 		else:
 			_run_info_banner.refresh(local_unit.hp, local_unit.max_hp)
 	_battle_stage.refresh_unit_status(local_unit, opponent_unit, preview_slot_cost)
 	_enemy_cards_panel.refresh_cards(opponent_unit, _opponent_run if _lan_mode else null, "player" if _lan_mode else "enemy")
-	_card_hand_panel.refresh_cards(local_unit, _local_run if _lan_mode else Game.current_run, "player")
+	_card_hand_panel.refresh_cards(local_unit, _get_active_run(), "player")
 	var preview_entry: TimelineEntry = _build_hover_preview_entry(battle_state, preview_runtime_state, preview_card_def)
 	_timeline_panel.refresh_timeline(
 		battle_state.timeline,
 		battle_state.battle_time,
-		_local_run if _lan_mode else Game.current_run,
+		_get_active_run(),
 		preview_entry,
 		preview_card_def,
 		_local_side,
@@ -1011,6 +1330,12 @@ func _refresh_ui(time_scale: float) -> void:
 			network_title,
 			Localization.get_textf("battle.info.time", "Battle Time {value}s", {"value": "%.1f" % battle_state.battle_time}),
 			Localization.get_textf("lan.battle.opponent", "Opponent: {value}", {"value": opponent_unit.display_name}),
+		])
+	elif _tutorial_mode:
+		battle_info_text = "\n".join([
+			Localization.get_text("tutorial.banner", "TUTORIAL"),
+			Localization.get_textf("battle.info.time", "Battle Time {value}s", {"value": "%.1f" % battle_state.battle_time}),
+			Localization.get_textf("battle.info.current_enemy", "Current Enemy: {value}", {"value": battle_state.enemy.display_name}),
 		])
 	else:
 		var total_steps: int = max(1, Game.get_map_step_count())
@@ -1095,6 +1420,9 @@ func _configure_battle_stage() -> void:
 			local_visual_id = _local_run.starter_id
 		if _opponent_run != null:
 			opponent_visual_id = _opponent_run.starter_id
+	elif _tutorial_mode and _local_run != null:
+		local_visual_id = _local_run.starter_id
+		opponent_visual_id = "scout"
 	elif Game.current_run != null:
 		local_visual_id = Game.current_run.starter_id
 		opponent_visual_id = Game.pending_enemy_id
@@ -1115,6 +1443,14 @@ func _on_card_requested(runtime_id: String) -> void:
 	if _spectator_mode:
 		AudioManager.play_sfx("ui_error")
 		return
+	var tutorial_card_id: String = ""
+	if _tutorial_mode:
+		var expected_card_id: String = _expected_tutorial_card_id()
+		var tutorial_runtime: CardRuntimeState = _engine.battle_state.player.get_runtime_state(runtime_id)
+		tutorial_card_id = tutorial_runtime.card_id if tutorial_runtime != null else ""
+		if expected_card_id == "" or tutorial_card_id != expected_card_id:
+			AudioManager.play_sfx("ui_error")
+			return
 	var requested: bool = false
 	if _lan_mode and not NetworkManager.has_battle_countdown_finished():
 		AudioManager.play_sfx("ui_error")
@@ -1132,6 +1468,8 @@ func _on_card_requested(runtime_id: String) -> void:
 			_publish_lan_snapshot(true)
 	if not requested:
 		AudioManager.play_sfx("ui_error")
+	elif _tutorial_mode:
+		_on_tutorial_card_committed(tutorial_card_id)
 	elif _hovered_player_runtime_id == runtime_id:
 		_hovered_player_runtime_id = ""
 	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
@@ -1139,6 +1477,9 @@ func _on_card_requested(runtime_id: String) -> void:
 
 func _on_start_battle_pressed() -> void:
 	if _spectator_mode:
+		return
+	if _tutorial_mode:
+		AudioManager.play_sfx("ui_error")
 		return
 	var started: bool
 	if _lan_mode:
@@ -1189,8 +1530,14 @@ func _get_hovered_player_runtime_state(battle_state: BattleState) -> CardRuntime
 	return battle_state.get_unit(_local_side).get_runtime_state(_hovered_player_runtime_id)
 
 
+func _get_active_run() -> RunState:
+	if _lan_mode or _tutorial_mode:
+		return _local_run
+	return Game.current_run
+
+
 func _get_hover_preview_card_def(runtime_state: CardRuntimeState) -> CardDef:
-	var run_state: RunState = _local_run if _lan_mode else Game.current_run
+	var run_state: RunState = _get_active_run()
 	if runtime_state == null or run_state == null:
 		return null
 	return CardUpgradeResolver.build_effective_card(runtime_state.card_id, run_state)
@@ -1243,7 +1590,7 @@ func _compute_timeline_horizon() -> float:
 	var max_cast_time: float = maxf(TimelinePanel.DEFAULT_TIMELINE_HORIZON, FatigueRules.CAST_TIME)
 	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(
 		_engine.battle_state.player,
-		NetworkManager.get_match_run("player") if _lan_mode else Game.current_run
+		_get_active_run()
 	))
 	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(
 		_engine.battle_state.enemy,
@@ -1271,6 +1618,9 @@ func _on_log_button_pressed() -> void:
 
 
 func _advance_after_battle() -> void:
+	if _tutorial_mode:
+		_exit_tutorial_to_list()
+		return
 	if _lan_mode:
 		if NetworkManager.has_active_match():
 			SceneRouter.go_to_battle()
