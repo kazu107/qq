@@ -8,6 +8,8 @@ const MAX_QUEUED_EVENTS: int = 32
 const GRASS_INSTANCE_COUNT: int = 112
 const ROCK_INSTANCE_COUNT: int = 18
 const FLOWER_INSTANCE_COUNT: int = 16
+const DISTANT_HILL_COUNT: int = 5
+const DISTANT_TREE_COUNT: int = 18
 
 const DAMAGE_COLOR := Color(1.0, 0.22, 0.12, 1.0)
 const SHIELD_COLOR := Color(0.18, 0.74, 1.0, 1.0)
@@ -305,15 +307,15 @@ func _build_environment() -> void:
 	world_environment.name = "BattleWorldEnvironment"
 	var environment := Environment.new()
 	var sky_material := ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color(0.012, 0.040, 0.072, 1.0)
-	sky_material.sky_horizon_color = Color(0.18, 0.29, 0.30, 1.0)
-	sky_material.ground_horizon_color = Color(0.15, 0.23, 0.18, 1.0)
-	sky_material.ground_bottom_color = Color(0.025, 0.055, 0.040, 1.0)
+	sky_material.sky_top_color = Color(0.070, 0.180, 0.245, 1.0)
+	sky_material.sky_horizon_color = Color(0.36, 0.48, 0.42, 1.0)
+	sky_material.ground_horizon_color = Color(0.23, 0.35, 0.24, 1.0)
+	sky_material.ground_bottom_color = Color(0.060, 0.130, 0.085, 1.0)
 	var battle_sky := Sky.new()
 	battle_sky.sky_material = sky_material
 	environment.background_mode = Environment.BG_SKY
 	environment.sky = battle_sky
-	environment.background_energy_multiplier = 0.68
+	environment.background_energy_multiplier = 0.88
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color(0.38, 0.51, 0.58, 1.0)
 	environment.ambient_light_energy = 0.64
@@ -364,6 +366,21 @@ func _build_arena() -> void:
 	var grass_material: StandardMaterial3D = _make_material(Color(0.16, 0.34, 0.10, 1.0), 0.0)
 	var rock_material: StandardMaterial3D = _make_material(Color(0.21, 0.25, 0.21, 1.0), 0.0)
 	var flower_material: StandardMaterial3D = _make_material(Color(1.0, 0.54, 0.16, 1.0), 0.16)
+	var distant_ground_material: StandardMaterial3D = _make_material(Color(0.075, 0.18, 0.085, 1.0), 0.0)
+	var hill_material: StandardMaterial3D = _make_material(Color(0.11, 0.23, 0.16, 1.0), 0.0)
+	var hill_light_material: StandardMaterial3D = _make_material(Color(0.15, 0.30, 0.18, 1.0), 0.0)
+	var distant_trunk_material: StandardMaterial3D = _make_material(Color(0.15, 0.085, 0.035, 1.0), 0.0)
+	var distant_leaf_material: StandardMaterial3D = _make_material(Color(0.08, 0.25, 0.15, 1.0), 0.0)
+
+	_build_distant_scenery(
+		distant_ground_material,
+		hill_material,
+		hill_light_material,
+		distant_trunk_material,
+		distant_leaf_material,
+		stone_material,
+		stone_dark_material
+	)
 
 	var terrain_mesh := BoxMesh.new()
 	terrain_mesh.size = Vector3(17.8, 0.42, 11.8)
@@ -509,7 +526,118 @@ func _build_arena() -> void:
 		"ruin_clusters": 2,
 		"barrels": 2,
 		"crates": prop_positions.size(),
+		"distant_hills": DISTANT_HILL_COUNT,
+		"distant_trees": DISTANT_TREE_COUNT,
+		"distant_ruins": 2,
 	}
+
+
+func _build_distant_scenery(
+	ground_material: Material,
+	hill_material: Material,
+	hill_light_material: Material,
+	trunk_material: Material,
+	leaf_material: Material,
+	stone_material: Material,
+	stone_dark_material: Material
+) -> void:
+	var world_ground_mesh: BoxMesh = BoxMesh.new()
+	world_ground_mesh.size = Vector3(42.0, 0.55, 38.0)
+	_add_mesh("BattleWorldGround", world_ground_mesh, Vector3(0.0, -0.66, -8.0), ground_material)
+
+	var hill_mesh: SphereMesh = SphereMesh.new()
+	hill_mesh.radius = 1.0
+	hill_mesh.height = 2.0
+	hill_mesh.radial_segments = 10
+	hill_mesh.rings = 5
+	var hill_transforms: Array[Transform3D] = []
+	var hill_positions: Array[Vector3] = [
+		Vector3(-13.0, 0.42, -15.8),
+		Vector3(-6.8, 0.28, -14.5),
+		Vector3(0.0, 0.50, -17.2),
+		Vector3(7.0, 0.32, -14.8),
+		Vector3(13.0, 0.44, -16.2),
+	]
+	var hill_scales: Array[Vector3] = [
+		Vector3(7.0, 2.35, 3.8),
+		Vector3(5.2, 1.85, 3.2),
+		Vector3(7.6, 2.65, 4.2),
+		Vector3(5.7, 1.95, 3.3),
+		Vector3(6.8, 2.40, 3.9),
+	]
+	for index: int in range(hill_positions.size()):
+		hill_transforms.append(Transform3D(Basis.IDENTITY.scaled(hill_scales[index]), hill_positions[index]))
+	_add_multimesh("BattleDistantHills", hill_mesh, hill_material, hill_transforms, false)
+
+	var ridge_mesh: SphereMesh = SphereMesh.new()
+	ridge_mesh.radius = 1.0
+	ridge_mesh.height = 2.0
+	ridge_mesh.radial_segments = 8
+	ridge_mesh.rings = 4
+	var ridge_transforms: Array[Transform3D] = [
+		Transform3D(Basis.IDENTITY.scaled(Vector3(4.8, 1.45, 2.9)), Vector3(-9.5, 0.18, -12.2)),
+		Transform3D(Basis.IDENTITY.scaled(Vector3(4.4, 1.35, 2.7)), Vector3(9.8, 0.16, -12.4)),
+	]
+	_add_multimesh("BattleDistantRidges", ridge_mesh, hill_light_material, ridge_transforms, false)
+
+	var trunk_mesh: CylinderMesh = CylinderMesh.new()
+	trunk_mesh.top_radius = 0.12
+	trunk_mesh.bottom_radius = 0.18
+	trunk_mesh.height = 1.65
+	trunk_mesh.radial_segments = 6
+	var canopy_mesh: CylinderMesh = CylinderMesh.new()
+	canopy_mesh.top_radius = 0.08
+	canopy_mesh.bottom_radius = 0.92
+	canopy_mesh.height = 2.60
+	canopy_mesh.radial_segments = 7
+	var trunk_transforms: Array[Transform3D] = []
+	var canopy_transforms: Array[Transform3D] = []
+	for index: int in range(DISTANT_TREE_COUNT):
+		var row: int = index % 3
+		var tree_x: float = -12.75 + float(index) * 1.50
+		var tree_z: float = -10.0 - float(row) * 1.40
+		var tree_scale: float = 0.56 + float((index * 7) % 5) * 0.055
+		var yaw: float = float((index * 11) % 13) * 0.11
+		trunk_transforms.append(Transform3D(
+			Basis(Vector3.UP, yaw).scaled(Vector3(tree_scale, tree_scale, tree_scale)),
+			Vector3(tree_x, 0.18, tree_z)
+		))
+		canopy_transforms.append(Transform3D(
+			Basis(Vector3.UP, yaw).scaled(Vector3(tree_scale, tree_scale, tree_scale)),
+			Vector3(tree_x, 1.72 * tree_scale, tree_z)
+		))
+	_add_multimesh("BattleDistantTreeTrunks", trunk_mesh, trunk_material, trunk_transforms, false)
+	_add_multimesh("BattleDistantTreeCanopies", canopy_mesh, leaf_material, canopy_transforms, false)
+
+	_add_distant_ruin("BattleDistantRuinLeft", Vector3(-10.2, -0.10, -13.5), stone_material, stone_dark_material)
+	_add_distant_ruin("BattleDistantRuinRight", Vector3(10.2, -0.10, -13.8), stone_material, stone_dark_material)
+
+
+func _add_distant_ruin(node_name: String, origin: Vector3, stone_material: Material, dark_material: Material) -> void:
+	var ruin: Node3D = Node3D.new()
+	ruin.name = node_name
+	ruin.position = origin
+	_world_root.add_child(ruin)
+
+	var tower_mesh: BoxMesh = BoxMesh.new()
+	tower_mesh.size = Vector3(0.66, 2.85, 0.70)
+	for side: int in [-1, 1]:
+		var tower: MeshInstance3D = MeshInstance3D.new()
+		tower.name = "DistantTower%d" % side
+		tower.mesh = tower_mesh
+		tower.position = Vector3(float(side) * 1.18, 1.42, 0.0)
+		tower.material_override = stone_material
+		ruin.add_child(tower)
+
+	var lintel_mesh: BoxMesh = BoxMesh.new()
+	lintel_mesh.size = Vector3(2.95, 0.46, 0.72)
+	var lintel: MeshInstance3D = MeshInstance3D.new()
+	lintel.name = "DistantLintel"
+	lintel.mesh = lintel_mesh
+	lintel.position = Vector3(0.0, 2.58, 0.0)
+	lintel.rotation.z = -0.035 if origin.x < 0.0 else 0.035
+	lintel.material_override = dark_material
+	ruin.add_child(lintel)
 
 
 func _add_ruin_cluster(

@@ -47,7 +47,14 @@ func _run() -> void:
 	or int(detail_counts.get("rocks", 0)) != 18 \
 	or int(detail_counts.get("flowers", 0)) != 16 \
 	or int(detail_counts.get("ruin_clusters", 0)) != 2 \
+	or int(detail_counts.get("distant_hills", 0)) != 5 \
+	or int(detail_counts.get("distant_trees", 0)) != 18 \
+	or int(detail_counts.get("distant_ruins", 0)) != 2 \
 	or stage.find_child("BattleGrass", true, false) == null \
+	or stage.find_child("BattleWorldGround", true, false) == null \
+	or stage.find_child("BattleDistantHills", true, false) == null \
+	or stage.find_child("BattleDistantTreeCanopies", true, false) == null \
+	or stage.find_child("BattleDistantRuinLeft", true, false) == null \
 	or stage.find_child("BattleRuinClusterLeft", true, false) == null \
 	or stage.find_child("BattleCoolFill", true, false) == null:
 		_fail("3D battle stage smoke failed: optimized meadow and ruin dressing is incomplete (%s)" % [detail_counts])
