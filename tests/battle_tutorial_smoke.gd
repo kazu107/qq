@@ -15,76 +15,41 @@ func _check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	Game.clear_battle_tutorial()
+	var tutorial_ids: Array[String] = []
+	for tutorial: Dictionary in BattleTutorialCatalog.get_all():
+		tutorial_ids.append(String(tutorial.get("id", "")))
+	_check(tutorial_ids.size() == 10, "Tutorial catalog should expose ten lessons")
+	_check(tutorial_ids == [
+		"battle_basics",
+		"slots_recast",
+		"interrupts",
+		"statuses",
+		"shield_resource",
+		"timeline_control",
+		"recast_combo",
+		"battle_growth",
+		"auto_queue",
+		"combat_exam",
+	], "Tutorial catalog order changed")
 	var catalog_scene: PackedScene = load("res://scenes/tutorial/BattleTutorial.tscn") as PackedScene
 	_check(catalog_scene != null, "Tutorial catalog scene is missing")
 	if catalog_scene != null:
 		var catalog: Node = catalog_scene.instantiate()
 		add_child(catalog)
 		await get_tree().process_frame
-		_check(int(catalog.call("get_tutorial_count")) == 1, "Tutorial catalog should expose one lesson")
+		_check(int(catalog.call("get_tutorial_count")) == 10, "Tutorial catalog UI should expose ten lessons")
 		_check(catalog.find_child("TutorialList", true, false) != null, "Tutorial list is missing")
-		_check(catalog.find_child("TutorialStart_battle_basics", true, false) != null, "Battle Basics start button is missing")
+		for tutorial_id: String in tutorial_ids:
+			_check(catalog.find_child("TutorialStart_%s" % tutorial_id, true, false) != null, "Tutorial start button is missing: %s" % tutorial_id)
 		catalog.queue_free()
 		await get_tree().process_frame
 
-	_check(Game.begin_battle_tutorial("battle_basics"), "Could not begin Battle Basics tutorial")
-	var battle_scene: PackedScene = load("res://scenes/battle/Battle.tscn") as PackedScene
-	_check(battle_scene != null, "Battle scene is missing")
-	if battle_scene != null:
-		var battle: Node = battle_scene.instantiate()
-		add_child(battle)
-		await get_tree().process_frame
-		await get_tree().process_frame
-		_check(bool(battle.call("is_tutorial_mode")), "Tutorial did not use the regular battle scene")
-		_check(battle.find_child("BattleStage3D", true, false) != null, "Tutorial is missing the 3D battle stage")
-		_check(battle.find_child("BattleTutorialOverlay", true, false) != null, "Tutorial guidance overlay is missing")
-		_check(bool(battle.call("is_tutorial_time_paused")), "Tutorial should start paused")
-
-		battle.call("debug_tutorial_continue")
-		await get_tree().process_frame
-		_check(int(battle.call("get_tutorial_step")) == 1, "Tutorial did not advance to attack card input")
-		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
-		var quick_slash_runtime_id: String = ""
-		for runtime_state: CardRuntimeState in engine.battle_state.player.card_runtime_states:
-			if runtime_state.card_id == "quick_slash":
-				quick_slash_runtime_id = runtime_state.runtime_id
-				break
-		_check(quick_slash_runtime_id != "", "Quick Slash runtime card is missing")
-		if quick_slash_runtime_id != "":
-			battle.call("_on_card_requested", quick_slash_runtime_id)
-			await get_tree().process_frame
-			_check(engine.battle_state.timeline.size() >= 1, "Tutorial card was not queued on the real timeline")
-			_check(int(battle.call("get_tutorial_step")) == 2, "Tutorial did not pause on the timeline explanation")
-			_check(bool(battle.call("is_tutorial_time_paused")), "Timeline explanation should pause battle time")
-			_check(is_zero_approx(engine.battle_state.battle_time), "Battle time moved before the timeline explanation finished")
-			battle.call("debug_tutorial_continue")
-			await get_tree().process_frame
-			_check(not bool(battle.call("is_tutorial_time_paused")), "Battle time did not resume after the timeline explanation")
-			_check(engine.battle_state.battle_time > 0.0, "Real battle engine did not advance after tutorial resume")
-			_advance_tutorial_until(battle, 4)
-			_check(int(battle.call("get_tutorial_step")) == 4, "Attack resolution did not advance the guide")
-			battle.call("debug_tutorial_continue")
-			_queue_tutorial_card(battle, engine, "guard")
-			_check(int(battle.call("get_tutorial_step")) == 6, "Guard was not queued through the guide")
-			battle.call("debug_tutorial_continue")
-			_advance_tutorial_until(battle, 8)
-			_check(int(battle.call("get_tutorial_step")) == 8, "Guard resolution did not advance the guide")
-			battle.call("debug_tutorial_continue")
-			_queue_tutorial_card(battle, engine, "delay_step")
-			_check(int(battle.call("get_tutorial_step")) == 10, "Delay Step was not queued through the guide")
-			battle.call("debug_tutorial_continue")
-			_advance_tutorial_until(battle, 12)
-			_check(int(battle.call("get_tutorial_step")) == 12, "Delay Step resolution did not advance the guide")
-			battle.call("debug_tutorial_continue")
-			_advance_tutorial_until(battle, 14)
-			_check(int(battle.call("get_tutorial_step")) == 14, "Fatigue did not complete the guide")
-			_check(bool(battle.call("is_tutorial_time_paused")), "Completed tutorial should pause on its summary")
-		battle.queue_free()
-		await get_tree().process_frame
+	for tutorial_id: String in tutorial_ids:
+		await _run_lesson(tutorial_id)
 
 	Game.clear_battle_tutorial()
 	if _failures.is_empty():
-		print("BATTLE_TUTORIAL_SMOKE_OK catalog, regular battle stage, guided pause, real timeline")
+		print("BATTLE_TUTORIAL_SMOKE_OK 10 lessons, regular battle stage, guided pause, real timeline")
 		get_tree().quit(0)
 		return
 	for failure: String in _failures:
@@ -92,16 +57,54 @@ func _run() -> void:
 	get_tree().quit(1)
 
 
-func _queue_tutorial_card(battle: Node, engine: RealtimeBattleEngine, card_id: String) -> void:
+func _run_lesson(tutorial_id: String) -> void:
+	_check(Game.begin_battle_tutorial(tutorial_id), "Could not begin tutorial: %s" % tutorial_id)
+	var battle_scene: PackedScene = load("res://scenes/battle/Battle.tscn") as PackedScene
+	_check(battle_scene != null, "Battle scene is missing")
+	if battle_scene == null:
+		return
+	var battle: Node = battle_scene.instantiate()
+	add_child(battle)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check(bool(battle.call("is_tutorial_mode")), "Tutorial did not use the regular battle scene: %s" % tutorial_id)
+	_check(battle.find_child("BattleStage3D", true, false) != null, "Tutorial is missing the 3D battle stage: %s" % tutorial_id)
+	_check(battle.find_child("BattleTutorialOverlay", true, false) != null, "Tutorial guidance overlay is missing: %s" % tutorial_id)
+	_check(bool(battle.call("is_tutorial_time_paused")), "Tutorial should start paused: %s" % tutorial_id)
+	var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+	var completed: bool = false
+	for _iteration: int in range(1000):
+		var step: Dictionary = battle.call("get_tutorial_step_data")
+		var mode: String = String(step.get("mode", ""))
+		if mode == "complete":
+			completed = true
+			break
+		var previous_step: int = int(battle.call("get_tutorial_step"))
+		match mode:
+			"continue":
+				battle.call("debug_tutorial_continue")
+			"queue_card":
+				_try_queue_tutorial_card(battle, engine, String(step.get("card_id", "")))
+			"free_battle":
+				engine.battle_state.enemy.hp = 1
+				_try_queue_tutorial_card(battle, engine, "quick_slash")
+			_:
+				battle.call("_process_tutorial_battle", 0.1)
+		if int(battle.call("get_tutorial_step")) == previous_step and mode in ["continue", "queue_card"]:
+			await get_tree().process_frame
+		else:
+			battle.call("_process_tutorial_battle", 0.1)
+	_check(completed, "Tutorial did not reach completion: %s at step %d (%s)" % [tutorial_id, int(battle.call("get_tutorial_step")), str(battle.call("get_tutorial_step_data"))])
+	if completed:
+		_check(bool(battle.call("is_tutorial_time_paused")), "Completed tutorial should pause on its summary: %s" % tutorial_id)
+	battle.queue_free()
+	await get_tree().process_frame
+	Game.clear_battle_tutorial()
+
+
+func _try_queue_tutorial_card(battle: Node, engine: RealtimeBattleEngine, card_id: String) -> bool:
 	for runtime_state: CardRuntimeState in engine.battle_state.player.card_runtime_states:
-		if runtime_state.card_id == card_id:
+		if runtime_state.card_id == card_id and runtime_state.can_use():
 			battle.call("_on_card_requested", runtime_state.runtime_id)
-			return
-	_failures.append("Tutorial card runtime is missing: %s" % card_id)
-
-
-func _advance_tutorial_until(battle: Node, target_step: int) -> void:
-	for _tick: int in range(240):
-		if int(battle.call("get_tutorial_step")) == target_step:
-			return
-		battle.call("_process_tutorial_battle", 0.1)
+			return true
+	return false

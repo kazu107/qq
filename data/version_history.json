@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.27.0",
+  "current_version": "QQ-0.28.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.28.0",
+      "date": "2026-09-22",
+      "title_ja": "戦闘チュートリアル全10本",
+      "title_en": "Ten-part combat tutorial course",
+      "changes_ja": [
+        "スロットと再使用、妨害、状態異常、シールド消費、タイムライン制御、再使用コンボ、戦闘中強化、自動投入、総合演習を順番に学べる9本を追加しました。",
+        "すべてのレッスンを通常の3D戦闘画面で進行し、説明中の一時停止、対象の強調、実カードの投入と効果確認を共通化しました。",
+        "全10本を実際の戦闘エンジンで最後まで進める自動スモークテストを追加しました。"
+      ],
+      "changes_en": [
+        "Added nine ordered lessons covering slots and recast, interrupts, statuses, shield spending, timeline control, recast combos, in-battle growth, automatic queues and a final exercise.",
+        "Unified every lesson on the normal 3D battle screen with guided pauses, target highlights, real card commitment and effect verification.",
+        "Added an automated smoke test that completes all ten lessons through the real battle engine."
+      ]
+    },
     {
       "version": "QQ-0.27.0",
       "date": "2026-09-22",

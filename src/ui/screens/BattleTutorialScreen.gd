@@ -1,27 +1,16 @@
 extends Control
 
-const TUTORIALS: Array[Dictionary] = [
-	{
-		"id": "battle_basics",
-		"title_key": "tutorial.basics.title",
-		"title_fallback": "Battle Basics",
-		"description_key": "tutorial.basics.description",
-		"description_fallback": "Learn how to queue cards, read the timeline, use shields and control cast timing on the real battle screen.",
-		"topics_key": "tutorial.basics.topics",
-		"topics_fallback": "Cards / Timeline / Shield / Delay / Fatigue",
-		"duration_key": "tutorial.basics.duration",
-		"duration_fallback": "About 3 minutes",
-	},
-]
+var _tutorials: Array[Dictionary] = []
 
 
 func _ready() -> void:
 	Database.load_all()
+	_tutorials = BattleTutorialCatalog.get_all()
 	_build_ui()
 
 
 func get_tutorial_count() -> int:
-	return TUTORIALS.size()
+	return _tutorials.size()
 
 
 func _build_ui() -> void:
@@ -70,19 +59,25 @@ func _build_ui() -> void:
 	var divider := HSeparator.new()
 	root.add_child(divider)
 
+	var scroll := ScrollContainer.new()
+	scroll.name = "TutorialScroll"
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root.add_child(scroll)
 	var list := VBoxContainer.new()
 	list.name = "TutorialList"
 	list.add_theme_constant_override("separation", 14)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(list)
-	for tutorial: Dictionary in TUTORIALS:
-		list.add_child(_build_tutorial_item(tutorial))
+	scroll.add_child(list)
+	for index: int in range(_tutorials.size()):
+		list.add_child(_build_tutorial_item(_tutorials[index], index))
 
 
-func _build_tutorial_item(tutorial: Dictionary) -> Control:
+func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	var panel := PanelContainer.new()
 	panel.name = "TutorialItem_%s" % String(tutorial["id"])
-	panel.custom_minimum_size = Vector2(0.0, 168.0)
+	panel.custom_minimum_size = Vector2(0.0, 154.0)
 	panel.add_theme_stylebox_override("panel", _make_item_style())
 
 	var margin := MarginContainer.new()
@@ -96,7 +91,7 @@ func _build_tutorial_item(tutorial: Dictionary) -> Control:
 	margin.add_child(row)
 
 	var number := Label.new()
-	number.text = "%02d" % (TUTORIALS.find(tutorial) + 1)
+	number.text = "%02d" % (index + 1)
 	number.custom_minimum_size = Vector2(66.0, 0.0)
 	number.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -134,6 +129,11 @@ func _build_tutorial_item(tutorial: Dictionary) -> Control:
 	duration.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	duration.add_theme_color_override("font_color", Color(0.68, 0.72, 0.76, 1.0))
 	action.add_child(duration)
+	var difficulty := Label.new()
+	difficulty.text = Localization.get_text(String(tutorial["difficulty_key"]), String(tutorial["difficulty_fallback"]))
+	difficulty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	difficulty.add_theme_color_override("font_color", Color(1.0, 0.74, 0.24, 1.0))
+	action.add_child(difficulty)
 	var start := Button.new()
 	start.name = "TutorialStart_%s" % String(tutorial["id"])
 	start.text = Localization.get_text("tutorial.catalog.start", "Start")
