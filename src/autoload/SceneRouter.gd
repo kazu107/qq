@@ -26,6 +26,8 @@ var _transition_cover: ColorRect
 var _gold_popup_layer: CanvasLayer
 var _gold_popup_index: int = 0
 var _scene_cache: Dictionary = {}
+var _ui_scene_cache: Dictionary = {}
+var _warming_ui_scene: bool = false
 var _battle_stage_cache: BattleStage3D
 var _pending_battle_card_ids: Array[String] = []
 var _debug_return_scene_path: String = HUB_SCENE
@@ -33,6 +35,53 @@ var _debug_return_scene_path: String = HUB_SCENE
 
 func _ready() -> void:
 	set_process(false)
+	Localization.language_changed.connect(_on_language_changed)
+
+
+func is_warming_ui_scene() -> bool:
+	return _warming_ui_scene
+
+
+func warm_ui_scene_cache_async(progress_callback: Callable = Callable()) -> int:
+	var scene_paths: Array[String] = [META_SCENE]
+	if not Game.is_web_build():
+		scene_paths.append(CARD_LIBRARY_SCENE)
+	var warmed: int = 0
+	for scene_index: int in range(scene_paths.size()):
+		var scene_path: String = scene_paths[scene_index]
+		if progress_callback.is_valid():
+			progress_callback.call(
+				Localization.get_text("boot.caching_ui_screens", "Preparing menus..."),
+				0.975 + 0.01 * float(scene_index) / float(scene_paths.size())
+			)
+		if _ui_scene_cache.has(scene_path):
+			continue
+		var packed_scene: PackedScene = _get_preloaded_scene(scene_path)
+		if packed_scene == null:
+			continue
+		var screen: Control = packed_scene.instantiate() as Control
+		if screen == null:
+			continue
+		screen.visible = false
+		_warming_ui_scene = true
+		get_tree().root.add_child(screen)
+		_warming_ui_scene = false
+		var wait_frames: int = 0
+		while is_instance_valid(screen) and not bool(screen.call("is_content_ready")) and wait_frames < 300:
+			await get_tree().process_frame
+			wait_frames += 1
+		if is_instance_valid(screen) and bool(screen.call("is_content_ready")):
+			_ui_scene_cache[scene_path] = screen
+			warmed += 1
+		elif is_instance_valid(screen):
+			screen.queue_free()
+	if progress_callback.is_valid():
+		progress_callback.call(Localization.get_text("boot.caching_ui_screens", "Preparing menus..."), 0.985)
+	return warmed
+
+
+func get_cached_ui_scene_count() -> int:
+	return _ui_scene_cache.size()
 
 
 func _process(_delta: float) -> void:
@@ -394,12 +443,47 @@ func _change_scene(scene_path: String) -> void:
 			CardButton.warm_texture_cache(_current_battle_card_ids())
 	else:
 		schedule_current_battle_cards()
+	_cache_current_ui_scene(current_scene)
+	if _ui_scene_cache.has(scene_path):
+		if current_scene != null and current_scene.get_parent() == get_tree().root \
+		and _ui_scene_cache.get(current_scene.scene_file_path) != current_scene:
+			get_tree().current_scene = null
+			get_tree().root.remove_child(current_scene)
+			current_scene.queue_free()
+		var screen: Control = _ui_scene_cache[scene_path] as Control
+		_ui_scene_cache.erase(scene_path)
+		get_tree().current_scene = screen
+		screen.visible = true
+		screen.call("on_reenter")
+		call_deferred("_release_transition_cover")
+		return
 	var packed_scene: PackedScene = _get_preloaded_scene(scene_path)
 	if packed_scene != null:
 		get_tree().change_scene_to_packed(packed_scene)
 	else:
 		get_tree().change_scene_to_file(scene_path)
 	call_deferred("_release_transition_cover")
+
+
+func _cache_current_ui_scene(current_scene: CanvasItem) -> void:
+	if current_scene == null:
+		return
+	var scene_path: String = current_scene.scene_file_path
+	if scene_path != META_SCENE and scene_path != CARD_LIBRARY_SCENE:
+		return
+	if not current_scene.has_method("is_content_ready") or not bool(current_scene.call("is_content_ready")):
+		return
+	if _ui_scene_cache.has(scene_path):
+		return
+	get_tree().current_scene = null
+	_ui_scene_cache[scene_path] = current_scene
+
+
+func _on_language_changed(_language_code: String) -> void:
+	for cached_screen: Control in _ui_scene_cache.values():
+		if is_instance_valid(cached_screen):
+			cached_screen.queue_free()
+	_ui_scene_cache.clear()
 
 
 func _store_battle_stage(stage: BattleStage3D) -> void:

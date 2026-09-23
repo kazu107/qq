@@ -55,4 +55,8 @@ This is real localhost WebRTC, not an Internet/NAT/TURN test. A Web guest has 15
 
 `tools/BattleLoadProfile.tscn` prints scene load, construction and first-frame timings. Set `QQ_PROFILE_WARM=1` to measure after startup warmup. `tests/BattleStageCacheSmoke.tscn` verifies that one 3D stage is reused and disabled between battles. `tools/web_battle_load_review.mjs` captures first and repeated battle entry in the production Web build.
 
+`tools/SceneLoadProfile.tscn` measures raw screen construction and content completion for the Hub, Run Setup, Map, Meta Progress, Card Library, Settings, and Arena. It deliberately instantiates fresh screens rather than using the router cache, so it is a cold-construction baseline. `tests/UiSceneCacheSmoke.tscn` follows real navigation to verify that completed Meta Progress and Card Library screens are reused, refresh on entry, and are invalidated when the language changes. Desktop prebuilds both screens on the boot loading screen; Web prebuilds only Meta Progress to avoid decoding every library card image at startup.
+
+The scene profiler creates a temporary run, so run it only with an isolated save profile, for example PowerShell: `$env:APPDATA = Join-Path (Get-Location) 'tools/.local/quality-tests/appdata'; $env:QQ_PROFILE_ISOLATED = '1'` before launching the profile scene. It refuses to run without the guard variable.
+
 QQ-0.24.0 validation covers eleven related Godot smoke tests, 16 Node tests, a direct tutorial-scene boot and the 2/4-player browser harness. External-network guest recovery, host migration, low-end/mobile devices and long-duration multiplayer soak tests remain separate checks.

@@ -16,8 +16,9 @@ var _selected_tag: String = "all"
 
 
 func _ready() -> void:
-	Game.current_screen_hint = "library"
-	SaveManager.request_save("library")
+	if not SceneRouter.is_warming_ui_scene():
+		Game.current_screen_hint = "library"
+		SaveManager.request_save("library")
 
 	_build_ui()
 	_refresh_ui()
@@ -27,6 +28,17 @@ func _ready() -> void:
 
 func is_content_ready() -> bool:
 	return _content_ready
+
+
+func on_reenter() -> void:
+	Game.current_screen_hint = "library"
+	SaveManager.request_save("library")
+	_refresh_ui()
+	if Game.is_developer_mode_enabled() and _developer_panel == null:
+		_build_developer_panel()
+	elif not Game.is_developer_mode_enabled() and _developer_panel != null:
+		_developer_panel.queue_free()
+		_developer_panel = null
 
 
 func _build_ui() -> void:

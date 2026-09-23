@@ -111,6 +111,7 @@ static func warm_all_async(progress_callback: Callable = Callable()) -> Dictiona
 	data.summary["battle_cards"] = await SceneRouter.warm_current_battle_cards_async()
 	if use_lightweight_cache:
 		data.summary["cards"] = int(data.summary["battle_cards"])
+	data.summary["ui_screens"] = await SceneRouter.warm_ui_scene_cache_async(progress_callback)
 
 	_report_progress(progress_callback, "boot.caching_network", 0.99)
 	await _next_frame()

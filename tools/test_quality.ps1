@@ -7,7 +7,13 @@ $previousAppData = $env:APPDATA
 $env:APPDATA = Join-Path $output "appdata"
 New-Item -ItemType Directory -Force $env:APPDATA | Out-Null
 try {
-    foreach ($scene in @("QualityToolsSmoke", "FatigueSmoke", "LanMultiplayerSmoke", "ReplayExportSmoke", "ReplayViewerSmoke", "ArtProvenanceSmoke", "StarterArtSmoke", "StartupCacheSmoke", "BattleStageCacheSmoke", "BattleStage3DSmoke", "FlowSmoke", "ArenaFlowSmoke", "LocalizationSmoke", "HubVersionSmoke", "WebExportSmoke")) {
+    $importLog = Join-Path $output "asset-import.log"
+    $ErrorActionPreference = "Continue"
+    & $GodotPath --headless --editor --path $root --quit *> $importLog
+    $importCode = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
+    if ($importCode -ne 0) { throw "Asset import failed ($importCode). See $importLog" }
+    foreach ($scene in @("QualityToolsSmoke", "FatigueSmoke", "LanMultiplayerSmoke", "ReplayExportSmoke", "ReplayViewerSmoke", "ArtProvenanceSmoke", "StarterArtSmoke", "StartupCacheSmoke", "BattleStageCacheSmoke", "UiSceneCacheSmoke", "BattleStage3DSmoke", "FlowSmoke", "ArenaFlowSmoke", "LocalizationSmoke", "HubVersionSmoke", "WebExportSmoke")) {
         $log = Join-Path $output "$scene.log"
 		$ErrorActionPreference = "Continue"
         & $GodotPath --headless --path $root "res://tests/$scene.tscn" *> $log
