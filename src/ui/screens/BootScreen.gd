@@ -63,6 +63,7 @@ func _build_loading_screen() -> void:
 
 
 func _boot() -> void:
+	var boot_started_us: int = Time.get_ticks_usec()
 	_set_loading_status(Localization.get_text("boot.loading", "Loading data..."), 0.08)
 	await get_tree().process_frame
 	Database.load_all()
@@ -85,6 +86,7 @@ func _boot() -> void:
 		"sfx": int(warmup_summary.get("sfx", 0)),
 	})
 	tooltip_text = "Startup cache: %s" % JSON.stringify(warmup_summary)
+	WebLoadMetrics.record("boot_ready", (Time.get_ticks_usec() - boot_started_us) / 1000.0, warmup_summary)
 	await get_tree().create_timer(0.2).timeout
 	SceneRouter.go_to_hub()
 

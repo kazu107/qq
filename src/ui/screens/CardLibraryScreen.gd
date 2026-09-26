@@ -1,9 +1,11 @@
 extends Control
 
-const BUILD_BATCH_SIZE := 6
+const BUILD_BATCH_SIZE := 4
+const PAGE_CARD_COUNT: int = 12
 const CARD_GRID_COLUMNS: int = 3
 
 var _summary_label: Label
+var _cards_scroll: ScrollContainer
 var _cards_grid: GridContainer
 var _rarity_filter: OptionButton
 var _tag_filter: OptionButton
@@ -13,9 +15,15 @@ var _content_building: bool = false
 var _card_widgets: Dictionary = {}
 var _selected_rarity: String = "all"
 var _selected_tag: String = "all"
+var _build_generation: int = 0
+var _awaiting_more: bool = false
+var _next_entry_index: int = 0
+var _initial_build_started_us: int = 0
+var _initial_build_measured: bool = false
 
 
 func _ready() -> void:
+	_initial_build_started_us = Time.get_ticks_usec()
 	if not SceneRouter.is_warming_ui_scene():
 		Game.current_screen_hint = "library"
 		SaveManager.request_save("library")
@@ -34,6 +42,7 @@ func on_reenter() -> void:
 	Game.current_screen_hint = "library"
 	SaveManager.request_save("library")
 	_refresh_ui()
+	_request_more_if_needed.call_deferred()
 	if Game.is_developer_mode_enabled() and _developer_panel == null:
 		_build_developer_panel()
 	elif not Game.is_developer_mode_enabled() and _developer_panel != null:
@@ -113,10 +122,11 @@ func _build_ui() -> void:
 	_tag_filter.item_selected.connect(_on_tag_filter_selected)
 	filter_row.add_child(_tag_filter)
 
-	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(scroll)
+	_cards_scroll = ScrollContainer.new()
+	_cards_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_cards_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_cards_scroll.get_v_scroll_bar().value_changed.connect(_on_scroll_changed)
+	root.add_child(_cards_scroll)
 
 	_cards_grid = GridContainer.new()
 	_cards_grid.name = "LibraryCards"
@@ -124,7 +134,7 @@ func _build_ui() -> void:
 	_cards_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_cards_grid.add_theme_constant_override("h_separation", 12)
 	_cards_grid.add_theme_constant_override("v_separation", 12)
-	scroll.add_child(_cards_grid)
+	_cards_scroll.add_child(_cards_grid)
 	_populate_filters()
 
 
@@ -151,22 +161,35 @@ func _refresh_ui() -> void:
 	_apply_filters()
 
 
-func _rebuild_card_rows() -> void:
-	for child in _cards_grid.get_children():
-		_cards_grid.remove_child(child)
-		child.queue_free()
-	_card_widgets.clear()
+func _rebuild_card_rows(reset: bool = true) -> void:
+	var page_started_us: int = Time.get_ticks_usec()
+	var generation: int = _build_generation
+	if reset:
+		for child in _cards_grid.get_children():
+			_cards_grid.remove_child(child)
+			child.queue_free()
+		_card_widgets.clear()
+		_next_entry_index = 0
 
 	var rarity_order: Array[String] = ["common", "rare", "epic", "legendary"]
 	var entries: Array[Dictionary] = Game.get_meta_card_entries()
+	var total_matching: int = _count_matching_entries(entries)
 	var built_count: int = 0
+	var matched_index: int = 0
 	for rarity in rarity_order:
 		for entry in entries:
 			if String(entry.get("rarity", "")) != rarity:
 				continue
+			if _selected_rarity != "all" and _selected_rarity != rarity:
+				continue
 			var card_id: String = String(entry.get("id", ""))
 			var card_def: CardDef = Database.get_card(card_id)
 			if card_def == null:
+				continue
+			if _selected_tag != "all" and not card_def.tags.has(_selected_tag):
+				continue
+			matched_index += 1
+			if matched_index <= _next_entry_index:
 				continue
 
 			var row: PanelContainer = PanelContainer.new()
@@ -244,13 +267,72 @@ func _rebuild_card_rows() -> void:
 				"tags": card_def.tags.duplicate(),
 			}
 			built_count += 1
+			_next_entry_index = matched_index
 			if built_count % BUILD_BATCH_SIZE == 0:
 				await get_tree().process_frame
-				if not is_inside_tree():
+				if generation != _build_generation or not is_inside_tree():
 					return
+			if built_count >= PAGE_CARD_COUNT and _next_entry_index < total_matching:
+				_content_building = false
+				_content_ready = true
+				_awaiting_more = true
+				_refresh_ui()
+				_record_initial_build()
+				_record_page_build(page_started_us, total_matching)
+				_request_more_if_needed.call_deferred()
+				return
+	_awaiting_more = false
 	_content_building = false
 	_content_ready = true
 	_refresh_ui()
+	_record_initial_build()
+	_record_page_build(page_started_us, total_matching)
+
+
+func _count_matching_entries(entries: Array[Dictionary]) -> int:
+	var count: int = 0
+	for entry: Dictionary in entries:
+		if _selected_rarity != "all" and String(entry.get("rarity", "")) != _selected_rarity:
+			continue
+		var card_def: CardDef = Database.get_card(String(entry.get("id", "")))
+		if card_def == null or (_selected_tag != "all" and not card_def.tags.has(_selected_tag)):
+			continue
+		count += 1
+	return count
+
+
+func _record_initial_build() -> void:
+	if _initial_build_measured:
+		return
+	_initial_build_measured = true
+	WebLoadMetrics.record("library_initial", (Time.get_ticks_usec() - _initial_build_started_us) / 1000.0, {
+		"built": _card_widgets.size(),
+		"total": Game.get_meta_card_entries().size(),
+	})
+
+
+func _record_page_build(started_us: int, total_matching: int) -> void:
+	WebLoadMetrics.record("library_page", (Time.get_ticks_usec() - started_us) / 1000.0, {
+		"built": _card_widgets.size(),
+		"total_matching": total_matching,
+	})
+
+
+func _on_scroll_changed(_value: float) -> void:
+	_request_more_if_needed.call_deferred()
+
+
+func _request_more_if_needed() -> void:
+	if not _awaiting_more or not visible or _cards_scroll == null:
+		return
+	await get_tree().process_frame
+	if not _awaiting_more or not visible:
+		return
+	var bar: ScrollBar = _cards_scroll.get_v_scroll_bar()
+	if bar.value + bar.page >= bar.max_value - 180.0:
+		_awaiting_more = false
+		_content_building = true
+		_rebuild_card_rows.call_deferred(false)
 
 
 func _update_card_rows(entries: Array[Dictionary]) -> void:
@@ -315,12 +397,20 @@ func _collect_card_tags() -> Array[String]:
 
 func _on_rarity_filter_selected(index: int) -> void:
 	_selected_rarity = String(_rarity_filter.get_item_metadata(index))
-	_apply_filters()
+	_queue_filtered_rebuild()
 
 
 func _on_tag_filter_selected(index: int) -> void:
 	_selected_tag = String(_tag_filter.get_item_metadata(index))
-	_apply_filters()
+	_queue_filtered_rebuild()
+
+
+func _queue_filtered_rebuild() -> void:
+	_build_generation += 1
+	_awaiting_more = false
+	_content_ready = false
+	_content_building = true
+	_rebuild_card_rows.call_deferred()
 
 
 func _apply_filters() -> void:

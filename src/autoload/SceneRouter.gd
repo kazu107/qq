@@ -427,6 +427,7 @@ func show_gold_delta(amount: int) -> void:
 
 
 func _change_scene(scene_path: String) -> void:
+	var transition_started_us: int = Time.get_ticks_usec()
 	AudioManager.play_sfx("ui_page")
 	_show_transition_cover()
 	var current_scene: CanvasItem = get_tree().current_scene as CanvasItem
@@ -455,14 +456,14 @@ func _change_scene(scene_path: String) -> void:
 		get_tree().current_scene = screen
 		screen.visible = true
 		screen.call("on_reenter")
-		call_deferred("_release_transition_cover")
+		call_deferred("_release_transition_cover", scene_path, transition_started_us)
 		return
 	var packed_scene: PackedScene = _get_preloaded_scene(scene_path)
 	if packed_scene != null:
 		get_tree().change_scene_to_packed(packed_scene)
 	else:
 		get_tree().change_scene_to_file(scene_path)
-	call_deferred("_release_transition_cover")
+	call_deferred("_release_transition_cover", scene_path, transition_started_us)
 
 
 func _cache_current_ui_scene(current_scene: CanvasItem) -> void:
@@ -507,11 +508,15 @@ func _show_transition_cover() -> void:
 	_transition_cover.visible = true
 
 
-func _release_transition_cover() -> void:
+func _release_transition_cover(scene_path: String = "", started_us: int = 0) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	if _transition_cover != null:
 		_transition_cover.visible = false
+	if started_us > 0:
+		WebLoadMetrics.record("scene_transition", (Time.get_ticks_usec() - started_us) / 1000.0, {
+			"screen": scene_path.get_file().get_basename(),
+		})
 
 
 func _ensure_transition_cover() -> void:

@@ -13,7 +13,7 @@ try {
     $importCode = $LASTEXITCODE
     $ErrorActionPreference = "Stop"
     if ($importCode -ne 0) { throw "Asset import failed ($importCode). See $importLog" }
-    foreach ($scene in @("QualityToolsSmoke", "FatigueSmoke", "LanMultiplayerSmoke", "ReplayExportSmoke", "ReplayViewerSmoke", "ArtProvenanceSmoke", "StarterArtSmoke", "StartupCacheSmoke", "BattleStageCacheSmoke", "UiSceneCacheSmoke", "BattleStage3DSmoke", "FlowSmoke", "ArenaFlowSmoke", "LocalizationSmoke", "HubVersionSmoke", "WebExportSmoke")) {
+    foreach ($scene in @("QualityToolsSmoke", "SafeSaveStoreSmoke", "FatigueSmoke", "LanMultiplayerSmoke", "ReplayExportSmoke", "ReplayViewerSmoke", "ArtProvenanceSmoke", "StarterArtSmoke", "StartupCacheSmoke", "BattleStageCacheSmoke", "UiSceneCacheSmoke", "LibraryLazySmoke", "BattleStage3DSmoke", "FlowSmoke", "ArenaFlowSmoke", "LocalizationSmoke", "HubVersionSmoke", "WebExportSmoke", "SaveContinueSmoke")) {
         $log = Join-Path $output "$scene.log"
 		$ErrorActionPreference = "Continue"
         & $GodotPath --headless --path $root "res://tests/$scene.tscn" *> $log

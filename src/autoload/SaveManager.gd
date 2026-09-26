@@ -5,6 +5,7 @@ const REPLAY_DIR := "user://replays"
 const REQUEST_SAVE_DELAY_SECONDS := 0.12
 
 var current_save := SaveData.new()
+var last_recovery_source: String = ""
 var _pending_scene_hint: String = ""
 var _save_request_scheduled: bool = false
 var _save_timer: Timer
@@ -15,29 +16,25 @@ func _ready() -> void:
 
 
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH)
+	return SafeSaveStore.has_any(SAVE_PATH)
 
 
 func load_save() -> SaveData:
+	last_recovery_source = ""
 	if not has_save():
 		current_save = SaveData.new()
 		return current_save
 
-	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
-	if file == null:
-		push_error("Failed to open save file")
+	var recovered: Dictionary = SafeSaveStore.read_best(SAVE_PATH)
+	if not bool(recovered.get("found", false)):
+		push_error("No valid save file or backup could be read")
 		current_save = SaveData.new()
 		return current_save
-
-	var json_text := file.get_as_text()
-	var json := JSON.new()
-	var error := json.parse(json_text)
-	if error != OK:
-		push_error("Save parse error at line %d: %s" % [json.get_error_line(), json.get_error_message()])
-		current_save = SaveData.new()
-		return current_save
-
-	current_save = SaveData.from_dict(Dictionary(json.data))
+	var source: String = String(recovered.get("source", ""))
+	if source != SAVE_PATH:
+		last_recovery_source = source
+		push_warning("Recovered save data from %s" % source)
+	current_save = SaveData.from_dict(Dictionary(recovered.get("data", {})))
 	return current_save
 
 
@@ -47,12 +44,9 @@ func save_game(scene_hint: String = "hub") -> bool:
 	_pending_scene_hint = ""
 	_save_request_scheduled = false
 	var save_data := Game.build_save_data(scene_hint)
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	if file == null:
-		push_error("Failed to write save file")
+	if not SafeSaveStore.write(SAVE_PATH, save_data.to_dict()):
+		push_error("Failed to safely write save file")
 		return false
-
-	file.store_string(JSON.stringify(save_data.to_dict(), "\t"))
 	current_save = save_data
 	return true
 

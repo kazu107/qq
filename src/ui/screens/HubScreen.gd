@@ -41,6 +41,17 @@ func _ready() -> void:
 		"points": Game.get_meta_points(),
 	})
 	root.add_child(_info_label)
+	if SaveManager.last_recovery_source != "":
+		var recovery_label: Label = Label.new()
+		recovery_label.name = "SaveRecoveryNotice"
+		recovery_label.text = Localization.get_text(
+			"save.recovered_notice",
+			"The latest save could not be read. Progress was restored from a backup."
+		)
+		recovery_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		recovery_label.add_theme_color_override("font_color", Color(1.0, 0.75, 0.28))
+		root.add_child(recovery_label)
+		SaveManager.last_recovery_source = ""
 
 	_add_run_mode_row(root, Game.RUN_SETUP_MODE_NORMAL)
 	_add_run_mode_row(root, Game.RUN_SETUP_MODE_ARENA)

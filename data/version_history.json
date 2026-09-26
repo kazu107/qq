@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.28.4",
+  "current_version": "QQ-0.29.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.29.0",
+      "date": "2026-09-26",
+      "title_ja": "安全なセーブと画面読み込み改善",
+      "title_en": "Safer saves and faster screen loading",
+      "changes_ja": [
+        "セーブを一時ファイルから置き換え、3世代のバックアップと破損時の自動復旧を追加しました。",
+        "Web版の起動、画面遷移、図鑑の初回表示に時間とメモリの計測を追加しました。",
+        "カード図鑑は最初の12件を表示し、スクロールと絞り込みに合わせてカードを追加生成します。"
+      ],
+      "changes_en": [
+        "Stage save writes before replacement, retain three backup generations, and recover automatically from a damaged primary save.",
+        "Measure Web boot, scene transitions, and initial library render time and memory.",
+        "Build the first twelve library cards initially, then add more on scroll or filter changes."
+      ]
+    },
     {
       "version": "QQ-0.28.4",
       "date": "2026-09-23",

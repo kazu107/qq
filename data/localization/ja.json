@@ -51,6 +51,7 @@
   "boot.caching_units": "キャラクター画像と状態アイコンをキャッシュ中...",
   "boot.caching_ui": "UIアイコンをキャッシュ中...",
   "boot.caching_battle_stage": "戦闘画面を準備中...",
+  "save.recovered_notice": "最新のセーブを読み取れなかったため、バックアップから進行状況を復旧しました。",
   "boot.caching_ui_screens": "メタ進行などの画面を準備中...",
   "boot.ready": "準備完了",
   "boot.cache_loaded": "{cards} 枚のカード / {scenes} 画面 / {sfx} 効果音をキャッシュしました",
