@@ -13,6 +13,10 @@ func _run() -> void:
 	var stage_id: int = cached_stage.get_instance_id()
 	if not _check(cached_stage.process_mode == Node.PROCESS_MODE_DISABLED, "cached stage is still processing"):
 		return
+	if not _check(cached_stage.get_combat_actor("player").get_visual_profile_id() == "balanced", "first player model was not prepared"):
+		return
+	if not _check(cached_stage.get_combat_actor("enemy").get_visual_profile_id() == "scout", "first enemy model was not prepared"):
+		return
 	Game.current_run = RunState.from_starter(Database.get_starter("balanced"), 42)
 	Game.pending_enemy_id = "scout"
 	var selected_cards: Array = SceneRouter.call("_current_battle_card_ids")

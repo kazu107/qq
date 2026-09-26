@@ -68,6 +68,14 @@ try {
   await clickScene(1290, 264, 'Battle');
   report.memory.after_second_battle = await sampleMemory();
   await clickScene(1360, 74, 'BattleTutorial');
+  await page.mouse.move(800, 500);
+  await page.waitForFunction(() => window.qqLoadMetrics?.some(entry =>
+    entry.event === 'battle_visual_warmup' && entry.details.enemy === 'brute'),
+    undefined, { timeout: 30000 });
+  await clickScene(1290, 517, 'Battle');
+  assert(report.transitions.at(-1).game_elapsed_ms < 800,
+    'A hovered tutorial enemy still incurred the full first-render delay');
+  await clickScene(1360, 74, 'BattleTutorial');
   await clickScene(1325, 117, 'Hub');
   await page.screenshot({ path: resolve(output, 'hub.png') });
   await clickScene(720, 581, 'CardLibrary');

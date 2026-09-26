@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.29.0",
+  "current_version": "QQ-0.29.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.29.1",
+      "date": "2026-09-26",
+      "title_ja": "初回戦闘の描画準備",
+      "title_en": "Faster first battle display",
+      "changes_ja": [
+        "ロード中に最初の戦闘で使う3Dモデルを描画準備し、初回戦闘の待ち時間を短縮しました。",
+        "チュートリアル一覧・マップ・アリーナでカード画像を段階的に先読みし、必要な敵モデルを準備します。",
+        "戦闘遷移をカード画像、画面構築、初回表示に分けて計測できるようにしました。"
+      ],
+      "changes_en": [
+        "Render the first combat models during loading to reduce the first battle transition.",
+        "Preload card art incrementally in tutorials, map, and arena, and prepare the relevant enemy models ahead of battle.",
+        "Measure card art, battle UI construction, and first display separately."
+      ]
+    },
     {
       "version": "QQ-0.29.0",
       "date": "2026-09-26",

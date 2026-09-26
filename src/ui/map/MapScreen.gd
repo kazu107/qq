@@ -25,6 +25,7 @@ func _ready() -> void:
 
 	_build_ui()
 	_refresh_ui()
+	_schedule_current_step_card_preload()
 	AudioManager.play_sfx("map_reveal", 1.0, -4.0)
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
@@ -209,12 +210,35 @@ func _rebuild_steps() -> void:
 			node_button.name = String(node_data.get("id", "Node"))
 			node_button.bind(node_data, Localization.get_step_label(step_data), is_current_step)
 			node_button.node_selected.connect(_on_node_selected)
+			if is_current_step and String(node_data.get("type", "")) in ["normal_battle", "elite_battle", "boss"]:
+				node_button.mouse_entered.connect(
+					SceneRouter.schedule_battle_visuals.bind(Game.current_run.starter_id, String(node_data.get("enemy_id", "")))
+				)
 			row.add_child(node_button)
 
 	_steps_scroll_tail = Control.new()
 	_steps_scroll_tail.name = "MapStepsScrollTail"
 	_steps_box.add_child(_steps_scroll_tail)
 	call_deferred("_scroll_to_current_step", current_step_index)
+
+
+func _schedule_current_step_card_preload() -> void:
+	var card_ids: Array[String] = []
+	for card_id: String in Game.current_run.equipped_cards:
+		if not card_ids.has(card_id):
+			card_ids.append(card_id)
+	var step_data: Dictionary = Game.get_current_step_data()
+	for raw_node: Variant in Array(step_data.get("nodes", [])):
+		var node_data: Dictionary = Dictionary(raw_node)
+		if String(node_data.get("type", "")) not in ["normal_battle", "elite_battle", "boss"]:
+			continue
+		var enemy: EnemyDef = Database.get_enemy(String(node_data.get("enemy_id", "")))
+		if enemy == null:
+			continue
+		for card_id: String in enemy.cards:
+			if not card_ids.has(card_id):
+				card_ids.append(card_id)
+	SceneRouter.schedule_battle_card_ids(card_ids)
 
 
 func _rebuild_run_history_summary(current_run: RunState) -> void:

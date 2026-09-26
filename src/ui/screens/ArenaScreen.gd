@@ -55,8 +55,25 @@ func _ready() -> void:
 
 	_build_ui()
 	_refresh_ui()
+	if not _lan_mode:
+		_schedule_next_battle_preload()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+
+
+func _schedule_next_battle_preload() -> void:
+	var run_state: RunState = Game.current_run
+	if run_state == null:
+		return
+	var enemy_id: String = run_state.arena_next_enemy_id
+	SceneRouter.schedule_battle_visuals(run_state.starter_id, enemy_id)
+	var card_ids: Array[String] = run_state.equipped_cards.duplicate()
+	var enemy: EnemyDef = Database.get_enemy(enemy_id)
+	if enemy != null:
+		for card_id: String in enemy.cards:
+			if not card_ids.has(card_id):
+				card_ids.append(card_id)
+	SceneRouter.schedule_battle_card_ids(card_ids)
 
 
 func _connect_lan_signals() -> void:

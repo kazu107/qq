@@ -7,6 +7,23 @@ func _ready() -> void:
 	Database.load_all()
 	_tutorials = BattleTutorialCatalog.get_all()
 	_build_ui()
+	_schedule_battle_preload()
+
+
+func _schedule_battle_preload() -> void:
+	var card_ids: Array[String] = []
+	for tutorial: Dictionary in _tutorials:
+		for raw_card_id: Variant in Array(tutorial.get("cards", [])):
+			var card_id: String = String(raw_card_id)
+			if not card_ids.has(card_id):
+				card_ids.append(card_id)
+		var enemy_id: String = String(tutorial.get("enemy_id", ""))
+		var enemy: EnemyDef = Database.get_enemy(enemy_id)
+		if enemy != null:
+			for card_id: String in enemy.cards:
+				if not card_ids.has(card_id):
+					card_ids.append(card_id)
+	SceneRouter.schedule_battle_card_ids(card_ids)
 
 
 func get_tutorial_count() -> int:
@@ -77,6 +94,7 @@ func _build_ui() -> void:
 func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	var panel := PanelContainer.new()
 	panel.name = "TutorialItem_%s" % String(tutorial["id"])
+	panel.mouse_entered.connect(SceneRouter.schedule_battle_visuals.bind("balanced", String(tutorial.get("enemy_id", ""))))
 	panel.custom_minimum_size = Vector2(0.0, 154.0)
 	panel.add_theme_stylebox_override("panel", _make_item_style())
 

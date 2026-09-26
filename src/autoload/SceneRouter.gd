@@ -30,6 +30,9 @@ var _ui_scene_cache: Dictionary = {}
 var _warming_ui_scene: bool = false
 var _battle_stage_cache: BattleStage3D
 var _pending_battle_card_ids: Array[String] = []
+var _pending_battle_visuals: Array[Dictionary] = []
+var _warming_battle_visuals: bool = false
+var _warmed_battle_visual_pairs: Dictionary = {}
 var _debug_return_scene_path: String = HUB_SCENE
 
 
@@ -94,16 +97,29 @@ func _process(_delta: float) -> void:
 func warm_battle_stage_cache_async() -> bool:
 	if _battle_stage_cache != null and is_instance_valid(_battle_stage_cache):
 		return true
+	var warm_started_us: int = Time.get_ticks_usec()
 	var stage: BattleStage3D = BattleStage3D.new()
 	stage.name = "CachedBattleStage3D"
-	stage.position = Vector2(-2048.0, -2048.0)
+	# Keep the stage inside the window, behind the opaque loading screen, so WebGL renders its materials.
+	stage.position = Vector2.ZERO
 	stage.size = Vector2(BattleStage3D.DEFAULT_VIEWPORT_SIZE)
 	add_child(stage)
 	_battle_stage_cache = stage
-	await get_tree().process_frame
-	await get_tree().process_frame
+	stage.configure_combatants("player", "enemy", "player", "balanced", "scout")
+	await _wait_for_battle_stage_frame()
+	await _wait_for_battle_stage_frame()
 	stage.suspend_for_cache()
+	stage.position = Vector2(-2048.0, -2048.0)
+	_warmed_battle_visual_pairs["balanced|scout"] = true
+	WebLoadMetrics.record("battle_stage_warmup", (Time.get_ticks_usec() - warm_started_us) / 1000.0)
 	return true
+
+
+func _wait_for_battle_stage_frame() -> void:
+	if DisplayServer.get_name() == "headless":
+		await get_tree().process_frame
+	else:
+		await RenderingServer.frame_post_draw
 
 
 func has_cached_battle_stage() -> bool:
@@ -133,11 +149,58 @@ func warm_current_battle_cards_async() -> int:
 func schedule_current_battle_cards() -> void:
 	if not Game.is_web_build():
 		return
-	for card_id: String in _current_battle_card_ids():
+	schedule_battle_card_ids(_current_battle_card_ids())
+
+
+func schedule_battle_card_ids(card_ids: Array[String]) -> void:
+	if not Game.is_web_build():
+		return
+	for card_id: String in card_ids:
 		if not _pending_battle_card_ids.has(card_id):
 			_pending_battle_card_ids.append(card_id)
 	if not _pending_battle_card_ids.is_empty():
 		set_process(true)
+
+
+func schedule_battle_visuals(player_visual: String, enemy_visual: String) -> void:
+	if not Game.is_web_build() or not has_cached_battle_stage():
+		return
+	if player_visual == "" or enemy_visual == "":
+		return
+	var pair_key: String = "%s|%s" % [player_visual, enemy_visual]
+	if _warmed_battle_visual_pairs.has(pair_key):
+		return
+	for pending: Dictionary in _pending_battle_visuals:
+		if String(pending.get("key", "")) == pair_key:
+			return
+	_pending_battle_visuals.append({"key": pair_key, "player": player_visual, "enemy": enemy_visual})
+	if not _warming_battle_visuals:
+		_warming_battle_visuals = true
+		call_deferred("_warm_pending_battle_visuals_async")
+
+
+func _warm_pending_battle_visuals_async() -> void:
+	await get_tree().process_frame
+	while not _pending_battle_visuals.is_empty() and has_cached_battle_stage():
+		var request: Dictionary = _pending_battle_visuals.pop_front()
+		var stage: BattleStage3D = _battle_stage_cache
+		var started_us: int = Time.get_ticks_usec()
+		stage.position = Vector2.ZERO
+		stage.resume_from_cache()
+		stage.configure_combatants("player", "enemy", "player", String(request["player"]), String(request["enemy"]))
+		await _wait_for_battle_stage_frame()
+		await _wait_for_battle_stage_frame()
+		if _battle_stage_cache != stage or not is_instance_valid(stage):
+			break
+		stage.suspend_for_cache()
+		stage.position = Vector2(-2048.0, -2048.0)
+		_warmed_battle_visual_pairs[String(request["key"])] = true
+		WebLoadMetrics.record("battle_visual_warmup", (Time.get_ticks_usec() - started_us) / 1000.0, {
+			"player": request["player"], "enemy": request["enemy"],
+		})
+		await get_tree().process_frame
+	_pending_battle_visuals.clear()
+	_warming_battle_visuals = false
 
 
 func _current_battle_card_ids() -> Array[String]:
@@ -441,7 +504,12 @@ func _change_scene(scene_path: String) -> void:
 		_pending_battle_card_ids.clear()
 		set_process(false)
 		if Game.is_web_build():
+			var cards_started_us: int = Time.get_ticks_usec()
+			var cached_before: int = CardButton.get_cached_texture_count()
 			CardButton.warm_texture_cache(_current_battle_card_ids())
+			WebLoadMetrics.record("battle_card_preload", (Time.get_ticks_usec() - cards_started_us) / 1000.0, {
+				"new_textures": CardButton.get_cached_texture_count() - cached_before,
+			})
 	else:
 		schedule_current_battle_cards()
 	_cache_current_ui_scene(current_scene)
@@ -459,10 +527,13 @@ func _change_scene(scene_path: String) -> void:
 		call_deferred("_release_transition_cover", scene_path, transition_started_us)
 		return
 	var packed_scene: PackedScene = _get_preloaded_scene(scene_path)
+	var swap_started_us: int = Time.get_ticks_usec()
 	if packed_scene != null:
 		get_tree().change_scene_to_packed(packed_scene)
 	else:
 		get_tree().change_scene_to_file(scene_path)
+	if scene_path == BATTLE_SCENE:
+		WebLoadMetrics.record("battle_scene_swap_request", (Time.get_ticks_usec() - swap_started_us) / 1000.0)
 	call_deferred("_release_transition_cover", scene_path, transition_started_us)
 
 

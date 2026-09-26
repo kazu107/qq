@@ -59,11 +59,14 @@ var _tutorial_director: BattleTutorialDirector
 
 
 func _ready() -> void:
+	var ready_started_us: int = Time.get_ticks_usec()
 	_build_ui()
+	WebLoadMetrics.record("battle_ui_build", (Time.get_ticks_usec() - ready_started_us) / 1000.0)
 	_engine.set_defer_resolution_audio(true)
 	_tutorial_mode = Game.is_battle_tutorial_active()
 	if _tutorial_mode:
 		_setup_tutorial_battle()
+		WebLoadMetrics.record("battle_ready", (Time.get_ticks_usec() - ready_started_us) / 1000.0, {"mode": "tutorial"})
 		return
 	_lan_mode = NetworkManager.has_active_match() or NetworkManager.is_local_waiting_for_round_results()
 	if _lan_mode:
@@ -79,6 +82,7 @@ func _ready() -> void:
 			_refresh_round_results_overlay()
 		if Game.is_developer_mode_enabled():
 			_build_developer_panel()
+		WebLoadMetrics.record("battle_ready", (Time.get_ticks_usec() - ready_started_us) / 1000.0, {"mode": "network"})
 		return
 	if Game.current_run == null:
 		SceneRouter.go_to_hub()
@@ -93,6 +97,7 @@ func _ready() -> void:
 	_refresh_ui(SlowModeController.NORMAL_SCALE)
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+	WebLoadMetrics.record("battle_ready", (Time.get_ticks_usec() - ready_started_us) / 1000.0, {"mode": "run"})
 
 
 func _exit_tree() -> void:
