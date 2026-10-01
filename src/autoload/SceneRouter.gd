@@ -23,6 +23,8 @@ const GOLD_DELTA_POPUP_NAME := "GoldDeltaPopup"
 
 var _transition_layer: CanvasLayer
 var _transition_cover: ColorRect
+var _boot_loading_layer: CanvasLayer
+var _boot_loading_content: Control
 var _gold_popup_layer: CanvasLayer
 var _gold_popup_index: int = 0
 var _scene_cache: Dictionary = {}
@@ -584,12 +586,45 @@ func _release_transition_cover(scene_path: String = "", started_us: int = 0) -> 
 	await get_tree().process_frame
 	if _transition_cover != null:
 		_transition_cover.visible = false
+	if scene_path == HUB_SCENE:
+		await _wait_for_battle_stage_frame()
 	if started_us > 0:
 		WebLoadMetrics.record("scene_transition", (Time.get_ticks_usec() - started_us) / 1000.0, {
 			"screen": scene_path.get_file().get_basename(),
 		})
 	if scene_path == HUB_SCENE:
 		WebBootLoader.finish()
+		_fade_boot_loading_overlay()
+
+
+func retain_boot_loading_overlay(content: Control) -> void:
+	if not is_instance_valid(content):
+		return
+	_boot_loading_layer = CanvasLayer.new()
+	_boot_loading_layer.name = "BootCompletionLayer"
+	_boot_loading_layer.layer = 4097
+	add_child(_boot_loading_layer)
+	_boot_loading_content = content
+	content.reparent(_boot_loading_layer)
+
+
+func _fade_boot_loading_overlay() -> void:
+	if not is_instance_valid(_boot_loading_content):
+		return
+	var content: Control = _boot_loading_content
+	var layer: CanvasLayer = _boot_loading_layer
+	_boot_loading_content = null
+	_boot_loading_layer = null
+	var progress_bar: ProgressBar = content.find_child("BootLoadingProgress", true, false) as ProgressBar
+	var percent_label: Label = content.find_child("BootLoadingPercent", true, false) as Label
+	if progress_bar != null:
+		progress_bar.value = 1.0
+	if percent_label != null:
+		percent_label.text = "100%"
+	var tween: Tween = create_tween()
+	tween.tween_interval(0.18)
+	tween.tween_property(content, "modulate:a", 0.0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.finished.connect(layer.queue_free)
 
 
 func _ensure_transition_cover() -> void:

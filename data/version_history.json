@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.29.3",
+  "current_version": "QQ-0.29.4",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.29.4",
+      "date": "2026-10-01",
+      "title_ja": "読み込み状況と完了演出",
+      "title_en": "Loading progress and Hub reveal",
+      "changes_ja": [
+        "ロード画面に全体の進捗率、処理内容、ダウンロード量を表示します。",
+        "ハブの描画後に100%を表示し、ロード画面がゆっくり薄くなってハブが現れる演出を追加しました。",
+        "デスクトップ版にも進捗率と完了フェードを追加し、Web版では端末のアニメーション軽減設定に対応します。"
+      ],
+      "changes_en": [
+        "Show overall progress, the current preparation task, and downloaded megabytes on the loading screen.",
+        "Show 100% after the Hub renders, then fade the loading screen away to reveal it.",
+        "Add progress and completion fading on desktop, and respect reduced motion on the Web."
+      ]
+    },
     {
       "version": "QQ-0.29.3",
       "date": "2026-10-01",

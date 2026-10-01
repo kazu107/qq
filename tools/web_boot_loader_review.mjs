@@ -21,6 +21,7 @@ async function appearance(page) {
     const overlay = document.querySelector('#status');
     const bar = document.querySelector('#status-progress');
     const logo = document.querySelector('#status-splash');
+    const panel = document.querySelector('#status-loading');
     const rect = element => {
       const { x, y, width, height } = element.getBoundingClientRect();
       return { x, y, width, height };
@@ -29,6 +30,7 @@ async function appearance(page) {
       background: getComputedStyle(overlay).backgroundImage,
       logo: rect(logo),
       bar: rect(bar),
+      panel: rect(panel),
     };
   });
 }
@@ -71,14 +73,31 @@ async function reviewRealBoot() {
     assert.equal(await page.title(), 'QueueQuest');
     const logoSource = await page.locator('#status-splash').getAttribute('src');
     assert.equal(logoSource, 'queuequest-logo.svg', 'The loader did not use the standalone SVG logo');
+    assert.match(await page.locator('#status-percent').textContent(), /^\d+%$/);
     const downloadAppearance = await appearance(page);
     await page.screenshot({ path: resolve(output, 'download.png') });
     await page.waitForFunction(() => document.querySelector('#status')?.dataset.phase === 'preparing', undefined, { timeout: 90000 });
     const preparingAppearance = await appearance(page);
     assert.deepEqual(preparingAppearance, downloadAppearance, 'Loading layout changed between download and preparation');
+    const progressSnapshot = await page.evaluate(() => ({
+      text: document.getElementById('status-percent').textContent,
+      value: document.getElementById('status-progress').value,
+    }));
+    assert.equal(progressSnapshot.text, `${Math.floor(progressSnapshot.value * 100)}%`);
+    assert((await page.locator('#status-transfer').textContent()).length > 0);
     await page.screenshot({ path: resolve(output, 'preparing.png') });
     await page.waitForFunction(() => window.qqLoadMetrics?.some(entry =>
       entry.event === 'scene_transition' && entry.details.screen === 'Hub'), undefined, { timeout: 90000 });
+    await page.waitForFunction(() => document.querySelector('#status')?.dataset.phase === 'ready');
+    assert.equal(await page.locator('#status-percent').textContent(), '100%');
+    assert.equal(await page.locator('#status-detail').textContent(), '読み込み完了');
+    await page.waitForFunction(() => {
+      const opacity = Number(getComputedStyle(document.getElementById('status')).opacity);
+      return opacity > 0.1 && opacity < 0.9;
+    });
+    const fadeOpacity = await page.locator('#status').evaluate(overlay => Number(getComputedStyle(overlay).opacity));
+    assert.equal(await page.locator('#status').evaluate(overlay => getComputedStyle(overlay).pointerEvents), 'auto', 'Completion must block clicks until the Hub is revealed');
+    await page.screenshot({ path: resolve(output, 'completion-fade.png') });
     await page.waitForSelector('#status', { state: 'detached' });
     await page.screenshot({ path: resolve(output, 'hub.png') });
     const evidence = await page.evaluate(() => window.bootReview);
@@ -89,7 +108,7 @@ async function reviewRealBoot() {
     assert(evidence.progress.at(-1) === 1, 'Loading did not reach completion');
     assert(evidence.progress.every((value, index, values) => index === 0 || value >= values[index - 1]), 'Loading bar went backwards');
     assert.deepEqual(errors, []);
-    report.real_boot = { ...evidence, appearance: preparingAppearance };
+    report.real_boot = { ...evidence, appearance: preparingAppearance, fade_opacity: fadeOpacity };
     report.cases.push('real_download_preparation_hub');
   } catch (error) {
     await page.screenshot({ path: resolve(output, 'failure.png') });
@@ -99,8 +118,8 @@ async function reviewRealBoot() {
   }
 }
 
-async function mockPage(startBody = 'window.mockEngineStarted = true;') {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+async function mockPage(startBody = 'window.mockEngineStarted = true;', options = {}) {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, ...options });
   await page.route('**/index.js', route => route.fulfill({
     contentType: 'application/javascript',
     body: `window.Engine = class {
@@ -120,6 +139,10 @@ try {
   const modern = await mockPage();
   await modern.waitForFunction(() => window.mockEngineStarted);
   assert(await modern.locator('#status').isVisible(), 'Engine startup removed the overlay before preparation');
+  assert.equal(await modern.locator('#status-percent').textContent(), '65%');
+  assert.equal(await modern.locator('#status-transfer').textContent(), 'ゲームエンジンを初期化しています');
+  await modern.evaluate(() => window.mockEngineConfig.onProgress(50 * 1024 * 1024, 100 * 1024 * 1024));
+  assert.equal(await modern.locator('#status-transfer').textContent(), '50.0 / 100.0 MB');
   await modern.evaluate(() => window.qqBootLoader.update('Preparing...', 0.5));
   const progress = await modern.locator('#status-progress').evaluate(bar => bar.value);
   assert(progress > 0.65 && progress < 1);
@@ -130,10 +153,25 @@ try {
   const mobileAppearance = await appearance(modern);
   assert(mobileAppearance.bar.x >= 0 && mobileAppearance.bar.x + mobileAppearance.bar.width <= 390);
   await modern.screenshot({ path: resolve(output, 'mobile-preparing.png') });
+  await modern.setViewportSize({ width: 844, height: 390 });
+  const landscapeAppearance = await appearance(modern);
+  assert(landscapeAppearance.logo.y + landscapeAppearance.logo.height <= landscapeAppearance.panel.y, 'Landscape logo overlapped the loading panel');
+  await modern.screenshot({ path: resolve(output, 'landscape-preparing.png') });
+  await modern.evaluate(() => window.qqBootLoader.update('Prepared', 1));
+  assert.equal(await modern.locator('#status-percent').textContent(), '99%', '100% must be reserved for a rendered Hub');
   await modern.evaluate(() => window.qqBootLoader.finish());
+  assert.equal(await modern.locator('#status-percent').textContent(), '100%');
   await modern.waitForSelector('#status', { state: 'detached' });
   await modern.close();
-  report.cases.push('bridge_and_late_download_callback', 'mobile_layout');
+  report.cases.push('progress_text_and_transfer_size', 'bridge_and_late_download_callback', 'mobile_layout', 'completion_fade');
+
+  const reduced = await mockPage(undefined, { reducedMotion: 'reduce' });
+  await reduced.waitForFunction(() => window.mockEngineStarted);
+  assert.equal(await reduced.locator('#status').evaluate(overlay => getComputedStyle(overlay).transitionDuration), '0s');
+  await reduced.evaluate(() => window.qqBootLoader.finish());
+  await reduced.waitForSelector('#status', { state: 'detached' });
+  await reduced.close();
+  report.cases.push('reduced_motion');
 
   const legacy = await mockPage();
   await legacy.evaluate(() => { window.qqLoadMetrics = [{ event: 'boot_ready', details: {} }]; });

@@ -5,6 +5,8 @@ const STARTUP_WARMUP_SERVICE: GDScript = preload("res://src/core/services/Startu
 var _label: Label
 var _detail_label: Label
 var _progress_bar: ProgressBar
+var _percent_label: Label
+var _loading_content: Control
 
 
 func _ready() -> void:
@@ -13,11 +15,16 @@ func _ready() -> void:
 
 
 func _build_loading_screen() -> void:
+	_loading_content = Control.new()
+	_loading_content.name = "BootLoadingContent"
+	_loading_content.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_loading_content)
+
 	var background: ColorRect = ColorRect.new()
 	background.name = "BootLoadingBackground"
 	background.color = Color(0.006, 0.010, 0.016, 1.0)
 	background.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(background)
+	_loading_content.add_child(background)
 
 	var margin: MarginContainer = MarginContainer.new()
 	margin.name = "BootLoadingMargin"
@@ -27,7 +34,7 @@ func _build_loading_screen() -> void:
 	margin.offset_top = 180.0
 	margin.offset_right = -260.0
 	margin.offset_bottom = -180.0
-	add_child(margin)
+	_loading_content.add_child(margin)
 
 	var root: VBoxContainer = VBoxContainer.new()
 	root.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -57,6 +64,13 @@ func _build_loading_screen() -> void:
 	_detail_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	root.add_child(_detail_label)
+
+	_percent_label = Label.new()
+	_percent_label.name = "BootLoadingPercent"
+	_percent_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_percent_label.add_theme_font_size_override("font_size", 28)
+	_percent_label.add_theme_color_override("font_color", Color("f5c66a"))
+	root.add_child(_percent_label)
 
 	_progress_bar = ProgressBar.new()
 	_progress_bar.name = "BootLoadingProgress"
@@ -96,6 +110,8 @@ func _boot() -> void:
 	tooltip_text = "Startup cache: %s" % JSON.stringify(warmup_summary)
 	WebLoadMetrics.record("boot_ready", (Time.get_ticks_usec() - boot_started_us) / 1000.0, warmup_summary)
 	await get_tree().create_timer(0.2).timeout
+	if not OS.has_feature("web"):
+		SceneRouter.retain_boot_loading_overlay(_loading_content)
 	SceneRouter.go_to_hub()
 
 
@@ -105,5 +121,7 @@ func _set_loading_status(text: String, progress: float) -> void:
 	if _detail_label != null:
 		_detail_label.text = text
 	if _progress_bar != null:
-		_progress_bar.value = clampf(progress, 0.0, 1.0)
+		_progress_bar.value = maxf(_progress_bar.value, clampf(progress, 0.0, 0.99))
+	if _percent_label != null:
+		_percent_label.text = "%d%%" % floori(_progress_bar.value * 100.0)
 	WebBootLoader.report_progress(text, progress)

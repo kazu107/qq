@@ -94,8 +94,9 @@ func _boot_loading_screen_has_progress_ui() -> bool:
 	boot_screen.call("_build_loading_screen")
 	var progress_bar: ProgressBar = boot_screen.find_child("BootLoadingProgress", true, false) as ProgressBar
 	var detail_label: Label = boot_screen.find_child("BootLoadingDetail", true, false) as Label
+	var percent_label: Label = boot_screen.find_child("BootLoadingPercent", true, false) as Label
 	boot_screen.queue_free()
-	if progress_bar == null or detail_label == null:
+	if progress_bar == null or detail_label == null or percent_label == null:
 		_fail("Startup cache smoke failed: boot loading screen progress UI was missing")
 		return false
 	return true
