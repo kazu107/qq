@@ -60,7 +60,7 @@
   "developer.title": "開発者モード",
   "developer.expand": "展開",
   "developer.collapse": "折りたたむ",
-  "title.game_title": "リアルタイムカードタクティクス",
+  "title.game_title": "QueueQuest",
   "title.subtitle": "仕様書ベース MVP ビルド",
   "title.web_subtitle": "ブラウザ版 | セーブデータはこのブラウザに保存されます",
   "title.web_storage_warning": "この環境ではセーブデータが保持されない可能性があります。通常ブラウザで開いてください。",

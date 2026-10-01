@@ -3,7 +3,8 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-		<title>qq</title>
+		<title>QueueQuest</title>
+		<link rel="icon" type="image/svg+xml" href="queuequest-mark.svg">
 		<style>
 html, body, #canvas {
 	margin: 0;
@@ -71,8 +72,8 @@ body {
 }
 
 #status-splash {
-	max-height: 56%;
-	max-width: 56%;
+	max-height: 36%;
+	max-width: min(760px, 82%);
 	margin: auto;
 	z-index: 1;
 }
@@ -145,7 +146,7 @@ body {
 		</noscript>
 
 		<div id="status" data-phase="download" role="status" aria-live="polite">
-			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
+			<img id="status-splash" class="fullsize--true use-filter--true" src="queuequest-logo.svg" alt="QueueQuest">
 			<div id="status-detail">起動準備中</div>
 			<progress id="status-progress" max="1" value="0" aria-label="読み込み状況"></progress>
 			<div id="status-notice"></div>
@@ -153,7 +154,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":89861580,"index.wasm":37695054},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":89901448,"index.wasm":37695054},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const R2_MANIFEST_URL = 'https://qq.kazu107.xyz/releases/current.json';
 const R2_ORIGIN = new URL(R2_MANIFEST_URL).origin;

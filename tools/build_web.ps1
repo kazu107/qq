@@ -59,4 +59,8 @@ if ($LASTEXITCODE -ne 0) {
     throw "Web export failed. Review the Godot errors above and run this script again after correcting the project or preset configuration."
 }
 
+foreach ($brandAsset in @("queuequest-logo.svg", "queuequest-mark.svg")) {
+    Copy-Item -LiteralPath (Join-Path $ProjectRoot "assets\branding\$brandAsset") -Destination (Join-Path $OutputDirectory $brandAsset) -Force
+}
+
 Write-Host "Web build created: $OutputFile"

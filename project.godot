@@ -10,11 +10,16 @@ config_version=5
 
 [application]
 
-config/name="qq"
+config/name="QueueQuest"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Godot/app_userdata/qq"
+config/custom_user_dir_name.linux="godot/app_userdata/qq"
 run/main_scene.qq_validation="res://tests/WebArenaHarness.tscn"
 run/main_scene="res://scenes/boot/Boot.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
-config/icon="res://icon.svg"
+config/icon="res://assets/branding/queuequest-mark.svg"
+boot_splash/show_image=false
+boot_splash/bg_color=Color(0.006, 0.010, 0.016, 1)
 
 [autoload]
 

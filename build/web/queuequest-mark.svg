@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title description">
+  <title id="title">QueueQuest icon</title>
+  <desc id="description">A gold Q card leads two blue cards along a timeline.</desc>
+  <rect x="6" y="6" width="244" height="244" rx="48" fill="#0a1b28"/>
+  <g transform="translate(8 12)" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M22 194H224" fill="none" stroke="#3ebbe5" stroke-width="7"/>
+    <path d="M170 188V200M200 188V200" fill="none" stroke="#3ebbe5" stroke-width="4"/>
+    <rect x="124" y="34" width="66" height="94" rx="9" transform="rotate(12 157 81)" fill="#102c3d" stroke="#3ebbe5" stroke-width="8"/>
+    <rect x="86" y="53" width="66" height="94" rx="9" transform="rotate(5 119 100)" fill="#0c2231" stroke="#72d6f4" stroke-width="8"/>
+    <rect x="43" y="75" width="76" height="102" rx="10" transform="rotate(-5 81 126)" fill="#0a1b28" stroke="#f5c66a" stroke-width="9"/>
+    <g transform="rotate(-5 81 126)" fill="none" stroke="#f5c66a" stroke-width="7">
+      <ellipse cx="81" cy="123" rx="18" ry="23"/>
+      <path d="M88 136L103 152"/>
+    </g>
+    <circle cx="40" cy="194" r="9" fill="#f5c66a"/>
+  </g>
+</svg>

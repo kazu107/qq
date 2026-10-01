@@ -22,7 +22,7 @@ func _ready() -> void:
 	margin.add_child(root)
 
 	var title := Label.new()
-	title.text = Localization.get_text("title.game_title", "Realtime Card Tactics")
+	title.text = Localization.get_text("title.game_title", "QueueQuest")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(title)
 

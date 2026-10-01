@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="240" viewBox="0 0 900 240" role="img" aria-labelledby="title description">
+  <title id="title">QueueQuest</title>
+  <desc id="description">A gold card leads two blue cards along a timeline beside an outlined QueueQuest wordmark.</desc>
+  <g transform="translate(8 8)" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M22 194H224" fill="none" stroke="#3ebbe5" stroke-width="6"/>
+    <path d="M170 188V200M200 188V200" fill="none" stroke="#3ebbe5" stroke-width="4"/>
+    <rect x="124" y="34" width="66" height="94" rx="9" transform="rotate(12 157 81)" fill="#102c3d" stroke="#3ebbe5" stroke-width="8"/>
+    <rect x="86" y="53" width="66" height="94" rx="9" transform="rotate(5 119 100)" fill="#0c2231" stroke="#72d6f4" stroke-width="8"/>
+    <rect x="43" y="75" width="76" height="102" rx="10" transform="rotate(-5 81 126)" fill="#0a1b28" stroke="#f5c66a" stroke-width="9"/>
+    <g transform="rotate(-5 81 126)" fill="none" stroke="#f5c66a" stroke-width="7">
+      <ellipse cx="81" cy="123" rx="18" ry="23"/>
+      <path d="M88 136L103 152"/>
+    </g>
+    <circle cx="40" cy="194" r="9" fill="#f5c66a"/>
+  </g>
+  <g fill="none" stroke="#f4f2e9" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(242 0)">
+      <ellipse cx="32" cy="108" rx="26" ry="34"/>
+      <path d="M42 130L63 151"/>
+    </g>
+    <path d="M322 99V125Q322 146 342 146Q362 146 362 125V99"/>
+    <g transform="translate(378 99)">
+      <path d="M42 23H0C0 8 8 0 21 0C34 0 42 9 42 23M0 23C0 39 9 47 23 47C31 47 38 44 42 40"/>
+    </g>
+    <path d="M438 99V125Q438 146 458 146Q478 146 478 125V99"/>
+    <g transform="translate(494 99)">
+      <path d="M42 23H0C0 8 8 0 21 0C34 0 42 9 42 23M0 23C0 39 9 47 23 47C31 47 38 44 42 40"/>
+    </g>
+  </g>
+  <g fill="none" stroke="#f5c66a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(558 0)">
+      <ellipse cx="32" cy="108" rx="26" ry="34"/>
+      <path d="M42 130L63 151"/>
+    </g>
+    <path d="M640 99V125Q640 146 660 146Q680 146 680 125V99"/>
+    <g transform="translate(696 99)">
+      <path d="M42 23H0C0 8 8 0 21 0C34 0 42 9 42 23M0 23C0 39 9 47 23 47C31 47 38 44 42 40"/>
+    </g>
+    <path d="M792 104C781 96 758 97 758 110C758 122 793 121 793 134C793 148 768 150 757 141"/>
+    <path d="M825 84V130Q825 146 840 146H848M812 101H847"/>
+  </g>
+</svg>

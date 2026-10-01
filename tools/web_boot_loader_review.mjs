@@ -68,6 +68,9 @@ async function reviewRealBoot() {
     await page.goto(url, { waitUntil: 'commit' });
     await page.waitForFunction(() => window.qqBootLoader && document.querySelector('#status')?.dataset.phase === 'download');
     await page.locator('#status-splash').evaluate(image => image.decode());
+    assert.equal(await page.title(), 'QueueQuest');
+    const logoSource = await page.locator('#status-splash').getAttribute('src');
+    assert.equal(logoSource, 'queuequest-logo.svg', 'The loader did not use the standalone SVG logo');
     const downloadAppearance = await appearance(page);
     await page.screenshot({ path: resolve(output, 'download.png') });
     await page.waitForFunction(() => document.querySelector('#status')?.dataset.phase === 'preparing', undefined, { timeout: 90000 });
