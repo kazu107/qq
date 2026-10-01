@@ -98,3 +98,4 @@ func _set_loading_status(text: String, progress: float) -> void:
 		_detail_label.text = text
 	if _progress_bar != null:
 		_progress_bar.value = clampf(progress, 0.0, 1.0)
+	WebBootLoader.report_progress(text, progress)

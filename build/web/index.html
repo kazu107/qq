@@ -38,12 +38,26 @@ body {
 }
 
 #status {
+	position: fixed;
 	background: radial-gradient(circle at 50% 42%, #10263a 0%, #07111b 42%, #03070b 100%);
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	visibility: hidden;
+	visibility: visible;
+	opacity: 1;
+	transition: opacity 220ms ease;
+}
+
+#status.is-complete {
+	opacity: 0;
+	pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#status {
+		transition: none;
+	}
 }
 
 #status::after {
@@ -81,11 +95,12 @@ body {
 	z-index: 2;
 }
 
-#status-progress, #status-notice {
+#status-notice {
 	display: none;
 }
 
 #status-progress {
+	display: block;
 	bottom: 11%;
 	width: min(520px, 64%);
 	height: 10px;
@@ -129,16 +144,16 @@ body {
 			JavaScriptを有効にしてください。
 		</noscript>
 
-		<div id="status">
+		<div id="status" data-phase="download" role="status" aria-live="polite">
 			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
 			<div id="status-detail">起動準備中</div>
-			<progress id="status-progress"></progress>
+			<progress id="status-progress" max="1" value="0" aria-label="読み込み状況"></progress>
 			<div id="status-notice"></div>
 		</div>
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":89859616,"index.wasm":37695054},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":89861580,"index.wasm":37695054},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const R2_MANIFEST_URL = 'https://qq.kazu107.xyz/releases/current.json';
 const R2_ORIGIN = new URL(R2_MANIFEST_URL).origin;
@@ -152,14 +167,22 @@ const LOCAL_PACK_PATH = `${GODOT_CONFIG.executable}.pck`;
 
 	let initializing = true;
 	let statusMode = '';
+	let overallProgress = 0;
+	let bootProgressStarted = false;
+	let legacyReadyPoll = null;
+	const downloadWeight = 0.65;
 
 	function setStatusMode(mode) {
 		if (statusMode === mode || !initializing) {
 			return;
 		}
 		if (mode === 'hidden') {
-			statusOverlay.remove();
 			initializing = false;
+			statusMode = mode;
+			statusOverlay.dataset.phase = 'ready';
+			statusOverlay.classList.add('is-complete');
+			window.clearInterval(legacyReadyPoll);
+			window.setTimeout(() => statusOverlay.remove(), 250);
 			return;
 		}
 		statusOverlay.style.visibility = 'visible';
@@ -172,6 +195,33 @@ const LOCAL_PACK_PATH = `${GODOT_CONFIG.executable}.pck`;
 	function setStatusDetail(text) {
 		statusDetail.textContent = text;
 	}
+
+	function setOverallProgress(value) {
+		overallProgress = Math.max(overallProgress, Math.min(1, Math.max(0, value)));
+		statusProgress.max = 1;
+		statusProgress.value = overallProgress;
+	}
+
+	function updateBootProgress(text, progress) {
+		if (!initializing || statusMode === 'notice') {
+			return;
+		}
+		bootProgressStarted = true;
+		statusOverlay.dataset.phase = 'preparing';
+		setStatusMode('progress');
+		setOverallProgress(downloadWeight + (1 - downloadWeight) * Number(progress));
+		setStatusDetail(String(text));
+	}
+
+	function finishBoot() {
+		if (!initializing || statusMode === 'notice') {
+			return;
+		}
+		setOverallProgress(1);
+		setStatusMode('hidden');
+	}
+
+	window.qqBootLoader = Object.freeze({ update: updateBootProgress, finish: finishBoot });
 
 	function setStatusNotice(text) {
 		statusNotice.replaceChildren();
@@ -186,6 +236,8 @@ const LOCAL_PACK_PATH = `${GODOT_CONFIG.executable}.pck`;
 		const message = error instanceof Error ? error.message : String(error || '不明なエラーが発生しました。');
 		setStatusNotice(`ゲームを起動できませんでした。\n${message}\nページを再読み込みしてください。`);
 		setStatusMode('notice');
+		statusOverlay.dataset.phase = 'failed';
+		window.clearInterval(legacyReadyPoll);
 		initializing = false;
 	}
 
@@ -255,13 +307,14 @@ const LOCAL_PACK_PATH = `${GODOT_CONFIG.executable}.pck`;
 	}
 
 	function updateProgress(current, total) {
+		if (!initializing || bootProgressStarted) {
+			return;
+		}
 		if (current > 0 && total > 0) {
-			statusProgress.value = current;
-			statusProgress.max = total;
+			setOverallProgress(downloadWeight * current / total);
 			setStatusDetail(`ゲームデータを読み込み中 ${Math.min(100, Math.floor(current / total * 100))}%`);
 		} else {
 			statusProgress.removeAttribute('value');
-			statusProgress.removeAttribute('max');
 			setStatusDetail('ゲームデータを読み込み中');
 		}
 	}
@@ -283,10 +336,26 @@ const LOCAL_PACK_PATH = `${GODOT_CONFIG.executable}.pck`;
 			engine.init(GODOT_CONFIG.executable),
 			engine.preloadFile(pack.source, LOCAL_PACK_PATH),
 		]);
+		setOverallProgress(downloadWeight);
+		statusOverlay.dataset.phase = 'initializing';
+		setStatusDetail('起動準備中');
 		await engine.start({ args: ['--main-pack', LOCAL_PACK_PATH].concat(originalArgs) });
-		setStatusMode('hidden');
+		if (initializing) {
+			// Previous R2 packs report readiness through metrics while the HTML release catches up.
+			legacyReadyPoll = window.setInterval(() => {
+				const metrics = window.qqLoadMetrics || [];
+				if (metrics.some(entry => entry.event === 'boot_ready')
+					&& metrics.some(entry => entry.event === 'scene_transition' && entry.details.screen === 'Hub')) {
+					finishBoot();
+				}
+			}, 100);
+		}
 	}
 
+	if (typeof Engine === 'undefined') {
+		displayFailureNotice('起動に必要なファイルを読み込めませんでした。');
+		return;
+	}
 	const missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
 	if (missing.length !== 0) {
 		displayFailureNotice(`必要なブラウザ機能が見つかりません。\n${missing.join('\n')}`);

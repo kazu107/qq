@@ -588,6 +588,8 @@ func _release_transition_cover(scene_path: String = "", started_us: int = 0) -> 
 		WebLoadMetrics.record("scene_transition", (Time.get_ticks_usec() - started_us) / 1000.0, {
 			"screen": scene_path.get_file().get_basename(),
 		})
+	if scene_path == HUB_SCENE:
+		WebBootLoader.finish()
 
 
 func _ensure_transition_cover() -> void:
