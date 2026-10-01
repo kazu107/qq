@@ -4,6 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
 		<title>$GODOT_PROJECT_NAME</title>
+		<link rel="icon" type="image/svg+xml" href="queuequest-mark.svg">
 		<style>
 html, body, #canvas {
 	margin: 0;
@@ -71,8 +72,8 @@ body {
 }
 
 #status-splash {
-	max-height: 56%;
-	max-width: 56%;
+	max-height: 36%;
+	max-width: min(760px, 82%);
 	margin: auto;
 	z-index: 1;
 }
@@ -143,7 +144,7 @@ body {
 		</noscript>
 
 		<div id="status" data-phase="download" role="status" aria-live="polite">
-			<img id="status-splash" class="$GODOT_SPLASH_CLASSES" src="$GODOT_SPLASH" alt="">
+			<img id="status-splash" class="fullsize--true use-filter--true" src="queuequest-logo.svg" alt="QueueQuest">
 			<div id="status-detail">起動準備中</div>
 			<progress id="status-progress" max="1" value="0" aria-label="読み込み状況"></progress>
 			<div id="status-notice"></div>
