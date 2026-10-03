@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const require = createRequire(import.meta.url);
 const { createQqServer } = require('../server/server.js');
@@ -69,10 +69,9 @@ async function reviewRealBoot() {
   try {
     await page.goto(url, { waitUntil: 'commit' });
     await page.waitForFunction(() => window.qqBootLoader && document.querySelector('#status')?.dataset.phase === 'download');
-    await page.locator('#status-splash').evaluate(image => image.decode());
     assert.equal(await page.title(), 'QueueQuest');
-    const logoSource = await page.locator('#status-splash').getAttribute('src');
-    assert.equal(logoSource, 'queuequest-logo.svg', 'The loader did not use the standalone SVG logo');
+    assert.equal(await page.locator('#status-logo-svg').evaluate(svg => svg.namespaceURI), 'http://www.w3.org/2000/svg');
+    assert.equal(await page.locator('#status-logo-svg title').textContent(), 'QueueQuest');
     assert.match(await page.locator('#status-percent').textContent(), /^\d+%$/);
     const downloadAppearance = await appearance(page);
     await page.screenshot({ path: resolve(output, 'download.png') });
@@ -134,7 +133,95 @@ async function mockPage(startBody = 'window.mockEngineStarted = true;', options 
   return page;
 }
 
+async function reviewLogoMotion() {
+  const page = await mockPage(undefined, { viewport: { width: 960, height: 600 } });
+  await page.waitForFunction(() => window.mockEngineStarted);
+  const intro = await page.evaluate(() => {
+    const cards = ['back', 'middle', 'front'].map(part => document.getElementById(`logo-card-${part}`));
+    return cards.map(card => {
+      const animation = card.getAnimations()[0];
+      const timing = animation.effect.getTiming();
+      animation.pause();
+      animation.currentTime = 180;
+      return { name: animation.animationName, duration: timing.duration, delay: timing.delay };
+    });
+  });
+  assert.deepEqual(intro.map(animation => animation.delay), [0, 120, 240]);
+  assert(intro.every(animation => animation.name === 'logo-card-enter' && animation.duration === 360));
+  await page.screenshot({ path: resolve(output, 'logo-enter.png') });
+  const movement = await page.evaluate(() => {
+    for (const card of document.querySelectorAll('#status-logo-svg [id^="logo-card-"]')) {
+      const animation = card.getAnimations()[0];
+      animation.currentTime = 600;
+    }
+    const light = document.getElementById('logo-timeline-light');
+    const animation = light.getAnimations()[0];
+    animation.pause();
+    animation.currentTime = 1100;
+    const firstX = new DOMMatrixReadOnly(getComputedStyle(light).transform).m41;
+    animation.currentTime = 2100;
+    const secondX = new DOMMatrixReadOnly(getComputedStyle(light).transform).m41;
+    return { firstX, secondX, duration: animation.effect.getTiming().duration,
+      wordAnimations: [...document.querySelectorAll('#logo-word-queue, #logo-word-quest')]
+        .flatMap(word => word.getAnimations({ subtree: true })).length };
+  });
+  assert(Math.abs(movement.firstX + 46) < 0.1 && Math.abs(movement.secondX + 138) < 0.1, 'The timeline light did not move uniformly right to left');
+  assert.equal(movement.duration, 2000);
+  assert.equal(movement.wordAnimations, 0, 'Logo lettering must remain stationary');
+  await page.screenshot({ path: resolve(output, 'logo-waiting.png') });
+  await page.evaluate(() => window.qqBootLoader.finish());
+  const completion = await page.evaluate(() => {
+    const front = document.getElementById('logo-card-front');
+    const animation = front.getAnimations()[0];
+    animation.pause();
+    animation.currentTime = 180;
+    const frame = front.querySelector('rect');
+    const glow = frame.getAnimations()[0];
+    glow.pause();
+    glow.currentTime = 180;
+    return { name: animation.animationName, y: new DOMMatrixReadOnly(getComputedStyle(front).transform).m42,
+      stroke: getComputedStyle(frame).stroke, lightAnimations: document.getElementById('logo-timeline-light').getAnimations().length };
+  });
+  assert.equal(completion.name, 'logo-card-resolve');
+  assert.equal(completion.y, -6);
+  assert.equal(completion.stroke, 'rgb(255, 240, 190)');
+  assert.equal(completion.lightAnimations, 0);
+  await page.screenshot({ path: resolve(output, 'logo-resolve.png') });
+  await page.waitForSelector('#status', { state: 'detached' });
+  await page.close();
+  report.logo_motion = { intro, movement, completion };
+  report.cases.push('logo_entry_loop_completion');
+
+  const fast = await mockPage();
+  await fast.evaluate(() => window.qqBootLoader.finish());
+  assert.equal(await fast.locator('#logo-card-middle').evaluate(card => getComputedStyle(card).opacity), '1');
+  assert.equal(await fast.locator('#logo-card-front').evaluate(card => card.getAnimations()[0].animationName), 'logo-card-resolve');
+  await fast.waitForSelector('#status', { state: 'detached' });
+  await fast.close();
+  report.cases.push('fast_completion_interrupts_entry');
+}
+
+async function createLogoPreview() {
+  const hubImage = (await readFile(resolve(output, 'hub.png'))).toString('base64');
+  const page = await mockPage(`
+    window.mockEngineStarted = true;
+    const canvas = document.getElementById('canvas');
+    canvas.style.width = '100vw';
+    canvas.style.height = '100vh';
+    canvas.style.background = 'center / cover url(data:image/png;base64,${hubImage})';
+  `, { viewport: { width: 960, height: 600 }, recordVideo: { dir: output, size: { width: 960, height: 600 } } });
+  const video = page.video();
+  await page.waitForFunction(() => window.mockEngineStarted);
+  await page.evaluate(() => window.qqBootLoader.update('画像・音声・画面を準備中...', 0.5));
+  await page.waitForTimeout(2900);
+  await page.evaluate(() => window.qqBootLoader.finish());
+  await page.waitForSelector('#status', { state: 'detached' });
+  await page.close();
+  await video.saveAs(resolve(output, 'logo-animation-preview.webm'));
+}
+
 try {
+  await reviewLogoMotion();
   await reviewRealBoot();
   const modern = await mockPage();
   await modern.waitForFunction(() => window.mockEngineStarted);
@@ -168,6 +255,7 @@ try {
   const reduced = await mockPage(undefined, { reducedMotion: 'reduce' });
   await reduced.waitForFunction(() => window.mockEngineStarted);
   assert.equal(await reduced.locator('#status').evaluate(overlay => getComputedStyle(overlay).transitionDuration), '0s');
+  assert.equal(await reduced.locator('#status-logo-svg').evaluate(svg => svg.getAnimations({ subtree: true }).length), 0, 'Reduced motion did not stop the SVG animation');
   await reduced.evaluate(() => window.qqBootLoader.finish());
   await reduced.waitForSelector('#status', { state: 'detached' });
   await reduced.close();
@@ -184,6 +272,7 @@ try {
   const failure = await mockPage("throw new Error('BOOT_FAILURE');");
   await failure.waitForFunction(() => document.querySelector('#status')?.dataset.phase === 'failed');
   assert((await failure.locator('#status-notice').textContent()).includes('BOOT_FAILURE'));
+  assert.equal(await failure.locator('#status-logo-svg').evaluate(svg => svg.getAnimations({ subtree: true }).length), 0, 'The logo kept animating after startup failure');
   await failure.evaluate(() => { window.qqBootLoader.update('Late progress', 1); window.qqBootLoader.finish(); });
   assert(await failure.locator('#status-notice').isVisible(), 'A late callback hid the startup failure');
   await failure.close();
@@ -197,6 +286,7 @@ try {
   await missingEngine.close();
   report.cases.push('missing_engine_script');
 
+  await createLogoPreview();
   await writeFile(resolve(output, 'report.json'), JSON.stringify(report, null, 2));
   console.log(`WEB_BOOT_LOADER_OK ${JSON.stringify({ cases: report.cases, phases: report.real_boot.phases })}`);
 } finally {

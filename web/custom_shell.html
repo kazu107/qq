@@ -84,11 +84,96 @@ body {
 #status-splash.fullsize--true {
 	height: 100%;
 	width: 100%;
-	object-fit: contain;
 }
 
-#status-splash.use-filter--false {
+#status-logo-svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+#status-splash.use-filter--false #status-logo-svg {
 	image-rendering: pixelated;
+}
+
+#status-logo-svg #logo-card-back,
+#status-logo-svg #logo-card-middle,
+#status-logo-svg #logo-card-front {
+	animation: logo-card-enter 360ms ease-out both;
+}
+
+#status-logo-svg #logo-card-middle {
+	animation-delay: 120ms;
+}
+
+#status-logo-svg #logo-card-front {
+	animation-delay: 240ms;
+}
+
+#status-logo-svg #logo-timeline-light {
+	animation: logo-timeline-flow 2s linear 600ms infinite;
+}
+
+#status-logo-svg #logo-card-front rect {
+	animation: logo-card-wait-glow 2s linear 600ms infinite;
+}
+
+#status[data-phase="ready"] #status-logo-svg #logo-card-back,
+#status[data-phase="ready"] #status-logo-svg #logo-card-middle {
+	animation: none;
+}
+
+#status[data-phase="ready"] #status-logo-svg #logo-card-front {
+	animation: logo-card-resolve 360ms ease-out both;
+}
+
+#status[data-phase="ready"] #status-logo-svg #logo-card-front rect {
+	animation: logo-card-resolve-glow 360ms ease-out both;
+}
+
+#status[data-phase="ready"] #status-logo-svg #logo-timeline-light,
+#status[data-phase="failed"] #status-logo-svg #logo-timeline-light {
+	animation: none;
+	opacity: 0;
+}
+
+#status[data-phase="failed"] #status-logo-svg g,
+#status[data-phase="failed"] #status-logo-svg rect {
+	animation: none;
+}
+
+@keyframes logo-card-enter {
+	from { transform: translateX(24px); opacity: 0; }
+	to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes logo-timeline-flow {
+	0% { transform: translateX(0); opacity: 0; }
+	5% { opacity: 1; }
+	90% { opacity: 1; }
+	100% { transform: translateX(-184px); opacity: 0; }
+}
+
+@keyframes logo-card-wait-glow {
+	0%, 85%, 100% { stroke: #f5c66a; stroke-width: 9; }
+	94% { stroke: #ffe6aa; stroke-width: 10; }
+}
+
+@keyframes logo-card-resolve {
+	0%, 100% { transform: translateY(0); opacity: 1; }
+	50% { transform: translateY(-6px); opacity: 1; }
+}
+
+@keyframes logo-card-resolve-glow {
+	0%, 100% { stroke: #f5c66a; stroke-width: 9; }
+	50% { stroke: #fff0be; stroke-width: 11; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#status #status-logo-svg * {
+		animation: none !important;
+	}
 }
 
 #status-loading, #status-notice {
@@ -197,7 +282,11 @@ body {
 		</noscript>
 
 		<div id="status" data-phase="download" role="status" aria-live="polite">
-			<img id="status-splash" class="fullsize--true use-filter--true" src="queuequest-logo.svg" alt="QueueQuest">
+			<div id="status-splash" class="fullsize--true use-filter--true">
+				<!-- QUEUEQUEST_LOADING_SVG_BEGIN -->
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="240" viewBox="0 0 900 240" role="img" aria-labelledby="title description" id="status-logo-svg"><title id="title">QueueQuest</title><desc id="description">A gold card leads two blue cards along a timeline beside an outlined QueueQuest wordmark.</desc><g id="logo-mark" transform="translate(8 8)" stroke-linejoin="round" stroke-linecap="round"><g id="logo-timeline"><path d="M22 194H224" fill="none" stroke="#3ebbe5" stroke-width="6" /><path d="M170 188V200M200 188V200" fill="none" stroke="#3ebbe5" stroke-width="4" /><circle cx="40" cy="194" r="9" fill="#f5c66a" /></g><g id="logo-card-back"><rect x="124" y="34" width="66" height="94" rx="9" transform="rotate(12 157 81)" fill="#102c3d" stroke="#3ebbe5" stroke-width="8" /></g><g id="logo-card-middle"><rect x="86" y="53" width="66" height="94" rx="9" transform="rotate(5 119 100)" fill="#0c2231" stroke="#72d6f4" stroke-width="8" /></g><g id="logo-card-front"><rect x="43" y="75" width="76" height="102" rx="10" transform="rotate(-5 81 126)" fill="#0a1b28" stroke="#f5c66a" stroke-width="9" /><g transform="rotate(-5 81 126)" fill="none" stroke="#f5c66a" stroke-width="7"><ellipse cx="81" cy="123" rx="18" ry="23" /><path d="M88 136L103 152" /></g></g><circle id="logo-timeline-light" cx="224" cy="194" r="5" fill="#72d6f4" opacity="0" /></g><g id="logo-word-queue" fill="none" stroke="#f4f2e9" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(242 0)"><ellipse cx="32" cy="108" rx="26" ry="34" /><path d="M42 130L63 151" /></g><path d="M322 99V125Q322 146 342 146Q362 146 362 125V99" /><g transform="translate(378 99)"><path d="M42 23H0C0 8 8 0 21 0C34 0 42 9 42 23M0 23C0 39 9 47 23 47C31 47 38 44 42 40" /></g><path d="M438 99V125Q438 146 458 146Q478 146 478 125V99" /><g transform="translate(494 99)"><path d="M42 23H0C0 8 8 0 21 0C34 0 42 9 42 23M0 23C0 39 9 47 23 47C31 47 38 44 42 40" /></g></g><g id="logo-word-quest" fill="none" stroke="#f5c66a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(558 0)"><ellipse cx="32" cy="108" rx="26" ry="34" /><path d="M42 130L63 151" /></g><path d="M640 99V125Q640 146 660 146Q680 146 680 125V99" /><g transform="translate(696 99)"><path d="M42 23H0C0 8 8 0 21 0C34 0 42 9 42 23M0 23C0 39 9 47 23 47C31 47 38 44 42 40" /></g><path d="M792 104C781 96 758 97 758 110C758 122 793 121 793 134C793 148 768 150 757 141" /><path d="M825 84V130Q825 146 840 146H848M812 101H847" /></g></svg>
+<!-- QUEUEQUEST_LOADING_SVG_END -->
+			</div>
 			<div id="status-loading">
 				<div id="status-heading"><span>読み込み状況</span><output id="status-percent" aria-label="全体の読み込み進捗">0%</output></div>
 				<progress id="status-progress" max="1" value="0" aria-label="読み込み状況"></progress>

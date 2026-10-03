@@ -621,6 +621,9 @@ func _fade_boot_loading_overlay() -> void:
 		progress_bar.value = 1.0
 	if percent_label != null:
 		percent_label.text = "100%"
+	var logo: LoadingLogo = content.find_child("BootLoadingLogo", true, false) as LoadingLogo
+	if logo != null:
+		logo.finish_loading()
 	var tween: Tween = create_tween()
 	tween.tween_interval(0.18)
 	tween.tween_property(content, "modulate:a", 0.0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)

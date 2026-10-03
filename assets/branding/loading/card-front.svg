@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="240" viewBox="0 0 900 240">
+  <g id="logo-mark" transform="translate(8 8)" stroke-linejoin="round" stroke-linecap="round">
+    <g id="logo-card-front">
+      <rect x="43" y="75" width="76" height="102" rx="10" transform="rotate(-5 81 126)" fill="#0a1b28" stroke="#f5c66a" stroke-width="9" />
+      <g transform="rotate(-5 81 126)" fill="none" stroke="#f5c66a" stroke-width="7">
+        <ellipse cx="81" cy="123" rx="18" ry="23" />
+        <path d="M88 136L103 152" />
+      </g>
+    </g>
+  </g>
+</svg>

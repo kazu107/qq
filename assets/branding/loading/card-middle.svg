@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="240" viewBox="0 0 900 240">
+  <g id="logo-mark" transform="translate(8 8)" stroke-linejoin="round" stroke-linecap="round">
+    <g id="logo-card-middle">
+      <rect x="86" y="53" width="66" height="94" rx="9" transform="rotate(5 119 100)" fill="#0c2231" stroke="#72d6f4" stroke-width="8" />
+    </g>
+  </g>
+</svg>

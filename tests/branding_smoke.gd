@@ -17,8 +17,8 @@ func _ready() -> void:
 		return
 	var boot: Control = load("res://scenes/boot/Boot.tscn").instantiate() as Control
 	boot.call("_build_loading_screen")
-	var boot_logo: TextureRect = boot.find_child("BootLoadingLogo", true, false) as TextureRect
-	var logo_present: bool = boot_logo != null and boot_logo.texture == logo
+	var boot_logo: LoadingLogo = boot.find_child("BootLoadingLogo", true, false) as LoadingLogo
+	var logo_present: bool = boot_logo != null and boot_logo.get_logo_texture() == logo
 	boot.free()
 	if not _check(logo_present, "native Boot screen did not use the logo"):
 		return

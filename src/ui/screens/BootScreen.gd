@@ -43,12 +43,9 @@ func _build_loading_screen() -> void:
 	root.add_theme_constant_override("separation", 18)
 	margin.add_child(root)
 
-	var logo: TextureRect = TextureRect.new()
+	var logo: LoadingLogo = LoadingLogo.new()
 	logo.name = "BootLoadingLogo"
-	logo.texture = preload("res://assets/branding/queuequest-logo.svg")
 	logo.custom_minimum_size = Vector2(680.0, 182.0)
-	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	root.add_child(logo)
 
 	_label = Label.new()

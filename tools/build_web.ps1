@@ -52,6 +52,7 @@ foreach ($template in $RequiredTemplates) {
 }
 
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
+& (Join-Path $PSScriptRoot "generate_loading_logo.ps1")
 
 Write-Host "Exporting Web build with $GodotExecutable"
 & $GodotExecutable --headless --path $ProjectRoot --export-release "Web" $OutputFile

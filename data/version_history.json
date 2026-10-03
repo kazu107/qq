@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.29.4",
+  "current_version": "QQ-0.29.5",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.29.5",
+      "date": "2026-10-03",
+      "title_ja": "ロード画面のロゴアニメーション",
+      "title_en": "Animated loading logo",
+      "changes_ja": [
+        "カードが順に重なる登場演出と、タイムラインの光点が右から左へ流れる待機演出を追加しました。",
+        "完了時は金色カードが軽く持ち上がって光り、そのままハブへのフェードにつながります。",
+        "同じSVGからWeb版とデスクトップ版のパーツを生成し、文字を動かさず、静止ロゴのデザインを保ちます。"
+      ],
+      "changes_en": [
+        "Introduce the cards in sequence and loop a right-to-left light along the logo timeline.",
+        "Lift and highlight the gold card on completion, then fade into the Hub.",
+        "Reuse the same SVG artwork on Web and desktop while keeping the wordmark stationary."
+      ]
+    },
     {
       "version": "QQ-0.29.4",
       "date": "2026-10-01",
