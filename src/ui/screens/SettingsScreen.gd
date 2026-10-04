@@ -150,6 +150,14 @@ func _build_ui() -> void:
 	resolution_row.add_theme_constant_override("separation", 12)
 	resolution_row.visible = not Game.is_web_build()
 	root.add_child(resolution_row)
+	if Game.is_web_build():
+		var automatic_resolution: Label = Label.new()
+		automatic_resolution.name = "BrowserAutomaticResolutionLabel"
+		automatic_resolution.text = Localization.get_text(
+			"settings.browser_resolution",
+			"Resolution: automatic (fits the browser window)"
+		)
+		root.add_child(automatic_resolution)
 
 	var resolution_label: Label = Label.new()
 	resolution_label.text = Localization.get_text("settings.resolution", "Resolution")

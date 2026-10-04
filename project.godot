@@ -15,6 +15,7 @@ config/use_custom_user_dir=true
 config/custom_user_dir_name="Godot/app_userdata/qq"
 config/custom_user_dir_name.linux="godot/app_userdata/qq"
 run/main_scene.qq_validation="res://tests/WebArenaHarness.tscn"
+run/main_scene.qq_layout_review="res://tests/WebLayoutReview.tscn"
 run/main_scene="res://scenes/boot/Boot.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://assets/branding/queuequest-mark.svg"
@@ -37,6 +38,7 @@ NetworkManager="*res://src/autoload/NetworkManager.gd"
 window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
+window/stretch/aspect.web="expand"
 
 [physics]
 

@@ -2,6 +2,7 @@ extends SubViewportContainer
 class_name BattleStage3D
 
 const DEFAULT_VIEWPORT_SIZE := Vector2i(960, 540)
+const BATTLE_REFERENCE_ASPECT: float = 16.0 / 9.0
 const TILE_COLUMNS: int = 7
 const TILE_ROWS: int = 5
 const MAX_QUEUED_EVENTS: int = 32
@@ -59,6 +60,7 @@ var _battle_info_sign: BattleInfoSign3D
 var _projectile_mesh: SphereMesh
 var _impact_mesh: SphereMesh
 var _camera_home_position: Vector3 = Vector3.ZERO
+var _camera_preset_id: String = "battle"
 var _camera_shake: float = 0.0
 var _camera_shake_elapsed: float = 0.0
 var _queued_events: Array[Dictionary] = []
@@ -86,6 +88,8 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stretch = true
 	_build_stage()
+	resized.connect(_update_camera_framing)
+	_update_camera_framing()
 	set_process(true)
 
 
@@ -259,11 +263,13 @@ func set_camera_preset(preset_id: String, focus_unit_id: String = "") -> void:
 		return
 	_camera_shake = 0.0
 	_camera_shake_elapsed = 0.0
+	_camera_preset_id = preset_id
 	if preset_id == "battle":
 		_camera.position = Vector3(0.0, 6.75, 10.35)
 		_camera.fov = 40.0
 		_camera.look_at(Vector3(0.0, 0.78, -0.42), Vector3.UP)
 		_camera_home_position = _camera.position
+		_update_camera_framing()
 		return
 
 	var actor: BattleActor3D = _actor_for_unit_id(focus_unit_id)
@@ -284,6 +290,16 @@ func set_camera_preset(preset_id: String, focus_unit_id: String = "") -> void:
 	_camera.fov = 34.0
 	_camera.look_at(focus, Vector3.UP)
 	_camera_home_position = _camera.position
+
+
+func _update_camera_framing() -> void:
+	if _camera == null or _camera_preset_id != "battle":
+		return
+	var display_size: Vector2 = size if size.x > 1.0 and size.y > 1.0 else Vector2(DEFAULT_VIEWPORT_SIZE)
+	var aspect: float = display_size.x / display_size.y
+	# Preserve the combatants and plates horizontally when the viewport expands vertically.
+	var vertical_tangent: float = tan(deg_to_rad(40.0) * 0.5) * maxf(1.0, BATTLE_REFERENCE_ASPECT / aspect)
+	_camera.fov = rad_to_deg(2.0 * atan(vertical_tangent))
 
 
 func get_camera_position() -> Vector3:

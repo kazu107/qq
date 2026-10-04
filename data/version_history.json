@@ -1,9 +1,25 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.29.5",
+  "current_version": "QQ-0.29.6",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.29.6",
+      "date": "2026-10-05",
+      "title_ja": "ブラウザ表示の自動調整",
+      "title_en": "Automatic browser display sizing",
+      "changes_ja": [
+        "ブラウザのサイズに合わせて表示範囲を広げ、両端の黒い余白をなくしました。ウィンドウのサイズ変更にも自動で追従します。",
+        "設定画面にブラウザ版の解像度が自動調整であることを表示します。デスクトップ版の解像度選択は変更していません。",
+        "縦長の戦闘画面でも3Dステータスプレートが切れないよう、カメラの表示範囲を調整しました。"
+      ],
+      "changes_en": [
+        "Expand the game to fit the browser aspect ratio without black bands or distorted UI, including live window resizing.",
+        "Show automatic resolution in browser settings while keeping desktop resolution selection unchanged.",
+        "Adjust battle camera framing so 3D status plates remain visible in taller windows."
+      ]
+    },
     {
       "version": "QQ-0.29.5",
       "date": "2026-10-03",
