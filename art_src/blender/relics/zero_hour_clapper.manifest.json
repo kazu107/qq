@@ -1,0 +1,89 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/zero_hour_clapper.blend",
+  "source_sha256": "dcdd732526a4eae41e0784ce6f4859eb792dfcf27913d8f5da371ba02cd96030",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "zero_hour_clapper",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/zero_hour_clapper.png",
+      "source_path": "art_src/blender/relics/zero_hour_clapper.blend",
+      "source_sha256": "dcdd732526a4eae41e0784ce6f4859eb792dfcf27913d8f5da371ba02cd96030",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/zero_hour_clapper.png",
+      "source_render_sha256": "721bf30f225e85253e4e0784997c3643f822d9ac83a9bc2d55e891d399e3dffc",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "856c0446540249f2342a0d403ec41653ded98738abcceb4c77938442200e6097",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R03",
+      "kit_name": "clocks_and_timeline",
+      "semantic_mapping": {
+        "name": "Zero-Hour Clapper",
+        "actual_description": "At 10, 20, and 30 battle seconds, haste the allied frontmost card that was already active by 1 second.",
+        "actual_effects": [
+          {
+            "type": "haste_active_card",
+            "trigger": "battle_time_threshold",
+            "thresholds": [
+              10.0,
+              20.0,
+              30.0
+            ],
+            "target": "preexisting_frontmost_ally",
+            "amount": 1.0
+          }
+        ],
+        "reused_components": [
+          "bell_clapper",
+          "bell_hanger",
+          "bell_lip",
+          "cast_bell",
+          "shared_clapper_head",
+          "sliding_clapper_arm",
+          "threshold_rail",
+          "threshold_station"
+        ],
+        "unique_assembly_recipe": "zero_hour_clapper"
+      },
+      "geometry_sha256": "e3fc281fefb3ebf794289caf090940cd5e49e297248b924bc076f6dd10c6d85f",
+      "mesh_vertices": 13608,
+      "mesh_polygons": 13440,
+      "object_count": 18,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.39927,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.13,
+      "export_sha256": "8db42dd7ad313b0eb11dbab28284b1fd8869a255b5db114c77acd341b93bef45",
+      "validation": {
+        "alpha_bbox": [
+          65,
+          148,
+          447,
+          365
+        ],
+        "minimum_padding_px": 65,
+        "foreground_fraction": 0.17046,
+        "opaque_fraction": 0.16173,
+        "48px_foreground_fraction": 0.20182
+      }
+    }
+  ]
+}

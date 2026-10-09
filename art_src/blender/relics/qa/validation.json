@@ -1,0 +1,12 @@
+{
+  "count": 82,
+  "full_coverage": true,
+  "unique_geometry": 82,
+  "unique_exports": 82,
+  "render_size": 2048,
+  "runtime_size": 512,
+  "all_rgba": true,
+  "all_transparent_padded": true,
+  "all_hashes_valid": true,
+  "all_sources_below_100mb": true
+}

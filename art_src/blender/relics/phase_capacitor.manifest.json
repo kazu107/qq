@@ -1,0 +1,77 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/phase_capacitor.blend",
+  "source_sha256": "543a0f13de595eb0aa75f02f5eceaa9634c95b7ef5bcbf088920ba77231b71b2",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "phase_capacitor",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/phase_capacitor.png",
+      "source_path": "art_src/blender/relics/phase_capacitor.blend",
+      "source_sha256": "543a0f13de595eb0aa75f02f5eceaa9634c95b7ef5bcbf088920ba77231b71b2",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/phase_capacitor.png",
+      "source_render_sha256": "2d5e232bbbabca174e1d81dc6ee9d93ecce194b4b24b1b007a5cb7adf9f1811b",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "aa492ac697657d8a8f9fd66dd13fe80b7f3343b56443db1567af50b44ec07329",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R02",
+      "kit_name": "cores_batteries_and_heat",
+      "semantic_mapping": {
+        "name": "Phase Capacitor",
+        "actual_description": "Start each battle with 12 shield.",
+        "actual_effects": [],
+        "reused_components": [
+          "capacitor_terminal",
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "hex_bolt",
+          "insulation_band",
+          "phase_splitter",
+          "sealed_cell"
+        ],
+        "unique_assembly_recipe": "phase_capacitor"
+      },
+      "geometry_sha256": "baa55fedc328f98eea5d3b5ca21956936ba8ae3e9f392650ce3fbe13ec75f52f",
+      "mesh_vertices": 6176,
+      "mesh_polygons": 5948,
+      "object_count": 17,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.58471,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 9.6,
+      "export_sha256": "6afeeb274c5789ab96f1f51b66515a2c03446bb8c1454969f36088990405ab3d",
+      "validation": {
+        "alpha_bbox": [
+          166,
+          54,
+          362,
+          454
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.24322,
+        "opaque_fraction": 0.23854,
+        "48px_foreground_fraction": 0.25521
+      }
+    }
+  ]
+}

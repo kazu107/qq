@@ -31,6 +31,13 @@ func _command(arguments: Array) -> void:
 		_open_screen(String(payload.get("screen", "hub")))
 	elif String(payload.get("action", "")) == "battle_simulate":
 		_simulate_battle_result()
+	elif String(payload.get("action", "")) == "art_preview":
+		var screen: Control = get_tree().current_scene as Control
+		if screen != null and screen.scene_file_path == SceneRouter.ART_LAB_SCENE:
+			for entry: Dictionary in ArtCatalog.get_entries():
+				if String(entry.get("asset_id", "")) == String(payload.get("asset_id", "")):
+					screen.call("_open_preview", entry)
+					break
 	_pending_frames = 8
 
 
@@ -65,6 +72,9 @@ func _open_screen(screen: String) -> void:
 		"hub_developer":
 			Game.settings["developer_mode"] = true
 			SceneRouter.go_to_hub()
+		"art_lab":
+			Game.settings["developer_mode"] = true
+			SceneRouter.go_to_art_lab()
 		"hub_infinite": SceneRouter.go_to_hub()
 		"settings": SceneRouter.go_to_settings()
 		"setup": SceneRouter.go_to_run_setup()
@@ -145,11 +155,19 @@ func _inspect() -> Dictionary:
 			result["library"] = {"cards": Dictionary(screen.get("_card_widgets")).keys(), "search": search.text, "empty": empty.visible}
 		elif screen.scene_file_path.get_file().get_basename() == "OnlineLobby":
 			result["lobby"] = {"connected": NetworkManager.is_session_connected(), "capacity": NetworkManager.get_player_capacity()}
+		elif screen.scene_file_path.get_file().get_basename() == "ArtLab":
+			var art_grid: GridContainer = screen.find_child("ArtLabGrid", true, false) as GridContainer
+			result["art"] = {"catalog": Array(screen.get("_catalog")).size(), "tiles": art_grid.get_child_count(), "columns": art_grid.columns,
+				"preview": screen.find_child("ArtPreviewOverlay", true, false) != null}
 		var stage: BattleStage3D = screen.find_child("BattleStage3D", true, false) as BattleStage3D
 		if stage != null:
 			var player_status: BattleUnitStatus3D = stage.get_player_status_model()
 			var enemy_status: BattleUnitStatus3D = stage.get_enemy_status_model()
 			result["battle"] = {
+				"authored_field": stage.is_using_authored_field(),
+				"authored_player": stage.get_combat_actor("player").is_using_authored_model(),
+				"authored_enemy": stage.get_combat_actor("enemy").is_using_authored_model(),
+				"detail_counts": stage.get_environment_detail_counts(),
 				"field": _rect_values(stage.get_global_rect()),
 				"player_status": _point_values(stage.project_world_position(player_status.global_position)),
 				"enemy_status": _point_values(stage.project_world_position(enemy_status.global_position)),

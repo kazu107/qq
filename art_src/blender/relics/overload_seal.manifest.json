@@ -1,0 +1,84 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/overload_seal.blend",
+  "source_sha256": "c2c24a4071b8a850945767545c2207b9d51bf42a33b7a18185644bb36b5c9b1b",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "overload_seal",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/overload_seal.png",
+      "source_path": "art_src/blender/relics/overload_seal.blend",
+      "source_sha256": "c2c24a4071b8a850945767545c2207b9d51bf42a33b7a18185644bb36b5c9b1b",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/overload_seal.png",
+      "source_render_sha256": "d53339d0f8c3567667c8dd7c5680763abb4c8ba9b516931dd80f309e703470f1",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "ee83719406c7810ae839e19a0e615902165e8c23841134e3fbd3330099e82cf2",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Overload Seal",
+        "actual_description": "You may exceed the loadout limit by 2. Start each battle with 12 seconds of vulnerable for every point over the limit.",
+        "actual_effects": [
+          {
+            "type": "allow_loadout_overflow",
+            "max_overflow": 2,
+            "starting_status": "vulnerable",
+            "status_duration_per_overflow": 12.0
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "overflow_warning",
+          "overload_wax_seal",
+          "overloaded_satchel",
+          "satchel_clasp",
+          "satchel_handle"
+        ],
+        "unique_assembly_recipe": "overload_seal"
+      },
+      "geometry_sha256": "b86648d266776071025f8b13d0133597b04b92a138d7fd3e364d1d4e191554e5",
+      "mesh_vertices": 3712,
+      "mesh_polygons": 3714,
+      "object_count": 26,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.36071,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 8.08,
+      "export_sha256": "3b77165d8430127cf34dcfdace4f209c215ac68f661762d7548ab2b4a08292f5",
+      "validation": {
+        "alpha_bbox": [
+          124,
+          60,
+          388,
+          452
+        ],
+        "minimum_padding_px": 60,
+        "foreground_fraction": 0.3277,
+        "opaque_fraction": 0.32229,
+        "48px_foreground_fraction": 0.352
+      }
+    }
+  ]
+}

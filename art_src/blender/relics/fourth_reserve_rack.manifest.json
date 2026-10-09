@@ -1,0 +1,88 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/fourth_reserve_rack.blend",
+  "source_sha256": "205217047e9835470c77a17afba882996c8ce8e68928bc7af7e53bb16abd3b44",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "fourth_reserve_rack",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/fourth_reserve_rack.png",
+      "source_path": "art_src/blender/relics/fourth_reserve_rack.blend",
+      "source_sha256": "205217047e9835470c77a17afba882996c8ce8e68928bc7af7e53bb16abd3b44",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/fourth_reserve_rack.png",
+      "source_render_sha256": "44ed32348ec5521105362c36209d1c305fb605a48a7435c8adb04bf555d9ec18",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "d1660eda97f35b9e5eab28e2240f6ac64e98f1e1aca983458517d5b583ce912a",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Fourth Reserve Rack",
+        "actual_description": "Gain 1 active slot. While all 4 slots are occupied, cast progress is 25% slower and cooldown progress is 20% slower.",
+        "actual_effects": [
+          {
+            "type": "add_active_slot",
+            "amount": 1,
+            "fourth_slot_cast_progress_multiplier": 0.75,
+            "fourth_slot_cooldown_progress_multiplier": 0.8
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "four_slot_rail",
+          "mechanism_cross_rail",
+          "mechanism_side_rail"
+        ],
+        "unique_assembly_recipe": "fourth_reserve_rack"
+      },
+      "geometry_sha256": "30de18adc83db7c7c93d4380b4c612509736e92bae73acf4a8881d9c0079af07",
+      "mesh_vertices": 6752,
+      "mesh_polygons": 6674,
+      "object_count": 50,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 1.99108,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.19,
+      "export_sha256": "8416cbb3395bdef9f39886ee0762c65042b17e82363bb2614ef6c0678b2ad83c",
+      "validation": {
+        "alpha_bbox": [
+          54,
+          55,
+          458,
+          452
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.41258,
+        "opaque_fraction": 0.40063,
+        "48px_foreground_fraction": 0.44271
+      }
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/compression_caliper.blend",
+  "source_sha256": "2921db0c7abb2bf2880b3584933a21d13d768c9fe9fc5fa226243645cb4d2247",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "compression_caliper",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/compression_caliper.png",
+      "source_path": "art_src/blender/relics/compression_caliper.blend",
+      "source_sha256": "2921db0c7abb2bf2880b3584933a21d13d768c9fe9fc5fa226243645cb4d2247",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/compression_caliper.png",
+      "source_render_sha256": "f8a490323e1711676bae06653e622112c086456bbbad5a3405c4fe39fdc34a85",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "a5a627be2b39888797ab7b5383d439a9e72d31a17bd669d7265020c3b6480cf8",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R08",
+      "kit_name": "shield_pressure_and_spend",
+      "semantic_mapping": {
+        "name": "Compression Caliper",
+        "actual_description": "At 12 or more shield, natural decay slows to 1 every 2 seconds, but shield-spend costs increase by 2.",
+        "actual_effects": [
+          {
+            "type": "modify_shield_economy",
+            "minimum_shield": 12,
+            "decay_interval": 2.0,
+            "shield_cost_bonus": 2
+          }
+        ],
+        "reused_components": [
+          "caliper_graduation",
+          "caliper_spine",
+          "compression_jaw",
+          "compression_jaw_tip",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "shield_inset",
+          "shield_ridge",
+          "shield_shell"
+        ],
+        "unique_assembly_recipe": "compression_caliper"
+      },
+      "geometry_sha256": "659759e18fd6e20f2708907af6adc453839771e7a214005e5904121812b2d9e0",
+      "mesh_vertices": 5552,
+      "mesh_polygons": 5408,
+      "object_count": 35,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.08374,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 5.85,
+      "export_sha256": "550a438aae946836982d0790b30abc4e0a1b7e4bbb3e1f8fbd7a3b15574356f3",
+      "validation": {
+        "alpha_bbox": [
+          90,
+          55,
+          422,
+          457
+        ],
+        "minimum_padding_px": 55,
+        "foreground_fraction": 0.28093,
+        "opaque_fraction": 0.27176,
+        "48px_foreground_fraction": 0.3112
+      }
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/isolation_chamber.blend",
+  "source_sha256": "ada5f7d5295fdb82763edff2f0fc4c73915da95b14eeeaefc492ca8ff23d2ed8",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "isolation_chamber",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/isolation_chamber.png",
+      "source_path": "art_src/blender/relics/isolation_chamber.blend",
+      "source_sha256": "ada5f7d5295fdb82763edff2f0fc4c73915da95b14eeeaefc492ca8ff23d2ed8",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/isolation_chamber.png",
+      "source_render_sha256": "a6894e58a8c8f6fbec84f56d178f7a1635f292ea0baea6b6e8478183638d7713",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "bab1aefceea606576b14071ce8f5ae5c31c0c012748ded68120273090d2b439b",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Isolation Chamber",
+        "actual_description": "Gain 1 auxiliary slot for auto-queued cards only. Cards there cast 20% faster; further auto-queues fail while it is occupied.",
+        "actual_effects": [
+          {
+            "type": "add_auto_aux_slot",
+            "amount": 1,
+            "cast_multiplier": 0.8,
+            "overflow_behavior": "fail"
+          }
+        ],
+        "reused_components": [
+          "auxiliary_socket",
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "direction_arrow",
+          "isolated_glass",
+          "isolator_tube",
+          "mechanism_cross_rail",
+          "mechanism_side_rail"
+        ],
+        "unique_assembly_recipe": "isolation_chamber"
+      },
+      "geometry_sha256": "b3bbd0fc67c38dddfd0aed977216ce20931f2f2ace0de6f864b9e016e8ee028b",
+      "mesh_vertices": 1768,
+      "mesh_polygons": 1714,
+      "object_count": 13,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.5547,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.57,
+      "export_sha256": "0be790d867624ba1f1c21c87cb65bbc4e670ecf17a5ac827880bc44d14882c41",
+      "validation": {
+        "alpha_bbox": [
+          52,
+          91,
+          459,
+          421
+        ],
+        "minimum_padding_px": 52,
+        "foreground_fraction": 0.31179,
+        "opaque_fraction": 0.30169,
+        "48px_foreground_fraction": 0.34245
+      }
+    }
+  ]
+}

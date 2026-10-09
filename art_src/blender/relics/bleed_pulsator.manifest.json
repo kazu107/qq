@@ -1,0 +1,92 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/bleed_pulsator.blend",
+  "source_sha256": "68226d26c4e49656521ddda397266acfd84b61e83f445962abecb05ee8863194",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "bleed_pulsator",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/bleed_pulsator.png",
+      "source_path": "art_src/blender/relics/bleed_pulsator.blend",
+      "source_sha256": "68226d26c4e49656521ddda397266acfd84b61e83f445962abecb05ee8863194",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/bleed_pulsator.png",
+      "source_render_sha256": "15e1eb1b5a6bef9d10997345826923a3a8ec9fc7fa4db8f89f2a29b1b8e95288",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "d7921d6dc785461b8a1545be94b37e9a46519133025ac8922e059dfaef44a8b9",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R06",
+      "kit_name": "medical_and_biomechanical",
+      "semantic_mapping": {
+        "name": "Bleed Pulsator",
+        "actual_description": "When you take a bleed tick, haste your frontmost active card by 0.8 seconds; if none is active, reduce the longest recast by 0.8 seconds. Maximum 6 times per battle.",
+        "actual_effects": [
+          {
+            "type": "convert_bleed_tick_to_time",
+            "trigger": "self_bleed_tick",
+            "haste_amount": 0.8,
+            "fallback_recast_reduction": 0.8,
+            "max_per_battle": 6
+          }
+        ],
+        "reused_components": [
+          "bleed_time_needle",
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "coil_core",
+          "coil_insulator",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "pulsation_conduit",
+          "sealed_cell",
+          "wound_copper_coil"
+        ],
+        "unique_assembly_recipe": "bleed_pulsator"
+      },
+      "geometry_sha256": "573fc112a9feb986b99ce925f50674d5ca07dc697e7a5f92a2d814b2bb62e1d2",
+      "mesh_vertices": 28488,
+      "mesh_polygons": 27970,
+      "object_count": 28,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.18186,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 15.16,
+      "export_sha256": "e138faff91d623e2edf0988ba7d25cf6f62ba420ffa089a2d580d8d6c6773d3b",
+      "validation": {
+        "alpha_bbox": [
+          99,
+          57,
+          431,
+          450
+        ],
+        "minimum_padding_px": 57,
+        "foreground_fraction": 0.33138,
+        "opaque_fraction": 0.32371,
+        "48px_foreground_fraction": 0.35503
+      }
+    }
+  ]
+}

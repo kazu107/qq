@@ -9,6 +9,7 @@ const GLOW_RED: Color = Color(0.85, 0.20, 0.23, 0.10)
 const GRID_COLOR: Color = Color(0.55, 0.78, 0.95, 0.035)
 const PANEL_SHADOW: Color = Color(0.0, 0.0, 0.0, 0.22)
 static var _glow_texture: GradientTexture2D
+var _authored_texture: Texture2D
 
 
 func _ready() -> void:
@@ -16,6 +17,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	z_index = -4096
+	_authored_texture = ArtCatalog.get_texture("assets/backgrounds/hub.png")
 	if _glow_texture == null:
 		var gradient: Gradient = Gradient.new()
 		gradient.colors = PackedColorArray([Color.WHITE, Color(1.0, 1.0, 1.0, 0.0)])
@@ -38,6 +40,15 @@ func _draw() -> void:
 	var draw_size: Vector2 = size
 	if draw_size.x <= 1.0 or draw_size.y <= 1.0:
 		draw_size = get_viewport_rect().size
+	if _authored_texture != null:
+		# Cover the viewport without stretching the rendered scene.
+		var art_size: Vector2 = _authored_texture.get_size()
+		var scale_factor: float = maxf(draw_size.x / art_size.x, draw_size.y / art_size.y)
+		var extent: Vector2 = art_size * scale_factor
+		draw_texture_rect(_authored_texture, Rect2((draw_size - extent) * 0.5, extent), false)
+		draw_rect(Rect2(Vector2.ZERO, draw_size), Color(0.004, 0.009, 0.017, 0.48))
+		_draw_vignette(draw_size)
+		return
 
 	_draw_vertical_gradient(draw_size)
 	_draw_glow(Vector2(draw_size.x * 0.14, draw_size.y * 0.12), draw_size.x * 0.34, GLOW_BLUE)

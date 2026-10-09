@@ -1,0 +1,74 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/war_cache.blend",
+  "source_sha256": "0372301ace39178d5431bd125770488b3d18c848aa7226bf19cc3d4ad3e8a504",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "war_cache",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/war_cache.png",
+      "source_path": "art_src/blender/relics/war_cache.blend",
+      "source_sha256": "0372301ace39178d5431bd125770488b3d18c848aa7226bf19cc3d4ad3e8a504",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/war_cache.png",
+      "source_render_sha256": "2bcb9e722f8c5cba2a67abfb60756bca077c4bd67a305b52601268164f090aa7",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "713b2cca1365bb46bd42b3afe5e406fd7bb754f5645a5be109ffb0f90a9dedb3",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R05",
+      "kit_name": "economy_and_rewards",
+      "semantic_mapping": {
+        "name": "War Cache",
+        "actual_description": "Gain 35 gold when acquired.",
+        "actual_effects": [],
+        "reused_components": [
+          "chest_lock",
+          "gold_supply_coin",
+          "open_chest_lid",
+          "sealed_gold_band",
+          "supply_chest"
+        ],
+        "unique_assembly_recipe": "war_cache"
+      },
+      "geometry_sha256": "1e5707b936e263fe1fd44d98cba1174b26326c5e71d90d436ae7c6cb6e62ec18",
+      "mesh_vertices": 3168,
+      "mesh_polygons": 2856,
+      "object_count": 12,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.10591,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 3.91,
+      "export_sha256": "62138024c6b64e069aedb09c7c3f0d7327641a732111a3868c085b6d6ec485f9",
+      "validation": {
+        "alpha_bbox": [
+          62,
+          55,
+          450,
+          457
+        ],
+        "minimum_padding_px": 55,
+        "foreground_fraction": 0.53805,
+        "opaque_fraction": 0.53241,
+        "48px_foreground_fraction": 0.5612
+      }
+    }
+  ]
+}

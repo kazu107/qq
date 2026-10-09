@@ -1,0 +1,89 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/full_absorption_gauge.blend",
+  "source_sha256": "bcc42a269b288918fac0c6528b5474080d48cf2a8be5de4ed5825d049e201cb8",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "full_absorption_gauge",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/full_absorption_gauge.png",
+      "source_path": "art_src/blender/relics/full_absorption_gauge.blend",
+      "source_sha256": "bcc42a269b288918fac0c6528b5474080d48cf2a8be5de4ed5825d049e201cb8",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/full_absorption_gauge.png",
+      "source_render_sha256": "69c4bc114dbcbb1c2313174494d1dbd28cfe1c5d56c388f972c767f545b1ec35",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "4e3b55f108c144d47d5c315cbe9a705a65e57e826f099c3389e16a18858fba53",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R08",
+      "kit_name": "shield_pressure_and_spend",
+      "semantic_mapping": {
+        "name": "Full Absorption Gauge",
+        "actual_description": "When shield fully absorbs an enemy Attack, reduce the longest recast by 1.5 seconds. Cooldown: 4 seconds; maximum 5 times per battle.",
+        "actual_effects": [
+          {
+            "type": "reduce_recast",
+            "trigger": "attack_fully_absorbed",
+            "target": "longest",
+            "amount": 1.5,
+            "internal_cooldown": 4.0,
+            "max_per_battle": 5
+          }
+        ],
+        "reused_components": [
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "full_absorption_stop",
+          "shield_inset",
+          "shield_pressure_tube",
+          "shield_ridge",
+          "shield_shell"
+        ],
+        "unique_assembly_recipe": "full_absorption_gauge"
+      },
+      "geometry_sha256": "955ccd41f61b05a64ed64af87b36becba97aee742ce56849b009fd6d69e066e2",
+      "mesh_vertices": 4268,
+      "mesh_polygons": 4080,
+      "object_count": 20,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 1.93792,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.65,
+      "export_sha256": "45456175f2d92d45ebc4aea8255ea5cae589cbd793b0703e714084edd9ab9b7c",
+      "validation": {
+        "alpha_bbox": [
+          52,
+          68,
+          458,
+          433
+        ],
+        "minimum_padding_px": 52,
+        "foreground_fraction": 0.43419,
+        "opaque_fraction": 0.42799,
+        "48px_foreground_fraction": 0.45399
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "hash_valid_skip": 88,
+  "rendered_on_resume": 0,
+  "negative_checks": {
+    "bad_export_rejected": true,
+    "bad_source_rejected": true,
+    "bad_render_rejected": true,
+    "bad_generator_rejected": true,
+    "changed_definition_rejected": true
+  }
+}

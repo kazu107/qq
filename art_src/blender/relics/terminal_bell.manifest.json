@@ -1,0 +1,85 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/terminal_bell.blend",
+  "source_sha256": "b31a029ba2d3db9a35202e5fa47ad92ee5a4d4cc1fd5fc815b1921cc1570ea86",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "terminal_bell",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/terminal_bell.png",
+      "source_path": "art_src/blender/relics/terminal_bell.blend",
+      "source_sha256": "b31a029ba2d3db9a35202e5fa47ad92ee5a4d4cc1fd5fc815b1921cc1570ea86",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/terminal_bell.png",
+      "source_render_sha256": "ec7c97feb9bb20bdf742eb6287278ed20702b0f1f2abd6d4134a0f99e3eb3ecf",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "e39b6cca7297d3975243d5426408300a724afec3adbe3bcf1b261c27886a1ae8",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R03",
+      "kit_name": "clocks_and_timeline",
+      "semantic_mapping": {
+        "name": "Terminal Bell",
+        "actual_description": "After the same enemy card is delayed 3 times, interrupt it if possible; otherwise delay it 3 more seconds. Cooldown: 12 seconds.",
+        "actual_effects": [
+          {
+            "type": "terminal_delay",
+            "trigger": "enemy_instance_delayed",
+            "required_count": 3,
+            "fallback_delay": 3.0,
+            "internal_cooldown": 12.0
+          }
+        ],
+        "reused_components": [
+          "bell_clapper",
+          "bell_hanger",
+          "bell_lip",
+          "cast_bell",
+          "delay_counter_lamp",
+          "interrupt_hammer",
+          "interrupt_hammer_head",
+          "third_delay_counter"
+        ],
+        "unique_assembly_recipe": "terminal_bell"
+      },
+      "geometry_sha256": "e9e7adc8929ae1621a66fb5c0ba51573a5200c28796617f302018c5ed15d1546",
+      "mesh_vertices": 5266,
+      "mesh_polygons": 5086,
+      "object_count": 10,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.26307,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.94,
+      "export_sha256": "f33cc410879c568c727250cacbcf3f93bc78a00f02db3cdbcbe04e19ad2a0f05",
+      "validation": {
+        "alpha_bbox": [
+          82,
+          87,
+          458,
+          425
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.23994,
+        "opaque_fraction": 0.23407,
+        "48px_foreground_fraction": 0.25434
+      }
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/full_load_latch.blend",
+  "source_sha256": "bf583c5546bcc8c691c2e3023432d42417c427c55af3acb61a5533cb4c6b5bc1",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "full_load_latch",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/full_load_latch.png",
+      "source_path": "art_src/blender/relics/full_load_latch.blend",
+      "source_sha256": "bf583c5546bcc8c691c2e3023432d42417c427c55af3acb61a5533cb4c6b5bc1",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/full_load_latch.png",
+      "source_render_sha256": "55cb92ebd3c312e9ca604542ee7bf3b7e9ad3d9977747b40d157ac00a7eb2f6d",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "edc08dcbdff02af4b256d1c6da7fdaed6f1702973c142fda4f032491fc9a990f",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Full-Load Latch",
+        "actual_description": "If equipped cost exactly matches the loadout limit, the first card costing 2 or more slots each battle costs 1 fewer slot.",
+        "actual_effects": [
+          {
+            "type": "reduce_first_heavy_slot_cost",
+            "condition": "loadout_exactly_full",
+            "minimum_slot_cost": 2,
+            "amount": 1,
+            "max_per_battle": 1
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "closed_latch_pin",
+          "full_capacity_indicator",
+          "hinged_latch_loop",
+          "latch_receiver",
+          "latch_tongue"
+        ],
+        "unique_assembly_recipe": "full_load_latch"
+      },
+      "geometry_sha256": "8cd7c2ec94bf762e5894e94c48c66a9b00471deec437af2fd2b0a78a08201d1e",
+      "mesh_vertices": 2336,
+      "mesh_polygons": 2274,
+      "object_count": 10,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 1.89578,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 9.88,
+      "export_sha256": "16669d15f5c77209e316d0322498756e86e30630090e7b74f82865ba0bbd763a",
+      "validation": {
+        "alpha_bbox": [
+          57,
+          88,
+          458,
+          424
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.36347,
+        "opaque_fraction": 0.35593,
+        "48px_foreground_fraction": 0.38672
+      }
+    }
+  ]
+}

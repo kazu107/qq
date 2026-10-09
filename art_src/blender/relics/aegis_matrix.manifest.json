@@ -1,0 +1,78 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/aegis_matrix.blend",
+  "source_sha256": "4331d232383490a7b0afa6dd390fde1b751c0a271034fe391b3b2e27188d4cd2",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "aegis_matrix",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/aegis_matrix.png",
+      "source_path": "art_src/blender/relics/aegis_matrix.blend",
+      "source_sha256": "4331d232383490a7b0afa6dd390fde1b751c0a271034fe391b3b2e27188d4cd2",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/aegis_matrix.png",
+      "source_render_sha256": "cbfa74799d13334fffb0ea7ad3b96291c4a44c65f3cf1cf9dd5c3a6e47dbd4f5",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "13f39b34271ba35ceeb3cc9befa852f0f61bc385d07e0de659dc44afde998b52",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R02",
+      "kit_name": "cores_batteries_and_heat",
+      "semantic_mapping": {
+        "name": "Aegis Matrix",
+        "actual_description": "Start each battle with 8 shield.",
+        "actual_effects": [],
+        "reused_components": [
+          "gear_hub",
+          "gear_rim",
+          "gear_spoke",
+          "gear_tooth",
+          "hex_shield_layer",
+          "layer_frame",
+          "shield_inset",
+          "shield_ridge",
+          "shield_shell"
+        ],
+        "unique_assembly_recipe": "aegis_matrix"
+      },
+      "geometry_sha256": "6ed87e78d492dd72bd5ca36e97593b0daf2b0099cf86ed4709a159ba6582fba6",
+      "mesh_vertices": 11120,
+      "mesh_polygons": 10960,
+      "object_count": 33,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.31511,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.31,
+      "export_sha256": "bcae8905b0a3923faa4934c6a165e4d79b43392d7183dac14fe10003aa58f588",
+      "validation": {
+        "alpha_bbox": [
+          81,
+          57,
+          432,
+          455
+        ],
+        "minimum_padding_px": 57,
+        "foreground_fraction": 0.38481,
+        "opaque_fraction": 0.37964,
+        "48px_foreground_fraction": 0.40668
+      }
+    }
+  ]
+}

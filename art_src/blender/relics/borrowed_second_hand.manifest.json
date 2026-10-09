@@ -1,0 +1,85 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/borrowed_second_hand.blend",
+  "source_sha256": "01da4f067aa7fa59003313255c31e2dca34b2d07345e296e546d9318442293d7",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "borrowed_second_hand",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/borrowed_second_hand.png",
+      "source_path": "art_src/blender/relics/borrowed_second_hand.blend",
+      "source_sha256": "01da4f067aa7fa59003313255c31e2dca34b2d07345e296e546d9318442293d7",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/borrowed_second_hand.png",
+      "source_render_sha256": "03a741f470ccd4143ce6037d4b6cd1812d5534c23fa3eac457b7b84cfc10a61f",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "bf6ce87d8b57fcece8c7919256ab08ee8d89eb5cdb784f86e7d34b144ca97907",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R03",
+      "kit_name": "clocks_and_timeline",
+      "semantic_mapping": {
+        "name": "Borrowed Second Hand",
+        "actual_description": "When a card effectively delays an enemy, haste your frontmost active card by 35% of that delay, up to 2 seconds, with a 6-second cooldown.",
+        "actual_effects": [
+          {
+            "type": "haste_active_card",
+            "trigger": "enemy_card_delayed",
+            "target": "frontmost_ally",
+            "effective_ratio": 0.35,
+            "max_amount": 2.0,
+            "internal_cooldown": 6.0
+          }
+        ],
+        "reused_components": [
+          "borrowed_long_hand",
+          "borrowing_link",
+          "gear_hub",
+          "gear_rim",
+          "gear_spoke",
+          "gear_tooth",
+          "lent_short_hand"
+        ],
+        "unique_assembly_recipe": "borrowed_second_hand"
+      },
+      "geometry_sha256": "8a812496264b63144b83d20d0f135949862ed7339a991a1b04e58a5c786c4168",
+      "mesh_vertices": 8364,
+      "mesh_polygons": 8084,
+      "object_count": 47,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.30011,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 7.76,
+      "export_sha256": "d94e26d1be22ac2d9776b297a5cfdd7352507f606d4594828e903c4235d6be95",
+      "validation": {
+        "alpha_bbox": [
+          54,
+          80,
+          445,
+          441
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.25724,
+        "opaque_fraction": 0.24342,
+        "48px_foreground_fraction": 0.29514
+      }
+    }
+  ]
+}

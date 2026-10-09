@@ -1,0 +1,83 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/resin_memory_block.blend",
+  "source_sha256": "8968bda68bd78583791fedfc8bd1cb2a513cd372cc7f29f93aa0e90db6282894",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "resin_memory_block",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/resin_memory_block.png",
+      "source_path": "art_src/blender/relics/resin_memory_block.blend",
+      "source_sha256": "8968bda68bd78583791fedfc8bd1cb2a513cd372cc7f29f93aa0e90db6282894",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/resin_memory_block.png",
+      "source_render_sha256": "9063e377a415263a1b8466ed428980a5865e5edc16519d892e31333e133f92e1",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "36c32f8741dce4c579ca0d30f4f35be8c6f118d134cb848743dce275a8b2c111",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R02",
+      "kit_name": "cores_batteries_and_heat",
+      "semantic_mapping": {
+        "name": "Resin Memory Block",
+        "actual_description": "Whenever an auto-queued card resolves, its manual source card gains +1 to its main effect for this battle, up to +5 per card.",
+        "actual_effects": [
+          {
+            "type": "empower_manual_source",
+            "trigger": "auto_card_resolved",
+            "amount": 1,
+            "max_per_card": 5,
+            "duration": "battle"
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "memory_growth_trace",
+          "resin_block",
+          "resin_corner_clamp"
+        ],
+        "unique_assembly_recipe": "resin_memory_block"
+      },
+      "geometry_sha256": "84e7172326b534b57388f7d1bc26842aaadc19e029b6669938d2a8b2584ca0ad",
+      "mesh_vertices": 2688,
+      "mesh_polygons": 2638,
+      "object_count": 23,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 1.69015,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.17,
+      "export_sha256": "ed7ff6043b3918572499d81b6bc6778f7ca5ae187f6287cabd411c6fc2ed9be9",
+      "validation": {
+        "alpha_bbox": [
+          55,
+          60,
+          454,
+          456
+        ],
+        "minimum_padding_px": 55,
+        "foreground_fraction": 0.52253,
+        "opaque_fraction": 0.51656,
+        "48px_foreground_fraction": 0.54861
+      }
+    }
+  ]
+}

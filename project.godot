@@ -18,7 +18,7 @@ run/main_scene.qq_validation="res://tests/WebArenaHarness.tscn"
 run/main_scene.qq_layout_review="res://tests/WebLayoutReview.tscn"
 run/main_scene="res://scenes/boot/Boot.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
-config/icon="res://assets/branding/queuequest-mark.svg"
+config/icon="res://assets/branding/queuequest-emblem-3d.png"
 boot_splash/show_image=false
 boot_splash/bg_color=Color(0.006, 0.010, 0.016, 1)
 

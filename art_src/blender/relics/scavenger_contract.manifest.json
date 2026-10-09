@@ -1,0 +1,76 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/scavenger_contract.blend",
+  "source_sha256": "972389e67e8f88d440e5a999b60ddb1c78631509b8d871f1f73be92eafd6f131",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "scavenger_contract",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/scavenger_contract.png",
+      "source_path": "art_src/blender/relics/scavenger_contract.blend",
+      "source_sha256": "972389e67e8f88d440e5a999b60ddb1c78631509b8d871f1f73be92eafd6f131",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/scavenger_contract.png",
+      "source_render_sha256": "a2b80b36508a5d7be85198c80abab1d4e56bd3f0737a70eeb70e749b5d736790",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "b8f2e46dcc0223322bc7f8b02b98f82a32a8014aea04c6d587f6ee6d91382750",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R05",
+      "kit_name": "economy_and_rewards",
+      "semantic_mapping": {
+        "name": "Scavenger Contract",
+        "actual_description": "Gain 20 gold after every victory.",
+        "actual_effects": [],
+        "reused_components": [
+          "bounty_ribbon",
+          "contract_wax_seal",
+          "hook_attachment",
+          "inscribed_line",
+          "parchment",
+          "salvage_hook",
+          "scroll_roller"
+        ],
+        "unique_assembly_recipe": "scavenger_contract"
+      },
+      "geometry_sha256": "3f3cca4094523b3c18993afcc4ef0d74a3190227d08e0a29b0273b0f028089c6",
+      "mesh_vertices": 3220,
+      "mesh_polygons": 3084,
+      "object_count": 12,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.33435,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.07,
+      "export_sha256": "a1c5a0e60ad9d954ef302094798cb1c0e60988cecc2f2d34173145291a63de19",
+      "validation": {
+        "alpha_bbox": [
+          92,
+          57,
+          419,
+          458
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.33231,
+        "opaque_fraction": 0.32402,
+        "48px_foreground_fraction": 0.35764
+      }
+    }
+  ]
+}

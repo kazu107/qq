@@ -1,9 +1,31 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.31.1",
+  "current_version": "QQ-0.32.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.32.0",
+      "date": "2026-10-10",
+      "title_ja": "Blenderアートの全面展開",
+      "title_en": "Complete Blender artwork rollout",
+      "changes_ja": [
+        "全93カードと疲労カードを、効果に合わせた固有のBlenderシーンから制作しました。",
+        "全86遺物を台座のない透過アイコンに統一し、全25キャラクターの3Dモデルと画像を揃えました。",
+        "状態・UI・効果・マップ・操作部品のアイコンを自作3D原本付きの画像に更新しました。",
+        "戦闘フィールド、ハブと結果画面の背景、アプリアイコンを更新しました。SVGロゴとロード演出は維持しています。",
+        "開発者モードにアート確認ラボを追加しました。画像の実寸比較、モデル・フィールドの表示、制作原本の確認ができます。",
+        "フィールドと背景を起動時にキャッシュし、確認ラボはページ単位の遅延読み込みでWebの負荷を抑えます。"
+      ],
+      "changes_en": [
+        "Author all 93 cards plus Fatigue as distinct Blender scenes reflecting their effects.",
+        "Complete all 86 pedestal-free transparent relics and all 25 character models and portraits.",
+        "Replace status, UI, effect, map and control icons with artwork backed by editable 3D sources.",
+        "Add an authored battlefield, Hub/result backgrounds and app emblem while preserving the SVG wordmark and loading animation.",
+        "Add a developer Art Review Lab with actual-size comparisons, animated models, field previews and source references.",
+        "Cache the field/backgrounds at startup and load bounded gallery pages incrementally on Web."
+      ]
+    },
     {
       "version": "QQ-0.31.1",
       "date": "2026-10-10",

@@ -1,0 +1,1293 @@
+{
+  "format_version": 1,
+  "batch_id": "blender_enemies_04",
+  "created_utc": "2026-10-09T15:59:43.937169+00:00",
+  "blender_version": "5.2.2 LTS",
+  "generator": "tools/blender/build_enemy_batch_04.py",
+  "generator_sha256": "19a71f8a98d55c1207ed3b837802ae33c05acbb464f4380c0458b87ceb17f2cf",
+  "source": "art_src/blender/characters/qq_enemies_04.blend",
+  "source_sha256": "359f12a35875ad2396a381d4626ede7dea5905c47ca2055b4f9c50422bed13b6",
+  "library": "art_src/blender/library/qq_starter_parts.blend",
+  "library_sha256": "20116163026a95b7eafdb49890055fea098d6096e6a89aa4f02ce418f88983d5",
+  "dependencies": [
+    {
+      "path": "tools/blender/build_starter_batch.py",
+      "sha256": "cdafc70f2a548508093ffa4a03795ba8f60cf6b0c18219a25cbc2e8d7e346e94"
+    },
+    {
+      "path": "tools/blender/starter_character_parts.py",
+      "sha256": "bbc6ed7c6d5739d33b489d8992f08af86154351f7337a3a850cc49cfdf832bc3"
+    },
+    {
+      "path": "tools/blender/build_battle_vertical_slice.py",
+      "sha256": "f20cc76665b16770fd082148580b39574cf50cec20e31b059065c5fd15d9c891"
+    }
+  ],
+  "animation_catalog": "data/battle_animations.json",
+  "animation_catalog_sha256": "bee48835871951f40f50c1d162facb6a279ba0ef1f668ad876f53cc89b64f6f9",
+  "render_size": 2048,
+  "portrait_size": 1024,
+  "render_engine": "BLENDER_EEVEE",
+  "cpu_threads": 4,
+  "bone_names": [
+    "root",
+    "hips",
+    "spine",
+    "chest",
+    "neck",
+    "head",
+    "left_upper_leg",
+    "left_lower_leg",
+    "left_foot",
+    "right_upper_leg",
+    "right_lower_leg",
+    "right_foot",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand"
+  ],
+  "socket_definitions": {
+    "left_hand": [
+      "left_hand",
+      "LeftHandSocket"
+    ],
+    "right_hand": [
+      "right_hand",
+      "RightHandSocket"
+    ],
+    "chest": [
+      "chest",
+      "ChestSocket"
+    ],
+    "head": [
+      "head",
+      "HeadSocket"
+    ],
+    "back": [
+      "chest",
+      "BackSocket"
+    ]
+  },
+  "completeness": {
+    "new_models": 12,
+    "portraits": 13,
+    "preserved_scout_model": true,
+    "expected_ids": [
+      "brute",
+      "disruptor",
+      "raider",
+      "medic_drone",
+      "chronoguard",
+      "phase_stalker",
+      "void_bastion",
+      "echo_revenant",
+      "rift_predator",
+      "entropy_colossus",
+      "omega_seraph",
+      "grave_architect",
+      "scout"
+    ],
+    "all_requested_ids_present": true
+  },
+  "protected_assets": {
+    "assets/models/battle/aegis.glb": "42f45ab4b31b7b0da621bf58d9c2038b7f3ceb9e40695c942d308ec77cee7faa",
+    "assets/models/battle/balanced.glb": "98aade13c99fc741ee34daa2bc5762f39dbd279e42c4544f0fbc93f844fb4fdb",
+    "assets/models/battle/battle_animation_library.glb": "ad9948c9524fd6876b24af80e569a9ab42c1d5981302c125be69d43fe61c8f4d",
+    "assets/models/battle/boss_axiom_breaker.glb": "d7d917d6ccebda04fff3809a0674ad6e53ddfc665c9e00a3277bf3ddfd8b8d21",
+    "assets/models/battle/boss_eternity_zero.glb": "d92b54a94b63580b802710ac99709d7167f7240a3887206151eeaeebfd8cf5e7",
+    "assets/models/battle/boss_paradox_core.glb": "fa97793b66e46dbee1ba19aafb239cd11816fd32f04e69ccfbb0771a96e578d3",
+    "assets/models/battle/boss_timekeeper.glb": "45ace9bc50df5152652703199c9ceead6f8c6384fc9cddf821675f4b10897788",
+    "assets/models/battle/chrono.glb": "e855b3e8d73d0d3c146eab54738b2c62a6ac468e677a12bf0ff435cec8272436",
+    "assets/models/battle/fortress.glb": "5ff8dd9a2658f679cf1f699daf81b06cc7708aa4e1b5130e9e0e054c66e44c8d",
+    "assets/models/battle/guardian.glb": "059e8ac63464f230abaf4caf6d3d5f4f135d0e6963e790ebcbc3af4527d1242e",
+    "assets/models/battle/scout.glb": "6aa3fe530e55405d4d740344d78973de2c99d8556a35625211b4a036a168fd62",
+    "assets/models/battle/tempo.glb": "b54440d331ecbc997b7c441282481af07b7d74fef927b994e23438d3fbf4ff07",
+    "assets/models/battle/turret.glb": "f6c2e7958aa37d2bb5ad33a538ab7d1651d6bad5cc01457dabeb5e0be19f21ee",
+    "assets/models/battle/vanguard.glb": "07b9fe8ae9f095397081f112fe1bdf020dd76ce9edd245ea01287714a4455d70",
+    "assets/portraits/aegis.png": "2aab570ecb48ac04c47b9b30fbafbf76a44bf1287dceb795518365783736eb80",
+    "assets/portraits/balanced.png": "4676f53fcb50fab1bcb93cc2b8207aa19fcdacc4e90266b12276f1b0298da4d2",
+    "assets/portraits/boss_axiom_breaker.png": "5bb6013f37995202a2d4f2808b9cb6caee93410c74af9347c1aa7d7a525b7b02",
+    "assets/portraits/boss_eternity_zero.png": "fb1ae80280ec74537af7718a267579f59137bedb67828f9fdd589db166ec5dac",
+    "assets/portraits/boss_paradox_core.png": "f8db7a39ef8864160af16ff61a89de0c8d27477a08268c1305a1237375ba9edc",
+    "assets/portraits/boss_timekeeper.png": "8c7fbad1cb91991a29970babab9dc9cd70a8df0805be5de47e82306157660cd4",
+    "assets/portraits/chrono.png": "bd48ef389c85d4b04b19e68c98a82426af8ba43838032adbc85212b0676cb5f8",
+    "assets/portraits/fortress.png": "f3a275d51d5fa95b5b8b59e706267621c6aca78219707ea4b427fe4f776c7e95",
+    "assets/portraits/guardian.png": "c2fbce10262199c23ee040a9161f60c27e3dfd55c0d32d9a759bf4eed2fadc79",
+    "assets/portraits/tempo.png": "43520fd9478438e055613293a15033625cfbbb051ac3369d37bca85887780209",
+    "assets/portraits/turret.png": "d41074e88933fa582bb72d0254b1b2f842b277849ff893190d82d2d122c8f8c9",
+    "assets/portraits/vanguard.png": "af7129bb4ad762c5f20ca437e1e7d1d3d03183a1e83efa574b91afa8c7cdef12",
+    "art_src/blender/characters/qq_enemies_03.blend": "122337e3f543da0208225c98afbe84dd353371f68455785eb7c3e64b628684b1",
+    "art_src/blender/characters/qq_starters.blend": "4620dd93165b90df6a15a0433644a8b74bea57be2d06b7e7641d9da1f8843657",
+    "art_src/blender/library/qq_starter_parts.blend": "20116163026a95b7eafdb49890055fea098d6096e6a89aa4f02ce418f88983d5",
+    "art_src/blender/battle_vertical_slice.blend": "ca80b89b7c829a5000bd4d4d2fbeeb0dea709e3e223a1d0adf187e980d27bf33",
+    "art_src/blender/battle_animation_library.blend": "93b3ee91886395414736805d3d8fe4c3841ac009b9e78260e18642bd6132b52f"
+  },
+  "previews": [
+    {
+      "path": "art_src/blender/previews/enemy_batch_04_lineup_1.png",
+      "sha256": "3d6d22a13a7edc3418d51f2c437fdcd24c4123158a2289fd3e0bc4c8486c321d",
+      "ids": [
+        "brute",
+        "disruptor",
+        "raider",
+        "medic_drone",
+        "chronoguard"
+      ]
+    },
+    {
+      "path": "art_src/blender/previews/enemy_batch_04_lineup_2.png",
+      "sha256": "c67444766c3117af711096fe63d16c6380bdf110cb55ffe9eb8a3e18ef3b2d25",
+      "ids": [
+        "phase_stalker",
+        "void_bastion",
+        "echo_revenant",
+        "rift_predator",
+        "entropy_colossus"
+      ]
+    },
+    {
+      "path": "art_src/blender/previews/enemy_batch_04_lineup_3.png",
+      "sha256": "e8b0273386b24007c40a5d4d01535e959a727e0f74113edb7afb3766d6d3a34c",
+      "ids": [
+        "omega_seraph",
+        "grave_architect",
+        "scout"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "id": "brute",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Exposed muscular arms, welded chest plates, damaged rust-red iron, hammer and power pack",
+      "parts": [
+        "BODY_BASE",
+        "BODY_HEAVY",
+        "HEAD_HORNS",
+        "WEAPON_HAMMER"
+      ],
+      "editable_meshes": 103,
+      "vertices": 9700,
+      "triangles": 19020,
+      "materials": 12,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/brute.glb",
+      "model_sha256": "0f663e1e321ce0b4fa7e464d812575961c6ceda2e48b5524456345676b2d96ba",
+      "model_bytes": 1355500,
+      "portrait": "assets/portraits/brute.png",
+      "portrait_sha256": "3ebd205de9d5cdeb8e283718cbf1ddc970561dd221f8caddc589da8569b25e67",
+      "portrait_bytes": 1204961,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "disruptor",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Asymmetric induction coils, interference antenna mast, violet armor and yellow signal lamps",
+      "parts": [
+        "BODY_BASE",
+        "BODY_ARCANE",
+        "HEAD_ANTENNA",
+        "WEAPON_STAFF",
+        "OFFHAND_ORB",
+        "BACK_REACTOR"
+      ],
+      "editable_meshes": 117,
+      "vertices": 12692,
+      "triangles": 24992,
+      "materials": 11,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/disruptor.glb",
+      "model_sha256": "15c1a505ca7921d886d9eb54e646bb9e9d56e32fcea3a84488cbbbc9f647a8bf",
+      "model_bytes": 1398912,
+      "portrait": "assets/portraits/disruptor.png",
+      "portrait_sha256": "46cec3519d9fb27ec3352a880c55fc34f87eba281acbc0af743c4320790be9cc",
+      "portrait_bytes": 1273299,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "raider",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Scratched red assault armor, wrapped shoulders, loot belt and a second hand blade",
+      "parts": [
+        "BODY_BASE",
+        "BODY_ASSAULT",
+        "HEAD_HORNS",
+        "WEAPON_GREATSWORD",
+        "BACK_THRUSTERS"
+      ],
+      "editable_meshes": 119,
+      "vertices": 9866,
+      "triangles": 19276,
+      "materials": 11,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/raider.glb",
+      "model_sha256": "775e6ffa288375bca5a82c2a7218590e509854d0cd251e9d015ba30073105c72",
+      "model_bytes": 1479784,
+      "portrait": "assets/portraits/raider.png",
+      "portrait_sha256": "f6307b741cc67bec94602719322517ffb7b0dbe6c21d35e3f726a62fda9dfcba",
+      "portrait_bytes": 1155585,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "medic_drone",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Floating medical torso, optic head, three repair arms, ampoules and hovering thrusters",
+      "parts": [
+        "BODY_BASE",
+        "WEAPON_BLASTER",
+        "OFFHAND_ORB"
+      ],
+      "editable_meshes": 49,
+      "vertices": 4168,
+      "triangles": 8160,
+      "materials": 7,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_forearm",
+        "left_hand",
+        "left_upper_arm",
+        "right_forearm",
+        "right_hand",
+        "right_upper_arm",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/medic_drone.glb",
+      "model_sha256": "a2a84ee20009a25c7e319b3d6cd33bd0697b3a7345113ddbe71711f544141304",
+      "model_bytes": 399056,
+      "portrait": "assets/portraits/medic_drone.png",
+      "portrait_sha256": "bcb12b4442394f3695cf57c35fede3ad6d08f87708a801c0306b3530ec2addcd",
+      "portrait_bytes": 1104328,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "chronoguard",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Clock-knight helmet, dial shield, hour-marked shoulders and brass chrono machinery",
+      "parts": [
+        "BODY_BASE",
+        "BODY_HEAVY",
+        "HEAD_HALO",
+        "WEAPON_STAFF",
+        "OFFHAND_BUCKLER",
+        "BACK_CHRONO"
+      ],
+      "editable_meshes": 145,
+      "vertices": 13528,
+      "triangles": 26536,
+      "materials": 11,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/chronoguard.glb",
+      "model_sha256": "3f3db405cbc8fa33ac660515a8cc64e0081bcee2ef75a3d77571ce17e5c5cb56",
+      "model_bytes": 1606548,
+      "portrait": "assets/portraits/chronoguard.png",
+      "portrait_sha256": "43fec908eabf248b2d7ae1cfffd15ed9b939e1162744f9d36c988529a410ca6b",
+      "portrait_bytes": 1390633,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "phase_stalker",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Split dark plates, exposed phase gaps, swept horns and long paired hooked claws",
+      "parts": [
+        "BODY_BASE",
+        "BODY_LIGHT",
+        "HEAD_HORNS",
+        "BACK_THRUSTERS"
+      ],
+      "editable_meshes": 112,
+      "vertices": 8202,
+      "triangles": 15956,
+      "materials": 11,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/phase_stalker.glb",
+      "model_sha256": "2544dca8283fe7a40c278aa54ee1c9df5cadf9154edad74c33c3d1f179003648",
+      "model_bytes": 1349384,
+      "portrait": "assets/portraits/phase_stalker.png",
+      "portrait_sha256": "0bc48d0f074e6688927dcca59931c3468aaf98ed3ae83bcc1acc8a7ac226a12f",
+      "portrait_bytes": 1082104,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "void_bastion",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Integrated hollow shield wall, void containment ring, cracks and heavy hand cannon",
+      "parts": [
+        "BODY_BASE",
+        "BODY_HEAVY",
+        "HEAD_FORTRESS",
+        "OFFHAND_TOWER",
+        "BACK_REACTOR"
+      ],
+      "editable_meshes": 124,
+      "vertices": 10088,
+      "triangles": 19696,
+      "materials": 11,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/void_bastion.glb",
+      "model_sha256": "37435d04195fb47c3f5ec3835653a59079bfd5e6ccbbbc4a7d6e2c24e7e7d6b6",
+      "model_bytes": 1539860,
+      "portrait": "assets/portraits/void_bastion.png",
+      "portrait_sha256": "2b0e2d75ec7769a68e55c59168954c0a5efee720c3e44ccb7a595e39d5855757",
+      "portrait_bytes": 1206290,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "echo_revenant",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Exposed rib cage, torn cloak plates, echo rings, back spikes and a crescent scythe",
+      "parts": [
+        "BODY_BASE",
+        "BODY_ARCANE",
+        "HEAD_HORNS",
+        "OFFHAND_ORB"
+      ],
+      "editable_meshes": 95,
+      "vertices": 8024,
+      "triangles": 15688,
+      "materials": 11,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/echo_revenant.glb",
+      "model_sha256": "d5e603e3f7d81603ff9e3de4a872ee73ed75d33cafe46420630c0e9de34ec15b",
+      "model_bytes": 1162944,
+      "portrait": "assets/portraits/echo_revenant.png",
+      "portrait_sha256": "1ca160a969e5f1485974ce18f1b710b248f0abdf9e0c8a736cc1392f7a2821ef",
+      "portrait_bytes": 1191269,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "rift_predator",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Predator jaw and teeth, digitigrade-looking leg armor, rift fins and serrated claws",
+      "parts": [
+        "BODY_BASE",
+        "BODY_LIGHT"
+      ],
+      "editable_meshes": 105,
+      "vertices": 7786,
+      "triangles": 15152,
+      "materials": 11,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/rift_predator.glb",
+      "model_sha256": "bc793cbd085dda2cb6f4c83ec46648883c5b0ad13f2a8ff46e0bc4e7bfceb679",
+      "model_bytes": 1349640,
+      "portrait": "assets/portraits/rift_predator.png",
+      "portrait_sha256": "5b38ab2646f8cf6449bab5e576fead852bb1c90ca6cd60111e935e2f947edc8a",
+      "portrait_bytes": 1132390,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "entropy_colossus",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Crumbled boulder armor, heat-discolored joints, magma seams and impact hammer",
+      "parts": [
+        "BODY_BASE",
+        "BODY_HEAVY",
+        "HEAD_FORTRESS",
+        "WEAPON_HAMMER",
+        "OFFHAND_TOWER",
+        "BACK_REACTOR"
+      ],
+      "editable_meshes": 145,
+      "vertices": 12464,
+      "triangles": 24376,
+      "materials": 11,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/entropy_colossus.glb",
+      "model_sha256": "e22caa1ecec7a46c9734789814793a8b5d3e7fe73405d508d2f146acaee3a1b9",
+      "model_bytes": 1842044,
+      "portrait": "assets/portraits/entropy_colossus.png",
+      "portrait_sha256": "3167bf60e6f3aa69ef74373301ea2073fd6e24801253a3fefdaff7e0b2a5b2cb",
+      "portrait_bytes": 1233379,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "omega_seraph",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "White ceramic, gold joints, six individual mechanical wings and a ceremonial spear",
+      "parts": [
+        "BODY_BASE",
+        "BODY_ARCANE",
+        "HEAD_HALO",
+        "OFFHAND_ORB"
+      ],
+      "editable_meshes": 116,
+      "vertices": 8540,
+      "triangles": 16632,
+      "materials": 11,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/omega_seraph.glb",
+      "model_sha256": "2fac5b140b028d6c928b2a655350b2fed7fd25bdf4632b89b5ab5e94c13580c6",
+      "model_bytes": 1149688,
+      "portrait": "assets/portraits/omega_seraph.png",
+      "portrait_sha256": "cdf030d6cf7324d4ab80974d4c3d50b716bcffc6c0b832b0d79a8b14ebd0c942",
+      "portrait_bytes": 1361219,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "grave_architect",
+      "kind": "enemy",
+      "new_model": true,
+      "design": "Shoulder mausoleums, tomb panels, drafting projector, back spires and survey scythe",
+      "parts": [
+        "BODY_BASE",
+        "BODY_ARCANE",
+        "HEAD_ANTENNA",
+        "OFFHAND_ORB"
+      ],
+      "editable_meshes": 108,
+      "vertices": 8994,
+      "triangles": 17580,
+      "materials": 11,
+      "bones": 18,
+      "weighted_bones": [
+        "chest",
+        "head",
+        "hips",
+        "left_foot",
+        "left_forearm",
+        "left_hand",
+        "left_lower_leg",
+        "left_upper_arm",
+        "left_upper_leg",
+        "neck",
+        "right_foot",
+        "right_forearm",
+        "right_hand",
+        "right_lower_leg",
+        "right_upper_arm",
+        "right_upper_leg",
+        "spine"
+      ],
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "all_keyframes_checked": true,
+      "model": "assets/models/battle/grave_architect.glb",
+      "model_sha256": "1600e050056cfde1374af165edbaa50b6597d16109fd728e55e6095b54fe2a47",
+      "model_bytes": 1274212,
+      "portrait": "assets/portraits/grave_architect.png",
+      "portrait_sha256": "491d9339aaaff57fb023794fa018c6d5376a14cb78455983ffaf27bc6d534342",
+      "portrait_bytes": 1227151,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": "scout",
+      "kind": "enemy",
+      "new_model": false,
+      "design": "Portrait rendered from the unchanged first-batch scout.glb",
+      "parts": [
+        "existing_scout_glb"
+      ],
+      "model": "assets/models/battle/scout.glb",
+      "model_sha256": "6aa3fe530e55405d4d740344d78973de2c99d8556a35625211b4a036a168fd62",
+      "model_bytes": 1265952,
+      "bones": 18,
+      "sockets": {
+        "left_hand": [
+          "left_hand",
+          "LeftHandSocket"
+        ],
+        "right_hand": [
+          "right_hand",
+          "RightHandSocket"
+        ],
+        "chest": [
+          "chest",
+          "ChestSocket"
+        ],
+        "head": [
+          "head",
+          "HeadSocket"
+        ],
+        "back": [
+          "chest",
+          "BackSocket"
+        ]
+      },
+      "clips_checked": [
+        "attack_arcane",
+        "attack_heavy",
+        "attack_melee",
+        "attack_ranged",
+        "block",
+        "cast",
+        "defeat",
+        "heal",
+        "hit",
+        "idle",
+        "interrupt",
+        "ready_arcane",
+        "ready_guard",
+        "ready_melee",
+        "ready_ranged",
+        "shield",
+        "status",
+        "victory"
+      ],
+      "portrait": "assets/portraits/scout.png",
+      "portrait_sha256": "11664fe925dc97d8c21656019a17ec641e9a3a20ee8fc121e44153af55fbc138",
+      "portrait_bytes": 1070419,
+      "portrait_size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "integration": "Parent must register new model_scene mappings and provenance from this manifest",
+  "preview_framing_revision": 2
+}

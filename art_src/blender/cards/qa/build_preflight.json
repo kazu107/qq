@@ -1,0 +1,622 @@
+{
+  "count": 88,
+  "generator_sha256": "fb598a40d4207b596df73a2fb119408d1d698f93d99a66919347e6285eeae3e9",
+  "assets": [
+    {
+      "id": "strike",
+      "family": "C01",
+      "objects": 72,
+      "background": "ruins",
+      "composition": "diagonal_right"
+    },
+    {
+      "id": "heavy_swing",
+      "family": "C01",
+      "objects": 71,
+      "background": "quarry",
+      "composition": "low_left"
+    },
+    {
+      "id": "haste_focus",
+      "family": "C04",
+      "objects": 61,
+      "background": "observatory",
+      "composition": "diagonal_left"
+    },
+    {
+      "id": "weak_shot",
+      "family": "C02",
+      "objects": 63,
+      "background": "desert",
+      "composition": "close_left"
+    },
+    {
+      "id": "bleed_cut",
+      "family": "C01",
+      "objects": 102,
+      "background": "rain",
+      "composition": "diagonal_left"
+    },
+    {
+      "id": "quick_guard",
+      "family": "C03",
+      "objects": 79,
+      "background": "rain",
+      "composition": "close_left"
+    },
+    {
+      "id": "reload",
+      "family": "C05",
+      "objects": 69,
+      "background": "workshop",
+      "composition": "close_left"
+    },
+    {
+      "id": "assault",
+      "family": "C02",
+      "objects": 67,
+      "background": "ruins",
+      "composition": "low_right"
+    },
+    {
+      "id": "barrier_deploy",
+      "family": "C03",
+      "objects": 67,
+      "background": "desert",
+      "composition": "wide"
+    },
+    {
+      "id": "interrupt_shot",
+      "family": "C02",
+      "objects": 122,
+      "background": "observatory",
+      "composition": "diagonal_right"
+    },
+    {
+      "id": "time_buy",
+      "family": "C04",
+      "objects": 141,
+      "background": "market",
+      "composition": "low_right"
+    },
+    {
+      "id": "recirculate",
+      "family": "C05",
+      "objects": 91,
+      "background": "reservoir",
+      "composition": "portrait"
+    },
+    {
+      "id": "execution",
+      "family": "C01",
+      "objects": 50,
+      "background": "citadel",
+      "composition": "portrait"
+    },
+    {
+      "id": "fortify",
+      "family": "C03",
+      "objects": 66,
+      "background": "citadel",
+      "composition": "portrait"
+    },
+    {
+      "id": "time_flow_control",
+      "family": "C04",
+      "objects": 81,
+      "background": "reservoir",
+      "composition": "wide"
+    },
+    {
+      "id": "blood_chain",
+      "family": "C07",
+      "objects": 81,
+      "background": "night",
+      "composition": "diagonal_right"
+    },
+    {
+      "id": "over_reload",
+      "family": "C05",
+      "objects": 83,
+      "background": "factory",
+      "composition": "low_right"
+    },
+    {
+      "id": "tripwire",
+      "family": "C02",
+      "objects": 73,
+      "background": "forest",
+      "composition": "ground"
+    },
+    {
+      "id": "stasis_field",
+      "family": "C04",
+      "objects": 83,
+      "background": "garden",
+      "composition": "portrait"
+    },
+    {
+      "id": "rupture_strike",
+      "family": "C01",
+      "objects": 75,
+      "background": "forge",
+      "composition": "low_right"
+    },
+    {
+      "id": "bastion_drive",
+      "family": "C03",
+      "objects": 75,
+      "background": "ruins",
+      "composition": "low_right"
+    },
+    {
+      "id": "adrenaline_link",
+      "family": "C09",
+      "objects": 146,
+      "background": "garden",
+      "composition": "diagonal_right"
+    },
+    {
+      "id": "purge_pulse",
+      "family": "C06",
+      "objects": 61,
+      "background": "reservoir",
+      "composition": "portrait"
+    },
+    {
+      "id": "meteor_crash",
+      "family": "C02",
+      "objects": 76,
+      "background": "cosmic",
+      "composition": "high_left"
+    },
+    {
+      "id": "self_tuning_edge",
+      "family": "C01",
+      "objects": 66,
+      "background": "workshop",
+      "composition": "close_left"
+    },
+    {
+      "id": "overclock_routine",
+      "family": "C05",
+      "objects": 134,
+      "background": "forge",
+      "composition": "wide"
+    },
+    {
+      "id": "sequence_loader",
+      "family": "C08",
+      "objects": 70,
+      "background": "factory",
+      "composition": "low_left"
+    },
+    {
+      "id": "recursive_protocol",
+      "family": "C08",
+      "objects": 93,
+      "background": "factory",
+      "composition": "portrait"
+    },
+    {
+      "id": "chronostasis",
+      "family": "C04",
+      "objects": 70,
+      "background": "cathedral",
+      "composition": "portrait"
+    },
+    {
+      "id": "entropy_reversal",
+      "family": "C04",
+      "objects": 116,
+      "background": "scrapyard",
+      "composition": "diagonal_right"
+    },
+    {
+      "id": "crisis_drone_swarm",
+      "family": "C08",
+      "objects": 92,
+      "background": "ruins",
+      "composition": "wide"
+    },
+    {
+      "id": "phase_lance",
+      "family": "C11",
+      "objects": 44,
+      "background": "white_ruins",
+      "composition": "diagonal_right"
+    },
+    {
+      "id": "mirror_aegis",
+      "family": "C03",
+      "objects": 52,
+      "background": "observatory",
+      "composition": "diagonal_left"
+    },
+    {
+      "id": "null_cascade",
+      "family": "C11",
+      "objects": 78,
+      "background": "night",
+      "composition": "portrait"
+    },
+    {
+      "id": "paradox_loop",
+      "family": "C10",
+      "objects": 79,
+      "background": "observatory",
+      "composition": "portrait"
+    },
+    {
+      "id": "rift_volley",
+      "family": "C11",
+      "objects": 72,
+      "background": "cosmic",
+      "composition": "diagonal_left"
+    },
+    {
+      "id": "entropy_armor",
+      "family": "C03",
+      "objects": 66,
+      "background": "forge",
+      "composition": "portrait"
+    },
+    {
+      "id": "axiom_sever",
+      "family": "C01",
+      "objects": 87,
+      "background": "white_ruins",
+      "composition": "diagonal_right"
+    },
+    {
+      "id": "omega_ray",
+      "family": "C12",
+      "objects": 77,
+      "background": "cathedral",
+      "composition": "diagonal_left"
+    },
+    {
+      "id": "grave_protocol",
+      "family": "C10",
+      "objects": 54,
+      "background": "cathedral",
+      "composition": "low_left"
+    },
+    {
+      "id": "zero_hour",
+      "family": "C04",
+      "objects": 116,
+      "background": "observatory",
+      "composition": "portrait"
+    },
+    {
+      "id": "aegis_ram",
+      "family": "C09",
+      "objects": 54,
+      "background": "citadel",
+      "composition": "close_left"
+    },
+    {
+      "id": "barrier_overdrive",
+      "family": "C09",
+      "objects": 131,
+      "background": "forge",
+      "composition": "low_right"
+    },
+    {
+      "id": "bulwark_cannon",
+      "family": "C02",
+      "objects": 83,
+      "background": "citadel",
+      "composition": "low_left"
+    },
+    {
+      "id": "spark_jab",
+      "family": "C01",
+      "objects": 126,
+      "background": "rain",
+      "composition": "close_right"
+    },
+    {
+      "id": "brace_patch",
+      "family": "C06",
+      "objects": 69,
+      "background": "forest",
+      "composition": "close_left"
+    },
+    {
+      "id": "marking_dart",
+      "family": "C02",
+      "objects": 44,
+      "background": "garden",
+      "composition": "close_right"
+    },
+    {
+      "id": "timer_hook",
+      "family": "C04",
+      "objects": 83,
+      "background": "ship",
+      "composition": "diagonal_left"
+    },
+    {
+      "id": "blood_siphon",
+      "family": "C07",
+      "objects": 50,
+      "background": "reservoir",
+      "composition": "close_left"
+    },
+    {
+      "id": "capacitor_step",
+      "family": "C09",
+      "objects": 47,
+      "background": "ship",
+      "composition": "ground"
+    },
+    {
+      "id": "grit_reload",
+      "family": "C05",
+      "objects": 90,
+      "background": "scrapyard",
+      "composition": "close_right"
+    },
+    {
+      "id": "rust_cloud",
+      "family": "C07",
+      "objects": 97,
+      "background": "scrapyard",
+      "composition": "ground"
+    },
+    {
+      "id": "hammer_feint",
+      "family": "C01",
+      "objects": 81,
+      "background": "desert",
+      "composition": "diagonal_left"
+    },
+    {
+      "id": "prism_guard",
+      "family": "C03",
+      "objects": 50,
+      "background": "white_ruins",
+      "composition": "close_right"
+    },
+    {
+      "id": "rupture_mark",
+      "family": "C07",
+      "objects": 79,
+      "background": "rain",
+      "composition": "close_right"
+    },
+    {
+      "id": "phase_zip",
+      "family": "C11",
+      "objects": 50,
+      "background": "ship",
+      "composition": "low_right"
+    },
+    {
+      "id": "recycler_claw",
+      "family": "C01",
+      "objects": 101,
+      "background": "scrapyard",
+      "composition": "low_left"
+    },
+    {
+      "id": "reactor_leech",
+      "family": "C09",
+      "objects": 70,
+      "background": "scrapyard",
+      "composition": "diagonal_left"
+    },
+    {
+      "id": "drone_foundry",
+      "family": "C08",
+      "objects": 85,
+      "background": "forge",
+      "composition": "low_right"
+    },
+    {
+      "id": "tactical_mirror",
+      "family": "C08",
+      "objects": 146,
+      "background": "observatory",
+      "composition": "diagonal_left"
+    },
+    {
+      "id": "gravity_snare",
+      "family": "C11",
+      "objects": 67,
+      "background": "quarry",
+      "composition": "ground"
+    },
+    {
+      "id": "field_medic",
+      "family": "C06",
+      "objects": 69,
+      "background": "ruins",
+      "composition": "low_right"
+    },
+    {
+      "id": "singularity_guard",
+      "family": "C11",
+      "objects": 107,
+      "background": "cosmic",
+      "composition": "portrait"
+    },
+    {
+      "id": "blood_moon_protocol",
+      "family": "C07",
+      "objects": 62,
+      "background": "night",
+      "composition": "portrait"
+    },
+    {
+      "id": "chrono_blackout",
+      "family": "C04",
+      "objects": 105,
+      "background": "night",
+      "composition": "wide"
+    },
+    {
+      "id": "recursive_battery",
+      "family": "C09",
+      "objects": 48,
+      "background": "factory",
+      "composition": "portrait"
+    },
+    {
+      "id": "execution_matrix",
+      "family": "C01",
+      "objects": 139,
+      "background": "archive",
+      "composition": "portrait"
+    },
+    {
+      "id": "final_archive",
+      "family": "C10",
+      "objects": 88,
+      "background": "archive",
+      "composition": "diagonal_right"
+    },
+    {
+      "id": "solar_verdict",
+      "family": "C12",
+      "objects": 69,
+      "background": "desert",
+      "composition": "high_left"
+    },
+    {
+      "id": "citadel_prime",
+      "family": "C12",
+      "objects": 56,
+      "background": "white_ruins",
+      "composition": "low_right"
+    },
+    {
+      "id": "epoch_breaker",
+      "family": "C04",
+      "objects": 116,
+      "background": "quarry",
+      "composition": "diagonal_right"
+    },
+    {
+      "id": "phoenix_circuit",
+      "family": "C06",
+      "objects": 68,
+      "background": "garden",
+      "composition": "portrait"
+    },
+    {
+      "id": "atlas_protocol",
+      "family": "C13",
+      "objects": 80,
+      "background": "citadel",
+      "composition": "low_left"
+    },
+    {
+      "id": "worldline_collapse",
+      "family": "C11",
+      "objects": 141,
+      "background": "cosmic",
+      "composition": "wide"
+    },
+    {
+      "id": "seraph_array",
+      "family": "C12",
+      "objects": 106,
+      "background": "cosmic",
+      "composition": "wide"
+    },
+    {
+      "id": "ragnarok_engine",
+      "family": "C13",
+      "objects": 77,
+      "background": "forge",
+      "composition": "low_right"
+    },
+    {
+      "id": "absolute_zero",
+      "family": "C04",
+      "objects": 101,
+      "background": "snow",
+      "composition": "portrait"
+    },
+    {
+      "id": "quantum_exchange",
+      "family": "C09",
+      "objects": 93,
+      "background": "cosmic",
+      "composition": "wide"
+    },
+    {
+      "id": "crown_of_thorns",
+      "family": "C12",
+      "objects": 63,
+      "background": "night",
+      "composition": "portrait"
+    },
+    {
+      "id": "infinity_arsenal",
+      "family": "C13",
+      "objects": 145,
+      "background": "archive",
+      "composition": "wide"
+    },
+    {
+      "id": "omega_sanctuary",
+      "family": "C12",
+      "objects": 88,
+      "background": "garden",
+      "composition": "portrait"
+    },
+    {
+      "id": "deus_ex_machina",
+      "family": "C06",
+      "objects": 150,
+      "background": "cathedral",
+      "composition": "wide"
+    },
+    {
+      "id": "golden_ratio",
+      "family": "C10",
+      "objects": 56,
+      "background": "white_ruins",
+      "composition": "portrait"
+    },
+    {
+      "id": "tempest_choir",
+      "family": "C13",
+      "objects": 103,
+      "background": "rain",
+      "composition": "diagonal_right"
+    },
+    {
+      "id": "last_bastion",
+      "family": "C13",
+      "objects": 74,
+      "background": "ruins",
+      "composition": "low_left"
+    },
+    {
+      "id": "dominion_pulse",
+      "family": "C13",
+      "objects": 54,
+      "background": "citadel",
+      "composition": "wide"
+    },
+    {
+      "id": "chronicle_sovereign",
+      "family": "C13",
+      "objects": 135,
+      "background": "archive",
+      "composition": "portrait"
+    },
+    {
+      "id": "environment_fatigue",
+      "family": "SPECIAL",
+      "objects": 108,
+      "background": "desert",
+      "composition": "portrait"
+    }
+  ]
+}

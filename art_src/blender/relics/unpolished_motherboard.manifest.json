@@ -1,0 +1,85 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/unpolished_motherboard.blend",
+  "source_sha256": "389c191b38de875a99942e0304614b95b109a71ce90f06c16f3a91abe62d391b",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "unpolished_motherboard",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/unpolished_motherboard.png",
+      "source_path": "art_src/blender/relics/unpolished_motherboard.blend",
+      "source_sha256": "389c191b38de875a99942e0304614b95b109a71ce90f06c16f3a91abe62d391b",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/unpolished_motherboard.png",
+      "source_render_sha256": "ee76ce915b3f45ed6251fc6024f0d0dd7b583339612566f48d1d530756633e78",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "34aac61c4ca2b79ee640a3e6c5ad0b45e2927d6e3a143431a104b364a0ccc1d0",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Unpolished Motherboard",
+        "actual_description": "If at least 2 Base cards are equipped, each after the first costs 1 less loadout capacity but casts 12% slower, with a maximum total discount of 3.",
+        "actual_effects": [
+          {
+            "type": "discount_base_cards",
+            "minimum_equipped": 2,
+            "discount_after_first": 1,
+            "max_total_discount": 3,
+            "cast_multiplier": 1.12
+          }
+        ],
+        "reused_components": [
+          "base_card_processor",
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "circuit_trace",
+          "hex_bolt",
+          "slow_warning_lamp",
+          "unpolished_circuit_board"
+        ],
+        "unique_assembly_recipe": "unpolished_motherboard"
+      },
+      "geometry_sha256": "ce5ed176749b9dd2b7cc9bf3694a30e2e892dc3f53e3b8c83fbeaf740441535c",
+      "mesh_vertices": 5664,
+      "mesh_polygons": 5194,
+      "object_count": 29,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 1.90573,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 11.99,
+      "export_sha256": "1c600b57226276ad07bd990e12db56adf238ea2450f2964b8e650a90b280c405",
+      "validation": {
+        "alpha_bbox": [
+          76,
+          55,
+          436,
+          457
+        ],
+        "minimum_padding_px": 55,
+        "foreground_fraction": 0.52436,
+        "opaque_fraction": 0.51875,
+        "48px_foreground_fraction": 0.53906
+      }
+    }
+  ]
+}

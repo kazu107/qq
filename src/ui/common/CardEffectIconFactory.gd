@@ -2,6 +2,7 @@ extends RefCounted
 class_name CardEffectIconFactory
 
 const STATUS_ICON_PATH_TEMPLATE := "res://assets/icons/status/%s.png"
+const AUTHORED_EFFECT_PATH_TEMPLATE := "res://assets/icons/effects/%s.png"
 
 static var _texture_cache: Dictionary = {}
 
@@ -58,6 +59,12 @@ static func _load_or_build_icon(icon_id: String) -> Texture2D:
 			if status_texture != null:
 				return status_texture
 		return _build_status_icon()
+
+	var authored_path: String = AUTHORED_EFFECT_PATH_TEMPLATE % icon_id
+	if ResourceLoader.exists(authored_path):
+		var authored_texture: Texture2D = ResourceLoader.load(authored_path) as Texture2D
+		if authored_texture != null:
+			return authored_texture
 
 	match icon_id:
 		"attack", "shield", "hp", "speed", "time":

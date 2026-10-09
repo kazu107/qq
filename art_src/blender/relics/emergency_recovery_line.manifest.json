@@ -1,0 +1,86 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/emergency_recovery_line.blend",
+  "source_sha256": "bbda0cd0a048e623c8991d798ec08ea6b23e58fcabc8d3c0ddc70ea752482438",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "emergency_recovery_line",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/emergency_recovery_line.png",
+      "source_path": "art_src/blender/relics/emergency_recovery_line.blend",
+      "source_sha256": "bbda0cd0a048e623c8991d798ec08ea6b23e58fcabc8d3c0ddc70ea752482438",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/emergency_recovery_line.png",
+      "source_render_sha256": "6e9d6311da51728f0ffe20fb8928397f54ccb6973b9c69e6cdae14aee8ee93d1",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "db7c9e822a8134b64b56a10424bee3b45a8254e4bdf780693102101f1233abc9",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R11",
+      "kit_name": "progression_hazard_and_arena",
+      "semantic_mapping": {
+        "name": "Emergency Recovery Line",
+        "actual_description": "Once per run, fatal damage during Hazard wave 2 or later leaves you at 1 HP and forces withdrawal, preserving earlier wave rewards but losing the current wave reward.",
+        "actual_effects": [
+          {
+            "type": "prevent_fatal_hazard_damage",
+            "trigger": "fatal_damage",
+            "minimum_wave": 2,
+            "survive_hp": 1,
+            "force_withdraw": true,
+            "preserve_previous_rewards": true,
+            "lose_current_reward": true,
+            "max_per_run": 1
+          }
+        ],
+        "reused_components": [
+          "emergency_lifeline_reel",
+          "one_hp_marker",
+          "one_hp_survival_light",
+          "recovery_hose",
+          "withdrawal_lever",
+          "withdrawal_lever_handle"
+        ],
+        "unique_assembly_recipe": "emergency_recovery_line"
+      },
+      "geometry_sha256": "69a1999a92e24fcda18b946ec6d79e21954487e1faf1a04e7d1f97c604c1f674",
+      "mesh_vertices": 3198,
+      "mesh_polygons": 3190,
+      "object_count": 6,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.1829,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 7.67,
+      "export_sha256": "ac695e222bd50c9a532093fdbbc32ba5b5682914e287224e98d9b3ec4f614bfc",
+      "validation": {
+        "alpha_bbox": [
+          58,
+          78,
+          455,
+          441
+        ],
+        "minimum_padding_px": 57,
+        "foreground_fraction": 0.27984,
+        "opaque_fraction": 0.27165,
+        "48px_foreground_fraction": 0.30729
+      }
+    }
+  ]
+}

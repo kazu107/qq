@@ -1,0 +1,454 @@
+{
+  "batch_id": "blender_environment_07",
+  "generator": "tools/blender/build_environment_batch.py",
+  "generator_sha256": "1715f57e984deaef9ded1cb336e84dbf267c30e9fab3ad6d849f9a935c9af200",
+  "source": "art_src/blender/environment/qq_battlefield.blend",
+  "source_sha256": "4bcf2ac84efad6950859437b88439b23e5d5db4ae09f767100a840ddb4a4241c",
+  "blender_version": "5.2.2 LTS",
+  "source_editable_meshes": 1234,
+  "semantic_nodes": [
+    "BattleWorldGround",
+    "BattleMeadow",
+    "ArenaBase",
+    "ArenaTiles",
+    "ArenaBorders",
+    "ArenaLaneLines",
+    "ArenaCrates",
+    "ArenaBarrels",
+    "BattleGrass",
+    "BattleRocks",
+    "BattleFlowers",
+    "BattleRuinClusterLeft",
+    "BattleRuinClusterRight",
+    "BattleDistantHills",
+    "BattleDistantRidges",
+    "BattleDistantTreeTrunks",
+    "BattleDistantTreeCanopies",
+    "BattleDistantRuinLeft",
+    "BattleDistantRuinRight"
+  ],
+  "detail_counts": {
+    "grass": 112,
+    "rocks": 18,
+    "flowers": 16,
+    "ruin_clusters": 2,
+    "barrels": 2,
+    "crates": 4,
+    "distant_hills": 5,
+    "distant_trees": 18,
+    "distant_ruins": 2
+  },
+  "runtime": {
+    "triangles": 69284,
+    "surfaces": 53,
+    "mesh_nodes": 19,
+    "materials": 26,
+    "bytes": 3943796,
+    "node_names": [
+      "ArenaBarrels",
+      "ArenaBase",
+      "ArenaBorders",
+      "ArenaCrates",
+      "ArenaLaneLines",
+      "ArenaTiles",
+      "BattleDistantHills",
+      "BattleDistantRidges",
+      "BattleDistantRuinLeft",
+      "BattleDistantRuinRight",
+      "BattleDistantTreeCanopies",
+      "BattleDistantTreeTrunks",
+      "BattleFlowers",
+      "BattleGrass",
+      "BattleMeadow",
+      "BattleRocks",
+      "BattleRuinClusterLeft",
+      "BattleRuinClusterRight",
+      "BattleWorldGround",
+      "QueueQuestBattlefield"
+    ],
+    "detail_counts": {
+      "grass": 112,
+      "rocks": 18,
+      "flowers": 16,
+      "ruin_clusters": 2,
+      "barrels": 2,
+      "crates": 4,
+      "distant_hills": 5,
+      "distant_trees": 18,
+      "distant_ruins": 2
+    },
+    "groups": [
+      {
+        "name": "BattleWorldGround",
+        "source_parts": 1,
+        "triangles": 12,
+        "surfaces": 1,
+        "materials": [
+          "world_ground"
+        ]
+      },
+      {
+        "name": "BattleMeadow",
+        "source_parts": 1,
+        "triangles": 108,
+        "surfaces": 1,
+        "materials": [
+          "meadow"
+        ]
+      },
+      {
+        "name": "ArenaBase",
+        "source_parts": 1,
+        "triangles": 108,
+        "surfaces": 1,
+        "materials": [
+          "earth"
+        ]
+      },
+      {
+        "name": "ArenaTiles",
+        "source_parts": 89,
+        "triangles": 5148,
+        "surfaces": 4,
+        "materials": [
+          "tile_a",
+          "stone_dark",
+          "brass",
+          "tile_b"
+        ]
+      },
+      {
+        "name": "ArenaBorders",
+        "source_parts": 6,
+        "triangles": 648,
+        "surfaces": 2,
+        "materials": [
+          "brass",
+          "moss"
+        ]
+      },
+      {
+        "name": "ArenaLaneLines",
+        "source_parts": 3,
+        "triangles": 324,
+        "surfaces": 3,
+        "materials": [
+          "cyan",
+          "red",
+          "ivory"
+        ]
+      },
+      {
+        "name": "ArenaCrates",
+        "source_parts": 144,
+        "triangles": 12224,
+        "surfaces": 3,
+        "materials": [
+          "wood",
+          "wood_light",
+          "iron"
+        ]
+      },
+      {
+        "name": "ArenaBarrels",
+        "source_parts": 70,
+        "triangles": 1928,
+        "surfaces": 3,
+        "materials": [
+          "wood",
+          "wood_light",
+          "iron"
+        ]
+      },
+      {
+        "name": "BattleGrass",
+        "source_parts": 112,
+        "triangles": 7392,
+        "surfaces": 3,
+        "materials": [
+          "grass",
+          "grass_light",
+          "grass_dry"
+        ]
+      },
+      {
+        "name": "BattleRocks",
+        "source_parts": 36,
+        "triangles": 1800,
+        "surfaces": 2,
+        "materials": [
+          "stone_dark",
+          "moss"
+        ]
+      },
+      {
+        "name": "BattleFlowers",
+        "source_parts": 128,
+        "triangles": 2560,
+        "surfaces": 4,
+        "materials": [
+          "grass",
+          "petal_ivory",
+          "flower_core",
+          "petal"
+        ]
+      },
+      {
+        "name": "BattleRuinClusterLeft",
+        "source_parts": 108,
+        "triangles": 6816,
+        "surfaces": 6,
+        "materials": [
+          "stone_light",
+          "stone",
+          "stone_dark",
+          "brass",
+          "cyan",
+          "moss"
+        ]
+      },
+      {
+        "name": "BattleRuinClusterRight",
+        "source_parts": 108,
+        "triangles": 6816,
+        "surfaces": 6,
+        "materials": [
+          "stone_light",
+          "stone",
+          "stone_dark",
+          "brass",
+          "cyan",
+          "moss"
+        ]
+      },
+      {
+        "name": "BattleDistantHills",
+        "source_parts": 5,
+        "triangles": 1600,
+        "surfaces": 1,
+        "materials": [
+          "hill"
+        ]
+      },
+      {
+        "name": "BattleDistantRidges",
+        "source_parts": 2,
+        "triangles": 160,
+        "surfaces": 1,
+        "materials": [
+          "hill_light"
+        ]
+      },
+      {
+        "name": "BattleDistantTreeTrunks",
+        "source_parts": 252,
+        "triangles": 5472,
+        "surfaces": 2,
+        "materials": [
+          "wood",
+          "wood_light"
+        ]
+      },
+      {
+        "name": "BattleDistantTreeCanopies",
+        "source_parts": 72,
+        "triangles": 5760,
+        "surfaces": 2,
+        "materials": [
+          "leaf_light",
+          "leaf"
+        ]
+      },
+      {
+        "name": "BattleDistantRuinLeft",
+        "source_parts": 48,
+        "triangles": 5204,
+        "surfaces": 4,
+        "materials": [
+          "stone_light",
+          "stone",
+          "stone_dark",
+          "brass"
+        ]
+      },
+      {
+        "name": "BattleDistantRuinRight",
+        "source_parts": 48,
+        "triangles": 5204,
+        "surfaces": 4,
+        "materials": [
+          "stone_light",
+          "stone",
+          "stone_dark",
+          "brass"
+        ]
+      }
+    ]
+  },
+  "assets": [
+    {
+      "id": "environment_field",
+      "visual_id": "qq_battlefield",
+      "category": "environment",
+      "runtime_path": "assets/models/environment/qq_battlefield.glb",
+      "export_sha256": "1bfd7ea150fd30e1a6560041a900f2d3abc449fbeca5416bb8316fa64a7e65d6",
+      "source_path": "art_src/blender/environment/qq_battlefield.blend",
+      "source_sha256": "4bcf2ac84efad6950859437b88439b23e5d5db4ae09f767100a840ddb4a4241c",
+      "presentation": "editable modular meadow ruins; consolidated static geometry; glTF Y-up",
+      "detail_counts": {
+        "grass": 112,
+        "rocks": 18,
+        "flowers": 16,
+        "ruin_clusters": 2,
+        "barrels": 2,
+        "crates": 4,
+        "distant_hills": 5,
+        "distant_trees": 18,
+        "distant_ruins": 2
+      },
+      "triangles": 69284,
+      "surfaces": 53,
+      "reuse": {
+        "grid": [
+          7,
+          5
+        ],
+        "tile_size": [
+          1.61,
+          0.105,
+          1.29
+        ],
+        "tile_spacing": [
+          1.76,
+          1.44
+        ],
+        "foreground_size": [
+          17.8,
+          0.42,
+          11.8
+        ],
+        "world_size": [
+          42,
+          0.55,
+          38
+        ],
+        "world_center": [
+          0,
+          -0.66,
+          -8
+        ]
+      }
+    },
+    {
+      "id": "background_hub",
+      "visual_id": "hub",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/hub.png",
+      "export_sha256": "77a917b7f8fea969305b0cc5708b7938f40c5e46d91e03fa09da2fc60df6a865",
+      "source_path": "art_src/blender/environment/qq_battlefield.blend",
+      "source_sha256": "4bcf2ac84efad6950859437b88439b23e5d5db4ae09f767100a840ddb4a4241c",
+      "source_render_path": "tools/.local/blender_environment_batch/hub_2560.png",
+      "source_render_sha256": "c45ffbe42b5b75b597bda19b45304026b338fb490703aa5fa53a5cdfc619d634",
+      "source_render_size": [
+        2560,
+        1440
+      ],
+      "presentation": "3D meadow render; darkened UI-safe center",
+      "reuse": {
+        "scene": "QueueQuestBattlefield",
+        "camera": "Camera_HubBackground",
+        "lighting": "daylight"
+      },
+      "size": [
+        1920,
+        1080
+      ],
+      "channels": 4
+    },
+    {
+      "id": "background_run_result",
+      "visual_id": "run_result",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/run_result.png",
+      "export_sha256": "6dd4086a30fc9a9366efe9262f7bd48c17998702bf97cb99c882ed58a4edb0d6",
+      "source_path": "art_src/blender/environment/qq_battlefield.blend",
+      "source_sha256": "4bcf2ac84efad6950859437b88439b23e5d5db4ae09f767100a840ddb4a4241c",
+      "source_render_path": "tools/.local/blender_environment_batch/run_result_2560.png",
+      "source_render_sha256": "7db560b2304a4f5a2f93ca1eb93272a06923dabd74171fabdf9e87fe3d5b9daa",
+      "source_render_size": [
+        2560,
+        1440
+      ],
+      "presentation": "3D meadow render; darkened UI-safe center",
+      "reuse": {
+        "scene": "QueueQuestBattlefield",
+        "camera": "Camera_ResultBackground",
+        "lighting": "amber dusk"
+      },
+      "size": [
+        1920,
+        1080
+      ],
+      "channels": 4
+    },
+    {
+      "id": "branding_queuequest_emblem_3d",
+      "visual_id": "queuequest-emblem-3d",
+      "category": "branding",
+      "runtime_path": "assets/branding/queuequest-emblem-3d.png",
+      "export_sha256": "527b06041f11fd65348b212bf5ecc6c00cb19dad5bbf33615024ba3af52908ce",
+      "source_path": "art_src/blender/environment/qq_battlefield.blend",
+      "source_sha256": "4bcf2ac84efad6950859437b88439b23e5d5db4ae09f767100a840ddb4a4241c",
+      "source_render_path": "tools/.local/blender_environment_batch/queuequest_emblem_1024.png",
+      "source_render_sha256": "70b5c81881db6b9df5b9360d0a289a5e420be1e39b0bd67db5bf968a8a4e3774",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent 3D queue-card emblem; optional companion to preserved SVG",
+      "reuse": {
+        "palette": "QueueQuest ivory, gold, cyan, navy",
+        "identity": "three queued cards and timeline Q",
+        "small_icon_geometry": "1.45x front card, thick Q, dark inset; no floor"
+      },
+      "size": [
+        256,
+        256
+      ],
+      "channels": 4,
+      "transparent_background": true
+    }
+  ],
+  "previews": [
+    {
+      "path": "art_src/blender/previews/environment_batch.png",
+      "sha256": "33d1fc79d1c2724177aa867574ac716ff80f9311c3c1698d09b4e3969d80f42a"
+    },
+    {
+      "path": "art_src/blender/previews/environment_battle_camera.png",
+      "sha256": "5980f8f8314c891a87631332d6af05a56c4e81e59d41dab24deae3f242c97217"
+    },
+    {
+      "path": "art_src/blender/previews/environment_emblem_sizes.png",
+      "sha256": "8a7e12fd09a87ec02399929fcb0981edeb86ffa4e3b1bf479260d7568060b098"
+    }
+  ],
+  "preserved_files": [
+    "assets/branding/queuequest-logo.svg",
+    "assets/branding/queuequest-mark.svg"
+  ],
+  "validation": {
+    "source_counts": true,
+    "grid_contract": true,
+    "materials_basic_principled": true,
+    "triangle_budget": 150000,
+    "surface_budget": 80,
+    "isolated_threads": 4,
+    "emblem_sizes_checked": [
+      16,
+      32,
+      64,
+      256
+    ]
+  }
+}

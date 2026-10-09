@@ -12,6 +12,7 @@ var _camera: Camera3D
 var _selected_starter_id: String = DEFAULT_STARTER_ID
 var _elapsed: float = 0.0
 var _selection_swing: float = 0.0
+var _auto_frame: bool = false
 
 
 func _ready() -> void:
@@ -20,6 +21,7 @@ func _ready() -> void:
 	stretch = true
 	_build_preview_world()
 	_apply_starter_visual()
+	resized.connect(_queue_camera_fit)
 	set_process(true)
 
 
@@ -43,6 +45,43 @@ func show_starter(starter_id: String) -> void:
 
 func get_selected_starter_id() -> String:
 	return _selected_starter_id
+
+
+func set_auto_frame(enabled: bool) -> void:
+	_auto_frame = enabled
+	_queue_camera_fit()
+
+
+func _queue_camera_fit() -> void:
+	if _auto_frame:
+		call_deferred("_fit_camera")
+
+
+func _fit_camera() -> void:
+	if not _auto_frame or _actor == null or _camera == null:
+		return
+	var model: Node3D = _actor.get_authored_model_root()
+	if model == null:
+		return
+	var bounds: AABB = AABB()
+	var initialized: bool = false
+	var to_actor: Transform3D = _actor.global_transform.affine_inverse()
+	for node: Node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh: MeshInstance3D = node as MeshInstance3D
+		if mesh.mesh == null:
+			continue
+		var mesh_bounds: AABB = (to_actor * mesh.global_transform) * mesh.get_aabb()
+		bounds = bounds.merge(mesh_bounds) if initialized else mesh_bounds
+		initialized = true
+	if not initialized:
+		return
+	# A sphere also leaves room for equipment during the ready-pose animation.
+	var radius: float = maxf(1.0, bounds.size.length() * 0.58)
+	var aspect: float = maxf(0.4, size.x / maxf(1.0, size.y))
+	var half_angle: float = atan(tan(deg_to_rad(_camera.fov * 0.5)) * minf(1.0, aspect))
+	var center: Vector3 = _actor.global_transform * bounds.get_center()
+	_camera.position = center + Vector3(0.0, radius * 0.08, radius / sin(half_angle))
+	_camera.look_at(center, Vector3.UP)
 
 
 func get_preview_actor() -> BattleActor3D:
@@ -184,6 +223,7 @@ func _apply_starter_visual() -> void:
 	_actor.start_timeline_stance()
 	_actor.set_animation_speed_scale(0.82)
 	call_deferred("_ensure_ready_pose")
+	_queue_camera_fit()
 
 
 func _ensure_ready_pose() -> void:

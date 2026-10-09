@@ -4,7 +4,11 @@
     "primary": "#146BF5",
     "secondary": "#091522",
     "accent": "#38E0FF",
-    "body_scale": [1.0, 1.0, 1.0],
+    "body_scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
     "weapon": "blade",
     "offhand": "shield",
     "head": "visor",
@@ -16,7 +20,11 @@
     "primary": "#C21F1C",
     "secondary": "#1D0B0A",
     "accent": "#FF7530",
-    "body_scale": [1.0, 1.0, 1.0],
+    "body_scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
     "weapon": "blade",
     "offhand": "shield",
     "head": "visor",
@@ -29,7 +37,11 @@
     "primary": "#1674E8",
     "secondary": "#081B31",
     "accent": "#45E5FF",
-    "body_scale": [1.0, 1.0, 1.0],
+    "body_scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
     "weapon": "blade",
     "offhand": "shield",
     "head": "visor",
@@ -42,7 +54,11 @@
     "primary": "#0AA6A0",
     "secondary": "#062522",
     "accent": "#B9FF45",
-    "body_scale": [0.88, 1.08, 0.88],
+    "body_scale": [
+      0.88,
+      1.08,
+      0.88
+    ],
     "weapon": "rapier",
     "offhand": "buckler",
     "head": "fin",
@@ -55,7 +71,11 @@
     "primary": "#34547A",
     "secondary": "#111A25",
     "accent": "#91D9FF",
-    "body_scale": [1.2, 0.98, 1.14],
+    "body_scale": [
+      1.2,
+      0.98,
+      1.14
+    ],
     "weapon": "hammer",
     "offhand": "tower_shield",
     "head": "fortress",
@@ -68,7 +88,11 @@
     "primary": "#C43B1E",
     "secondary": "#2B100A",
     "accent": "#FFC247",
-    "body_scale": [1.08, 1.05, 1.02],
+    "body_scale": [
+      1.08,
+      1.05,
+      1.02
+    ],
     "weapon": "greatsword",
     "offhand": "none",
     "head": "horns",
@@ -81,7 +105,11 @@
     "primary": "#B18424",
     "secondary": "#211B0B",
     "accent": "#45FFE0",
-    "body_scale": [1.16, 1.02, 1.12],
+    "body_scale": [
+      1.16,
+      1.02,
+      1.12
+    ],
     "weapon": "hammer",
     "offhand": "tower_shield",
     "head": "crest",
@@ -94,7 +122,11 @@
     "primary": "#5541B8",
     "secondary": "#100C2E",
     "accent": "#62EDFF",
-    "body_scale": [0.94, 1.1, 0.92],
+    "body_scale": [
+      0.94,
+      1.1,
+      0.92
+    ],
     "weapon": "staff",
     "offhand": "orb",
     "head": "halo",
@@ -107,7 +139,11 @@
     "primary": "#B17B24",
     "secondary": "#101B0C",
     "accent": "#FF9A32",
-    "body_scale": [1.04, 0.98, 1.04],
+    "body_scale": [
+      1.04,
+      0.98,
+      1.04
+    ],
     "weapon": "blaster",
     "offhand": "buckler",
     "head": "antenna",
@@ -120,7 +156,11 @@
     "primary": "#B83224",
     "secondary": "#230C09",
     "accent": "#FF9C36",
-    "body_scale": [0.86, 1.06, 0.86],
+    "body_scale": [
+      0.86,
+      1.06,
+      0.86
+    ],
     "weapon": "rapier",
     "offhand": "blade",
     "head": "fin",
@@ -132,24 +172,34 @@
     "primary": "#7D3E27",
     "secondary": "#24110B",
     "accent": "#FF552E",
-    "body_scale": [1.28, 1.12, 1.2],
+    "body_scale": [
+      1.28,
+      1.12,
+      1.2
+    ],
     "weapon": "hammer",
     "offhand": "none",
     "head": "horns",
     "back": "power_pack",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/brute.glb"
   },
   "disruptor": {
     "kind": "enemy",
     "primary": "#792E8E",
     "secondary": "#1C0925",
     "accent": "#FFE35B",
-    "body_scale": [0.96, 1.06, 0.94],
+    "body_scale": [
+      0.96,
+      1.06,
+      0.94
+    ],
     "weapon": "staff",
     "offhand": "orb",
     "head": "antenna",
     "back": "reactor",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/disruptor.glb"
   },
   "guardian": {
     "model_scene": "res://assets/models/battle/guardian.glb",
@@ -157,7 +207,11 @@
     "primary": "#496273",
     "secondary": "#10191F",
     "accent": "#2DE6C5",
-    "body_scale": [1.22, 1.08, 1.16],
+    "body_scale": [
+      1.22,
+      1.08,
+      1.16
+    ],
     "weapon": "cannon",
     "offhand": "tower_shield",
     "head": "fortress",
@@ -169,36 +223,51 @@
     "primary": "#A51F36",
     "secondary": "#260811",
     "accent": "#FF7B2F",
-    "body_scale": [1.0, 1.04, 0.96],
+    "body_scale": [
+      1.0,
+      1.04,
+      0.96
+    ],
     "weapon": "greatsword",
     "offhand": "blade",
     "head": "horns",
     "back": "thrusters",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/raider.glb"
   },
   "medic_drone": {
     "kind": "enemy",
     "primary": "#D3D8D5",
     "secondary": "#27302D",
     "accent": "#50FF83",
-    "body_scale": [0.88, 0.94, 0.9],
+    "body_scale": [
+      0.88,
+      0.94,
+      0.9
+    ],
     "weapon": "blaster",
     "offhand": "orb",
     "head": "halo",
     "back": "power_pack",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/medic_drone.glb"
   },
   "chronoguard": {
     "kind": "enemy",
     "primary": "#3E3A84",
     "secondary": "#100E27",
     "accent": "#FFBF45",
-    "body_scale": [1.06, 1.08, 1.02],
+    "body_scale": [
+      1.06,
+      1.08,
+      1.02
+    ],
     "weapon": "staff",
     "offhand": "shield",
     "head": "halo",
     "back": "chrono_ring",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/chronoguard.glb"
   },
   "boss_timekeeper": {
     "model_scene": "res://assets/models/battle/boss_timekeeper.glb",
@@ -206,7 +275,11 @@
     "primary": "#402069",
     "secondary": "#0C0717",
     "accent": "#FFD259",
-    "body_scale": [1.34, 1.3, 1.28],
+    "body_scale": [
+      1.34,
+      1.3,
+      1.28
+    ],
     "weapon": "staff",
     "offhand": "orb",
     "head": "crown",
@@ -218,36 +291,51 @@
     "primary": "#2A173A",
     "secondary": "#09050D",
     "accent": "#F13CFF",
-    "body_scale": [0.88, 1.14, 0.86],
+    "body_scale": [
+      0.88,
+      1.14,
+      0.86
+    ],
     "weapon": "claws",
     "offhand": "none",
     "head": "horns",
     "back": "thrusters",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/phase_stalker.glb"
   },
   "void_bastion": {
     "kind": "enemy",
     "primary": "#183745",
     "secondary": "#040B0F",
     "accent": "#29F0D0",
-    "body_scale": [1.32, 1.14, 1.24],
+    "body_scale": [
+      1.32,
+      1.14,
+      1.24
+    ],
     "weapon": "cannon",
     "offhand": "tower_shield",
     "head": "fortress",
     "back": "reactor",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/void_bastion.glb"
   },
   "echo_revenant": {
     "kind": "enemy",
     "primary": "#5B245F",
     "secondary": "#170718",
     "accent": "#FF3F6B",
-    "body_scale": [1.02, 1.16, 0.98],
+    "body_scale": [
+      1.02,
+      1.16,
+      0.98
+    ],
     "weapon": "scythe",
     "offhand": "orb",
     "head": "horns",
     "back": "spikes",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/echo_revenant.glb"
   },
   "boss_paradox_core": {
     "model_scene": "res://assets/models/battle/boss_paradox_core.glb",
@@ -255,7 +343,11 @@
     "primary": "#421654",
     "secondary": "#08040D",
     "accent": "#FF45D7",
-    "body_scale": [1.48, 1.36, 1.4],
+    "body_scale": [
+      1.48,
+      1.36,
+      1.4
+    ],
     "weapon": "staff",
     "offhand": "orb",
     "head": "crown",
@@ -267,24 +359,34 @@
     "primary": "#34205A",
     "secondary": "#0B0615",
     "accent": "#6DFF67",
-    "body_scale": [1.02, 1.16, 0.96],
+    "body_scale": [
+      1.02,
+      1.16,
+      0.96
+    ],
     "weapon": "claws",
     "offhand": "blade",
     "head": "horns",
     "back": "spikes",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/rift_predator.glb"
   },
   "entropy_colossus": {
     "kind": "enemy",
     "primary": "#43382F",
     "secondary": "#0E0B09",
     "accent": "#FF7A27",
-    "body_scale": [1.46, 1.26, 1.36],
+    "body_scale": [
+      1.46,
+      1.26,
+      1.36
+    ],
     "weapon": "hammer",
     "offhand": "tower_shield",
     "head": "fortress",
     "back": "reactor",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/entropy_colossus.glb"
   },
   "boss_axiom_breaker": {
     "model_scene": "res://assets/models/battle/boss_axiom_breaker.glb",
@@ -292,7 +394,11 @@
     "primary": "#6B1E20",
     "secondary": "#120506",
     "accent": "#FFD25A",
-    "body_scale": [1.56, 1.42, 1.46],
+    "body_scale": [
+      1.56,
+      1.42,
+      1.46
+    ],
     "weapon": "greatsword",
     "offhand": "orb",
     "head": "crown",
@@ -304,24 +410,34 @@
     "primary": "#D6D4C9",
     "secondary": "#28271F",
     "accent": "#FFE66A",
-    "body_scale": [1.06, 1.22, 0.98],
+    "body_scale": [
+      1.06,
+      1.22,
+      0.98
+    ],
     "weapon": "spear",
     "offhand": "orb",
     "head": "halo",
     "back": "wings",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/omega_seraph.glb"
   },
   "grave_architect": {
     "kind": "enemy",
     "primary": "#29483D",
     "secondary": "#07120E",
     "accent": "#5CE7D0",
-    "body_scale": [1.14, 1.2, 1.08],
+    "body_scale": [
+      1.14,
+      1.2,
+      1.08
+    ],
     "weapon": "scythe",
     "offhand": "orb",
     "head": "antenna",
     "back": "spikes",
-    "boss": false
+    "boss": false,
+    "model_scene": "res://assets/models/battle/grave_architect.glb"
   },
   "boss_eternity_zero": {
     "model_scene": "res://assets/models/battle/boss_eternity_zero.glb",
@@ -329,7 +445,11 @@
     "primary": "#222831",
     "secondary": "#030405",
     "accent": "#E9FFFF",
-    "body_scale": [1.66, 1.5, 1.56],
+    "body_scale": [
+      1.66,
+      1.5,
+      1.56
+    ],
     "weapon": "scythe",
     "offhand": "orb",
     "head": "crown",

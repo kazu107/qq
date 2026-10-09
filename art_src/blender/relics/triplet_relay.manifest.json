@@ -1,0 +1,88 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/triplet_relay.blend",
+  "source_sha256": "432b60dbceca106221eaf8944c48335147912293cf9a5daec26b1330d97e1337",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "triplet_relay",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/triplet_relay.png",
+      "source_path": "art_src/blender/relics/triplet_relay.blend",
+      "source_sha256": "432b60dbceca106221eaf8944c48335147912293cf9a5daec26b1330d97e1337",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/triplet_relay.png",
+      "source_render_sha256": "cffc4b6b3bff6313d6e04448016405774133dc335b751f10b05b2e93ecb15802",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "ee8f24d86834d311dad068132edaf1118c625512b063e80b5ad24289dd12d8e0",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R03",
+      "kit_name": "clocks_and_timeline",
+      "semantic_mapping": {
+        "name": "Triplet Relay",
+        "actual_description": "Every third manually resolved card reduces the longest recast among other cards by 4 seconds, up to 4 times per battle.",
+        "actual_effects": [
+          {
+            "type": "reduce_recast",
+            "trigger": "manual_card_resolved",
+            "every": 3,
+            "target": "longest_other",
+            "amount": 4.0,
+            "max_per_battle": 4
+          }
+        ],
+        "reused_components": [
+          "coil_core",
+          "coil_insulator",
+          "gear_hub",
+          "gear_rim",
+          "gear_spoke",
+          "gear_tooth",
+          "relay_switch",
+          "shared_relay_axle",
+          "third_card_relay",
+          "wound_copper_coil"
+        ],
+        "unique_assembly_recipe": "triplet_relay"
+      },
+      "geometry_sha256": "629838f2c6b8c71de885f4a982bb77981dcf11b502b74cb492d3b5fdbd588184",
+      "mesh_vertices": 58308,
+      "mesh_polygons": 57698,
+      "object_count": 37,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 1.9859,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 4.05,
+      "export_sha256": "1e6da39533241b08a4636e73551d0899accddf9a7c9940cb3205facbb8d37343",
+      "validation": {
+        "alpha_bbox": [
+          70,
+          55,
+          442,
+          459
+        ],
+        "minimum_padding_px": 53,
+        "foreground_fraction": 0.43232,
+        "opaque_fraction": 0.42123,
+        "48px_foreground_fraction": 0.48264
+      }
+    }
+  ]
+}

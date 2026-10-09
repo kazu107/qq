@@ -1,0 +1,86 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/four_name_quartet.blend",
+  "source_sha256": "e40a0f1a0b4fbe1b91d60a7d49926fc5be21789b4694d1a418b57a7ee1c40aa7",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "four_name_quartet",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/four_name_quartet.png",
+      "source_path": "art_src/blender/relics/four_name_quartet.blend",
+      "source_sha256": "e40a0f1a0b4fbe1b91d60a7d49926fc5be21789b4694d1a418b57a7ee1c40aa7",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/four_name_quartet.png",
+      "source_render_sha256": "0ac5c3ec9c27f89fa037a76d773a56c8f871cab06412725843810e55ddbed70a",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "477f8342418ba877906833bb2ff2dc5bf765a78c479017f30467427b6c7f3898",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R03",
+      "kit_name": "clocks_and_timeline",
+      "semantic_mapping": {
+        "name": "Four-Name Quartet",
+        "actual_description": "Resolve 4 different manual cards in sequence to reduce every recast by 2.5 seconds, up to 3 times per battle.",
+        "actual_effects": [
+          {
+            "type": "reduce_recast",
+            "trigger": "distinct_manual_sequence",
+            "required_count": 4,
+            "target": "all",
+            "amount": 2.5,
+            "max_per_battle": 3
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "gear_hub",
+          "gear_rim",
+          "gear_spoke",
+          "gear_tooth",
+          "quartet_terminal"
+        ],
+        "unique_assembly_recipe": "four_name_quartet"
+      },
+      "geometry_sha256": "80417bab77ac24617835c2684e9bc45a39e1d0f6962451faa93bcf251e7dfbe6",
+      "mesh_vertices": 6528,
+      "mesh_polygons": 6306,
+      "object_count": 42,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.21359,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.96,
+      "export_sha256": "9be3b1f852f1f67b9ac3db8b2e80ba7ddbec7a1962b600bf9471a097be57fc4e",
+      "validation": {
+        "alpha_bbox": [
+          55,
+          54,
+          457,
+          458
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.23681,
+        "opaque_fraction": 0.22722,
+        "48px_foreground_fraction": 0.2704
+      }
+    }
+  ]
+}

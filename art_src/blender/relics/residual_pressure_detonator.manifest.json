@@ -1,0 +1,90 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/residual_pressure_detonator.blend",
+  "source_sha256": "1dcf58967b91baa4c4803b78caf95400ac903916489bde4d7740bf63086ef634",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "residual_pressure_detonator",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/residual_pressure_detonator.png",
+      "source_path": "art_src/blender/relics/residual_pressure_detonator.blend",
+      "source_sha256": "1dcf58967b91baa4c4803b78caf95400ac903916489bde4d7740bf63086ef634",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/residual_pressure_detonator.png",
+      "source_render_sha256": "24d5b77bfd80b14faeb35747ab667a5a5294f0a38099c61a4742cc6e7d970ca5",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "aa3563a9ed7131352cbd7a5061e8e8ebb75f463ab04559a6cb63f1eef84d81fc",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R08",
+      "kit_name": "shield_pressure_and_spend",
+      "semantic_mapping": {
+        "name": "Residual Pressure Detonator",
+        "actual_description": "If a shield-spend card leaves exactly 0 shield, haste it by 20% of its base cast, up to 3 seconds. Cooldown: 6 seconds.",
+        "actual_effects": [
+          {
+            "type": "haste_active_card",
+            "trigger": "shield_spend_to_zero",
+            "base_cast_ratio": 0.2,
+            "max_amount": 3.0,
+            "internal_cooldown": 6.0
+          }
+        ],
+        "reused_components": [
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "detonator_trigger",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "safety_pin",
+          "sealed_cell",
+          "zero_pressure_feed"
+        ],
+        "unique_assembly_recipe": "residual_pressure_detonator"
+      },
+      "geometry_sha256": "b3051769b064863d68777d1bd95ac91d060434a3a0195632446bdd7fd797dfd9",
+      "mesh_vertices": 7080,
+      "mesh_polygons": 6732,
+      "object_count": 26,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.07854,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.83,
+      "export_sha256": "44a92204e9dbc23cdcd0a1f8f88badd74126bd84884e54249d462c1c061e5d76",
+      "validation": {
+        "alpha_bbox": [
+          87,
+          57,
+          425,
+          453
+        ],
+        "minimum_padding_px": 57,
+        "foreground_fraction": 0.3297,
+        "opaque_fraction": 0.32103,
+        "48px_foreground_fraction": 0.35156
+      }
+    }
+  ]
+}

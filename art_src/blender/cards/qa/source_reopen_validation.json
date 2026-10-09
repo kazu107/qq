@@ -1,0 +1,709 @@
+{
+  "count": 88,
+  "assets": [
+    {
+      "id": "strike",
+      "editable_meshes": 62,
+      "editable_curves": 9,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "cb65e80c743d4e69550e7ac08e7c70525f4a158cb103d5abb74564222065f3d4"
+    },
+    {
+      "id": "heavy_swing",
+      "editable_meshes": 61,
+      "editable_curves": 9,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "441ffa118193315634fa7f614612ec4be80929b0fd80ee8d8a679ddccf44af81"
+    },
+    {
+      "id": "haste_focus",
+      "editable_meshes": 58,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "84ff82f8066f3ca15c768e02f068678685010fa97064e93e41b7418537a8ec3e"
+    },
+    {
+      "id": "weak_shot",
+      "editable_meshes": 51,
+      "editable_curves": 11,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "31eff6ab15a51852c7a59efc6f46a83d545d98ce27b528b52931ca940cc0f280"
+    },
+    {
+      "id": "bleed_cut",
+      "editable_meshes": 71,
+      "editable_curves": 30,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "adb6b3deb1cbf653c6e4f4ff5354b3724d10bdba4f11d62ce148e2bff322be5b"
+    },
+    {
+      "id": "quick_guard",
+      "editable_meshes": 49,
+      "editable_curves": 30,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "936b58c2306386b052579c08a27172bdfa6f9c1b92755ea8f1350b0e1e54fab9"
+    },
+    {
+      "id": "reload",
+      "editable_meshes": 69,
+      "editable_curves": 0,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "97326fae1a31d860c1ae1a67e1e2577183bafa0d7f53d7d2961938b2011f4302"
+    },
+    {
+      "id": "assault",
+      "editable_meshes": 56,
+      "editable_curves": 10,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "74ad6668c71467f3cf07564b270c3b34a4eb88d55afcda3b842c4ff5b17be6af"
+    },
+    {
+      "id": "barrier_deploy",
+      "editable_meshes": 64,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "2037a0eb480a1e184df1541e8570944b7532313d3dfef39b0e380fb03207e7ac"
+    },
+    {
+      "id": "interrupt_shot",
+      "editable_meshes": 112,
+      "editable_curves": 9,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "592739d325e770b63750ee5c4e5ca8bf536c1d4c9ef5d82b8f5062982f1aa7cd"
+    },
+    {
+      "id": "time_buy",
+      "editable_meshes": 138,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "83751840c8fcf7f6416e6bcc9b9d010a0ce4e3f0b82d1aa54c7abbf49a2e3978"
+    },
+    {
+      "id": "recirculate",
+      "editable_meshes": 90,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "25781672a7889c15e4cac5eec05e493ab688c47f624c1651faf1f6b0dff18912"
+    },
+    {
+      "id": "execution",
+      "editable_meshes": 47,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "255a652fc068de8b0a47bd90e24ce5f0fd70ccb40ca432cffc9bc824d20c10d7"
+    },
+    {
+      "id": "fortify",
+      "editable_meshes": 63,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "467b93a5ec774c8d5f765e4622febdd32d824c1eb79f778865c31d77140d9d8b"
+    },
+    {
+      "id": "time_flow_control",
+      "editable_meshes": 77,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "37ebdb463987d75c66a2a83234871737a71db05ddb980805ddfe02be61f96660"
+    },
+    {
+      "id": "blood_chain",
+      "editable_meshes": 80,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "273b1751d8125fbce906b511ccb70c24e10f37a38bfb92870dc4a2c3fe6b8cb4"
+    },
+    {
+      "id": "over_reload",
+      "editable_meshes": 77,
+      "editable_curves": 6,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "a36aad36dbcd68f9ddad2bb746abdac38ff645403f73c1530e3cbd97f614c293"
+    },
+    {
+      "id": "tripwire",
+      "editable_meshes": 63,
+      "editable_curves": 10,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "1f4f35f7fdcbbba34ded3b43671bedc3e943e6fb4a550e4eb4c3e2da3718b6bb"
+    },
+    {
+      "id": "stasis_field",
+      "editable_meshes": 82,
+      "editable_curves": 0,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "9d5e66f8a6c8267379842d097f04554417f5cdcf8c2d1f95f64dfb477d7a6ef0"
+    },
+    {
+      "id": "rupture_strike",
+      "editable_meshes": 64,
+      "editable_curves": 10,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "27ed7d90882bdd5d4ce923fd35cf474d3b9dce50fcbee22077f3716ee6bcbaec"
+    },
+    {
+      "id": "bastion_drive",
+      "editable_meshes": 73,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "cd3ae93509bf6693c3235f623c2da5486e759a606a4eda1143236906f9271ccc"
+    },
+    {
+      "id": "adrenaline_link",
+      "editable_meshes": 143,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "b3f4a394f84643877c6772f8709771febbdc856fbcecc43158272d81e1581f99"
+    },
+    {
+      "id": "purge_pulse",
+      "editable_meshes": 58,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "da8bddac8b9f9bde6b9712c1d4915a0a3045006128a79d92f296472f6174acac"
+    },
+    {
+      "id": "meteor_crash",
+      "editable_meshes": 69,
+      "editable_curves": 7,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "54bf4492de1ade9135bad15d98bb13323694a8f4b91f663fbaa4f000d319d809"
+    },
+    {
+      "id": "self_tuning_edge",
+      "editable_meshes": 56,
+      "editable_curves": 9,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "4978c0608b0c78397bd0cf45e152464b5a6a0ae90289055184d2c93f34ea1ca7"
+    },
+    {
+      "id": "overclock_routine",
+      "editable_meshes": 132,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "bcdbc9e751060aa5415d1a28040de6cf89fd04aa26c97d394ea9e571a3f3da1d"
+    },
+    {
+      "id": "sequence_loader",
+      "editable_meshes": 59,
+      "editable_curves": 10,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "5e50433f5ed13498975a6c98f52c8b4ec9c9ff890f1e685670f47c38b467efc9"
+    },
+    {
+      "id": "recursive_protocol",
+      "editable_meshes": 91,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "415120df2fc3a2383f7d9a3a3159dc36e586b14733fecfbf22d26a923f280101"
+    },
+    {
+      "id": "chronostasis",
+      "editable_meshes": 68,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "70bb6dc49b408ddcfbf4d2963f2d1d9c2cf4e1d33f589237955c11b76474b4ce"
+    },
+    {
+      "id": "entropy_reversal",
+      "editable_meshes": 112,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "7cd6f5c3bc4393557080576f91b5afd31a4e177e69167458347cedc05178cbb3"
+    },
+    {
+      "id": "crisis_drone_swarm",
+      "editable_meshes": 83,
+      "editable_curves": 5,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "1fa35b312b39c63017dc9fdc9ad425d639861df9b6dc811c472a0d3836359455"
+    },
+    {
+      "id": "phase_lance",
+      "editable_meshes": 34,
+      "editable_curves": 10,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "6e280518551679fdce2f8d25a84881d7533b3cf6a95f1776066c28d86b9b8911"
+    },
+    {
+      "id": "mirror_aegis",
+      "editable_meshes": 50,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "d8e5c33b03286e22fa18cb1f439d30d1f0affebe0511e303de046121e28c8afb"
+    },
+    {
+      "id": "null_cascade",
+      "editable_meshes": 76,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "c50e4d44894fdddcba775ee232edb0829daac0b5f7626feb65f5f20e56815b2f"
+    },
+    {
+      "id": "paradox_loop",
+      "editable_meshes": 75,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "3e13b07cebb02dde5693d9d5a2fd500faa1021c78bc31a93eb266628e95343ed"
+    },
+    {
+      "id": "rift_volley",
+      "editable_meshes": 68,
+      "editable_curves": 4,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "5e04f7339985e83d87b0a093b561b53d04f76ef97376579716a2773bd115a74e"
+    },
+    {
+      "id": "entropy_armor",
+      "editable_meshes": 57,
+      "editable_curves": 9,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "865e0d4bb62b4564ef56608b10331ac48ca2431fb5fbb57a5a39bfebbe7bb27d"
+    },
+    {
+      "id": "axiom_sever",
+      "editable_meshes": 76,
+      "editable_curves": 10,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "109dd2c37762c1fea2676588e9633b74121bd257498c30c9032c12f6668aeb0e"
+    },
+    {
+      "id": "omega_ray",
+      "editable_meshes": 63,
+      "editable_curves": 14,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "e459c5b66977fcc7a86af64c74421c407e2cf0d2e7ea11e7a51c1d3870e94391"
+    },
+    {
+      "id": "grave_protocol",
+      "editable_meshes": 51,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "560be24f2a0d63899167fd0295d0beebf1c21e74e63b4f543a2834e9f2be8bb6"
+    },
+    {
+      "id": "zero_hour",
+      "editable_meshes": 103,
+      "editable_curves": 11,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "ffd580e10cb8cf88b788f5b4165f6437bb3ec99d041c4ef00d4e698f1c89b43a"
+    },
+    {
+      "id": "aegis_ram",
+      "editable_meshes": 43,
+      "editable_curves": 11,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "310756005695dd4f87d26d6b847e1ee91dac6acacdda6c3745305243685037c9"
+    },
+    {
+      "id": "barrier_overdrive",
+      "editable_meshes": 128,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "47bff88e5be38d6a0be5476d2af791ea19ae71a3b1cfbf42ece63a786b96e455"
+    },
+    {
+      "id": "bulwark_cannon",
+      "editable_meshes": 70,
+      "editable_curves": 12,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "235e43a1406d8a2954ae187df76a91030a1dc03819037e43e8606fb4325670a7"
+    },
+    {
+      "id": "spark_jab",
+      "editable_meshes": 94,
+      "editable_curves": 31,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "6c915a98aec45ddc71a91588e5fe19d57b2a8ea999811490d099147a910f5074"
+    },
+    {
+      "id": "brace_patch",
+      "editable_meshes": 67,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "406c1b78b5b51039458d4228df2437bc1f65294a1ca78fcd49f3abe1d8035af2"
+    },
+    {
+      "id": "marking_dart",
+      "editable_meshes": 43,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "a24cf7892c52d98a66eb40b7ecb1efeae85cd4e34b9ee639b42dabe0a27cb163"
+    },
+    {
+      "id": "timer_hook",
+      "editable_meshes": 80,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "dfb1c9b2d7178e87fdce379b38467448e4391f1325b9e394f1793e6be4af4fae"
+    },
+    {
+      "id": "blood_siphon",
+      "editable_meshes": 47,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "a1955a1a13d1cf01350641a8b4732bdd4e1376b649fc1c4c5ecffa616ea13773"
+    },
+    {
+      "id": "capacitor_step",
+      "editable_meshes": 45,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "6d23159008526514c7f4dbaf418e21a67f09f2ae10ac4c4048180c07a1251d56"
+    },
+    {
+      "id": "grit_reload",
+      "editable_meshes": 90,
+      "editable_curves": 0,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "d731779bbeb186ad00be31892acb4f9dbf323282725b8dabc1567d1c8acb36e7"
+    },
+    {
+      "id": "rust_cloud",
+      "editable_meshes": 96,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "78012feb6f7d1f72c62798939112459bdfcb596cdfcc6139a541f9d7a8a2877f"
+    },
+    {
+      "id": "hammer_feint",
+      "editable_meshes": 78,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "b47fcef404ea49cccc2d66716c093d1f491ad0c07c4ad7ff1414effced94103e"
+    },
+    {
+      "id": "prism_guard",
+      "editable_meshes": 48,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "1190f89ce5e472e3b270f1ce90cb74986306af57c2b24f5480a928c143e743fe"
+    },
+    {
+      "id": "rupture_mark",
+      "editable_meshes": 56,
+      "editable_curves": 22,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "5f061736005f908e34050aa6da186353e634bfe5dea896793971481834b4855f"
+    },
+    {
+      "id": "phase_zip",
+      "editable_meshes": 46,
+      "editable_curves": 4,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "489425dcc9cab3baa00cf67013d517fd7a168d773e74d5f01823557a9049da80"
+    },
+    {
+      "id": "recycler_claw",
+      "editable_meshes": 96,
+      "editable_curves": 5,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "4616e7b7c283ded3934afb8829f1aec96cb8a563a050917f159862c5c0d7fc42"
+    },
+    {
+      "id": "reactor_leech",
+      "editable_meshes": 66,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "ce7e690846f052080d43a535e2d7c713c9c00d11c0ca1546ff81d8015e93a971"
+    },
+    {
+      "id": "drone_foundry",
+      "editable_meshes": 71,
+      "editable_curves": 10,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "6659226baf900c1bf6cefa36c337741048a436beabe434b5aa2ec176c002e6da"
+    },
+    {
+      "id": "tactical_mirror",
+      "editable_meshes": 145,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "8829c6a3edf465c03aa0b6b8051c499726c09064d2455acdefaf9302a7a63e11"
+    },
+    {
+      "id": "gravity_snare",
+      "editable_meshes": 63,
+      "editable_curves": 4,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "11f5d9453a28dfc9e88d0b0242fd097cd48f97962ed38aabc04f792671ced0e8"
+    },
+    {
+      "id": "field_medic",
+      "editable_meshes": 67,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "7623c367f9d7e1fb1ff58ecd22042c3afe0025ba42e92509530b8ad17e79cc68"
+    },
+    {
+      "id": "singularity_guard",
+      "editable_meshes": 104,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "5891a61f559f81c41969e985c0d75ccff512b8924a234984b39149d2ec0022ba"
+    },
+    {
+      "id": "blood_moon_protocol",
+      "editable_meshes": 58,
+      "editable_curves": 4,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "363a28cfcdd6ceb969d25bf14618286937750274f2a9792f08f8507b28acc4f0"
+    },
+    {
+      "id": "chrono_blackout",
+      "editable_meshes": 101,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "31c93f556e1c20658cbf0acf7fd6d95e5a95a2182fc7100d3d66dbd2833e880f"
+    },
+    {
+      "id": "recursive_battery",
+      "editable_meshes": 47,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "3e0801254b226e93416610eb4c4510ba16794499c080e5fe4ae5d6e9d1335a42"
+    },
+    {
+      "id": "execution_matrix",
+      "editable_meshes": 135,
+      "editable_curves": 4,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "1f5cd967e2b7c85c63e357708243da497f71a27eff910da791cc25cefe06034f"
+    },
+    {
+      "id": "final_archive",
+      "editable_meshes": 85,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "cdd74bbf265ab3ffef9f28115c1a12de13429374c495a1aa6ce5e5f859549aff"
+    },
+    {
+      "id": "solar_verdict",
+      "editable_meshes": 58,
+      "editable_curves": 11,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "85a9964aeff4bf7926c22b789e19a0af3012bf2926035b60658aa4900b47406d"
+    },
+    {
+      "id": "citadel_prime",
+      "editable_meshes": 55,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "bd606ebc68a00a652fd5a536656a91b382687021a6fb01ed371c7d5e68a9598c"
+    },
+    {
+      "id": "epoch_breaker",
+      "editable_meshes": 105,
+      "editable_curves": 10,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "ca6be73472f50773d76d021a35b3749d362b760e319ae6d8f277bfbcf3893b97"
+    },
+    {
+      "id": "phoenix_circuit",
+      "editable_meshes": 66,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "575e88703ede2f79d98f7cc1cd00af2b5bc1538b1367f57a18b06ca0c4d4578c"
+    },
+    {
+      "id": "atlas_protocol",
+      "editable_meshes": 71,
+      "editable_curves": 8,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "7f22c1256eaccbb6bf8bf6a7e31343c93f7616d8d882e21c2324a7014627ea1e"
+    },
+    {
+      "id": "worldline_collapse",
+      "editable_meshes": 129,
+      "editable_curves": 12,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "71a157035c8b9b017599eb7b334766cafb1d6bb3441cf5145d0043f9c854bfea"
+    },
+    {
+      "id": "seraph_array",
+      "editable_meshes": 102,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "5a429e5c194f835b32db366c163fb5f9fbf9d50bb929f74158bbcd01ed5177f4"
+    },
+    {
+      "id": "ragnarok_engine",
+      "editable_meshes": 75,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "b5a4a460f5a945537fc0f912c4765f5ed8ba768c2f7485220c05ea688c1848c0"
+    },
+    {
+      "id": "absolute_zero",
+      "editable_meshes": 100,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "706f55dba1c9a9796a54e1a0d483d6792bf28ba3f3fc845727ea682b3304726d"
+    },
+    {
+      "id": "quantum_exchange",
+      "editable_meshes": 89,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "2906856624347d1f3077f526ed8dea90ade467440060f0cb450183b21058c7e3"
+    },
+    {
+      "id": "crown_of_thorns",
+      "editable_meshes": 63,
+      "editable_curves": 0,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "fd167d7c58f23b55e4da0f5774fa57593e9331f29dbfe6a7836648eaf831b4b3"
+    },
+    {
+      "id": "infinity_arsenal",
+      "editable_meshes": 137,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "e96e2e50627d8c6a967ea5dbdc3991f7e77029f64b9d3e9fc73ca17fb8172366"
+    },
+    {
+      "id": "omega_sanctuary",
+      "editable_meshes": 87,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "45abc3a4da0910317526a549d8f56ca8b261d3aa4237343f2084fa48a35a689b"
+    },
+    {
+      "id": "deus_ex_machina",
+      "editable_meshes": 148,
+      "editable_curves": 2,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "960ef3e6747cf1c0d909c9c36b1e1532dbb5d8fa076d3c410930f09828090c0e"
+    },
+    {
+      "id": "golden_ratio",
+      "editable_meshes": 54,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "52273afc8b33b9e54fe520aa015a1fbfedaad22ba537e3b441b4a7dae3854068"
+    },
+    {
+      "id": "tempest_choir",
+      "editable_meshes": 73,
+      "editable_curves": 26,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "4f58a3e2069b9123897028ecc5d0cb80e07ea91940f5f61ac2e2f85fd66f3ea8"
+    },
+    {
+      "id": "last_bastion",
+      "editable_meshes": 72,
+      "editable_curves": 1,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "161fd079aea88aeeafd759efe464f567fec9badce165d33c9359c0fc81d85d61"
+    },
+    {
+      "id": "dominion_pulse",
+      "editable_meshes": 51,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "912f8c916293757277f137b040505ac20c155105dec5fbf5663ecabcaa35aa76"
+    },
+    {
+      "id": "chronicle_sovereign",
+      "editable_meshes": 132,
+      "editable_curves": 0,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "73626618f3aa8ec7c392ad2b711632bef40818c71c27bba3c60d732634535068"
+    },
+    {
+      "id": "environment_fatigue",
+      "editable_meshes": 105,
+      "editable_curves": 3,
+      "no_font_objects": true,
+      "no_image_textures": true,
+      "source_sha256": "a62343e31b6aa2d072d24e851bbd319d489c23d5b29eaff6177a3f421f4b9b69"
+    }
+  ]
+}

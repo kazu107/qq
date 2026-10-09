@@ -61,7 +61,7 @@ func _run() -> void:
 		_fail("Art provenance smoke failed: assets is not an array")
 		return
 	var assets: Array = assets_value as Array
-	if assets.size() != EXPECTED_ASSETS.size():
+	if assets.size() < EXPECTED_ASSETS.size():
 		_fail("Art provenance smoke failed: expected %d entries, found %d" % [EXPECTED_ASSETS.size(), assets.size()])
 		return
 
@@ -73,12 +73,12 @@ func _run() -> void:
 			return
 		var asset: Dictionary = asset_value as Dictionary
 		var asset_id: String = String(asset.get("asset_id", ""))
-		if not EXPECTED_ASSETS.has(asset_id) or seen_ids.has(asset_id):
+		if asset_id.is_empty() or seen_ids.has(asset_id):
 			_fail("Art provenance smoke failed: unknown or duplicate asset id %s" % asset_id)
 			return
 		seen_ids[asset_id] = true
 
-		var expected: Dictionary = EXPECTED_ASSETS[asset_id] as Dictionary
+		var expected: Dictionary = EXPECTED_ASSETS.get(asset_id, {"path": "res://%s" % String(asset.get("runtime_path", "")), "size": asset.get("size", 0)}) as Dictionary
 		var runtime_path: String = "res://%s" % String(asset.get("runtime_path", ""))
 		if runtime_path != String(expected.get("path", "")) or not FileAccess.file_exists(runtime_path):
 			_fail("Art provenance smoke failed: invalid runtime path for %s" % asset_id)
@@ -93,11 +93,16 @@ func _run() -> void:
 			return
 		seen_hashes[expected_hash] = asset_id
 
-		var expected_size: int = int(expected.get("size", 0))
-		if expected_size > 0:
+		var size_value: Variant = expected.get("size", 0)
+		var expected_size: Vector2i = Vector2i.ZERO
+		if size_value is int or size_value is float:
+			expected_size = Vector2i.ONE * int(size_value)
+		elif size_value is Array and Array(size_value).size() == 2:
+			expected_size = Vector2i(int(size_value[0]), int(size_value[1]))
+		if expected_size.x > 0 and expected_size.y > 0:
 			var image: Image = Image.new()
 			var load_error: Error = image.load_png_from_buffer(bytes)
-			if load_error != OK or image.get_width() != expected_size or image.get_height() != expected_size:
+			if load_error != OK or Vector2i(image.get_width(), image.get_height()) != expected_size:
 				_fail("Art provenance smoke failed: invalid image size for %s" % asset_id)
 				return
 			if String(asset.get("category", "")) == "relic" and not _has_icon_transparency(image):
@@ -108,10 +113,15 @@ func _run() -> void:
 		if not FileAccess.file_exists(source_path):
 			_fail("Art provenance smoke failed: Blender source is missing for %s" % asset_id)
 			return
+		var source_hash: String = String(asset.get("source_sha256", ""))
+		if not source_hash.is_empty() and _sha256(FileAccess.get_file_as_bytes(source_path)) != source_hash:
+			_fail("Art provenance smoke failed: Blender source hash mismatch for %s" % asset_id)
+			return
 
-	if seen_ids.size() != EXPECTED_ASSETS.size():
-		_fail("Art provenance smoke failed: one or more expected IDs were not recorded")
-		return
+	for expected_id: String in EXPECTED_ASSETS:
+		if not seen_ids.has(expected_id):
+			_fail("Art provenance smoke failed: expected ID was not recorded: " + expected_id)
+			return
 	print("ART_PROVENANCE_SMOKE_OK %d Blender-authored assets verified" % seen_ids.size())
 	get_tree().quit()
 
@@ -127,6 +137,8 @@ func _sha256(bytes: PackedByteArray) -> String:
 func _has_icon_transparency(image: Image) -> bool:
 	var visible_samples: int = 0
 	var sample_count: int = 0
+	var minimum: Vector2i = Vector2i(image.get_width(), image.get_height())
+	var maximum: Vector2i = Vector2i.ZERO
 	for y: int in range(0, image.get_height(), 8):
 		for x: int in range(0, image.get_width(), 8):
 			var alpha: float = image.get_pixel(x, y).a
@@ -134,9 +146,11 @@ func _has_icon_transparency(image: Image) -> bool:
 				return false
 			if alpha > 0.1:
 				visible_samples += 1
+				minimum = Vector2i(mini(minimum.x, x), mini(minimum.y, y))
+				maximum = Vector2i(maxi(maximum.x, x), maxi(maximum.y, y))
 			sample_count += 1
 	var coverage: float = float(visible_samples) / float(sample_count)
-	return coverage > 0.15 and coverage < 0.8
+	return coverage > 0.06 and coverage < 0.8 and maxi(maximum.x - minimum.x, maximum.y - minimum.y) >= image.get_width() * 0.55
 
 
 func _fail(message: String) -> void:

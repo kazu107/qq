@@ -1,0 +1,72 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/surge_gimbal.blend",
+  "source_sha256": "3f5269bb99e0e8915d02d2850d9deee4cd6ab82dcf8652401e7d7b183129f160",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "surge_gimbal",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/surge_gimbal.png",
+      "source_path": "art_src/blender/relics/surge_gimbal.blend",
+      "source_sha256": "3f5269bb99e0e8915d02d2850d9deee4cd6ab82dcf8652401e7d7b183129f160",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/surge_gimbal.png",
+      "source_render_sha256": "0ffba33146ab359d6b8ee01fbe8f00f0e80164f292639109a1ffbd08a3fdfc46",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "44d0f631072abb756ec9c8d77db392c880e23d100ecad01cb9364497c76bf3a9",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R04",
+      "kit_name": "navigation_and_signals",
+      "semantic_mapping": {
+        "name": "Surge Gimbal",
+        "actual_description": "Start each battle with +1 speed.",
+        "actual_effects": [],
+        "reused_components": [
+          "direction_arrow",
+          "gimbal_axis",
+          "gimbal_mount"
+        ],
+        "unique_assembly_recipe": "surge_gimbal"
+      },
+      "geometry_sha256": "cf10fa57a2e51d940eed1942cd3357dfbb3c768c9cecf9ded99abd33a7411e4f",
+      "mesh_vertices": 3496,
+      "mesh_polygons": 3468,
+      "object_count": 5,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.18064,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 6.54,
+      "export_sha256": "ca488e28159264b1100ce37ede492ace22d628d28283b97a9a10328b91d15117",
+      "validation": {
+        "alpha_bbox": [
+          75,
+          54,
+          437,
+          458
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.29609,
+        "opaque_fraction": 0.28179,
+        "48px_foreground_fraction": 0.33507
+      }
+    }
+  ]
+}

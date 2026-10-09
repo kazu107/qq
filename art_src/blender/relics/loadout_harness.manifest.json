@@ -1,0 +1,80 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/loadout_harness.blend",
+  "source_sha256": "7161dd241ec63fcd549159e2f4b15aca1be8ec4acd110c17afd775721d68be11",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "loadout_harness",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/loadout_harness.png",
+      "source_path": "art_src/blender/relics/loadout_harness.blend",
+      "source_sha256": "7161dd241ec63fcd549159e2f4b15aca1be8ec4acd110c17afd775721d68be11",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/loadout_harness.png",
+      "source_render_sha256": "0a8adda30ce48592b1fd87b06e0c94d831eaabf5e982f818f4658753dfcbbfd9",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "85a187bdb79f30ee0776b262959cca098276e4dce518952127a5015a2e272a3c",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Loadout Harness",
+        "actual_description": "Increase loadout capacity by 3.",
+        "actual_effects": [],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "harness_belt",
+          "shoulder_harness"
+        ],
+        "unique_assembly_recipe": "loadout_harness"
+      },
+      "geometry_sha256": "8fb535e2122ce879883153c8dbed69e4c7a3860afc1dfd3af152c275fa668434",
+      "mesh_vertices": 6024,
+      "mesh_polygons": 5856,
+      "object_count": 35,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.30599,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.09,
+      "export_sha256": "d870ab828f7912096852a395ff8edcfb4f183c78c8b2e6d9ab5762918377402c",
+      "validation": {
+        "alpha_bbox": [
+          110,
+          63,
+          400,
+          454
+        ],
+        "minimum_padding_px": 58,
+        "foreground_fraction": 0.23824,
+        "opaque_fraction": 0.2293,
+        "48px_foreground_fraction": 0.2678
+      }
+    }
+  ]
+}

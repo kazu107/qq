@@ -1,0 +1,82 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/delay_return_gear.blend",
+  "source_sha256": "cc9a0b6c0c2d2bc2f519cd2c96dd4dc4b14a4304aa19bdc0c43d0873174fbd65",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "delay_return_gear",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/delay_return_gear.png",
+      "source_path": "art_src/blender/relics/delay_return_gear.blend",
+      "source_sha256": "cc9a0b6c0c2d2bc2f519cd2c96dd4dc4b14a4304aa19bdc0c43d0873174fbd65",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/delay_return_gear.png",
+      "source_render_sha256": "c487a2ec73e15df7e507d4b48af25ce2849531ac9be71b4be5acbf6ecd9bb68d",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "2dd6fbebb35721c617f2bd548b359c28bc2d14dedbcb8e885fd0eddce5de2d97",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R03",
+      "kit_name": "clocks_and_timeline",
+      "semantic_mapping": {
+        "name": "Delay Return Gear",
+        "actual_description": "When an enemy delays your card, deduct 50% of the effective delay from its recast after resolution, up to 4 seconds per instance.",
+        "actual_effects": [
+          {
+            "type": "bank_delay_as_recast",
+            "trigger": "ally_card_delayed",
+            "effective_ratio": 0.5,
+            "max_per_instance": 4.0
+          }
+        ],
+        "reused_components": [
+          "direction_arrow",
+          "gear_hub",
+          "gear_rim",
+          "gear_spoke",
+          "gear_tooth",
+          "stored_delay_return_spring"
+        ],
+        "unique_assembly_recipe": "delay_return_gear"
+      },
+      "geometry_sha256": "decd9bd19342016b68ec509cee9380dfe93073945ad61a965b7454503fed84d3",
+      "mesh_vertices": 19924,
+      "mesh_polygons": 19642,
+      "object_count": 44,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.10172,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.79,
+      "export_sha256": "bd56c6aae7ac9d24152570ffc5c33125fa577271fb6e63278792d22b9afec251",
+      "validation": {
+        "alpha_bbox": [
+          54,
+          88,
+          459,
+          424
+        ],
+        "minimum_padding_px": 53,
+        "foreground_fraction": 0.27242,
+        "opaque_fraction": 0.26001,
+        "48px_foreground_fraction": 0.30556
+      }
+    }
+  ]
+}

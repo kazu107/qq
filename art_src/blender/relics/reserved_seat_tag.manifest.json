@@ -1,0 +1,83 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/reserved_seat_tag.blend",
+  "source_sha256": "988fdb9477d8a053de1ad27cc428da0afceeff730e1946dfebc8fd958222706a",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "reserved_seat_tag",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/reserved_seat_tag.png",
+      "source_path": "art_src/blender/relics/reserved_seat_tag.blend",
+      "source_sha256": "988fdb9477d8a053de1ad27cc428da0afceeff730e1946dfebc8fd958222706a",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/reserved_seat_tag.png",
+      "source_render_sha256": "1cdb39a5f4976b65a8a041d1cd4d27cda41b6d115157383f48b386021305ccf4",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "2dfeac6f3561b6e0dc3f9b196e9eb438ca2425d0e729da954c94edb9f999a358",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Reserved Seat Tag",
+        "actual_description": "When an interruptible enemy card is active, reserve your last open slot for interrupt cards and make those cards cast 20% faster. This behavior can be toggled.",
+        "actual_effects": [
+          {
+            "type": "reserve_interrupt_slot",
+            "trigger": "interruptible_enemy_active",
+            "reserved_slots": 1,
+            "interrupt_cast_multiplier": 0.8,
+            "toggleable": true
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "interrupt_lightning",
+          "reserved_slot_tag",
+          "seat_hanging_hook"
+        ],
+        "unique_assembly_recipe": "reserved_seat_tag"
+      },
+      "geometry_sha256": "ef4cd4c41a2ab5aa25a45e14cc6acdf76c2eb8f78cbe86d92d72a7d367725d29",
+      "mesh_vertices": 1768,
+      "mesh_polygons": 1782,
+      "object_count": 8,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.13683,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 4.79,
+      "export_sha256": "336e1bc39e0ef893828e584edac218f8fe1a85b3034c56610160d4202230192f",
+      "validation": {
+        "alpha_bbox": [
+          124,
+          59,
+          388,
+          459
+        ],
+        "minimum_padding_px": 53,
+        "foreground_fraction": 0.3185,
+        "opaque_fraction": 0.31277,
+        "48px_foreground_fraction": 0.34462
+      }
+    }
+  ]
+}

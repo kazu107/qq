@@ -1,0 +1,92 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/balanced_three_phase_unit.blend",
+  "source_sha256": "5329c39da62e75e958db0b985930b6e84b7e773adeaf9a9d6d8454f610f4fcff",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "balanced_three_phase_unit",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/balanced_three_phase_unit.png",
+      "source_path": "art_src/blender/relics/balanced_three_phase_unit.blend",
+      "source_sha256": "5329c39da62e75e958db0b985930b6e84b7e773adeaf9a9d6d8454f610f4fcff",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/balanced_three_phase_unit.png",
+      "source_render_sha256": "48824e647209674c277a1dde598f3f60cb33b491b790689b360ffc066e331f22",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "1f959e905ed27761acdc6478afb5f43b90ff35d3fc65a0463493c3e124f74a61",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R10",
+      "kit_name": "card_imprint_and_conversion",
+      "semantic_mapping": {
+        "name": "Balanced Three-Phase Unit",
+        "actual_description": "Imprint a heavy or extreme-timing card and set it to slot cost 1, cast 4 seconds, and recast 30 seconds, with each main effect capped at 8.",
+        "actual_effects": [
+          {
+            "type": "normalize_imprinted_card",
+            "eligible_types": [
+              "heavy",
+              "extreme_timing"
+            ],
+            "slot_cost": 1,
+            "cast_time": 4.0,
+            "recast_time": 30.0,
+            "main_effect_cap": 8
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "effect_cap_regulator",
+          "normalization_phase_terminal"
+        ],
+        "unique_assembly_recipe": "balanced_three_phase_unit"
+      },
+      "geometry_sha256": "f4a5a89dee88f6e9afe27637c4f6425785a79f5a24d885b34909c761a5f95d31",
+      "mesh_vertices": 11232,
+      "mesh_polygons": 10650,
+      "object_count": 48,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.33665,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 10.06,
+      "export_sha256": "746b290e58744b404e1614d9e531eeaa03b1b9a82ba6e120734cc0cef810a2e1",
+      "validation": {
+        "alpha_bbox": [
+          54,
+          68,
+          458,
+          443
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.29002,
+        "opaque_fraction": 0.28458,
+        "48px_foreground_fraction": 0.30599
+      }
+    }
+  ]
+}

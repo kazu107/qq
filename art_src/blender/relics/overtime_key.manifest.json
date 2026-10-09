@@ -1,0 +1,84 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/overtime_key.blend",
+  "source_sha256": "fc485ef3ffdbac998a62d61a32f9e19ca3fa319162621484ad7e4677e9dcdcf8",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "overtime_key",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/overtime_key.png",
+      "source_path": "art_src/blender/relics/overtime_key.blend",
+      "source_sha256": "fc485ef3ffdbac998a62d61a32f9e19ca3fa319162621484ad7e4677e9dcdcf8",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/overtime_key.png",
+      "source_render_sha256": "5112f6a8666354c1775b9c98427e9c9e2d190b802561d38c66c0ab73c49ec73f",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "24319a9aa4c187d8ec3ab8da14bda08651d6541bce69a1e309e03f5051197d83",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R11",
+      "kit_name": "progression_hazard_and_arena",
+      "semantic_mapping": {
+        "name": "Overtime Key",
+        "actual_description": "When acquired in Arena, increase both allowed losses and required wins by 1.",
+        "actual_effects": [
+          {
+            "type": "extend_arena_run",
+            "trigger": "relic_acquired",
+            "max_losses_bonus": 1,
+            "target_wins_bonus": 1
+          }
+        ],
+        "reused_components": [
+          "double_key_handle",
+          "gear_hub",
+          "gear_rim",
+          "gear_spoke",
+          "gear_tooth",
+          "overtime_key_tooth",
+          "wins_losses_key_shank",
+          "wins_losses_setting"
+        ],
+        "unique_assembly_recipe": "overtime_key"
+      },
+      "geometry_sha256": "6de9743ed0b391d29fc6ea601d0340063c38186e59eebb2e97cd3d37f2af4a4b",
+      "mesh_vertices": 5952,
+      "mesh_polygons": 5730,
+      "object_count": 27,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.6694,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 5.19,
+      "export_sha256": "952322aeaa4a6ec5c605b3bfebb856696eb3d4238fdff023e7b0032e76d3814b",
+      "validation": {
+        "alpha_bbox": [
+          165,
+          61,
+          347,
+          459
+        ],
+        "minimum_padding_px": 53,
+        "foreground_fraction": 0.14677,
+        "opaque_fraction": 0.13739,
+        "48px_foreground_fraction": 0.16927
+      }
+    }
+  ]
+}

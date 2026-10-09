@@ -14,6 +14,8 @@ func _run() -> void:
 	if card_ids.is_empty():
 		_fail("Card art smoke failed: no card definitions were loaded")
 		return
+	# Fatigue is visualized as a card but is not collectible or equippable.
+	card_ids.append(FatigueRules.CARD_ID)
 	if _count_png_files() != card_ids.size():
 		_fail("Card art smoke failed: PNG count does not match card definition count")
 		return

@@ -1,0 +1,80 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/empty_rack_bus.blend",
+  "source_sha256": "55caaa399cb81210e8f8b59a4372f26b8f75841f20995a5c2c812d463db40230",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "empty_rack_bus",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/empty_rack_bus.png",
+      "source_path": "art_src/blender/relics/empty_rack_bus.blend",
+      "source_sha256": "55caaa399cb81210e8f8b59a4372f26b8f75841f20995a5c2c812d463db40230",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/empty_rack_bus.png",
+      "source_render_sha256": "024fd672bf8fb440f7101abe8d826681e43627794386523c332dc38b106faf3d",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "70fc4254fd30db626b2dc971c21d162e25781a19f9b9e2a2b8321ce1beb68c73",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Empty-Rack Bus",
+        "actual_description": "Gain 1 active slot for every 3 unused loadout capacity, up to +2 slots.",
+        "actual_effects": [
+          {
+            "type": "convert_unused_loadout_to_slots",
+            "unused_capacity_per_slot": 3,
+            "max_slots": 2
+          }
+        ],
+        "reused_components": [
+          "additional_slot_socket",
+          "empty_rack_busbar",
+          "mechanism_cross_rail",
+          "mechanism_side_rail",
+          "open_socket"
+        ],
+        "unique_assembly_recipe": "empty_rack_bus"
+      },
+      "geometry_sha256": "5fef7f929e8d954d431d8f91dc27e5b81ce6453b78de9b65f371e2038eea627c",
+      "mesh_vertices": 3200,
+      "mesh_polygons": 2980,
+      "object_count": 18,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.08024,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 12.57,
+      "export_sha256": "7d5e680980edbc163b4bdf5e23a035b61df48f4246a1773737033a911e45f446",
+      "validation": {
+        "alpha_bbox": [
+          54,
+          68,
+          459,
+          442
+        ],
+        "minimum_padding_px": 53,
+        "foreground_fraction": 0.33834,
+        "opaque_fraction": 0.31816,
+        "48px_foreground_fraction": 0.39974
+      }
+    }
+  ]
+}

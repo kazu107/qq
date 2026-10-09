@@ -1,0 +1,76 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/repair_nanites.blend",
+  "source_sha256": "88da9731a663097a2ff43a067c4fa84432f9c9bab73be0657859a3c84ded1864",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "repair_nanites",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/repair_nanites.png",
+      "source_path": "art_src/blender/relics/repair_nanites.blend",
+      "source_sha256": "88da9731a663097a2ff43a067c4fa84432f9c9bab73be0657859a3c84ded1864",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/repair_nanites.png",
+      "source_render_sha256": "1788dd4f25b6aa8ff9b9aec9e9453f3213c48333c1d19511f8b986b31a406734",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "552a54f243812235c3d22af4e0948e8341caab7ae638c95ada53456cd13284d3",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R06",
+      "kit_name": "medical_and_biomechanical",
+      "semantic_mapping": {
+        "name": "Repair Nanites",
+        "actual_description": "Recover 5 HP after every victory.",
+        "actual_effects": [],
+        "reused_components": [
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "nanite_marker",
+          "nanite_pincer",
+          "nanite_repair_arm",
+          "sealed_cell"
+        ],
+        "unique_assembly_recipe": "repair_nanites"
+      },
+      "geometry_sha256": "755b29f003db10b859c55030e591504762dee9cda494023bf1f96349f6784207",
+      "mesh_vertices": 5840,
+      "mesh_polygons": 5232,
+      "object_count": 20,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.09905,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.46,
+      "export_sha256": "a97d1366566f9a02d1b42a9a83225665c723a8008164855cef78077f58367c6f",
+      "validation": {
+        "alpha_bbox": [
+          54,
+          67,
+          458,
+          445
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.32066,
+        "opaque_fraction": 0.3105,
+        "48px_foreground_fraction": 0.3533
+      }
+    }
+  ]
+}

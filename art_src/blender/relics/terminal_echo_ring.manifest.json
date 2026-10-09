@@ -1,0 +1,86 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/terminal_echo_ring.blend",
+  "source_sha256": "4c02bbdcaa9258bec32e30d9e030ae8772a3d69b29d5c5e724679bd7412eaa10",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "terminal_echo_ring",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/terminal_echo_ring.png",
+      "source_path": "art_src/blender/relics/terminal_echo_ring.blend",
+      "source_sha256": "4c02bbdcaa9258bec32e30d9e030ae8772a3d69b29d5c5e724679bd7412eaa10",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/terminal_echo_ring.png",
+      "source_render_sha256": "5b9dd1a3c5848b974ffc1a8c7e5fa50a178ee5e20cb581ed264de9a309244e52",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "53a3ac44e891574fa62497c259e23bc609655f915cf97652d5b639c1945e8031",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R03",
+      "kit_name": "clocks_and_timeline",
+      "semantic_mapping": {
+        "name": "Terminal Echo Ring",
+        "actual_description": "When a manual card resolves with no other allied card active, reduce the previous different card's recast by 2 seconds. Cooldown: 4 seconds.",
+        "actual_effects": [
+          {
+            "type": "reduce_recast",
+            "trigger": "manual_card_resolved",
+            "condition": "no_other_ally_active",
+            "target": "previous_different_card",
+            "amount": 2.0,
+            "internal_cooldown": 4.0
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "delayed_echo_ring",
+          "echo_pivot",
+          "primary_echo_ring",
+          "primary_hand",
+          "trailing_hand"
+        ],
+        "unique_assembly_recipe": "terminal_echo_ring"
+      },
+      "geometry_sha256": "e6a17c060fd2938277e1518f5422ef6dcbf0239c6f5342177a3449faede7d35c",
+      "mesh_vertices": 3424,
+      "mesh_polygons": 3328,
+      "object_count": 10,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.17977,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.27,
+      "export_sha256": "bd08a1e3f05e49f26d7e68716af813838b22abdbefba3b487cc393ef84c7ff3f",
+      "validation": {
+        "alpha_bbox": [
+          67,
+          68,
+          444,
+          444
+        ],
+        "minimum_padding_px": 67,
+        "foreground_fraction": 0.27497,
+        "opaque_fraction": 0.26285,
+        "48px_foreground_fraction": 0.31554
+      }
+    }
+  ]
+}

@@ -20,6 +20,7 @@ static func warm_cache(extra_icon_ids: Array[String] = []) -> int:
 		"card_equipped",
 		"settings",
 		"version_history",
+		"card",
 	]
 	for icon_id in extra_icon_ids:
 		if icon_id != "" and not icon_ids.has(icon_id):

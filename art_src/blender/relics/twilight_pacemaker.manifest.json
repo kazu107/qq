@@ -1,0 +1,98 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/twilight_pacemaker.blend",
+  "source_sha256": "2ac1f466a0a90805289d49f1c90eddd9d6d4594c14ecbb828f7b003214d15bbd",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "twilight_pacemaker",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/twilight_pacemaker.png",
+      "source_path": "art_src/blender/relics/twilight_pacemaker.blend",
+      "source_sha256": "2ac1f466a0a90805289d49f1c90eddd9d6d4594c14ecbb828f7b003214d15bbd",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/twilight_pacemaker.png",
+      "source_render_sha256": "47fe5057fb4245e83d975973a5cbae0e44e09f975bce16467a07eb374a40df9c",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "077c6082d1e9b319648481773d206feb80e139e85cec0d0736bef9b28f16e9b8",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R06",
+      "kit_name": "medical_and_biomechanical",
+      "semantic_mapping": {
+        "name": "Twilight Pacemaker",
+        "actual_description": "At 43% HP or less, Attack and Control cards cast 9% faster; at 49% HP or more, Shield and Heal effects are 8% stronger.",
+        "actual_effects": [
+          {
+            "type": "dual_hp_threshold",
+            "low_hp_ratio": 0.43,
+            "reset_hp_ratio": 0.49,
+            "low_hp_cast_multiplier": 0.91,
+            "high_hp_effect_multiplier": 1.08,
+            "low_hp_tags": [
+              "attack",
+              "control"
+            ],
+            "high_hp_tags": [
+              "shield",
+              "heal"
+            ]
+          }
+        ],
+        "reused_components": [
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "hp_boundary_switch",
+          "pacemaker_housing",
+          "sealed_cell",
+          "threshold_lever"
+        ],
+        "unique_assembly_recipe": "twilight_pacemaker"
+      },
+      "geometry_sha256": "8630fcf06e7ea754b2d51ad6b6f2344ab8c0715fd71a169f520751ee0c1e1aec",
+      "mesh_vertices": 7260,
+      "mesh_polygons": 6708,
+      "object_count": 28,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 1.96552,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.86,
+      "export_sha256": "44c73a5356a198a8997bcf05d46f532a784e425ab48b0b51c4bedf6e7de29808",
+      "validation": {
+        "alpha_bbox": [
+          82,
+          67,
+          430,
+          452
+        ],
+        "minimum_padding_px": 60,
+        "foreground_fraction": 0.43739,
+        "opaque_fraction": 0.4311,
+        "48px_foreground_fraction": 0.46615
+      }
+    }
+  ]
+}

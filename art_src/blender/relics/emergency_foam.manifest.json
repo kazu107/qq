@@ -1,0 +1,79 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/emergency_foam.blend",
+  "source_sha256": "b494a4f536de1dae1662e2f03fa4b99322f4a6665fd1fb4e0ef067f9af717fc3",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "emergency_foam",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/emergency_foam.png",
+      "source_path": "art_src/blender/relics/emergency_foam.blend",
+      "source_sha256": "b494a4f536de1dae1662e2f03fa4b99322f4a6665fd1fb4e0ef067f9af717fc3",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/emergency_foam.png",
+      "source_render_sha256": "9554a74e6e39082b6fb3ade6b44c6b23c052070587a275d8bb188dd589a3dd24",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "d96352f198dae987b2790c5d60c28d7edce01760336872428336f637d246da07",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R06",
+      "kit_name": "medical_and_biomechanical",
+      "semantic_mapping": {
+        "name": "Emergency Foam",
+        "actual_description": "Start each battle with 16 shield.",
+        "actual_effects": [],
+        "reused_components": [
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "expanding_shield_foam",
+          "foam_nozzle",
+          "pressure_valve",
+          "sealed_cell",
+          "shield_inset",
+          "shield_ridge",
+          "shield_shell"
+        ],
+        "unique_assembly_recipe": "emergency_foam"
+      },
+      "geometry_sha256": "5f710cb44a7d88799d2dda460a99b214c86c53515cd0f637ea7a4b1ddbdbbefe",
+      "mesh_vertices": 10250,
+      "mesh_polygons": 10350,
+      "object_count": 17,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 1.97433,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.56,
+      "export_sha256": "33115ed1f5a3ea911c66204141dc25468f9fc24acf781d1b04edfd6f68707652",
+      "validation": {
+        "alpha_bbox": [
+          74,
+          55,
+          449,
+          454
+        ],
+        "minimum_padding_px": 55,
+        "foreground_fraction": 0.34531,
+        "opaque_fraction": 0.33815,
+        "48px_foreground_fraction": 0.36458
+      }
+    }
+  ]
+}

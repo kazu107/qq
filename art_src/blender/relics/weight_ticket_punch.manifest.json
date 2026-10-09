@@ -1,0 +1,89 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/weight_ticket_punch.blend",
+  "source_sha256": "e97fd217d40393774db1c5d17122a0eb8852c32b48c18376ff8617321bfd96e0",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "weight_ticket_punch",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/weight_ticket_punch.png",
+      "source_path": "art_src/blender/relics/weight_ticket_punch.blend",
+      "source_sha256": "e97fd217d40393774db1c5d17122a0eb8852c32b48c18376ff8617321bfd96e0",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/weight_ticket_punch.png",
+      "source_render_sha256": "6dc1c3ad58ad0b517b124c0075f9ffc24652ffa9bc29a757c855f9610b4baa12",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "3cada23aa631732b66e01421b2473b437dc9dc85723c1103bdf33670e299a9af",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Weight Ticket Punch",
+        "actual_description": "When a loadout-cost 5 card resolves, reduce recast on cost 1-2 cards by 2.5 seconds, up to 3 times per battle.",
+        "actual_effects": [
+          {
+            "type": "reduce_light_card_recasts",
+            "trigger": "loadout_cost_card_resolved",
+            "source_cost": 5,
+            "target_cost_min": 1,
+            "target_cost_max": 2,
+            "amount": 2.5,
+            "max_per_battle": 3
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "five_weight_punch",
+          "heavy_card_punch_lever",
+          "inscribed_line",
+          "parchment",
+          "punch_handle",
+          "scroll_roller",
+          "ticket_punch_body"
+        ],
+        "unique_assembly_recipe": "weight_ticket_punch"
+      },
+      "geometry_sha256": "e2c898d2aa5b7b9d7cc36eea4b70cb28423f9b04991ab893877abb12cdbd8bd4",
+      "mesh_vertices": 4672,
+      "mesh_polygons": 4356,
+      "object_count": 26,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.09565,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 12.24,
+      "export_sha256": "a8dcbe94aaf76a07dacf339364c1b43407e460e730a57b25922fa8dcec6ae7b4",
+      "validation": {
+        "alpha_bbox": [
+          67,
+          55,
+          445,
+          454
+        ],
+        "minimum_padding_px": 55,
+        "foreground_fraction": 0.36509,
+        "opaque_fraction": 0.35829,
+        "48px_foreground_fraction": 0.38889
+      }
+    }
+  ]
+}

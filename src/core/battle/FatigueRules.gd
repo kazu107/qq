@@ -8,7 +8,7 @@ const INTERVAL: float = 10.0
 const CAST_TIME: float = 5.0
 const DAMAGE_STEP: int = 10
 const BORDER_COLOR: Color = Color("e6a35a")
-const ART_PATH: String = "res://assets/cards/environment_fatigue.svg"
+const ART_PATH: String = "res://assets/icons/cards/environment_fatigue.png"
 
 static var _cached_cards: Dictionary = {}
 

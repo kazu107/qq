@@ -496,3 +496,17 @@
 - `tools/build_blender_starter_batch.ps1`で生成、原本の再読込検証、来歴登録を再現できます。
 
 詳細は`docs/BLENDER_STARTER_BATCH.md`、比較画像は`art_src/blender/previews/starter_batch_game_ui.png`です。次の第三弾は敵・ボス側の量産と同一モデルのポートレート生成を扱います。
+
+### 全系統の制作展開（2026-10-10 / QQ-0.32.0）
+
+- 敵・ボスの残り12モデルとScoutを含む13ポートレートを制作し、全25モデル・25画像を揃えました。共通18ボーン・18クリップ・5ソケットを維持しています。
+- カードの残り87枚と疲労1枚を、C01からC13の共通部品とID別の場面で制作しました。各カードに独立した編集可能Blendを保存しています。
+- 遺物の残り82個を、機構部品の共有と固有形状を組み合わせて台座なしの透過アイコンへ展開しました。
+- 状態3、共通UI12、効果12、マップ9、操作部品10を制作しました。既存のbleed・attackと合わせて対象IDを網羅しています。
+- フィールド、背景2枚、Qエンブレムを制作しました。SVGワードマークとロードアニメーションは意図的に維持します。
+- `tools/finalize_blender_assets.py`が全バッチのハッシュ・寸法・ID網羅を照合し、282成果物を`data/art_provenance.json`と`data/art_coverage.json`へ登録します。
+- 開発者モードのアート確認ラボはページ単位で表示し、画像の実寸、アニメーションモデル、フィールド、原本パスを確認できます。
+
+各生成手順は`BLENDER_BATCH04_ENEMIES.md`、`BLENDER_CARD_BATCHES.md`、`BLENDER_RELIC_BATCHES.md`、`BLENDER_UI_BATCH.md`、`BLENDER_ENVIRONMENT_BATCH.md`に分けています。関連テストと公開確認は`BLENDER_FULL_ROLLOUT.md`へ記録します。
+
+動的な文字、HPプレート、陣営色台座、レーン、VFX、欠損時フォールバックはコードネイティブのまま残します。第三者プラグインの文書ロゴやフォント・SEまで自作3Dへ置き換えたという意味ではありません。

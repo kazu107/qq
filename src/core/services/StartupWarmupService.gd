@@ -21,6 +21,8 @@ static func warm_all() -> Dictionary:
 	var data: WarmupData = _collect_warmup_data()
 
 	SceneRouter.warm_scene_cache()
+	var environment_count: int = BattleEnvironmentArt.warm_cache()
+	var background_count: int = ArtCatalog.warm_background_cache()
 	var unit_counts: Dictionary = {}
 	var card_count: int = 0
 	var card_picker_count: int = 0
@@ -58,6 +60,8 @@ static func warm_all() -> Dictionary:
 		"battle_3d_meshes": battle_3d_mesh_count,
 		"battle_3d_models": battle_3d_model_count,
 		"battle_animations": battle_animation_count,
+		"environment_models": environment_count,
+		"backgrounds": background_count,
 		"network_hash": LanProtocol.build_content_hash().left(12),
 	}
 
@@ -98,6 +102,8 @@ static func warm_all_async(progress_callback: Callable = Callable()) -> Dictiona
 	data.summary["stat_icons"] = StatIconFactory.warm_cache()
 	data.summary["card_effect_icons"] = CardEffectIconFactory.warm_cache(data.status_ids)
 	data.summary["map_icons"] = MapNodeButton.warm_icon_cache()
+	data.summary["environment_models"] = BattleEnvironmentArt.warm_cache()
+	data.summary["backgrounds"] = ArtCatalog.warm_background_cache()
 	data.summary["battle_3d_meshes"] = CommonBattleHumanoid3D.warm_visual_profile_cache(
 		Database.get_all_battle_visual_profiles()
 	)

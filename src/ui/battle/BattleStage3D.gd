@@ -82,6 +82,7 @@ var _local_engine_side: String = "player"
 var _local_visual_id: String = "default_player"
 var _opponent_visual_id: String = "default_enemy"
 var _environment_detail_counts: Dictionary = {}
+var _authored_field: Node3D
 var _playback_speed: float = 1.0
 var _battle_end_queued: bool = false
 var _battle_end_finished: bool = false
@@ -249,6 +250,10 @@ func get_actor_screen_position(unit_id: String) -> Vector2:
 
 func get_environment_detail_counts() -> Dictionary:
 	return _environment_detail_counts.duplicate(true)
+
+
+func is_using_authored_field() -> bool:
+	return is_instance_valid(_authored_field)
 
 
 func get_combat_actor(unit_id: String) -> BattleActor3D:
@@ -431,6 +436,15 @@ func _build_environment() -> void:
 
 
 func _build_arena() -> void:
+	_authored_field = BattleEnvironmentArt.instantiate_field()
+	if _authored_field != null:
+		_world_root.add_child(_authored_field)
+		_environment_detail_counts = BattleEnvironmentArt.DETAIL_COUNTS.duplicate()
+		return
+	_build_fallback_arena()
+
+
+func _build_fallback_arena() -> void:
 	var terrain_material: StandardMaterial3D = _make_material(Color(0.055, 0.13, 0.065, 1.0), 0.0)
 	var base_material: StandardMaterial3D = _make_material(Color(0.105, 0.13, 0.115, 1.0), 0.0)
 	var tile_a: StandardMaterial3D = _make_material(Color(0.245, 0.235, 0.195, 1.0), 0.0)

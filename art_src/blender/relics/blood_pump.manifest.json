@@ -1,0 +1,79 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/blood_pump.blend",
+  "source_sha256": "b8911b3852fe4df3d7e4af211885bca6d15f23f34e5503016c46509b55f84838",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "blood_pump",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/blood_pump.png",
+      "source_path": "art_src/blender/relics/blood_pump.blend",
+      "source_sha256": "b8911b3852fe4df3d7e4af211885bca6d15f23f34e5503016c46509b55f84838",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/blood_pump.png",
+      "source_render_sha256": "0b75e8a2c6e55c244e23583a2bd4ba8ecbeca8ef9fb2f08a2604f337cc1bd4c3",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "1020a8cd8c661b2396f421af9fd66436332b153632ea281f9cb0d5b80061c94c",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R06",
+      "kit_name": "medical_and_biomechanical",
+      "semantic_mapping": {
+        "name": "Blood Pump",
+        "actual_description": "Start each battle with +1 attack and recover 4 HP after every victory.",
+        "actual_effects": [],
+        "reused_components": [
+          "artificial_heart_chamber",
+          "blood_feed",
+          "brass_pump",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "heart_tip"
+        ],
+        "unique_assembly_recipe": "blood_pump"
+      },
+      "geometry_sha256": "b0e3f23a0a0ce8291528191379d186c5428e7bd61281111291e2f69d18184174",
+      "mesh_vertices": 6372,
+      "mesh_polygons": 6244,
+      "object_count": 19,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.33117,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 7.35,
+      "export_sha256": "471eb21cc670f29389a24de554fd220f523980f347329ffc96bd86269c511410",
+      "validation": {
+        "alpha_bbox": [
+          111,
+          60,
+          404,
+          452
+        ],
+        "minimum_padding_px": 60,
+        "foreground_fraction": 0.26238,
+        "opaque_fraction": 0.25706,
+        "48px_foreground_fraction": 0.27865
+      }
+    }
+  ]
+}

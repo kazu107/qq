@@ -1,0 +1,81 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/carryover_price_tag.blend",
+  "source_sha256": "d565848e4e144578a3eca4eeeec9384ce5f9643e4bab5b82e562304538417ff0",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "carryover_price_tag",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/carryover_price_tag.png",
+      "source_path": "art_src/blender/relics/carryover_price_tag.blend",
+      "source_sha256": "d565848e4e144578a3eca4eeeec9384ce5f9643e4bab5b82e562304538417ff0",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/carryover_price_tag.png",
+      "source_render_sha256": "daf2b6758474ade917c4828ef3eb8b133972187ca21626f03a69cdd44c30feb7",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "5ca32f8c5b03de7f32c1e9b14cb5f1389eba096edec724d1ae36ed877ebf22a0",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R05",
+      "kit_name": "economy_and_rewards",
+      "semantic_mapping": {
+        "name": "Carryover Price Tag",
+        "actual_description": "Arena offers held into the next round cost 4 less per carried round, up to 16 less.",
+        "actual_effects": [
+          {
+            "type": "discount_held_arena_offer",
+            "trigger": "arena_offer_carried",
+            "discount_per_round": 4,
+            "max_discount": 16
+          }
+        ],
+        "reused_components": [
+          "carried_round_discount",
+          "direction_arrow",
+          "held_price_tag",
+          "price_window",
+          "tag_chain"
+        ],
+        "unique_assembly_recipe": "carryover_price_tag"
+      },
+      "geometry_sha256": "bd5099a7fd238a05e2ac98c9755386527f8bd3591546eaa80b1e28d7b780fbb9",
+      "mesh_vertices": 5912,
+      "mesh_polygons": 5926,
+      "object_count": 12,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.24664,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 7.25,
+      "export_sha256": "fd74278bd12fca95734c761eb967f8eadc4ef385d5495818f623d82e95837b07",
+      "validation": {
+        "alpha_bbox": [
+          119,
+          55,
+          393,
+          460
+        ],
+        "minimum_padding_px": 52,
+        "foreground_fraction": 0.35507,
+        "opaque_fraction": 0.34779,
+        "48px_foreground_fraction": 0.3737
+      }
+    }
+  ]
+}

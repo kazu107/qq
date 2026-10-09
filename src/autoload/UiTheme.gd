@@ -3,6 +3,7 @@ extends Node
 const BACKGROUND_SCRIPT: GDScript = preload("res://src/ui/common/AtmosphereBackground.gd")
 const GAME_FONT: FontFile = preload("res://assets/fonts/NotoSansJP-GameSubset.ttf")
 const BACKGROUND_NODE_NAME: String = "GameAtmosphereBackground"
+const AUTHORED_CONTROL_PATH_TEMPLATE: String = "res://assets/icons/controls/%s.png"
 
 const TEXT_MAIN: Color = Color(0.93, 0.95, 0.94, 1.0)
 const TEXT_MUTED: Color = Color(0.66, 0.72, 0.74, 1.0)
@@ -189,15 +190,15 @@ func _apply_check_button_icons(theme: Theme, theme_type: String) -> void:
 	theme.set_icon("checked_mirrored", theme_type, _make_switch_texture(true, ACCENT_BLUE, Color(0.82, 0.94, 1.0, 1.0), Color(0.95, 0.80, 0.48, 1.0)))
 	theme.set_icon("unchecked", theme_type, _make_switch_texture(false, Color(0.12, 0.16, 0.19, 1.0), Color(0.34, 0.42, 0.48, 1.0), Color(0.70, 0.74, 0.76, 1.0)))
 	theme.set_icon("unchecked_mirrored", theme_type, _make_switch_texture(false, Color(0.12, 0.16, 0.19, 1.0), Color(0.34, 0.42, 0.48, 1.0), Color(0.70, 0.74, 0.76, 1.0)))
-	theme.set_icon("checked_disabled", theme_type, _make_switch_texture(true, Color(0.12, 0.16, 0.18, 0.95), Color(0.25, 0.30, 0.33, 0.95), TEXT_DISABLED))
-	theme.set_icon("unchecked_disabled", theme_type, _make_switch_texture(false, Color(0.08, 0.09, 0.10, 0.92), Color(0.18, 0.20, 0.22, 0.92), TEXT_DISABLED))
+	theme.set_icon("checked_disabled", theme_type, _make_switch_texture(true, Color(0.12, 0.16, 0.18, 0.95), Color(0.25, 0.30, 0.33, 0.95), TEXT_DISABLED, true))
+	theme.set_icon("unchecked_disabled", theme_type, _make_switch_texture(false, Color(0.08, 0.09, 0.10, 0.92), Color(0.18, 0.20, 0.22, 0.92), TEXT_DISABLED, true))
 
 
 func _apply_check_box_icons(theme: Theme, theme_type: String) -> void:
 	theme.set_icon("checked", theme_type, _make_checkbox_texture(true, ACCENT_BLUE, Color(0.82, 0.94, 1.0, 1.0), Color(0.98, 0.86, 0.48, 1.0)))
 	theme.set_icon("unchecked", theme_type, _make_checkbox_texture(false, Color(0.10, 0.13, 0.16, 1.0), Color(0.34, 0.42, 0.48, 1.0), TEXT_MAIN))
-	theme.set_icon("checked_disabled", theme_type, _make_checkbox_texture(true, Color(0.10, 0.12, 0.14, 0.92), Color(0.22, 0.25, 0.28, 0.92), TEXT_DISABLED))
-	theme.set_icon("unchecked_disabled", theme_type, _make_checkbox_texture(false, Color(0.08, 0.09, 0.10, 0.92), Color(0.18, 0.20, 0.22, 0.92), TEXT_DISABLED))
+	theme.set_icon("checked_disabled", theme_type, _make_checkbox_texture(true, Color(0.10, 0.12, 0.14, 0.92), Color(0.22, 0.25, 0.28, 0.92), TEXT_DISABLED, true))
+	theme.set_icon("unchecked_disabled", theme_type, _make_checkbox_texture(false, Color(0.08, 0.09, 0.10, 0.92), Color(0.18, 0.20, 0.22, 0.92), TEXT_DISABLED, true))
 
 
 func _apply_panel_theme(theme: Theme) -> void:
@@ -210,7 +211,7 @@ func _apply_slider_theme(theme: Theme) -> void:
 	theme.set_stylebox("slider", "HSlider", _make_flat_style(Color(0.05, 0.07, 0.09, 1.0), Color(0.20, 0.25, 0.29, 0.95), 1, 8))
 	theme.set_stylebox("grabber_area", "HSlider", _make_flat_style(Color(0.12, 0.46, 0.72, 1.0), ACCENT_BLUE, 1, 8))
 	theme.set_icon("grabber", "HSlider", _make_grabber_texture(ACCENT_GOLD))
-	theme.set_icon("grabber_highlight", "HSlider", _make_grabber_texture(Color(1.0, 0.82, 0.45, 1.0)))
+	theme.set_icon("grabber_highlight", "HSlider", _make_grabber_texture(Color(1.0, 0.82, 0.45, 1.0), true))
 	var track: StyleBoxFlat = theme.get_stylebox("slider", "HSlider") as StyleBoxFlat
 	track.content_margin_top = 4.0
 	track.content_margin_bottom = 4.0
@@ -329,7 +330,10 @@ func _make_flat_style(fill_color: Color, border_color: Color, border_width: int,
 	return style
 
 
-func _make_grabber_texture(color: Color) -> Texture2D:
+func _make_grabber_texture(color: Color, highlighted: bool = false) -> Texture2D:
+	var authored: Texture2D = _load_authored_control("slider_grabber_highlight" if highlighted else "slider_grabber")
+	if authored != null:
+		return authored
 	var image: Image = Image.create(22, 22, false, Image.FORMAT_RGBA8)
 	image.fill(Color(0.0, 0.0, 0.0, 0.0))
 	image.fill_rect(Rect2i(6, 2, 10, 18), color)
@@ -337,7 +341,11 @@ func _make_grabber_texture(color: Color) -> Texture2D:
 	return ImageTexture.create_from_image(image)
 
 
-func _make_switch_texture(checked: bool, fill_color: Color, border_color: Color, knob_color: Color) -> Texture2D:
+func _make_switch_texture(checked: bool, fill_color: Color, border_color: Color, knob_color: Color, disabled: bool = false) -> Texture2D:
+	var icon_id: String = "switch_%s%s" % ["on" if checked else "off", "_disabled" if disabled else ""]
+	var authored: Texture2D = _load_authored_control(icon_id)
+	if authored != null:
+		return authored
 	var image: Image = Image.create(48, 26, false, Image.FORMAT_RGBA8)
 	image.fill(Color(0.0, 0.0, 0.0, 0.0))
 	_draw_rect_border(image, Rect2i(1, 4, 46, 18), fill_color, border_color, 2)
@@ -347,7 +355,11 @@ func _make_switch_texture(checked: bool, fill_color: Color, border_color: Color,
 	return ImageTexture.create_from_image(image)
 
 
-func _make_checkbox_texture(checked: bool, fill_color: Color, border_color: Color, mark_color: Color) -> Texture2D:
+func _make_checkbox_texture(checked: bool, fill_color: Color, border_color: Color, mark_color: Color, disabled: bool = false) -> Texture2D:
+	var icon_id: String = "checkbox_%s%s" % ["on" if checked else "off", "_disabled" if disabled else ""]
+	var authored: Texture2D = _load_authored_control(icon_id)
+	if authored != null:
+		return authored
 	var image: Image = Image.create(24, 24, false, Image.FORMAT_RGBA8)
 	image.fill(Color(0.0, 0.0, 0.0, 0.0))
 	_draw_rect_border(image, Rect2i(2, 2, 20, 20), fill_color, border_color, 2)
@@ -357,6 +369,13 @@ func _make_checkbox_texture(checked: bool, fill_color: Color, border_color: Colo
 		image.fill_rect(Rect2i(12, 10, 4, 4), mark_color)
 		image.fill_rect(Rect2i(15, 6, 4, 4), mark_color)
 	return ImageTexture.create_from_image(image)
+
+
+func _load_authored_control(icon_id: String) -> Texture2D:
+	var path: String = AUTHORED_CONTROL_PATH_TEMPLATE % icon_id
+	if ResourceLoader.exists(path):
+		return ResourceLoader.load(path) as Texture2D
+	return null
 
 
 func _draw_rect_border(image: Image, rect: Rect2i, fill_color: Color, border_color: Color, border_width: int) -> void:

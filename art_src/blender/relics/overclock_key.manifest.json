@@ -1,0 +1,80 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/overclock_key.blend",
+  "source_sha256": "1289497b2e10d095224db1f91ad642e1b9a632331efa0402afe6e008e62b5ed7",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "overclock_key",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/overclock_key.png",
+      "source_path": "art_src/blender/relics/overclock_key.blend",
+      "source_sha256": "1289497b2e10d095224db1f91ad642e1b9a632331efa0402afe6e008e62b5ed7",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/overclock_key.png",
+      "source_render_sha256": "de749200d85674f024f187a023d0d9cb182b6e25b8d44d04f2a8099b76625ad7",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "b4005db0c17ab37116c121d8a1bfa92bda36c16e1aa4c29c24ad432582ef97d0",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R02",
+      "kit_name": "cores_batteries_and_heat",
+      "semantic_mapping": {
+        "name": "Overclock Key",
+        "actual_description": "Start each battle with +2 attack and +1 speed.",
+        "actual_effects": [],
+        "reused_components": [
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "direction_arrow",
+          "gear_hub",
+          "gear_rim",
+          "gear_spoke",
+          "gear_tooth",
+          "key_shank",
+          "key_teeth",
+          "sealed_cell"
+        ],
+        "unique_assembly_recipe": "overclock_key"
+      },
+      "geometry_sha256": "702f799d77016c51aec8b2d8076624dd9a9266a3c276d87ab7f276fce1edb486",
+      "mesh_vertices": 5960,
+      "mesh_polygons": 5650,
+      "object_count": 30,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.23062,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 3.12,
+      "export_sha256": "0645819a00c6984511e936c00be407f534df90ff9da6d7f2e8edbc4dcb43ed0a",
+      "validation": {
+        "alpha_bbox": [
+          142,
+          53,
+          368,
+          457
+        ],
+        "minimum_padding_px": 53,
+        "foreground_fraction": 0.17089,
+        "opaque_fraction": 0.16409,
+        "48px_foreground_fraction": 0.18793
+      }
+    }
+  ]
+}

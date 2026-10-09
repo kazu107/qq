@@ -1,0 +1,91 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/echo_rectifier.blend",
+  "source_sha256": "ef061ea9a37a0a21e25b43fd93c85d766a63d4c86c6a58d874ed747553ae5c8e",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "echo_rectifier",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/echo_rectifier.png",
+      "source_path": "art_src/blender/relics/echo_rectifier.blend",
+      "source_sha256": "ef061ea9a37a0a21e25b43fd93c85d766a63d4c86c6a58d874ed747553ae5c8e",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/echo_rectifier.png",
+      "source_render_sha256": "4c72777b593a365f3b86660cab85dc168582115a6e353852bed000e25ad6ee49",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "a4a50e6b66244610b80e80bcdfe9c321ab6ccbd8cbe21ef312d9f49556150068",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R02",
+      "kit_name": "cores_batteries_and_heat",
+      "semantic_mapping": {
+        "name": "Echo Rectifier",
+        "actual_description": "When an auto-queued card resolves, reduce its direct manual source card's recast by 1.5 seconds, up to 3 times per source.",
+        "actual_effects": [
+          {
+            "type": "reduce_source_recast",
+            "trigger": "auto_card_resolved",
+            "amount": 1.5,
+            "max_per_source": 3
+          }
+        ],
+        "reused_components": [
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "coil_core",
+          "coil_insulator",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "manual_source_feedback",
+          "rectifier_chassis",
+          "sealed_cell",
+          "wound_copper_coil"
+        ],
+        "unique_assembly_recipe": "echo_rectifier"
+      },
+      "geometry_sha256": "231836c42bc69e48d36b70bbdb0c844bc5a5c98e2e1cd629fc30edf768fbff4d",
+      "mesh_vertices": 38324,
+      "mesh_polygons": 37506,
+      "object_count": 37,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.24142,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.26,
+      "export_sha256": "527dedd67d3478d5fee72d629b0d0e19ab9fb96e187c3a6f6346c722fe68b768",
+      "validation": {
+        "alpha_bbox": [
+          86,
+          63,
+          426,
+          454
+        ],
+        "minimum_padding_px": 58,
+        "foreground_fraction": 0.3749,
+        "opaque_fraction": 0.36553,
+        "48px_foreground_fraction": 0.39757
+      }
+    }
+  ]
+}

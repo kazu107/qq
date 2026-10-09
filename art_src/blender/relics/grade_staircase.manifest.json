@@ -1,0 +1,91 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/grade_staircase.blend",
+  "source_sha256": "4c418b7a77057c5edfc91683fbc38c6e44779adcf5f992f7a502417790c8ae54",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "grade_staircase",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/grade_staircase.png",
+      "source_path": "art_src/blender/relics/grade_staircase.blend",
+      "source_sha256": "4c418b7a77057c5edfc91683fbc38c6e44779adcf5f992f7a502417790c8ae54",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/grade_staircase.png",
+      "source_render_sha256": "a1ff09466d93c03778f778486f74bdfc3c0d271aea5e3c2812ba1c7947c85474",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "1ea19e8f7bfa37c930fda142c164ff4e783208dd3b61a9a6f561d48d1694144f",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Grade Staircase",
+        "actual_description": "Once per battle, manually resolve Grades 0, 1, 2, and 3 in order to gain 10 shield and reduce every recast by 3 seconds.",
+        "actual_effects": [
+          {
+            "type": "reward_grade_sequence",
+            "trigger": "manual_card_resolved",
+            "required_grades": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "shield": 10,
+            "recast_reduction": 3.0,
+            "reset_on_mismatch": true,
+            "max_per_battle": 1
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "grade_step_mechanism",
+          "shield_inset",
+          "shield_ridge",
+          "shield_shell"
+        ],
+        "unique_assembly_recipe": "grade_staircase"
+      },
+      "geometry_sha256": "bda1497e7a1cd9030fa38073fabc3bf9dfe54ded117ea7727e626b97ae9e9f46",
+      "mesh_vertices": 2832,
+      "mesh_polygons": 2850,
+      "object_count": 27,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.25366,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 11.49,
+      "export_sha256": "e791b3b01b7534d47b732550e1b71394607de58142b5d96b6d9f98a4a634ccce",
+      "validation": {
+        "alpha_bbox": [
+          54,
+          95,
+          458,
+          417
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.31908,
+        "opaque_fraction": 0.31214,
+        "48px_foreground_fraction": 0.34115
+      }
+    }
+  ]
+}

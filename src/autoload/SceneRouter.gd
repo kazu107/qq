@@ -15,6 +15,7 @@ const CARD_LIBRARY_SCENE := "res://scenes/library/CardLibrary.tscn"
 const SETTINGS_SCENE := "res://scenes/settings/Settings.tscn"
 const REPLAY_SCENE := "res://scenes/replay/ReplayViewer.tscn"
 const SFX_LAB_SCENE := "res://scenes/debug/SfxLab.tscn"
+const ART_LAB_SCENE := "res://scenes/debug/ArtLab.tscn"
 const BATTLE_ANIMATION_LAB_SCENE := "res://scenes/debug/BattleAnimationLab.tscn"
 const AUTOMATED_BATTLE_LAB_SCENE := "res://scenes/debug/AutomatedBattleLab.tscn"
 const BATTLE_TUTORIAL_SCENE := "res://scenes/tutorial/BattleTutorial.tscn"
@@ -257,6 +258,7 @@ func warm_scene_cache() -> void:
 		SETTINGS_SCENE,
 		REPLAY_SCENE,
 		SFX_LAB_SCENE,
+		ART_LAB_SCENE,
 		BATTLE_ANIMATION_LAB_SCENE,
 		AUTOMATED_BATTLE_LAB_SCENE,
 		BATTLE_TUTORIAL_SCENE,
@@ -358,6 +360,13 @@ func go_to_sfx_lab() -> void:
 	_change_scene(SFX_LAB_SCENE)
 
 
+func go_to_art_lab() -> void:
+	if not Game.is_developer_mode_enabled():
+		return
+	_remember_debug_return_scene()
+	_change_scene(ART_LAB_SCENE)
+
+
 func go_to_automated_battle_lab() -> void:
 	if not Game.is_developer_mode_enabled() or NetworkManager.is_session_connected():
 		return
@@ -379,7 +388,7 @@ func go_to_battle_animation_lab() -> void:
 
 func return_from_debug_lab() -> void:
 	var return_path: String = _debug_return_scene_path
-	if return_path == "" or return_path == SFX_LAB_SCENE or return_path == BATTLE_ANIMATION_LAB_SCENE:
+	if return_path == "" or return_path in [SFX_LAB_SCENE, BATTLE_ANIMATION_LAB_SCENE, ART_LAB_SCENE]:
 		return_path = HUB_SCENE
 	_change_scene(return_path)
 
@@ -388,7 +397,7 @@ func _remember_debug_return_scene() -> void:
 	var current_scene: Node = get_tree().current_scene
 	if current_scene == null or current_scene.scene_file_path == "":
 		return
-	if current_scene.scene_file_path == SFX_LAB_SCENE or current_scene.scene_file_path == BATTLE_ANIMATION_LAB_SCENE:
+	if current_scene.scene_file_path in [SFX_LAB_SCENE, BATTLE_ANIMATION_LAB_SCENE, ART_LAB_SCENE]:
 		return
 	_debug_return_scene_path = current_scene.scene_file_path
 

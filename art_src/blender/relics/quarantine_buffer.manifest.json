@@ -1,0 +1,91 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/quarantine_buffer.blend",
+  "source_sha256": "c053b85d0110c522cea207cf0e4db064d0f314611385e80b23b0a727b4fe3ade",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "quarantine_buffer",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/quarantine_buffer.png",
+      "source_path": "art_src/blender/relics/quarantine_buffer.blend",
+      "source_sha256": "c053b85d0110c522cea207cf0e4db064d0f314611385e80b23b0a727b4fe3ade",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/quarantine_buffer.png",
+      "source_render_sha256": "dfe2976b5fb8b1f0453b230e9f97e0a75488808b76572b54fb0c760a12661681",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "247618811a005fca53c2a073f30254ad6683ee33b03567f080704571fb1df986",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R09",
+      "kit_name": "status_and_pathology",
+      "semantic_mapping": {
+        "name": "Quarantine Buffer",
+        "actual_description": "Once per battle, hold the first negative status applied to you for 6 seconds; it has no effect and does not tick during that delay.",
+        "actual_effects": [
+          {
+            "type": "defer_negative_status",
+            "trigger": "first_self_negative_status",
+            "defer_duration": 6.0,
+            "suppress_ticks": true,
+            "max_per_battle": 1
+          }
+        ],
+        "reused_components": [
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "mechanism_cross_rail",
+          "mechanism_side_rail",
+          "quarantine_shutoff",
+          "sealed_cell",
+          "shutoff_handle"
+        ],
+        "unique_assembly_recipe": "quarantine_buffer"
+      },
+      "geometry_sha256": "922f4d841b20c63da4e8dd8e911d3391e84eac6d06b2685b776f7a0a9d617a68",
+      "mesh_vertices": 6144,
+      "mesh_polygons": 5816,
+      "object_count": 22,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.39156,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 16.17,
+      "export_sha256": "95c2e902cb5f8f62069bfdaae0920e80ac986fc683c5441c1d2e988f3eda1830",
+      "validation": {
+        "alpha_bbox": [
+          108,
+          54,
+          403,
+          458
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.37817,
+        "opaque_fraction": 0.37052,
+        "48px_foreground_fraction": 0.39583
+      }
+    }
+  ]
+}

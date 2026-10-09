@@ -1,0 +1,96 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/paradox_mortgage.blend",
+  "source_sha256": "9b86f62d1acea0428a40b6877a11168d28d39da93af8d91dc5bc069b439e3b97",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "paradox_mortgage",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/paradox_mortgage.png",
+      "source_path": "art_src/blender/relics/paradox_mortgage.blend",
+      "source_sha256": "9b86f62d1acea0428a40b6877a11168d28d39da93af8d91dc5bc069b439e3b97",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/paradox_mortgage.png",
+      "source_render_sha256": "fc0d27dc390b33287aa7e180af198de3fad7a7425666151f312787c290a74b8f",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "afc84789d4712ee27a395666c27f0838ef8f7ea69c109fc560fcf94d8ac6b8fc",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R03",
+      "kit_name": "clocks_and_timeline",
+      "semantic_mapping": {
+        "name": "Paradox Mortgage",
+        "actual_description": "Your stop and reverse effects last 30% longer, up to 2 extra seconds, but their source card gains 6 seconds of recast afterward.",
+        "actual_effects": [
+          {
+            "type": "extend_timeline_flow",
+            "trigger": "timeline_flow_applied",
+            "flow_types": [
+              "stop",
+              "reverse"
+            ],
+            "duration_multiplier": 1.3,
+            "max_extension": 2.0,
+            "source_recast_penalty": 6.0
+          }
+        ],
+        "reused_components": [
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "gear_hub",
+          "gear_rim",
+          "gear_spoke",
+          "gear_tooth",
+          "inscribed_line",
+          "mortgage_seal",
+          "parchment",
+          "scroll_roller",
+          "time_debt_link"
+        ],
+        "unique_assembly_recipe": "paradox_mortgage"
+      },
+      "geometry_sha256": "32a417782071f68deaaede6a78d85424f72b3f8fb39cdd01155d5d4b60ecad30",
+      "mesh_vertices": 10100,
+      "mesh_polygons": 9726,
+      "object_count": 47,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.21851,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.08,
+      "export_sha256": "b2224cfaeffaf0001d01e4745a77645026e8be85717b7968550d0a6267eec5ec",
+      "validation": {
+        "alpha_bbox": [
+          67,
+          60,
+          446,
+          454
+        ],
+        "minimum_padding_px": 58,
+        "foreground_fraction": 0.38658,
+        "opaque_fraction": 0.37815,
+        "48px_foreground_fraction": 0.41189
+      }
+    }
+  ]
+}

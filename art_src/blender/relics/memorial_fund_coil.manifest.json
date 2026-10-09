@@ -1,0 +1,86 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/memorial_fund_coil.blend",
+  "source_sha256": "de48f54bbe9c4c1b41e8abb58befe8bb9bde6768777004800986e7b44b06489c",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "memorial_fund_coil",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/memorial_fund_coil.png",
+      "source_path": "art_src/blender/relics/memorial_fund_coil.blend",
+      "source_sha256": "de48f54bbe9c4c1b41e8abb58befe8bb9bde6768777004800986e7b44b06489c",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/memorial_fund_coil.png",
+      "source_render_sha256": "779194d3bfde671c4880d2ee3432b07bb3855c6d96b6350dd44a5dd08ac2fc33",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "3b514da91afbc2a7c4cb4268c40466e253162365c82770fe403fd1c84877af78",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R05",
+      "kit_name": "economy_and_rewards",
+      "semantic_mapping": {
+        "name": "Memorial Fund Coil",
+        "actual_description": "Bank 1 victory gold for every 2 shield paid to shield-spend cards, up to 12 gold per battle.",
+        "actual_effects": [
+          {
+            "type": "bank_gold_from_shield_spend",
+            "trigger": "shield_spent",
+            "shield_per_gold": 2,
+            "max_gold_per_battle": 12,
+            "payout": "victory"
+          }
+        ],
+        "reused_components": [
+          "coil_core",
+          "coil_insulator",
+          "coin_funnel",
+          "fund_feed",
+          "shield_inset",
+          "shield_ridge",
+          "shield_shell",
+          "shield_spend_coin",
+          "wound_copper_coil"
+        ],
+        "unique_assembly_recipe": "memorial_fund_coil"
+      },
+      "geometry_sha256": "e15791d9285c136a22ae7ed221efa040d23ad2cfda87991b41af1b2a5a7974ca",
+      "mesh_vertices": 31992,
+      "mesh_polygons": 31664,
+      "object_count": 12,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.34231,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 8.71,
+      "export_sha256": "96108af94f8a2adc2f29569f66e215ee18d2b82e6816e6e11acc6ab94f6c7a8d",
+      "validation": {
+        "alpha_bbox": [
+          81,
+          56,
+          413,
+          454
+        ],
+        "minimum_padding_px": 56,
+        "foreground_fraction": 0.34752,
+        "opaque_fraction": 0.33741,
+        "48px_foreground_fraction": 0.37543
+      }
+    }
+  ]
+}

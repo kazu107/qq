@@ -1,0 +1,77 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/war_banner.blend",
+  "source_sha256": "0e89270cae39577455c2be3d536d69e2ccea65b8893c61bb5473decd997c065d",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "war_banner",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/war_banner.png",
+      "source_path": "art_src/blender/relics/war_banner.blend",
+      "source_sha256": "0e89270cae39577455c2be3d536d69e2ccea65b8893c61bb5473decd997c065d",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/war_banner.png",
+      "source_render_sha256": "d5e975258c117d0455a02ae450decb7ea2d7c721f14a6a5d5c7ce4f4bea6ef05",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "d86192893073d9436a5da8bd970a8175a375f0971db2ec400f66ca0bc21425c3",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R01",
+      "kit_name": "armor_and_weapons",
+      "semantic_mapping": {
+        "name": "War Banner",
+        "actual_description": "Start each battle with +2 attack.",
+        "actual_effects": [],
+        "reused_components": [
+          "banner_crossbar",
+          "banner_staff",
+          "fabric_fastener",
+          "shield_inset",
+          "shield_ridge",
+          "shield_shell",
+          "spear_finial",
+          "torn_fabric"
+        ],
+        "unique_assembly_recipe": "war_banner"
+      },
+      "geometry_sha256": "835da5d37a2d727f18f4c3d3c62825298a4005ce91a2dc6f0d3e85209371cca1",
+      "mesh_vertices": 4376,
+      "mesh_polygons": 4290,
+      "object_count": 10,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 3.15141,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.76,
+      "export_sha256": "2affedf4c383e0cd63ec192dbf36b98debe26fb869eab984e3ed13ff738933f3",
+      "validation": {
+        "alpha_bbox": [
+          135,
+          54,
+          377,
+          458
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.16833,
+        "opaque_fraction": 0.16267,
+        "48px_foreground_fraction": 0.18186
+      }
+    }
+  ]
+}

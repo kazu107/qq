@@ -11,6 +11,8 @@ const STATUS_COLORS := {
 	"locked": Color(0.24, 0.25, 0.29, 1.0),
 }
 
+const AUTHORED_MAP_PATH_TEMPLATE := "res://assets/icons/map/%s.png"
+
 const TYPE_TINTS := {
 	"normal_battle": Color(0.93, 0.51, 0.37, 1.0),
 	"elite_battle": Color(0.90, 0.24, 0.55, 1.0),
@@ -187,6 +189,10 @@ func _get_type_icon_texture(node_type: String) -> Texture2D:
 static func _load_type_icon_texture(node_type: String) -> Texture2D:
 	if _type_icon_cache.has(node_type):
 		return _type_icon_cache[node_type] as Texture2D
+	var authored_texture: Texture2D = _load_authored_icon(node_type)
+	if authored_texture != null:
+		_type_icon_cache[node_type] = authored_texture
+		return authored_texture
 	var tint: Color = TYPE_TINTS.get(node_type, Color(0.55, 0.55, 0.60, 1.0))
 	var texture: Texture2D = _build_type_icon_texture(node_type, tint)
 	_type_icon_cache[node_type] = texture
@@ -250,8 +256,17 @@ func _get_lock_icon_texture() -> Texture2D:
 static func _load_lock_icon_texture() -> Texture2D:
 	if _lock_icon_texture != null:
 		return _lock_icon_texture
-	_lock_icon_texture = _build_lock_icon_texture()
+	_lock_icon_texture = _load_authored_icon("lock")
+	if _lock_icon_texture == null:
+		_lock_icon_texture = _build_lock_icon_texture()
 	return _lock_icon_texture
+
+
+static func _load_authored_icon(icon_id: String) -> Texture2D:
+	var path: String = AUTHORED_MAP_PATH_TEMPLATE % icon_id
+	if ResourceLoader.exists(path):
+		return ResourceLoader.load(path) as Texture2D
+	return null
 
 
 static func _build_lock_icon_texture() -> Texture2D:

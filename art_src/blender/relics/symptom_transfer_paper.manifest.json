@@ -1,0 +1,87 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/symptom_transfer_paper.blend",
+  "source_sha256": "a1f3125c7b5a7c453f997664c1a898599d841665bcd442cdd2ab67f4aab9486a",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "symptom_transfer_paper",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/symptom_transfer_paper.png",
+      "source_path": "art_src/blender/relics/symptom_transfer_paper.blend",
+      "source_sha256": "a1f3125c7b5a7c453f997664c1a898599d841665bcd442cdd2ab67f4aab9486a",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/symptom_transfer_paper.png",
+      "source_render_sha256": "d981d7b6214dc415cfca82a16f845f2fcd53526550752039aa1c20750a810ffc",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "e93d66b16ad57d8d6f6492b5e3bf70064503f37d19c92158c0609bad6abe5534",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R09",
+      "kit_name": "status_and_pathology",
+      "semantic_mapping": {
+        "name": "Symptom Transfer Paper",
+        "actual_description": "When a card removes your negative status, apply that status to the enemy for 40% of its remaining duration, up to 2 statuses per battle.",
+        "actual_effects": [
+          {
+            "type": "transfer_cleansed_status",
+            "trigger": "self_status_removed_by_card",
+            "remaining_duration_ratio": 0.4,
+            "max_statuses_per_battle": 2
+          }
+        ],
+        "reused_components": [
+          "absorbed_status_stamp",
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "direction_arrow",
+          "inscribed_line",
+          "parchment",
+          "scroll_roller",
+          "sealed_cell",
+          "status_transfer_chassis",
+          "transfer_roller"
+        ],
+        "unique_assembly_recipe": "symptom_transfer_paper"
+      },
+      "geometry_sha256": "8608afc861e7b7e6aa5532d18b871f61868eaeaa03d3d8d22487b1f5bbcd6fe3",
+      "mesh_vertices": 6792,
+      "mesh_polygons": 6122,
+      "object_count": 25,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.19882,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 13.75,
+      "export_sha256": "ee2af3d69de249f4fff6e3c43b1d2afb4f449fa3b9d286a6edac920bf33f1496",
+      "validation": {
+        "alpha_bbox": [
+          59,
+          96,
+          453,
+          416
+        ],
+        "minimum_padding_px": 59,
+        "foreground_fraction": 0.38551,
+        "opaque_fraction": 0.38023,
+        "48px_foreground_fraction": 0.39974
+      }
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/reversal_turbine.blend",
+  "source_sha256": "1609211d723bdec4e20ab4985502b002202f1fcd6e8b507c07ffdb9f11c34fbf",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "reversal_turbine",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/reversal_turbine.png",
+      "source_path": "art_src/blender/relics/reversal_turbine.blend",
+      "source_sha256": "1609211d723bdec4e20ab4985502b002202f1fcd6e8b507c07ffdb9f11c34fbf",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/reversal_turbine.png",
+      "source_render_sha256": "2e10be08d55895c76b11aaacfbd1894a5ef929f6da7f687292f9aef5e8cd549e",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "9e9cc99d417f71164dede811c451596e4433a3e4fe40426741009e5cb5310218",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R03",
+      "kit_name": "clocks_and_timeline",
+      "semantic_mapping": {
+        "name": "Reversal Turbine",
+        "actual_description": "When reverse moves your manual card rightward, add +1 to its main effect per second moved, up to +4.",
+        "actual_effects": [
+          {
+            "type": "empower_from_reverse_distance",
+            "trigger": "ally_card_moved_by_reverse",
+            "amount_per_second": 1,
+            "max_amount": 4,
+            "manual_only": true
+          }
+        ],
+        "reused_components": [
+          "direction_arrow",
+          "reverse_blue_channel",
+          "reverse_pitch_blade",
+          "reverse_red_channel",
+          "turbine_duct",
+          "turbine_hub"
+        ],
+        "unique_assembly_recipe": "reversal_turbine"
+      },
+      "geometry_sha256": "8b3047d75e8d9d1922809043f2e304d86e4b893ceea53abf52922916ce51f3c4",
+      "mesh_vertices": 2920,
+      "mesh_polygons": 2866,
+      "object_count": 12,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.52226,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.64,
+      "export_sha256": "4d3ddcc09539d0ad6e071a99a9d14628080c3738ccbb46b88ff8e770e16a08da",
+      "validation": {
+        "alpha_bbox": [
+          55,
+          85,
+          457,
+          422
+        ],
+        "minimum_padding_px": 55,
+        "foreground_fraction": 0.36049,
+        "opaque_fraction": 0.35229,
+        "48px_foreground_fraction": 0.38672
+      }
+    }
+  ]
+}

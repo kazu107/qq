@@ -59,7 +59,7 @@ func _build_background() -> void:
 	background.set_anchors_preset(Control.PRESET_FULL_RECT)
 	background.texture = _build_background_texture()
 	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	background.stretch_mode = TextureRect.STRETCH_SCALE
+	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	add_child(background)
 
 	var top_line: ColorRect = ColorRect.new()
@@ -511,6 +511,9 @@ func _make_rank_style(accent: Color = Color(0.24, 0.46, 0.62, 1.0)) -> StyleBoxF
 
 
 func _build_background_texture() -> Texture2D:
+	var authored: Texture2D = ArtCatalog.get_texture("assets/backgrounds/run_result.png")
+	if authored != null:
+		return authored
 	var gradient: Gradient = Gradient.new()
 	gradient.offsets = PackedFloat32Array([0.0, 0.48, 1.0])
 	gradient.colors = PackedColorArray([

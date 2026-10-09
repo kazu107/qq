@@ -1,0 +1,88 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/full_slot_bell.blend",
+  "source_sha256": "a715e74f95e857863b7f884bb9ae1305f0a706f664a29acaabbc1e9e27767e83",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "full_slot_bell",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/full_slot_bell.png",
+      "source_path": "art_src/blender/relics/full_slot_bell.blend",
+      "source_sha256": "a715e74f95e857863b7f884bb9ae1305f0a706f664a29acaabbc1e9e27767e83",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/full_slot_bell.png",
+      "source_render_sha256": "c00c5854de3bbd82612685bc89e410480633f308c49fb4127a6dce8f9b4fadd0",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "335a40f5af6a4907308afc9560125767292ad31dbf74f8b3e9cfd45e7e0a4a32",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R07",
+      "kit_name": "slots_loadout_and_grade",
+      "semantic_mapping": {
+        "name": "Full-Slot Bell",
+        "actual_description": "When a normal resolution frees a full 3/3 slot board, gain 4 shield; gain 2 instead after an interrupt. Cooldown: 4 seconds.",
+        "actual_effects": [
+          {
+            "type": "gain_shield",
+            "trigger": "full_slots_freed",
+            "amount": 4,
+            "interrupted_amount": 2,
+            "internal_cooldown": 4.0
+          }
+        ],
+        "reused_components": [
+          "bell_clapper",
+          "bell_hanger",
+          "bell_lip",
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "cast_bell",
+          "full_slot_bell_feed",
+          "shield_inset",
+          "shield_ridge",
+          "shield_shell"
+        ],
+        "unique_assembly_recipe": "full_slot_bell"
+      },
+      "geometry_sha256": "a84623e073287d3e3360ed523080c932387831a4ac501001dc254f475444b67f",
+      "mesh_vertices": 6402,
+      "mesh_polygons": 6296,
+      "object_count": 25,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 1.8642,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.71,
+      "export_sha256": "d1a576a3750ee5ec630fa223cd1bf8dbc9b8338d69a0e542285b87b858afad31",
+      "validation": {
+        "alpha_bbox": [
+          82,
+          56,
+          430,
+          457
+        ],
+        "minimum_padding_px": 55,
+        "foreground_fraction": 0.28236,
+        "opaque_fraction": 0.27377,
+        "48px_foreground_fraction": 0.31727
+      }
+    }
+  ]
+}

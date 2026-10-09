@@ -1,0 +1,92 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/solar_pinion.blend",
+  "source_sha256": "cd6997ba7779b01ad39f50f67b75f2215b4d744ba9907b194cfe82a55733b023",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "solar_pinion",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/solar_pinion.png",
+      "source_path": "art_src/blender/relics/solar_pinion.blend",
+      "source_sha256": "cd6997ba7779b01ad39f50f67b75f2215b4d744ba9907b194cfe82a55733b023",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/solar_pinion.png",
+      "source_render_sha256": "853e83ea34708296abc94ed93aeb852e35efd500d16c1664d0544e415cad5f87",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "ead46cd0a9d6997e518b9690e13ff186f732d3a65e201fee31550866d4c2cce0",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R10",
+      "kit_name": "card_imprint_and_conversion",
+      "semantic_mapping": {
+        "name": "Solar Pinion",
+        "actual_description": "On pickup, imprint 1 card. Its base cast is 1 second shorter and its recast is 15% longer. Minimum cast: 0.6 seconds.",
+        "actual_effects": [
+          {
+            "type": "imprint_card_timing",
+            "trigger": "relic_acquired",
+            "selection_count": 1,
+            "cast_reduction": 1.0,
+            "recast_multiplier": 1.15,
+            "minimum_cast": 0.6
+          }
+        ],
+        "reused_components": [
+          "card_contacts",
+          "card_insert",
+          "card_socket",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "gear_hub",
+          "gear_rim",
+          "gear_spoke",
+          "gear_tooth",
+          "solar_imprint_stamp"
+        ],
+        "unique_assembly_recipe": "solar_pinion"
+      },
+      "geometry_sha256": "59d455af7ffc4660416a4b06d1dfd456bbc82117371dc635e73176aee2733424",
+      "mesh_vertices": 12000,
+      "mesh_polygons": 11542,
+      "object_count": 62,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.17856,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 7.71,
+      "export_sha256": "6d549201ac2f0312efb54d03c36b81396ad42ee4783741c64ec6142f24005819",
+      "validation": {
+        "alpha_bbox": [
+          64,
+          53,
+          449,
+          454
+        ],
+        "minimum_padding_px": 53,
+        "foreground_fraction": 0.42704,
+        "opaque_fraction": 0.41865,
+        "48px_foreground_fraction": 0.45095
+      }
+    }
+  ]
+}

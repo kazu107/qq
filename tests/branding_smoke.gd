@@ -15,6 +15,9 @@ func _ready() -> void:
 		return
 	if not _check(icon != null and icon.get_size() == Vector2(256, 256), "icon could not be imported"):
 		return
+	var authored_icon: Texture2D = load("res://assets/branding/queuequest-emblem-3d.png") as Texture2D
+	if not _check(authored_icon != null and authored_icon.get_size() == Vector2(256, 256) and String(ProjectSettings.get_setting("application/config/icon")) == authored_icon.resource_path, "Blender app emblem was not selected"):
+		return
 	var boot: Control = load("res://scenes/boot/Boot.tscn").instantiate() as Control
 	boot.call("_build_loading_screen")
 	var boot_logo: LoadingLogo = boot.find_child("BootLoadingLogo", true, false) as LoadingLogo

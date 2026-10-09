@@ -1,0 +1,82 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/archive_compass.blend",
+  "source_sha256": "82416688076890db726ea604a6b0ac5973ec232d049a888b5bd950c8f7f8725c",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "archive_compass",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/archive_compass.png",
+      "source_path": "art_src/blender/relics/archive_compass.blend",
+      "source_sha256": "82416688076890db726ea604a6b0ac5973ec232d049a888b5bd950c8f7f8725c",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/archive_compass.png",
+      "source_render_sha256": "f679de9fa27dc6438bccc0b352b049a464b5c3c3c9f2e63bcb3472a596918f5d",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "916ab80f42b776e5889019e633bf630d50aad664dc9646420c3bcc514bd93e77",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R04",
+      "kit_name": "navigation_and_signals",
+      "semantic_mapping": {
+        "name": "Archive Compass",
+        "actual_description": "Increase loadout capacity by 1, then gain 8 gold and recover 2 HP after every victory.",
+        "actual_effects": [],
+        "reused_components": [
+          "archive_inkpot",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "folded_map",
+          "index_quill",
+          "inscribed_line",
+          "map_route",
+          "parchment",
+          "scroll_roller"
+        ],
+        "unique_assembly_recipe": "archive_compass"
+      },
+      "geometry_sha256": "cf99bd13ef439e21ed8cb8747dc1884669dce1d680bedf0fa1268cdb6715f596",
+      "mesh_vertices": 5876,
+      "mesh_polygons": 5566,
+      "object_count": 27,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.3215,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.27,
+      "export_sha256": "c9a1809b1ad1db03896c8230f1e5530eceeb2c227f61ff35afb67d28a2307566",
+      "validation": {
+        "alpha_bbox": [
+          62,
+          57,
+          451,
+          456
+        ],
+        "minimum_padding_px": 56,
+        "foreground_fraction": 0.41648,
+        "opaque_fraction": 0.41053,
+        "48px_foreground_fraction": 0.44054
+      }
+    }
+  ]
+}

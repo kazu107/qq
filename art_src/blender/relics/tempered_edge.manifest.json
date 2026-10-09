@@ -1,0 +1,75 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/tempered_edge.blend",
+  "source_sha256": "681c290c855d98789a7530389d9a3e28c1c1fd701d3ba1fa41343b05c206c412",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "tempered_edge",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/tempered_edge.png",
+      "source_path": "art_src/blender/relics/tempered_edge.blend",
+      "source_sha256": "681c290c855d98789a7530389d9a3e28c1c1fd701d3ba1fa41343b05c206c412",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/tempered_edge.png",
+      "source_render_sha256": "cfec7f90b7de454ee0516382451c1e3c0ec9ecbf19ce447e1be2d0f3eebe8dd8",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "5de02b83e9f878da2e4c39ee7e7ce3fd45fcf3a29cca0731b4348b5e483e6043",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R01",
+      "kit_name": "armor_and_weapons",
+      "semantic_mapping": {
+        "name": "Tempered Edge",
+        "actual_description": "Gain +1 attack permanently.",
+        "actual_effects": [],
+        "reused_components": [
+          "cross_guard",
+          "handle_binding",
+          "heat_treated_center",
+          "pommel",
+          "tempered_blade",
+          "wrapped_handle"
+        ],
+        "unique_assembly_recipe": "tempered_edge"
+      },
+      "geometry_sha256": "e9fb651dc4f5a705860867b314d356547f4881f0ce7f1481154e0d43ffe9d2e4",
+      "mesh_vertices": 7914,
+      "mesh_polygons": 7918,
+      "object_count": 11,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 3.03392,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 8.06,
+      "export_sha256": "6ffee49c13fd38ac42ad29a2658347758125dd279a6852c3c93bda4edc716ce9",
+      "validation": {
+        "alpha_bbox": [
+          173,
+          62,
+          342,
+          454
+        ],
+        "minimum_padding_px": 58,
+        "foreground_fraction": 0.08858,
+        "opaque_fraction": 0.08446,
+        "48px_foreground_fraction": 0.10069
+      }
+    }
+  ]
+}

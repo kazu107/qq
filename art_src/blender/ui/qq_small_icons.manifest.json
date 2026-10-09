@@ -1,0 +1,1979 @@
+{
+  "format_version": 1,
+  "batch_id": "blender_ui_icons_06",
+  "generator": "tools/blender/build_ui_batch.py",
+  "generator_sha256": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c",
+  "source": "art_src/blender/ui/qq_small_icons.blend",
+  "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+  "blender_version": "5.2.2 LTS",
+  "render_engine": "Cycles CPU 24 samples, 4 threads",
+  "assets": [
+    {
+      "id": "slow",
+      "asset_id": "slow",
+      "visual_id": "slow",
+      "category": "status",
+      "runtime_path": "assets/icons/status/slow.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "slow",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/slow.png",
+      "objects": 12,
+      "mesh_vertices": 674,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "1afaf68823dd2d061893ba006de03ca859afa74484e982cc34b3701aa4cc0c09",
+      "export_sha256": "b4a2872e5b0fe82d123a14511a24d74bac3c173239b9e294c29382e5f570953a",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 392,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "vulnerable",
+      "asset_id": "vulnerable",
+      "visual_id": "vulnerable",
+      "category": "status",
+      "runtime_path": "assets/icons/status/vulnerable.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "vulnerable",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/vulnerable.png",
+      "objects": 9,
+      "mesh_vertices": 668,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "9dd0b74828e34a5019b9c0715ec09f8ae45d25e9c6a7d0f9718bae7689bc015f",
+      "export_sha256": "5a6c175d5ab495cf1437d8e388ff3a67deb27bf98be3fd2d1be19fb3ac05cd21",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 392,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "weak",
+      "asset_id": "weak",
+      "visual_id": "weak",
+      "category": "status",
+      "runtime_path": "assets/icons/status/weak.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "weak",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/weak.png",
+      "objects": 12,
+      "mesh_vertices": 1158,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "82d0a4e873245cf481c04b5fa5d715c29cddcdfcba90408b10f2281c3f0eeee0",
+      "export_sha256": "2c664d7e1a7ccbe7de8f63625ed0fbac25e8d7b97e9600ca4084cd088c543627",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 392,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_speed",
+      "asset_id": "ui_speed",
+      "visual_id": "speed",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/speed.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_speed",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_speed.png",
+      "objects": 3,
+      "mesh_vertices": 36,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "f592744d29273a1d9ad09d3ce6778f7888569cb4759085ccb8ec0df27f6dc3c2",
+      "export_sha256": "eca0cdc630cf81f72072d2c866a13bd7750902cc0651bcf408601dacab3c1bb4",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 184,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_shield",
+      "asset_id": "ui_shield",
+      "visual_id": "shield",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/shield.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_shield",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_shield.png",
+      "objects": 3,
+      "mesh_vertices": 24,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "35f18e957f4a98053480e66aeddf8a5dc258c3d7c1714468ffc383f98e9ac162",
+      "export_sha256": "d389bc5096a858bebb79e17a65b9b43aa718b97b8630eeffc7c3f17536ae78c3",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 274,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_hp",
+      "asset_id": "ui_hp",
+      "visual_id": "hp",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/hp.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_hp",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_hp.png",
+      "objects": 2,
+      "mesh_vertices": 192,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "a3e9e85016224cdede1fce781a547df83f7e5604253d7e567225db9f96bc7901",
+      "export_sha256": "bff611358b2553e3b5d8f1dc155370703a94a9611d11615b10aae63da9a92252",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 276,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_gold",
+      "asset_id": "ui_gold",
+      "visual_id": "gold",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/gold.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_gold",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_gold.png",
+      "objects": 6,
+      "mesh_vertices": 272,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "1031290b6ebb884deb96cbde797208896e6e4cfe9c62e6e7e8a27406aaa2713f",
+      "export_sha256": "db8b1c92209fadbdfe2e2ddea454098d124e62b3bcd778ecbd6e42f4678c0173",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 292,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_step",
+      "asset_id": "ui_step",
+      "visual_id": "step",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/step.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_step",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_step.png",
+      "objects": 4,
+      "mesh_vertices": 38,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "3d0d1a701f8e1d10aade490ec53cf024549b999891e06bcc967a06de0515d734",
+      "export_sha256": "31792559a15ae3c614757eea7bcc5a3c1f76fc429da63daf9359bb944d65baa0",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 136,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_time",
+      "asset_id": "ui_time",
+      "visual_id": "time",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/time.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_time",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_time.png",
+      "objects": 18,
+      "mesh_vertices": 264,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "b1448f628a19a47df64f4e10ce402cdd4ef99ccb40cfb258e2511f1b296872b5",
+      "export_sha256": "df00efff9da4ee6d0845c65dd79da03203b793910fbe1732b01156c59315b164",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 330,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_relic",
+      "asset_id": "ui_relic",
+      "visual_id": "relic",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/relic.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_relic",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_relic.png",
+      "objects": 3,
+      "mesh_vertices": 30,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "c1a7fb70b59832b77bcf44cb983ad45e70272e193980d93e8869adad7cf19de1",
+      "export_sha256": "93cb66653bea2446e4d765244b7210e9712c2b495dacbb347e6ae4e62bc8faa4",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 157,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_card_owned",
+      "asset_id": "ui_card_owned",
+      "visual_id": "card_owned",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/card_owned.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_card_owned",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_card_owned.png",
+      "objects": 8,
+      "mesh_vertices": 80,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "92689c92d704d85421084d091ac3c5228414052ab58b96e41171847907e12a2b",
+      "export_sha256": "f8fee295b62818e69070ab5fdc09ba40eaadafaee39ec03c5025a62cd1317019",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 374,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_card_equipped",
+      "asset_id": "ui_card_equipped",
+      "visual_id": "card_equipped",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/card_equipped.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_card_equipped",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_card_equipped.png",
+      "objects": 5,
+      "mesh_vertices": 54,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "a8b746578432815948f94fd5500a10dd9f2f1159d407bc7b941fff3bf26557dd",
+      "export_sha256": "499e2eae5139e610c28c487e89aa251ed6e776f15ba9b1db78e6bef6859d769a",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 354,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_settings",
+      "asset_id": "ui_settings",
+      "visual_id": "settings",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/settings.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_settings",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_settings.png",
+      "objects": 10,
+      "mesh_vertices": 64,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "8f72fa0a933fd070180f82d3dbe487098681de1958743840ece7373add731100",
+      "export_sha256": "d27cefdf64a73781c02d8c400d8d4ee2de3ebff5855f4df0859209fac2e3bdc5",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 288,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_version_history",
+      "asset_id": "ui_version_history",
+      "visual_id": "version_history",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/version_history.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_version_history",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_version_history.png",
+      "objects": 22,
+      "mesh_vertices": 296,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "bba402879efe658caa537dc355c7c5b030e6ac19c8c7b8814023065a97b1e634",
+      "export_sha256": "2f8035e9c532b9a957d8033f9417d0db8d405792b785373aca23ed6849e4f97e",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 380,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "ui_card",
+      "asset_id": "ui_card",
+      "visual_id": "card",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/card.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "ui_card",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/ui_card.png",
+      "objects": 4,
+      "mesh_vertices": 40,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "78b68b713fafca577daccfcd9109e6459421717a9a0b43724b216a9485c1deaa",
+      "export_sha256": "9b6403c73f62725222a3e88c04cb8de6598aad9f5e47079a0ef58710f30083ca",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 352,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_shield_spend",
+      "asset_id": "effect_shield_spend",
+      "visual_id": "shield_spend",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/shield_spend.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_shield_spend",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_shield_spend.png",
+      "objects": 4,
+      "mesh_vertices": 32,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "0bb0055f760ff8bc495cddc4c750c474ce2f452469ea5bd24bd9fab31363ad79",
+      "export_sha256": "18f6ab03cabdcb564c760a525988faedd53d20150cb515ef37cae3ff999cf4db",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 274,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_delay",
+      "asset_id": "effect_delay",
+      "visual_id": "delay",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/delay.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_delay",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_delay.png",
+      "objects": 18,
+      "mesh_vertices": 270,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "528953f75aaf91dd3345cf91a8c4121f058703e4faa8be6d6788be16bfd3c2b1",
+      "export_sha256": "e5d4c698d2785f2983065ff636c901d06ecb845ef69d794cdcbf3fddeb1c54bb",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 309,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_haste",
+      "asset_id": "effect_haste",
+      "visual_id": "haste",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/haste.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_haste",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_haste.png",
+      "objects": 18,
+      "mesh_vertices": 270,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "90bdec9a9ef4947a4d19f367df698814f1de8b947daef0f49add5b18b868fe8d",
+      "export_sha256": "07f6f0cda8cec2a89031cb3ef4ab50a397eb5cc10fe2591702bee6869a67b0db",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 308,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_recast",
+      "asset_id": "effect_recast",
+      "visual_id": "recast",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/recast.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_recast",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_recast.png",
+      "objects": 19,
+      "mesh_vertices": 270,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "bf22acbf29c4ced12590a656cf98e2adc5b98034d6ade89202a4587f157b348c",
+      "export_sha256": "19c902eca2b059b9a2c5255faedfdf83430c6fcfbe7b849727eea8a34019d5f0",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 352,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_interrupt",
+      "asset_id": "effect_interrupt",
+      "visual_id": "interrupt",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/interrupt.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_interrupt",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_interrupt.png",
+      "objects": 2,
+      "mesh_vertices": 20,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "7f5599da624e634542ed26e61e155b04517f6560738679e6c16eb212b9e3b242",
+      "export_sha256": "d97ad4b909692ff669779256d5ed4e8536262a4846c9897ac6344218b9146578",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 118,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_cleanse",
+      "asset_id": "effect_cleanse",
+      "visual_id": "cleanse",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/cleanse.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_cleanse",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_cleanse.png",
+      "objects": 3,
+      "mesh_vertices": 48,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "3efe3963c44938475cea38ef70972e00be66f3b274c7f22e69e4a86f2cae3e0e",
+      "export_sha256": "db0774829bf244beed366e555048a93fcecaeb3327164a2dcfa9fc530c9266c4",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 132,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_empower",
+      "asset_id": "effect_empower",
+      "visual_id": "empower",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/empower.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_empower",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_empower.png",
+      "objects": 2,
+      "mesh_vertices": 26,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "e1f75543b387b03f7254a2dd5d4e450bd3126458e34744c500371b5dcad79e6e",
+      "export_sha256": "423855b9e40a5aea64839f75bf58adb34b5ac6c5ce9ffeebe1bcb80ec7062e77",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 126,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_auto_queue",
+      "asset_id": "effect_auto_queue",
+      "visual_id": "auto_queue",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/auto_queue.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_auto_queue",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_auto_queue.png",
+      "objects": 5,
+      "mesh_vertices": 54,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "e92136597dc0037fc6c1be86efc7bf140e3f2a7078fc775205616c09fa77c4e9",
+      "export_sha256": "8af6a2b5fb7161c7db6b40faf3fae75ba6dcefea48cc8e9886740ce1df57c4f2",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 266,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_timeline_stop",
+      "asset_id": "effect_timeline_stop",
+      "visual_id": "timeline_stop",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/timeline_stop.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_timeline_stop",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_timeline_stop.png",
+      "objects": 7,
+      "mesh_vertices": 56,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "de99bdcc0f7ba643bf3c4bd58f1203c7be2a78d2247bd16b3392cea270ba1475",
+      "export_sha256": "41a56e9ff5367bdf18522ed5d3b166d74aee1db41af47b4b5746e135c2d60138",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 120,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_timeline_reverse",
+      "asset_id": "effect_timeline_reverse",
+      "visual_id": "timeline_reverse",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/timeline_reverse.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_timeline_reverse",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_timeline_reverse.png",
+      "objects": 6,
+      "mesh_vertices": 54,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "c0d82931b08fd7f404c6b9995e72230e2ac9fc35a0c60564f84662c3ed8cf2e0",
+      "export_sha256": "67ab45f7e74c7f718ea822312a455ffad7e342f01ea5d1eb393c889393ad0acd",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 158,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_status",
+      "asset_id": "effect_status",
+      "visual_id": "status",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/status.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_status",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_status.png",
+      "objects": 3,
+      "mesh_vertices": 152,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "23c75574c8578d2276b301a9b4c19280b4032e14924ec105ae795bc351744300",
+      "export_sha256": "21bc45b61d95040c9f771a20b48a7ac0f76753e17da4355006713089d496b3d1",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 258,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "effect_effect",
+      "asset_id": "effect_effect",
+      "visual_id": "effect",
+      "category": "effect",
+      "runtime_path": "assets/icons/effects/effect.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "effect_effect",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        64,
+        64
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/effect_effect.png",
+      "objects": 3,
+      "mesh_vertices": 482,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "af1a67aa29e16bc29e3b73e68c1e8b85d595db0a9181eab739f9e9c23c0f9d12",
+      "export_sha256": "0c16964de0e9f9e13fffaaacf87dc06f6665b5475a9744e8d7bb68290c25085d",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 257,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "map_normal_battle",
+      "asset_id": "map_normal_battle",
+      "visual_id": "normal_battle",
+      "category": "map",
+      "runtime_path": "assets/icons/map/normal_battle.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "map_normal_battle",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/map_normal_battle.png",
+      "objects": 12,
+      "mesh_vertices": 1128,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "23b9804b355256f1ae2c7cfb234b166e32670d1a9207b306117a919cdff5b1e6",
+      "export_sha256": "989df08a336a2ae2bc7d8fa56d32646b1a26eeafcb360c64746e9a109002c17e",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 184,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "map_elite_battle",
+      "asset_id": "map_elite_battle",
+      "visual_id": "elite_battle",
+      "category": "map",
+      "runtime_path": "assets/icons/map/elite_battle.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "map_elite_battle",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/map_elite_battle.png",
+      "objects": 13,
+      "mesh_vertices": 1148,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "8a1b7d2a21261cd84f97f6a7abf44d35c6706d37a4c76830c502e3dd8515866d",
+      "export_sha256": "0889fb6ae6fa710f94638a827ab1fdbf7f0218288147586b46cd2cbbf579889a",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 183,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "map_boss",
+      "asset_id": "map_boss",
+      "visual_id": "boss",
+      "category": "map",
+      "runtime_path": "assets/icons/map/boss.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "map_boss",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/map_boss.png",
+      "objects": 7,
+      "mesh_vertices": 414,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "b80153ba38cc2c454e3c5e8efe18dea116e0057e1063067c77f26d652b4b1055",
+      "export_sha256": "d4c17849b4dd248f34ad0698fdd094b0e4116f4134397d5e0b4ae972851c8a2a",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 264,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "map_shop",
+      "asset_id": "map_shop",
+      "visual_id": "shop",
+      "category": "map",
+      "runtime_path": "assets/icons/map/shop.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "map_shop",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/map_shop.png",
+      "objects": 14,
+      "mesh_vertices": 336,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "32b93be3312c0f2ec4a625c63f3c36bc25990789c4b98e8bd76275f18378185e",
+      "export_sha256": "feef057954d02eae8ec7054358b6e26e641c472a43e81ab1eefdb03cb962dd0b",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 304,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "map_forge",
+      "asset_id": "map_forge",
+      "visual_id": "forge",
+      "category": "map",
+      "runtime_path": "assets/icons/map/forge.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "map_forge",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/map_forge.png",
+      "objects": 6,
+      "mesh_vertices": 180,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "0a0b0c3d81840fece718814e755d4b1c15ad44b2499451b9528467ca79a2b906",
+      "export_sha256": "8ffe3077269783c6edcfd56f7b87b8922fef65091f2d54273897f9c2b47d4d60",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 169,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "map_heal",
+      "asset_id": "map_heal",
+      "visual_id": "heal",
+      "category": "map",
+      "runtime_path": "assets/icons/map/heal.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "map_heal",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/map_heal.png",
+      "objects": 6,
+      "mesh_vertices": 152,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "a35140dac3f22838d9f9f92ee036d8d4cfd710cf6156f0edf9db30c35487c321",
+      "export_sha256": "8210394944d1ede8a210a216735dc02a355493fffbdc7fdfba5e194d85a02826",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 279,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "map_event",
+      "asset_id": "map_event",
+      "visual_id": "event",
+      "category": "map",
+      "runtime_path": "assets/icons/map/event.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "map_event",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/map_event.png",
+      "objects": 4,
+      "mesh_vertices": 610,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "bb5148605edb703b58fbafc87377712212551dfa3d179dcfb582cffb0677584c",
+      "export_sha256": "6f786d9d7fb39c010ea240941c987c7afbf29f87955a2bb866b88f7b9937c1c5",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 146,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "map_hazard",
+      "asset_id": "map_hazard",
+      "visual_id": "hazard",
+      "category": "map",
+      "runtime_path": "assets/icons/map/hazard.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "map_hazard",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/map_hazard.png",
+      "objects": 5,
+      "mesh_vertices": 264,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "bbbeac62363b9cc4b8b65c64eb140dba9c485f86d2f69e601376e3bc6e6d3f08",
+      "export_sha256": "02d665a14197482b3403e90eee30ec21fcc232a70b1d125523d3415d4d54f703",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 164,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "map_lock",
+      "asset_id": "map_lock",
+      "visual_id": "lock",
+      "category": "map",
+      "runtime_path": "assets/icons/map/lock.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "map_lock",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        96,
+        96
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/map_lock.png",
+      "objects": 6,
+      "mesh_vertices": 400,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "73bccb0d9abc473ba2c5a16121bfe7343c90eacb5753cb0a8683ba78633b9d14",
+      "export_sha256": "555da81090e2fb75dcb304a2219c766ff2a5ff085484d8859e12d5195a192af9",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 258,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "control_checkbox_on",
+      "asset_id": "control_checkbox_on",
+      "visual_id": "checkbox_on",
+      "category": "control",
+      "runtime_path": "assets/icons/controls/checkbox_on.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "control_checkbox_on",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        24,
+        24
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/control_checkbox_on.png",
+      "objects": 3,
+      "mesh_vertices": 16,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "7520383f78fe08ca79871b7448838ad2e6f025bf69c9d8f948f1d649e2585673",
+      "export_sha256": "80025dd581f58c9ef2d589df14e95098cf833b5655e80182fa44c4d4ad6c33ac",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 484,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "control_checkbox_off",
+      "asset_id": "control_checkbox_off",
+      "visual_id": "checkbox_off",
+      "category": "control",
+      "runtime_path": "assets/icons/controls/checkbox_off.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "control_checkbox_off",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        24,
+        24
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/control_checkbox_off.png",
+      "objects": 2,
+      "mesh_vertices": 16,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "0701c2f26de41a8d6830ba4f627b13e4209b735a03cbc8fc60760efc5ad188ef",
+      "export_sha256": "b0e162a104c2cb10f40dee19f9dc28f61a8565460a557e881c17f576f047d2b1",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 484,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "control_checkbox_on_disabled",
+      "asset_id": "control_checkbox_on_disabled",
+      "visual_id": "checkbox_on_disabled",
+      "category": "control",
+      "runtime_path": "assets/icons/controls/checkbox_on_disabled.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "control_checkbox_on_disabled",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        24,
+        24
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/control_checkbox_on_disabled.png",
+      "objects": 3,
+      "mesh_vertices": 16,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "5c0bfa9132dfa3a31c8c445cf41e834aab2c7ab7c586aed941ff968ce29b2def",
+      "export_sha256": "35f29a2c9f61a79a5c8509ca129207a4a34d10b83cf6334c5083aeda6e0c3e42",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 484,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "control_checkbox_off_disabled",
+      "asset_id": "control_checkbox_off_disabled",
+      "visual_id": "checkbox_off_disabled",
+      "category": "control",
+      "runtime_path": "assets/icons/controls/checkbox_off_disabled.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "control_checkbox_off_disabled",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        24,
+        24
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/control_checkbox_off_disabled.png",
+      "objects": 2,
+      "mesh_vertices": 16,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "3bcdbe9eef281310dcfacb6f3fb40b6b7f9502b855a9da20327738dea2d16857",
+      "export_sha256": "9cfbe45618170878ccba5d1cb083c1a387be35190df40a5fdb1be25eb8250e81",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 484,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "control_switch_on",
+      "asset_id": "control_switch_on",
+      "visual_id": "switch_on",
+      "category": "control",
+      "runtime_path": "assets/icons/controls/switch_on.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "control_switch_on",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        48,
+        26
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/control_switch_on.png",
+      "objects": 6,
+      "mesh_vertices": 48,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "886d7334f19802d9abaf53240d8d5ef68ae4e82c87d43475314d5c00991b083c",
+      "export_sha256": "fa00689c75dec8d1db946fa7801f80bb57c1cfa17299203c752776f485e3602d",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 198,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "control_switch_off",
+      "asset_id": "control_switch_off",
+      "visual_id": "switch_off",
+      "category": "control",
+      "runtime_path": "assets/icons/controls/switch_off.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "control_switch_off",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        48,
+        26
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/control_switch_off.png",
+      "objects": 6,
+      "mesh_vertices": 48,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "7204c72786160bdc25997544ff084dc896a0b06b64563e2939276762c7aeb158",
+      "export_sha256": "d99c4f033c0078bff5bab18aece2baa3608fbc2481c71c6ed65a160191f16953",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 198,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "control_switch_on_disabled",
+      "asset_id": "control_switch_on_disabled",
+      "visual_id": "switch_on_disabled",
+      "category": "control",
+      "runtime_path": "assets/icons/controls/switch_on_disabled.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "control_switch_on_disabled",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        48,
+        26
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/control_switch_on_disabled.png",
+      "objects": 6,
+      "mesh_vertices": 48,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "bd52de4c4f36c17f9ce4f837d6416e8e948b5d186e27b80669fd86ee84606c84",
+      "export_sha256": "00a002d3d13eca9ae12ca3f99c9991476de86bdf4b26046f9ec9140c3e5e9000",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 198,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "control_switch_off_disabled",
+      "asset_id": "control_switch_off_disabled",
+      "visual_id": "switch_off_disabled",
+      "category": "control",
+      "runtime_path": "assets/icons/controls/switch_off_disabled.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "control_switch_off_disabled",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        48,
+        26
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/control_switch_off_disabled.png",
+      "objects": 6,
+      "mesh_vertices": 48,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "f248c74c79fe81b272804eb40532984815bfdf4b12c72f01c374511e9bc96cb5",
+      "export_sha256": "62784e73ac247083b8dff277ea616b23094f6e96614ab56e793499013eb5c905",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 198,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "control_slider_grabber",
+      "asset_id": "control_slider_grabber",
+      "visual_id": "slider_grabber",
+      "category": "control",
+      "runtime_path": "assets/icons/controls/slider_grabber.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "control_slider_grabber",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        22,
+        22
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/control_slider_grabber.png",
+      "objects": 4,
+      "mesh_vertices": 32,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "3cace29c4673df374978e6007ca150cfa876cc83f361670b4cb51c12431f03cb",
+      "export_sha256": "ec4af1e0d450d23357f4238ee11c57f66d41d56e0d7cc3bd5db0691cecfc6aec",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 236,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "control_slider_grabber_highlight",
+      "asset_id": "control_slider_grabber_highlight",
+      "visual_id": "slider_grabber_highlight",
+      "category": "control",
+      "runtime_path": "assets/icons/controls/slider_grabber_highlight.png",
+      "source_path": "art_src/blender/ui/qq_small_icons.blend",
+      "source_collection": "control_slider_grabber_highlight",
+      "generator": "tools/blender/build_ui_batch.py",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "size": [
+        22,
+        22
+      ],
+      "source_render_size": [
+        512,
+        512
+      ],
+      "render_path": "tools/.local/blender_ui_batch/control_slider_grabber_highlight.png",
+      "objects": 4,
+      "mesh_vertices": 32,
+      "shared_parts": [
+        "beveled_extrusions",
+        "metal_rims",
+        "enamel_inlays",
+        "orthographic_render_rig"
+      ],
+      "render_sha256": "e96e96a9e70f5582b057564dae51a1a2f5f99d847086b88fde861b75ad35125f",
+      "export_sha256": "61ac232124a52c3e0d8cb80416d0efa6e8258bab15a52eac2720662b16294862",
+      "source_sha256": "56d30739dcfbfc313a66f5058a00934b8337a4c23a68ba481d05c3ffca1f82f9",
+      "replacement_status": "implemented",
+      "validation": {
+        "alpha_visible_pixels_at_24px": 236,
+        "alpha_corners": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "third_party_inputs": [],
+  "license": "project-original",
+  "preserved_assets": {
+    "assets/icons/status/bleed.png": "5afb6d4607caa7e0621b6cbe65c91e47dac04512863ded3b737b3288ff3853dc",
+    "assets/icons/ui/attack.png": "2854a4ff3292cb95a146f6063e28bb795ce474b691425e71030d121e9f127248"
+  },
+  "control_state_atlas": {
+    "path": "art_src/blender/ui/control_states.atlas.png",
+    "sha256": "4a90236f110013f553d1040b66a026472db21ae38309fc033712f4a19032fee9",
+    "regions": {
+      "checkbox_on": [
+        0,
+        0,
+        24,
+        24
+      ],
+      "checkbox_off": [
+        64,
+        0,
+        24,
+        24
+      ],
+      "checkbox_on_disabled": [
+        128,
+        0,
+        24,
+        24
+      ],
+      "checkbox_off_disabled": [
+        192,
+        0,
+        24,
+        24
+      ],
+      "switch_on": [
+        0,
+        40,
+        48,
+        26
+      ],
+      "switch_off": [
+        64,
+        40,
+        48,
+        26
+      ],
+      "switch_on_disabled": [
+        128,
+        40,
+        48,
+        26
+      ],
+      "switch_off_disabled": [
+        192,
+        40,
+        48,
+        26
+      ],
+      "slider_grabber": [
+        0,
+        80,
+        22,
+        22
+      ],
+      "slider_grabber_highlight": [
+        64,
+        80,
+        22,
+        22
+      ]
+    }
+  },
+  "category_counts": {
+    "status": 3,
+    "ui": 12,
+    "effect": 12,
+    "map": 9,
+    "control": 10
+  },
+  "finalizer": "tools/finalize_ui_batch.py",
+  "finalizer_sha256": "6d44187f5f1c70e3de97332883642bb44bb00abf2683d2f050aef104222f235d"
+}

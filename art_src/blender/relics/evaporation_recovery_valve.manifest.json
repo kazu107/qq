@@ -1,0 +1,87 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/evaporation_recovery_valve.blend",
+  "source_sha256": "4c67487c7f54e6205d7ca37a6878aa578077057c8ebb5af342642d80065cdad4",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "evaporation_recovery_valve",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/evaporation_recovery_valve.png",
+      "source_path": "art_src/blender/relics/evaporation_recovery_valve.blend",
+      "source_sha256": "4c67487c7f54e6205d7ca37a6878aa578077057c8ebb5af342642d80065cdad4",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/evaporation_recovery_valve.png",
+      "source_render_sha256": "c2e92e2580402415ceabe7f849d0aeb68cf42edd7a2b9bc2fc807a93921e4df2",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "68c27341f5dc860d6fbcd8d42e6a2cc887a803b0d556160d47997323d51380d8",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R08",
+      "kit_name": "shield_pressure_and_spend",
+      "semantic_mapping": {
+        "name": "Evaporation Recovery Valve",
+        "actual_description": "For every 3 shield lost to natural decay, gain a token that reduces the next shield-spend cost by 1, up to 3 tokens.",
+        "actual_effects": [
+          {
+            "type": "reduce_shield_cost",
+            "trigger": "natural_shield_decay",
+            "decay_per_token": 3,
+            "amount_per_token": 1,
+            "max_tokens": 3,
+            "accumulation_cutoff": 70.0
+          }
+        ],
+        "reused_components": [
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "decay_recovery_feed",
+          "recovery_valve_body",
+          "sealed_cell",
+          "steam_escape",
+          "valve_handwheel",
+          "valve_stem"
+        ],
+        "unique_assembly_recipe": "evaporation_recovery_valve"
+      },
+      "geometry_sha256": "63c5640c174bfacc042eb472698e1fbff46ecfb2db0c4fdf5404bcee77299252",
+      "mesh_vertices": 7184,
+      "mesh_polygons": 6538,
+      "object_count": 20,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.24167,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.7,
+      "export_sha256": "e71b80790f5f2d3698131b8a177328cfba9c3304a104c4dd387fa371722d6df8",
+      "validation": {
+        "alpha_bbox": [
+          95,
+          60,
+          412,
+          450
+        ],
+        "minimum_padding_px": 60,
+        "foreground_fraction": 0.27549,
+        "opaque_fraction": 0.26571,
+        "48px_foreground_fraction": 0.30729
+      }
+    }
+  ]
+}

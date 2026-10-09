@@ -1,0 +1,90 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/critical_pathology_meter.blend",
+  "source_sha256": "1d560dea86815b5b10666b96db58ee5542fe8f9640da178fbcb97076c8be8250",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "critical_pathology_meter",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/critical_pathology_meter.png",
+      "source_path": "art_src/blender/relics/critical_pathology_meter.blend",
+      "source_sha256": "1d560dea86815b5b10666b96db58ee5542fe8f9640da178fbcb97076c8be8250",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/critical_pathology_meter.png",
+      "source_render_sha256": "1eeeae5341c72f2f82e007563c10637d2a0fd32cc01cf550f9ca51410db12346",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "4d86b82c7c38cf03a3232e9018f3a7af3c9d47a9b8894aec512cb8af21b4dd42",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R09",
+      "kit_name": "status_and_pathology",
+      "semantic_mapping": {
+        "name": "Critical Pathology Meter",
+        "actual_description": "When an enemy status expires naturally, bleed deals one final tick; other statuses delay the enemy's frontmost card by 1.2 seconds. Cooldown: 4 seconds.",
+        "actual_effects": [
+          {
+            "type": "reward_natural_status_expiry",
+            "trigger": "enemy_status_expired",
+            "bleed_final_ticks": 1,
+            "other_status_delay": 1.2,
+            "internal_cooldown": 4.0
+          }
+        ],
+        "reused_components": [
+          "bleed_final_tick",
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "pathology_meter_housing",
+          "sealed_cell",
+          "terminal_status_reaction"
+        ],
+        "unique_assembly_recipe": "critical_pathology_meter"
+      },
+      "geometry_sha256": "0dc2d9d5aa9717aacbdd007a677ae2a085e19be5e2275193a58ebcf96ff5387e",
+      "mesh_vertices": 10712,
+      "mesh_polygons": 9798,
+      "object_count": 40,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.1292,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 18.16,
+      "export_sha256": "c8269237b0a65a4756c61358ffa4f0f2ac7abf43f3e6471aec2c286f5aecdebb",
+      "validation": {
+        "alpha_bbox": [
+          52,
+          67,
+          458,
+          441
+        ],
+        "minimum_padding_px": 52,
+        "foreground_fraction": 0.45076,
+        "opaque_fraction": 0.44399,
+        "48px_foreground_fraction": 0.46875
+      }
+    }
+  ]
+}

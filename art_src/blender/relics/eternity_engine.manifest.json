@@ -1,0 +1,84 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/eternity_engine.blend",
+  "source_sha256": "f623f4ed3619f9f32e76fb2879928cd1bfb15c4833247354a0c34f5788ab0018",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "eternity_engine",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/eternity_engine.png",
+      "source_path": "art_src/blender/relics/eternity_engine.blend",
+      "source_sha256": "f623f4ed3619f9f32e76fb2879928cd1bfb15c4833247354a0c34f5788ab0018",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/eternity_engine.png",
+      "source_render_sha256": "bf575b8b89b6d01308e74f4a0fc425b748d4be233e4ee39d86281ae845ca46bf",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "7cf202977cd872d1b56d90bd0c374bcb7b64557dfa40cf7f679551bd39e519bd",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R02",
+      "kit_name": "cores_batteries_and_heat",
+      "semantic_mapping": {
+        "name": "Eternity Engine",
+        "actual_description": "Your cast times are 15% faster and you start each battle with 10 shield.",
+        "actual_effects": [],
+        "reused_components": [
+          "cell_endcap",
+          "cell_inspection_strip",
+          "cell_liquid",
+          "chrono_reactor_hoop",
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "reactor_strut",
+          "sealed_cell",
+          "shield_inset",
+          "shield_ridge",
+          "shield_shell"
+        ],
+        "unique_assembly_recipe": "eternity_engine"
+      },
+      "geometry_sha256": "231ac178c3b7da49df4408a42b85abf36283331e5dc7766642e5347ac3e09217",
+      "mesh_vertices": 9328,
+      "mesh_polygons": 8912,
+      "object_count": 30,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.37596,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.22,
+      "export_sha256": "0297aa5615fadec3f600c639c3d865d8d49647661e4fe97eb238aedbb83ab417",
+      "validation": {
+        "alpha_bbox": [
+          86,
+          72,
+          426,
+          448
+        ],
+        "minimum_padding_px": 64,
+        "foreground_fraction": 0.33783,
+        "opaque_fraction": 0.32975,
+        "48px_foreground_fraction": 0.36285
+      }
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 # 画像・アイコン資産台帳と自前化計画
 
-最終監査日: 2026-09-09
+最終監査日: 2026-10-10 / QQ-0.32.0
 
-第二弾でスターター6体のGLBと全7体のポートレートを自前化しました。以下の集計表は第一弾時点の記録です。第二弾の追加分・寸法・個別ハッシュは`docs/BLENDER_STARTER_BATCH.md`と`art_src/blender/characters/qq_starters.manifest.json`を参照してください。
+第一弾・スターター・敵とボス・カード・遺物・小型UI・環境のバッチを展開しました。現在の機械判定は`data/art_coverage.json`、個別の原本・出力ハッシュは`data/art_provenance.json`を参照してください。検証と画面確認は`docs/BLENDER_FULL_ROLLOUT.md`へ記録します。
 
 この文書は、ゲーム本体、Web出力、3D制作、開発用ファイルに含まれる視覚資産を、将来すべて自前の素材へ置き換えるための基準としてまとめたものです。`.import`、フォント、SE、動画、コードだけで構成される通常のパネルや文字装飾はファイル数に含めません。ただし、コードから画像として生成されるアイコン、フォールバック、背景は別表に含めます。
 
@@ -12,20 +12,23 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 | 区分 | 数 | 現在の形式 | 容量・仕様 | 主な用途 |
 | --- | ---: | --- | --- | --- |
-| カード画像 | 93 | PNG RGBA | 全て512x512、35.11 MiB | 戦闘、タイムライン、報酬、図鑑、ロードアウト、デバッグ |
-| 遺物画像 | 86 | PNG RGBA | 全て512x512、30.26 MiB | バナー、報酬、イベント、アリーナ、ツールチップ |
-| キャラクター・敵画像 | 25 | PNG RGB | 21枚が1254x1254、4枚が1024x1024、60.90 MiB | ラン開始、戦闘、アリーナ |
-| 状態アイコン | 4 | PNG RGBA | 全て96x96、21.51 KiB | 戦闘中の状態表示とツールチップ |
-| Blender製UIアイコン | 1 | PNG RGBA | 64x64、5.69 KiB | 攻撃力、カード効果 |
-| アプリ用原本 | 1 | SVG | 128x128相当 | Windows/Godotアプリアイコン、Webアイコン生成元 |
+| カード画像 | 93 + 疲労1 | PNG RGBA | 全て512x512、編集可能なBlenderシーン | 戦闘、タイムライン、報酬、図鑑、ロードアウト、デバッグ |
+| 遺物画像 | 86 | PNG RGBA | 全て512x512、台座・背景なしの透過 | バナー、報酬、イベント、アリーナ、ツールチップ |
+| キャラクター・敵画像 | 25 | PNG | 全て1024x1024、同じ3Dモデルからレンダー | 戦闘、アリーナ、開発者ラボ |
+| 状態アイコン | 4 | PNG RGBA | 全て96x96 | 戦闘中の状態表示とツールチップ |
+| 共通UI・効果アイコン | 13 + 12 | PNG RGBA | 全て64x64 | ステータス、カード効果、施設、バナー |
+| マップ・操作部品 | 9 + 10 | PNG RGBA | マップ96x96、操作部品は従来のUI寸法 | マップ、設定のスイッチ・チェック・スライダー |
+| アプリ用アイコン | 1 | PNG RGBA | 256x256、Blender製のQエンブレム | Windows/Godot、Webアイコン生成元 |
+| ブランドロゴ | 2 | SVG | QueueQuestワードマークとマーク | ロード画面・ハブ、既存SVGアニメーションを維持 |
+| 背景 | 2 | PNG | 1920x1080 | ハブ共通背景・ラン結果 |
 | Web出力画像 | 3 | PNG RGBA | 128x128、180x180、800x600 | favicon、Apple touch icon、起動スプラッシュ |
-| 3Dランタイム資産 | 3 | GLB | 合計2.57 MiB | プレイヤー、敵、共有アニメーション |
-| Blender制作原本 | 3 | Blend | 合計1.76 MiB | キャラ、静止画、アニメーションの再生成 |
-| 開発・文書専用画像 | 5 | PNG RGBA | 合計1.42 MiB | Blender確認画像、コンタクトシート、GD-EOS文書ロゴ |
+| 3Dランタイム資産 | 25 + 共有アニメーション1 + フィールド1 | GLB | キャラクターは共通18ボーン、フィールドは約3.94MB | プレイヤー、全敵・ボス、戦闘地形 |
+| Blender制作原本 | バッチ・カード・遺物単位 | Blend | `art_src/blender/`、PCK対象外 | モデル・静止画の再生成 |
+| 開発・文書専用画像 | バッチごと | PNG | コンタクトシート、実寸比較、ネイティブ/Web確認 | 本番ランタイム対象外 |
 
-- Git管理対象の視覚ファイルは合計224個です。内訳はPNG 217、SVG 1、GLB 3、Blend 3です。
-- ゲーム固有の2Dアートは209 PNGで、`icon.svg`を含めた容量は126.30 MiBです。
-- 第一弾14点は個別のSHA-256を制作証跡へ記録し、同一出力の取り違えがないことを確認しています。
+- 制作台帳は282成果物を対象にします。共有アニメーション、SVGワードマーク、確認画像はこの成果物数へ含めません。
+- 高解像度レンダーから縮小し、PNG/GLBだけをゲームへ入れます。原本・中間レンダー・検証記録はPCKへ含めません。
+- 原本、生成スクリプト、成果物のSHA-256を検証し、保存原本の別プロセス再読み込みも各バッチで実施します。
 - カード、遺物、ポートレート、状態アイコンは現在のデータIDと1対1で揃っています。
 - Webでは容量を抑えるため、起動時の全画像展開は行わず、必要時にGodotのインポート済みテクスチャを読み込みます。ネイティブ版は起動時キャッシュ対象です。
 
@@ -37,7 +40,8 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | 遺物 | `assets/icons/relics/{relic_id}.png` | `RelicIcon.gd`、`RelicIconRow.gd` | ID由来の128x128四角模様を生成 |
 | ポートレート | `assets/portraits/{starter_or_enemy_id}.png` | `UnitPanel.gd`、`ArenaScreen.gd` | IDと陣営色由来の320x320人物プレースホルダーを生成。開始デッキ選択では3Dモデルへ移行済み |
 | 状態 | `assets/icons/status/{status_id}.png` | `UnitPanel.gd` | ID由来の96x96単色四角を生成 |
-| アプリアイコン | `icon.svg` | `project.godot`の`config/icon` | Godot側の既定処理 |
+| アプリアイコン | `assets/branding/queuequest-emblem-3d.png` | `project.godot`の`config/icon` | Godot側の既定処理 |
+| 背景・フィールド | `assets/backgrounds/*.png`、`assets/models/environment/qq_battlefield.glb` | `ArtCatalog.gd`、`BattleEnvironmentArt.gd` | 既存のコード生成背景・地形 |
 | Web画像 | `build/web/index*.png` | `build/web/index.html` | Web再出力時に再生成 |
 | 3Dモデル | `assets/models/battle/*.glb` | `data/battle_visuals.json`、`BattleActor3D.gd`、`StarterModelPreview.gd` | 戦闘と開始デッキ選択で使用。共通のプロシージャル人型へフォールバック |
 
@@ -47,13 +51,13 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 | 区分 | 現状 | 自前化に向けた判断 |
 | --- | --- | --- |
-| カード | 6枚はBlender原本と再生成スクリプトが揃う。残り87枚は`tools/generate_card_icons.py`または既存PNG | 第一弾を基準にシリーズ単位でBlender化する |
-| 遺物 | 4個はBlender原本と再生成スクリプトが揃う。残り82個は取り込み済みPNGのみ | 第一弾の機構キットを再利用し、台座なしの透過アイコンへ展開する |
-| ポートレート | スターター7枚はBlender原本・再生成スクリプトあり。敵18枚は既存PNG | 敵側は第三弾で同一3Dモデルから生成する |
-| 状態アイコン | `bleed`はBlender原本あり。残り3個はPNGのみ | 同じ立体メダリオンへ展開する |
-| 共通UI・マップアイコン | `attack`はBlender PNGを優先しコード生成へフォールバック。残りはGDScript生成 | 第一弾と同じ正投影・材質体系へ段階移行する |
+| カード | 全93枚と疲労にBlender原本・再生成スクリプトあり | 個別の背景・構図・効果を維持。第一弾6枚を保護 |
+| 遺物 | 全86個にBlender原本・再生成スクリプトあり | 台座なし透過、48pxでの輪郭確認 |
+| ポートレート | 全25枚にBlender原本・再生成スクリプトあり | 全25モデルと共有リグで動作確認 |
+| 状態アイコン | 全4枚をBlender化 | 24px実寸確認、欠損時のみコード生成 |
+| 共通UI・マップアイコン | 全13 UI、12効果、9マップ、10操作部品をBlender化 | 従来の配置・サイズ・ホバー動作を維持 |
 | 3D | `.blend`、生成Python、GLB、manifestが揃う | 現時点で最も再現性が高い。今後もBlendを原本、GLBを成果物とする |
-| アプリ・Webブランド | 現在はGodot標準ロゴと標準スプラッシュ | 独自ブランドではないため最優先で交換する |
+| アプリ・Webブランド | アプリはBlenderエンブレム、ロード画面は自作SVG | ロード画面とハブの一体感・SVGアニメーションを維持 |
 | GD-EOSロゴ | プラグイン文書用の第三者ロゴ。Web出力から除外済み | ゲーム内では使わない。プラグイン文書を配布する間は出典を維持する |
 
 「自前」の判定には、見た目が独自であるだけでなく、編集可能な原本、作者、制作日、使用ツール、第三者素材、ライセンス、書き出しハッシュを記録できることを含めます。
@@ -80,11 +84,11 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | `version_history` | 履歴書類 | ハブ右上 | 専用生成 |
 | `card` | カード一般・ロードアウト | 施設の選択肢 | 専用絵がなく、IDハッシュ色の汎用四角を使用 |
 
-`card`は実際に使用中ですが専用分岐がないため、共通UIの自前化時に必ず専用アイコンを作ります。未知のIDも同じ汎用四角へフォールバックします。
+全13 IDをBlender製PNGへ接続済みです。`card`にも専用画像を追加しました。下表の「専用生成」は歴史的なコード生成フォールバックを指し、正常時の表示はBlender画像が優先されます。未知のIDは従来の汎用四角へフォールバックします。
 
 ### 4.2 カード効果アイコン
 
-`src/ui/common/CardEffectIconFactory.gd`がカード面の効果サマリー用に64x64 RGBAを生成してキャッシュします。攻撃、シールド、HP、速度、時間は`StatIconFactory.gd`を共有し、状態付与は`assets/icons/status/{status_id}.png`を共有します。
+`src/ui/common/CardEffectIconFactory.gd`は`assets/icons/effects/{id}.png`を優先してキャッシュします。下表の専用生成処理は欠損時のフォールバックです。攻撃、シールド、HP、速度、時間は`StatIconFactory.gd`を共有し、状態付与は`assets/icons/status/{status_id}.png`を共有します。
 
 | ID | 意味 | 状態 |
 | --- | --- | --- |
@@ -101,7 +105,7 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 ### 4.3 マップアイコン
 
-`src/ui/map/MapNodeButton.gd`が96x96 RGBAを生成します。表示時は種類アイコン42x42、ロック52x52です。
+`src/ui/map/MapNodeButton.gd`は`assets/icons/map/{id}.png`を優先します。コード生成は欠損時のみです。表示時は種類アイコン42x42、ロック52x52です。
 
 | ID | 意味 |
 | --- | --- |
@@ -117,7 +121,7 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 ### 4.4 UIテーマ画像
 
-`src/autoload/UiTheme.gd`が次の小型テクスチャを起動時に生成します。
+`src/autoload/UiTheme.gd`は`assets/icons/controls/`のBlender画像を読み込みます。従来の小型テクスチャ生成は欠損時のみ残します。
 
 | 種類 | 状態数 | サイズ | 用途 |
 | --- | ---: | --- | --- |
@@ -129,10 +133,10 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 | 対象 | 実装 | 内容 |
 | --- | --- | --- |
-| 全画面背景 | `AtmosphereBackground.gd` | グラデーション、発光円、斜め面、グリッド、ビネットをCanvas描画 |
-| ラン結果背景 | `RunResultScreen.gd` | `GradientTexture2D`を実行時生成 |
-| 戦闘フィールド | `BattleStage3D.gd` | 地面、タイル、草、岩、花、柱、樽、レーン、発射物、命中VFXをメッシュ生成 |
-| 共通3Dキャラ | `CommonBattleHumanoid3D.gd` | 人型、装備、盾、武器、背面装備を基本メッシュから生成 |
+| 全画面背景 | `AtmosphereBackground.gd` | Blender製背景を使用。暗いオーバーレイとビネットはコード、既存グラデーションはフォールバック |
+| ラン結果背景 | `RunResultScreen.gd` | Blender製背景を使用。`GradientTexture2D`はフォールバック |
+| 戦闘フィールド | `BattleStage3D.gd` | Blender GLBを使用。陣営レーン、発射物、命中VFX、ステータスプレートは動的コード表示 |
+| 共通3Dキャラ | `CommonBattleHumanoid3D.gd` | 全25体は固有GLBを使用。共通リグと欠損時の簡易形状は維持 |
 | 3D台座 | `BattleActor3D.gd` | 陣営色の円形台座を生成 |
 | カード欠損 | `CardButton.gd` | 256x256の色付き幾何学模様 |
 | 遺物欠損 | `RelicIcon.gd` | 128x128の色付き四角模様 |
@@ -158,11 +162,11 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 ## 6. 推奨する差し替え順
 
-1. `P0`: `icon.svg`とWebスプラッシュを独自ロゴへ交換します。現在はGodot標準画像がそのまま公開されています。
-2. `P1`: ポートレート25枚、遺物86枚、状態4枚を原本と権利記録付きで作り直します。現状は再現可能な制作元がありません。
-3. `P2`: 共通UI 13種、マップ9種、CheckButton、CheckBox、Sliderを同一の自作アイコン体系へ統一します。
-4. `P3`: カード93枚をシリーズ単位で差し替えます。既存コード生成版は再生成可能なので、移行中の代替として維持できます。
-5. `P4`: プロシージャル背景、戦闘フィールド、小物、残り23体分の固有3Dモデルを自作原本へ拡張します。
+1. `P0` 完了: 自作SVGロード画面を維持し、アプリ/WebアイコンをBlenderエンブレムへ交換。
+2. `P1` 完了: ポートレート25枚、遺物86枚、状態4枚を原本と制作証跡付きへ。
+3. `P2` 完了: 共通UI 13種、効果12種、マップ9種、設定操作部品10種を自作画像へ。
+4. `P3` 完了: カード93枚と疲労カードを、固有構図のBlender画像へ。
+5. `P4` 完了: 全25モデル、背景2枚、戦闘フィールドをBlender原本へ。動的VFX・文字・陣営台座はコード表示を維持。
 
 1回の差し替えは1カテゴリまたは10から20点に限定し、ID一致、画像サイズ、重複、Godot起動、該当画面、Web/PCKを確認してから確定します。
 
@@ -392,24 +396,24 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | `aegis` | スターター | イージスフレーム | 1024x1024 | `assets/portraits/aegis.png` |
 | `chrono` | スターター | クロノフレーム | 1024x1024 | `assets/portraits/chrono.png` |
 | `turret` | スターター | タレットフレーム | 1024x1024 | `assets/portraits/turret.png` |
-| `scout` | 敵 | スカウト | 1254x1254 | `assets/portraits/scout.png` |
-| `brute` | 敵 | ブルート | 1254x1254 | `assets/portraits/brute.png` |
-| `disruptor` | 敵 | ディスラプター | 1254x1254 | `assets/portraits/disruptor.png` |
-| `guardian` | 敵 | ガーディアン | 1254x1254 | `assets/portraits/guardian.png` |
-| `raider` | 敵 | レイダー | 1254x1254 | `assets/portraits/raider.png` |
-| `medic_drone` | 敵 | メディックドローン | 1254x1254 | `assets/portraits/medic_drone.png` |
-| `chronoguard` | 敵 | クロノガード | 1254x1254 | `assets/portraits/chronoguard.png` |
-| `boss_timekeeper` | ボス | タイムキーパー | 1254x1254 | `assets/portraits/boss_timekeeper.png` |
-| `phase_stalker` | 敵 | フェイズストーカー | 1254x1254 | `assets/portraits/phase_stalker.png` |
-| `void_bastion` | 敵 | ヴォイドバスティオン | 1254x1254 | `assets/portraits/void_bastion.png` |
-| `echo_revenant` | 敵 | エコーレヴナント | 1254x1254 | `assets/portraits/echo_revenant.png` |
-| `boss_paradox_core` | ボス | パラドックス・コア | 1254x1254 | `assets/portraits/boss_paradox_core.png` |
-| `rift_predator` | 敵 | リフトプレデター | 1254x1254 | `assets/portraits/rift_predator.png` |
-| `entropy_colossus` | 敵 | エントロピーコロッサス | 1254x1254 | `assets/portraits/entropy_colossus.png` |
-| `boss_axiom_breaker` | ボス | アクシオムブレイカー | 1254x1254 | `assets/portraits/boss_axiom_breaker.png` |
-| `omega_seraph` | 敵 | オメガセラフ | 1254x1254 | `assets/portraits/omega_seraph.png` |
-| `grave_architect` | 敵 | グレイヴアーキテクト | 1254x1254 | `assets/portraits/grave_architect.png` |
-| `boss_eternity_zero` | ボス | エタニティ・ゼロ | 1254x1254 | `assets/portraits/boss_eternity_zero.png` |
+| `scout` | 敵 | スカウト | 1024x1024 | `assets/portraits/scout.png` |
+| `brute` | 敵 | ブルート | 1024x1024 | `assets/portraits/brute.png` |
+| `disruptor` | 敵 | ディスラプター | 1024x1024 | `assets/portraits/disruptor.png` |
+| `guardian` | 敵 | ガーディアン | 1024x1024 | `assets/portraits/guardian.png` |
+| `raider` | 敵 | レイダー | 1024x1024 | `assets/portraits/raider.png` |
+| `medic_drone` | 敵 | メディックドローン | 1024x1024 | `assets/portraits/medic_drone.png` |
+| `chronoguard` | 敵 | クロノガード | 1024x1024 | `assets/portraits/chronoguard.png` |
+| `boss_timekeeper` | ボス | タイムキーパー | 1024x1024 | `assets/portraits/boss_timekeeper.png` |
+| `phase_stalker` | 敵 | フェイズストーカー | 1024x1024 | `assets/portraits/phase_stalker.png` |
+| `void_bastion` | 敵 | ヴォイドバスティオン | 1024x1024 | `assets/portraits/void_bastion.png` |
+| `echo_revenant` | 敵 | エコーレヴナント | 1024x1024 | `assets/portraits/echo_revenant.png` |
+| `boss_paradox_core` | ボス | パラドックス・コア | 1024x1024 | `assets/portraits/boss_paradox_core.png` |
+| `rift_predator` | 敵 | リフトプレデター | 1024x1024 | `assets/portraits/rift_predator.png` |
+| `entropy_colossus` | 敵 | エントロピーコロッサス | 1024x1024 | `assets/portraits/entropy_colossus.png` |
+| `boss_axiom_breaker` | ボス | アクシオムブレイカー | 1024x1024 | `assets/portraits/boss_axiom_breaker.png` |
+| `omega_seraph` | 敵 | オメガセラフ | 1024x1024 | `assets/portraits/omega_seraph.png` |
+| `grave_architect` | 敵 | グレイヴアーキテクト | 1024x1024 | `assets/portraits/grave_architect.png` |
+| `boss_eternity_zero` | ボス | エタニティ・ゼロ | 1024x1024 | `assets/portraits/boss_eternity_zero.png` |
 
 ## 11. 状態、ブランド、Web、開発用画像
 
@@ -426,10 +430,11 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 | ファイル | サイズ | 用途 | 自前化時の扱い |
 | --- | --- | --- | --- |
-| `icon.svg` | 128x128相当 | アプリの原本アイコン | 現在はGodot標準ロゴ。独自SVGへ交換 |
+| `assets/branding/queuequest-emblem-3d.png` | 256x256 | アプリ原本からの出力アイコン | Blender原本は環境バッチへ保存 |
+| `assets/branding/queuequest-logo.svg` / `queuequest-mark.svg` | ベクター | ロード画面・ハブ | 自作SVGとアニメーションを維持 |
 | `build/web/index.icon.png` | 128x128 | favicon | Web再出力で自動生成 |
 | `build/web/index.apple-touch-icon.png` | 180x180 | iOSホーム画面 | Web再出力で自動生成 |
-| `build/web/index.png` | 800x600 | Web起動スプラッシュ | 現在は「GODOT Game engine」標準画像。独自スプラッシュへ交換 |
+| `build/web/index.png` | 800x600 | Web起動スプラッシュ | 自作SVGロゴからWeb出力時に生成 |
 
 ### 11.3 3Dと開発専用
 

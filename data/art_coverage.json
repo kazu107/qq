@@ -1,0 +1,72 @@
+{
+  "updated_at": "2026-10-10",
+  "complete": true,
+  "registered_assets": 282,
+  "coverage": {
+    "Cards": {
+      "done": 93,
+      "total": 93,
+      "remaining": []
+    },
+    "Fatigue": {
+      "done": 1,
+      "total": 1,
+      "remaining": []
+    },
+    "Relics": {
+      "done": 86,
+      "total": 86,
+      "remaining": []
+    },
+    "Character models": {
+      "done": 25,
+      "total": 25,
+      "remaining": []
+    },
+    "Portraits": {
+      "done": 25,
+      "total": 25,
+      "remaining": []
+    },
+    "Status": {
+      "done": 4,
+      "total": 4,
+      "remaining": []
+    },
+    "UI": {
+      "done": 13,
+      "total": 13,
+      "remaining": []
+    },
+    "Effects": {
+      "done": 12,
+      "total": 12,
+      "remaining": []
+    },
+    "Map": {
+      "done": 9,
+      "total": 9,
+      "remaining": []
+    },
+    "Controls": {
+      "done": 10,
+      "total": 10,
+      "remaining": []
+    },
+    "Backgrounds": {
+      "done": 2,
+      "total": 2,
+      "remaining": []
+    },
+    "Field": {
+      "done": 1,
+      "total": 1,
+      "remaining": []
+    },
+    "Branding": {
+      "done": 1,
+      "total": 1,
+      "remaining": []
+    }
+  }
+}

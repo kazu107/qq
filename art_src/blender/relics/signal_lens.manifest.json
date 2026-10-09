@@ -1,0 +1,80 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/signal_lens.blend",
+  "source_sha256": "ff138a6b23f96cade600ae839799064a809a8f7f70c723b713e7ad3d113e654c",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "signal_lens",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/signal_lens.png",
+      "source_path": "art_src/blender/relics/signal_lens.blend",
+      "source_sha256": "ff138a6b23f96cade600ae839799064a809a8f7f70c723b713e7ad3d113e654c",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/signal_lens.png",
+      "source_render_sha256": "79b4fcae15a59c65fc1d28da6eaaa0b39bb785d753817fc0d8f3b41798ebbcd9",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "abbd29f77522f42826c17427e92aef2268621db727b1766bd6ea6b2571432987",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R04",
+      "kit_name": "navigation_and_signals",
+      "semantic_mapping": {
+        "name": "Signal Lens",
+        "actual_description": "Start each battle with +1 attack and 3% faster casts.",
+        "actual_effects": [],
+        "reused_components": [
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "focus_knob",
+          "lens_rim",
+          "sighting_reticle",
+          "signal_lens",
+          "telescope_barrel"
+        ],
+        "unique_assembly_recipe": "signal_lens"
+      },
+      "geometry_sha256": "ce478adb1d4fe171ccc1a828dde1e887f01e4c68a6e9daa63a256c0ca8fefd44",
+      "mesh_vertices": 7424,
+      "mesh_polygons": 7066,
+      "object_count": 24,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.23599,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.13,
+      "export_sha256": "3f57f78c93a31b88944d17d5ca5bee2023de4301acaa89945614df6b3f4295ba",
+      "validation": {
+        "alpha_bbox": [
+          73,
+          114,
+          442,
+          401
+        ],
+        "minimum_padding_px": 70,
+        "foreground_fraction": 0.20039,
+        "opaque_fraction": 0.19635,
+        "48px_foreground_fraction": 0.21267
+      }
+    }
+  ]
+}

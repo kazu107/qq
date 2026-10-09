@@ -1,0 +1,88 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/rupture_insurance_film.blend",
+  "source_sha256": "f1b5897b49c1f30208a219f09c39857ce67128068e45d23f56a369b4101042dd",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "rupture_insurance_film",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/rupture_insurance_film.png",
+      "source_path": "art_src/blender/relics/rupture_insurance_film.blend",
+      "source_sha256": "f1b5897b49c1f30208a219f09c39857ce67128068e45d23f56a369b4101042dd",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/rupture_insurance_film.png",
+      "source_render_sha256": "b24b99955583347e23d1304873733562cc4807988d8a5071252b4d632589fa52",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "1d0067149f167c2fce5f98d9a47e3bc4621f6394c62c9f2e985438c22f2a5c41",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R08",
+      "kit_name": "shield_pressure_and_spend",
+      "semantic_mapping": {
+        "name": "Rupture Insurance Film",
+        "actual_description": "Once per battle, when a shield-spend card is interrupted, refund 50% of its payment and set its recast to 70%.",
+        "actual_effects": [
+          {
+            "type": "refund_interrupted_shield_spend",
+            "trigger": "shield_spend_interrupted",
+            "refund_ratio": 0.5,
+            "recast_multiplier": 0.7,
+            "max_per_battle": 1
+          }
+        ],
+        "reused_components": [
+          "dial_axle",
+          "dial_bezel",
+          "dial_case",
+          "dial_face",
+          "dial_hand",
+          "dial_tick",
+          "direction_arrow",
+          "mechanism_cross_rail",
+          "mechanism_side_rail",
+          "refund_insurance_seal",
+          "ruptured_shield_membrane"
+        ],
+        "unique_assembly_recipe": "rupture_insurance_film"
+      },
+      "geometry_sha256": "d46509e911fedf342d31fdc7c26decaf57ca62ec05b69fd57a062b6e0129f6f6",
+      "mesh_vertices": 4520,
+      "mesh_polygons": 4338,
+      "object_count": 22,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.00046,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 1.79,
+      "export_sha256": "f67b55a347be7e3621aa28f84a3a28406522fb7d429a3abbb492115aea388298",
+      "validation": {
+        "alpha_bbox": [
+          62,
+          54,
+          450,
+          453
+        ],
+        "minimum_padding_px": 54,
+        "foreground_fraction": 0.42609,
+        "opaque_fraction": 0.41796,
+        "48px_foreground_fraction": 0.44748
+      }
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "batch_id": "relic_completion_r01_r11",
+  "generator": "tools/blender/build_relic_batches.py",
+  "source": "art_src/blender/relics/echo_coil.blend",
+  "source_sha256": "9f00ca48eb2b50a706f52904eb6f6108f008137d857a3b9d31a337cc8f36a613",
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "id": "echo_coil",
+      "category": "relic",
+      "runtime_path": "assets/icons/relics/echo_coil.png",
+      "source_path": "art_src/blender/relics/echo_coil.blend",
+      "source_sha256": "9f00ca48eb2b50a706f52904eb6f6108f008137d857a3b9d31a337cc8f36a613",
+      "source_render_path": "tools/.local/blender_relic_batches/renders/echo_coil.png",
+      "source_render_sha256": "e0a9b3948e4cb9b3ae39e038173af513ef433517ff5723544382a30bd736646f",
+      "presentation": "transparent_object_no_pedestal",
+      "size": [
+        512,
+        512
+      ],
+      "source_render_size": 2048,
+      "generator_sha256": {
+        "tools/blender/build_relic_batches.py": "6d6342f8bd9b09a446c2077ac1eda3ba2f30b66d8d12ecef76db517bc5d7ae8c",
+        "tools/blender/relic_asset_kits.py": "783912596d3f01cc6a4c13ab9ab679d619fb40d0773ef39a5e45d6281df86cd8",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd"
+      },
+      "semantic_data_sha256": "417d7fddf88c655821665c63ea8daff367310f358e05f9eaf304428c8e68fd82",
+      "blender_version": "5.2.2 LTS",
+      "render_engine": "BLENDER_EEVEE",
+      "kit": "R02",
+      "kit_name": "cores_batteries_and_heat",
+      "semantic_mapping": {
+        "name": "Echo Coil",
+        "actual_description": "Gain 15 gold after every victory.",
+        "actual_effects": [],
+        "reused_components": [
+          "bell_clapper",
+          "bell_hanger",
+          "bell_lip",
+          "cast_bell",
+          "coil_core",
+          "coil_insulator",
+          "magnetic_yoke",
+          "resonance_link",
+          "wound_copper_coil"
+        ],
+        "unique_assembly_recipe": "echo_coil"
+      },
+      "geometry_sha256": "6d6aff784bf6701aaf1f1f0284b8acf897d06a02f3cd2a2450e0a04e3af66a38",
+      "mesh_vertices": 34258,
+      "mesh_polygons": 34050,
+      "object_count": 10,
+      "camera": {
+        "type": "orthographic",
+        "ortho_scale": 2.13613,
+        "transparent_background": true,
+        "pedestal": false,
+        "floor": false,
+        "render_threads": 4,
+        "render_samples": 32
+      },
+      "build_seconds": 2.57,
+      "export_sha256": "3cfd6c25f87f469be0dbb8864eea16e2a2c5b0c1b6de1a996f31ed67b663f540",
+      "validation": {
+        "alpha_bbox": [
+          68,
+          69,
+          437,
+          427
+        ],
+        "minimum_padding_px": 68,
+        "foreground_fraction": 0.32619,
+        "opaque_fraction": 0.31395,
+        "48px_foreground_fraction": 0.36111
+      }
+    }
+  ]
+}
