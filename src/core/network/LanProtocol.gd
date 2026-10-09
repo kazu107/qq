@@ -37,11 +37,30 @@ static func build_content_hash() -> String:
 	var parts: Array[String] = [str(PROTOCOL_VERSION), "relic-resolver:%d" % RELIC_RESOLVER_VERSION]
 	for file_path in CONTENT_PATHS:
 		if not FileAccess.file_exists(file_path):
-			parts.append("missing:%s" % file_path)
+			var authored_hash: String = get_authored_content_hash(file_path)
+			parts.append(authored_hash if authored_hash != "" else "missing:%s" % file_path)
 			continue
-		parts.append(FileAccess.get_sha256(file_path))
+		if file_path.ends_with(".json"):
+			parts.append(hash_content_text(FileAccess.get_file_as_string(file_path)))
+		else:
+			parts.append(FileAccess.get_sha256(file_path))
 	_cached_content_hash = "\n".join(parts).sha256_text()
 	return _cached_content_hash
+
+
+static func hash_content_text(text: String) -> String:
+	# Git checks out LF; local generators may emit CRLF on Windows.
+	return text.replace("\r\n", "\n").replace("\r", "\n").sha256_text()
+
+
+static func get_authored_content_hash(file_path: String) -> String:
+	# Exported builds contain imported scenes, not the original GLB bytes.
+	if not file_path.ends_with(".glb"):
+		return ""
+	for entry: Dictionary in ArtCatalog.get_entries():
+		if String(entry.get("runtime_path", "")) == file_path.trim_prefix("res://"):
+			return String(entry.get("export_sha256", ""))
+	return ""
 
 
 static func clear_content_hash_cache() -> void:

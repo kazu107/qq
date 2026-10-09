@@ -14,7 +14,7 @@ const manifest = await fetch(`https://qq.kazu107.xyz/releases/current.json?relea
   assert.equal(response.status, 200);
   return response.json();
 });
-assert.equal(manifest.game_version, 'QQ-0.32.0');
+assert.equal(manifest.game_version, process.env.QQ_RELEASE_VERSION || 'QQ-0.32.1');
 assert.equal(manifest.commit, expectedCommit);
 const output = resolve('tools/.local/blender-public-review');
 await mkdir(output, { recursive: true });
@@ -41,6 +41,9 @@ try {
   assert.deepEqual(errors, []);
   await page.screenshot({ path: resolve(output, 'hub.png') });
   const metrics = await page.evaluate(() => window.qqLoadMetrics);
+  if (process.env.QQ_EXPECTED_CONTENT_HASH) {
+    assert.equal(metrics.find(item => item.event === 'boot_ready').details.network_hash, process.env.QQ_EXPECTED_CONTENT_HASH);
+  }
   await writeFile(resolve(output, 'report.json'), JSON.stringify({ manifest, packs, canvas, metrics, errors }, null, 2));
   console.log('PUBLIC_BLENDER_ART_RELEASE_OK', JSON.stringify({ version: manifest.game_version, commit: manifest.commit, packs, errors }));
 } finally {

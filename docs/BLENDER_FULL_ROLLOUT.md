@@ -67,3 +67,9 @@ python tools/finalize_blender_assets.py
 - PCKはGitへ追加せず、既存GitHub ActionsでR2へ公開します。Herokuは既存の自動デプロイを使用します。
 
 本書のローカル検証と公開環境での配信確認は別の検証段階です。
+
+### 公開と互換性確認
+
+QQ-0.32.0（`2c7bad9`）のR2公開、Herokuページ更新、公開PCKのHTTP 200、ハブ表示、ブラウザエラー0件を確認しました。Linuxの公開PCKとローカルPCKはインポート環境によりバイト数・ハッシュが異なるため、それぞれの配信マニフェストを正とします。
+
+この照合で、WindowsのCRLFとGitチェックアウトのLF、Web出力から元GLBが除外されることが対戦用ハッシュを変える問題を発見しました。QQ-0.32.1で改行だけを正規化し、Webのモデルには制作台帳の元GLBハッシュを使います。ローカルに元GLBがある場合は従来通り実ファイルを検証します。`ContentHashSmoke`がLF/CRLF/CR、原本と台帳の一致、複合ハッシュ、キャッシュ、効果の変更を検証します。`ResponsiveDisplaySmoke`も追加で成功しました。

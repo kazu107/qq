@@ -100,6 +100,8 @@ async function reviewRealBoot() {
     await page.waitForSelector('#status', { state: 'detached' });
     await page.screenshot({ path: resolve(output, 'hub.png') });
     const evidence = await page.evaluate(() => window.bootReview);
+    const contentHash = await page.evaluate(() => window.qqLoadMetrics.find(item => item.event === 'boot_ready').details.network_hash);
+    if (process.env.QQ_EXPECTED_CONTENT_HASH) assert.equal(contentHash, process.env.QQ_EXPECTED_CONTENT_HASH);
     assert(!evidence.replaced && !evidence.removedBeforeHub, 'Loading screen was replaced or removed before the Hub');
     for (const phase of ['download', 'initializing', 'preparing', 'ready']) {
       assert(evidence.phases.includes(phase), `Missing loading phase: ${phase}`);
@@ -107,7 +109,7 @@ async function reviewRealBoot() {
     assert(evidence.progress.at(-1) === 1, 'Loading did not reach completion');
     assert(evidence.progress.every((value, index, values) => index === 0 || value >= values[index - 1]), 'Loading bar went backwards');
     assert.deepEqual(errors, []);
-    report.real_boot = { ...evidence, appearance: preparingAppearance, fade_opacity: fadeOpacity };
+    report.real_boot = { ...evidence, content_hash: contentHash, appearance: preparingAppearance, fade_opacity: fadeOpacity };
     report.cases.push('real_download_preparation_hub');
   } catch (error) {
     await page.screenshot({ path: resolve(output, 'failure.png') });
