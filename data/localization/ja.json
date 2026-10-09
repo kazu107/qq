@@ -1469,6 +1469,7 @@
   "hub.tutorial": "戦闘チュートリアル",
   "analysis.compare": "同じシード値でA/B対比する",
   "battle.analysis.duration": "戦闘時間 {seconds}秒",
+  "map.unequip_last": "デッキには最低1枚のカードを残してください。",
   "battle.analysis.details": "バトルの詳細",
   "battle.analysis.close": "戻る",
   "battle.analysis.comparison": "両者の比較",

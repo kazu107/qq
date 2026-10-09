@@ -194,31 +194,32 @@ func _assert_map_loadout_inventory(map_scene: Control) -> void:
 	if equipped_value == null or equipped_value.text != str(int(entry.get("equipped_count", 0))):
 		_fail("Map/facility smoke failed: map loadout equipped count should render as a number")
 		return
-	if actions == null or actions.get_child_count() != 3:
-		_fail("Map/facility smoke failed: map loadout actions should render equip, unequip, and sell buttons")
+	if actions == null or actions.get_child_count() != 2 or map_scene.find_child("UnequipButton_%s" % card_id, true, false) != null:
+		_fail("Map/facility smoke failed: inventory should render only equip and sell buttons")
 		return
 	if sell_button == null or sell_button.icon == null or sell_button.text == "":
 		_fail("Map/facility smoke failed: map loadout sell button should render a gold icon and value")
 		return
-	if actions.get_parent() != info_box or actions.get_index() <= count_row.get_index():
+	if actions.get_parent().get_parent() != info_box or actions.get_parent().get_index() <= count_row.get_index():
 		_fail("Map/facility smoke failed: map loadout actions should sit below the count row")
 		return
 	if actions.visible:
 		_fail("Map/facility smoke failed: map loadout actions should be hidden before hover")
 		return
-	map_scene.call("_set_loadout_actions_visible", actions, true)
+	var reveal: HoverActionReveal = frame.get_node("HoverActionReveal") as HoverActionReveal
+	reveal.update_for_control(frame)
 	if not actions.visible:
 		_fail("Map/facility smoke failed: map loadout actions should appear on frame hover")
 		return
-	map_scene.call("_update_loadout_actions_for_hover_point", frame, actions, frame.get_global_rect().get_center())
+	reveal.update_for_control(preview)
 	if not actions.visible:
 		_fail("Map/facility smoke failed: map loadout actions should stay visible while hovering inside the frame")
 		return
-	map_scene.call("_update_loadout_actions_for_hover_point", frame, actions, actions.get_global_rect().get_center())
+	reveal.update_for_control(sell_button)
 	if not actions.visible:
 		_fail("Map/facility smoke failed: map loadout actions should stay visible while hovering over the buttons")
 		return
-	map_scene.call("_update_loadout_actions_for_hover_point", frame, actions, frame.get_global_rect().position - Vector2(32.0, 32.0))
+	reveal.update_for_control(null)
 	if actions.visible:
 		_fail("Map/facility smoke failed: map loadout actions should hide only after leaving the frame")
 		return

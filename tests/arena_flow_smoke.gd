@@ -282,8 +282,8 @@ func _assert_arena_loadout_contains(card_id: String) -> void:
 		_fail("Arena flow smoke failed: bought arena card did not render in loadout inventory")
 	elif preview == null or not _tooltip_mentions_loadout_cost(preview.tooltip_text):
 		_fail("Arena flow smoke failed: arena loadout card tooltip should include loadout cost")
-	elif equip_button == null or unequip_button == null:
-		_fail("Arena flow smoke failed: arena loadout did not render equip and unequip buttons")
+	elif equip_button == null or unequip_button != null:
+		_fail("Arena flow smoke failed: inventory equip button missing or obsolete unequip button still present")
 	elif sell_button == null or sell_button.icon == null or sell_button.text == "":
 		_fail("Arena flow smoke failed: arena loadout did not render a priced sell button")
 	arena_scene.queue_free()

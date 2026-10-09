@@ -265,6 +265,18 @@ func _test_preparation_roster_ui() -> void:
 	_expect(loadout_body != null and participants_body != null and participants_body.get_parent().get_parent().get_index() > loadout_body.get_parent().get_parent().get_index(), "Preparation roster was not placed to the right of the loadout")
 	_expect(preparing_label != null and preparing_label.get_theme_color("font_color").is_equal_approx(Color(1.0, 0.78, 0.28, 1.0)), "Preparing state was not yellow")
 	_expect(ready_label != null and ready_label.get_theme_color("font_color").is_equal_approx(Color(0.30, 1.0, 0.62, 1.0)), "Ready state was not green")
+	var deck: CardHandPanel = arena.find_child("ArenaEquippedDeck", true, false) as CardHandPanel
+	var close: Button = deck._buttons[0].get_node("DeckUnequipButton") as Button
+	_expect(deck._unequip_enabled and not close.disabled, "Web preparation deck cannot unequip before ready")
+	NetworkManager._arena_ready_by_peer["1"] = true
+	arena.call("_refresh_ui")
+	_expect(not deck._unequip_enabled and not close.visible, "Ready Web participant retained close actions")
+	var equipped_count: int = (runs[1] as RunState).equipped_cards.size()
+	arena.call("_on_unequip_card", deck._buttons[0].runtime_id)
+	_expect((runs[1] as RunState).equipped_cards.size() == equipped_count, "Ready lock was bypassed by unequip callback")
+	NetworkManager._arena_ready_by_peer["1"] = false
+	arena.call("_refresh_ui")
+	_expect(deck._unequip_enabled and not close.disabled, "Cancel-ready did not restore deck close actions")
 	arena.queue_free()
 	await get_tree().process_frame
 	NetworkManager._clear_session(false)

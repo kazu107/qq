@@ -4,10 +4,12 @@ class_name CardHandPanel
 signal card_requested(runtime_id: String)
 signal card_hovered(runtime_id: String)
 signal card_unhovered(runtime_id: String)
+signal card_unequip_requested(card_id: String)
 
 var _interactive: bool = true
 var _buttons: Array[CardButton] = []
 var _tile_size: Vector2 = Vector2(100.0, 100.0)
+var _unequip_enabled: bool = false
 
 
 func _ready() -> void:
@@ -24,6 +26,13 @@ func set_tile_size(size: Vector2) -> void:
 	_tile_size = size
 	for button in _buttons:
 		button.set_tile_size(size)
+		_position_unequip_button(button)
+
+
+func set_unequip_enabled(enabled: bool) -> void:
+	_unequip_enabled = enabled
+	for button: CardButton in _buttons:
+		_sync_unequip_button(button)
 
 
 func get_button_for_runtime_id(runtime_id: String) -> CardButton:
@@ -93,6 +102,55 @@ func refresh_card_ids(card_ids: Array[String], interactive: bool = false, badge_
 			badge_text,
 			tooltip_context.get("comparison") as CardDef
 		)
+		_sync_unequip_button(button)
+		var remove: Button = button.get_node_or_null("DeckUnequipButton") as Button
+		if remove != null:
+			remove.disabled = not _unequip_enabled or card_ids.size() <= 1
+			remove.tooltip_text = Localization.get_text("map.unequip_last", "Keep at least one card equipped") if card_ids.size() <= 1 else Localization.get_text("map.unequip", "Unequip")
+
+
+func _sync_unequip_button(card: CardButton) -> void:
+	var remove: Button = card.get_node_or_null("DeckUnequipButton") as Button
+	if remove == null:
+		if not _unequip_enabled:
+			return
+		remove = Button.new()
+		remove.name = "DeckUnequipButton"
+		remove.text = "\u00d7"
+		remove.focus_mode = Control.FOCUS_NONE
+		remove.custom_minimum_size = Vector2(26.0, 26.0)
+		remove.add_theme_font_size_override("font_size", 22)
+		remove.add_theme_color_override("font_color", Color.WHITE)
+		remove.z_index = 101
+		for state: String in ["normal", "hover", "pressed", "disabled"]:
+			var style: StyleBoxFlat = StyleBoxFlat.new()
+			style.bg_color = Color("bc3b46") if state in ["hover", "pressed"] else Color(0.045, 0.065, 0.09, 0.94)
+			style.border_color = Color("ff867b")
+			style.set_border_width_all(1)
+			style.set_corner_radius_all(6)
+			style.set_content_margin_all(1.0)
+			remove.add_theme_stylebox_override(state, style)
+		remove.pressed.connect(func() -> void:
+			if _unequip_enabled and not remove.disabled:
+				card_unequip_requested.emit(card.runtime_id)
+		)
+		card.add_child(remove)
+		HoverActionReveal.attach(card, remove, false)
+		card.resized.connect(_position_unequip_button.bind(card))
+	var reveal: HoverActionReveal = card.get_node("HoverActionReveal") as HoverActionReveal
+	reveal.enabled = _unequip_enabled
+	if not _unequip_enabled:
+		remove.hide()
+	_position_unequip_button(card)
+
+
+func _position_unequip_button(card: CardButton) -> void:
+	var remove: Button = card.get_node_or_null("DeckUnequipButton") as Button
+	if remove == null:
+		return
+	var art: Rect2 = card.get_art_rect()
+	remove.position = Vector2(art.end.x - 28.0, art.position.y + 2.0)
+	remove.size = Vector2(26.0, 26.0)
 
 
 func _ensure_button_count(count: int) -> void:

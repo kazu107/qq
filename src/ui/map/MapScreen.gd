@@ -115,6 +115,8 @@ func _build_ui() -> void:
 	_equipped_panel = CardHandPanel.new()
 	_equipped_panel.name = "EquippedDeck"
 	_equipped_panel.set_interactive(false)
+	_equipped_panel.set_unequip_enabled(true)
+	_equipped_panel.card_unequip_requested.connect(_on_unequip_card)
 	_equipped_panel.set_tile_size(Vector2(88.0, 88.0))
 	loadout_panel.add_child(_equipped_panel)
 
@@ -532,13 +534,6 @@ func _rebuild_loadout_rows() -> void:
 		equip_button.pressed.connect(_on_equip_card.bind(card_id))
 		actions.add_child(equip_button)
 
-		var unequip_button: Button = Button.new()
-		unequip_button.name = "UnequipButton_%s" % card_id
-		unequip_button.text = Localization.get_text("map.unequip", "Unequip")
-		unequip_button.disabled = not bool(entry.get("can_unequip", false))
-		unequip_button.pressed.connect(_on_unequip_card.bind(card_id))
-		actions.add_child(unequip_button)
-
 		var sell_value: int = int(entry.get("sell_value", 0))
 		var sell_button: Button = Button.new()
 		sell_button.name = "SellButton_%s" % card_id
@@ -547,10 +542,7 @@ func _rebuild_loadout_rows() -> void:
 		sell_button.disabled = not bool(entry.get("can_sell", false))
 		sell_button.pressed.connect(_on_sell_card.bind(card_id))
 		actions.add_child(sell_button)
-		frame.mouse_entered.connect(_set_loadout_actions_visible.bind(actions, true))
-		frame.mouse_exited.connect(_on_loadout_frame_mouse_exited.bind(frame, actions))
-		actions.mouse_entered.connect(_set_loadout_actions_visible.bind(actions, true))
-		actions.mouse_exited.connect(_on_loadout_frame_mouse_exited.bind(frame, actions))
+		HoverActionReveal.attach(frame, actions)
 
 
 func _build_loadout_count_pill(icon_id: String, count: int, node_name: String) -> HBoxContainer:
@@ -577,36 +569,6 @@ func _build_loadout_count_pill(icon_id: String, count: int, node_name: String) -
 	value_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pill.add_child(value_label)
 	return pill
-
-
-func _set_loadout_actions_visible(actions: HBoxContainer, visible: bool) -> void:
-	if actions != null and is_instance_valid(actions):
-		actions.visible = visible
-
-
-func _on_loadout_frame_mouse_exited(frame: PanelContainer, actions: HBoxContainer) -> void:
-	call_deferred("_update_loadout_actions_for_current_hover_point", frame, actions)
-
-
-func _update_loadout_actions_for_current_hover_point(frame: PanelContainer, actions: HBoxContainer) -> void:
-	_update_loadout_actions_for_hover_point(frame, actions, get_global_mouse_position())
-
-
-func _update_loadout_actions_for_hover_point(frame: PanelContainer, actions: HBoxContainer, global_point: Vector2) -> void:
-	if frame == null or actions == null or not is_instance_valid(frame) or not is_instance_valid(actions):
-		return
-	actions.visible = _is_point_inside_loadout_hover_area(frame, actions, global_point)
-
-
-func _is_point_inside_loadout_hover_area(frame: PanelContainer, actions: HBoxContainer, global_point: Vector2) -> bool:
-	if frame == null or not is_instance_valid(frame):
-		return false
-	var frame_rect: Rect2 = frame.get_global_rect().grow(2.0)
-	if frame_rect.has_point(global_point):
-		return true
-	if actions != null and is_instance_valid(actions):
-		return actions.get_global_rect().grow(2.0).has_point(global_point)
-	return false
 
 
 func _make_loadout_card_stylebox() -> StyleBoxFlat:

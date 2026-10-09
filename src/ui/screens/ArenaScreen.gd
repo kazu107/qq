@@ -255,6 +255,7 @@ func _build_loadout_panel(parent: Control) -> void:
 	_deck_panel = CardHandPanel.new()
 	_deck_panel.name = "ArenaEquippedDeck"
 	_deck_panel.set_interactive(false)
+	_deck_panel.card_unequip_requested.connect(_on_unequip_card)
 	_deck_panel.set_tile_size(Vector2(86.0, 86.0))
 	box.add_child(_deck_panel)
 
@@ -484,6 +485,7 @@ func _refresh_ui() -> void:
 		"used": RunState.get_total_loadout_cost(run_state.equipped_cards),
 		"limit": run_state.loadout_limit,
 	})
+	_deck_panel.set_unequip_enabled(not _is_preparation_locked())
 	_deck_panel.refresh_card_ids(_get_equipped_cards(), false, "EQUIP", run_state)
 	_rebuild_loadout_rows()
 	_refresh_participant_rows()
@@ -821,13 +823,6 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	equip_button.pressed.connect(_on_equip_card.bind(card_id))
 	actions.add_child(equip_button)
 
-	var unequip_button: Button = Button.new()
-	unequip_button.name = "ArenaUnequipButton_%s" % card_id
-	unequip_button.text = Localization.get_text("map.unequip", "Unequip")
-	unequip_button.disabled = not bool(entry.get("can_unequip", false)) or _is_preparation_locked()
-	unequip_button.pressed.connect(_on_unequip_card.bind(card_id))
-	actions.add_child(unequip_button)
-
 	var sell_value: int = int(entry.get("sell_value", 0))
 	var sell_button: Button = Button.new()
 	sell_button.name = "ArenaSellButton_%s" % card_id
@@ -836,6 +831,7 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	sell_button.disabled = not bool(entry.get("can_sell", false)) or _is_preparation_locked()
 	sell_button.pressed.connect(_on_sell_card.bind(card_id))
 	actions.add_child(sell_button)
+	HoverActionReveal.attach(frame, actions)
 	return frame
 
 
@@ -1069,6 +1065,8 @@ func _on_equip_card(card_id: String) -> void:
 
 
 func _on_unequip_card(card_id: String) -> void:
+	if _is_preparation_locked():
+		return
 	if _lan_mode:
 		NetworkManager.submit_arena_action("unequip", {"card_id": card_id})
 	elif Game.unequip_card(card_id):

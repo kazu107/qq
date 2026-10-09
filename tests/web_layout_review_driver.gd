@@ -120,6 +120,25 @@ func _inspect() -> Dictionary:
 		"controls": controls,
 	}
 	if screen != null:
+		var deck: CardHandPanel = screen.find_child("EquippedDeck", true, false) as CardHandPanel
+		if deck == null:
+			deck = screen.find_child("ArenaEquippedDeck", true, false) as CardHandPanel
+		if deck != null:
+			var cards: Array[Dictionary] = []
+			for card: CardButton in deck._buttons:
+				if not card.visible:
+					continue
+				var remove: Button = card.get_node_or_null("DeckUnequipButton") as Button
+				cards.append({"id": card.runtime_id, "rect": _rect_values(card.get_global_rect()), "close": remove.visible if remove != null else false,
+					"close_rect": _rect_values(remove.get_global_rect()) if remove != null else [], "disabled": remove.disabled if remove != null else true})
+			var rows: Array[Dictionary] = []
+			var inventory: VBoxContainer = screen.get("_inventory_box") as VBoxContainer
+			for frame: Control in inventory.get_children():
+				var actions: HBoxContainer = frame.find_child("*LoadoutActions*", true, false) as HBoxContainer
+				if actions != null:
+					rows.append({"name": String(frame.name), "rect": _rect_values(frame.get_global_rect()), "actions": actions.visible,
+						"buttons": actions.get_child_count(), "equip_rect": _rect_values((actions.get_child(0) as Control).get_global_rect())})
+			result["loadout"] = {"cards": cards, "rows": rows}
 		if screen.scene_file_path.get_file().get_basename() == "CardLibrary":
 			var search: LineEdit = screen.find_child("LibrarySearch", true, false) as LineEdit
 			var empty: Label = screen.find_child("LibraryEmptyNotice", true, false) as Label
