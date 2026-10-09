@@ -8,6 +8,7 @@ const GLOW_GOLD: Color = Color(0.95, 0.65, 0.22, 0.13)
 const GLOW_RED: Color = Color(0.85, 0.20, 0.23, 0.10)
 const GRID_COLOR: Color = Color(0.55, 0.78, 0.95, 0.035)
 const PANEL_SHADOW: Color = Color(0.0, 0.0, 0.0, 0.22)
+static var _glow_texture: GradientTexture2D
 
 
 func _ready() -> void:
@@ -15,6 +16,16 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	z_index = -4096
+	if _glow_texture == null:
+		var gradient: Gradient = Gradient.new()
+		gradient.colors = PackedColorArray([Color.WHITE, Color(1.0, 1.0, 1.0, 0.0)])
+		_glow_texture = GradientTexture2D.new()
+		_glow_texture.gradient = gradient
+		_glow_texture.width = 128
+		_glow_texture.height = 128
+		_glow_texture.fill = GradientTexture2D.FILL_RADIAL
+		_glow_texture.fill_from = Vector2(0.5, 0.5)
+		_glow_texture.fill_to = Vector2(1.0, 0.5)
 	queue_redraw()
 
 
@@ -38,7 +49,7 @@ func _draw() -> void:
 
 
 func _draw_vertical_gradient(draw_size: Vector2) -> void:
-	var band_count: int = 18
+	var band_count: int = 64
 	var band_height: float = draw_size.y / float(band_count)
 	for band_index in range(band_count):
 		var ratio: float = float(band_index) / float(maxi(1, band_count - 1))
@@ -47,12 +58,8 @@ func _draw_vertical_gradient(draw_size: Vector2) -> void:
 
 
 func _draw_glow(center: Vector2, radius: float, color: Color) -> void:
-	var ring_count: int = 9
-	for ring_index in range(ring_count, 0, -1):
-		var ratio: float = float(ring_index) / float(ring_count)
-		var ring_color: Color = color
-		ring_color.a *= pow(1.0 - ratio, 1.35)
-		draw_circle(center, radius * ratio, ring_color)
+	if _glow_texture != null:
+		draw_texture_rect(_glow_texture, Rect2(center - Vector2.ONE * radius, Vector2.ONE * radius * 2.0), false, color)
 
 
 func _draw_diagonal_panels(draw_size: Vector2) -> void:

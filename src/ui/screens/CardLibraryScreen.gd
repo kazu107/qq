@@ -5,10 +5,16 @@ const PAGE_CARD_COUNT: int = 12
 const CARD_GRID_COLUMNS: int = 3
 
 var _summary_label: Label
+var _points_label: Label
 var _cards_scroll: ScrollContainer
 var _cards_grid: GridContainer
 var _rarity_filter: OptionButton
 var _tag_filter: OptionButton
+var _search_edit: LineEdit
+var _search_timer: Timer
+var _search_text: String = ""
+var _filter_count: Label
+var _empty_label: Label
 var _developer_panel: DeveloperPanel
 var _content_ready: bool = false
 var _content_building: bool = false
@@ -66,17 +72,22 @@ func _build_ui() -> void:
 	root.add_theme_constant_override("separation", 12)
 	margin.add_child(root)
 
-	var title: Label = Label.new()
-	title.text = Localization.get_text("library.title", "Card Library")
-	root.add_child(title)
-
+	var header: HBoxContainer = UiTheme.add_page_heading(root, Localization.get_text("library.title", "Card Library"))
 	_summary_label = Label.new()
+	_summary_label.theme_type_variation = "MutedLabel"
 	_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	root.add_child(_summary_label)
+	header.get_child(0).add_child(_summary_label)
+	_points_label = Label.new()
+	_points_label.name = "LibraryMetaPoints"
+	_points_label.add_theme_font_size_override("font_size", 22)
+	_points_label.add_theme_color_override("font_color", UiTheme.ACCENT_GOLD)
+	_points_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header.add_child(_points_label)
 
 	var action_row: HBoxContainer = HBoxContainer.new()
+	action_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	action_row.add_theme_constant_override("separation", 10)
-	root.add_child(action_row)
+	header.add_child(action_row)
 
 	var meta_button: Button = Button.new()
 	meta_button.text = Localization.get_text("library.open_meta", "Open Meta Progress")
@@ -95,10 +106,11 @@ func _build_ui() -> void:
 	)
 	action_row.add_child(hub_button)
 
+	var toolbar: VBoxContainer = UiTheme.add_section(root, "", "LibraryToolbar")
 	var filter_row: HBoxContainer = HBoxContainer.new()
 	filter_row.name = "LibraryFilterRow"
 	filter_row.add_theme_constant_override("separation", 10)
-	root.add_child(filter_row)
+	toolbar.add_child(filter_row)
 
 	var rarity_label: Label = Label.new()
 	rarity_label.text = Localization.get_text("library.filter.rarity", "レア度")
@@ -121,8 +133,33 @@ func _build_ui() -> void:
 	_tag_filter.custom_minimum_size = Vector2(180.0, 0.0)
 	_tag_filter.item_selected.connect(_on_tag_filter_selected)
 	filter_row.add_child(_tag_filter)
+	_search_edit = LineEdit.new()
+	_search_edit.name = "LibrarySearch"
+	_search_edit.placeholder_text = Localization.get_text("library.search", "Search names and effects")
+	_search_edit.custom_minimum_size.x = 320.0
+	_search_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_search_edit.clear_button_enabled = true
+	_search_edit.text_changed.connect(_on_search_changed)
+	filter_row.add_child(_search_edit)
+	_filter_count = Label.new()
+	_filter_count.name = "LibraryMatchingCount"
+	_filter_count.theme_type_variation = "MutedLabel"
+	filter_row.add_child(_filter_count)
+	_search_timer = Timer.new()
+	_search_timer.one_shot = true
+	_search_timer.wait_time = 0.18
+	_search_timer.timeout.connect(_queue_filtered_rebuild)
+	add_child(_search_timer)
+	_empty_label = Label.new()
+	_empty_label.name = "LibraryEmptyNotice"
+	_empty_label.theme_type_variation = "MutedLabel"
+	_empty_label.text = Localization.get_text("library.empty", "No cards match. Try another name or filter.")
+	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_empty_label.visible = false
+	root.add_child(_empty_label)
 
 	_cards_scroll = ScrollContainer.new()
+	_cards_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_cards_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_cards_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_cards_scroll.get_v_scroll_bar().value_changed.connect(_on_scroll_changed)
@@ -139,19 +176,23 @@ func _build_ui() -> void:
 
 
 func _refresh_ui() -> void:
+	_points_label.text = Localization.get_textf("hub.meta_points", "Meta Points: {points}", {"points": Game.get_meta_points()})
 	var entries: Array[Dictionary] = Game.get_meta_card_entries()
 	var unlocked_count: int = 0
 	for entry in entries:
 		if bool(entry.get("unlocked", false)):
 			unlocked_count += 1
 	_summary_label.text = Localization.get_textf(
-		"library.summary",
-		"Unlocked {current} / {total} cards. Locked cards stay visible here so you can plan purchases.",
+		"library.collection_summary",
+		"{current} / {total} cards unlocked. Inspect a card to view its full effects.",
 		{
 			"current": unlocked_count,
 			"total": entries.size(),
 		}
 	)
+	var matching: int = _count_matching_entries(entries)
+	_filter_count.text = Localization.get_textf("library.matching", "{count} cards", {"count": matching})
+	_empty_label.visible = matching == 0
 	if not _content_ready:
 		if not _content_building:
 			_content_building = true
@@ -186,7 +227,7 @@ func _rebuild_card_rows(reset: bool = true) -> void:
 			var card_def: CardDef = Database.get_card(card_id)
 			if card_def == null:
 				continue
-			if _selected_tag != "all" and not card_def.tags.has(_selected_tag):
+			if not _matches_card(card_def):
 				continue
 			matched_index += 1
 			if matched_index <= _next_entry_index:
@@ -196,7 +237,7 @@ func _rebuild_card_rows(reset: bool = true) -> void:
 			row.name = "LibraryRow_%s" % card_id
 			row.custom_minimum_size = Vector2(360.0, 0.0)
 			row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			row.add_theme_stylebox_override("panel", _make_card_cell_stylebox())
+			row.add_theme_stylebox_override("panel", _make_card_cell_stylebox(rarity))
 			_cards_grid.add_child(row)
 
 			var cell: VBoxContainer = VBoxContainer.new()
@@ -211,7 +252,7 @@ func _rebuild_card_rows(reset: bool = true) -> void:
 
 			var preview: CardButton = CardButton.new()
 			preview.name = "LibraryCard_%s" % card_id
-			preview.set_tile_size(Vector2(92.0, 92.0))
+			preview.set_tile_size(Vector2(112.0, 112.0))
 			preview.bind_preview(card_def, card_id, false, "LIB")
 			if not bool(entry.get("unlocked", false)):
 				preview.modulate = Color(0.55, 0.55, 0.55, 1.0)
@@ -224,11 +265,13 @@ func _rebuild_card_rows(reset: bool = true) -> void:
 			var name_label: Label = Label.new()
 			name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			name_label.text = card_def.name
+			name_label.add_theme_font_size_override("font_size", 20)
 			info.add_child(name_label)
 
 			var meta_label: Label = Label.new()
 			meta_label.name = "LibraryMeta_%s" % card_id
 			meta_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			meta_label.theme_type_variation = "MutedLabel"
 			meta_label.text = "%s / %s" % [
 				Localization.get_rarity_name(rarity),
 				Localization.get_tags_text(card_def.tags),
@@ -237,6 +280,8 @@ func _rebuild_card_rows(reset: bool = true) -> void:
 
 			var status_label: Label = Label.new()
 			status_label.name = "LibraryStatus_%s" % card_id
+			status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			status_label.add_theme_font_size_override("font_size", 15)
 			if bool(entry.get("unlocked", false)):
 				status_label.text = Localization.get_text("meta.unlocked", "Unlocked")
 			else:
@@ -248,6 +293,8 @@ func _rebuild_card_rows(reset: bool = true) -> void:
 			var unlock_button: Button = Button.new()
 			unlock_button.name = "UnlockCard_%s" % card_id
 			unlock_button.custom_minimum_size = Vector2(104.0, 38.0)
+			unlock_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			unlock_button.theme_type_variation = "PrimaryButton"
 			unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
 			unlock_button.visible = not bool(entry.get("unlocked", false))
 			unlock_button.disabled = Game.get_meta_points() < int(entry.get("cost", 0))
@@ -256,6 +303,7 @@ func _rebuild_card_rows(reset: bool = true) -> void:
 
 			var desc_label: Label = Label.new()
 			desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			desc_label.theme_type_variation = "MutedLabel"
 			desc_label.text = "%s\n%s" % [card_def.description, CardInfoFormatter.build_effect_summary(card_def)]
 			cell.add_child(desc_label)
 			_card_widgets[card_id] = {
@@ -295,10 +343,24 @@ func _count_matching_entries(entries: Array[Dictionary]) -> int:
 		if _selected_rarity != "all" and String(entry.get("rarity", "")) != _selected_rarity:
 			continue
 		var card_def: CardDef = Database.get_card(String(entry.get("id", "")))
-		if card_def == null or (_selected_tag != "all" and not card_def.tags.has(_selected_tag)):
+		if card_def == null or not _matches_card(card_def):
 			continue
 		count += 1
 	return count
+
+
+func _matches_card(card: CardDef) -> bool:
+	if _selected_tag != "all" and not card.tags.has(_selected_tag):
+		return false
+	if _search_text == "":
+		return true
+	var searchable: String = "%s %s %s %s" % [card.name, card.description, CardInfoFormatter.build_effect_summary(card), Localization.get_tags_text(card.tags)]
+	return searchable.to_lower().contains(_search_text)
+
+
+func _on_search_changed(text: String) -> void:
+	_search_text = text.strip_edges().to_lower()
+	_search_timer.start()
 
 
 func _record_initial_build() -> void:
@@ -357,6 +419,7 @@ func _update_card_rows(entries: Array[Dictionary]) -> void:
 			})
 		unlock_button.visible = not unlocked
 		unlock_button.disabled = unlocked or meta_points < int(entry.get("cost", 0))
+		status_label.add_theme_color_override("font_color", Color(0.42, 0.82, 0.65) if unlocked else UiTheme.ACCENT_GOLD)
 
 
 func _populate_filters() -> void:
@@ -406,6 +469,8 @@ func _on_tag_filter_selected(index: int) -> void:
 
 
 func _queue_filtered_rebuild() -> void:
+	_search_timer.stop()
+	_cards_scroll.scroll_vertical = 0
 	_build_generation += 1
 	_awaiting_more = false
 	_content_ready = false
@@ -426,19 +491,23 @@ func _apply_filters() -> void:
 		var tags: Array = Array(widgets.get("tags", []))
 		var rarity_matches: bool = _selected_rarity == "all" or rarity == _selected_rarity
 		var tag_matches: bool = _selected_tag == "all" or tags.has(_selected_tag)
-		row.visible = rarity_matches and tag_matches
+		var card: CardDef = Database.get_card(card_id)
+		row.visible = rarity_matches and tag_matches and card != null and _matches_card(card)
 
 
-func _make_card_cell_stylebox() -> StyleBoxFlat:
+func _make_card_cell_stylebox(rarity: String) -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.05, 0.06, 0.08, 0.60)
-	style.border_color = Color(0.28, 0.34, 0.42, 0.62)
+	style.bg_color = Color(0.05, 0.07, 0.09, 0.94)
+	var colors: Dictionary = {"common": CardButton.COMMON_BORDER, "rare": CardButton.RARE_BORDER, "epic": CardButton.EPIC_BORDER, "legendary": CardButton.LEGENDARY_BORDER}
+	var accent: Color = colors.get(rarity, UiTheme.PANEL_STROKE)
+	style.border_color = Color(accent, 0.48)
 	style.set_border_width_all(1)
+	style.border_width_top = 3
 	style.set_corner_radius_all(12)
-	style.content_margin_left = 10.0
-	style.content_margin_top = 10.0
-	style.content_margin_right = 10.0
-	style.content_margin_bottom = 10.0
+	style.content_margin_left = 16.0
+	style.content_margin_top = 16.0
+	style.content_margin_right = 16.0
+	style.content_margin_bottom = 16.0
 	return style
 
 

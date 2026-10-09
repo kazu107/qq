@@ -1,6 +1,7 @@
 extends Control
 
 const DEBUG_CARD_SLOT_COUNT := 6
+const LOGO: Texture2D = preload("res://assets/branding/queuequest-logo.svg")
 
 var _info_label: Label
 var _developer_panel: DeveloperPanel
@@ -19,28 +20,53 @@ func _ready() -> void:
 	margin.anchor_right = 1.0
 	margin.anchor_bottom = 1.0
 	margin.offset_left = 80.0
-	margin.offset_top = 60.0
+	margin.offset_top = 110.0
 	margin.offset_right = -80.0
 	margin.offset_bottom = -60.0
 	add_child(margin)
 
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.name = "HubContentScroll"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	margin.add_child(scroll)
+	var center: CenterContainer = CenterContainer.new()
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.add_child(center)
 	var root: VBoxContainer = VBoxContainer.new()
-	root.alignment = BoxContainer.ALIGNMENT_CENTER
-	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_child(root)
-
-	var title: Label = Label.new()
-	title.text = Localization.get_text("hub.title", "Hub")
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	root.add_child(title)
+	root.name = "HubModeSelection"
+	root.custom_minimum_size = Vector2(1320.0, 0.0)
+	root.add_theme_constant_override("separation", 24)
+	center.add_child(root)
+	var hero: HBoxContainer = HBoxContainer.new()
+	hero.add_theme_constant_override("separation", 32)
+	root.add_child(hero)
+	var identity: VBoxContainer = VBoxContainer.new()
+	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity.add_theme_constant_override("separation", 10)
+	hero.add_child(identity)
+	var logo: TextureRect = TextureRect.new()
+	logo.name = "HubLogo"
+	logo.texture = LOGO
+	logo.custom_minimum_size = Vector2(520.0, 140.0)
+	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
+	logo.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	identity.add_child(logo)
+	var tagline: Label = Label.new()
+	tagline.theme_type_variation = "MutedLabel"
+	tagline.text = Localization.get_text("hub.tagline", "Every card has its moment. Make yours count.")
+	identity.add_child(tagline)
 
 	_info_label = Label.new()
-	_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_info_label.name = "HubMetaPoints"
+	_info_label.add_theme_font_size_override("font_size", 24)
+	_info_label.add_theme_color_override("font_color", UiTheme.ACCENT_GOLD)
+	_info_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_info_label.text = Localization.get_textf("hub.meta_points", "Meta Points: {points}", {
 		"points": Game.get_meta_points(),
 	})
-	root.add_child(_info_label)
+	hero.add_child(_info_label)
 	if SaveManager.last_recovery_source != "":
 		var recovery_label: Label = Label.new()
 		recovery_label.name = "SaveRecoveryNotice"
@@ -49,45 +75,64 @@ func _ready() -> void:
 			"The latest save could not be read. Progress was restored from a backup."
 		)
 		recovery_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		recovery_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		recovery_label.add_theme_color_override("font_color", Color(1.0, 0.75, 0.28))
 		root.add_child(recovery_label)
 		SaveManager.last_recovery_source = ""
 
-	_add_run_mode_row(root, Game.RUN_SETUP_MODE_NORMAL)
-	_add_run_mode_row(root, Game.RUN_SETUP_MODE_ARENA)
+	var modes: GridContainer = GridContainer.new()
+	modes.name = "HubModeGrid"
+	modes.columns = 3 if Game.WEB_MULTIPLAYER_ENABLED else 2
+	modes.add_theme_constant_override("h_separation", 18)
+	modes.add_theme_constant_override("v_separation", 18)
+	root.add_child(modes)
+	var normal: VBoxContainer = _build_mode_card(modes, "step", Localization.get_text("hub.run_start", "Run Start"), Localization.get_text("hub.mode.normal_detail", "Choose a route, gather cards and relics, and challenge the boss."), UiTheme.ACCENT_GOLD)
+	_add_run_mode_row(normal, Game.RUN_SETUP_MODE_NORMAL)
+	var arena: VBoxContainer = _build_mode_card(modes, "attack", Localization.get_text("hub.arena_start", "Arena Mode"), Localization.get_text("hub.mode.arena_detail", "Build your deck between matches. Every purchase shapes the next battle."), UiTheme.ACCENT_BLUE)
+	_add_run_mode_row(arena, Game.RUN_SETUP_MODE_ARENA)
 
 	if Game.WEB_MULTIPLAYER_ENABLED:
+		var online: VBoxContainer = _build_mode_card(modes, "speed", Localization.get_text("hub.web_multiplayer", "Web Multiplayer"), Localization.get_text("hub.mode.online_detail", "Create a room, invite friends, and compete or spectate together."), Color(0.35, 0.82, 0.70))
 		var online_button: Button = Button.new()
 		online_button.name = "WebMultiplayerButton"
-		online_button.text = Localization.get_text("hub.web_multiplayer", "Web Multiplayer")
+		online_button.text = Localization.get_text("hub.open_rooms", "Open Rooms")
+		online_button.custom_minimum_size.y = 54.0
 		online_button.pressed.connect(func() -> void:
 			Game.current_screen_hint = "online"
 			SceneRouter.go_to_online_lobby()
 		)
-		root.add_child(online_button)
-
-	var tutorial_button: Button = Button.new()
-	tutorial_button.name = "BattleTutorialButton"
-	tutorial_button.text = Localization.get_text("hub.tutorial", "Battle Tutorial")
-	tutorial_button.pressed.connect(SceneRouter.go_to_battle_tutorial)
-	root.add_child(tutorial_button)
+		online.add_child(online_button)
 
 	if Game.is_infinite_mode_unlocked():
+		var infinite: VBoxContainer = _build_mode_card(modes, "time", Localization.get_text("hub.infinite_mode", "Infinite Mode"), Localization.get_text("hub.mode.infinite_detail", "Push beyond the final step into an ever-growing challenge."), UiTheme.ACCENT_GOLD)
 		var infinite_button: Button = Button.new()
 		infinite_button.name = "InfiniteModeStartButton"
 		infinite_button.text = Localization.get_text("hub.infinite_mode", "Infinite Mode")
 		infinite_button.pressed.connect(_on_start_infinite_mode)
-		root.add_child(infinite_button)
+		infinite_button.custom_minimum_size.y = 54.0
+		infinite.add_child(infinite_button)
+
+	var navigation: HBoxContainer = HBoxContainer.new()
+	navigation.name = "HubCollectionActions"
+	navigation.add_theme_constant_override("separation", 18)
+	root.add_child(navigation)
+	var tutorial_button: Button = Button.new()
+	tutorial_button.name = "BattleTutorialButton"
+	tutorial_button.text = Localization.get_text("hub.tutorial", "Battle Tutorial")
+	tutorial_button.pressed.connect(SceneRouter.go_to_battle_tutorial)
+	_setup_navigation_button(navigation, tutorial_button, "time")
 
 	var meta_button: Button = Button.new()
+	meta_button.name = "HubMetaProgressButton"
 	meta_button.text = Localization.get_text("hub.meta_progress", "Meta Progress")
 	meta_button.pressed.connect(_on_open_meta_progress)
-	root.add_child(meta_button)
+	_setup_navigation_button(navigation, meta_button, "relic")
 
 	var library_button: Button = Button.new()
+	library_button.name = "HubCardLibraryButton"
 	library_button.text = Localization.get_text("hub.card_library", "Card Library")
 	library_button.pressed.connect(_on_open_card_library)
-	root.add_child(library_button)
+	_setup_navigation_button(navigation, library_button, "card_owned")
 
 	_build_version_history_overlay()
 
@@ -95,6 +140,46 @@ func _ready() -> void:
 		_build_debug_battle_lab(root)
 		_build_developer_panel()
 		call_deferred("_warm_debug_card_pickers")
+
+
+func _build_mode_card(parent: GridContainer, icon_id: String, title_text: String, description: String, accent: Color) -> VBoxContainer:
+	var box: VBoxContainer = UiTheme.add_section(parent, "")
+	var panel: PanelContainer = box.get_parent() as PanelContainer
+	panel.custom_minimum_size = Vector2(410.0, 270.0)
+	var style: StyleBoxFlat = UiTheme.get_game_theme().get_stylebox("panel", "SectionPanel").duplicate() as StyleBoxFlat
+	style.border_color = Color(accent, 0.55)
+	style.border_width_top = 3
+	panel.add_theme_stylebox_override("panel", style)
+	var header: HBoxContainer = HBoxContainer.new()
+	box.add_child(header)
+	var icon: TextureRect = TextureRect.new()
+	icon.texture = StatIconFactory.get_icon(icon_id)
+	icon.custom_minimum_size = Vector2(38.0, 38.0)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	header.add_child(icon)
+	var title: Label = Label.new()
+	title.text = title_text
+	title.add_theme_font_size_override("font_size", 26)
+	title.add_theme_color_override("font_color", accent)
+	header.add_child(title)
+	var copy: Label = Label.new()
+	copy.theme_type_variation = "MutedLabel"
+	copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	copy.custom_minimum_size.y = 72.0
+	copy.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	copy.text = description
+	box.add_child(copy)
+	return box
+
+
+func _setup_navigation_button(parent: Control, button: Button, icon_id: String) -> void:
+	button.custom_minimum_size.y = 66.0
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.icon = StatIconFactory.get_icon(icon_id)
+	button.expand_icon = true
+	button.add_theme_constant_override("icon_max_width", 24)
+	parent.add_child(button)
 
 
 func _build_top_right_actions() -> void:
@@ -297,9 +382,11 @@ func _add_run_mode_row(parent: VBoxContainer, mode: String) -> void:
 	var start_button: Button = Button.new()
 	start_button.name = "ArenaStartButton" if is_arena else "RunStartButton"
 	start_button.text = Localization.get_text(
-		"hub.arena_start" if is_arena else "hub.run_start",
-		"Arena Mode" if is_arena else "Run Start"
+		"hub.new_run",
+		"New Game"
 	)
+	start_button.custom_minimum_size.y = 54.0
+	start_button.theme_type_variation = "PrimaryButton" if not is_arena else "Button"
 	start_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	start_button.pressed.connect(func() -> void:
 		SceneRouter.go_to_run_setup(mode)
@@ -315,6 +402,7 @@ func _add_run_mode_row(parent: VBoxContainer, mode: String) -> void:
 		"Continue Arena" if is_arena else "Continue Run"
 	)
 	continue_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	continue_button.custom_minimum_size.y = 54.0
 	continue_button.pressed.connect(SceneRouter.continue_suspended_run.bind(mode))
 	row.add_child(continue_button)
 

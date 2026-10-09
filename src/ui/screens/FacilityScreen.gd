@@ -58,6 +58,7 @@ func _build_ui() -> void:
 	var root: HBoxContainer = HBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_theme_constant_override("separation", 20)
 	screen_root.add_child(root)
 
@@ -160,10 +161,14 @@ func _apply_facility_layout_state(uses_choice_layout: bool) -> void:
 	if _facility_frame == null:
 		return
 	if uses_choice_layout:
-		_facility_frame.custom_minimum_size = Vector2(780.0, 0.0)
+		_facility_frame.custom_minimum_size = Vector2(1120.0, 800.0)
+		_facility_frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		_facility_frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		_facility_frame.add_theme_stylebox_override("panel", _make_event_panel_stylebox())
 	else:
 		_facility_frame.custom_minimum_size = Vector2.ZERO
+		_facility_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_facility_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		_facility_frame.remove_theme_stylebox_override("panel")
 
 
@@ -231,6 +236,15 @@ func _refresh_ui() -> void:
 	if not uses_choice_layout:
 		_deck_panel.refresh_card_ids(Game.get_equipped_cards(), false, "EQUIP", current_run)
 	_refresh_developer_panel()
+	if uses_choice_layout:
+		_fit_choice_frame.call_deferred()
+
+
+func _fit_choice_frame() -> void:
+	if not is_inside_tree() or _facility_frame == null:
+		return
+	# Short events fit their content; longer shops and forges keep a scrollable body.
+	_facility_frame.custom_minimum_size.y = clampf(_options_box.get_combined_minimum_size().y + 130.0, 520.0, 820.0)
 
 
 func _render_shop_offers() -> void:
@@ -420,7 +434,7 @@ func _build_event_choice_button(choice_data: Dictionary, pressed_callback: Calla
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	title_label.add_theme_font_size_override("font_size", 18)
+	title_label.add_theme_font_size_override("font_size", 20)
 	title_label.add_theme_color_override("font_color", Color(0.88, 0.82, 0.63, 1.0) if not disabled else Color(0.48, 0.48, 0.48, 1.0))
 	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.add_child(title_label)
@@ -446,8 +460,8 @@ func _make_event_panel_stylebox() -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = Color(0.025, 0.034, 0.050, 0.96)
 	style.border_color = Color(0.72, 0.64, 0.45, 0.88)
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(4)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(16)
 	style.shadow_color = Color(0.0, 0.0, 0.0, 0.45)
 	style.shadow_size = 18
 	style.shadow_offset = Vector2(0.0, 8.0)

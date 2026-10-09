@@ -50,16 +50,29 @@ func _build_ui() -> void:
 	margin.offset_bottom = -24.0
 	add_child(margin)
 
+	var page: VBoxContainer = VBoxContainer.new()
+	page.add_theme_constant_override("separation", 24)
+	margin.add_child(page)
+	UiTheme.add_page_heading(page, Localization.get_text("meta.title", "Meta Progress"), Localization.get_text("meta.page_hint", "Track your milestones and use rewards to unlock new possibilities."))
 	var root: HBoxContainer = HBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 18)
-	margin.add_child(root)
+	page.add_child(root)
 
-	var summary_panel: VBoxContainer = _create_panel(root, Localization.get_text("meta.title", "Meta Progress"))
+	var summary_panel: VBoxContainer = _create_panel(root, Localization.get_text("meta.summary_heading", "Records & Unlocks"))
+	var summary_frame: PanelContainer = summary_panel.get_parent() as PanelContainer
+	summary_frame.name = "MetaSummaryPanel"
+	summary_frame.custom_minimum_size.x = 360.0
+	summary_frame.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	summary_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_summary_label = RichTextLabel.new()
+	_summary_label.bbcode_enabled = true
 	_summary_label.fit_content = true
 	summary_panel.add_child(_summary_label)
+	var spacer: Control = Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	summary_panel.add_child(spacer)
 
 	var back_button: Button = Button.new()
 	back_button.text = Localization.get_text("meta.return_hub", "Return to Hub")
@@ -80,6 +93,8 @@ func _build_ui() -> void:
 	summary_panel.add_child(library_button)
 
 	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.name = "MetaContentScroll"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(scroll)
@@ -119,8 +134,8 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 	panel.add_child(box)
 
 	var label: Label = Label.new()
+	label.theme_type_variation = "SectionTitle"
 	label.text = title
-	label.add_theme_font_size_override("font_size", 20)
 	box.add_child(label)
 
 	var divider: HSeparator = HSeparator.new()
@@ -164,7 +179,7 @@ func _refresh_ui() -> void:
 	var relic_entries: Array[Dictionary] = Game.get_meta_relic_entries()
 	var achievement_entries: Array[Dictionary] = Game.get_meta_achievement_entries()
 	_summary_label.text = "\n".join([
-		Localization.get_textf("meta.summary.points", "Points: {value}", {"value": Game.get_meta_points()}),
+		"[font_size=30][color=#f5c16b]%s[/color][/font_size]\n" % Localization.get_textf("meta.summary.points", "Points: {value}", {"value": Game.get_meta_points()}),
 		Localization.get_textf("meta.summary.best_clear", "Best Clear: {value}", {"value": Game.get_best_clear()}),
 		Localization.get_textf("meta.summary.steps", "Unlocked Steps: 1-{end}", {"end": Game.get_unlocked_step_tier() * 7}),
 		Localization.get_textf("meta.summary.infinite_mode", "Infinite Mode: {value}", {
@@ -249,18 +264,21 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		var name_label: Label = Label.new()
 		name_label.name = "AchievementName_%s" % achievement_id
 		name_label.text = String(entry.get("name", achievement_id))
-		name_label.add_theme_font_size_override("font_size", 17)
+		name_label.add_theme_font_size_override("font_size", 20)
 		info.add_child(name_label)
 
 		var desc_label: Label = Label.new()
 		desc_label.name = "AchievementDescription_%s" % achievement_id
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		desc_label.text = String(entry.get("description", ""))
+		desc_label.theme_type_variation = "MutedLabel"
 		info.add_child(desc_label)
 
 		var reward_label: Label = Label.new()
 		reward_label.name = "AchievementReward_%s" % achievement_id
 		reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		reward_label.add_theme_font_size_override("font_size", 16)
+		reward_label.add_theme_color_override("font_color", UiTheme.ACCENT_GOLD)
 		reward_label.text = Localization.get_textf("meta.achievement_reward", "Reward: {value}", {
 			"value": String(entry.get("reward_text", "")),
 		})
@@ -299,6 +317,8 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		var claim_button: Button = Button.new()
 		claim_button.name = "ClaimAchievement_%s" % achievement_id
 		claim_button.custom_minimum_size = Vector2(116.0, 38.0)
+		claim_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		claim_button.theme_type_variation = "PrimaryButton"
 		claim_button.text = Localization.get_text("meta.claim", "Claim")
 		claim_button.disabled = not bool(entry.get("claimable", false))
 		claim_button.pressed.connect(_on_claim_achievement.bind(achievement_id))
@@ -355,6 +375,7 @@ func _rebuild_starters(entries: Array[Dictionary]) -> void:
 
 		var unlock_button: Button = Button.new()
 		unlock_button.name = "UnlockStarter_%s" % starter_id
+		unlock_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
 		unlock_button.disabled = bool(entry.get("unlocked", false)) or meta_points < int(entry.get("cost", 0))
 		unlock_button.pressed.connect(_on_unlock_starter.bind(starter_id))
@@ -411,6 +432,7 @@ func _rebuild_relics(entries: Array[Dictionary]) -> void:
 
 		var unlock_button: Button = Button.new()
 		unlock_button.name = "UnlockRelic_%s" % relic_id
+		unlock_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
 		unlock_button.disabled = bool(entry.get("unlocked", false)) or meta_points < int(entry.get("cost", 0))
 		unlock_button.pressed.connect(_on_unlock_relic.bind(relic_id))

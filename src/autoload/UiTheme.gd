@@ -38,6 +38,54 @@ func get_game_theme() -> Theme:
 	return _theme
 
 
+func add_page_heading(parent: Control, title_text: String, subtitle_text: String = "", back_action: Callable = Callable(), back_name: String = "PageBackButton") -> HBoxContainer:
+	var header: HBoxContainer = HBoxContainer.new()
+	header.add_theme_constant_override("separation", 24)
+	parent.add_child(header)
+	var copy: VBoxContainer = VBoxContainer.new()
+	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	copy.add_theme_constant_override("separation", 6)
+	header.add_child(copy)
+	var title: Label = Label.new()
+	title.theme_type_variation = "PageTitle"
+	title.text = title_text
+	copy.add_child(title)
+	if subtitle_text != "":
+		var subtitle: Label = Label.new()
+		subtitle.theme_type_variation = "MutedLabel"
+		subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		subtitle.text = subtitle_text
+		copy.add_child(subtitle)
+	if back_action.is_valid():
+		var back: Button = Button.new()
+		back.name = back_name
+		back.text = Localization.get_text("common.back_hub", "Back to Hub")
+		back.custom_minimum_size = Vector2(160.0, 48.0)
+		back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		back.pressed.connect(back_action)
+		header.add_child(back)
+	return header
+
+
+func add_section(parent: Control, title_text: String, node_name: String = "") -> VBoxContainer:
+	var panel: PanelContainer = PanelContainer.new()
+	panel.theme_type_variation = "SectionPanel"
+	if node_name != "":
+		panel.name = node_name
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(panel)
+	var box: VBoxContainer = VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 18)
+	panel.add_child(box)
+	if title_text != "":
+		var title: Label = Label.new()
+		title.theme_type_variation = "SectionTitle"
+		title.text = title_text
+		box.add_child(title)
+	return box
+
+
 func _style_current_scene() -> void:
 	var current_scene: Node = get_tree().current_scene
 	var scene_control: Control = current_scene as Control
@@ -77,6 +125,8 @@ func _build_theme() -> Theme:
 	_apply_text_theme(theme)
 	_apply_slider_theme(theme)
 	_apply_container_theme(theme)
+	_apply_navigation_theme(theme)
+	_apply_input_theme(theme)
 	return theme
 
 
@@ -85,7 +135,7 @@ func _apply_label_theme(theme: Theme) -> void:
 	theme.set_color("font_shadow_color", "Label", Color(0.0, 0.0, 0.0, 0.62))
 	theme.set_constant("shadow_offset_x", "Label", 1)
 	theme.set_constant("shadow_offset_y", "Label", 2)
-	theme.set_font_size("font_size", "Label", 17)
+	theme.set_font_size("font_size", "Label", 18)
 
 
 func _apply_text_theme(theme: Theme) -> void:
@@ -95,7 +145,7 @@ func _apply_text_theme(theme: Theme) -> void:
 	theme.set_color("font_shadow_color", "RichTextLabel", Color(0.0, 0.0, 0.0, 0.52))
 	theme.set_constant("shadow_offset_x", "RichTextLabel", 1)
 	theme.set_constant("shadow_offset_y", "RichTextLabel", 2)
-	theme.set_font_size("normal_font_size", "RichTextLabel", 17)
+	theme.set_font_size("normal_font_size", "RichTextLabel", 18)
 
 
 func _apply_button_theme(theme: Theme, theme_type: String) -> void:
@@ -161,6 +211,66 @@ func _apply_slider_theme(theme: Theme) -> void:
 	theme.set_stylebox("grabber_area", "HSlider", _make_flat_style(Color(0.12, 0.46, 0.72, 1.0), ACCENT_BLUE, 1, 8))
 	theme.set_icon("grabber", "HSlider", _make_grabber_texture(ACCENT_GOLD))
 	theme.set_icon("grabber_highlight", "HSlider", _make_grabber_texture(Color(1.0, 0.82, 0.45, 1.0)))
+	var track: StyleBoxFlat = theme.get_stylebox("slider", "HSlider") as StyleBoxFlat
+	track.content_margin_top = 4.0
+	track.content_margin_bottom = 4.0
+
+
+func _apply_navigation_theme(theme: Theme) -> void:
+	for variation: String in ["PageTitle", "SectionTitle", "MutedLabel"]:
+		theme.set_type_variation(variation, "Label")
+	theme.set_font_size("font_size", "PageTitle", 34)
+	theme.set_font_size("font_size", "SectionTitle", 22)
+	theme.set_font_size("font_size", "MutedLabel", 16)
+	theme.set_color("font_color", "MutedLabel", TEXT_MUTED)
+	theme.set_color("font_color", "SectionTitle", Color(0.78, 0.91, 0.97))
+	theme.set_type_variation("SectionPanel", "PanelContainer")
+	var panel: StyleBoxFlat = _make_panel_style(PANEL_FILL, PANEL_STROKE, 16, 6)
+	panel.content_margin_left = 24.0
+	panel.content_margin_right = 24.0
+	panel.content_margin_top = 22.0
+	panel.content_margin_bottom = 22.0
+	theme.set_stylebox("panel", "SectionPanel", panel)
+	theme.set_type_variation("PrimaryButton", "Button")
+	theme.set_stylebox("normal", "PrimaryButton", _make_button_style(Color(0.22, 0.16, 0.075), ACCENT_GOLD.darkened(0.18), 1, 10))
+	theme.set_stylebox("hover", "PrimaryButton", _make_button_style(Color(0.32, 0.23, 0.095), ACCENT_GOLD, 1, 10))
+	theme.set_stylebox("pressed", "PrimaryButton", _make_button_style(Color(0.18, 0.13, 0.065), ACCENT_GOLD, 1, 10))
+	theme.set_color("font_color", "PrimaryButton", Color(1.0, 0.87, 0.61))
+	theme.set_font_size("font_size", "PrimaryButton", 19)
+	var divider: StyleBoxFlat = _make_flat_style(Color(0.25, 0.42, 0.54, 0.35), Color.TRANSPARENT, 0, 0)
+	divider.content_margin_top = 1.0
+	divider.content_margin_bottom = 1.0
+	theme.set_stylebox("separator", "HSeparator", divider)
+	var progress_background: StyleBoxFlat = _make_flat_style(Color(0.018, 0.031, 0.043), PANEL_STROKE, 1, 6)
+	progress_background.content_margin_top = 6.0
+	progress_background.content_margin_bottom = 6.0
+	theme.set_stylebox("background", "ProgressBar", progress_background)
+	theme.set_stylebox("fill", "ProgressBar", _make_flat_style(ACCENT_BLUE, Color.TRANSPARENT, 0, 6))
+	for type_name: String in ["VScrollBar", "HScrollBar"]:
+		theme.set_stylebox("scroll", type_name, _make_flat_style(Color(0.03, 0.05, 0.065, 0.65), Color.TRANSPARENT, 0, 4))
+		for state: String in ["grabber", "grabber_highlight", "grabber_pressed"]:
+			var thumb: StyleBoxFlat = _make_flat_style(Color(0.31, 0.52, 0.64, 0.8) if state == "grabber" else ACCENT_BLUE, Color.TRANSPARENT, 0, 4)
+			thumb.content_margin_left = 5.0
+			thumb.content_margin_right = 5.0
+			thumb.content_margin_top = 5.0
+			thumb.content_margin_bottom = 5.0
+			theme.set_stylebox(state, type_name, thumb)
+
+
+func _apply_input_theme(theme: Theme) -> void:
+	for type_name: String in ["LineEdit", "ItemList", "PopupMenu"]:
+		theme.set_font("font", type_name, GAME_FONT)
+		theme.set_font_size("font_size", type_name, 18)
+		theme.set_color("font_color", type_name, TEXT_MAIN)
+		theme.set_color("font_placeholder_color", type_name, TEXT_MUTED)
+		theme.set_color("font_disabled_color", type_name, TEXT_DISABLED)
+		theme.set_stylebox("normal" if type_name == "LineEdit" else "panel", type_name, _make_panel_style(PANEL_FILL_DEEP, PANEL_STROKE, 10, 0))
+		theme.set_stylebox("focus", type_name, _make_panel_style(Color(0.08, 0.15, 0.20, 0.15), ACCENT_BLUE, 10, 0))
+		theme.set_stylebox("selected", type_name, _make_button_style(Color(0.09, 0.24, 0.34), ACCENT_BLUE, 1, 6))
+		theme.set_stylebox("hovered" if type_name == "ItemList" else "hover", type_name, _make_button_style(BUTTON_HOVER, Color.TRANSPARENT, 0, 6))
+		theme.set_constant("v_separation", type_name, 10)
+	theme.set_color("caret_color", "LineEdit", ACCENT_GOLD)
+	theme.set_color("selection_color", "LineEdit", Color(0.20, 0.48, 0.65, 0.6))
 
 
 func _apply_container_theme(theme: Theme) -> void:

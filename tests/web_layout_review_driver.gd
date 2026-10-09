@@ -35,8 +35,19 @@ func _command(arguments: Array) -> void:
 func _open_screen(screen: String) -> void:
 	Game.clear_battle_tutorial()
 	Game.settings["developer_mode"] = false
+	Game.meta_progress["infinite_mode_unlocked"] = screen == "hub_infinite"
 	match screen:
 		"hub": SceneRouter.go_to_hub()
+		"hub_continue":
+			Game.start_new_run("balanced", 4242)
+			Game.stash_active_run_for_hub()
+			Game.start_arena_run("balanced")
+			Game.stash_active_run_for_hub()
+			SceneRouter.go_to_hub()
+		"hub_developer":
+			Game.settings["developer_mode"] = true
+			SceneRouter.go_to_hub()
+		"hub_infinite": SceneRouter.go_to_hub()
 		"settings": SceneRouter.go_to_settings()
 		"setup": SceneRouter.go_to_run_setup()
 		"arena_setup": SceneRouter.go_to_run_setup(Game.RUN_SETUP_MODE_ARENA)
@@ -91,6 +102,12 @@ func _inspect() -> Dictionary:
 		"controls": controls,
 	}
 	if screen != null:
+		if screen.scene_file_path.get_file().get_basename() == "CardLibrary":
+			var search: LineEdit = screen.find_child("LibrarySearch", true, false) as LineEdit
+			var empty: Label = screen.find_child("LibraryEmptyNotice", true, false) as Label
+			result["library"] = {"cards": Dictionary(screen.get("_card_widgets")).keys(), "search": search.text, "empty": empty.visible}
+		elif screen.scene_file_path.get_file().get_basename() == "OnlineLobby":
+			result["lobby"] = {"connected": NetworkManager.is_session_connected(), "capacity": NetworkManager.get_player_capacity()}
 		var stage: BattleStage3D = screen.find_child("BattleStage3D", true, false) as BattleStage3D
 		if stage != null:
 			var player_status: BattleUnitStatus3D = stage.get_player_status_model()
@@ -118,7 +135,7 @@ func _collect_controls(node: Node, controls: Array[Dictionary], in_scroll: bool)
 	if control != null and (not control.is_visible_in_tree() or control.get_viewport() != get_viewport()):
 		return
 	var scrolling: bool = in_scroll or node is ScrollContainer
-	if control != null and (control is Container or control is BaseButton):
+	if control != null and (control is Container or control is BaseButton or control is LineEdit or control is SpinBox):
 		controls.append({
 			"name": String(control.name), "class": control.get_class(),
 			"rect": _rect_values(control.get_global_rect()), "scroll": scrolling,

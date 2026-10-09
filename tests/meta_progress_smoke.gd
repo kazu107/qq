@@ -151,6 +151,8 @@ func _run() -> void:
 	add_child(library_for_unlock)
 	if not await _wait_for_content_ready(library_for_unlock, "card library unlock"):
 		return
+	if not await _load_all_library_pages(library_for_unlock):
+		return
 	var assault_button: Button = library_for_unlock.find_child("UnlockCard_assault", true, false) as Button
 	var unlock_assault_row: Control = library_for_unlock.find_child("LibraryRow_assault", true, false) as Control
 	if assault_button == null or unlock_assault_row == null or assault_button.disabled or not assault_button.visible:
@@ -214,6 +216,8 @@ func _run() -> void:
 		return
 	if not await _wait_for_content_ready(library_scene, "card library"):
 		return
+	if not await _load_all_library_pages(library_scene):
+		return
 	var assault_status: Label = library_scene.find_child("LibraryStatus_assault", true, false) as Label
 	var execution_status: Label = library_scene.find_child("LibraryStatus_execution", true, false) as Label
 	var hidden_assault_button: Button = library_scene.find_child("UnlockCard_assault", true, false) as Button
@@ -249,8 +253,9 @@ func _run() -> void:
 		_fail("Meta progress smoke failed: rarity filter did not contain rare")
 		return
 	rarity_filter.emit_signal("item_selected", rarity_filter.selected)
-	await get_tree().process_frame
-	if not assault_row.visible or execution_row.visible:
+	if not await _wait_for_content_ready(library_scene, "rare cards") or not await _load_all_library_pages(library_scene):
+		return
+	if library_scene.find_child("LibraryRow_assault", true, false) == null or library_scene.find_child("LibraryRow_execution", true, false) != null:
 		_fail("Meta progress smoke failed: rarity filter did not hide non-matching cards")
 		return
 	if not _select_option_by_metadata(rarity_filter, "all"):
@@ -261,15 +266,18 @@ func _run() -> void:
 		_fail("Meta progress smoke failed: type filter did not contain shield")
 		return
 	type_filter.emit_signal("item_selected", type_filter.selected)
-	await get_tree().process_frame
-	if not guard_row.visible or assault_row.visible:
+	if not await _wait_for_content_ready(library_scene, "shield cards") or not await _load_all_library_pages(library_scene):
+		return
+	if library_scene.find_child("LibraryRow_guard", true, false) == null or library_scene.find_child("LibraryRow_assault", true, false) != null:
 		_fail("Meta progress smoke failed: type filter did not hide non-matching cards")
 		return
 	if not _select_option_by_metadata(type_filter, "all"):
 		_fail("Meta progress smoke failed: type filter did not contain all")
 		return
 	type_filter.emit_signal("item_selected", type_filter.selected)
-	await get_tree().process_frame
+	if not await _wait_for_content_ready(library_scene, "all cards") or not await _load_all_library_pages(library_scene):
+		return
+	execution_row = library_scene.find_child("LibraryRow_execution", true, false) as Control
 	var execution_row_id: int = execution_row.get_instance_id()
 	Game.developer_unlock_all_meta()
 	library_scene.call("_refresh_ui")
@@ -327,6 +335,8 @@ func _run() -> void:
 	add_child(library_scene)
 	if not await _wait_for_content_ready(library_scene, "reset card library"):
 		return
+	if not await _load_all_library_pages(library_scene):
+		return
 	var reset_assault_button: Button = library_scene.find_child("UnlockCard_assault", true, false) as Button
 	if reset_assault_button == null or reset_assault_button.disabled:
 		_fail("Meta progress smoke failed: developer reset should allow cards to be unlocked again immediately")
@@ -376,6 +386,19 @@ func _wait_for_content_ready(scene: Control, label: String) -> bool:
 		if scene.has_method("is_content_ready") and bool(scene.call("is_content_ready")):
 			return true
 	_fail("Meta progress smoke failed: %s content did not finish building" % label)
+	return false
+
+
+func _load_all_library_pages(library: Control) -> bool:
+	var scroll: ScrollContainer = library.get("_cards_scroll") as ScrollContainer
+	for _attempt: int in range(40):
+		if not bool(library.get("_awaiting_more")) and not bool(library.get("_content_building")):
+			return true
+		scroll.get_v_scroll_bar().value = scroll.get_v_scroll_bar().max_value
+		library.call("_request_more_if_needed")
+		for _frame: int in range(6):
+			await get_tree().process_frame
+	_fail("Meta progress smoke failed: scrolling did not load the remaining card pages")
 	return false
 
 

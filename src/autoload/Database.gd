@@ -277,7 +277,7 @@ func _apply_localization() -> void:
 			)
 			tier_data["description"] = Localization.get_text(
 				"achievement.%s.tier.%s.description" % [achievement_id, tier_key],
-				String(tier_data.get("description", ""))
+				String(tier_data.get("description", achievement_data.get("description", "")))
 			)
 			tiers[tier_index] = tier_data
 		if not tiers.is_empty():

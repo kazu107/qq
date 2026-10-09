@@ -31,12 +31,6 @@ func get_tutorial_count() -> int:
 
 
 func _build_ui() -> void:
-	var background := ColorRect.new()
-	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	background.color = Color(0.012, 0.026, 0.042, 1.0)
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(background)
-
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 72)
@@ -81,9 +75,11 @@ func _build_ui() -> void:
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	root.add_child(scroll)
-	var list := VBoxContainer.new()
+	var list := GridContainer.new()
 	list.name = "TutorialList"
-	list.add_theme_constant_override("separation", 14)
+	list.columns = 2
+	list.add_theme_constant_override("h_separation", 18)
+	list.add_theme_constant_override("v_separation", 18)
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.add_child(list)
@@ -95,7 +91,8 @@ func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	var panel := PanelContainer.new()
 	panel.name = "TutorialItem_%s" % String(tutorial["id"])
 	panel.mouse_entered.connect(SceneRouter.schedule_battle_visuals.bind("balanced", String(tutorial.get("enemy_id", ""))))
-	panel.custom_minimum_size = Vector2(0.0, 154.0)
+	panel.custom_minimum_size = Vector2(760.0, 200.0)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_theme_stylebox_override("panel", _make_item_style())
 
 	var margin := MarginContainer.new()
@@ -123,6 +120,7 @@ func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	row.add_child(copy)
 	var item_title := Label.new()
 	item_title.text = Localization.get_text(String(tutorial["title_key"]), String(tutorial["title_fallback"]))
+	item_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	item_title.add_theme_font_size_override("font_size", 25)
 	item_title.add_theme_color_override("font_color", Color(0.95, 0.98, 1.0, 1.0))
 	copy.add_child(item_title)
@@ -134,6 +132,7 @@ func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	copy.add_child(description)
 	var topics := Label.new()
 	topics.text = Localization.get_text(String(tutorial["topics_key"]), String(tutorial["topics_fallback"]))
+	topics.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	topics.add_theme_color_override("font_color", Color(0.42, 0.82, 1.0, 1.0))
 	copy.add_child(topics)
 
@@ -154,6 +153,7 @@ func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	action.add_child(difficulty)
 	var start := Button.new()
 	start.name = "TutorialStart_%s" % String(tutorial["id"])
+	start.theme_type_variation = "PrimaryButton"
 	start.text = Localization.get_text("tutorial.catalog.start", "Start")
 	start.custom_minimum_size = Vector2(180.0, 46.0)
 	start.pressed.connect(SceneRouter.start_battle_tutorial.bind(String(tutorial["id"])))

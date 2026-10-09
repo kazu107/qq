@@ -15,6 +15,7 @@ await new Promise(done => app.server.listen(0, '127.0.0.1', done));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const errors = [];
 const samples = [];
+const interactions = [];
 const sizes = [
   { width: 1440, height: 900 }, { width: 1280, height: 960 },
   { width: 1920, height: 800 }, { width: 1280, height: 720 },
@@ -25,7 +26,17 @@ const screens = {
   meta: 'MetaProgress', library: 'CardLibrary', tutorials: 'BattleTutorial', online: 'OnlineLobby',
   map: 'Map', arena: 'Arena', battle: 'Battle', reward: 'Reward', event: 'Facility', result: 'RunResult',
 };
+const additionalScreens = { hub_continue: 'Hub', hub_developer: 'Hub', hub_infinite: 'Hub' };
 let sequence = 0;
+
+function findOverflow(state) {
+  const [width, height] = state.viewport;
+  return state.controls.filter(control => {
+    if (control.scroll) return false;
+    const [x, y, w, h] = control.rect;
+    return w > 1 && h > 1 && (x < -2 || y < -2 || x + w > width + 2 || y + h > height + 2);
+  });
+}
 
 try {
   const page = await browser.newPage({ viewport: sizes[0] });
@@ -44,7 +55,7 @@ try {
     await page.waitForFunction(expected => {
       const state = JSON.parse(window.qqLayoutState || '{}');
       return state.sequence === expected.sequence && (!expected.screen || state.screen === expected.screen);
-    }, { sequence: requestedSequence, screen: action === 'screen' ? screens[screen] : '' }, { timeout: 30000 });
+    }, { sequence: requestedSequence, screen: action === 'screen' ? (screens[screen] || additionalScreens[screen]) : '' }, { timeout: 30000 });
     return page.evaluate(() => JSON.parse(window.qqLayoutState));
   }
 
@@ -56,11 +67,7 @@ try {
       assert(Math.abs(width / height - size.width / size.height) < 0.002, `Letterboxing remained at ${size.width}x${size.height}`);
       const canvas = await page.locator('#canvas').boundingBox();
       assert(Math.abs(canvas.x) < 1 && Math.abs(canvas.y) < 1 && Math.abs(canvas.width - size.width) < 1 && Math.abs(canvas.height - size.height) < 1);
-      const overflow = state.controls.filter(control => {
-        if (control.scroll) return false;
-        const [x, y, w, h] = control.rect;
-        return w > 1 && h > 1 && (x < -2 || y < -2 || x + w > width + 2 || y + h > height + 2);
-      });
+      const overflow = findOverflow(state);
       const sample = { size, screen, ...state, overflow };
       if (state.battle) {
         for (const [x, y] of state.battle.status_corners) {
@@ -72,7 +79,56 @@ try {
       console.log(`LAYOUT ${size.width}x${size.height} ${screen} overflow=${overflow.length}`);
     }
   }
-  await writeFile(resolve(output, process.env.QQ_LAYOUT_SCREENS ? 'focused-report.json' : 'report.json'), JSON.stringify({ errors, samples }, null, 2));
+  if (process.env.QQ_LAYOUT_INTERACTIONS === '1') {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    async function clickControl(state, name) {
+      const control = state.controls.find(control => control.name === name);
+      assert(control, `Missing interactive control: ${name}`);
+      const [x, y, w, h] = control.rect;
+      await page.mouse.click((x + w / 2) * 1440 / state.viewport[0], (y + h / 2) * 900 / state.viewport[1]);
+    }
+    let state = await inspect('screen', 'library');
+    await clickControl(state, 'LibrarySearch');
+    await page.keyboard.type('HP');
+    await page.waitForTimeout(350);
+    state = await inspect('inspect');
+    assert.equal(state.library.search, 'HP');
+    assert(state.library.cards.includes('repair_burst') && !state.library.empty);
+    await page.screenshot({ path: resolve(output, 'interaction-library-search.png') });
+    await page.keyboard.press('Control+A');
+    await page.keyboard.type('__no_such_card__');
+    await page.waitForTimeout(350);
+    state = await inspect('inspect');
+    assert(state.library.empty && state.library.cards.length === 0);
+    await page.screenshot({ path: resolve(output, 'interaction-library-empty.png') });
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Backspace');
+    await page.waitForTimeout(350);
+    state = await inspect('inspect');
+    assert(!state.library.empty && state.library.cards.length >= 12);
+    interactions.push('library_keyboard_search_empty_clear');
+    state = await inspect('screen', 'online');
+    await clickControl(state, 'LanHostButton');
+    for (let attempt = 0; attempt < 20 && !state.lobby.connected; attempt++) {
+      await page.waitForTimeout(200);
+      state = await inspect('inspect');
+    }
+    assert(state.lobby.connected, 'Local Web room creation did not connect');
+    assert.deepEqual(findOverflow(state), []);
+    await page.screenshot({ path: resolve(output, 'interaction-online-connected.png') });
+    interactions.push('online_room_creation_connected_layout');
+    await clickControl(state, 'OnlineLobbyMaxPlayersSpin');
+    await page.keyboard.press('Control+A');
+    await page.keyboard.type('4');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(250);
+    state = await inspect('inspect');
+    assert.equal(state.lobby.capacity, 4, 'Changing room capacity did not update the lobby');
+    assert.deepEqual(findOverflow(state), []);
+    await page.screenshot({ path: resolve(output, 'interaction-online-four-slots.png') });
+    interactions.push('online_four_player_rules_layout');
+  }
+  await writeFile(resolve(output, process.env.QQ_LAYOUT_SCREENS ? 'focused-report.json' : 'report.json'), JSON.stringify({ errors, samples, interactions }, null, 2));
   assert.deepEqual(errors, []);
   const failures = samples.filter(sample => sample.overflow.length > 0);
   assert.deepEqual(failures.map(sample => ({ size: sample.size, screen: sample.screen, overflow: sample.overflow })), []);

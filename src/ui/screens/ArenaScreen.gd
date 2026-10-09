@@ -287,6 +287,7 @@ func _build_loadout_panel(parent: Control) -> void:
 
 	_start_battle_button = Button.new()
 	_start_battle_button.name = "ArenaStartBattleButton"
+	_start_battle_button.theme_type_variation = "PrimaryButton"
 	_start_battle_button.text = Localization.get_text("arena.start_battle", "Start Next Battle")
 	_start_battle_button.custom_minimum_size = Vector2(0.0, 44.0)
 	_start_battle_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL

@@ -60,28 +60,25 @@ func _build_ui() -> void:
 	margin.offset_right = -80.0
 	margin.offset_bottom = -60.0
 	add_child(margin)
+	var center: CenterContainer = CenterContainer.new()
+	margin.add_child(center)
 
 	var root: VBoxContainer = VBoxContainer.new()
-	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_theme_constant_override("separation", 16)
-	margin.add_child(root)
-
-	var title: Label = Label.new()
-	title.text = Localization.get_text("settings.title", "Settings")
-	root.add_child(title)
-
-	var summary: Label = Label.new()
-	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	summary.text = Localization.get_text(
-		"settings.summary",
-		"Adjust global settings used by Title, Hub, battle replay export, and global audio playback."
-	)
-	root.add_child(summary)
+	root.name = "SettingsPage"
+	root.custom_minimum_size = Vector2(1240.0, 0.0)
+	root.add_theme_constant_override("separation", 24)
+	center.add_child(root)
+	UiTheme.add_page_heading(root, Localization.get_text("settings.title", "Settings"), Localization.get_text("settings.page_hint", "Changes are saved automatically and used throughout the game."))
+	var columns: HBoxContainer = HBoxContainer.new()
+	columns.add_theme_constant_override("separation", 20)
+	root.add_child(columns)
+	var audio: VBoxContainer = UiTheme.add_section(columns, Localization.get_text("settings.section.audio", "Audio"), "SettingsAudioSection")
+	var display: VBoxContainer = UiTheme.add_section(columns, Localization.get_text("settings.section.display", "Language & Display"), "SettingsDisplaySection")
 
 	var volume_row: HBoxContainer = HBoxContainer.new()
+	volume_row.custom_minimum_size.y = 52.0
 	volume_row.add_theme_constant_override("separation", 12)
-	root.add_child(volume_row)
+	audio.add_child(volume_row)
 
 	var volume_label: Label = Label.new()
 	volume_label.text = Localization.get_text("settings.master_volume", "Master Volume")
@@ -94,6 +91,8 @@ func _build_ui() -> void:
 	_master_volume_slider.max_value = 1.0
 	_master_volume_slider.step = 0.05
 	_master_volume_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_master_volume_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_master_volume_slider.custom_minimum_size = Vector2(200.0, 28.0)
 	_master_volume_slider.value_changed.connect(_on_master_volume_changed)
 	volume_row.add_child(_master_volume_slider)
 
@@ -103,8 +102,9 @@ func _build_ui() -> void:
 	volume_row.add_child(_master_volume_value)
 
 	var sfx_row: HBoxContainer = HBoxContainer.new()
+	sfx_row.custom_minimum_size.y = 52.0
 	sfx_row.add_theme_constant_override("separation", 12)
-	root.add_child(sfx_row)
+	audio.add_child(sfx_row)
 
 	var sfx_label: Label = Label.new()
 	sfx_label.text = Localization.get_text("settings.sfx_volume", "SFX Volume")
@@ -117,6 +117,8 @@ func _build_ui() -> void:
 	_sfx_volume_slider.max_value = 1.0
 	_sfx_volume_slider.step = 0.05
 	_sfx_volume_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_sfx_volume_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_sfx_volume_slider.custom_minimum_size = Vector2(200.0, 28.0)
 	_sfx_volume_slider.value_changed.connect(_on_sfx_volume_changed)
 	sfx_row.add_child(_sfx_volume_slider)
 
@@ -127,7 +129,7 @@ func _build_ui() -> void:
 
 	var language_row: HBoxContainer = HBoxContainer.new()
 	language_row.add_theme_constant_override("separation", 12)
-	root.add_child(language_row)
+	display.add_child(language_row)
 
 	var language_label: Label = Label.new()
 	language_label.text = Localization.get_text("settings.language", "Language")
@@ -149,7 +151,7 @@ func _build_ui() -> void:
 	var resolution_row: HBoxContainer = HBoxContainer.new()
 	resolution_row.add_theme_constant_override("separation", 12)
 	resolution_row.visible = not Game.is_web_build()
-	root.add_child(resolution_row)
+	display.add_child(resolution_row)
 	if Game.is_web_build():
 		var automatic_resolution: Label = Label.new()
 		automatic_resolution.name = "BrowserAutomaticResolutionLabel"
@@ -157,7 +159,9 @@ func _build_ui() -> void:
 			"settings.browser_resolution",
 			"Resolution: automatic (fits the browser window)"
 		)
-		root.add_child(automatic_resolution)
+		automatic_resolution.theme_type_variation = "MutedLabel"
+		automatic_resolution.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		display.add_child(automatic_resolution)
 
 	var resolution_label: Label = Label.new()
 	resolution_label.text = Localization.get_text("settings.resolution", "Resolution")
@@ -176,22 +180,24 @@ func _build_ui() -> void:
 		_resolution_codes.append(resolution_code)
 		_resolution_option.add_item(resolution_label_text)
 
+	var advanced: VBoxContainer = UiTheme.add_section(root, Localization.get_text("settings.section.tools", "Replay & Developer Tools"), "SettingsToolsSection")
 	_replay_toggle = CheckButton.new()
 	_replay_toggle.name = "ReplayAutoExportToggle"
 	_replay_toggle.text = Localization.get_text("settings.replay_auto_export", "Auto-export replay JSON after each battle")
 	_replay_toggle.toggled.connect(_on_replay_toggle_changed)
-	root.add_child(_replay_toggle)
+	advanced.add_child(_replay_toggle)
 
 	_developer_toggle = CheckButton.new()
 	_developer_toggle.name = "DeveloperModeToggle"
 	_developer_toggle.text = Localization.get_text("settings.developer_mode", "Enable developer mode")
 	_developer_toggle.toggled.connect(_on_developer_toggle_changed)
-	root.add_child(_developer_toggle)
+	advanced.add_child(_developer_toggle)
 
 	_status_label = Label.new()
 	_status_label.name = "SettingsStatusLabel"
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	root.add_child(_status_label)
+	_status_label.theme_type_variation = "MutedLabel"
+	advanced.add_child(_status_label)
 
 	var buttons: HBoxContainer = HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", 12)
@@ -201,13 +207,18 @@ func _build_ui() -> void:
 	back_button.name = "SettingsBackButton"
 	back_button.text = Localization.get_text("settings.back", "Back")
 	back_button.pressed.connect(_on_back)
-	buttons.add_child(back_button)
+	back_button.theme_type_variation = "PrimaryButton"
+	back_button.custom_minimum_size = Vector2(180.0, 48.0)
 
 	var reset_button: Button = Button.new()
 	reset_button.name = "ResetSettingsButton"
 	reset_button.text = Localization.get_text("settings.reset", "Reset to Defaults")
 	reset_button.pressed.connect(_on_reset_settings)
 	buttons.add_child(reset_button)
+	var spacer: Control = Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	buttons.add_child(spacer)
+	buttons.add_child(back_button)
 
 
 func _refresh_ui() -> void:

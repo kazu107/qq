@@ -1,6 +1,6 @@
 extends Control
 
-const CONNECTION_PANEL_WIDTH: float = 500.0
+const CONNECTION_PANEL_WIDTH: float = 760.0
 const DECK_TILE_SIZE: Vector2 = Vector2(92.0, 92.0)
 
 @export var online_mode: bool = false
@@ -30,6 +30,7 @@ var _lobby_panel: PanelContainer
 var _invite_label: Label
 var _ready_count_label: Label
 var _players_box: GridContainer
+var _players_scroll: ScrollContainer
 var _spectators_label: Label
 var _tournament_label: RichTextLabel
 var _participant_role_option: OptionButton
@@ -86,12 +87,6 @@ func _exit_tree() -> void:
 
 
 func _build_ui() -> void:
-	var background: ColorRect = ColorRect.new()
-	background.color = Color(0.008, 0.014, 0.021, 1.0)
-	background.set_anchors_preset(Control.PRESET_FULL_RECT)
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(background)
-
 	var margin: MarginContainer = MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 44)
@@ -119,21 +114,22 @@ func _build_ui() -> void:
 
 	var title: Label = Label.new()
 	title.text = Localization.get_text("online.title", "WEB MULTIPLAYER")
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_font_size_override("font_size", 34)
 	title.add_theme_color_override("font_color", Color(0.72, 0.93, 1.0, 1.0))
 	header.add_child(title)
 
 	var protocol_label: Label = Label.new()
-	protocol_label.text = "PROTO %d" % LanProtocol.PROTOCOL_VERSION
+	protocol_label.text = GameVersion.get_current_version()
 	protocol_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	protocol_label.add_theme_color_override("font_color", Color(0.48, 0.68, 0.76, 1.0))
 	header.add_child(protocol_label)
+	header.move_child(back_button, header.get_child_count() - 1)
 
 	_status_label = Label.new()
 	_status_label.name = "LanStatusLabel"
-	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status_label.add_theme_color_override("font_color", Color(0.72, 0.82, 0.86, 1.0))
 	root.add_child(_status_label)
@@ -146,7 +142,8 @@ func _build_ui() -> void:
 	root.add_child(body)
 
 	_connection_panel = _make_panel("LanConnectionPanel")
-	_connection_panel.custom_minimum_size = Vector2(CONNECTION_PANEL_WIDTH, 0.0)
+	_connection_panel.custom_minimum_size = Vector2(CONNECTION_PANEL_WIDTH, 760.0)
+	_connection_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	body.add_child(_connection_panel)
 	_build_connection_panel(_connection_panel)
 
@@ -203,6 +200,7 @@ func _build_connection_panel(panel: PanelContainer) -> void:
 
 	_host_button = Button.new()
 	_host_button.name = "LanHostButton"
+	_host_button.theme_type_variation = "PrimaryButton"
 	_host_button.text = Localization.get_text("online.host", "HOST WEB ROOM")
 	_host_button.custom_minimum_size = Vector2(0.0, 46.0)
 	_host_button.pressed.connect(_on_host_pressed)
@@ -310,6 +308,7 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	box.add_child(_result_label)
 
 	var players_scroll: ScrollContainer = ScrollContainer.new()
+	_players_scroll = players_scroll
 	players_scroll.name = "OnlinePlayersScroll"
 	players_scroll.custom_minimum_size = Vector2(0.0, 190.0)
 	players_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -342,7 +341,7 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	box.add_child(_make_section_title(Localization.get_text("online.rules", "MATCH RULES")))
 	var rules_grid: GridContainer = GridContainer.new()
 	rules_grid.name = "OnlineLobbyRulesGrid"
-	rules_grid.columns = 2
+	rules_grid.columns = 3
 	rules_grid.add_theme_constant_override("h_separation", 18)
 	rules_grid.add_theme_constant_override("v_separation", 8)
 	box.add_child(rules_grid)
@@ -639,6 +638,7 @@ func _refresh_all() -> void:
 
 
 func _refresh_player_slots(players: Array[Dictionary]) -> void:
+	_players_scroll.custom_minimum_size.y = minf(190.0, ceilf(NetworkManager.get_player_capacity() / 2.0) * 104.0)
 	for child in _players_box.get_children():
 		_players_box.remove_child(child)
 		child.queue_free()
@@ -1291,6 +1291,7 @@ func _add_panel_content(panel: PanelContainer) -> VBoxContainer:
 
 func _labeled_control(label_text: String, control: Control) -> HBoxContainer:
 	var row: HBoxContainer = HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("separation", 10)
 	var label: Label = Label.new()
 	label.text = label_text
@@ -1305,7 +1306,7 @@ func _labeled_control(label_text: String, control: Control) -> HBoxContainer:
 func _make_section_title(text_value: String) -> Label:
 	var label: Label = Label.new()
 	label.text = text_value
-	label.add_theme_font_size_override("font_size", 18)
+	label.add_theme_font_size_override("font_size", 22)
 	label.add_theme_color_override("font_color", Color(0.58, 0.86, 0.94, 1.0))
 	return label
 

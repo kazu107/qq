@@ -57,6 +57,7 @@ func _build_ui() -> void:
 	screen_root.add_child(root)
 
 	var info_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.run_status", "ラン状況"))
+	(info_panel.get_parent() as Control).size_flags_stretch_ratio = 0.72
 
 	var history_scroll: ScrollContainer = ScrollContainer.new()
 	history_scroll.name = "RunBattleSummaryScroll"
@@ -76,6 +77,7 @@ func _build_ui() -> void:
 	info_panel.add_child(back_button)
 
 	var map_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.node_map", "マップ"))
+	(map_panel.get_parent() as Control).size_flags_stretch_ratio = 1.15
 	map_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	_steps_scroll = ScrollContainer.new()
@@ -145,8 +147,10 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 	panel.add_child(box)
 
 	var header: Label = Label.new()
+	header.theme_type_variation = "SectionTitle"
 	header.text = title
 	box.add_child(header)
+	box.add_child(HSeparator.new())
 	return box
 
 
