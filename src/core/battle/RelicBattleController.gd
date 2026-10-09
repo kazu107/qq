@@ -105,7 +105,7 @@ func prevent_lethal(side: String) -> bool:
 	var relic_data: Dictionary = Dictionary(run.relic_state.get("emergency_recovery_line", {}))
 	if bool(relic_data.get("used", false)):
 		return false
-	unit.hp = 1
+	unit.heal(1)
 	relic_data["used"] = true
 	run.relic_state["emergency_recovery_line"] = relic_data
 	_mark_current_hazard_reward_lost(run)
@@ -306,7 +306,12 @@ func on_status_event(side: String, event_data: Dictionary) -> void:
 		_play_relic_proc(side, "bleed_pulsator")
 	elif event_type == "status_expired" and NEGATIVE_STATUSES.has(status_id) and has_relic(_opponent(side), "critical_pathology_meter") and _cooldown_ready(_opponent(side), "critical_pathology_meter", 4.0):
 		if status_id == "bleed":
-			_state.get_unit(side).hp = maxi(0, _state.get_unit(side).hp - 1)
+			var unit: UnitState = _state.get_unit(side)
+			var before: int = unit.hp
+			unit.hp = maxi(0, unit.hp - 1)
+			unit.combat_totals["damage_taken"] = int(unit.combat_totals["damage_taken"]) + maxi(0, before - unit.hp)
+			var source: UnitState = _state.get_opponent(side)
+			source.combat_totals["damage"] = int(source.combat_totals["damage"]) + maxi(0, before - unit.hp)
 			_engine.prevent_lethal(side)
 		else:
 			_engine.delay_active_cards(side, 1.2, "single", _opponent(side))
@@ -316,10 +321,11 @@ func apply_status(source_side: String, target_side: String, status_id: String, d
 	if NEGATIVE_STATUSES.has(status_id) and has_relic(target_side, "quarantine_buffer") and not _flag(target_side, "quarantine_used"):
 		_set_value(target_side, "quarantine_used", true)
 		var unit: UnitState = _state.get_unit(target_side)
-		unit.statuses[status_id] = {"duration": duration, "max_duration": duration, "tick_accumulator": 0.0, "suspended": 6.0}
+		unit.statuses[status_id] = {"duration": duration, "max_duration": duration, "tick_accumulator": 0.0, "suspended": 6.0, "source_side": source_side}
 		_play_relic_proc(target_side, "quarantine_buffer")
 		return true
 	_state.get_unit(target_side).add_status(status_id, duration)
+	_state.get_unit(target_side).statuses[status_id]["source_side"] = source_side
 	if has_relic(source_side, "four_symptom_seal") and not _flag(source_side, "four_symptom_used") and _has_four_symptoms(_state.get_unit(target_side)):
 		_engine.apply_timeline_flow(source_side, {"target_side": "enemy", "mode": "stop", "duration": 2.0})
 		for key: String in NEGATIVE_STATUSES:
@@ -338,6 +344,7 @@ func remove_status(source_side: String, target_side: String, status_id: String) 
 	unit.remove_status(status_id)
 	if source_side == target_side and NEGATIVE_STATUSES.has(status_id) and remaining > 0.0 and has_relic(source_side, "symptom_transfer_paper") and _integer(source_side, "symptom_transfers") < 2:
 		_state.get_opponent(source_side).add_status(status_id, remaining * 0.4)
+		_state.get_opponent(source_side).statuses[status_id]["source_side"] = source_side
 		_set_value(source_side, "symptom_transfers", _integer(source_side, "symptom_transfers") + 1)
 		_play_relic_proc(source_side, "symptom_transfer_paper")
 

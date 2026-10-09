@@ -86,6 +86,13 @@ try {
       assert.equal(result.all_complete, i + 1 === count / 2, 'Round advanced before all parallel matches finished');
     }
     for (const page of [...players, spectator]) await wait(page, data => data.results.all_complete);
+    for (const page of players) {
+      const analytics = (await state(page)).analysis;
+      assert(analytics?.hp_history?.length > 0 && analytics.hp_history.length <= 1024, 'Missing or unbounded final HP history');
+      assert.equal(analytics.hp_history.at(-1).player, 0, 'Final player HP missing from analytics');
+      assert.equal(analytics.hp_history.at(-1).enemy, 0, 'Final opponent HP missing from analytics');
+      assert(analytics.totals.player && analytics.totals.enemy, 'Final comparison totals missing');
+    }
     const final = await state(spectator);
     assert.equal(final.results.standings.length, count, 'Spectator entered scoring');
     assert.deepEqual(final.run, {});

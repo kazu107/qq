@@ -29,7 +29,25 @@ func _command(arguments: Array) -> void:
 	_sequence = int(payload.get("sequence", 0))
 	if String(payload.get("action", "")) == "screen":
 		_open_screen(String(payload.get("screen", "hub")))
+	elif String(payload.get("action", "")) == "battle_simulate":
+		_simulate_battle_result()
 	_pending_frames = 8
+
+
+func _simulate_battle_result() -> void:
+	var screen: Control = get_tree().current_scene as Control
+	if screen == null or screen.scene_file_path != "res://scenes/battle/Battle.tscn":
+		return
+	var engine: RealtimeBattleEngine = screen.get("_engine")
+	engine.set_audio_enabled(false)
+	var bot: EnemyAI = EnemyAI.new()
+	bot.side = "player"
+	engine.start_battle()
+	for index: int in range(5000):
+		bot.update(engine, 0.05)
+		engine.update(0.05)
+		if engine.battle_state.winner != "":
+			break
 
 
 func _open_screen(screen: String) -> void:
@@ -118,6 +136,10 @@ func _inspect() -> Dictionary:
 				"enemy_status": _point_values(stage.project_world_position(enemy_status.global_position)),
 				"status_corners": _project_status_corners(stage, player_status) + _project_status_corners(stage, enemy_status),
 			}
+			var outcome: BattleResultAnalysisPanel = screen.find_child("BattleResultAnalysisPanel", true, false) as BattleResultAnalysisPanel
+			if outcome != null:
+				result["outcome"] = {"visible": outcome.visible, "details": outcome._details_modal.visible, "title": outcome._title.text,
+					"finished": stage.has_battle_end_presentation_finished(), "samples": outcome._hp_chart._samples.size()}
 	return result
 
 

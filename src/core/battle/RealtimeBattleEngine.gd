@@ -76,6 +76,7 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 	_enemy_ai.reset()
 	_boss_passive_timer = float(enemy_def.passive.get("interval", 0.0))
 	_timeline_flows.clear()
+	analysis.capture_state(battle_state, true)
 
 
 func setup_pvp(
@@ -105,6 +106,7 @@ func setup_pvp(
 	_enemy_ai.reset()
 	_boss_passive_timer = 0.0
 	_timeline_flows.clear()
+	analysis.capture_state(battle_state, true)
 
 
 func update(delta: float) -> void:
@@ -127,6 +129,7 @@ func update(delta: float) -> void:
 	_tick_timeline_flows(delta)
 	_resolve_due_entries()
 	_check_victory()
+	analysis.capture_state(battle_state, battle_state.winner != "")
 	if record_visuals:
 		recording.capture(battle_state, battle_state.winner != "")
 
@@ -510,6 +513,7 @@ func has_heavy_preparing_card(side: String) -> bool:
 func build_summary(include_battle_events: bool = true) -> Dictionary:
 	if battle_state == null:
 		return {}
+	analysis.capture_state(battle_state, true)
 	var summary: Dictionary = {
 		"battle_id": _build_battle_id(),
 		"winner": battle_state.winner,
@@ -657,6 +661,11 @@ func _tick_statuses(delta: float) -> void:
 				var amount := int(event_data.get("amount", 0))
 				var hp_before: int = unit.hp
 				unit.hp = max(0, unit.hp - amount)
+				unit.combat_totals["damage_taken"] = int(unit.combat_totals["damage_taken"]) + maxi(0, hp_before - unit.hp)
+				var source_side: String = String(event_data.get("source_side", ""))
+				if source_side in ["player", "enemy"] and source_side != status_side:
+					var source_unit: UnitState = battle_state.get_unit(source_side)
+					source_unit.combat_totals["damage"] = int(source_unit.combat_totals["damage"]) + maxi(0, hp_before - unit.hp)
 				_relic_controller.prevent_lethal(status_side)
 				battle_state.add_log(Localization.get_textf("battle.log.status_damage", "{unit_name} took {amount} bleed damage", {
 					"unit_name": unit.display_name,

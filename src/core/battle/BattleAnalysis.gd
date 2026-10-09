@@ -5,11 +5,46 @@ var rows: Dictionary = {}
 var fatigue_hits: int = 0
 var fatigue_hp_damage: int = 0
 var fatigue_shield_damage: int = 0
+const MAX_HP_SAMPLES: int = 1024
+var hp_history: Array[Dictionary] = []
+var totals: Dictionary = {}
+var combatants: Dictionary = {}
+var _sample_interval: float = 0.5
+
+
+func capture_state(state: BattleState, force: bool = false) -> void:
+	if state == null or state.player == null or state.enemy == null:
+		return
+	if not force and not hp_history.is_empty() and state.battle_time - float(hp_history.back()["time"]) < _sample_interval:
+		return
+	for side: String in ["player", "enemy"]:
+		var unit: UnitState = state.get_unit(side)
+		totals[side] = unit.combat_totals.duplicate()
+		combatants[side] = {"id": unit.unit_id, "name": unit.display_name, "max_hp": unit.max_hp}
+	_append_hp({"time": state.battle_time, "player": state.player.hp, "enemy": state.enemy.hp})
+
+
+func _append_hp(sample: Dictionary) -> void:
+	if not hp_history.is_empty() and hp_history.back() == sample:
+		return
+	hp_history.append(sample)
+	if hp_history.size() > MAX_HP_SAMPLES:
+		var compact: Array[Dictionary] = []
+		for index: int in range(0, hp_history.size(), 2):
+			compact.append(hp_history[index])
+		if compact.back() != hp_history.back():
+			compact.append(hp_history.back())
+		hp_history = compact
+		_sample_interval *= 2.0
 
 
 func record(event: Dictionary) -> void:
 	var kind: String = String(event.get("event_type", ""))
 	var result: Dictionary = Dictionary(event.get("result", {}))
+	var player: Dictionary = Dictionary(result.get("player_after", result.get("player", {})))
+	var enemy: Dictionary = Dictionary(result.get("enemy_after", result.get("enemy", {})))
+	if not player.is_empty() and not enemy.is_empty():
+		_append_hp({"time": float(event.get("time", 0.0)), "player": int(player.get("hp", 0)), "enemy": int(enemy.get("hp", 0))})
 	if kind == "fatigue_card":
 		fatigue_hits += 1
 		for side: String in ["player", "enemy"]:
@@ -21,6 +56,13 @@ func record(event: Dictionary) -> void:
 	if kind != "resolve_card":
 		return
 	var actor: String = String(event.get("actor_id", ""))
+	for side: String in combatants:
+		if actor == String(combatants[side].get("id", "")):
+			actor = side
+			break
+	# PvE enemy events use their enemy ID rather than the canonical engine side.
+	if actor not in ["player", "enemy"]:
+		actor = "enemy"
 	var card_id: String = String(event.get("card_id", ""))
 	var key: String = actor + ":" + card_id
 	var row: Dictionary = rows.get(key, {"actor": actor, "card_id": card_id, "casts": 0, "damage": 0, "absorbed": 0, "shield": 0, "heal": 0})
@@ -43,7 +85,22 @@ func record(event: Dictionary) -> void:
 
 func to_dict() -> Dictionary:
 	return {"cards": rows.values().duplicate(true), "fatigue_hits": fatigue_hits,
-		"fatigue_hp_damage": fatigue_hp_damage, "fatigue_shield_damage": fatigue_shield_damage}
+		"fatigue_hp_damage": fatigue_hp_damage, "fatigue_shield_damage": fatigue_shield_damage,
+		"totals": totals.duplicate(true), "combatants": combatants.duplicate(true), "hp_history": hp_history.duplicate(true)}
+
+
+static func get_totals(data: Dictionary) -> Dictionary:
+	var result: Dictionary = Dictionary(data.get("totals", {})).duplicate(true)
+	if not result.is_empty():
+		return result
+	result = {"player": {}, "enemy": {}}
+	for row: Dictionary in Array(data.get("cards", [])):
+		var side: String = String(row.get("actor", "enemy"))
+		if not result.has(side):
+			side = "enemy"
+		for metric: String in ["damage", "absorbed", "shield", "heal", "casts"]:
+			result[side][metric] = int(result[side].get(metric, 0)) + int(row.get(metric, 0))
+	return result
 
 
 static func from_events(events: Array) -> Dictionary:

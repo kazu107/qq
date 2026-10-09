@@ -1,6 +1,8 @@
 extends SubViewportContainer
 class_name BattleStage3D
 
+signal battle_end_presentation_finished()
+
 const DEFAULT_VIEWPORT_SIZE := Vector2i(960, 540)
 const BATTLE_REFERENCE_ASPECT: float = 16.0 / 9.0
 const TILE_COLUMNS: int = 7
@@ -81,6 +83,8 @@ var _local_visual_id: String = "default_player"
 var _opponent_visual_id: String = "default_enemy"
 var _environment_detail_counts: Dictionary = {}
 var _playback_speed: float = 1.0
+var _battle_end_queued: bool = false
+var _battle_end_finished: bool = false
 
 
 func _ready() -> void:
@@ -123,6 +127,8 @@ func set_playback_speed(value: float) -> void:
 
 
 func reset_replay_pose(entries: Array, player_hp: int, enemy_hp: int) -> void:
+	_battle_end_queued = false
+	_battle_end_finished = false
 	_queued_events.clear()
 	_active_event.clear()
 	_active_event_elapsed = 0.0
@@ -152,6 +158,8 @@ func configure_combatants(
 	local_visual_id: String = "default_player",
 	opponent_visual_id: String = "default_enemy"
 ) -> void:
+	_battle_end_queued = false
+	_battle_end_finished = false
 	_local_unit_id = local_unit_id
 	_opponent_unit_id = opponent_unit_id
 	_local_engine_side = local_engine_side if local_engine_side == "enemy" else "player"
@@ -184,6 +192,19 @@ func configure_combatants(
 func play_battle_event(event_data: Dictionary) -> void:
 	if event_data.is_empty():
 		return
+	if _battle_end_queued and String(event_data.get("event_type", "")) != "battle_end":
+		return
+	if String(event_data.get("event_type", "")) == "battle_end":
+		if _battle_end_queued:
+			return
+		_battle_end_queued = true
+		# Keep the final impact, not a long backlog of stale casting animations.
+		var final_impact: Array[Dictionary] = []
+		for index: int in range(_queued_events.size() - 1, -1, -1):
+			if String(_queued_events[index].get("event_type", "")) in ["resolve_card", "fatigue_card", "status_damage"]:
+				final_impact.append(_queued_events[index])
+				break
+		_queued_events = final_impact
 	if String(event_data.get("event_type", "")) != "resolve_card":
 		_emit_event_combat_text(event_data)
 	_queued_events.append(event_data.duplicate(true))
@@ -191,6 +212,15 @@ func play_battle_event(event_data: Dictionary) -> void:
 		_queued_events.pop_front()
 	if _active_event.is_empty():
 		_start_next_event()
+
+
+func ensure_battle_end_presentation(winner: String) -> void:
+	if not _battle_end_queued:
+		play_battle_event({"event_type": "battle_end", "result": {"winner": winner}})
+
+
+func has_battle_end_presentation_finished() -> bool:
+	return _battle_end_finished
 
 
 func get_pending_event_count() -> int:
@@ -934,6 +964,12 @@ func _update_event_queue(delta: float) -> void:
 	_active_event_elapsed += delta
 	if _active_event_elapsed < _active_event_duration:
 		return
+	if String(_active_event.get("event_type", "")) == "battle_end":
+		for actor: BattleActor3D in [_player_actor, _enemy_actor]:
+			if actor.get_action_name() in ["victory", "defeat"] and not actor.is_terminal_action_complete():
+				return
+		_battle_end_finished = true
+		battle_end_presentation_finished.emit()
 	_flush_pending_animation_cues()
 	_active_event.clear()
 	_active_event_elapsed = 0.0
@@ -997,7 +1033,7 @@ func _begin_event(event_data: Dictionary) -> float:
 			return 0.66
 		"battle_end":
 			_begin_battle_end(event_data)
-			return 1.10
+			return maxf(1.10, maxf(_player_actor.get_action_duration(), _enemy_actor.get_action_duration()))
 		_:
 			return 0.08
 
@@ -1195,10 +1231,8 @@ func _begin_battle_end(event_data: Dictionary) -> void:
 	var winner: String = String(result.get("winner", event_data.get("actor_id", "draw")))
 	var winner_actor: BattleActor3D = _actor_for_engine_side(winner)
 	if winner_actor == null:
-		if _player_actor != null:
-			_player_actor.stop_timeline_stance()
-		if _enemy_actor != null:
-			_enemy_actor.stop_timeline_stance()
+		for actor: BattleActor3D in [_player_actor, _enemy_actor]:
+			actor.play_action(BattleActor3D.ACTION_DEFEAT if winner == "draw" else BattleActor3D.ACTION_VICTORY)
 		return
 	var loser_actor: BattleActor3D = _enemy_actor if winner_actor == _player_actor else _player_actor
 	winner_actor.play_action(BattleActor3D.ACTION_VICTORY)

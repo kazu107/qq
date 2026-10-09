@@ -53,6 +53,8 @@ var _round_results_continue: Button
 var _round_results_acknowledged: bool = false
 var _analysis_panel: BattleResultAnalysisPanel
 var _analysis_returns_to_round_results: bool = false
+var _pending_result: Dictionary = {}
+var _pending_result_is_local: bool = false
 var _tutorial_mode: bool = false
 var _tutorial_overlay: BattleTutorialOverlay
 var _tutorial_director: BattleTutorialDirector
@@ -131,9 +133,8 @@ func _process(delta: float) -> void:
 	if _engine.battle_state.winner != "" and not _handled_finish:
 		_handled_finish = true
 		var summary: Dictionary = _engine.build_summary()
-		Game.complete_battle(summary)
 		_result_label.visible = false
-		_show_analysis(summary, false)
+		_queue_battle_result(summary, false, true)
 
 	if _transition_timer > 0.0:
 		_transition_timer -= delta
@@ -443,22 +444,15 @@ func _on_lan_match_finished(result: Dictionary) -> void:
 	if not _lan_mode or _handled_finish:
 		return
 	_handled_finish = true
-	if NetworkManager.is_parallel_arena_round():
-		_result_label.visible = false
-		if _spectator_mode:
-			_show_round_results_overlay()
-			call_deferred("_refresh_round_results_overlay")
-		else:
-			_show_analysis(result, true)
-		return
 	_result_label.visible = false
-	_show_analysis(result, false)
+	_refresh_ui(1.0)
+	_queue_battle_result(result, NetworkManager.is_parallel_arena_round(), false)
 
 
 func _on_arena_round_results_changed(_snapshot: Dictionary) -> void:
 	if not _lan_mode or not NetworkManager.is_parallel_arena_round():
 		return
-	if _handled_finish or _spectator_mode:
+	if _round_results_overlay.visible:
 		_show_round_results_overlay()
 		_refresh_round_results_overlay()
 
@@ -502,6 +496,7 @@ func _build_ui() -> void:
 
 	_battle_stage = SceneRouter.take_cached_battle_stage()
 	_battle_stage.name = "BattleStage3D"
+	_battle_stage.battle_end_presentation_finished.connect(_on_battle_end_presentation_finished)
 	battle_stage_region.add_child(_battle_stage)
 	_battle_stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_battle_stage.offset_left = 0.0
@@ -673,6 +668,30 @@ func _show_analysis(summary: Dictionary, return_to_round_results: bool) -> void:
 	if _lan_mode:
 		replay_available = NetworkManager.get_last_online_replay_path() != ""
 	_analysis_panel.show_result(summary, _local_side, _spectator_mode, replay_available)
+
+
+func _queue_battle_result(summary: Dictionary, return_to_round_results: bool, complete_local_run: bool) -> void:
+	_pending_result = summary.duplicate(false)
+	_pending_result_is_local = complete_local_run
+	_analysis_returns_to_round_results = return_to_round_results
+	if _engine.battle_state != null:
+		_engine.battle_state.winner = String(summary.get("winner", "draw"))
+	_card_hand_panel.set_interactive(false)
+	if _battle_stage == null or _battle_stage.has_battle_end_presentation_finished():
+		_on_battle_end_presentation_finished()
+	else:
+		_battle_stage.set_playback_speed(1.0)
+		_battle_stage.ensure_battle_end_presentation(String(summary.get("winner", "draw")))
+
+
+func _on_battle_end_presentation_finished() -> void:
+	if _pending_result.is_empty():
+		return
+	var summary: Dictionary = _pending_result
+	_pending_result = {}
+	if _pending_result_is_local:
+		Game.complete_battle(summary)
+	_show_analysis(summary, _analysis_returns_to_round_results)
 
 
 func _on_analysis_continue_requested() -> void:
@@ -906,7 +925,7 @@ func _build_round_results_overlay() -> void:
 
 
 func _show_round_results_overlay() -> void:
-	if _round_results_overlay != null:
+	if _round_results_overlay != null and _pending_result.is_empty() and not _analysis_panel.visible:
 		_round_results_overlay.visible = true
 
 
@@ -1523,6 +1542,7 @@ func _refresh_developer_panel() -> void:
 	_developer_panel.configure(
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
+			{"id": "DevBattleDetails", "label": Localization.get_text("battle.analysis.details", "Battle details"), "callback": Callable(self, "_on_dev_battle_details"), "disabled": _lan_mode},
 			{"id": "DevWinBattle", "label": Localization.get_text("battle.dev.force_victory", "Force Victory"), "callback": Callable(self, "_on_dev_force_victory")},
 			{"id": "DevLoseBattle", "label": Localization.get_text("battle.dev.force_defeat", "Force Defeat"), "callback": Callable(self, "_on_dev_force_defeat")},
 			{"id": "DevRestoreHp", "label": Localization.get_text("map.dev.restore_hp", "Restore HP"), "callback": Callable(self, "_on_dev_restore_hp")},
@@ -1530,6 +1550,11 @@ func _refresh_developer_panel() -> void:
 		],
 		Localization.get_text("battle.dev.summary", "Battle shortcuts for deterministic manual testing.")
 	)
+
+
+func _on_dev_battle_details() -> void:
+	if Game.is_developer_mode_enabled() and not _lan_mode and _engine.battle_state != null:
+		_analysis_panel.show_details(_engine.build_summary(false), _local_side)
 
 
 func _on_dev_fatigue() -> void:
@@ -1590,31 +1615,9 @@ func _force_battle_result(winner: String) -> void:
 		NetworkManager.finish_lan_match(_engine.build_summary(false), NetworkManager.get_last_snapshot())
 		return
 	_handled_finish = true
+	_engine.battle_state.winner = winner
+	_engine.battle_state.get_opponent(winner).hp = 0
 	var summary: Dictionary = _engine.build_summary()
-	summary["winner"] = winner
-	if winner == "player":
-		summary["player_hp"] = max(1, _engine.battle_state.player.hp)
-		_result_label.text = Localization.get_text("battle.result.victory", "Victory")
-	else:
-		summary["player_hp"] = 0
-		_result_label.text = Localization.get_text("battle.result.defeat", "Defeat")
-	var events: Array = Array(summary.get("battle_events", []))
-	events.append({
-		"time": float(summary.get("battle_time", 0.0)),
-		"event_type": "developer_forced_result",
-		"actor_id": "developer_mode",
-		"card_id": "",
-		"target_id": winner,
-		"result": {
-			"winner": winner,
-		},
-		"hp_delta": 0,
-		"shield_delta": 0,
-		"timeline_before": [],
-		"timeline_after": [],
-	})
-	summary["battle_events"] = events
-	Game.complete_battle(summary)
-	_result_label.visible = true
+	_result_label.visible = false
 	_transition_timer = -1.0
-	_advance_after_battle()
+	_queue_battle_result(summary, false, true)

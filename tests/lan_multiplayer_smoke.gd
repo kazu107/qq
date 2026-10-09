@@ -106,6 +106,7 @@ func _run() -> void:
 		LanProtocol.build_content_hash().left(10),
 		engine.battle_state.battle_events.size(),
 	])
+	engine.dispose()
 	get_tree().quit()
 
 

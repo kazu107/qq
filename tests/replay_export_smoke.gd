@@ -4,6 +4,10 @@ var _engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
 var _elapsed: float = 0.0
 
 
+func _exit_tree() -> void:
+	_engine.dispose()
+
+
 func _ready() -> void:
 	Database.load_all()
 	Game.ensure_meta_initialized()
@@ -65,6 +69,9 @@ func _process(delta: float) -> void:
 		return
 	if battle_events.is_empty():
 		_fail("Replay export smoke failed: exported replay had no battle events")
+		return
+	if Array(Dictionary(summary.get("analysis", {})).get("hp_history", [])).is_empty():
+		_fail("Replay export smoke failed: analytics HP history was not exported")
 		return
 	if not _has_event_type(battle_events, "resolve_card") or not _has_event_type(battle_events, "battle_end"):
 		_fail("Replay export smoke failed: exported replay missed key event types")

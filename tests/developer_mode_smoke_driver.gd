@@ -178,6 +178,14 @@ func _run() -> void:
 		_fail("Developer mode smoke failed: battle developer buttons should remain usable across frames")
 		return
 	win_button.emit_signal("pressed")
+	var outcome: BattleResultAnalysisPanel = battle_scene.find_child("BattleResultAnalysisPanel", true, false) as BattleResultAnalysisPanel
+	var deadline: int = Time.get_ticks_msec() + 8000
+	while not outcome.visible and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+	if not outcome.visible:
+		_fail("Developer mode smoke failed: force victory did not wait for collapse and open the outcome")
+		return
+	battle_scene.call("_on_analysis_continue_requested")
 
 	var reward_scene: Node = await _wait_for_scene("Reward")
 	if _failed or reward_scene == null:

@@ -21,6 +21,7 @@ var previous_used_runtime_id: String = ""
 var cast_time_modifier: float = 1.0
 var shield_decay_interval: float = 1.0
 var _shield_decay_accumulator: float = 0.0
+var combat_totals: Dictionary = {"damage": 0, "absorbed": 0, "damage_taken": 0, "blocked": 0, "shield": 0, "heal": 0}
 
 
 func is_alive() -> bool:
@@ -49,6 +50,7 @@ func get_incoming_damage_bonus() -> int:
 
 func add_shield(amount: int) -> void:
 	shield += max(0, amount)
+	combat_totals["shield"] = int(combat_totals["shield"]) + maxi(0, amount)
 
 
 func tick_shield_decay(delta: float) -> int:
@@ -71,7 +73,9 @@ func tick_shield_decay(delta: float) -> int:
 
 
 func heal(amount: int) -> void:
+	var before: int = hp
 	hp = min(max_hp, hp + max(0, amount))
+	combat_totals["heal"] = int(combat_totals["heal"]) + maxi(0, hp - before)
 
 
 func add_status(status_id: String, duration: float) -> void:
@@ -112,6 +116,7 @@ func tick_statuses(delta: float) -> Array[Dictionary]:
 					"type": "status_damage",
 					"status": status_id,
 					"amount": 1,
+					"source_side": String(data.get("source_side", "")),
 				})
 			data["tick_accumulator"] = tick_accumulator
 		statuses[status_id] = data

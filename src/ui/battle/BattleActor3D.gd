@@ -221,6 +221,14 @@ func get_action_name() -> String:
 	return String(_action)
 
 
+func is_terminal_action_complete() -> bool:
+	return _action in [ACTION_VICTORY, ACTION_DEFEAT] and _action_elapsed >= _action_duration
+
+
+func get_action_duration() -> float:
+	return _action_duration
+
+
 func get_last_action_name() -> String:
 	return String(_last_action)
 

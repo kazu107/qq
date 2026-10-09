@@ -91,6 +91,17 @@ func _run() -> void:
 	await get_tree().process_frame
 	var result_overlay: ColorRect = battle.find_child("ArenaRoundResultsOverlay", true, false) as ColorRect
 	var continue_button: Button = battle.find_child("ArenaRoundResultsContinue", true, false) as Button
+	var outcome_panel: BattleResultAnalysisPanel = battle.find_child("BattleResultAnalysisPanel", true, false) as BattleResultAnalysisPanel
+	if result_overlay.visible or outcome_panel.visible:
+		_fail("Spectator result interrupted the collapse animation")
+		return
+	var deadline: int = Time.get_ticks_msec() + 8000
+	while not outcome_panel.visible and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+	if not outcome_panel.visible:
+		_fail("Spectator result did not appear after collapse")
+		return
+	battle.call("_on_analysis_continue_requested")
 	if result_overlay == null or not result_overlay.visible:
 		_fail("Spectator did not enter the parallel round result window")
 		return

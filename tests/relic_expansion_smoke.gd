@@ -1,6 +1,7 @@
 extends Node
 
 const EXPECTED_TOTAL: int = 86
+var _engines: Array[RealtimeBattleEngine] = []
 const NEW_IDS: Array[String] = [
 	"triplet_relay", "borrowed_second_hand", "terminal_echo_ring", "four_name_quartet",
 	"dead_heat_needle", "silent_three_second_timer", "delay_return_gear", "zero_hour_clapper",
@@ -23,6 +24,11 @@ const NEW_IDS: Array[String] = [
 func _ready() -> void:
 	Database.load_all()
 	call_deferred("_run")
+
+
+func _exit_tree() -> void:
+	for engine: RealtimeBattleEngine in _engines:
+		engine.dispose()
 
 
 func _run() -> void:
@@ -78,6 +84,7 @@ func _test_battle_profiles_and_codec() -> bool:
 	var run: RunState = RunState.from_starter(Database.get_starter("balanced"), 123)
 	run.relics = ["fourth_reserve_rack", "compression_caliper", "vacancy_interest_meter"]
 	var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	_engines.append(engine)
 	engine.setup(run, "scout")
 	if engine.battle_state.player.active_slot_max != 4:
 		return _fail("Fourth Reserve Rack did not add an active slot")
@@ -103,6 +110,7 @@ func _test_battle_profiles_and_codec() -> bool:
 		}]}],
 	}
 	var hazard_engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	_engines.append(hazard_engine)
 	hazard_engine.setup(hazard_run, "scout")
 	hazard_engine.battle_state.player.hp = 0
 	if not hazard_engine.prevent_lethal("player"):
@@ -135,6 +143,7 @@ func _test_review_boundaries() -> bool:
 	var run: RunState = RunState.from_starter(Database.get_starter("balanced"), 818)
 	run.relics = ["vacancy_interest_meter", "resin_memory_block", "reserved_seat_tag"]
 	var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	_engines.append(engine)
 	engine.setup(run, "scout")
 	engine.start_battle()
 	engine.update(20.0)
@@ -176,6 +185,7 @@ func _test_review_boundaries() -> bool:
 	arena_run.relics = ["fourth_reserve_rack", "empty_rack_bus", "defeat_wiring"]
 	arena_run.relic_state["arena_lost_last_battle"] = true
 	var arena_engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	_engines.append(arena_engine)
 	arena_engine.setup(arena_run, "scout")
 	var slots_before: int = arena_engine.battle_state.player.active_slot_max
 	arena_engine.start_battle()

@@ -74,5 +74,6 @@ func _process(delta: float) -> void:
 		"battle_time": snapshot.get("battle_time", 0), "player_hp": Dictionary(snapshot.get("player", {})).get("hp", 0),
 		"enemy_hp": Dictionary(snapshot.get("enemy", {})).get("hp", 0),
 		"run": run.to_dict() if run != null else {}, "results": NetworkManager.get_arena_round_results_snapshot(),
-		"diagnostics": NetworkManager.diagnostics.snapshot()}
+		"diagnostics": NetworkManager.diagnostics.snapshot(),
+		"analysis": Dictionary(NetworkManager.get_last_match_result().get("analysis", {}))}
 	_window.qqState = JSON.stringify(state)

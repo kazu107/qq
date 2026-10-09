@@ -1,9 +1,29 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.30.0",
+  "current_version": "QQ-0.31.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.31.0",
+      "date": "2026-10-09",
+      "title_ja": "戦闘終了演出とバトル統計",
+      "title_en": "Battle outcomes and combat statistics",
+      "changes_ja": [
+        "敗者が倒れる演出を終えてから、勝利・敗北とボタンだけの結果ウィンドウを表示します。",
+        "バトルの詳細に両者の比較表、HPの推移グラフ、カード別のダメージ・回復・シールド寄与グラフを追加しました。",
+        "過剰なダメージや回復を除いた実数値を集計し、シールドの消費と防いだ量を区別します。",
+        "Web対戦と観戦でも演出後に結果を表示し、全試合終了を待つ流れを維持します。",
+        "開発者モードで戦闘中の統計を確認できます。HP履歴は上限付きで記録し、通信には最終結果だけを載せます。"
+      ],
+      "changes_en": [
+        "Wait for the losing actor's collapse before showing a minimal outcome and action buttons.",
+        "Add comparative combat totals, an interactive HP history chart, and per-card damage, healing, and shield contribution bars.",
+        "Count effective damage and healing without overkill or overheal, and separate shield consumption from blocked damage.",
+        "Preserve the parallel-match result barrier and spectator flow in Web multiplayer.",
+        "Inspect statistics through developer mode; bound HP history and send analytics only in the final network summary."
+      ]
+    },
     {
       "version": "QQ-0.30.0",
       "date": "2026-10-09",

@@ -127,6 +127,8 @@ func _test_parallel_round_isolation() -> void:
 	NetworkManager._process_parallel_matches(0.25)
 	_expect(is_equal_approx(first_engine.battle_state.battle_time, 0.25), "First parallel battle did not advance")
 	_expect(is_equal_approx(second_engine.battle_state.battle_time, 0.25), "Second parallel battle did not advance")
+	# These peers are fixture data, not live RPC recipients in this offline test.
+	NetworkManager._online_reconnect_reservations = {2: {}, 3: {}, 4: {}, 5: {}}
 
 	var untouched_two_hp: int = (runs[2] as RunState).player_hp
 	var untouched_three_hp: int = (runs[3] as RunState).player_hp
