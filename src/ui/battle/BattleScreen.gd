@@ -187,7 +187,7 @@ func _build_tutorial_overlay() -> void:
 	_tutorial_director.restart_requested.connect(_restart_tutorial)
 	_tutorial_director.presentation_changed.connect(_refresh_tutorial_target)
 	add_child(_tutorial_director)
-	if not _tutorial_director.configure(Game.active_battle_tutorial_id, _engine, _tutorial_overlay):
+	if not _tutorial_director.configure(Game.active_battle_tutorial_id, _engine, _tutorial_overlay, _timeline_panel):
 		_exit_tutorial_to_list()
 
 
@@ -216,7 +216,7 @@ func _get_tutorial_target_rect() -> Rect2:
 		return _world_target_rect(_player_panel.get_status_focus_global_position(), Vector2(230.0, 40.0))
 	if target_kind == "enemy_status" and _enemy_panel != null:
 		return _world_target_rect(_enemy_panel.global_position, Vector2(300.0, 150.0))
-	return Rect2(size * 0.5 - Vector2(100.0, 50.0), Vector2(200.0, 100.0))
+	return Rect2()
 
 
 func _control_target_rect(control: Control) -> Rect2:

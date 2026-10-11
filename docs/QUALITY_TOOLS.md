@@ -29,7 +29,11 @@ Every normal battle now opens a result-analysis modal before progression. It com
 
 ## Practical tutorial
 
-The Hub's **Battle Tutorial** opens an isolated battle that never changes run or meta progression. It uses the production engine, cards and timeline, and guides Quick Slash, Guard, Delay Step and an accelerated neutral Fatigue card. It can be repeated at any time outside an active network session.
+The Hub's **Battle Tutorial** lists ten isolated lessons that never change run or meta progression. They use the production battle scene, engine, cards and timeline, with guided pauses and focused callouts. Lessons can be repeated at any time outside an active network session.
+
+The basics lesson waits for the actual delay-slide interpolation to finish before pausing on lesson 7. All completion summaries have no focus rectangle/connector; missing targets do not generate an arbitrary placeholder. The final combat exercise uses the normal full-screen brightness through introduction, combat, completion and retry.
+
+`BattleTutorialSmoke` completes all ten lessons and checks those presentation invariants, shield absorption, delay, fatigue, slots, statuses, interruption, growth and automatic queues. `tools/web_tutorial_focus_review.mjs` uses the Web Layout Review build to sample rendered delay frames, inspect the slots summary and capture the undimmed exercise at three viewport sizes. Its reports/screenshots are in `tools/.local/tutorial-focus-review`.
 
 ## Network diagnostics and real browser tests
 

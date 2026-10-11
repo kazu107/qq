@@ -113,6 +113,10 @@ func clear_display_history() -> void:
 	_delay_animation_states.clear()
 
 
+func has_pending_delay_animation() -> bool:
+	return not _delay_animation_states.is_empty()
+
+
 func refresh_timeline(
 	entries: Array[TimelineEntry],
 	battle_time: float,

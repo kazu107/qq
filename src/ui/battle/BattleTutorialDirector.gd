@@ -14,12 +14,16 @@ var _event_cursor: int = 0
 var _step_elapsed: float = 0.0
 var _time_paused: bool = true
 var _failed: bool = false
+var _timeline_panel: TimelinePanel
+var _pending_event: bool = false
+var _event_battle_time: float = 0.0
 
 
-func configure(tutorial_id: String, engine: RealtimeBattleEngine, overlay: BattleTutorialOverlay) -> bool:
+func configure(tutorial_id: String, engine: RealtimeBattleEngine, overlay: BattleTutorialOverlay, timeline_panel: TimelinePanel = null) -> bool:
 	_tutorial_id = tutorial_id
 	_engine = engine
 	_overlay = overlay
+	_timeline_panel = timeline_panel
 	_steps = _build_steps(tutorial_id)
 	if _engine == null or _overlay == null or _steps.is_empty():
 		return false
@@ -44,7 +48,7 @@ func is_time_paused() -> bool:
 
 func get_target_kind() -> String:
 	if _failed:
-		return "battle_sign"
+		return ""
 	if _steps.is_empty():
 		return ""
 	return String(_steps[_step_index].get("target", ""))
@@ -103,6 +107,7 @@ func _enter_step(index: int) -> void:
 		return
 	_step_index = index
 	_step_elapsed = 0.0
+	_pending_event = false
 	var step: Dictionary = _steps[_step_index]
 	var mode: String = String(step.get("mode", "continue"))
 	_time_paused = mode in ["continue", "queue_card", "complete"]
@@ -134,15 +139,22 @@ func _show_step(step: Dictionary) -> void:
 		waiting = Localization.get_text("tutorial.guide.wait_card", "Waiting for the highlighted card...")
 	else:
 		waiting = Localization.get_text(String(step.get("waiting_key", "tutorial.guide.wait_resolution")), String(step.get("waiting", "Waiting...")))
-	_overlay.show_step(progress, title, body, Rect2(), button, waiting)
+	_overlay.show_step(progress, title, body, Rect2(), button, waiting, _tutorial_id != "combat_exam")
 
 
 func _scan_events() -> void:
 	var events: Array[Dictionary] = _engine.battle_state.battle_events
+	if _pending_event:
+		_event_cursor = events.size()
+		return
 	for event_index: int in range(_event_cursor, events.size()):
 		var event_data: Dictionary = events[event_index]
 		if _matches_event(event_data):
 			_event_cursor = events.size()
+			if bool(_steps[_step_index].get("wait_for_timeline_slide", false)):
+				_pending_event = true
+				_event_battle_time = _engine.battle_state.battle_time
+				return
 			_advance()
 			return
 	_event_cursor = events.size()
@@ -191,7 +203,12 @@ func _check_condition() -> void:
 		return
 	var step: Dictionary = _steps[_step_index]
 	var mode: String = String(step.get("mode", ""))
-	if mode == "wait_condition":
+	if mode == "wait_event" and _pending_event:
+		# Keep battle time moving: delay interpolation uses the battle clock.
+		var elapsed: float = _engine.battle_state.battle_time - _event_battle_time
+		if elapsed >= TimelinePanel.DELAY_SLIDE_SECONDS and (_timeline_panel == null or not _timeline_panel.has_pending_delay_animation()):
+			_advance()
+	elif mode == "wait_condition":
 		var condition: String = String(step.get("condition", ""))
 		if _condition_met(condition, step):
 			_advance()
@@ -269,7 +286,8 @@ func _show_failure() -> void:
 		Localization.get_text("tutorial.exam.failed_body", "Review the timeline and try the exercise again. Your normal run is not affected."),
 		Rect2(),
 		Localization.get_text("tutorial.exam.retry", "Retry"),
-		""
+		"",
+		false
 	)
 	presentation_changed.emit()
 
@@ -339,7 +357,7 @@ func _basic_steps() -> Array[Dictionary]:
 		_s("basic_queue_delay", "queue_card", 6, 8, "Delay an enemy card", "Select Delay Step. The enemy card will be queued just before it activates.", "card:delay_step", {"card_id": "delay_step"}),
 		_s("basic_delay_approach", "wait_condition", 6, 8, "Prepare the timing test", "Time advances until Delay Step has about 1 second remaining.", "timeline", {"condition": "active_card_remaining", "side": "player", "card_id": "delay_step", "maximum": 1.0}),
 		_s("basic_delay_timeline", "continue", 6, 8, "Enemy card queued at the last moment", "Quick Slash entered while Delay Step has about 1 second left. Resume and watch it slide right.", "timeline", {"action": "queue_enemy:quick_slash", "button_key": "tutorial.guide.resume", "button": "Resume time"}),
-		_s("basic_wait_delay", "wait_event", 6, 8, "Resolve Delay Step", "Delay Step activates first and pushes the enemy card farther from 0 seconds.", "timeline", {"event_type": "resolve_card", "event_card_id": "delay_step", "timeline_shifted_card_id": "quick_slash", "timeline_shift_min": 1.0}),
+		_s("basic_wait_delay", "wait_event", 6, 8, "Resolve Delay Step", "Delay Step activates first and pushes the enemy card farther from 0 seconds.", "timeline", {"event_type": "resolve_card", "event_card_id": "delay_step", "timeline_shifted_card_id": "quick_slash", "timeline_shift_min": 1.0, "wait_for_timeline_slide": true}),
 		_s("basic_delay_result", "continue", 7, 8, "Timeline changed", "Delay creates time for another action. Next, observe the neutral fatigue card.", "timeline", {"button": "Show fatigue"}),
 		_s("basic_wait_fatigue", "wait_condition", 8, 8, "Fatigue is approaching", "Fatigue belongs to the battlefield and prevents endless battles.", "timeline", {"condition": "fatigue_queued", "action": "debug_fatigue", "waiting_key": "tutorial.guide.wait_fatigue"}),
 		_s("basic_fatigue_queued", "continue", 8, 8, "Fatigue entered the timeline", "Fatigue targets both combatants. Resume time and watch it activate at 0 seconds.", "timeline", {"button_key": "tutorial.guide.resume", "button": "Resolve fatigue"}),
@@ -449,17 +467,17 @@ func _auto_queue_steps() -> Array[Dictionary]:
 		_s("auto_queue_turret", "queue_card", 4, 5, "Start Auto Turret", "Queue Auto Turret. It can create another copy of itself without a chain limit.", "card:auto_turret", {"card_id": "auto_turret"}),
 		_s("auto_queue_wait_turret", "wait_event", 4, 5, "Resolve Auto Turret", "The first turret creates the next one.", "timeline", {"event_type": "resolve_card", "event_card_id": "auto_turret"}),
 		_s("auto_queue_find_turret", "wait_condition", 5, 5, "Recursive copy found", "The highlighted timeline now contains an automatically queued Auto Turret.", "timeline", {"condition": "auto_queued", "card_id": "auto_turret"}),
-		_s("auto_queue_complete", "complete", 5, 5, "Automatic queues complete", "You created both a different card and a recursive copy automatically.", "timeline"),
+		_complete("auto_queue_complete", 5, "Automatic queues complete", "You created both a different card and a recursive copy automatically."),
 	]
 
 
 func _exam_steps() -> Array[Dictionary]:
 	return [
-		_s("exam_intro", "continue", 1, 2, "Final combat exercise", "Defeat the Brute without step-by-step prompts. Use shield, delay, cleanse and interrupts as needed.", "battle_sign", {"button": "Start exercise"}),
-		_s("exam_battle", "free_battle", 1, 2, "Win the battle", "All cards are available. Read the enemy timeline and manage your three slots.", "timeline", {"action": "start_exam", "waiting": "Battle in progress..."}),
+		_s("exam_intro", "continue", 1, 2, "Final combat exercise", "Defeat the Brute without step-by-step prompts. Use shield, delay, cleanse and interrupts as needed.", "", {"button": "Start exercise"}),
+		_s("exam_battle", "free_battle", 1, 2, "Win the battle", "All cards are available. Read the enemy timeline and manage your three slots.", "", {"action": "start_exam", "waiting": "Battle in progress..."}),
 		_complete("exam_complete", 2, "Exercise complete", "You won a normal battle using the systems from the previous lessons."),
 	]
 
 
 func _complete(key: String, progress: int, title: String, body: String) -> Dictionary:
-	return _s(key, "complete", progress, progress, title, body, "battle_sign")
+	return _s(key, "complete", progress, progress, title, body, "")

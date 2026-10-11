@@ -4,6 +4,7 @@ var _window: JavaScriptObject
 var _bridge: JavaScriptObject
 var _sequence: int = 0
 var _pending_frames: int = 0
+var _tutorial_samples: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -31,6 +32,11 @@ func _command(arguments: Array) -> void:
 		_open_screen(String(payload.get("screen", "hub")))
 	elif String(payload.get("action", "")) == "battle_simulate":
 		_simulate_battle_result()
+	elif String(payload.get("action", "")) == "tutorial_start":
+		_tutorial_samples.clear()
+		SceneRouter.start_battle_tutorial(String(payload.get("tutorial", "battle_basics")))
+	elif String(payload.get("action", "")) == "tutorial_seek":
+		_seek_tutorial(String(payload.get("key", "")))
 	elif String(payload.get("action", "")) == "art_preview":
 		var screen: Control = get_tree().current_scene as Control
 		if screen != null and screen.scene_file_path == SceneRouter.ART_LAB_SCENE:
@@ -39,6 +45,26 @@ func _command(arguments: Array) -> void:
 					screen.call("_open_preview", entry)
 					break
 	_pending_frames = 8
+
+
+func _seek_tutorial(key: String) -> void:
+	var battle: Control = get_tree().current_scene as Control
+	if battle == null or not battle.has_method("is_tutorial_mode") or not bool(battle.call("is_tutorial_mode")):
+		return
+	var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+	for _iteration: int in 1200:
+		var step: Dictionary = battle.call("get_tutorial_step_data")
+		if String(step.get("key", "")) == key:
+			return
+		match String(step.get("mode", "")):
+			"continue": battle.call("debug_tutorial_continue")
+			"queue_card":
+				for runtime: CardRuntimeState in engine.battle_state.player.card_runtime_states:
+					if runtime.card_id == String(step.get("card_id", "")) and runtime.can_use():
+						battle.call("_on_card_requested", runtime.runtime_id)
+						break
+			"complete", "free_battle": return
+			_: battle.call("_process_tutorial_battle", 0.1)
 
 
 func _simulate_battle_result() -> void:
@@ -124,6 +150,15 @@ func _open_screen(screen: String) -> void:
 
 
 func _process(_delta: float) -> void:
+	var current: Node = get_tree().current_scene
+	if current != null and current.has_method("is_tutorial_mode") and bool(current.call("is_tutorial_mode")):
+		var panel: TimelinePanel = current.get("_timeline_panel") as TimelinePanel
+		var director: BattleTutorialDirector = current.get("_tutorial_director") as BattleTutorialDirector
+		var engine: RealtimeBattleEngine = current.get("_engine") as RealtimeBattleEngine
+		_tutorial_samples.append({"key": director.get_current_step_data().get("key", ""), "sliding": panel.has_pending_delay_animation(),
+			"paused": director.is_time_paused(), "time": engine.battle_state.battle_time})
+		if _tutorial_samples.size() > 240:
+			_tutorial_samples.pop_front()
 	if _pending_frames <= 0:
 		return
 	_pending_frames -= 1
@@ -146,6 +181,13 @@ func _inspect() -> Dictionary:
 		"controls": controls,
 	}
 	if screen != null:
+		if screen.has_method("is_tutorial_mode") and bool(screen.call("is_tutorial_mode")):
+			var director: BattleTutorialDirector = screen.get("_tutorial_director") as BattleTutorialDirector
+			var overlay: BattleTutorialOverlay = screen.get("_tutorial_overlay") as BattleTutorialOverlay
+			var timeline: TimelinePanel = screen.get("_timeline_panel") as TimelinePanel
+			result["tutorial"] = {"step": director.get_current_step_data(), "paused": director.is_time_paused(),
+				"focus": _rect_values(overlay.get("_target_rect") as Rect2), "dim": overlay.get("_dim_background"),
+				"sliding": timeline.has_pending_delay_animation(), "samples": _tutorial_samples.duplicate(true)}
 		var deck: CardHandPanel = screen.find_child("EquippedDeck", true, false) as CardHandPanel
 		if deck == null:
 			deck = screen.find_child("ArenaEquippedDeck", true, false) as CardHandPanel

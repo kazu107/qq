@@ -14,6 +14,7 @@ func _check(condition: bool, message: String) -> void:
 
 
 func _run() -> void:
+	_check(load("res://tests/web_layout_review_driver.gd") is GDScript, "Tutorial visual review driver failed to parse")
 	Game.clear_battle_tutorial()
 	var tutorial_ids: Array[String] = []
 	for tutorial: Dictionary in BattleTutorialCatalog.get_all():
@@ -75,9 +76,26 @@ func _run_lesson(tutorial_id: String) -> void:
 	var completed: bool = false
 	var shield_focus_checked: bool = false
 	var lesson_observations: Dictionary = {}
+	var delay_event_time: float = -1.0
+	var delay_sliding_observed: bool = false
 	for _iteration: int in range(1000):
 		var step: Dictionary = battle.call("get_tutorial_step_data")
 		var mode: String = String(step.get("mode", ""))
+		var timeline_panel: TimelinePanel = battle.get("_timeline_panel") as TimelinePanel
+		var overlay: BattleTutorialOverlay = battle.get("_tutorial_overlay") as BattleTutorialOverlay
+		if tutorial_id == "battle_basics":
+			if delay_event_time < 0.0:
+				for event: Dictionary in engine.battle_state.battle_events:
+					if String(event.get("event_type", "")) == "resolve_card" and String(event.get("card_id", "")) == "delay_step":
+						delay_event_time = float(event.get("time", 0.0))
+			if delay_event_time >= 0.0 and timeline_panel.has_pending_delay_animation():
+				delay_sliding_observed = true
+				_check(String(step.get("key", "")) == "basic_wait_delay" and not bool(battle.call("is_tutorial_time_paused")), "Basics paused or showed the result while the delayed card was still sliding")
+			if String(step.get("key", "")) == "basic_delay_result":
+				_check(delay_event_time >= 0.0 and engine.battle_state.battle_time - delay_event_time >= TimelinePanel.DELAY_SLIDE_SECONDS, "Delay result appeared before the slide duration")
+				_check(not timeline_panel.has_pending_delay_animation(), "Delay result appeared with unfinished interpolation")
+		if tutorial_id == "combat_exam":
+			_check(not bool(overlay.get("_dim_background")), "Combat exercise darkened the battlefield")
 		_capture_lesson_observations(step, battle, engine, lesson_observations)
 		if tutorial_id == "battle_basics" and String(step.get("key", "")) == "basic_shield" and not shield_focus_checked:
 			shield_focus_checked = true
@@ -85,6 +103,9 @@ func _run_lesson(tutorial_id: String) -> void:
 			_check(String(step.get("target", "")) == "player_shield", "Battle Basics should target only the shield value in lesson 5")
 			_check(shield_rect.size.x >= 64.0 and shield_rect.size.x < 100.0 and shield_rect.size.y >= 30.0 and shield_rect.size.y < 50.0, "Battle Basics shield focus rectangle is invalid: %s" % [shield_rect])
 		if mode == "complete":
+			_check(String(step.get("target", "")) == "", "Summary points at an unrelated target: " + tutorial_id)
+			_check((battle.call("_get_tutorial_target_rect") as Rect2).size == Vector2.ZERO, "Summary rendered an empty focus frame: " + tutorial_id)
+			_check((overlay.get("_target_rect") as Rect2).size == Vector2.ZERO, "Summary retained its previous highlight: " + tutorial_id)
 			completed = true
 			break
 		var previous_step: int = int(battle.call("get_tutorial_step"))
@@ -105,10 +126,16 @@ func _run_lesson(tutorial_id: String) -> void:
 	if completed:
 		_check(bool(battle.call("is_tutorial_time_paused")), "Completed tutorial should pause on its summary: %s" % tutorial_id)
 	if tutorial_id == "battle_basics":
+		_check(delay_sliding_observed, "Basics never observed the delay slide before its result")
 		_check(shield_focus_checked, "Battle Basics did not show the lesson 5 shield focus")
 		_assert_basic_lesson_events(engine)
 	else:
 		_assert_lesson_outcome(tutorial_id, engine, lesson_observations)
+	if tutorial_id == "combat_exam":
+		var director: BattleTutorialDirector = battle.get("_tutorial_director") as BattleTutorialDirector
+		director.call("_show_failure")
+		_check(director.get_target_kind() == "", "Exam retry pointed at an unrelated target")
+		_check(not bool((battle.get("_tutorial_overlay") as BattleTutorialOverlay).get("_dim_background")), "Exam retry darkened the battlefield")
 	battle.queue_free()
 	await get_tree().process_frame
 	Game.clear_battle_tutorial()
@@ -263,9 +290,9 @@ func _assert_lesson_outcome(tutorial_id: String, engine: RealtimeBattleEngine, o
 		"auto_queue":
 			_check(bool(observations.get("generated_slash", false)), "Sequence Loader did not leave an automatic Quick Slash on the timeline")
 			_check(bool(observations.get("generated_turret", false)), "Auto Turret did not create a recursive copy")
-			_check(String(observations.get("auto_complete_target", "")) == "timeline", "Automatic queue completion did not focus the generated timeline card")
+			_check(String(observations.get("auto_complete_target", "missing")) == "", "Automatic queue summary retained a focus target")
 		"combat_exam":
-			_check(String(observations.get("exam_target", "")) == "timeline", "Combat exam did not focus the timeline during free battle")
+			_check(String(observations.get("exam_target", "missing")) == "", "Combat exam unnecessarily focused one part of the battlefield")
 			_check(engine.battle_state.winner == "player", "Combat exam did not finish with a player victory")
 
 

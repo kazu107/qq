@@ -15,6 +15,7 @@ var _title_label: Label
 var _body_label: Label
 var _waiting_label: Label
 var _continue_button: Button
+var _dim_background: bool = true
 
 
 func _ready() -> void:
@@ -32,8 +33,10 @@ func show_step(
 	body_text: String,
 	target_rect: Rect2,
 	button_text: String = "",
-	waiting_text: String = ""
+	waiting_text: String = "",
+	dim_background: bool = true
 ) -> void:
+	_dim_background = dim_background
 	_progress_label.text = progress_text
 	_title_label.text = title_text
 	_body_label.text = body_text
@@ -55,15 +58,17 @@ func set_target_rect(value: Rect2) -> void:
 func _draw() -> void:
 	var full_rect: Rect2 = Rect2(Vector2.ZERO, size)
 	if _target_rect.size.x <= 1.0 or _target_rect.size.y <= 1.0:
-		draw_rect(full_rect, Color(0.0, 0.015, 0.03, 0.46))
+		if _dim_background:
+			draw_rect(full_rect, Color(0.0, 0.015, 0.03, 0.46))
 		return
 
 	var focus: Rect2 = _target_rect.grow(TARGET_PADDING).intersection(full_rect)
 	var shade: Color = Color(0.0, 0.015, 0.03, 0.58)
-	draw_rect(Rect2(0.0, 0.0, size.x, focus.position.y), shade)
-	draw_rect(Rect2(0.0, focus.end.y, size.x, maxf(0.0, size.y - focus.end.y)), shade)
-	draw_rect(Rect2(0.0, focus.position.y, focus.position.x, focus.size.y), shade)
-	draw_rect(Rect2(focus.end.x, focus.position.y, maxf(0.0, size.x - focus.end.x), focus.size.y), shade)
+	if _dim_background:
+		draw_rect(Rect2(0.0, 0.0, size.x, focus.position.y), shade)
+		draw_rect(Rect2(0.0, focus.end.y, size.x, maxf(0.0, size.y - focus.end.y)), shade)
+		draw_rect(Rect2(0.0, focus.position.y, focus.position.x, focus.size.y), shade)
+		draw_rect(Rect2(focus.end.x, focus.position.y, maxf(0.0, size.x - focus.end.x), focus.size.y), shade)
 	draw_rect(focus, Color(1.0, 0.77, 0.22, 0.96), false, 4.0)
 
 	if _callout != null:
