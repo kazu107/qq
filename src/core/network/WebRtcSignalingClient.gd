@@ -6,6 +6,7 @@ signal status_changed(message: String)
 signal failed(code: String, message: String)
 signal room_list_changed(rooms: Array[Dictionary])
 signal participant_role_update_result(role: String, accepted: bool, code: String, message: String)
+signal bots_updated(bots: Array[Dictionary], accepted: bool, code: String)
 
 const DEFAULT_LOCAL_SIGNALING_URL: String = "ws://127.0.0.1:8060/signal"
 const MAX_SIGNAL_PACKET_BYTES: int = 65536
@@ -84,6 +85,18 @@ func update_participant_role(role: String) -> bool:
 		"spectator": LanProtocol.sanitize_participant_role(role) == LanProtocol.ROLE_SPECTATOR,
 	})
 	return true
+
+
+func request_bot_change(starter_id: String = "", remove_id: int = -1) -> bool:
+	if _role != "host" or _socket == null or _socket.get_ready_state() != WebSocketPeer.STATE_OPEN:
+		return false
+	_send({"type": "remove_bot", "id": remove_id} if remove_id > 0 else {"type": "add_bot", "starterId": starter_id})
+	return true
+
+
+func set_room_active(active: bool) -> void:
+	if _role == "host":
+		_send({"type": "set_room_active", "active": active})
 
 
 func poll() -> void:
@@ -214,6 +227,8 @@ func _handle_message(message: Dictionary) -> void:
 	match message_type:
 		"room_list":
 			room_list_changed.emit(_dictionary_array(message.get("rooms", [])))
+		"bots_updated":
+			bots_updated.emit(_dictionary_array(message.get("bots", [])), bool(message.get("accepted", false)), String(message.get("code", "")))
 		"assigned":
 			_handle_assigned(message)
 		"peer_joined":

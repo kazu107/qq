@@ -54,6 +54,9 @@ var _connection_busy: bool = false
 var _refreshing_rules: bool = false
 var _last_lobby_player_count: int = -1
 var _last_connection_state: int = NetworkManager.ConnectionState.OFFLINE
+var _bot_controls: HBoxContainer
+var _bot_starter_option: OptionButton
+var _add_bot_button: Button
 
 
 func _ready() -> void:
@@ -326,6 +329,25 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	_spectators_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_spectators_label.add_theme_color_override("font_color", Color(0.62, 0.76, 0.84, 1.0))
 	box.add_child(_spectators_label)
+	_bot_controls = HBoxContainer.new()
+	_bot_controls.name = "OnlineBotControls"
+	_bot_controls.add_theme_constant_override("separation", 10)
+	box.add_child(_bot_controls)
+	_bot_starter_option = OptionButton.new()
+	_bot_starter_option.name = "OnlineBotStarterOption"
+	_bot_starter_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_bot_starter_option.add_item(Localization.get_text("online.bot.random", "Bot deck: Random"))
+	_bot_starter_option.set_item_metadata(0, "")
+	for starter: Dictionary in Database.starters:
+		_bot_starter_option.add_item(String(starter.get("name", "")))
+		_bot_starter_option.set_item_metadata(_bot_starter_option.item_count - 1, String(starter.get("id", "balanced")))
+	_bot_controls.add_child(_bot_starter_option)
+	_add_bot_button = Button.new()
+	_add_bot_button.name = "OnlineAddBotButton"
+	_add_bot_button.text = Localization.get_text("online.bot.add", "ADD BOT")
+	_add_bot_button.custom_minimum_size.x = 136.0
+	_add_bot_button.pressed.connect(func() -> void: NetworkManager.add_online_bot(String(_bot_starter_option.get_selected_metadata())))
+	_bot_controls.add_child(_add_bot_button)
 
 	_tournament_label = RichTextLabel.new()
 	_tournament_label.name = "OnlineTournamentStatus"
@@ -595,6 +617,9 @@ func _refresh_all() -> void:
 
 	var profiles: Array[Dictionary] = NetworkManager.get_lobby_players()
 	_refresh_player_slots(profiles)
+	_bot_controls.visible = online_mode and NetworkManager.is_host() and not NetworkManager.is_lan_arena_session_active()
+	_add_bot_button.disabled = not NetworkManager.can_manage_bots() or NetworkManager.get_lobby_player_count() >= NetworkManager.get_player_capacity()
+	_bot_starter_option.disabled = not NetworkManager.can_manage_bots()
 	_refresh_local_profile_controls()
 	_refresh_online_invite()
 	_ready_count_label.text = Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
@@ -677,7 +702,7 @@ func _build_player_slot(slot_index: int, player_data: Dictionary) -> PanelContai
 	row.add_theme_constant_override("separation", 12)
 	margin.add_child(row)
 	var slot_label: Label = Label.new()
-	slot_label.text = "P%d" % (slot_index + 1)
+	slot_label.text = "BOT" if bool(player_data.get("is_bot", false)) else "P%d" % (slot_index + 1)
 	slot_label.custom_minimum_size = Vector2(44.0, 0.0)
 	slot_label.add_theme_font_size_override("font_size", 22)
 	slot_label.add_theme_color_override("font_color", Color(0.42, 0.84, 0.95, 1.0))
@@ -716,6 +741,16 @@ func _build_player_slot(slot_index: int, player_data: Dictionary) -> PanelContai
 		ready_label.text = Localization.get_text("lan.not_ready", "NOT READY")
 		ready_label.add_theme_color_override("font_color", Color(1.0, 0.64, 0.30, 1.0))
 	row.add_child(ready_label)
+	if bool(player_data.get("is_bot", false)) and NetworkManager.is_host():
+		var remove: Button = Button.new()
+		var peer_id: int = int(player_data.get("peer_id", -1))
+		remove.name = "OnlineRemoveBot_%d" % peer_id
+		remove.text = "×"
+		remove.tooltip_text = Localization.get_text("online.bot.remove", "Remove bot")
+		remove.disabled = not NetworkManager.can_manage_bots()
+		remove.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		remove.pressed.connect(func() -> void: NetworkManager.remove_online_bot(peer_id))
+		row.add_child(remove)
 	return frame
 
 
@@ -910,6 +945,8 @@ func _refresh_online_rooms(rooms: Array[Dictionary]) -> void:
 				"code": String(room_data.get("code", "")),
 			}
 		)
+		if int(room_data.get("bots", 0)) > 0:
+			room_text += Localization.get_textf("online.bot.count", " | Bots {count}", {"count": int(room_data.get("bots", 0))})
 		if not joinable:
 			room_text += " | %s" % Localization.get_text("online.room.full", "FULL")
 		_discovered_list.add_item(room_text)
@@ -1246,6 +1283,7 @@ func _build_developer_panel() -> void:
 	_developer_panel.configure(
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
+			{"id": "DevWebFillBots", "label": Localization.get_text("online.bot.dev", "Fill empty slots with bots"), "callback": Callable(NetworkManager, "developer_fill_bot_slots")},
 			{"id": "DevWebDisconnect", "label": Localization.get_text("lan.dev.disconnect", "Drop remote peer"), "callback": Callable(self, "_on_dev_disconnect")},
 			{"id": "DevWebLeave", "label": Localization.get_text("lan.leave", "Leave lobby"), "callback": Callable(self, "_on_leave_pressed")},
 		],

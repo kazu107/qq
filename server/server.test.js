@@ -129,6 +129,7 @@ test("room directory tracks compatible rooms, player counts, and host rules", as
     code: "LIST42",
     hostName: "Arena Host",
     players: 1,
+    bots: 0,
     maxPlayers: 2,
     spectators: 0,
     maxSpectators: 4,
@@ -150,6 +151,57 @@ test("room directory tracks compatible rooms, player counts, and host rules", as
   assert.equal(joinedRoom.players, 2);
   assert.equal(joinedRoom.joinable, false);
   await stop(app, [directory, host, guest]);
+});
+
+test("bots reserve real player slots and remain host-controlled without RTC peers", async () => {
+  const app = await startServer();
+  const host = await connect(app.port);
+  const directory = await connect(app.port);
+  const guest = await connect(app.port);
+  const watcher = await connect(app.port);
+  try {
+    send(host, { type: "host", room: "BOT123", protocolVersion: 13, contentHash: BUILD_HASH });
+    await receive(host);
+    send(directory, { type: "list_rooms", protocolVersion: 13, contentHash: BUILD_HASH });
+    await receive(directory);
+    const listed = receive(directory);
+    send(host, { type: "add_bot", starterId: "fortress" });
+    const added = await receive(host);
+    assert.equal(added.type, "bots_updated");
+    assert.equal(added.accepted, true);
+    assert.equal(added.bots[0].id, 1000000001);
+    assert.equal(added.bots[0].starterId, "fortress");
+    const room = (await listed).rooms[0];
+    assert.equal(room.players, 2);
+    assert.equal(room.bots, 1);
+    assert.equal(room.joinable, false);
+    send(guest, { type: "join", room: "BOT123", protocolVersion: 13, contentHash: BUILD_HASH, reconnectToken: "bot-guest-token" });
+    assert.equal((await receive(guest)).code, "room_full");
+    const joined = receive(host);
+    send(watcher, { type: "join", room: "BOT123", protocolVersion: 13, contentHash: BUILD_HASH, reconnectToken: "bot-watch-token", spectator: true });
+    assert.equal((await receive(watcher)).participantRole, "spectator");
+    await joined;
+    send(watcher, { type: "remove_bot", id: added.bots[0].id });
+    assert.equal((await receive(watcher)).code, "host_only");
+    send(host, { type: "add_bot", starterId: "balanced" });
+    assert.equal((await receive(host)).code, "room_full");
+    send(host, { type: "set_room_active", active: true });
+    send(host, { type: "remove_bot", id: added.bots[0].id });
+    assert.equal((await receive(host)).code, "match_active");
+    send(host, { type: "set_room_active", active: false });
+    send(host, { type: "remove_bot", id: 1 });
+    assert.equal((await receive(host)).code, "bot_not_found");
+    send(host, { type: "remove_bot", id: added.bots[0].id });
+    const removed = await receive(host);
+    assert.equal(removed.accepted, true);
+    assert.deepEqual(removed.bots, []);
+    const guestJoined = receive(host);
+    send(guest, { type: "join", room: "BOT123", protocolVersion: 13, contentHash: BUILD_HASH, reconnectToken: "bot-guest-token" });
+    assert.equal((await receive(guest)).id, 3);
+    await guestJoined;
+  } finally {
+    await stop(app, [host, guest, directory, watcher]);
+  }
 });
 
 test("room validation rejects missing, mismatched, and full rooms", async () => {

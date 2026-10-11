@@ -1764,5 +1764,11 @@
   "tutorial.flow.exam_battle.title": "戦闘に勝利する",
   "tutorial.flow.exam_battle.body": "すべてのカードを自由に使えます。敵のタイムラインと3つのスロットを管理してください。",
   "tutorial.flow.exam_complete.title": "実戦演習 完了",
-  "tutorial.flow.exam_complete.body": "これまでのレッスンで学んだ要素を使い、通常ルールの戦闘に勝利しました。"
+  "tutorial.flow.exam_complete.body": "これまでのレッスンで学んだ要素を使い、通常ルールの戦闘に勝利しました。",
+  "online.bot.add": "botを追加",
+  "online.bot.remove": "botを削除",
+  "online.bot.random": "botのデッキ：ランダム",
+  "online.bot.count": " | bot {count}人",
+  "online.bot.rejected": "botを変更できませんでした。人数上限と対戦中かどうかを確認してください。",
+  "online.bot.dev": "botで空き枠を埋める"
 }

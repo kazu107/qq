@@ -60,6 +60,7 @@ static func build_standings(
 		var profile: Dictionary = Dictionary(profiles_by_peer.get(peer_id, {}))
 		var run_state: RunState = runs_by_peer.get(peer_id) as RunState
 		standings.append({
+			"is_bot": bool(profile.get("is_bot", false)),
 			"peer_id": peer_id,
 			"name": String(profile.get("name", "Player")),
 			"starter_id": String(profile.get("starter_id", "balanced")),

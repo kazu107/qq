@@ -150,6 +150,11 @@ var _online_reconnect_reservations: Dictionary = {}
 var _online_rejoin_pending: bool = false
 var _online_replay_transfers: Dictionary = {}
 var _last_online_replay_path: String = ""
+var _bot_request_pending: bool = false
+var _bot_phase_key: String = ""
+var _bot_phase_elapsed: float = 0.0
+var _arena_bot: ArenaBotController = ArenaBotController.new()
+var _bot_fill_requested: bool = false
 
 
 func _ready() -> void:
@@ -171,6 +176,8 @@ func _ready() -> void:
 		_web_signaling.failed.connect(_on_web_signaling_failed)
 	if not _web_signaling.participant_role_update_result.is_connected(_on_web_participant_role_update_result):
 		_web_signaling.participant_role_update_result.connect(_on_web_participant_role_update_result)
+	if not _web_signaling.bots_updated.is_connected(_on_web_bots_updated):
+		_web_signaling.bots_updated.connect(_on_web_bots_updated)
 	if not _web_directory.room_list_changed.is_connected(_on_online_room_list_changed):
 		_web_directory.room_list_changed.connect(_on_online_room_list_changed)
 	if not _web_directory.failed.is_connected(_on_online_directory_failed):
@@ -200,6 +207,7 @@ func _process(delta: float) -> void:
 	_process_discovery(delta)
 	_process_ping(delta)
 	_process_reconnect()
+	_process_arena_bots(delta)
 	if _parallel_match_contexts.is_empty():
 		_process_battle_countdown()
 	else:
@@ -393,6 +401,108 @@ func get_lobby_player_count() -> int:
 
 func get_lobby_spectator_count() -> int:
 	return _get_spectator_peer_ids().size()
+
+
+func is_bot_peer(peer_id: int) -> bool:
+	return bool(_get_profile_for_peer(peer_id).get("is_bot", false))
+
+
+func can_manage_bots() -> bool:
+	return _is_host and is_online_session() and is_session_connected() and not _match_active and not _arena_session_active and not _bot_request_pending
+
+
+func add_online_bot(starter_id: String = "") -> bool:
+	if not can_manage_bots() or get_lobby_player_count() >= get_player_capacity():
+		return false
+	var resolved: String = starter_id
+	if resolved == "":
+		resolved = String(Dictionary(Database.starters[randi_range(0, Database.starters.size() - 1)]).get("id", "balanced"))
+	if Database.get_starter(resolved).is_empty():
+		return false
+	_bot_request_pending = _web_signaling.request_bot_change(resolved)
+	if _bot_request_pending:
+		_broadcast_lobby_state()
+	return _bot_request_pending
+
+
+func remove_online_bot(peer_id: int) -> bool:
+	if not can_manage_bots() or not is_bot_peer(peer_id):
+		return false
+	_bot_request_pending = _web_signaling.request_bot_change("", peer_id)
+	if _bot_request_pending:
+		_broadcast_lobby_state()
+	return _bot_request_pending
+
+
+func developer_fill_bot_slots() -> bool:
+	if not Game.is_developer_mode_enabled() or not can_manage_bots() or get_lobby_player_count() >= get_player_capacity():
+		return false
+	_bot_fill_requested = true
+	return add_online_bot()
+
+
+func _on_web_bots_updated(bots: Array[Dictionary], accepted: bool, code: String) -> void:
+	_bot_request_pending = false
+	if not _is_host or not is_online_session():
+		return
+	if not accepted:
+		_bot_fill_requested = false
+		network_error.emit(code, Localization.get_text("online.bot.rejected", "Bot changes were rejected. Check the room capacity and match state."))
+		_broadcast_lobby_state()
+		return
+	if _arena_session_active or _match_active:
+		return
+	var remaining: Dictionary = {}
+	for bot: Dictionary in bots:
+		var peer_id: int = int(bot.get("id", -1))
+		if peer_id < 1000000000:
+			continue
+		remaining[peer_id] = true
+		var profile: Dictionary = LanProtocol.build_profile(String(bot.get("name", "BOT")), String(bot.get("starterId", "balanced")), true)
+		profile["is_bot"] = true
+		_profiles_by_peer[peer_id] = profile
+	for raw_peer_id: Variant in _profiles_by_peer.keys():
+		var peer_id: int = int(raw_peer_id)
+		if is_bot_peer(peer_id) and not remaining.has(peer_id):
+			_profiles_by_peer.erase(peer_id)
+	_broadcast_lobby_state()
+	if _bot_fill_requested:
+		if get_lobby_player_count() < get_player_capacity():
+			add_online_bot()
+		else:
+			_bot_fill_requested = false
+
+
+func _process_arena_bots(delta: float) -> void:
+	if not _is_host or not _arena_session_active:
+		return
+	var phase_key: String = "%s:%d" % [_arena_phase, _arena_round_index]
+	if _bot_phase_key != phase_key:
+		_bot_phase_key = phase_key
+		_bot_phase_elapsed = 0.0
+	_bot_phase_elapsed += delta
+	if _arena_phase == "preparation" and _bot_phase_elapsed >= 0.35:
+		_bot_phase_elapsed = 0.0
+		# One bot per tick bounds preparation work and never loads card artwork.
+		for peer_id: int in _arena_player_peer_ids:
+			if not is_bot_peer(peer_id) or bool(_arena_ready_by_peer.get(str(peer_id), false)):
+				continue
+			var run: RunState = _arena_runs_by_peer.get(peer_id) as RunState
+			_arena_bot.prepare(_arena_coordinator, run)
+			_arena_ready_by_peer[str(peer_id)] = _arena_coordinator.has_valid_loadout(run) and not _arena_coordinator.has_pending_reward(run)
+			_arena_standings = ArenaTournamentCoordinator.build_standings(_arena_player_peer_ids, _profiles_by_peer, _arena_runs_by_peer)
+			_arena_public_details = _build_arena_public_details()
+			_send_arena_preparation_state()
+			if _are_all_arena_players_ready():
+				_start_arena_match_from_preparation()
+			break
+	elif _arena_phase == "round_result" and _arena_round_results_complete and _bot_phase_elapsed >= 3.0:
+		for peer_id: int in _arena_player_peer_ids:
+			if is_bot_peer(peer_id) and not bool(_arena_round_continue_by_peer.get(str(peer_id), false)):
+				_acknowledge_round_results_for_peer(peer_id)
+				# The last acknowledgement can dispose contexts and change phase.
+				if _arena_phase != "round_result" or not _arena_session_active:
+					break
 
 
 func is_local_spectator() -> bool:
@@ -632,7 +742,7 @@ func get_battle_ready_count() -> int:
 
 
 func can_start_match() -> bool:
-	if not _is_host or _match_active or _arena_session_active:
+	if not _is_host or _match_active or _arena_session_active or _bot_request_pending:
 		return false
 	var player_peer_ids: Array[int] = _get_player_peer_ids()
 	var capacity: int = get_player_capacity()
@@ -671,6 +781,7 @@ func start_lan_arena_preparation() -> bool:
 	_arena_runs_by_side.clear()
 	_arena_session_id = "%d-%d" % [base_seed, Time.get_ticks_msec()]
 	_arena_session_active = true
+	_web_signaling.set_room_active(true)
 	_arena_phase = "preparation"
 	_arena_ready_by_side = {"player": false, "enemy": false}
 	_arena_ready_by_peer.clear()
@@ -1753,6 +1864,8 @@ func _apply_arena_action_for_peer(
 
 
 func _send_arena_action_result(peer_id: int, action: String, accepted: bool, result: Dictionary) -> void:
+	if is_bot_peer(peer_id):
+		return
 	if peer_id <= 1:
 		arena_action_result_received.emit(action, accepted, result.duplicate(true))
 	else:
@@ -1926,7 +2039,19 @@ func _start_parallel_round_matches() -> bool:
 			String(payload.get("player_name", "Player")),
 			String(payload.get("enemy_name", "Opponent"))
 		)
-		var viewer_peer_ids: Array[int] = [player_peer_id, enemy_peer_id]
+		var viewer_peer_ids: Array[int] = []
+		for participant: int in [player_peer_id, enemy_peer_id]:
+			if not is_bot_peer(participant):
+				viewer_peer_ids.append(participant)
+		var bot_ais: Array[EnemyAI] = []
+		for side: String in ["player", "enemy"]:
+			var participant: int = player_peer_id if side == "player" else enemy_peer_id
+			if is_bot_peer(participant):
+				var ai: EnemyAI = EnemyAI.new()
+				ai.side = side
+				ai.think_interval = 0.65
+				bot_ais.append(ai)
+		var bot_only: bool = is_bot_peer(player_peer_id) and is_bot_peer(enemy_peer_id)
 		if pair_index == 0:
 			_spectator_match_id = match_id
 			for spectator_peer_id in spectator_peer_ids:
@@ -1940,9 +2065,10 @@ func _start_parallel_round_matches() -> bool:
 			"payload": payload,
 			"engine": engine,
 			"viewer_peer_ids": viewer_peer_ids,
-			"ready_by_side": {"player": false, "enemy": false},
-			"countdown_active": false,
-			"countdown_deadline_msec": 0,
+			"bot_ais": bot_ais,
+			"ready_by_side": {"player": is_bot_peer(player_peer_id), "enemy": is_bot_peer(enemy_peer_id)},
+			"countdown_active": bot_only,
+			"countdown_deadline_msec": Time.get_ticks_msec() + int(BATTLE_COUNTDOWN_SECONDS * 1000.0) if bot_only else 0,
 			"countdown_finished": false,
 			"snapshot_sequence": 0,
 			"snapshot_elapsed": 0.0,
@@ -2042,6 +2168,8 @@ func _process_parallel_matches(delta: float) -> void:
 			_emit_parallel_countdown_finished(match_id)
 			_publish_parallel_context_snapshot(match_id, true)
 		if bool(context.get("countdown_finished", false)) and engine.battle_state.winner == "":
+			for ai: EnemyAI in Array(context.get("bot_ais", [])):
+				ai.update(engine, delta)
 			engine.update(delta)
 		var snapshot_elapsed: float = float(context.get("snapshot_elapsed", 0.0)) + delta
 		if snapshot_elapsed >= 1.0 / 12.0:
@@ -2735,6 +2863,11 @@ func _finish_arena_session(winner: String, reason: String, winner_peer_id: int =
 
 
 func _apply_arena_session_finished(result: Dictionary) -> void:
+	if _is_host:
+		_web_signaling.set_room_active(false)
+		for peer_id: int in _get_player_peer_ids():
+			if is_bot_peer(peer_id):
+				_profiles_by_peer[peer_id]["ready"] = true
 	_arena_session_active = false
 	_arena_phase = "finished"
 	_match_active = false
@@ -2797,7 +2930,7 @@ func _broadcast_lobby_state() -> void:
 		"arena_public_details": _arena_public_details.duplicate(true),
 	}
 	for peer_id in peer_ids:
-		if peer_id == 1 or _online_reconnect_reservations.has(peer_id):
+		if peer_id == 1 or is_bot_peer(peer_id) or _online_reconnect_reservations.has(peer_id):
 			continue
 		_receive_lobby_state_rpc.rpc_id(peer_id, _public_lobby_snapshot)
 	lobby_changed.emit(_public_lobby_snapshot.duplicate(true))
@@ -3071,25 +3204,30 @@ func _start_discovery_sender() -> void:
 func _get_guest_peer_id() -> int:
 	for raw_peer_id in _profiles_by_peer.keys():
 		var peer_id: int = int(raw_peer_id)
-		if peer_id != 1:
+		if peer_id != 1 and not is_bot_peer(peer_id):
 			return peer_id
 	return -1
 
 
 func _get_all_peer_ids() -> Array[int]:
+	# Transport recipients only; the player roster separately includes bots.
 	var peer_ids: Array[int] = []
 	for raw_peer_id in _profiles_by_peer.keys():
-		peer_ids.append(int(raw_peer_id))
+		var peer_id: int = int(raw_peer_id)
+		if not is_bot_peer(peer_id):
+			peer_ids.append(peer_id)
 	peer_ids.sort()
 	return peer_ids
 
 
 func _get_player_peer_ids() -> Array[int]:
 	var peer_ids: Array[int] = []
-	for peer_id in _get_all_peer_ids():
+	for raw_peer_id: Variant in _profiles_by_peer.keys():
+		var peer_id: int = int(raw_peer_id)
 		var profile: Dictionary = Dictionary(_profiles_by_peer.get(peer_id, {}))
 		if String(profile.get("role", LanProtocol.ROLE_PLAYER)) == LanProtocol.ROLE_PLAYER:
 			peer_ids.append(peer_id)
+	peer_ids.sort()
 	return peer_ids
 
 
@@ -3144,6 +3282,10 @@ func _to_int_array(value: Variant) -> Array[int]:
 
 
 func _clear_session(clear_profile: bool) -> void:
+	_bot_fill_requested = false
+	_bot_request_pending = false
+	_bot_phase_key = ""
+	_bot_phase_elapsed = 0.0
 	diagnostics = NetworkDiagnostics.new()
 	_web_failure_pending = false
 	_web_signaling.close()

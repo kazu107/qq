@@ -83,6 +83,22 @@ func _open_screen(screen: String) -> void:
 		"library": SceneRouter.go_to_card_library()
 		"tutorials": SceneRouter.go_to_battle_tutorial()
 		"online": SceneRouter.go_to_online_lobby()
+		"online_bots":
+			NetworkManager._clear_session(false)
+			NetworkManager._is_host = true
+			NetworkManager._session_scope = NetworkManager.SESSION_SCOPE_ONLINE
+			NetworkManager._peer = OfflineMultiplayerPeer.new()
+			NetworkManager.multiplayer.multiplayer_peer = NetworkManager._peer
+			NetworkManager._state = NetworkManager.ConnectionState.HOSTING
+			NetworkManager._online_room_code = "BOTS04"
+			NetworkManager._online_max_players = 4
+			NetworkManager._profiles_by_peer[1] = NetworkManager.configure_local_player("Player", "balanced")
+			NetworkManager._on_web_bots_updated([
+				{"id": 1000000001, "name": "BOT 1", "starterId": "tempo"},
+				{"id": 1000000002, "name": "BOT 2", "starterId": "fortress"},
+				{"id": 1000000003, "name": "BOT 3", "starterId": "balanced"},
+			], true, "")
+			SceneRouter.go_to_online_lobby()
 		"map":
 			Game.start_new_run("balanced", 4242)
 			SceneRouter.go_to_map()

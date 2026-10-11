@@ -144,6 +144,32 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
     return;
   }
 
+  if (type === "add_bot" || type === "remove_bot" || type === "set_room_active") {
+    const room = rooms.get(client.room);
+    if (client.role !== "host" || !room) {
+      send(socket, { type: "bots_updated", accepted: false, code: "host_only", bots: [] });
+      return;
+    }
+    if (type === "set_room_active") {
+      if (typeof message.active === "boolean") room.active = message.active;
+      return;
+    }
+    let code = "";
+    if (room.active) code = "match_active";
+    else if (type === "add_bot") {
+      if (countParticipants(room, clients, "player") >= room.maxPlayers) code = "room_full";
+      else if (!/^[a-z0-9_]{1,40}$/.test(String(message.starterId || ""))) code = "invalid_starter";
+      else {
+        const ordinal = room.nextBotOrdinal++;
+        const id = 1000000000 + ordinal;
+        room.bots.set(id, { id, name: `BOT ${ordinal}`, starterId: message.starterId });
+      }
+    } else if (!room.bots.delete(Number(message.id))) code = "bot_not_found";
+    send(socket, { type: "bots_updated", accepted: !code, code, bots: [...room.bots.values()] });
+    if (!code) broadcastRoomLists(rooms, clients);
+    return;
+  }
+
   if (type === "update_room") {
     if (client.role !== "host" || !client.room) {
       sendError(socket, "host_only", "Only the room host can update room settings.");
@@ -221,6 +247,9 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
         maxPlayers: sanitizeMaxPlayers(message.maxPlayers) ?? DEFAULT_PLAYERS,
         peers: new Map([[1, socket]]),
         reservations: new Map(),
+        bots: new Map(),
+        nextBotOrdinal: 1,
+        active: false,
       };
       rooms.set(roomCode, room);
       Object.assign(client, { room: roomCode, id: 1, role: "host", participantRole: "player" });
@@ -345,7 +374,7 @@ function sanitizeMaxPlayers(value) {
 
 function countParticipants(room, clients, participantRole) {
   pruneReservations(room);
-  let count = 0;
+  let count = participantRole === "player" ? (room.bots?.size || 0) : 0;
   for (const socket of room.peers.values()) {
     if (clients.get(socket)?.participantRole === participantRole) count += 1;
   }
@@ -392,6 +421,7 @@ function buildRoomList(rooms, clients, client) {
       code: room.code,
       hostName: room.hostName,
       players: countParticipants(room, clients, "player"),
+      bots: room.bots?.size || 0,
       maxPlayers: room.maxPlayers,
       spectators: countParticipants(room, clients, "spectator"),
       maxSpectators: MAX_SPECTATORS,

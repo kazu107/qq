@@ -1,7 +1,7 @@
 extends RefCounted
 class_name LanProtocol
 
-const PROTOCOL_VERSION: int = 12
+const PROTOCOL_VERSION: int = 13
 const SNAPSHOT_VERSION: int = 4
 const RELIC_RESOLVER_VERSION: int = 1
 const DEFAULT_PORT: int = 32475
@@ -197,6 +197,7 @@ static func build_match_payload(
 
 static func build_public_profile(profile: Dictionary, peer_id: int, side: String, ping_ms: int = 0) -> Dictionary:
 	return {
+		"is_bot": bool(profile.get("is_bot", false)),
 		"peer_id": peer_id,
 		"name": String(profile.get("name", "Player")),
 		"starter_id": String(profile.get("starter_id", "")),

@@ -1,9 +1,31 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.32.1",
+  "current_version": "QQ-0.33.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.33.0",
+      "date": "2026-10-12",
+      "title_ja": "Web対戦のbot参加",
+      "title_en": "Bots in Web arenas",
+      "changes_ja": [
+        "Web対戦のホストがロビーでbotを追加・削除できます。デッキは指定またはランダムで選べます。",
+        "botはプレイヤーと同じ人数枠とルールを使い、部屋一覧にも人数を反映します。",
+        "botが準備・購入・装備・報酬選択・戦闘を自動操作します。戦闘開始は人の開始準備を待ちます。",
+        "複数組の同時対戦、bot同士の試合、観戦、ラウンド結果待ち、何先ルールに対応します。",
+        "botの処理はホスト側だけで行い、botへの不要な通信を発生させません。",
+        "開発者モードに空き枠をbotで埋める操作を追加しました。対戦中の追加・削除はできません。"
+      ],
+      "changes_en": [
+        "Hosts can add or remove bots in Web lobbies, choosing a starter deck or a random one.",
+        "Bots occupy ordinary player slots, obey room rules and appear in room-directory counts.",
+        "Automate preparation, purchases, loadouts, reward selection and combat; wait for human battle readiness.",
+        "Support parallel matches, bot-only pairings, spectators, round-result barriers and first-to-X rules.",
+        "Run AI on the host without creating fake transport peers or sending bot RPCs.",
+        "Add a developer fill-empty-slots shortcut and reject roster edits during active arenas."
+      ]
+    },
     {
       "version": "QQ-0.32.1",
       "date": "2026-10-10",

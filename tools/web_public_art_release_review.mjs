@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const require = createRequire(import.meta.url);
 const { chromium } = process.env.QQ_NODE_MODULES
@@ -14,7 +14,8 @@ const manifest = await fetch(`https://qq.kazu107.xyz/releases/current.json?relea
   assert.equal(response.status, 200);
   return response.json();
 });
-assert.equal(manifest.game_version, process.env.QQ_RELEASE_VERSION || 'QQ-0.32.1');
+const expectedVersion = process.env.QQ_RELEASE_VERSION || JSON.parse(await readFile(resolve('data/version_history.json'), 'utf8')).current_version;
+assert.equal(manifest.game_version, expectedVersion);
 assert.equal(manifest.commit, expectedCommit);
 const output = resolve('tools/.local/blender-public-review');
 await mkdir(output, { recursive: true });
