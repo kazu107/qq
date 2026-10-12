@@ -35,7 +35,9 @@ try {
     const viewport = page.viewportSize();
     return [(x + w / 2 + offset) * viewport.width / state.viewport[0], (y + h / 2) * viewport.height / state.viewport[1]];
   }
-  for (const screen of ['map', 'arena']) {
+  const sizes = [{ width: 1440, height: 900 }, { width: 960, height: 600 }, { width: 900, height: 1200 }];
+  for (const { screen, size } of sizes.flatMap(size => ['map', 'arena'].map(screen => ({ screen, size })))) {
+    await page.setViewportSize(size);
     await page.mouse.move(1, 1);
     let state = await inspect(screen);
     assert(state.loadout.cards.every(card => !card.close));
@@ -45,7 +47,10 @@ try {
     await page.mouse.move(...point(initialCard.rect, state));
     state = await inspect();
     assert(state.loadout.cards[0].close, `${screen}: missing hover close`);
-    await page.screenshot({ path: resolve(output, `${screen}-deck-close.png`) });
+    const [,, width, height] = state.loadout.cards[0].close_rect;
+    assert.equal(width, 22, `${screen}: unequip frame width`);
+    assert.equal(height, 22, `${screen}: unequip frame is not square`);
+    await page.screenshot({ path: resolve(output, `${screen}-${size.width}x${size.height}-deck-close.png`) });
     for (let index = 0; index < 8; index++) {
       await page.mouse.move(...point(state.loadout.cards[0].close_rect, state, index % 2 ? 4 : -4));
       state = await inspect();
@@ -69,7 +74,7 @@ try {
       row = state.loadout.rows.find(item => item.name === rowName);
       assert(row.actions, 'Inventory action flickered while moving across buttons');
     }
-    await page.screenshot({ path: resolve(output, `${screen}-inventory-actions.png`) });
+    await page.screenshot({ path: resolve(output, `${screen}-${size.width}x${size.height}-inventory-actions.png`) });
     await page.mouse.click(...point(row.equip_rect, state));
     state = await inspect();
     assert.equal(state.loadout.cards.length, initialCount, 'Inventory equip button failed');
@@ -83,7 +88,7 @@ try {
     await page.mouse.move(1, 1);
     state = await inspect();
     assert(state.loadout.rows.every(item => !item.actions), 'Scrolled actions remained visible');
-    cases.push(`${screen}: real hover, stable close button, unequip/equip, fixed frame size, child hover, scroll and missed exit`);
+    cases.push(`${screen} ${size.width}x${size.height}: tight 22px square, real hover, stable close button, unequip/equip, fixed frame size, child hover, scroll and missed exit`);
   }
   assert.deepEqual(errors, []);
   console.log('WEB_LOADOUT_HOVER_OK', cases);

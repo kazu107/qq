@@ -3,6 +3,7 @@ class_name UiIconHelper
 
 const DATA_PATH: String = "res://data/ui_action_icons.json"
 static var _labels: Dictionary = {}
+static var _tight_icons: Dictionary = {}
 
 
 static func get_ids() -> Array[String]:
@@ -30,6 +31,33 @@ static func icon_node(id: String, extent: float = 24.0, hint: String = "") -> Te
 	icon.custom_minimum_size = Vector2.ONE * extent
 	icon.tooltip_text = hint if hint != "" else get_hint(id)
 	return icon
+
+
+static func get_tight_icon(id: String) -> Texture2D:
+	if _tight_icons.has(id):
+		return _tight_icons[id] as Texture2D
+	var source: Texture2D = StatIconFactory.get_icon(id)
+	var pixels: Image = source.get_image()
+	if pixels == null or pixels.get_used_rect().size == Vector2i.ZERO:
+		return source
+	var atlas: AtlasTexture = AtlasTexture.new()
+	atlas.atlas = source
+	atlas.region = Rect2(pixels.get_used_rect())
+	atlas.filter_clip = true
+	_tight_icons[id] = atlas
+	return atlas
+
+
+static func decorate_square(button: Button, id: String, extent: float, hint: String = "") -> void:
+	decorate(button, id, hint, true)
+	button.icon = get_tight_icon(id)
+	button.expand_icon = true
+	button.custom_minimum_size = Vector2.ONE * extent
+	# Empty text still inherits the font's line height unless explicitly reduced.
+	button.add_theme_font_size_override("font_size", 1)
+	button.add_theme_constant_override("h_separation", 0)
+	button.add_theme_constant_override("icon_max_width", int(extent) - 2)
+	button.size = Vector2.ONE * extent
 
 
 static func decorate(button: Button, id: String, hint: String = "", compact: bool = false, value: String = "") -> void:
@@ -74,9 +102,7 @@ static func decorate_default(button: Button) -> void:
 		return
 	if name.contains("deckunequip"):
 		var hint: String = button.tooltip_text if button.tooltip_text != "" else get_hint(id)
-		decorate(button, id, hint, true)
-		button.custom_minimum_size.x = 24.0
-		button.add_theme_constant_override("icon_max_width", 16)
+		decorate_square(button, id, 22.0, hint)
 	elif name.contains("removebot") or name.ends_with("close"):
 		decorate(button, id, button.tooltip_text, true)
 	else:

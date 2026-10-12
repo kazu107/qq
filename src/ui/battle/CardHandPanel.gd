@@ -6,6 +6,8 @@ signal card_hovered(runtime_id: String)
 signal card_unhovered(runtime_id: String)
 signal card_unequip_requested(card_id: String)
 
+const UNEQUIP_BUTTON_EXTENT: float = 22.0
+
 var _interactive: bool = true
 var _buttons: Array[CardButton] = []
 var _tile_size: Vector2 = Vector2(100.0, 100.0)
@@ -116,10 +118,8 @@ func _sync_unequip_button(card: CardButton) -> void:
 			return
 		remove = Button.new()
 		remove.name = "DeckUnequipButton"
-		remove.text = "\u00d7"
 		remove.focus_mode = Control.FOCUS_NONE
-		remove.custom_minimum_size = Vector2(26.0, 26.0)
-		remove.add_theme_font_size_override("font_size", 22)
+		UiIconHelper.decorate_square(remove, "unequip", UNEQUIP_BUTTON_EXTENT, Localization.get_text("map.unequip", "Unequip"))
 		remove.add_theme_color_override("font_color", Color.WHITE)
 		remove.z_index = 101
 		for state: String in ["normal", "hover", "pressed", "disabled"]:
@@ -127,7 +127,7 @@ func _sync_unequip_button(card: CardButton) -> void:
 			style.bg_color = Color("bc3b46") if state in ["hover", "pressed"] else Color(0.045, 0.065, 0.09, 0.94)
 			style.border_color = Color("ff867b")
 			style.set_border_width_all(1)
-			style.set_corner_radius_all(6)
+			style.set_corner_radius_all(3)
 			style.set_content_margin_all(1.0)
 			remove.add_theme_stylebox_override(state, style)
 		remove.pressed.connect(func() -> void:
@@ -149,8 +149,8 @@ func _position_unequip_button(card: CardButton) -> void:
 	if remove == null:
 		return
 	var art: Rect2 = card.get_art_rect()
-	remove.position = Vector2(art.end.x - 28.0, art.position.y + 2.0)
-	remove.size = Vector2(26.0, 26.0)
+	remove.position = Vector2(art.end.x - UNEQUIP_BUTTON_EXTENT - 2.0, art.position.y + 2.0)
+	remove.size = Vector2.ONE * UNEQUIP_BUTTON_EXTENT
 
 
 func _ensure_button_count(count: int) -> void:

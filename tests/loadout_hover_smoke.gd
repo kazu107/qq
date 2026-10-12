@@ -23,6 +23,7 @@ func _run() -> void:
 		Game.current_run.player_cards = ["quick_slash", "quick_slash", "strike"]
 		Game.current_run.equipped_cards = Game.current_run.player_cards.duplicate()
 		var screen: Control = load("res://scenes/arena/Arena.tscn" if arena else "res://scenes/map/Map.tscn").instantiate() as Control
+		screen.theme = UiTheme.get_game_theme()
 		add_child(screen)
 		await get_tree().process_frame
 		await get_tree().process_frame
@@ -31,6 +32,12 @@ func _run() -> void:
 		var remove: Button = card.get_node("DeckUnequipButton") as Button
 		var reveal: HoverActionReveal = card.get_node("HoverActionReveal") as HoverActionReveal
 		_check(not remove.visible, "Deck close button must start hidden")
+		_check(remove.size.is_equal_approx(Vector2.ONE * 22.0), "Unequip frame must remain a tight 22px square")
+		_check(remove.text == "" and remove.icon is AtlasTexture, "Unequip icon retained text height or transparent padding")
+		var cropped: AtlasTexture = remove.icon as AtlasTexture
+		_check(cropped.region.size.x < cropped.atlas.get_width() and cropped.region.size.y < cropped.atlas.get_height(), "Unequip image was not tightly cropped")
+		_check(remove.get_theme_constant("icon_max_width") == 20, "Unequip icon must fill the square with a 1px border")
+		_check(remove.icon == UiIconHelper.get_tight_icon("unequip"), "Cropped unequip textures were not shared")
 		reveal.update_for_control(card)
 		_check(remove.visible and not remove.disabled, "Deck hover must reveal a usable close button")
 		reveal.update_for_control(remove)
