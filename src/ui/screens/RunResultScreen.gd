@@ -222,6 +222,8 @@ func _build_score_row(parent: VBoxContainer, index: int) -> void:
 
 	var label: Label = Label.new()
 	label.text = Localization.get_text("result.score.%s" % category_id, category_id.capitalize())
+	if category_id == "efficiency":
+		label.tooltip_text = Localization.get_text("result.score.efficiency_hint", "Unplayed battles count as zero in the denominator. Alternative branches are counted once per step.")
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.add_theme_font_size_override("font_size", 17)
 	label.add_theme_color_override("font_color", CATEGORY_COLORS[index].lightened(0.18))

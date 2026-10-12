@@ -4,6 +4,8 @@ class_name HoverActionReveal
 var enabled: bool = true
 var _target: Control
 var _actions: Control
+var _reserved_slot: Control
+var _reserve_sync_pending: bool = false
 
 
 static func attach(target: Control, actions: Control, reserve_space: bool = true) -> HoverActionReveal:
@@ -24,10 +26,26 @@ static func attach(target: Control, actions: Control, reserve_space: bool = true
 		parent.add_child(slot)
 		parent.move_child(slot, index)
 		slot.add_child(actions)
+		reveal._reserved_slot = slot
+		actions.minimum_size_changed.connect(reveal._queue_reserved_space)
 		actions.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	actions.hide()
 	target.add_child(reveal)
+	reveal._queue_reserved_space()
 	return reveal
+
+
+func _queue_reserved_space() -> void:
+	if _reserved_slot != null and not _reserve_sync_pending:
+		_reserve_sync_pending = true
+		call_deferred("_sync_reserved_space")
+
+
+func _sync_reserved_space() -> void:
+	_reserve_sync_pending = false
+	if is_instance_valid(_reserved_slot) and is_instance_valid(_actions):
+		var extent: Vector2 = _actions.get_combined_minimum_size()
+		_reserved_slot.custom_minimum_size = Vector2(extent.x, maxf(44.0, extent.y))
 
 
 func _process(_delta: float) -> void:

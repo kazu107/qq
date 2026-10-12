@@ -352,6 +352,7 @@
   "result.score.progress": "進行度",
   "result.score.survival": "生存力",
   "result.score.efficiency": "戦闘効率",
+  "result.score.efficiency_hint": "未戦闘は0点として分母に含みます。選ばなかった分岐は重複計上しません。",
   "result.score.challenge": "挑戦度",
   "result.score.total": "総合スコア",
   "result.score.rank": "RANK",

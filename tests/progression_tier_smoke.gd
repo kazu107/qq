@@ -131,6 +131,7 @@ func _test_new_enemy_battles() -> void:
 		if engine.battle_state.winner != "player":
 			_fail("Progression tier smoke failed: boosted simulation did not defeat %s" % enemy_id)
 			return
+		engine.dispose()
 
 
 func _test_new_relic_effects() -> void:
@@ -156,6 +157,7 @@ func _test_new_relic_effects() -> void:
 		return
 	if player.shield != 10 or not is_equal_approx(player.cast_time_modifier, 0.85):
 		_fail("Progression tier smoke failed: Eternity Engine modifiers were not applied")
+	engine.dispose()
 
 
 func _request_first_available_player_card(engine: RealtimeBattleEngine) -> void:
@@ -350,6 +352,7 @@ func _test_infinite_mode_flow() -> void:
 	if int(enemy_card_modifiers.get("tier", 0)) < 1:
 		_fail("Progression tier smoke failed: Infinite Mode enemy cards should start upgraded")
 		return
+	engine.dispose()
 
 	_prepare_boss_step(27)
 	Game.complete_battle(_build_victory_summary("boss_eternity_zero", 240.0))
@@ -401,6 +404,23 @@ func _assert_final_s_rank(tier: int, label: String) -> bool:
 
 func _prepare_boss_step(step_index: int) -> void:
 	var steps: Array = Array(Game.current_run.map_state.get("steps", []))
+	# A calibrated S-rank fixture must also have fought the earlier route.
+	for previous_index: int in step_index:
+		var previous: Dictionary = steps[previous_index]
+		var previous_nodes: Array = previous.get("nodes", [])
+		if previous_nodes.is_empty() or String(Dictionary(previous_nodes[0]).get("status", "")) == "completed":
+			continue
+		for node_index: int in previous_nodes.size():
+			var node: Dictionary = previous_nodes[node_index]
+			node["status"] = "completed" if node_index == 0 else "skipped"
+			previous_nodes[node_index] = node
+		var first: Dictionary = previous_nodes[0]
+		if String(first.get("type", "")) in ["normal_battle", "elite_battle", "boss"]:
+			var enemy_id: String = String(first.get("enemy_id", "scout"))
+			Game.current_run.battle_history.append({"enemy_id": enemy_id, "node_type": first["type"],
+				"battle_time": float(RunScoreResolver.ENEMY_PAR_TIMES.get(enemy_id, 60.0)), "winner": "player"})
+		previous["nodes"] = previous_nodes
+		steps[previous_index] = previous
 	var step_data: Dictionary = Dictionary(steps[step_index])
 	var nodes: Array = Array(step_data.get("nodes", []))
 	var boss_node: Dictionary = Dictionary(nodes[0])

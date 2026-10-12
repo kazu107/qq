@@ -32,6 +32,8 @@ func _command(arguments: Array) -> void:
 		_open_screen(String(payload.get("screen", "hub")))
 	elif String(payload.get("action", "")) == "battle_simulate":
 		_simulate_battle_result()
+	elif String(payload.get("action", "")) == "finish_score":
+		get_tree().current_scene.call("_finish_score_animation")
 	elif String(payload.get("action", "")) == "status_icons":
 		var battle: Control = get_tree().current_scene as Control
 		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
@@ -178,6 +180,14 @@ func _open_screen(screen: String) -> void:
 			Game.start_new_run("balanced", 4242)
 			Game.developer_open_result()
 			SceneRouter.go_to_result()
+		"result_partial":
+			Game.start_new_run("balanced", 4242)
+			Game.current_run.run_complete = true
+			Game.current_run.defeated = true
+			Game.current_run.player_hp = 0
+			Game.current_run.battle_history = [{"enemy_id": "scout", "node_type": "normal_battle", "battle_time": 32.0}]
+			Game.current_run.map_state["current_step"] = 1
+			SceneRouter.go_to_result()
 
 
 func _process(_delta: float) -> void:
@@ -235,13 +245,21 @@ func _inspect() -> Dictionary:
 				cards.append({"id": card.runtime_id, "rect": _rect_values(card.get_global_rect()), "close": remove.visible if remove != null else false,
 					"close_rect": _rect_values(remove.get_global_rect()) if remove != null else [], "disabled": remove.disabled if remove != null else true})
 			var rows: Array[Dictionary] = []
-			var inventory: VBoxContainer = screen.get("_inventory_box") as VBoxContainer
+			var inventory: LoadoutInventoryGrid = screen.get("_inventory_box") as LoadoutInventoryGrid
 			for frame: Control in inventory.get_children():
 				var actions: HBoxContainer = frame.find_child("*LoadoutActions*", true, false) as HBoxContainer
 				if actions != null:
+					var slot: Control = frame.find_child("HoverActionsSlot", true, false) as Control
+					var preview: CardButton = frame.find_child("*LoadoutPreview*", true, false) as CardButton
 					rows.append({"name": String(frame.name), "rect": _rect_values(frame.get_global_rect()), "actions": actions.visible,
-						"buttons": actions.get_child_count(), "equip_rect": _rect_values((actions.get_child(0) as Control).get_global_rect())})
-			result["loadout"] = {"cards": cards, "rows": rows}
+						"buttons": actions.get_child_count(), "equip_rect": _rect_values((actions.get_child(0) as Control).get_global_rect()),
+						"minimum": _point_values(frame.get_combined_minimum_size()), "actions_minimum": _point_values(actions.get_combined_minimum_size()),
+						"slot_minimum": _point_values(slot.custom_minimum_size) if slot != null else [],
+						"preview_rect": _rect_values(preview.get_global_rect()) if preview != null else []})
+			var inventory_scroll: ScrollContainer = inventory.get_parent() as ScrollContainer
+			result["loadout"] = {"cards": cards, "rows": rows, "columns": inventory.columns,
+				"inventory_rect": _rect_values(inventory.get_global_rect()), "scroll_rect": _rect_values(inventory_scroll.get_global_rect()),
+				"horizontal_bar": inventory_scroll.get_h_scroll_bar().visible, "scroll_x": inventory_scroll.scroll_horizontal}
 		if screen.scene_file_path.get_file().get_basename() == "CardLibrary":
 			var search: LineEdit = screen.find_child("LibrarySearch", true, false) as LineEdit
 			var empty: Label = screen.find_child("LibraryEmptyNotice", true, false) as Label
@@ -252,6 +270,8 @@ func _inspect() -> Dictionary:
 			var art_grid: GridContainer = screen.find_child("ArtLabGrid", true, false) as GridContainer
 			result["art"] = {"catalog": Array(screen.get("_catalog")).size(), "tiles": art_grid.get_child_count(), "columns": art_grid.columns,
 				"preview": screen.find_child("ArtPreviewOverlay", true, false) != null}
+		elif screen.scene_file_path.get_file().get_basename() == "RunResult":
+			result["score"] = screen.get("_summary_data")
 		var stage: BattleStage3D = screen.find_child("BattleStage3D", true, false) as BattleStage3D
 		if stage != null:
 			var status_regions: Array[Dictionary] = []

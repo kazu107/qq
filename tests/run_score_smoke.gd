@@ -13,6 +13,9 @@ func _run() -> void:
 	_test_score_calculation()
 	if _failed:
 		return
+	_test_unplayed_efficiency()
+	if _failed:
+		return
 	_test_backward_compatible_run_state()
 	if _failed:
 		return
@@ -35,6 +38,8 @@ func _test_score_calculation() -> void:
 	_mark_challenge_route(run_state)
 	run_state.battle_history = [
 		{"enemy_id": "scout", "node_type": "normal_battle", "battle_time": 32.0, "winner": "player"},
+		{"enemy_id": "scout", "node_type": "hazard", "battle_time": 32.0, "winner": "player"},
+		{"enemy_id": "brute", "node_type": "hazard", "battle_time": 61.0, "winner": "player"},
 		{"enemy_id": "guardian", "node_type": "hazard", "battle_time": 97.0, "winner": "player"},
 		{"enemy_id": "chronoguard", "node_type": "elite_battle", "battle_time": 57.0, "winner": "player"},
 		{"enemy_id": "boss_timekeeper", "node_type": "boss", "battle_time": 80.0, "winner": "player"},
@@ -64,6 +69,58 @@ func _test_score_calculation() -> void:
 	score = RunScoreResolver.new().calculate(run_state)
 	if String(score.get("rank", "")) != "C":
 		_fail("Run score smoke failed: a defeated run should not rank above C")
+
+
+func _test_unplayed_efficiency() -> void:
+	var resolver: RunScoreResolver = RunScoreResolver.new()
+	var run_state: RunState = _build_run_state()
+	var fast_battle: Dictionary = {"enemy_id": "scout", "node_type": "normal_battle", "battle_time": 32.0}
+	run_state.battle_history = [fast_battle]
+	if int(resolver.calculate(run_state)["efficiency"]) != roundi(1500.0 / 4.75):
+		_fail("Run score smoke failed: future battle steps were omitted from efficiency denominator")
+		return
+	for tier: int in [2, 3, 4]:
+		run_state.map_state = MapGenerator.new().generate_run(777, tier)
+		if int(resolver.calculate(run_state)["efficiency"]) != roundi(1500.0 / (4.75 * tier)):
+			_fail("Run score smoke failed: extended unplayed steps were omitted")
+			return
+	run_state.map_state = {"steps": [{"nodes": [
+		{"type": "normal_battle", "status": "completed"},
+		{"type": "normal_battle", "status": "skipped"},
+	]}]}
+	if int(resolver.calculate(run_state)["efficiency"]) != 1500:
+		_fail("Run score smoke failed: mutually exclusive branches were double counted")
+		return
+	run_state.battle_history.append({"enemy_id": "scout", "battle_time": 0.0})
+	if int(resolver.calculate(run_state)["efficiency"]) != 750:
+		_fail("Run score smoke failed: zero-time entries were excluded from the denominator")
+		return
+	run_state.map_state = {"steps": [{"nodes": [{"type": "hazard", "status": "completed", "hazard_queue": ["scout", "scout", "scout"], "hazard_cleared_waves": 2}]}]}
+	run_state.battle_history = [
+		{"enemy_id": "scout", "node_type": "hazard", "battle_time": 32.0},
+		{"enemy_id": "scout", "node_type": "hazard", "battle_time": 32.0},
+	]
+	if int(resolver.calculate(run_state)["efficiency"]) != 1000:
+		_fail("Run score smoke failed: unplayed hazard waves were not zero-point contributions")
+		return
+	run_state.arena_mode = true
+	run_state.arena_target_wins = 9
+	run_state.arena_wins = 1
+	run_state.battle_history = [fast_battle]
+	if int(resolver.calculate(run_state)["efficiency"]) != roundi(1500.0 / 9.0):
+		_fail("Run score smoke failed: unplayed Arena matches were excluded")
+		return
+	run_state.battle_history.append(fast_battle)
+	if int(resolver.calculate(run_state)["efficiency"]) != 300:
+		_fail("Run score smoke failed: Arena losses incorrectly reduced the remaining target matches")
+		return
+	run_state.arena_wins = 9
+	if int(resolver.calculate(run_state)["efficiency"]) != 1500:
+		_fail("Run score smoke failed: completed Arena maximum efficiency changed")
+		return
+	run_state.battle_history.clear()
+	if int(resolver.calculate(run_state)["efficiency"]) != 0:
+		_fail("Run score smoke failed: an unplayed run gained efficiency points")
 
 
 func _test_backward_compatible_run_state() -> void:

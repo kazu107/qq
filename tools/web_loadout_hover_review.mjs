@@ -63,10 +63,12 @@ try {
     let row = state.loadout.rows.find(item => item.name === rowName);
     assert(row, 'Unequipped card vanished from owned inventory');
     const frameBefore = row.rect;
+    const rowBefore = structuredClone(row);
     await page.mouse.move(...point(row.rect, state));
     state = await inspect();
     row = state.loadout.rows.find(item => item.name === rowName);
     assert(row.actions);
+    await writeFile(resolve(output, `${screen}-${size.width}x${size.height}-layout.json`), JSON.stringify({ before: rowBefore, after: row, columns: state.loadout.columns }, null, 2));
     assert.deepEqual(row.rect, frameBefore, 'Showing actions resized the frame');
     for (let index = 0; index < 8; index++) {
       await page.mouse.move(...point(row.equip_rect, state, index % 2 ? 4 : -4));

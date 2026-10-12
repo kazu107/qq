@@ -87,7 +87,7 @@ func _assert_map_scene() -> void:
 
 	var steps_box: VBoxContainer = map_scene.find_child("MapSteps", true, false) as VBoxContainer
 	var equipped_deck: CardHandPanel = map_scene.find_child("EquippedDeck", true, false) as CardHandPanel
-	var inventory_box: VBoxContainer = map_scene.find_child("LoadoutInventory", true, false) as VBoxContainer
+	var inventory_box: LoadoutInventoryGrid = map_scene.find_child("LoadoutInventory", true, false) as LoadoutInventoryGrid
 	var battle_summary_box: VBoxContainer = map_scene.find_child("RunBattleSummary", true, false) as VBoxContainer
 	if steps_box == null or steps_box.get_child_count() == 0:
 		_fail("Map/facility smoke failed: map scene did not render step nodes")

@@ -15,7 +15,7 @@ var _card_offers_box: VBoxContainer
 var _relic_offers_box: VBoxContainer
 var _loadout_summary_label: Label
 var _deck_panel: CardHandPanel
-var _inventory_box: VBoxContainer
+var _inventory_box: LoadoutInventoryGrid
 var _relic_row: RelicIconRow
 var _participants_box: VBoxContainer
 var _participants_title_label: Label
@@ -268,14 +268,13 @@ func _build_loadout_panel(parent: Control) -> void:
 	inventory_scroll.name = "ArenaLoadoutInventoryScroll"
 	inventory_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inventory_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	box.add_child(inventory_scroll)
 
-	_inventory_box = VBoxContainer.new()
+	_inventory_box = LoadoutInventoryGrid.new()
 	_inventory_box.name = "ArenaLoadoutInventory"
 	_inventory_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_inventory_box.custom_minimum_size = Vector2(0.0, 0.0)
-	_inventory_box.add_theme_constant_override("separation", 8)
 	inventory_scroll.add_child(_inventory_box)
 
 	var relic_title: Label = Label.new()
@@ -785,6 +784,7 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	var frame: PanelContainer = PanelContainer.new()
 	frame.name = "ArenaLoadoutCardFrame_%s" % card_id
 	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frame.custom_minimum_size.x = LoadoutInventoryGrid.MIN_CELL_WIDTH
 	frame.mouse_filter = Control.MOUSE_FILTER_PASS
 	frame.add_theme_stylebox_override("panel", _make_offer_style(false, false))
 
@@ -795,7 +795,7 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	margin.add_theme_constant_override("margin_bottom", 8)
 	frame.add_child(margin)
 
-	var row: HBoxContainer = HBoxContainer.new()
+	var row: VBoxContainer = VBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("separation", 8)
 	margin.add_child(row)
@@ -812,6 +812,7 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 		tooltip_context.get("comparison") as CardDef
 	)
 	row.add_child(preview)
+	preview.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 	var info_box: VBoxContainer = VBoxContainer.new()
 	info_box.name = "ArenaLoadoutCardInfo_%s" % card_id

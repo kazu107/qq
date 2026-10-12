@@ -10,7 +10,7 @@ var _steps_scroll: ScrollContainer
 var _steps_scroll_tail: Control
 var _equipped_summary_label: Label
 var _equipped_panel: CardHandPanel
-var _inventory_box: VBoxContainer
+var _inventory_box: LoadoutInventoryGrid
 var _run_info_banner: RunInfoBanner
 var _developer_panel: DeveloperPanel
 
@@ -126,14 +126,15 @@ func _build_ui() -> void:
 	loadout_panel.add_child(inventory_title)
 
 	var inventory_scroll: ScrollContainer = ScrollContainer.new()
+	inventory_scroll.name = "LoadoutInventoryScroll"
 	inventory_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inventory_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	loadout_panel.add_child(inventory_scroll)
 
-	_inventory_box = VBoxContainer.new()
+	_inventory_box = LoadoutInventoryGrid.new()
 	_inventory_box.name = "LoadoutInventory"
 	_inventory_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_inventory_box.add_theme_constant_override("separation", 10)
 	inventory_scroll.add_child(_inventory_box)
 
 
@@ -485,11 +486,12 @@ func _rebuild_loadout_rows() -> void:
 		var frame: PanelContainer = PanelContainer.new()
 		frame.name = "LoadoutCardFrame_%s" % card_id
 		frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		frame.custom_minimum_size.x = LoadoutInventoryGrid.MIN_CELL_WIDTH
 		frame.mouse_filter = Control.MOUSE_FILTER_PASS
 		frame.add_theme_stylebox_override("panel", _make_loadout_card_stylebox())
 		_inventory_box.add_child(frame)
 
-		var row: HBoxContainer = HBoxContainer.new()
+		var row: VBoxContainer = VBoxContainer.new()
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_theme_constant_override("separation", 10)
 		frame.add_child(row)
@@ -505,6 +507,7 @@ func _rebuild_loadout_rows() -> void:
 			tooltip_context.get("comparison") as CardDef
 		)
 		row.add_child(preview)
+		preview.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
 		var info_box: VBoxContainer = VBoxContainer.new()
 		info_box.name = "LoadoutCardInfo_%s" % card_id

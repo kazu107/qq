@@ -38,7 +38,7 @@ func calculate(run_state: RunState) -> Dictionary:
 	var cleared: bool = run_state.run_complete and not run_state.defeated
 	var progress_score: int = _calculate_progress(run_state, cleared)
 	var survival_score: int = _calculate_survival(run_state, cleared)
-	var efficiency_score: int = _calculate_efficiency(run_state.battle_history)
+	var efficiency_score: int = _calculate_efficiency(run_state)
 	var challenge_score: int = _calculate_challenge(run_state.map_state)
 	var total_score: int = clampi(
 		progress_score + survival_score + efficiency_score + challenge_score,
@@ -89,22 +89,55 @@ func _calculate_survival(run_state: RunState, cleared: bool) -> int:
 	return roundi(float(SURVIVAL_MAX) * hp_ratio)
 
 
-func _calculate_efficiency(battle_history: Array[Dictionary]) -> int:
+func _calculate_efficiency(run_state: RunState) -> int:
 	var weighted_total: float = 0.0
 	var weight_total: float = 0.0
-	for battle: Dictionary in battle_history:
+	for battle: Dictionary in run_state.battle_history:
+		var weight: float = _get_battle_weight(String(battle.get("node_type", "normal_battle")))
+		weight_total += weight
 		var battle_time: float = float(battle.get("battle_time", 0.0))
 		if battle_time <= 0.0:
 			continue
 		var enemy_id: String = String(battle.get("enemy_id", ""))
 		var par_time: float = float(ENEMY_PAR_TIMES.get(enemy_id, 60.0))
 		var efficiency_ratio: float = clampf((par_time * 2.0 - battle_time) / par_time, 0.0, 1.0)
-		var weight: float = _get_battle_weight(String(battle.get("node_type", "normal_battle")))
 		weighted_total += efficiency_ratio * weight
-		weight_total += weight
+	weight_total = maxf(weight_total, _planned_battle_weight(run_state, weight_total))
 	if weight_total <= 0.0:
 		return 0
 	return clampi(roundi(float(EFFICIENCY_MAX) * weighted_total / weight_total), 0, EFFICIENCY_MAX)
+
+
+func _planned_battle_weight(run_state: RunState, recorded_weight: float) -> float:
+	if run_state.arena_mode:
+		return recorded_weight + float(maxi(0, run_state.arena_target_wins - run_state.arena_wins))
+	var total: float = 0.0
+	for step: Dictionary in Array(run_state.map_state.get("steps", [])):
+		var chosen: Dictionary = {}
+		var cheapest: float = INF
+		for node: Dictionary in Array(step.get("nodes", [])):
+			if String(node.get("status", "")) in ["selected", "completed"]:
+				chosen = node
+				break
+			cheapest = minf(cheapest, _node_battle_weight(node))
+		# Count one route per step, not every mutually exclusive branch.
+		if not chosen.is_empty():
+			total += _node_battle_weight(chosen)
+		elif cheapest < INF:
+			total += cheapest
+	return total
+
+
+func _node_battle_weight(node: Dictionary) -> float:
+	var type: String = String(node.get("type", ""))
+	if type == "hazard":
+		var waves: int = Array(node.get("hazard_queue", [])).size()
+		if waves == 0:
+			waves = 2 if int(node.get("area", 1)) <= 2 else 3
+		return float(waves) * _get_battle_weight(type)
+	if type in ["normal_battle", "elite_battle", "boss"]:
+		return _get_battle_weight(type)
+	return 0.0
 
 
 func _calculate_challenge(map_state: Dictionary) -> int:

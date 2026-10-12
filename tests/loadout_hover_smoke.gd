@@ -66,6 +66,8 @@ func _run() -> void:
 		frame_reveal.update_for_control(frame)
 		await get_tree().process_frame
 		var extent: Vector2 = frame.size
+		for action: Control in actions.get_children():
+			_check(frame.get_global_rect().encloses(action.get_global_rect()), "A responsive inventory action extended outside its cell")
 		frame_reveal.update_for_control(null)
 		await get_tree().process_frame
 		_check(frame.size.is_equal_approx(extent), "Hiding actions changed the card frame dimensions")

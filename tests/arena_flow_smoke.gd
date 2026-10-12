@@ -268,13 +268,13 @@ func _assert_arena_loadout_contains(card_id: String) -> void:
 	add_child(arena_scene)
 	await get_tree().process_frame
 	var inventory_scroll: ScrollContainer = arena_scene.find_child("ArenaLoadoutInventoryScroll", true, false) as ScrollContainer
-	var inventory_box: VBoxContainer = arena_scene.find_child("ArenaLoadoutInventory", true, false) as VBoxContainer
+	var inventory_box: LoadoutInventoryGrid = arena_scene.find_child("ArenaLoadoutInventory", true, false) as LoadoutInventoryGrid
 	var card_frame: PanelContainer = arena_scene.find_child("ArenaLoadoutCardFrame_%s" % card_id, true, false) as PanelContainer
 	var preview: CardButton = arena_scene.find_child("ArenaLoadoutPreview_%s" % card_id, true, false) as CardButton
 	var equip_button: Button = arena_scene.find_child("ArenaEquipButton_%s" % card_id, true, false) as Button
 	var unequip_button: Button = arena_scene.find_child("ArenaUnequipButton_%s" % card_id, true, false) as Button
 	var sell_button: Button = arena_scene.find_child("ArenaSellButton_%s" % card_id, true, false) as Button
-	if inventory_scroll == null or inventory_scroll.horizontal_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
+	if inventory_scroll == null or inventory_scroll.horizontal_scroll_mode != ScrollContainer.SCROLL_MODE_SHOW_NEVER:
 		_fail("Arena flow smoke failed: arena loadout inventory should not expose horizontal scrolling")
 	elif inventory_box == null:
 		_fail("Arena flow smoke failed: arena loadout inventory did not render")
