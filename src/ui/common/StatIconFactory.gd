@@ -22,6 +22,10 @@ static func warm_cache(extra_icon_ids: Array[String] = []) -> int:
 		"version_history",
 		"card",
 	]
+	var action_icons: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/ui_action_icons.json"))
+	if action_icons is Dictionary:
+		for id: String in action_icons:
+			icon_ids.append(id)
 	for icon_id in extra_icon_ids:
 		if icon_id != "" and not icon_ids.has(icon_id):
 			icon_ids.append(icon_id)

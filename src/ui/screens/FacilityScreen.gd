@@ -96,6 +96,7 @@ func _build_ui() -> void:
 
 	var leave_button: Button = Button.new()
 	leave_button.text = Localization.get_text("facility.leave_node", "Leave Node")
+	UiIconHelper.decorate(leave_button, "next")
 	leave_button.pressed.connect(_on_leave_facility)
 	facility_panel.add_child(leave_button)
 	_leave_button = leave_button
@@ -428,6 +429,11 @@ func _build_event_choice_button(choice_data: Dictionary, pressed_callback: Calla
 	body_row.add_child(content)
 
 	var title_label: Label = Label.new()
+	if choice_id.contains("upgrade"):
+		var upgrade_icon: TextureRect = UiIconHelper.icon_node("upgrade")
+		upgrade_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		body_row.add_child(upgrade_icon)
+		body_row.move_child(upgrade_icon, 0)
 	title_label.name = "ChoiceTitle_%s" % choice_id
 	title_label.text = String(choice_data.get("label", ""))
 	title_label.custom_minimum_size = Vector2(CHOICE_TEXT_MIN_WIDTH, 0.0)

@@ -76,6 +76,7 @@ func _build_ui() -> void:
 
 	var back_button: Button = Button.new()
 	back_button.text = Localization.get_text("meta.return_hub", "Return to Hub")
+	UiIconHelper.decorate(back_button, "home")
 	back_button.pressed.connect(func() -> void:
 		Game.current_screen_hint = "hub"
 		SaveManager.request_save("hub")
@@ -179,7 +180,7 @@ func _refresh_ui() -> void:
 	var relic_entries: Array[Dictionary] = Game.get_meta_relic_entries()
 	var achievement_entries: Array[Dictionary] = Game.get_meta_achievement_entries()
 	_summary_label.text = "\n".join([
-		"[font_size=30][color=#f5c16b]%s[/color][/font_size]\n" % Localization.get_textf("meta.summary.points", "Points: {value}", {"value": Game.get_meta_points()}),
+		"[img=28x28]res://assets/icons/ui/meta_points.png[/img] [font_size=30][color=#f5c16b]%d[/color][/font_size]\n" % Game.get_meta_points(),
 		Localization.get_textf("meta.summary.best_clear", "Best Clear: {value}", {"value": Game.get_best_clear()}),
 		Localization.get_textf("meta.summary.steps", "Unlocked Steps: 1-{end}", {"end": Game.get_unlocked_step_tier() * 7}),
 		Localization.get_textf("meta.summary.infinite_mode", "Infinite Mode: {value}", {

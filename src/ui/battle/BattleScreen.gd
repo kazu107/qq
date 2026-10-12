@@ -528,6 +528,7 @@ func _build_ui() -> void:
 	_log_button = Button.new()
 	_log_button.name = "BattleLogButton"
 	_log_button.text = Localization.get_text("battle.log_button", "LOG")
+	UiIconHelper.decorate(_log_button, "log", _log_button.text, true)
 	_log_button.tooltip_text = Localization.get_text("battle.log_button_tooltip", "Show battle log")
 	_log_button.custom_minimum_size = Vector2(56.0, 32.0)
 	_log_button.z_index = 80
@@ -1124,6 +1125,7 @@ func _refresh_ui(time_scale: float) -> void:
 				_start_battle_button.visible = can_start and not countdown_active
 				_start_battle_button.disabled = not can_start or NetworkManager.is_local_match_waiting_for_reconnect()
 				_start_battle_button.text = Localization.get_text("lan.battle.cancel_start", "CANCEL START") if local_ready else Localization.get_text("lan.battle.start_ready", "BATTLE START")
+				UiIconHelper.decorate(_start_battle_button, "pause" if local_ready else "play")
 				_battle_ready_count_label.visible = can_start
 				_battle_ready_count_label.text = Localization.get_textf("network.ready_count", "READY {ready}/{total}", {
 					"ready": NetworkManager.get_battle_ready_count(),

@@ -27,6 +27,19 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process(true)
 	call_deferred("_style_current_scene")
+	get_tree().node_added.connect(_on_control_added)
+	for node: Node in get_tree().root.find_children("*", "Button", true, false):
+		_on_control_added(node)
+
+
+func _on_control_added(node: Node) -> void:
+	if node is Button:
+		call_deferred("_decorate_action", node)
+
+
+func _decorate_action(button: Button) -> void:
+	if is_instance_valid(button) and button.is_inside_tree():
+		UiIconHelper.decorate_default(button)
 
 
 func _process(_delta: float) -> void:
@@ -80,10 +93,22 @@ func add_section(parent: Control, title_text: String, node_name: String = "") ->
 	box.add_theme_constant_override("separation", 18)
 	panel.add_child(box)
 	if title_text != "":
+		var heading: HBoxContainer = HBoxContainer.new()
+		heading.add_theme_constant_override("separation", 10)
+		box.add_child(heading)
+		var icon_id: String = ""
+		if node_name.to_lower().contains("audio"):
+			icon_id = "sound"
+		elif node_name.to_lower().contains("display"):
+			icon_id = "display"
+		elif node_name.to_lower().contains("achievement"):
+			icon_id = "trophy"
+		if icon_id != "":
+			heading.add_child(UiIconHelper.icon_node(icon_id))
 		var title: Label = Label.new()
 		title.theme_type_variation = "SectionTitle"
 		title.text = title_text
-		box.add_child(title)
+		heading.add_child(title)
 	return box
 
 

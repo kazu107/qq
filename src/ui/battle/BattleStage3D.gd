@@ -86,6 +86,8 @@ var _authored_field: Node3D
 var _playback_speed: float = 1.0
 var _battle_end_queued: bool = false
 var _battle_end_finished: bool = false
+var _status_tooltip: PanelContainer
+var _status_tooltip_label: Label
 
 
 func _ready() -> void:
@@ -99,6 +101,8 @@ func _ready() -> void:
 
 
 func suspend_for_cache() -> void:
+	if _status_tooltip != null:
+		_status_tooltip.visible = false
 	set_playback_speed(1.0)
 	_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	process_mode = Node.PROCESS_MODE_DISABLED
@@ -113,6 +117,7 @@ func resume_from_cache() -> void:
 
 
 func _process(delta: float) -> void:
+	_refresh_status_tooltip()
 	delta *= _playback_speed
 	_update_event_queue(delta)
 	_update_effects(delta)
@@ -262,6 +267,68 @@ func get_combat_actor(unit_id: String) -> BattleActor3D:
 
 func get_player_status_model() -> BattleUnitStatus3D:
 	return _player_status
+
+
+func get_status_hover_info(point: Vector2) -> Dictionary:
+	for plate: BattleUnitStatus3D in [_player_status, _enemy_status]:
+		if plate == null or not plate.is_visible_in_tree():
+			continue
+		for region: Dictionary in plate.get_status_regions():
+			var rect: Rect2 = Rect2()
+			var first: bool = true
+			for corner: Vector3 in region["corners"]:
+				var screen_point: Vector2 = project_world_position(corner)
+				rect = Rect2(screen_point, Vector2.ZERO) if first else rect.expand(screen_point)
+				first = false
+			if rect.has_point(point):
+				return {"id": region["id"], "rect": rect, "text": region["tooltip"]}
+	return {}
+
+
+func _refresh_status_tooltip() -> void:
+	if not is_visible_in_tree() or _viewport == null:
+		return
+	var hovered: Control = get_viewport().gui_get_hovered_control()
+	var allowed: bool = _allows_status_hover(hovered)
+	var info: Dictionary = get_status_hover_info(get_local_mouse_position()) if allowed else {}
+	if info.is_empty():
+		if _status_tooltip != null:
+			_status_tooltip.visible = false
+		return
+	if _status_tooltip == null:
+		_status_tooltip = PanelContainer.new()
+		_status_tooltip.name = "WorldStatusTooltip"
+		_status_tooltip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_status_tooltip.z_as_relative = false
+		_status_tooltip.z_index = 140
+		add_child(_status_tooltip)
+		_status_tooltip_label = Label.new()
+		_status_tooltip_label.name = "WorldStatusTooltipText"
+		_status_tooltip_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_status_tooltip_label.add_theme_font_size_override("font_size", 18)
+		_status_tooltip.add_child(_status_tooltip_label)
+	_status_tooltip_label.text = String(info["text"])
+	_status_tooltip.reset_size()
+	_status_tooltip.visible = true
+	var extent: Vector2 = _status_tooltip.get_combined_minimum_size()
+	var position: Vector2 = get_global_mouse_position() + Vector2(16, 20)
+	position.x = clampf(position.x, 8.0, maxf(8.0, get_viewport_rect().size.x - extent.x - 8.0))
+	position.y = clampf(position.y, 8.0, maxf(8.0, get_viewport_rect().size.y - extent.y - 8.0))
+	_status_tooltip.global_position = position
+
+
+func _allows_status_hover(hovered: Control) -> bool:
+	if hovered == null or hovered == self or hovered.is_ancestor_of(self):
+		return true
+	# Transparent layout containers cover the field; opaque panels and actions do not.
+	if not (hovered is BoxContainer or hovered is MarginContainer):
+		return false
+	var ancestor: Node = hovered
+	while ancestor != null:
+		if ancestor is PanelContainer or ancestor is BaseButton or ancestor is ScrollContainer:
+			return false
+		ancestor = ancestor.get_parent()
+	return true
 
 
 func get_enemy_status_model() -> BattleUnitStatus3D:

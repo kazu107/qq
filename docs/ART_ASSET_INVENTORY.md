@@ -1,6 +1,6 @@
 # 画像・アイコン資産台帳と自前化計画
 
-最終監査日: 2026-10-10 / QQ-0.32.0
+最終監査日: 2026-10-12 / QQ-0.34.0
 
 第一弾・スターター・敵とボス・カード・遺物・小型UI・環境のバッチを展開しました。現在の機械判定は`data/art_coverage.json`、個別の原本・出力ハッシュは`data/art_provenance.json`を参照してください。検証と画面確認は`docs/BLENDER_FULL_ROLLOUT.md`へ記録します。
 
@@ -16,7 +16,7 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | 遺物画像 | 86 | PNG RGBA | 全て512x512、台座・背景なしの透過 | バナー、報酬、イベント、アリーナ、ツールチップ |
 | キャラクター・敵画像 | 25 | PNG | 全て1024x1024、同じ3Dモデルからレンダー | 戦闘、アリーナ、開発者ラボ |
 | 状態アイコン | 4 | PNG RGBA | 全て96x96 | 戦闘中の状態表示とツールチップ |
-| 共通UI・効果アイコン | 13 + 12 | PNG RGBA | 全て64x64 | ステータス、カード効果、施設、バナー |
+| 共通UI・効果アイコン | 49 + 12 | PNG RGBA | 全て64x64 | ステータス、カード効果、施設、バナー、操作・ナビゲーション |
 | マップ・操作部品 | 9 + 10 | PNG RGBA | マップ96x96、操作部品は従来のUI寸法 | マップ、設定のスイッチ・チェック・スライダー |
 | アプリ用アイコン | 1 | PNG RGBA | 256x256、Blender製のQエンブレム | Windows/Godot、Webアイコン生成元 |
 | ブランドロゴ | 2 | SVG | QueueQuestワードマークとマーク | ロード画面・ハブ、既存SVGアニメーションを維持 |
@@ -26,7 +26,7 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | Blender制作原本 | バッチ・カード・遺物単位 | Blend | `art_src/blender/`、PCK対象外 | モデル・静止画の再生成 |
 | 開発・文書専用画像 | バッチごと | PNG | コンタクトシート、実寸比較、ネイティブ/Web確認 | 本番ランタイム対象外 |
 
-- 制作台帳は282成果物を対象にします。共有アニメーション、SVGワードマーク、確認画像はこの成果物数へ含めません。
+- 制作台帳は318成果物を対象にします。共有アニメーション、SVGワードマーク、確認画像はこの成果物数へ含めません。
 - 高解像度レンダーから縮小し、PNG/GLBだけをゲームへ入れます。原本・中間レンダー・検証記録はPCKへ含めません。
 - 原本、生成スクリプト、成果物のSHA-256を検証し、保存原本の別プロセス再読み込みも各バッチで実施します。
 - カード、遺物、ポートレート、状態アイコンは現在のデータIDと1対1で揃っています。
@@ -39,7 +39,8 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | カード | `assets/icons/cards/{card_id}.png` | `CardButton.gd`、`CardIconPicker.gd` | ID由来の256x256模様を生成 |
 | 遺物 | `assets/icons/relics/{relic_id}.png` | `RelicIcon.gd`、`RelicIconRow.gd` | ID由来の128x128四角模様を生成 |
 | ポートレート | `assets/portraits/{starter_or_enemy_id}.png` | `UnitPanel.gd`、`ArenaScreen.gd` | IDと陣営色由来の320x320人物プレースホルダーを生成。開始デッキ選択では3Dモデルへ移行済み |
-| 状態 | `assets/icons/status/{status_id}.png` | `UnitPanel.gd` | ID由来の96x96単色四角を生成 |
+| 状態 | `assets/icons/status/{status_id}.png` | `UnitPanel.gd`、`BattleUnitStatus3D.gd`、`CardEffectIconFactory.gd` | ID由来の96x96単色四角を生成 |
+| 操作・ナビゲーション | `assets/icons/ui/{id}.png`、`data/ui_action_icons.json` | `UiIconHelper.gd`、`StatIconFactory.gd` | ID由来の汎用四角を生成。通常は全36種が登録済み |
 | アプリアイコン | `assets/branding/queuequest-emblem-3d.png` | `project.godot`の`config/icon` | Godot側の既定処理 |
 | 背景・フィールド | `assets/backgrounds/*.png`、`assets/models/environment/qq_battlefield.glb` | `ArtCatalog.gd`、`BattleEnvironmentArt.gd` | 既存のコード生成背景・地形 |
 | Web画像 | `build/web/index*.png` | `build/web/index.html` | Web再出力時に再生成 |
@@ -55,7 +56,7 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | 遺物 | 全86個にBlender原本・再生成スクリプトあり | 台座なし透過、48pxでの輪郭確認 |
 | ポートレート | 全25枚にBlender原本・再生成スクリプトあり | 全25モデルと共有リグで動作確認 |
 | 状態アイコン | 全4枚をBlender化 | 24px実寸確認、欠損時のみコード生成 |
-| 共通UI・マップアイコン | 全13 UI、12効果、9マップ、10操作部品をBlender化 | 従来の配置・サイズ・ホバー動作を維持 |
+| 共通UI・マップアイコン | 全49 UI、12効果、9マップ、10操作部品をBlender化 | 従来の配置・サイズ・ホバー動作を維持。操作アイコン追加の監査は`UI_ICON_AUDIT.md` |
 | 3D | `.blend`、生成Python、GLB、manifestが揃う | 現時点で最も再現性が高い。今後もBlendを原本、GLBを成果物とする |
 | アプリ・Webブランド | アプリはBlenderエンブレム、ロード画面は自作SVG | ロード画面とハブの一体感・SVGアニメーションを維持 |
 | GD-EOSロゴ | プラグイン文書用の第三者ロゴ。Web出力から除外済み | ゲーム内では使わない。プラグイン文書を配布する間は出典を維持する |
@@ -85,6 +86,8 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | `card` | カード一般・ロードアウト | 施設の選択肢 | 専用絵がなく、IDハッシュ色の汎用四角を使用 |
 
 全13 IDをBlender製PNGへ接続済みです。`card`にも専用画像を追加しました。下表の「専用生成」は歴史的なコード生成フォールバックを指し、正常時の表示はBlender画像が優先されます。未知のIDは従来の汎用四角へフォールバックします。
+
+QQ-0.34.0で、追加の36操作・ナビゲーションアイコンを制作しました。ID、配置先、文字を残す判断、再生成・検証方法は`docs/UI_ICON_AUDIT.md`にまとめています。戦闘の3Dステータスプレートは既存4状態画像を共有し、状態名ではなくアイコン＋秒数、ホバー時に状態名と効果を表示します。
 
 ### 4.2 カード効果アイコン
 

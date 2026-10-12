@@ -149,7 +149,10 @@ func _build_header(parent: VBoxContainer) -> void:
 		"font_color",
 		Color(1.0, 0.78, 0.28, 1.0) if bool(_summary_data.get("cleared", false)) else Color(0.96, 0.38, 0.38, 1.0)
 	)
-	header.add_child(status)
+	var status_row: HBoxContainer = HBoxContainer.new()
+	status_row.add_child(UiIconHelper.icon_node("trophy" if bool(_summary_data.get("cleared", false)) else "defeat", 28))
+	status_row.add_child(status)
+	header.add_child(status_row)
 
 
 func _build_score_panel(parent: HBoxContainer) -> void:

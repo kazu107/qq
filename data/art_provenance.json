@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "updated_at": "2026-10-10",
+  "updated_at": "2026-10-12",
   "batch_id": "blender_vertical_slice_01",
   "author": "QQ project",
   "tool": "Blender (per-batch version recorded in manifests)",
@@ -6147,6 +6147,870 @@
         512,
         512
       ]
+    },
+    {
+      "asset_id": "action_home",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/home.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "efd6ab50c9173ae429463ae889f040d10f6aa32bbe8d6292c4995f05e8ca5b0b",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "home",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_back",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/back.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "26913fd1f4e9729826918e234803ba4f514ff52740b4176903b7120c46a5f1a6",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "back",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_next",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/next.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "0be20fd9fd7938e5f1a5b100d13915ac258f38ed9697ea30b0285f3f54838f86",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "next",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_play",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/play.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "cdb0447bf43e49492f67d50890430a569b6e433c5be1065d554d967ec0ddb53b",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "play",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_pause",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/pause.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "6fc93256650104350ddc303ea755c7038826c71ce703da360c094b9277a69238",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "pause",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_restart",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/restart.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "cea62f6cf4a6f9cae25753b892c6d0b3b8fa1e4b5bab6d12dd215d44b327aa94",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "restart",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_reroll",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/reroll.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "eb4a387248ef068f418a2d235abb4249c1879b4857e84ab6804176665df406c6",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "reroll",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_log",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/log.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "39c07e6e1019a997af4daf70299156528c656303a0bd4798b79df4c51d64440f",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "log",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_info",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/info.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "5d87806feb1f7ff73bb96760cf4dca27da01c91b8c552543f3f871786348f619",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "info",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_close",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/close.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "f0cdcf1bd4206b22f16f54fafef5a5cb2d4d0385a47d34bc1048e89e1f2028b6",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "close",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_search",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/search.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "8577873e32427f8b402e994ca70e3bc6a8aa66b7ce1a613f2836f0f2ddded210",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "search",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_filter",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/filter.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "1a0a585d392d00faede1a4d24883241164c54282127116991685dc7e92286e19",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "filter",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_equip",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/equip.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "9810748238575940f3d18f96488c8f52512abbee9ff12fa72bf7d9f4f6b759f6",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "equip",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_unequip",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/unequip.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "7c42ba7cee964216bf98f5a6622cfecda5e3529989209dea4e9187c1e93adb1e",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "unequip",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_sell",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/sell.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "927513d913d0f3b3d626309d638f59badb9ed9507ef0ab56ec6817580a33cb06",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "sell",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_upgrade",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/upgrade.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "400ababb978513e9785dff23de1a019b46944277f93c4483d44ba34e7ee8d957",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "upgrade",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_unlock",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/unlock.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "625ae385be94339938806e47770bf58e9e6a0f1a4e3a55ee68f6a853ab58af33",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "unlock",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_claim",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/claim.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "b215ca8f508f1a1194582b0986c93e58f4bffb00ffb455d60fc790be3145a6f7",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "claim",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_save",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/save.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "dc8f6568fa595ffe1bbaea29a8b639c98f40f7b2a1ffd9e3a88c7cf75e9b3a2d",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "save",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_load",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/load.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "4c59ff49745c51da6ffe6b218ab7ac6a63b88b8d594319ff394b106ef35f8166",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "load",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_delete",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/delete.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "9a5d2cdae45b4247c28c7f2b448148caf0120fd540c97b81eac43af8ad29342f",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "delete",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_trophy",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/trophy.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "ded0c83304a5412c630ee682cbdbc9ea9e43d18a573c143ede36a2697f9baa6d",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "trophy",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_defeat",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/defeat.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "5413c4304d90903398efb8d1850c6543f835ee4227da2ad6038981eaa1b1b9cb",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "defeat",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_meta_points",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/meta_points.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "b4835fc0cb3bcf75cce0e688a6d9132f9e44a8931739db2350860721d3fad57d",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "meta_points",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_tutorial",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/tutorial.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "e07edf1b310d36565042a34b33db23f3a067f4b20f9ff8cf07ced0b32c598211",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "tutorial",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_arena",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/arena.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "fe2dccd0e592d6e2b7a043a91246514624425d0ad5c835d2e522726069b468fc",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "arena",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_online",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/online.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "7264bbffd3a383202d637ea4aad59d4e15d62834e6394316c68eec26225447af",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "online",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_spectator",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/spectator.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "0eecb6afa0c7f9e1b56b2624ce3f5aecba0ba837d1dd7755b8fb0d75e3b27113",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "spectator",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_ready",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/ready.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "e21114fa97a5400f38028150827bc35f2994abf659df8470acc78457352411b1",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "ready",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_waiting",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/waiting.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "bbe385cb6a0791cbcbc32fb037da975f961be66f7541478af3f262b482915d3e",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "waiting",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_bot",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/bot.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "8baa29c18ea21f27a9e60a4f76aefb440b70fdf9d4f301dc9f5edd7fad5ce36d",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "bot",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_infinity",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/infinity.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "59bf7d447f3b699b5b305568f641de13a097bd9e97300ca5b7e633850c221729",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "infinity",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_sound",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/sound.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "e03262108d774160341f7c95ed224bd7d4ec0d159667e85b08f23e6e6001f4a6",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "sound",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_display",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/display.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "0fe7e727b8007abdb481325ce9e280fbb2fb261da3eaf94d321ce3b7ec5c01d1",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "display",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_export",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/export.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "c627147940ca2f8cd4ff9ef0649f6d98bb775cf5d3a9287bf6ee3fe68e68d695",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "export",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
+    },
+    {
+      "asset_id": "action_exit",
+      "category": "ui",
+      "runtime_path": "assets/icons/ui/exit.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "generator": "tools/blender/build_action_icons.py",
+      "export_sha256": "d34bd50004f4ff3f687a9d40ee414d6d2337b4452f403451b7b0eb99313cc6dc",
+      "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+      "generator_sha256": {
+        "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_ui_actions.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_action_icons_07",
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "visual_id": "exit",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 64
     }
   ],
   "batch_ids": [
@@ -6157,6 +7021,7 @@
     "relic_completion_r01_r11",
     "blender_ui_icons_06",
     "blender_environment_07",
-    "blender_cards_C01_C13_completion"
+    "blender_cards_C01_C13_completion",
+    "blender_action_icons_07"
   ]
 }

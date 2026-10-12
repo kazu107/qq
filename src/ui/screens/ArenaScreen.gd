@@ -135,6 +135,7 @@ func _build_ui() -> void:
 	_abandon_button = Button.new()
 	_abandon_button.name = "ArenaAbandonButton"
 	_abandon_button.text = Localization.get_text("arena.abandon", "Abandon To Hub")
+	UiIconHelper.decorate(_abandon_button, "home")
 	_abandon_button.custom_minimum_size = Vector2(190.0, 42.0)
 	_abandon_button.pressed.connect(_on_abandon)
 	header.add_child(_abandon_button)
@@ -316,9 +317,9 @@ func _build_participant_panel(parent: Control) -> void:
 	var header: HBoxContainer = HBoxContainer.new()
 	header.add_theme_constant_override("separation", 8)
 	box.add_child(header)
-	_add_participant_column_label(header, Localization.get_text("online.arena.participant.name", "Name"), 124.0, HORIZONTAL_ALIGNMENT_LEFT)
-	_add_participant_column_label(header, Localization.get_text("online.arena.participant.score", "Score"), 58.0, HORIZONTAL_ALIGNMENT_CENTER)
-	_add_participant_column_label(header, Localization.get_text("online.arena.participant.state", "Status"), 82.0, HORIZONTAL_ALIGNMENT_CENTER)
+	_add_participant_column_label(header, Localization.get_text("online.arena.participant.name", "Name"), 104.0, HORIZONTAL_ALIGNMENT_LEFT)
+	_add_participant_column_label(header, Localization.get_text("online.arena.participant.score", "Score"), 102.0, HORIZONTAL_ALIGNMENT_CENTER)
+	_add_participant_column_label(header, Localization.get_text("online.arena.participant.state", "Status"), 110.0, HORIZONTAL_ALIGNMENT_CENTER)
 
 	var divider: HSeparator = HSeparator.new()
 	box.add_child(divider)
@@ -640,6 +641,7 @@ func _add_offer_buttons(parent: HBoxContainer, offer_data: Dictionary, offer_ind
 	var can_buy: bool = not bought and run_state != null and run_state.gold >= price and not _is_preparation_locked()
 	var buy_button: Button = Button.new()
 	buy_button.text = Localization.get_text("arena.sold", "Sold") if bought else Localization.get_text("arena.buy", "Buy")
+	UiIconHelper.decorate(buy_button, "gold")
 	buy_button.disabled = not can_buy
 	if is_card:
 		buy_button.pressed.connect(Callable(self, "_on_buy_card_offer").bind(offer_index))
@@ -649,6 +651,7 @@ func _add_offer_buttons(parent: HBoxContainer, offer_data: Dictionary, offer_ind
 
 	var hold_button: Button = Button.new()
 	hold_button.text = Localization.get_text("arena.unhold", "Unhold") if bool(offer_data.get("held", false)) else Localization.get_text("arena.hold", "Hold")
+	UiIconHelper.decorate(hold_button, "waiting")
 	hold_button.disabled = bought or _is_preparation_locked()
 	if is_card:
 		hold_button.pressed.connect(Callable(self, "_on_toggle_card_hold").bind(offer_index))
@@ -745,20 +748,35 @@ func _build_participant_row(participant: Dictionary) -> PanelContainer:
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(name_label)
 
+	var score_row: HBoxContainer = HBoxContainer.new()
+	score_row.custom_minimum_size.x = 102.0
+	score_row.add_theme_constant_override("separation", 6)
+	row.add_child(score_row)
 	var score_label: Label = Label.new()
-	score_label.text = "%d-%d" % [int(participant.get("wins", 0)), int(participant.get("losses", 0))]
-	score_label.custom_minimum_size = Vector2(58.0, 0.0)
+	score_row.add_child(UiIconHelper.icon_node("trophy", 18))
+	score_label.text = str(int(participant.get("wins", 0)))
+	score_label.custom_minimum_size = Vector2(24.0, 0.0)
 	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	score_label.add_theme_color_override("font_color", Color(0.80, 0.88, 0.94, 1.0))
-	row.add_child(score_label)
+	score_row.add_child(score_label)
+	score_row.add_child(UiIconHelper.icon_node("defeat", 18))
+	var losses: Label = Label.new()
+	losses.text = str(int(participant.get("losses", 0)))
+	losses.custom_minimum_size.x = 24.0
+	score_row.add_child(losses)
 
+	var ready_row: HBoxContainer = HBoxContainer.new()
+	ready_row.custom_minimum_size.x = 110.0
+	ready_row.add_theme_constant_override("separation", 8)
+	row.add_child(ready_row)
 	var ready_label: Label = Label.new()
 	ready_label.name = "ArenaParticipantReady_%s" % int(participant.get("peer_id", -1))
+	ready_row.add_child(UiIconHelper.icon_node("ready" if ready else "waiting", 20))
 	ready_label.text = Localization.get_text("lan.arena.ready", "Ready") if ready else Localization.get_text("lan.arena.preparing", "Preparing")
 	ready_label.custom_minimum_size = Vector2(82.0, 0.0)
 	ready_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ready_label.add_theme_color_override("font_color", Color(0.30, 1.0, 0.62, 1.0) if ready else Color(1.0, 0.78, 0.28, 1.0))
-	row.add_child(ready_label)
+	ready_row.add_child(ready_label)
 	return frame
 
 
@@ -819,6 +837,7 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	var equip_button: Button = Button.new()
 	equip_button.name = "ArenaEquipButton_%s" % card_id
 	equip_button.text = Localization.get_text("map.equip", "Equip")
+	UiIconHelper.decorate(equip_button, "equip", equip_button.text, true)
 	equip_button.disabled = not bool(entry.get("can_equip", false)) or _is_preparation_locked()
 	equip_button.pressed.connect(_on_equip_card.bind(card_id))
 	actions.add_child(equip_button)
@@ -828,6 +847,7 @@ func _build_loadout_row(entry: Dictionary, card_def: CardDef) -> PanelContainer:
 	sell_button.name = "ArenaSellButton_%s" % card_id
 	sell_button.icon = StatIconFactory.get_icon("gold")
 	sell_button.text = Localization.get_textf("map.sell_for", "Sell {amount}", {"amount": sell_value})
+	UiIconHelper.decorate(sell_button, "sell", sell_button.text, true, str(sell_value))
 	sell_button.disabled = not bool(entry.get("can_sell", false)) or _is_preparation_locked()
 	sell_button.pressed.connect(_on_sell_card.bind(card_id))
 	actions.add_child(sell_button)

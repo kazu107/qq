@@ -146,7 +146,7 @@ def expected_runtime_paths() -> dict[str, list[str]]:
         "Character models": [f"assets/models/battle/{x}.glb" for x in characters],
         "Portraits": [f"assets/portraits/{x}.png" for x in characters],
         "Status": [f"assets/icons/status/{x}.png" for x in ("bleed", "slow", "weak", "vulnerable")],
-        "UI": [f"assets/icons/ui/{x}.png" for x in UI_IDS],
+        "UI": [f"assets/icons/ui/{x}.png" for x in UI_IDS + list(json.loads((ROOT / "data/ui_action_icons.json").read_text(encoding="utf-8")))],
         "Effects": [f"assets/icons/effects/{x}.png" for x in EFFECT_IDS],
         "Map": [f"assets/icons/map/{x}.png" for x in MAP_IDS],
         "Controls": [f"assets/icons/controls/{x}.png" for x in (

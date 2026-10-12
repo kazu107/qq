@@ -82,7 +82,11 @@ func _build_ui() -> void:
 	_points_label.add_theme_font_size_override("font_size", 22)
 	_points_label.add_theme_color_override("font_color", UiTheme.ACCENT_GOLD)
 	_points_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	header.add_child(_points_label)
+	var points: HBoxContainer = HBoxContainer.new()
+	points.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	points.add_child(UiIconHelper.icon_node("meta_points", 28))
+	points.add_child(_points_label)
+	header.add_child(points)
 
 	var action_row: HBoxContainer = HBoxContainer.new()
 	action_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -91,6 +95,7 @@ func _build_ui() -> void:
 
 	var meta_button: Button = Button.new()
 	meta_button.text = Localization.get_text("library.open_meta", "Open Meta Progress")
+	UiIconHelper.decorate(meta_button, "meta_points")
 	meta_button.pressed.connect(func() -> void:
 		Game.current_screen_hint = "meta"
 		SceneRouter.go_to_meta_progress()
@@ -99,6 +104,7 @@ func _build_ui() -> void:
 
 	var hub_button: Button = Button.new()
 	hub_button.text = Localization.get_text("library.return_hub", "Return to Hub")
+	UiIconHelper.decorate(hub_button, "home")
 	hub_button.pressed.connect(func() -> void:
 		Game.current_screen_hint = "hub"
 		SaveManager.request_save("hub")
@@ -111,6 +117,7 @@ func _build_ui() -> void:
 	filter_row.name = "LibraryFilterRow"
 	filter_row.add_theme_constant_override("separation", 10)
 	toolbar.add_child(filter_row)
+	filter_row.add_child(UiIconHelper.icon_node("filter"))
 
 	var rarity_label: Label = Label.new()
 	rarity_label.text = Localization.get_text("library.filter.rarity", "レア度")
@@ -133,6 +140,7 @@ func _build_ui() -> void:
 	_tag_filter.custom_minimum_size = Vector2(180.0, 0.0)
 	_tag_filter.item_selected.connect(_on_tag_filter_selected)
 	filter_row.add_child(_tag_filter)
+	filter_row.add_child(UiIconHelper.icon_node("search"))
 	_search_edit = LineEdit.new()
 	_search_edit.name = "LibrarySearch"
 	_search_edit.placeholder_text = Localization.get_text("library.search", "Search names and effects")
@@ -176,7 +184,8 @@ func _build_ui() -> void:
 
 
 func _refresh_ui() -> void:
-	_points_label.text = Localization.get_textf("hub.meta_points", "Meta Points: {points}", {"points": Game.get_meta_points()})
+	_points_label.text = str(Game.get_meta_points())
+	_points_label.tooltip_text = Localization.get_textf("hub.meta_points", "Meta Points: {points}", {"points": Game.get_meta_points()})
 	var entries: Array[Dictionary] = Game.get_meta_card_entries()
 	var unlocked_count: int = 0
 	for entry in entries:

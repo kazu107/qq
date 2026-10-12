@@ -127,6 +127,8 @@ func _update_columns() -> void:
 func _asset_name(entry: Dictionary) -> String:
 	var id: String = String(entry.get("asset_id", ""))
 	var visual_id: String = String(entry.get("visual_id", id))
+	if String(entry.get("category", "")) == "ui" and UiIconHelper.get_ids().has(visual_id):
+		return UiIconHelper.get_hint(visual_id)
 	match String(entry.get("category", "")):
 		"card":
 			var card: CardDef = _card_definition(id)

@@ -586,6 +586,7 @@ func _update_pause_button() -> void:
 		return
 	_pause_button.text = _localized("再開", "Resume") \
 		if is_zero_approx(float(_speed_slider.value)) else _localized("一時停止", "Pause")
+	UiIconHelper.decorate(_pause_button, "play" if is_zero_approx(float(_speed_slider.value)) else "pause")
 
 
 func _selected_metadata(option: OptionButton) -> String:

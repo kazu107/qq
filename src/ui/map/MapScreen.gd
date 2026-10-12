@@ -73,6 +73,7 @@ func _build_ui() -> void:
 
 	var back_button: Button = Button.new()
 	back_button.text = Localization.get_text("map.return_hub", "Return to Hub")
+	UiIconHelper.decorate(back_button, "home")
 	back_button.pressed.connect(_on_return_to_hub)
 	info_panel.add_child(back_button)
 
@@ -530,6 +531,7 @@ func _rebuild_loadout_rows() -> void:
 		var equip_button: Button = Button.new()
 		equip_button.name = "EquipButton_%s" % card_id
 		equip_button.text = Localization.get_text("map.equip", "Equip")
+		UiIconHelper.decorate(equip_button, "equip", equip_button.text, true)
 		equip_button.disabled = not bool(entry.get("can_equip", false))
 		equip_button.pressed.connect(_on_equip_card.bind(card_id))
 		actions.add_child(equip_button)
@@ -539,6 +541,7 @@ func _rebuild_loadout_rows() -> void:
 		sell_button.name = "SellButton_%s" % card_id
 		sell_button.icon = StatIconFactory.get_icon("gold")
 		sell_button.text = Localization.get_textf("map.sell_for", "Sell {amount}", {"amount": sell_value})
+		UiIconHelper.decorate(sell_button, "sell", sell_button.text, true, str(sell_value))
 		sell_button.disabled = not bool(entry.get("can_sell", false))
 		sell_button.pressed.connect(_on_sell_card.bind(card_id))
 		actions.add_child(sell_button)

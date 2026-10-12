@@ -455,35 +455,7 @@ func _format_status_remaining(remaining: float) -> String:
 
 
 func _build_status_tooltip(status_id: String, remaining: float) -> String:
-	var lines: Array[String] = [
-		Localization.get_status_name(status_id),
-		Localization.get_textf("status.tooltip.remaining", "Remaining: {value}s", {
-			"value": "%.1f" % snappedf(remaining, 0.1),
-		}),
-	]
-	var detail_text: String = _get_status_detail_text(status_id)
-	if detail_text != "":
-		lines.append(Localization.get_textf("status.tooltip.effect", "Effect: {value}", {
-			"value": detail_text,
-		}))
-	return "\n".join(lines)
-
-
-func _get_status_detail_text(status_id: String) -> String:
-	match status_id:
-		"bleed":
-			return Localization.get_textf("status.detail.bleed", "Takes {amount} damage every {interval}s.", {
-				"amount": 1,
-				"interval": "%.1f" % UnitState.BLEED_TICK_INTERVAL,
-			})
-		"weak":
-			return Localization.get_textf("status.detail.weak", "Attack -{amount} while active.", {"amount": 2})
-		"slow":
-			return Localization.get_textf("status.detail.slow", "Cast time +{percent}% while active.", {"percent": 10})
-		"vulnerable":
-			return Localization.get_textf("status.detail.vulnerable", "Incoming damage +{amount} while active.", {"amount": 3})
-		_:
-			return Localization.get_text("status.detail.unknown", "Temporary status effect.")
+	return StatusInfoFormatter.tooltip(status_id, remaining)
 
 
 func _on_status_icon_mouse_entered(status_id: String, icon: TextureRect) -> void:

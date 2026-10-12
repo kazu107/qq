@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-10",
+  "updated_at": "2026-10-12",
   "complete": true,
-  "registered_assets": 282,
+  "registered_assets": 318,
   "coverage": {
     "Cards": {
       "done": 93,
@@ -34,8 +34,8 @@
       "remaining": []
     },
     "UI": {
-      "done": 13,
-      "total": 13,
+      "done": 49,
+      "total": 49,
       "remaining": []
     },
     "Effects": {

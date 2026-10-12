@@ -27,6 +27,9 @@ var _slot_cells: Array[MeshInstance3D] = []
 var _last_hp_ratio: float = 1.0
 var _last_preview_slot_cost: int = 0
 var _last_slot_overflow: int = 0
+var _status_cells: Dictionary = {}
+var _status_text: String = ""
+var _status_regions: Array[Dictionary] = []
 
 
 func configure(is_player_side: bool) -> void:
@@ -54,7 +57,8 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 	_attack_label.text = "%d" % unit.get_attack_value()
 	_speed_label.text = "%d" % maxi(0, unit.speed)
 	_refresh_slots(unit.active_slots_used, unit.active_slot_max, preview_slot_cost)
-	_status_label.text = _build_status_text(unit.statuses)
+	_status_text = _build_status_text(unit.statuses)
+	_refresh_status_icons(unit.statuses)
 
 
 func get_hp_text() -> String:
@@ -66,7 +70,56 @@ func get_hp_ratio() -> float:
 
 
 func get_status_text() -> String:
-	return _status_label.text if _status_label != null else ""
+	return _status_text
+
+
+func get_status_regions() -> Array[Dictionary]:
+	return _status_regions.duplicate(true)
+
+
+func _refresh_status_icons(statuses: Dictionary) -> void:
+	_status_regions.clear()
+	for cell: Dictionary in _status_cells.values():
+		(cell["icon"] as Sprite3D).visible = false
+		(cell["time"] as Label3D).visible = false
+	var ids: Array = statuses.keys()
+	ids.sort()
+	var active: Array[String] = []
+	for raw: Variant in ids:
+		var id: String = String(raw)
+		if float(Dictionary(statuses[id]).get("duration", 0.0)) > 0.0:
+			active.append(id)
+	var count: int = mini(4, active.size())
+	for index: int in count:
+		var id: String = active[index]
+		if not _status_cells.has(id):
+			var icon: Sprite3D = Sprite3D.new()
+			icon.name = "StatusIcon3D_" + id
+			icon.texture = CardEffectIconFactory.get_icon("status:" + id)
+			icon.pixel_size = 0.0025
+			icon.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+			icon.render_priority = 6
+			add_child(icon)
+			var label: Label3D = _create_label("StatusTime3D_" + id, 18, STATUS_COLOR)
+			label.pixel_size = 0.005
+			add_child(label)
+			_status_cells[id] = {"icon": icon, "time": label}
+		var cell: Dictionary = _status_cells[id]
+		var x: float = (float(index) - float(count - 1) * 0.5) * 0.62
+		var remaining: float = float(Dictionary(statuses[id]).get("duration", 0.0))
+		var icon: Sprite3D = cell["icon"]
+		icon.position = Vector3(x - 0.14, -0.64, 0.07)
+		icon.visible = true
+		icon.modulate = Color.WHITE
+		var label: Label3D = cell["time"]
+		label.position = Vector3(x + 0.14, -0.64, 0.08)
+		label.text = "%.1fs" % remaining
+		label.visible = true
+		var corners: Array[Vector3] = []
+		for dx: float in [-0.30, 0.30]:
+			for dy: float in [-0.13, 0.13]:
+				corners.append(to_global(Vector3(x + dx, -0.64 + dy, 0.08)))
+		_status_regions.append({"id": id, "corners": corners, "tooltip": StatusInfoFormatter.tooltip(id, remaining)})
 
 
 func is_player_status() -> bool:
@@ -145,6 +198,7 @@ func _build_model() -> void:
 
 	_status_label = _create_label("StatusValue3D", 21, STATUS_COLOR)
 	_status_label.position = Vector3(0.0, -0.61, 0.07)
+	_status_label.visible = false
 	add_child(_status_label)
 
 
@@ -193,8 +247,6 @@ func _build_status_text(statuses: Dictionary) -> String:
 		if remaining <= 0.0:
 			continue
 		parts.append("%s %.1fs" % [Localization.get_status_name(status_id), snappedf(remaining, 0.1)])
-		if parts.size() >= 2:
-			break
 	return Localization.get_text("status.none", "None") if parts.is_empty() else "  ".join(parts)
 
 

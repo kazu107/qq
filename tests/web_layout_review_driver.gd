@@ -32,6 +32,12 @@ func _command(arguments: Array) -> void:
 		_open_screen(String(payload.get("screen", "hub")))
 	elif String(payload.get("action", "")) == "battle_simulate":
 		_simulate_battle_result()
+	elif String(payload.get("action", "")) == "status_icons":
+		var battle: Control = get_tree().current_scene as Control
+		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+		for id: String in ["bleed", "weak", "slow", "vulnerable"]:
+			engine.battle_state.player.add_status(id, 30.0)
+		battle.call("_refresh_ui", 1.0)
 	elif String(payload.get("action", "")) == "tutorial_start":
 		_tutorial_samples.clear()
 		SceneRouter.start_battle_tutorial(String(payload.get("tutorial", "battle_basics")))
@@ -85,6 +91,8 @@ func _simulate_battle_result() -> void:
 
 func _open_screen(screen: String) -> void:
 	Game.clear_battle_tutorial()
+	if screen not in ["online_bots", "online_arena"]:
+		NetworkManager._clear_session(false)
 	Game.settings["developer_mode"] = false
 	Game.meta_progress["infinite_mode_unlocked"] = screen == "hub_infinite"
 	match screen:
@@ -128,6 +136,29 @@ func _open_screen(screen: String) -> void:
 		"map":
 			Game.start_new_run("balanced", 4242)
 			SceneRouter.go_to_map()
+		"online_arena":
+			NetworkManager._clear_session(false)
+			NetworkManager._is_host = true
+			NetworkManager._session_scope = NetworkManager.SESSION_SCOPE_ONLINE
+			NetworkManager._peer = OfflineMultiplayerPeer.new()
+			NetworkManager.multiplayer.multiplayer_peer = NetworkManager._peer
+			NetworkManager._arena_session_active = true
+			NetworkManager._arena_phase = "preparation"
+			NetworkManager._online_target_wins = 3
+			var profiles: Dictionary = {}
+			var runs: Dictionary = {}
+			for id: int in [1, 2, 3, 4]:
+				profiles[id] = LanProtocol.build_profile("Player %d" % id, "balanced")
+				var run: RunState = LanArenaCoordinator.new().create_run(profiles[id], 4242 + id)
+				run.arena_wins = id % 3
+				run.arena_losses = id % 2
+				runs[id] = run
+			NetworkManager._profiles_by_peer = profiles
+			NetworkManager._arena_runs_by_peer = runs
+			NetworkManager._arena_player_peer_ids = [1, 2, 3, 4]
+			NetworkManager._arena_standings = ArenaTournamentCoordinator.build_standings([1, 2, 3, 4], profiles, runs)
+			NetworkManager._arena_ready_by_peer = {"1": false, "2": true, "3": false, "4": true}
+			SceneRouter.go_to_arena()
 		"arena":
 			Game.start_arena_run("balanced")
 			SceneRouter.go_to_arena()
@@ -160,6 +191,10 @@ func _process(_delta: float) -> void:
 		if _tutorial_samples.size() > 240:
 			_tutorial_samples.pop_front()
 	if _pending_frames <= 0:
+		return
+	var cover: Control = SceneRouter.get("_transition_cover") as Control
+	var scene: CanvasItem = get_tree().current_scene as CanvasItem
+	if scene == null or not scene.visible or (cover != null and cover.visible):
 		return
 	_pending_frames -= 1
 	if _pending_frames == 0:
@@ -219,6 +254,19 @@ func _inspect() -> Dictionary:
 				"preview": screen.find_child("ArtPreviewOverlay", true, false) != null}
 		var stage: BattleStage3D = screen.find_child("BattleStage3D", true, false) as BattleStage3D
 		if stage != null:
+			var status_regions: Array[Dictionary] = []
+			for region: Dictionary in stage.get_player_status_model().get_status_regions():
+				var bounds: Rect2 = Rect2()
+				var first: bool = true
+				for corner: Vector3 in region["corners"]:
+					var point: Vector2 = stage.global_position + stage.project_world_position(corner)
+					bounds = Rect2(point, Vector2.ZERO) if first else bounds.expand(point)
+					first = false
+				status_regions.append({"id": region["id"], "rect": _rect_values(bounds)})
+			var popup: Control = stage.find_child("WorldStatusTooltip", true, false) as Control
+			var popup_label: Label = stage.find_child("WorldStatusTooltipText", true, false) as Label
+			result["status_icons"] = {"regions": status_regions, "tooltip_visible": popup != null and popup.visible,
+				"tooltip_text": popup_label.text if popup_label != null else ""}
 			var player_status: BattleUnitStatus3D = stage.get_player_status_model()
 			var enemy_status: BattleUnitStatus3D = stage.get_enemy_status_model()
 			result["battle"] = {
@@ -254,7 +302,7 @@ func _collect_controls(node: Node, controls: Array[Dictionary], in_scroll: bool)
 	var scrolling: bool = in_scroll or node is ScrollContainer
 	if control != null and (control is Container or control is BaseButton or control is LineEdit or control is SpinBox):
 		controls.append({
-			"name": String(control.name), "class": control.get_class(),
+			"name": String(control.name), "class": control.get_class(), "icon": control.get_meta("semantic_icon", ""),
 			"rect": _rect_values(control.get_global_rect()), "scroll": scrolling,
 		})
 	for child: Node in node.get_children():

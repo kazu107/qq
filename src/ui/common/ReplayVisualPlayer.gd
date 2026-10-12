@@ -23,15 +23,19 @@ func _ready() -> void:
 	add_child(row)
 	_play_button = Button.new()
 	_play_button.text = Localization.get_text("replay.play_pause", "Play / Pause")
+	_play_button.name = "ReplayPlayPauseButton"
+	UiIconHelper.decorate(_play_button, "play", _play_button.text, true)
 	_play_button.pressed.connect(func() -> void:
 		if _time >= _duration:
 			seek(0.0)
 		_playing = not _playing
+		UiIconHelper.decorate(_play_button, "pause" if _playing else "play", Localization.get_text("replay.play_pause", "Play / Pause"), true)
 		_update_speed()
 	)
 	row.add_child(_play_button)
 	var next: Button = Button.new()
 	next.text = Localization.get_text("replay.next_resolution", "Next resolution")
+	UiIconHelper.decorate(next, "next", next.text, true)
 	next.pressed.connect(step_resolution)
 	row.add_child(next)
 	var speed: OptionButton = OptionButton.new()
@@ -128,6 +132,8 @@ func _process(delta: float) -> void:
 
 
 func _update_speed() -> void:
+	if _play_button != null:
+		UiIconHelper.decorate(_play_button, "pause" if _playing else "play", Localization.get_text("replay.play_pause", "Play / Pause"), true)
 	if _stage != null:
 		_stage.set_playback_speed(_speed if _playing else 0.0)
 

@@ -108,6 +108,8 @@ func _run() -> void:
 		_fail("Replay viewer smoke failed: result retry did not restart the same seed")
 		return
 
+	_engine.dispose()
+	_engine = null
 	print("Replay viewer smoke passed")
 	get_tree().quit()
 

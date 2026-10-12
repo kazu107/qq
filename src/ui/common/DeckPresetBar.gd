@@ -40,6 +40,8 @@ func _ready() -> void:
 func _button(parent: Control, key: String, fallback: String, callback: Callable) -> void:
 	var button: Button = Button.new()
 	button.text = Localization.get_text(key, fallback)
+	var id: String = "save" if key == "presets.save" else "delete" if key == "presets.delete" else "load"
+	UiIconHelper.decorate(button, id, button.text, true)
 	button.pressed.connect(callback)
 	parent.add_child(button)
 

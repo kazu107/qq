@@ -1,9 +1,29 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.33.1",
+  "current_version": "QQ-0.34.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.34.0",
+      "date": "2026-10-12",
+      "title_ja": "操作アイコンと状態表示の統一",
+      "title_en": "Action icons and unified status presentation",
+      "changes_ja": [
+        "Blenderで操作・ナビゲーション用の透過アイコンを36種類制作し、各画面へ配置しました。",
+        "3Dステータスプレートを状態アイコンと残り秒数に統一しました。ホバーで名称・効果・残り時間を確認できます。",
+        "ログ、装備・売却、デッキ保存、リプレイ操作などをコンパクトなアイコン表示に変更し、数値と操作説明は維持しています。",
+        "アリーナ・Web対戦・無限モード・チュートリアルを専用のシンボルで区別し、メタポイントもアイコンと数値で表示します。",
+        "操作アイコンは初回にキャッシュし、動的なボタンにも再読み込みせずに適用します。制作原本はアート確認ラボから参照できます。"
+      ],
+      "changes_en": [
+        "Create 36 transparent Blender action/navigation icons and place them throughout the game.",
+        "Show status icons and remaining seconds on yaw-aligned 3D plates, with live hover names and effects.",
+        "Compact log, equip/sell, deck presets and replay controls while preserving prices and tooltips.",
+        "Differentiate Arena, Web multiplayer, Infinite Mode and tutorials with dedicated symbols; display meta points as an icon/value badge.",
+        "Cache action textures at startup and decorate dynamically created controls without per-frame tree scans; expose editable sources in the Art Review Lab."
+      ]
+    },
     {
       "version": "QQ-0.33.1",
       "date": "2026-10-12",

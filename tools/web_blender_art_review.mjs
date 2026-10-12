@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const require = createRequire(import.meta.url);
 const { createQqServer } = require('../server/server.js');
@@ -13,6 +13,7 @@ const app = createQqServer({ publicDir: resolve('build/web-layout-review') });
 await new Promise(done => app.server.listen(0, '127.0.0.1', done));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const errors = [];
+const expectedAssets = JSON.parse(await readFile(resolve('data/art_coverage.json'), 'utf8')).registered_assets;
 const cases = [];
 let sequence = 0;
 
@@ -60,7 +61,7 @@ try {
     await page.waitForTimeout(1000);
     state = await command('inspect');
     validateBounds(state);
-    assert.equal(state.art.catalog, 282, 'Incomplete runtime art registry');
+    assert.equal(state.art.catalog, expectedAssets, 'Incomplete runtime art registry');
     assert(state.art.tiles > 0 && state.art.tiles <= 24, 'Unbounded thumbnail grid');
     await page.screenshot({ path: resolve(output, `art-${size.width}x${size.height}.png`) });
     const first = state.controls.find(item => item.name.startsWith('ArtInspect_'));
@@ -71,7 +72,7 @@ try {
     await click('ArtPreviewClose');
     state = await command('inspect');
     assert.equal(state.art.preview, false);
-    for (const asset_id of ['environment_fatigue', 'boss_eternity_zero', 'environment_field']) {
+    for (const asset_id of ['action_sell', 'action_ready', 'environment_fatigue', 'boss_eternity_zero', 'environment_field']) {
       state = await command('art_preview', undefined, { asset_id });
       validateBounds(state);
       assert.equal(state.art.preview, true, `Preview failed: ${asset_id}`);

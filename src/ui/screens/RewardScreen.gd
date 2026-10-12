@@ -105,6 +105,7 @@ func _ready() -> void:
 
 	var skip_button := Button.new()
 	skip_button.text = Localization.get_text("reward.skip", "Skip")
+	UiIconHelper.decorate(skip_button, "next")
 	skip_button.pressed.connect(_on_skip)
 	button_row.add_child(skip_button)
 

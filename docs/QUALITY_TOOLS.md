@@ -2,6 +2,8 @@
 
 ## In-game entry points
 
+QQ-0.34.0 adds 36 Blender action/navigation icons, compact equip/sell/preset/replay controls and live icon hover on the 3D status plates. The existing developer **Art Review Lab** includes their editable source paths. See `docs/UI_ICON_AUDIT.md` for the screen-by-screen audit, icon-only rules and reproduction steps. `UiActionIconsSmoke` is included in the quality runner; `tools/web_action_icons_review.mjs` checks 13 browser screens, three viewport sizes, the four-player preparation roster, and actual status hover/update/exit using the Web Layout Review build.
+
 - Enable developer mode in Settings. Every developer panel has **Network diagnostics** and **Automated battle lab**. The lab is unavailable during an active online session; diagnostics does not pause it.
 - Save a named deck in the Map or Arena loadout panel, or the Hub's custom battle lab. Names are limited to 32 characters and 20 presets. Saving the same name replaces it; Delete removes the selected preset. Settings/save data persist the presets on desktop and in the browser.
 - Applying a preset changes only equipped card IDs, never ownership, grades, gold, or relics. Missing copies and excessive effective loadout cost reject the entire operation. Relic discounts and permitted overage are included. Online application is an atomic host-validated `apply_deck` preparation action and is rejected after Ready or while rewards are pending.

@@ -110,6 +110,7 @@ func _build_header(parent: VBoxContainer) -> void:
 	var back_button: Button = Button.new()
 	back_button.name = "RunSetupBackButton"
 	back_button.text = Localization.get_text("run_setup.back", "Back")
+	UiIconHelper.decorate(back_button, "back")
 	back_button.custom_minimum_size = Vector2(118.0, 44.0)
 	back_button.pressed.connect(func() -> void:
 		SceneRouter.go_to_hub()

@@ -464,8 +464,9 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 
 	_participant_role_option = OptionButton.new()
 	_participant_role_option.name = "OnlineParticipantRoleOption"
-	_participant_role_option.add_item(Localization.get_text("online.role.player", "Player"))
-	_participant_role_option.add_item(Localization.get_text("online.role.spectator", "Spectator"))
+	_participant_role_option.add_icon_item(StatIconFactory.get_icon("arena"), Localization.get_text("online.role.player", "Player"))
+	_participant_role_option.add_icon_item(StatIconFactory.get_icon("spectator"), Localization.get_text("online.role.spectator", "Spectator"))
+	_participant_role_option.add_theme_constant_override("icon_max_width", 22)
 	_participant_role_option.item_selected.connect(_on_participant_role_selected)
 	box.add_child(_labeled_control(
 		Localization.get_text("online.role", "Role"),
@@ -706,7 +707,11 @@ func _build_player_slot(slot_index: int, player_data: Dictionary) -> PanelContai
 	slot_label.custom_minimum_size = Vector2(44.0, 0.0)
 	slot_label.add_theme_font_size_override("font_size", 22)
 	slot_label.add_theme_color_override("font_color", Color(0.42, 0.84, 0.95, 1.0))
-	row.add_child(slot_label)
+	if bool(player_data.get("is_bot", false)):
+		row.add_child(UiIconHelper.icon_node("bot", 32))
+		slot_label.free()
+	else:
+		row.add_child(slot_label)
 	var info: VBoxContainer = VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(info)
@@ -771,6 +776,7 @@ func _refresh_local_profile_controls() -> void:
 			_starter_option.select(index)
 			break
 	var is_ready: bool = NetworkManager.is_local_ready()
+	UiIconHelper.decorate(_ready_button, "ready" if is_ready else "waiting")
 	_starter_option.disabled = is_ready
 	_ready_button.text = Localization.get_text("lan.cancel_ready", "CANCEL READY") if is_ready else Localization.get_text("lan.ready_up", "READY UP")
 	var deck: Array[String] = []

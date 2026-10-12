@@ -1,0 +1,661 @@
+{
+  "batch_id": "blender_action_icons_07",
+  "blender_version": "5.2.2 LTS",
+  "generator": "tools/blender/build_action_icons.py",
+  "generator_sha256": {
+    "tools/blender/build_action_icons.py": "058ecb642e59b9f8791b11db54f2dfd06825c9c01fae50e90fe9f6829b58131b",
+    "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+  },
+  "source": "art_src/blender/ui/qq_ui_actions.blend",
+  "source_sha256": "c53dd1fda88c2a5aa6cf0f0a1ebb39cecd5b60d5e830da75526b118cb5391c6c",
+  "assets": [
+    {
+      "id": "action_home",
+      "visual_id": "home",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/home.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_home",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 3,
+      "render_path": "tools/.local/blender_action_icons/home.png",
+      "render_sha256": "4048d07fa6e6b181cca6412695f3064883e70ca47dba3f47009891c06865613e",
+      "export_sha256": "efd6ab50c9173ae429463ae889f040d10f6aa32bbe8d6292c4995f05e8ca5b0b"
+    },
+    {
+      "id": "action_back",
+      "visual_id": "back",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/back.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_back",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 1,
+      "render_path": "tools/.local/blender_action_icons/back.png",
+      "render_sha256": "d725c4487d491e56dcfad7add24c9e968b850718d5de5a8cc586618a9aba9a1d",
+      "export_sha256": "26913fd1f4e9729826918e234803ba4f514ff52740b4176903b7120c46a5f1a6"
+    },
+    {
+      "id": "action_next",
+      "visual_id": "next",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/next.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_next",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 1,
+      "render_path": "tools/.local/blender_action_icons/next.png",
+      "render_sha256": "f5b34d9fd5778841f203c96732164c5467f4af429900f64faf2998c1ebc5032f",
+      "export_sha256": "0be20fd9fd7938e5f1a5b100d13915ac258f38ed9697ea30b0285f3f54838f86"
+    },
+    {
+      "id": "action_play",
+      "visual_id": "play",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/play.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_play",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 1,
+      "render_path": "tools/.local/blender_action_icons/play.png",
+      "render_sha256": "21e79e985a2fe9bb426c4df2f8012bdaf2e15e90f6225be50b4cd399c197b64d",
+      "export_sha256": "cdb0447bf43e49492f67d50890430a569b6e433c5be1065d554d967ec0ddb53b"
+    },
+    {
+      "id": "action_pause",
+      "visual_id": "pause",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/pause.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_pause",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 2,
+      "render_path": "tools/.local/blender_action_icons/pause.png",
+      "render_sha256": "5b6df34d719108665cdfa4d1e3fce054db06acc1e596432998f67d4637acaa88",
+      "export_sha256": "6fc93256650104350ddc303ea755c7038826c71ce703da360c094b9277a69238"
+    },
+    {
+      "id": "action_restart",
+      "visual_id": "restart",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/restart.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_restart",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 2,
+      "render_path": "tools/.local/blender_action_icons/restart.png",
+      "render_sha256": "2fea75f9adb3ed83b6b863e5ae7b1d3002fba56ffdf9a79609050e086f15dc34",
+      "export_sha256": "cea62f6cf4a6f9cae25753b892c6d0b3b8fa1e4b5bab6d12dd215d44b327aa94"
+    },
+    {
+      "id": "action_reroll",
+      "visual_id": "reroll",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/reroll.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_reroll",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 6,
+      "render_path": "tools/.local/blender_action_icons/reroll.png",
+      "render_sha256": "c151edde3e67cc91553fd373ffc3f8888a04d59163e12e2cb36518ed74ca1be6",
+      "export_sha256": "eb4a387248ef068f418a2d235abb4249c1879b4857e84ab6804176665df406c6"
+    },
+    {
+      "id": "action_log",
+      "visual_id": "log",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/log.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_log",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 6,
+      "render_path": "tools/.local/blender_action_icons/log.png",
+      "render_sha256": "2a333f81f764027cb50629802e6a2005dad151915c9d8170980a721f9acd5dd8",
+      "export_sha256": "39c07e6e1019a997af4daf70299156528c656303a0bd4798b79df4c51d64440f"
+    },
+    {
+      "id": "action_info",
+      "visual_id": "info",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/info.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_info",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 3,
+      "render_path": "tools/.local/blender_action_icons/info.png",
+      "render_sha256": "e8ea93f4cd0e052fbf5fb496b007a2978f36239d49d8339926fc9d1ca70a006b",
+      "export_sha256": "5d87806feb1f7ff73bb96760cf4dca27da01c91b8c552543f3f871786348f619"
+    },
+    {
+      "id": "action_close",
+      "visual_id": "close",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/close.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_close",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 2,
+      "render_path": "tools/.local/blender_action_icons/close.png",
+      "render_sha256": "5205ffa6ef583ed5b47ddfa8fbc5a265b21eea555f9babdec2fb28bf684fa11f",
+      "export_sha256": "f0cdcf1bd4206b22f16f54fafef5a5cb2d4d0385a47d34bc1048e89e1f2028b6"
+    },
+    {
+      "id": "action_search",
+      "visual_id": "search",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/search.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_search",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 2,
+      "render_path": "tools/.local/blender_action_icons/search.png",
+      "render_sha256": "88d9cd4220249b883e0945cec2f861757447b0088dff3c4d89aa6512c9f95440",
+      "export_sha256": "8577873e32427f8b402e994ca70e3bc6a8aa66b7ce1a613f2836f0f2ddded210"
+    },
+    {
+      "id": "action_filter",
+      "visual_id": "filter",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/filter.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_filter",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 2,
+      "render_path": "tools/.local/blender_action_icons/filter.png",
+      "render_sha256": "de97c7012d44bd930c0d241810af3db476b7de18a8267d5d9eeabc18e356c505",
+      "export_sha256": "1a0a585d392d00faede1a4d24883241164c54282127116991685dc7e92286e19"
+    },
+    {
+      "id": "action_equip",
+      "visual_id": "equip",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/equip.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_equip",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 5,
+      "render_path": "tools/.local/blender_action_icons/equip.png",
+      "render_sha256": "9d9b8e7272681c117cdea6fca9dfe5698d43d321fab509031600bb30cd7852af",
+      "export_sha256": "9810748238575940f3d18f96488c8f52512abbee9ff12fa72bf7d9f4f6b759f6"
+    },
+    {
+      "id": "action_unequip",
+      "visual_id": "unequip",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/unequip.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_unequip",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 5,
+      "render_path": "tools/.local/blender_action_icons/unequip.png",
+      "render_sha256": "67077b29aa63c5f6eea22fd1f2036cf8610022c06848c8aee4f30fe7afb521f8",
+      "export_sha256": "7c42ba7cee964216bf98f5a6622cfecda5e3529989209dea4e9187c1e93adb1e"
+    },
+    {
+      "id": "action_sell",
+      "visual_id": "sell",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/sell.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_sell",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 4,
+      "render_path": "tools/.local/blender_action_icons/sell.png",
+      "render_sha256": "4fafa08b86967bfbfe1a5c82bae8d53b0b8a3029a0a7ab36521c0fd7786a6743",
+      "export_sha256": "927513d913d0f3b3d626309d638f59badb9ed9507ef0ab56ec6817580a33cb06"
+    },
+    {
+      "id": "action_upgrade",
+      "visual_id": "upgrade",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/upgrade.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_upgrade",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 2,
+      "render_path": "tools/.local/blender_action_icons/upgrade.png",
+      "render_sha256": "fd8e58f68d2755ffbdde0e68852866f3b1f599078d5aa5782a79c6f9734ad35f",
+      "export_sha256": "400ababb978513e9785dff23de1a019b46944277f93c4483d44ba34e7ee8d957"
+    },
+    {
+      "id": "action_unlock",
+      "visual_id": "unlock",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/unlock.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_unlock",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 5,
+      "render_path": "tools/.local/blender_action_icons/unlock.png",
+      "render_sha256": "2963255a7b3df10b21df0e2cfd384261eb6406a52ee413455824e989a6190faf",
+      "export_sha256": "625ae385be94339938806e47770bf58e9e6a0f1a4e3a55ee68f6a853ab58af33"
+    },
+    {
+      "id": "action_claim",
+      "visual_id": "claim",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/claim.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_claim",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 4,
+      "render_path": "tools/.local/blender_action_icons/claim.png",
+      "render_sha256": "7dac9ce0db8a8de4514b2cf27a69525f5d8c7bd8c4904471a9034bf88c1ad9b8",
+      "export_sha256": "b215ca8f508f1a1194582b0986c93e58f4bffb00ffb455d60fc790be3145a6f7"
+    },
+    {
+      "id": "action_save",
+      "visual_id": "save",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/save.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_save",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 4,
+      "render_path": "tools/.local/blender_action_icons/save.png",
+      "render_sha256": "70ab4b3b8da435355c5926126e461302e76bfb4eb9392ccaf3f68c43e1e9e27f",
+      "export_sha256": "dc8f6568fa595ffe1bbaea29a8b639c98f40f7b2a1ffd9e3a88c7cf75e9b3a2d"
+    },
+    {
+      "id": "action_load",
+      "visual_id": "load",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/load.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_load",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 2,
+      "render_path": "tools/.local/blender_action_icons/load.png",
+      "render_sha256": "034730205921abc54394e2273016d41f951050fa57e193e1d35851eb274508b5",
+      "export_sha256": "4c59ff49745c51da6ffe6b218ab7ac6a63b88b8d594319ff394b106ef35f8166"
+    },
+    {
+      "id": "action_delete",
+      "visual_id": "delete",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/delete.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_delete",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 6,
+      "render_path": "tools/.local/blender_action_icons/delete.png",
+      "render_sha256": "e6dee1ea2edf1bd5b056934b6b307102e0d60564df99d8b7d5c8a537c2fb83a2",
+      "export_sha256": "9a5d2cdae45b4247c28c7f2b448148caf0120fd540c97b81eac43af8ad29342f"
+    },
+    {
+      "id": "action_trophy",
+      "visual_id": "trophy",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/trophy.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_trophy",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 5,
+      "render_path": "tools/.local/blender_action_icons/trophy.png",
+      "render_sha256": "17bb18a98091532b0c8bf80392f3a2787a05a171516cb9105c7dd3103dd4ccb1",
+      "export_sha256": "ded0c83304a5412c630ee682cbdbc9ea9e43d18a573c143ede36a2697f9baa6d"
+    },
+    {
+      "id": "action_defeat",
+      "visual_id": "defeat",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/defeat.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_defeat",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 2,
+      "render_path": "tools/.local/blender_action_icons/defeat.png",
+      "render_sha256": "9fded372dcb44c66c4f5f84e77d8239ad2ab98328492cc9f2a6fc67328615a0f",
+      "export_sha256": "5413c4304d90903398efb8d1850c6543f835ee4227da2ad6038981eaa1b1b9cb"
+    },
+    {
+      "id": "action_meta_points",
+      "visual_id": "meta_points",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/meta_points.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_meta_points",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 2,
+      "render_path": "tools/.local/blender_action_icons/meta_points.png",
+      "render_sha256": "a45249a70f10d70b279e47e5971781711a65a8a587950a16466d927c468ca270",
+      "export_sha256": "b4835fc0cb3bcf75cce0e688a6d9132f9e44a8931739db2350860721d3fad57d"
+    },
+    {
+      "id": "action_tutorial",
+      "visual_id": "tutorial",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/tutorial.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_tutorial",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 9,
+      "render_path": "tools/.local/blender_action_icons/tutorial.png",
+      "render_sha256": "96402fed91f9f59a782286a5295fa8bb9254581c82868e7f1b1df4c31768258d",
+      "export_sha256": "e07edf1b310d36565042a34b33db23f3a067f4b20f9ff8cf07ced0b32c598211"
+    },
+    {
+      "id": "action_arena",
+      "visual_id": "arena",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/arena.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_arena",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 10,
+      "render_path": "tools/.local/blender_action_icons/arena.png",
+      "render_sha256": "e4b7e24a114fe25108ae2569468d64d57740b12d1f720d90593d56ad119c824e",
+      "export_sha256": "fe2dccd0e592d6e2b7a043a91246514624425d0ad5c835d2e522726069b468fc"
+    },
+    {
+      "id": "action_online",
+      "visual_id": "online",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/online.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_online",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 5,
+      "render_path": "tools/.local/blender_action_icons/online.png",
+      "render_sha256": "07d620fe0e65611e8ab2cafe8fd1e09e9d51fd6b7e528933f93bdf2079680917",
+      "export_sha256": "7264bbffd3a383202d637ea4aad59d4e15d62834e6394316c68eec26225447af"
+    },
+    {
+      "id": "action_spectator",
+      "visual_id": "spectator",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/spectator.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_spectator",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 3,
+      "render_path": "tools/.local/blender_action_icons/spectator.png",
+      "render_sha256": "1d549babfc566feb83377d2b29a23d8f318b056bb4db2af8cd73d486c73a07f4",
+      "export_sha256": "0eecb6afa0c7f9e1b56b2624ce3f5aecba0ba837d1dd7755b8fb0d75e3b27113"
+    },
+    {
+      "id": "action_ready",
+      "visual_id": "ready",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/ready.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_ready",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 1,
+      "render_path": "tools/.local/blender_action_icons/ready.png",
+      "render_sha256": "39eb98d4cff2bcfa0dcaf5f401e04b1527a6f181be0b911f545fc31aad5a8092",
+      "export_sha256": "e21114fa97a5400f38028150827bc35f2994abf659df8470acc78457352411b1"
+    },
+    {
+      "id": "action_waiting",
+      "visual_id": "waiting",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/waiting.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_waiting",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 4,
+      "render_path": "tools/.local/blender_action_icons/waiting.png",
+      "render_sha256": "090cecb722bb9f3557a2ce5c460aa3714e3784b8656fa3525a5dad3f2ef84c48",
+      "export_sha256": "bbe385cb6a0791cbcbc32fb037da975f961be66f7541478af3f262b482915d3e"
+    },
+    {
+      "id": "action_bot",
+      "visual_id": "bot",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/bot.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_bot",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 6,
+      "render_path": "tools/.local/blender_action_icons/bot.png",
+      "render_sha256": "6ebe6edb41f9bdbcad12a9a957f22b6ca2e67ab1e27d0193ea241122fdc44d1b",
+      "export_sha256": "8baa29c18ea21f27a9e60a4f76aefb440b70fdf9d4f301dc9f5edd7fad5ce36d"
+    },
+    {
+      "id": "action_infinity",
+      "visual_id": "infinity",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/infinity.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_infinity",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 1,
+      "render_path": "tools/.local/blender_action_icons/infinity.png",
+      "render_sha256": "607e555dbb0c5da9a565eaf3f5d901f02736b342ee1be8c7edef65f93e592a61",
+      "export_sha256": "59bf7d447f3b699b5b305568f641de13a097bd9e97300ca5b7e633850c221729"
+    },
+    {
+      "id": "action_sound",
+      "visual_id": "sound",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/sound.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_sound",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 3,
+      "render_path": "tools/.local/blender_action_icons/sound.png",
+      "render_sha256": "0730e998bc8a574045a7eb7c353a1bce8a4107c69748c7b6019dc800fc04f399",
+      "export_sha256": "e03262108d774160341f7c95ed224bd7d4ec0d159667e85b08f23e6e6001f4a6"
+    },
+    {
+      "id": "action_display",
+      "visual_id": "display",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/display.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_display",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 4,
+      "render_path": "tools/.local/blender_action_icons/display.png",
+      "render_sha256": "1336c3589ec45ccdb19d1628c2dcdc0e2082afe37baa252feb4fa71abd97dcd5",
+      "export_sha256": "0fe7e727b8007abdb481325ce9e280fbb2fb261da3eaf94d321ce3b7ec5c01d1"
+    },
+    {
+      "id": "action_export",
+      "visual_id": "export",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/export.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_export",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 2,
+      "render_path": "tools/.local/blender_action_icons/export.png",
+      "render_sha256": "9b0a28145aba9f772102b8126cec5c14a3634ae2ebb300488907d9586a59286c",
+      "export_sha256": "c627147940ca2f8cd4ff9ef0649f6d98bb775cf5d3a9287bf6ee3fe68e68d695"
+    },
+    {
+      "id": "action_exit",
+      "visual_id": "exit",
+      "category": "ui",
+      "size": 64,
+      "runtime_path": "assets/icons/ui/exit.png",
+      "source_path": "art_src/blender/ui/qq_ui_actions.blend",
+      "source_collection": "action_exit",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_orthographic_3d_pictogram",
+      "objects": 3,
+      "render_path": "tools/.local/blender_action_icons/exit.png",
+      "render_sha256": "64590fd3119211e40677785fbd36e7ebf6035cbf2fd397d81084e69b6e7b91d9",
+      "export_sha256": "d34bd50004f4ff3f687a9d40ee414d6d2337b4452f403451b7b0eb99313cc6dc"
+    }
+  ]
+}

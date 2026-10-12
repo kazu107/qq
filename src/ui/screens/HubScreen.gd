@@ -66,7 +66,20 @@ func _ready() -> void:
 	_info_label.text = Localization.get_textf("hub.meta_points", "Meta Points: {points}", {
 		"points": Game.get_meta_points(),
 	})
-	hero.add_child(_info_label)
+	_info_label.tooltip_text = _info_label.text
+	_info_label.text = str(Game.get_meta_points())
+	var points_row: HBoxContainer = HBoxContainer.new()
+	points_row.name = "HubMetaPointBadge"
+	points_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hero.add_child(points_row)
+	var points_icon: TextureRect = TextureRect.new()
+	points_icon.texture = StatIconFactory.get_icon("meta_points")
+	points_icon.custom_minimum_size = Vector2(32, 32)
+	points_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	points_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	points_icon.tooltip_text = UiIconHelper.get_hint("meta_points")
+	points_row.add_child(points_icon)
+	points_row.add_child(_info_label)
 	if SaveManager.last_recovery_source != "":
 		var recovery_label: Label = Label.new()
 		recovery_label.name = "SaveRecoveryNotice"
@@ -88,11 +101,11 @@ func _ready() -> void:
 	root.add_child(modes)
 	var normal: VBoxContainer = _build_mode_card(modes, "step", Localization.get_text("hub.run_start", "Run Start"), Localization.get_text("hub.mode.normal_detail", "Choose a route, gather cards and relics, and challenge the boss."), UiTheme.ACCENT_GOLD)
 	_add_run_mode_row(normal, Game.RUN_SETUP_MODE_NORMAL)
-	var arena: VBoxContainer = _build_mode_card(modes, "attack", Localization.get_text("hub.arena_start", "Arena Mode"), Localization.get_text("hub.mode.arena_detail", "Build your deck between matches. Every purchase shapes the next battle."), UiTheme.ACCENT_BLUE)
+	var arena: VBoxContainer = _build_mode_card(modes, "arena", Localization.get_text("hub.arena_start", "Arena Mode"), Localization.get_text("hub.mode.arena_detail", "Build your deck between matches. Every purchase shapes the next battle."), UiTheme.ACCENT_BLUE)
 	_add_run_mode_row(arena, Game.RUN_SETUP_MODE_ARENA)
 
 	if Game.WEB_MULTIPLAYER_ENABLED:
-		var online: VBoxContainer = _build_mode_card(modes, "speed", Localization.get_text("hub.web_multiplayer", "Web Multiplayer"), Localization.get_text("hub.mode.online_detail", "Create a room, invite friends, and compete or spectate together."), Color(0.35, 0.82, 0.70))
+		var online: VBoxContainer = _build_mode_card(modes, "online", Localization.get_text("hub.web_multiplayer", "Web Multiplayer"), Localization.get_text("hub.mode.online_detail", "Create a room, invite friends, and compete or spectate together."), Color(0.35, 0.82, 0.70))
 		var online_button: Button = Button.new()
 		online_button.name = "WebMultiplayerButton"
 		online_button.text = Localization.get_text("hub.open_rooms", "Open Rooms")
@@ -104,7 +117,7 @@ func _ready() -> void:
 		online.add_child(online_button)
 
 	if Game.is_infinite_mode_unlocked():
-		var infinite: VBoxContainer = _build_mode_card(modes, "time", Localization.get_text("hub.infinite_mode", "Infinite Mode"), Localization.get_text("hub.mode.infinite_detail", "Push beyond the final step into an ever-growing challenge."), UiTheme.ACCENT_GOLD)
+		var infinite: VBoxContainer = _build_mode_card(modes, "infinity", Localization.get_text("hub.infinite_mode", "Infinite Mode"), Localization.get_text("hub.mode.infinite_detail", "Push beyond the final step into an ever-growing challenge."), UiTheme.ACCENT_GOLD)
 		var infinite_button: Button = Button.new()
 		infinite_button.name = "InfiniteModeStartButton"
 		infinite_button.text = Localization.get_text("hub.infinite_mode", "Infinite Mode")
@@ -120,13 +133,13 @@ func _ready() -> void:
 	tutorial_button.name = "BattleTutorialButton"
 	tutorial_button.text = Localization.get_text("hub.tutorial", "Battle Tutorial")
 	tutorial_button.pressed.connect(SceneRouter.go_to_battle_tutorial)
-	_setup_navigation_button(navigation, tutorial_button, "time")
+	_setup_navigation_button(navigation, tutorial_button, "tutorial")
 
 	var meta_button: Button = Button.new()
 	meta_button.name = "HubMetaProgressButton"
 	meta_button.text = Localization.get_text("hub.meta_progress", "Meta Progress")
 	meta_button.pressed.connect(_on_open_meta_progress)
-	_setup_navigation_button(navigation, meta_button, "relic")
+	_setup_navigation_button(navigation, meta_button, "meta_points")
 
 	var library_button: Button = Button.new()
 	library_button.name = "HubCardLibraryButton"
@@ -678,7 +691,8 @@ func _on_dev_open_result() -> void:
 
 func _on_dev_add_points() -> void:
 	Game.developer_add_points(5)
-	_info_label.text = Localization.get_textf("hub.meta_points", "Meta Points: {points}", {
+	_info_label.text = str(Game.get_meta_points())
+	_info_label.tooltip_text = Localization.get_textf("hub.meta_points", "Meta Points: {points}", {
 		"points": Game.get_meta_points(),
 	})
 

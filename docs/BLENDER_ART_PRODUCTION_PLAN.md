@@ -510,3 +510,9 @@
 各生成手順は`BLENDER_BATCH04_ENEMIES.md`、`BLENDER_CARD_BATCHES.md`、`BLENDER_RELIC_BATCHES.md`、`BLENDER_UI_BATCH.md`、`BLENDER_ENVIRONMENT_BATCH.md`に分けています。関連テストと公開確認は`BLENDER_FULL_ROLLOUT.md`へ記録します。
 
 動的な文字、HPプレート、陣営色台座、レーン、VFX、欠損時フォールバックはコードネイティブのまま残します。第三者プラグインの文書ロゴやフォント・SEまで自作3Dへ置き換えたという意味ではありません。
+
+### 操作・ナビゲーション拡張（2026-10-12 / QQ-0.34.0）
+
+全画面を監査し、戻る・売却・保存・観戦・準備など36種のBlenderアイコンを追加しました。従来のUI部品と材質を再利用し、独立した編集可能コレクションを`ui/qq_ui_actions.blend`へ保存しています。来歴登録は318成果物、共通UIは49種になりました。
+
+3D戦闘の状態名を既存4状態画像＋残り秒数へ統一し、同じプレート角度の表示とホバー説明を追加しました。操作の省略基準、全画面の配置先、再生成とテストは`docs/UI_ICON_AUDIT.md`を参照してください。
