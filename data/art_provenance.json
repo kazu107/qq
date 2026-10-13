@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "updated_at": "2026-10-12",
+  "updated_at": "2026-10-13",
   "batch_id": "blender_vertical_slice_01",
   "author": "QQ project",
   "tool": "Blender (per-batch version recorded in manifests)",
@@ -7011,6 +7011,98 @@
         1024
       ],
       "size": 64
+    },
+    {
+      "asset_id": "timekeeper_final_strike",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/timekeeper_final_strike.png",
+      "source_path": "art_src/blender/cards/timekeeper_boss.blend",
+      "generator": "tools/blender/build_timekeeper_boss.py",
+      "export_sha256": "b1553fc724ddedc62396d28494c84bd12115dc459e66e00771cfa801666b96db",
+      "source_sha256": "24a59d1ce899d2ec46b9943239b268cec85ae448a8fc786aea3387eed97cb2c7",
+      "generator_sha256": {
+        "tools/blender/build_timekeeper_boss.py": "fa3181af90179f5530685f12adc90dc1b5e51c16ba6021286d6a21ce74f2cbc8",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/cards/timekeeper_boss.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "timekeeper_boss_rework",
+      "visual_id": "timekeeper_final_strike",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 512
+    },
+    {
+      "asset_id": "timekeeper_amplify",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/timekeeper_amplify.png",
+      "source_path": "art_src/blender/cards/timekeeper_boss.blend",
+      "generator": "tools/blender/build_timekeeper_boss.py",
+      "export_sha256": "78d55058b8d0cb5ab06a41d73de9681996390737b55ee555a472590ecaa1a671",
+      "source_sha256": "24a59d1ce899d2ec46b9943239b268cec85ae448a8fc786aea3387eed97cb2c7",
+      "generator_sha256": {
+        "tools/blender/build_timekeeper_boss.py": "fa3181af90179f5530685f12adc90dc1b5e51c16ba6021286d6a21ce74f2cbc8",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/cards/timekeeper_boss.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "timekeeper_boss_rework",
+      "visual_id": "timekeeper_amplify",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 512
+    },
+    {
+      "asset_id": "timekeeper_time_mark",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/timekeeper_time_mark.png",
+      "source_path": "art_src/blender/cards/timekeeper_boss.blend",
+      "generator": "tools/blender/build_timekeeper_boss.py",
+      "export_sha256": "e4452863fa704d2e019b75a0dace8a71c645689a4601ba267b50addc673c8166",
+      "source_sha256": "24a59d1ce899d2ec46b9943239b268cec85ae448a8fc786aea3387eed97cb2c7",
+      "generator_sha256": {
+        "tools/blender/build_timekeeper_boss.py": "fa3181af90179f5530685f12adc90dc1b5e51c16ba6021286d6a21ce74f2cbc8",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/cards/timekeeper_boss.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "timekeeper_boss_rework",
+      "visual_id": "timekeeper_time_mark",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 512
+    },
+    {
+      "asset_id": "attack_charge",
+      "category": "status",
+      "runtime_path": "assets/icons/status/attack_charge.png",
+      "source_path": "art_src/blender/cards/timekeeper_boss.blend",
+      "generator": "tools/blender/build_timekeeper_boss.py",
+      "export_sha256": "2275d6cdef30cc6696ee408423779b81bdad2fa85f01ca9a77afb8a039f8aaec",
+      "source_sha256": "24a59d1ce899d2ec46b9943239b268cec85ae448a8fc786aea3387eed97cb2c7",
+      "generator_sha256": {
+        "tools/blender/build_timekeeper_boss.py": "fa3181af90179f5530685f12adc90dc1b5e51c16ba6021286d6a21ce74f2cbc8",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/cards/timekeeper_boss.manifest.json",
+      "blender_version": "5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "timekeeper_boss_rework",
+      "visual_id": "attack_charge",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "size": 96
     }
   ],
   "batch_ids": [
@@ -7022,6 +7114,7 @@
     "blender_ui_icons_06",
     "blender_environment_07",
     "blender_cards_C01_C13_completion",
-    "blender_action_icons_07"
+    "blender_action_icons_07",
+    "timekeeper_boss_rework"
   ]
 }

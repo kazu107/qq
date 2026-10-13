@@ -2,8 +2,8 @@ extends RefCounted
 class_name DamageResolver
 
 
-static func apply_damage(attacker: UnitState, defender: UnitState, base_amount: int) -> Dictionary:
-	var raw: int = max(0, base_amount) + attacker.get_attack_value()
+static func apply_damage(attacker: UnitState, defender: UnitState, base_amount: int, multiplier: float = 1.0) -> Dictionary:
+	var raw: int = roundi(float(max(0, base_amount) + attacker.get_attack_value()) * multiplier)
 	var hp_before: int = defender.hp
 	var result: Dictionary = apply_fixed_damage(defender, raw)
 	attacker.combat_totals["damage"] = int(attacker.combat_totals["damage"]) + maxi(0, hp_before - defender.hp)

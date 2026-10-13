@@ -113,19 +113,12 @@
     "attack": 6,
     "speed": 6,
     "cards": [
-      "stasis_field",
-      "time_flow_control",
-      "meteor_crash",
-      "assault",
-      "purge_pulse",
-      "over_reload"
+      "timekeeper_final_strike",
+      "timekeeper_amplify",
+      "timekeeper_time_mark"
     ],
-    "role": "timeline_boss",
-    "passive": {
-      "type": "periodic_delay_enemy_active",
-      "interval": 42.0,
-      "amount": 6.0
-    }
+    "role": "charged_dps_boss",
+    "passive": {}
   },
   {
     "id": "phase_stalker",

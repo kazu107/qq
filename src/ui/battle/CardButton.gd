@@ -1015,6 +1015,8 @@ func _build_battle_tooltip_lines(card_def: CardDef, rich: bool = false) -> Array
 		base_recast_time = comparison_card.recast_time
 
 	var lines: Array[String] = [card_def.name]
+	if card_def.boss_only:
+		lines.append(Localization.get_text("card.boss_only", "Boss only - not collectible"))
 	_append_battle_effect_lines(lines, card_def, rich)
 	lines.append(Localization.get_textf("card.tooltip.cast", "Cast: {value}s", {
 		"value": _format_compared_float(card_def.cast_time, base_cast_time, 1, false, rich),

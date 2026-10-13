@@ -1366,7 +1366,7 @@ func _build_card_profile(card_def: CardDef) -> Dictionary:
 				profile["heal"] = true
 			"gain_shield":
 				profile["shield"] = true
-			"apply_status", "remove_status", "modify_attack", "modify_speed", "timeline_flow":
+			"apply_status", "remove_status", "modify_attack", "modify_speed", "timeline_flow", "next_attack_multiplier":
 				profile["status"] = true
 	return profile
 

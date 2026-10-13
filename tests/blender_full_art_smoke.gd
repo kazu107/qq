@@ -30,6 +30,8 @@ func _run() -> void:
 		_paths[String(entry.get("runtime_path", ""))] = entry
 	for id: String in Database.get_all_card_ids():
 		_require_image("assets/icons/cards/%s.png" % id, 512)
+	for id: String in Database.get_boss_card_ids():
+		_require_image("assets/icons/cards/%s.png" % id, 512)
 	for id: String in Database.get_all_relic_ids():
 		_require_image("assets/icons/relics/%s.png" % id, 512)
 	_require_image("assets/icons/cards/environment_fatigue.png", 512)
@@ -52,7 +54,7 @@ func _run() -> void:
 		_check(skeleton != null and skeleton.get_bone_count() == 18, "Incompatible rig " + id)
 		root.free()
 		await get_tree().process_frame
-	for id: String in ["bleed", "slow", "weak", "vulnerable"]:
+	for id: String in ["bleed", "slow", "weak", "vulnerable", "attack_charge"]:
 		_require_image("assets/icons/status/%s.png" % id, 96)
 	for id: String in UI_IDS:
 		var path: String = "assets/icons/ui/%s.png" % id

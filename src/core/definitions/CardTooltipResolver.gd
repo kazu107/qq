@@ -19,6 +19,10 @@ static func build_context(card_id: String, run_state: RunState = null, unit: Uni
 			_apply_attack_to_damage(comparison_card, baseline_attack)
 
 	_apply_attack_to_damage(current_card, current_attack)
+	if unit != null and unit.next_attack_multiplier > 1.0:
+		for effect: Dictionary in current_card.effects:
+			if String(effect.get("type", "")) == "deal_damage":
+				effect["amount"] = roundi(float(effect.get("amount", 0)) * unit.next_attack_multiplier)
 	return {
 		"card": current_card,
 		"comparison": comparison_card,

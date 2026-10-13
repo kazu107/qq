@@ -3,6 +3,8 @@ class_name StatusInfoFormatter
 
 
 static func tooltip(id: String, remaining: float) -> String:
+	if id == "attack_charge":
+		return Localization.get_text("status.detail.attack_charge", "Next attack x2 (one card)\nIncludes attack bonuses and already-casting cards.\nDoes not stack; bleed, fatigue and relic damage do not consume it.")
 	var detail: String
 	match id:
 		"bleed": detail = Localization.get_textf("status.detail.bleed", "Takes {amount} damage every {interval}s.", {"amount": 1, "interval": "%.1f" % UnitState.BLEED_TICK_INTERVAL})

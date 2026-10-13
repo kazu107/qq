@@ -417,7 +417,7 @@ func complete_battle(summary: Dictionary) -> void:
 
 
 func choose_reward(card_id: String) -> void:
-	if current_run == null:
+	if current_run == null or (card_id != "" and not Database.is_collectible_card(card_id)):
 		return
 	if card_id != "":
 		current_run.player_cards.append(card_id)
@@ -1959,7 +1959,7 @@ func get_relic_names() -> Array[String]:
 
 
 func equip_card(card_id: String) -> bool:
-	if current_run == null:
+	if current_run == null or not Database.is_collectible_card(card_id):
 		return false
 	if _count_card_occurrences(current_run.equipped_cards, card_id) >= _count_card_occurrences(current_run.player_cards, card_id):
 		return false
@@ -2374,7 +2374,7 @@ func _resolve_infinite_starter_id(starter_id: String) -> String:
 func _filter_valid_card_ids(card_ids: Array[String]) -> Array[String]:
 	var valid_card_ids: Array[String] = []
 	for card_id in card_ids:
-		if Database.get_card(card_id) != null:
+		if Database.is_collectible_card(card_id):
 			valid_card_ids.append(card_id)
 	return valid_card_ids
 
@@ -2674,7 +2674,7 @@ func _apply_event_effect(effect_data: Dictionary) -> bool:
 			current_run.loadout_limit = max(1, current_run.loadout_limit + int(effect_data.get("amount", 0)))
 		"grant_random_card":
 			var card_id: String = String(effect_data.get("card_id", ""))
-			if card_id == "":
+			if card_id == "" or not Database.is_collectible_card(card_id):
 				return false
 			current_run.player_cards.append(card_id)
 			_auto_equip_card_if_room(card_id)

@@ -37,7 +37,7 @@ func _run() -> void:
 		return
 
 	for entry: Dictionary in catalog:
-		var sfx_id: String = String(entry.get("sfx_id", ""))
+		var sfx_id: String = String(entry.get("id", ""))
 		var play_button: Button = lab.find_child("Play_%s" % sfx_id, true, false) as Button
 		if play_button == null:
 			_fail("SFX lab smoke failed: play button was missing for %s" % sfx_id)
@@ -68,6 +68,28 @@ func _run() -> void:
 	if AudioManager.get_last_sfx_id() != "card_quick_slash":
 		_fail("SFX lab smoke failed: play button did not route to AudioManager")
 		return
+	for id: String in Database.get_boss_card_ids():
+		var button: Button = lab.find_child("Play_card_%s" % id, true, false) as Button
+		button.pressed.emit()
+		if AudioManager.get_last_sfx_id() != String(AudioManager.BOSS_CARD_SOUNDS[id]):
+			_fail("SFX lab smoke failed: boss alias playback failed for " + id)
+			return
+	search_edit.text = "timekeeper_"
+	search_edit.text_changed.emit(search_edit.text)
+	lab.call("_on_play_visible_pressed")
+	var playlist: Array = Array(lab.get("_playlist"))
+	if playlist.size() != 3:
+		_fail("SFX lab smoke failed: boss catalog IDs were not searchable")
+		return
+	for index: int in range(3):
+		if index > 0:
+			lab.call("_play_next")
+		var entry_id: String = String(playlist[index])
+		var boss_id: String = entry_id.trim_prefix("card_")
+		if AudioManager.get_last_sfx_id() != String(AudioManager.BOSS_CARD_SOUNDS[boss_id]):
+			_fail("SFX lab smoke failed: aliased playlist lost its entry")
+			return
+	lab.call("_stop_playlist")
 
 	var panel: DeveloperPanel = DeveloperPanel.new()
 	add_child(panel)

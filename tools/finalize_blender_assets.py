@@ -140,12 +140,13 @@ def expected_runtime_paths() -> dict[str, list[str]]:
     characters = ids["starters"] + ids["enemies"]
     return {
         "Cards": [f"assets/icons/cards/{x}.png" for x in ids["cards"]],
+        "Boss cards": [f"assets/icons/cards/{item['id']}.png" for item in json.loads((ROOT / "data/boss_cards.json").read_text(encoding="utf-8"))],
 
         "Fatigue": ["assets/icons/cards/environment_fatigue.png"],
         "Relics": [f"assets/icons/relics/{x}.png" for x in ids["relics"]],
         "Character models": [f"assets/models/battle/{x}.glb" for x in characters],
         "Portraits": [f"assets/portraits/{x}.png" for x in characters],
-        "Status": [f"assets/icons/status/{x}.png" for x in ("bleed", "slow", "weak", "vulnerable")],
+        "Status": [f"assets/icons/status/{x}.png" for x in ("bleed", "slow", "weak", "vulnerable", "attack_charge")],
         "UI": [f"assets/icons/ui/{x}.png" for x in UI_IDS + list(json.loads((ROOT / "data/ui_action_icons.json").read_text(encoding="utf-8")))],
         "Effects": [f"assets/icons/effects/{x}.png" for x in EFFECT_IDS],
         "Map": [f"assets/icons/map/{x}.png" for x in MAP_IDS],
@@ -168,6 +169,7 @@ def main() -> None:
     manifests = args.manifests or [*sorted((ROOT / "art_src/blender/characters").glob("qq_enemies_04.manifest.json")),
                                   *sorted((ROOT / "art_src/blender/relics").glob("*completion.manifest.json")),
                                   *sorted((ROOT / "art_src/blender/cards").glob("card_batches.manifest.json")),
+                                  *sorted((ROOT / "art_src/blender/cards").glob("*boss.manifest.json")),
                                   *sorted((ROOT / "art_src/blender/ui").glob("*.manifest.json")),
                                   *sorted((ROOT / "art_src/blender/environment").glob("*.manifest.json"))]
     provenance = json.loads(PROVENANCE.read_text(encoding="utf-8-sig"))

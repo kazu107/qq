@@ -57,8 +57,8 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 	_attack_label.text = "%d" % unit.get_attack_value()
 	_speed_label.text = "%d" % maxi(0, unit.speed)
 	_refresh_slots(unit.active_slots_used, unit.active_slot_max, preview_slot_cost)
-	_status_text = _build_status_text(unit.statuses)
-	_refresh_status_icons(unit.statuses)
+	_status_text = _build_status_text(unit.get_display_statuses())
+	_refresh_status_icons(unit.get_display_statuses())
 
 
 func get_hp_text() -> String:
@@ -87,9 +87,9 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 	var active: Array[String] = []
 	for raw: Variant in ids:
 		var id: String = String(raw)
-		if float(Dictionary(statuses[id]).get("duration", 0.0)) > 0.0:
+		if float(Dictionary(statuses[id]).get("duration", 0.0)) > 0.0 or int(Dictionary(statuses[id]).get("charges", 0)) > 0:
 			active.append(id)
-	var count: int = mini(4, active.size())
+	var count: int = mini(5, active.size())
 	for index: int in count:
 		var id: String = active[index]
 		if not _status_cells.has(id):
@@ -105,18 +105,21 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 			add_child(label)
 			_status_cells[id] = {"icon": icon, "time": label}
 		var cell: Dictionary = _status_cells[id]
-		var x: float = (float(index) - float(count - 1) * 0.5) * 0.62
+		var spacing: float = minf(0.62, 2.56 / maxf(1.0, count))
+		var x: float = (float(index) - float(count - 1) * 0.5) * spacing
 		var remaining: float = float(Dictionary(statuses[id]).get("duration", 0.0))
 		var icon: Sprite3D = cell["icon"]
 		icon.position = Vector3(x - 0.14, -0.64, 0.07)
 		icon.visible = true
 		icon.modulate = Color.WHITE
+		icon.pixel_size = 0.0021 if count > 4 else 0.0025
 		var label: Label3D = cell["time"]
 		label.position = Vector3(x + 0.14, -0.64, 0.08)
-		label.text = "%.1fs" % remaining
+		label.text = "x2" if id == "attack_charge" else "%.1fs" % remaining
+		label.pixel_size = 0.0044 if count > 4 else 0.005
 		label.visible = true
 		var corners: Array[Vector3] = []
-		for dx: float in [-0.30, 0.30]:
+		for dx: float in [-spacing * 0.48, spacing * 0.48]:
 			for dy: float in [-0.13, 0.13]:
 				corners.append(to_global(Vector3(x + dx, -0.64 + dy, 0.08)))
 		_status_regions.append({"id": id, "corners": corners, "tooltip": StatusInfoFormatter.tooltip(id, remaining)})
@@ -244,6 +247,9 @@ func _build_status_text(statuses: Dictionary) -> String:
 		var status_id: String = String(raw_status_id)
 		var status_data: Dictionary = Dictionary(statuses.get(status_id, {}))
 		var remaining: float = float(status_data.get("duration", 0.0))
+		if status_id == "attack_charge":
+			parts.append(Localization.get_status_name(status_id) + " x2")
+			continue
 		if remaining <= 0.0:
 			continue
 		parts.append("%s %.1fs" % [Localization.get_status_name(status_id), snappedf(remaining, 0.1)])

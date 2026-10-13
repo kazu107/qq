@@ -9,6 +9,7 @@ var hp: int = 1
 var max_hp: int = 1
 var shield: int = 0
 var attack: int = 0
+var next_attack_multiplier: float = 1.0
 var speed: int = 0
 var statuses: Dictionary = {}
 var active_slots_used: int = 0
@@ -33,6 +34,23 @@ func get_attack_value() -> int:
 	if has_status("weak"):
 		base_attack -= 2
 	return max(0, base_attack)
+
+
+func charge_next_attack(multiplier: float) -> void:
+	next_attack_multiplier = maxf(next_attack_multiplier, clampf(multiplier, 1.0, 2.0))
+
+
+func consume_next_attack_multiplier() -> float:
+	var multiplier: float = next_attack_multiplier
+	next_attack_multiplier = 1.0
+	return multiplier
+
+
+func get_display_statuses() -> Dictionary:
+	var display: Dictionary = statuses.duplicate(true)
+	if next_attack_multiplier > 1.0:
+		display["attack_charge"] = {"duration": 0.0, "charges": 1, "multiplier": next_attack_multiplier}
+	return display
 
 
 func get_cast_time_multiplier() -> float:
@@ -132,11 +150,15 @@ func tick_statuses(delta: float) -> Array[Dictionary]:
 
 
 func get_status_summary() -> String:
-	if statuses.is_empty():
+	var display: Dictionary = get_display_statuses()
+	if display.is_empty():
 		return Localization.get_text("status.none", "None")
 	var parts: Array[String] = []
-	for status_id in statuses.keys():
-		var remaining: float = snappedf(float(statuses[status_id].get("duration", 0.0)), 0.1)
+	for status_id in display.keys():
+		if String(status_id) == "attack_charge":
+			parts.append(Localization.get_status_name("attack_charge") + " x2")
+			continue
+		var remaining: float = snappedf(float(display[status_id].get("duration", 0.0)), 0.1)
 		parts.append("%s %.1fs" % [Localization.get_status_name(String(status_id)), remaining])
 	return ", ".join(parts)
 

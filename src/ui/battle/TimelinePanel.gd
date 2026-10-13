@@ -17,6 +17,7 @@ const CONTINUOUS_SHIFT_DISPLAY_TOLERANCE: float = 1.0
 
 var _title_label: Label
 var _summary_label: Label
+var _boss_forecast: Label
 var _header_row: HBoxContainer
 var _scale_row: HBoxContainer
 var _cards_scroll: Control
@@ -50,6 +51,14 @@ func _ready() -> void:
 	_title_label.name = "TimelineTitle"
 	_title_label.text = Localization.get_text("battle.timeline", "Timeline")
 	_header_row.add_child(_title_label)
+	_boss_forecast = Label.new()
+	_boss_forecast.name = "TimekeeperForecast"
+	_boss_forecast.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_boss_forecast.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_boss_forecast.add_theme_font_size_override("font_size", 16)
+	_boss_forecast.add_theme_color_override("font_color", Color("f5c16b"))
+	_boss_forecast.visible = false
+	_header_row.add_child(_boss_forecast)
 
 	_summary_label = Label.new()
 	_summary_label.name = "TimelineQueuedLabel"
@@ -129,6 +138,7 @@ func refresh_timeline(
 	opponent_unit: UnitState = null
 ) -> void:
 	var sorted_entries: Array[TimelineEntry] = entries.duplicate()
+	_refresh_boss_forecast(entries, battle_time, local_unit, opponent_unit)
 	sorted_entries.sort_custom(_compare_entries)
 	_summary_label.text = Localization.get_textf("timeline.queued", "Queued {count}", {
 		"count": sorted_entries.size(),
@@ -414,7 +424,29 @@ func _position_timeline_card(
 	var ratio: float = clamped_remaining / horizon
 	button.position = Vector2(axis_start + usable_width * ratio - TIMELINE_TILE_SIZE.x * 0.5, y_position)
 	button.size = CardButton.get_tile_extent(TIMELINE_TILE_SIZE)
-	button.z_index = z_index
+	button.z_index = PREVIEW_Z_INDEX - 1 if button.is_hovered() and button != _preview_button else z_index
+
+
+func _refresh_boss_forecast(entries: Array[TimelineEntry], time: float, local_unit: UnitState, opponent: UnitState) -> void:
+	if _boss_forecast == null:
+		return
+	_boss_forecast.visible = false
+	for entry: TimelineEntry in entries:
+		if entry.card_id != "timekeeper_final_strike":
+			continue
+		var unit: UnitState = local_unit if local_unit != null and local_unit.unit_id == "boss_timekeeper" else opponent
+		var target: UnitState = opponent if unit == local_unit else local_unit
+		if unit == null:
+			return
+		var context: Dictionary = CardTooltipResolver.build_context(entry.card_id, null, unit)
+		var card: CardDef = context["card"]
+		var damage: int = int(card.effects[0].get("amount", 0)) + (target.get_incoming_damage_bonus() if target != null else 0)
+		_boss_forecast.visible = true
+		_boss_forecast.text = Localization.get_textf("boss.timekeeper.forecast", "Final Strike: {seconds}s / {damage} damage{charge}", {
+			"seconds": "%.1f" % maxf(0.0, entry.scheduled_time - time), "damage": damage,
+			"charge": Localization.get_text("boss.timekeeper.amplified_forecast", " (x2 included)") if unit.next_attack_multiplier > 1.0 else ""})
+		_boss_forecast.tooltip_text = Localization.get_text("boss.timekeeper.forecast_hint", "Damage includes current attack, charge and Vulnerable, before shielding. Hover an overlapping card to bring it forward.")
+		return
 
 
 func _format_scale_seconds(seconds: float) -> String:

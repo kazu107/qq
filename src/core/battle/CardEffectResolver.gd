@@ -21,10 +21,18 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 	var messages: Array[String] = []
 	var actor := battle_state.get_unit(instance.owner_side)
 	var target := battle_state.get_opponent(instance.owner_side)
+	var attack_multiplier: float = 1.0
+	for effect: Dictionary in card_def.effects:
+		if String(effect.get("type", "")) == "deal_damage":
+			attack_multiplier = actor.consume_next_attack_multiplier()
+			break
 	for raw_effect in card_def.effects:
 		var effect := Dictionary(raw_effect)
 		var effect_type := String(effect.get("type", ""))
 		match effect_type:
+			"next_attack_multiplier":
+				actor.charge_next_attack(float(effect.get("multiplier", 2.0)))
+				messages.append(Localization.get_text("battle.log.attack_charge", "Next resolved attack is amplified."))
 			"consume_shield":
 				messages.append(Localization.get_textf("battle.log.card_consume_shield", "{card_name} consumed {amount} shield", {
 					"card_name": card_def.name,
@@ -41,7 +49,7 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 					if target.has_status(required_status):
 						amount += int(effect.get("bonus_amount", 0))
 				var hp_before: int = target.hp
-				var result := DamageResolver.apply_damage(actor, target, amount)
+				var result := DamageResolver.apply_damage(actor, target, amount, attack_multiplier)
 				engine.resolution_metrics["damage"] = int(engine.resolution_metrics.get("damage", 0)) + mini(hp_before, int(result["hp_damage"]))
 				engine.resolution_metrics["absorbed"] = int(engine.resolution_metrics.get("absorbed", 0)) + int(result["shield_absorb"])
 				engine.prevent_lethal(_opponent_side(instance.owner_side))

@@ -4,6 +4,11 @@ const SFX_PATH_TEMPLATE := "res://assets/audio/sfx/%s.wav"
 const SFX_CATALOG_PATH := "res://data/sfx_catalog.json"
 const PLAYER_POOL_SIZE := 12
 const MAX_HISTORY := 96
+const BOSS_CARD_SOUNDS: Dictionary = {
+	"timekeeper_final_strike": "card_meteor_crash",
+	"timekeeper_amplify": "card_time_flow_control",
+	"timekeeper_time_mark": "card_weak_shot",
+}
 const SFX_VOLUME_OFFSETS_DB: Dictionary = {
 	"run_start": -3.0,
 	"run_resume": -3.0,
@@ -142,6 +147,7 @@ func play_card_resolution(card_def: CardDef, fully_blocked_by_shield: bool = fal
 	if fully_blocked_by_shield:
 		return play_sfx("battle_full_block", 0.92)
 	var card_sfx_id: String = "card_%s" % card_def.id
+	card_sfx_id = String(BOSS_CARD_SOUNDS.get(card_def.id, card_sfx_id))
 	if has_sfx(card_sfx_id):
 		return play_sfx(card_sfx_id)
 	return play_sfx(_resolve_card_resolution_sfx(card_def))
@@ -256,21 +262,23 @@ func _build_sfx_catalog() -> Array[Dictionary]:
 				result.append(entry)
 
 	var card_ids: Array[String] = Database.get_all_card_ids()
+	card_ids.append_array(Database.get_boss_card_ids())
 	card_ids.sort()
 	for card_id: String in card_ids:
 		var card_def: CardDef = Database.get_card(card_id)
 		if card_def == null:
 			continue
 		var card_sfx_id: String = "card_%s" % card_id
+		var playback_id: String = String(BOSS_CARD_SOUNDS.get(card_id, card_sfx_id))
 		result.append({
 			"id": card_sfx_id,
-			"sfx_id": card_sfx_id,
+			"sfx_id": playback_id,
 			"category": "card",
 			"kind": "card",
 			"source_id": card_id,
 			"name_ja": card_def.name,
 			"name_en": card_def.name,
-			"available": has_sfx(card_sfx_id),
+			"available": has_sfx(playback_id),
 		})
 
 	var relic_ids: Array[String] = Database.get_all_relic_ids()

@@ -1,6 +1,7 @@
 extends Node
 
 const CARDS_PATH := "res://data/cards.json"
+const BOSS_CARDS_PATH := "res://data/boss_cards.json"
 const ENEMIES_PATH := "res://data/enemies.json"
 const STARTERS_PATH := "res://data/starters.json"
 const REWARDS_PATH := "res://data/rewards.json"
@@ -11,6 +12,7 @@ const ACHIEVEMENTS_PATH := "res://data/achievements.json"
 const BATTLE_VISUALS_PATH := "res://data/battle_visuals.json"
 
 var cards: Dictionary = {}
+var boss_cards: Dictionary = {}
 var enemies: Dictionary = {}
 var starters: Array[Dictionary] = []
 var rewards: Dictionary = {}
@@ -26,6 +28,7 @@ var load_errors: Array[String] = []
 
 func load_all() -> void:
 	cards.clear()
+	boss_cards.clear()
 	enemies.clear()
 	starters.clear()
 	rewards.clear()
@@ -39,6 +42,10 @@ func load_all() -> void:
 	load_errors.clear()
 
 	_load_cards()
+	for data: Dictionary in _load_json_array(BOSS_CARDS_PATH):
+		var boss_card: CardDef = CardDef.from_dict(data)
+		boss_card.boss_only = true
+		boss_cards[boss_card.id] = boss_card
 	_load_enemies()
 	starters = _load_json_dictionary_array(STARTERS_PATH)
 	rewards = _load_json_dictionary(REWARDS_PATH)
@@ -64,7 +71,18 @@ func load_all() -> void:
 
 
 func get_card(card_id: String) -> CardDef:
-	return cards.get(card_id) as CardDef
+	return cards.get(card_id, boss_cards.get(card_id)) as CardDef
+
+
+func is_collectible_card(card_id: String) -> bool:
+	return cards.has(card_id)
+
+
+func get_boss_card_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for id: String in boss_cards:
+		ids.append(id)
+	return ids
 
 
 func get_enemy(enemy_id: String) -> EnemyDef:
@@ -199,6 +217,10 @@ func _load_achievements() -> void:
 
 
 func _apply_localization() -> void:
+	for id: String in boss_cards:
+		var card: CardDef = boss_cards[id]
+		card.name = Localization.get_text("card.%s.name" % id, card.name)
+		card.description = Localization.get_text("card.%s.description" % id, card.description)
 	for raw_card_id in cards.keys():
 		var card_id: String = String(raw_card_id)
 		var card_def: CardDef = cards[card_id] as CardDef

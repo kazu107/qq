@@ -212,6 +212,8 @@ static func build_default_equipped_cards(card_ids: Array[String], limit: int) ->
 	var equipped: Array[String] = []
 	var current_cost: int = 0
 	for card_id in card_ids:
+		if not Database.is_collectible_card(card_id):
+			continue
 		var card_def: CardDef = Database.get_card(card_id)
 		var card_cost: int = 0
 		if card_def != null:

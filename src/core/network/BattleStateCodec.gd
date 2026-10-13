@@ -161,6 +161,7 @@ static func _encode_unit(unit: UnitState) -> Dictionary:
 		"max_hp": unit.max_hp,
 		"shield": unit.shield,
 		"attack": unit.attack,
+		"next_attack_multiplier": unit.next_attack_multiplier,
 		"speed": unit.speed,
 		"statuses": unit.statuses.duplicate(true),
 		"active_slots_used": unit.active_slots_used,
@@ -185,6 +186,7 @@ static func _decode_unit(payload: Dictionary) -> UnitState:
 	unit.max_hp = maxi(1, int(payload.get("max_hp", 1)))
 	unit.shield = maxi(0, int(payload.get("shield", 0)))
 	unit.attack = int(payload.get("attack", 0))
+	unit.next_attack_multiplier = clampf(float(payload.get("next_attack_multiplier", 1.0)), 1.0, 2.0)
 	unit.speed = int(payload.get("speed", 0))
 	unit.statuses = Dictionary(payload.get("statuses", {})).duplicate(true)
 	unit.active_slots_used = maxi(0, int(payload.get("active_slots_used", 0)))

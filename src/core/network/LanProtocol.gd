@@ -21,6 +21,7 @@ const MAX_COMMANDS_PER_SECOND: int = 12
 const RECONNECT_GRACE_SECONDS: float = 15.0
 const CONTENT_PATHS: Array[String] = [
 	"res://data/cards.json",
+	"res://data/boss_cards.json",
 	"res://data/relics.json",
 	"res://data/starters.json",
 	"res://data/battle_visuals.json",
@@ -120,7 +121,7 @@ static func validate_profile(raw_profile: Dictionary) -> Dictionary:
 	if deck.is_empty() or deck.size() > MAX_DECK_CARDS:
 		return _invalid("invalid_deck_size")
 	for card_id in deck:
-		if Database.get_card(card_id) == null:
+		if not Database.is_collectible_card(card_id):
 			return _invalid("invalid_card")
 
 	var starter_run: RunState = RunState.from_starter(starter_data, 1)

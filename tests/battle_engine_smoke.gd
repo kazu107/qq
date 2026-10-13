@@ -49,4 +49,5 @@ func _process(delta: float) -> void:
 
 	if battle_state.winner != "":
 		print("Battle engine smoke passed: winner=%s time=%.2f" % [battle_state.winner, battle_state.battle_time])
+		_engine.dispose()
 		get_tree().quit()

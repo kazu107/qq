@@ -41,6 +41,7 @@ var _volume_value: Label
 var _play_visible_button: Button
 var _playlist_timer: Timer
 var _playlist: Array[String] = []
+var _playlist_sounds: Dictionary = {}
 var _playlist_labels: Dictionary = {}
 var _playlist_waits: Dictionary = {}
 var _playlist_index: int = 0
@@ -204,10 +205,11 @@ func _build_ui() -> void:
 func _build_tiles() -> void:
 	for entry: Dictionary in _catalog:
 		var sfx_id: String = String(entry.get("sfx_id", entry.get("id", "")))
+		var entry_id: String = String(entry.get("id", sfx_id))
 		if sfx_id == "":
 			continue
 		var panel: PanelContainer = PanelContainer.new()
-		panel.name = "SfxTile_%s" % sfx_id
+		panel.name = "SfxTile_%s" % entry_id
 		panel.custom_minimum_size = TILE_MINIMUM_SIZE
 		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		panel.add_theme_stylebox_override("panel", _make_tile_style(String(entry.get("category", "ui"))))
@@ -236,7 +238,7 @@ func _build_tiles() -> void:
 
 		var available: bool = bool(entry.get("available", false))
 		var play_button: Button = Button.new()
-		play_button.name = "Play_%s" % sfx_id
+		play_button.name = "Play_%s" % entry_id
 		play_button.text = _localized("再生", "Play")
 		play_button.custom_minimum_size = Vector2(76.0, 34.0)
 		play_button.disabled = not available
@@ -250,7 +252,8 @@ func _build_tiles() -> void:
 		content.add_child(display_name)
 
 		var id_label: Label = Label.new()
-		id_label.text = sfx_id
+		id_label.text = entry_id
+		id_label.tooltip_text = sfx_id
 		id_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		id_label.add_theme_font_size_override("font_size", 13)
 		id_label.add_theme_color_override("font_color", UiTheme.TEXT_MUTED if available else Color(1.0, 0.38, 0.32, 1.0))
@@ -273,8 +276,9 @@ func _apply_filter() -> void:
 	for tile: Dictionary in _tiles:
 		var entry: Dictionary = Dictionary(tile.get("entry", {}))
 		var category: String = String(entry.get("category", ""))
-		var haystack: String = ("%s %s" % [
+		var haystack: String = ("%s %s %s" % [
 			_entry_name(entry),
+			String(entry.get("id", "")),
 			String(entry.get("sfx_id", entry.get("id", ""))),
 		]).to_lower()
 		var visible: bool = (selected_category == "all" or category == selected_category) and (query == "" or haystack.contains(query))
@@ -312,9 +316,11 @@ func _on_play_visible_pressed() -> void:
 			continue
 		var entry: Dictionary = Dictionary(tile.get("entry", {}))
 		var sfx_id: String = String(entry.get("sfx_id", entry.get("id", "")))
-		_playlist.append(sfx_id)
-		_playlist_labels[sfx_id] = _entry_name(entry)
-		_playlist_waits[sfx_id] = maxf(0.4, float(entry.get("seconds", _default_entry_seconds(entry))) + 0.15)
+		var entry_id: String = String(entry.get("id", sfx_id))
+		_playlist.append(entry_id)
+		_playlist_sounds[entry_id] = sfx_id
+		_playlist_labels[entry_id] = _entry_name(entry)
+		_playlist_waits[entry_id] = maxf(0.4, float(entry.get("seconds", _default_entry_seconds(entry))) + 0.15)
 	_playlist_index = 0
 	_play_next()
 
@@ -324,14 +330,14 @@ func _play_next() -> void:
 		_status_label.text = _localized("表示中のSEをすべて再生しました。", "Finished playing visible SFX.")
 		_stop_playlist()
 		return
-	var sfx_id: String = _playlist[_playlist_index]
+	var entry_id: String = _playlist[_playlist_index]
 	_playlist_index += 1
-	AudioManager.play_sfx(sfx_id)
+	AudioManager.play_sfx(String(_playlist_sounds.get(entry_id, entry_id)))
 	_status_label.text = _localized(
-		"連続再生 %d / %d: %s" % [_playlist_index, _playlist.size(), String(_playlist_labels.get(sfx_id, sfx_id))],
-		"Playlist %d / %d: %s" % [_playlist_index, _playlist.size(), String(_playlist_labels.get(sfx_id, sfx_id))]
+		"連続再生 %d / %d: %s" % [_playlist_index, _playlist.size(), String(_playlist_labels.get(entry_id, entry_id))],
+		"Playlist %d / %d: %s" % [_playlist_index, _playlist.size(), String(_playlist_labels.get(entry_id, entry_id))]
 	)
-	_playlist_timer.wait_time = float(_playlist_waits.get(sfx_id, PLAY_INTERVAL_SECONDS))
+	_playlist_timer.wait_time = float(_playlist_waits.get(entry_id, PLAY_INTERVAL_SECONDS))
 	_playlist_timer.start()
 
 
@@ -345,6 +351,7 @@ func _stop_playlist() -> void:
 	if _playlist_timer != null:
 		_playlist_timer.stop()
 	_playlist.clear()
+	_playlist_sounds.clear()
 	_playlist_labels.clear()
 	_playlist_waits.clear()
 	_playlist_index = 0

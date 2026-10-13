@@ -32,6 +32,8 @@ func _command(arguments: Array) -> void:
 		_open_screen(String(payload.get("screen", "hub")))
 	elif String(payload.get("action", "")) == "battle_simulate":
 		_simulate_battle_result()
+	elif String(payload.get("action", "")) == "timekeeper_advance":
+		_advance_timekeeper(float(payload.get("seconds", 0.0)))
 	elif String(payload.get("action", "")) == "finish_score":
 		get_tree().current_scene.call("_finish_score_animation")
 	elif String(payload.get("action", "")) == "status_icons":
@@ -53,6 +55,22 @@ func _command(arguments: Array) -> void:
 					screen.call("_open_preview", entry)
 					break
 	_pending_frames = 8
+
+
+func _advance_timekeeper(seconds: float) -> void:
+	var battle: Control = get_tree().current_scene as Control
+	if battle == null or battle.scene_file_path != SceneRouter.BATTLE_SCENE:
+		return
+	var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+	if engine.battle_state.enemy.unit_id != "boss_timekeeper":
+		return
+	battle.set_process(false)
+	engine.set_audio_enabled(false)
+	engine.start_battle()
+	var target: float = clampf(seconds, engine.battle_state.battle_time, 55.0)
+	while engine.battle_state.battle_time < target - 0.001 and engine.battle_state.winner == "":
+		engine.update(minf(0.05, target - engine.battle_state.battle_time))
+	battle.call("_refresh_ui", 1.0)
 
 
 func _seek_tutorial(key: String) -> void:
@@ -168,6 +186,13 @@ func _open_screen(screen: String) -> void:
 			Game.start_new_run("balanced", 4242)
 			Game.developer_open_battle("scout")
 			SceneRouter.go_to_battle()
+		"timekeeper":
+			Game.settings["developer_mode"] = true
+			Game.start_new_run("balanced", 4242)
+			Game.current_run.max_hp = 500
+			Game.current_run.player_hp = 500
+			Game.developer_open_battle("boss_timekeeper")
+			SceneRouter.go_to_battle()
 		"reward":
 			Game.start_new_run("balanced", 4242)
 			Game.developer_open_reward()
@@ -192,6 +217,8 @@ func _open_screen(screen: String) -> void:
 
 func _process(_delta: float) -> void:
 	var current: Node = get_tree().current_scene
+	if current != null and current.scene_file_path == SceneRouter.BATTLE_SCENE and not current.is_processing():
+		current.call("_refresh_ui", 1.0)
 	if current != null and current.has_method("is_tutorial_mode") and bool(current.call("is_tutorial_mode")):
 		var panel: TimelinePanel = current.get("_timeline_panel") as TimelinePanel
 		var director: BattleTutorialDirector = current.get("_tutorial_director") as BattleTutorialDirector
@@ -299,6 +326,29 @@ func _inspect() -> Dictionary:
 				"enemy_status": _point_values(stage.project_world_position(enemy_status.global_position)),
 				"status_corners": _project_status_corners(stage, player_status) + _project_status_corners(stage, enemy_status),
 			}
+			var engine: RealtimeBattleEngine = screen.get("_engine") as RealtimeBattleEngine
+			if engine.battle_state.enemy.unit_id == "boss_timekeeper":
+				var panel: TimelinePanel = screen.get("_timeline_panel") as TimelinePanel
+				var forecast: Label = panel.find_child("TimekeeperForecast", true, false) as Label
+				var charge_regions: Array[Dictionary] = []
+				for region: Dictionary in enemy_status.get_status_regions():
+					var bounds: Rect2 = Rect2()
+					var first: bool = true
+					for corner: Vector3 in region["corners"]:
+						var point: Vector2 = stage.global_position + stage.project_world_position(corner)
+						bounds = Rect2(point, Vector2.ZERO) if first else bounds.expand(point)
+						first = false
+					charge_regions.append({"id": region["id"], "rect": _rect_values(bounds)})
+				var cards: Array[Dictionary] = []
+				for card: CardButton in panel._cards:
+					if card.visible:
+						cards.append({"id": card._art_rect.texture.resource_path.get_file().get_basename(), "rect": _rect_values(card.get_global_rect()), "z": card.z_index})
+				result["timekeeper"] = {"time": engine.battle_state.battle_time,
+					"multiplier": engine.battle_state.enemy.next_attack_multiplier, "hp": engine.battle_state.player.hp,
+					"vulnerable": engine.battle_state.player.has_status("vulnerable"),
+					"forecast": forecast.text, "forecast_visible": forecast.visible, "forecast_rect": _rect_values(forecast.get_global_rect()),
+					"regions": charge_regions, "cards": cards,
+					"art": [CardButton._load_card_texture("timekeeper_final_strike").resource_path, CardButton._load_card_texture("timekeeper_amplify").resource_path, CardButton._load_card_texture("timekeeper_time_mark").resource_path]}
 			var outcome: BattleResultAnalysisPanel = screen.find_child("BattleResultAnalysisPanel", true, false) as BattleResultAnalysisPanel
 			if outcome != null:
 				result["outcome"] = {"visible": outcome.visible, "details": outcome._details_modal.visible, "title": outcome._title.text,

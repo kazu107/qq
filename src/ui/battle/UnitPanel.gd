@@ -338,7 +338,7 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 	_attack_value_label.text = "%d" % unit.get_attack_value()
 	_speed_value_label.text = "%d" % max(0, unit.speed)
 	_status_label.text = Localization.get_text("unit.status_icons", "Status")
-	_refresh_status_icons(unit.statuses)
+	_refresh_status_icons(unit.get_display_statuses())
 
 	_last_stat_line = "%d:%d" % [unit.get_attack_value(), max(0, unit.speed)]
 	_last_status_line = status_line
@@ -354,7 +354,7 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		var status_id: String = String(raw_status_id)
 		var status_data: Dictionary = Dictionary(statuses.get(status_id, {}))
 		var remaining: float = float(status_data.get("duration", 0.0))
-		if remaining <= 0.0:
+		if remaining <= 0.0 and int(status_data.get("charges", 0)) <= 0:
 			continue
 		active_status_ids.append(status_id)
 		var icon: TextureRect = _get_or_create_status_icon(status_id)
@@ -365,7 +365,7 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		icon.self_modulate = Color.WHITE
 		icon.tooltip_text = ""
 		_status_tooltip_texts[status_id] = tooltip_text
-		time_label.text = _format_status_remaining(remaining)
+		time_label.text = "x2" if status_id == "attack_charge" else _format_status_remaining(remaining)
 		time_label.self_modulate = STATUS_TIME_COLOR
 		if _status_hovered_id == status_id:
 			_status_hovered_icon = icon

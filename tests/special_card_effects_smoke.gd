@@ -1,6 +1,12 @@
 extends Node
 
 var _failed: bool = false
+var _engines: Array[RealtimeBattleEngine] = []
+
+
+func _exit_tree() -> void:
+	for engine: RealtimeBattleEngine in _engines:
+		engine.dispose()
 
 
 func _ready() -> void:
@@ -157,6 +163,7 @@ func _test_guardian_shield_cycle() -> bool:
 	Game.current_run.player_cards = ["guard"]
 	Game.current_run.equipped_cards = ["guard"]
 	var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	_engines.append(engine)
 	engine.setup(Game.current_run, "guardian")
 	engine.start_battle()
 	var used_shield_spend: bool = false
@@ -442,6 +449,7 @@ func _setup_engine(card_ids: Array[String]) -> RealtimeBattleEngine:
 	Game.current_run.loadout_limit = 40
 	Game.current_run.player_hp = Game.current_run.max_hp
 	var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	_engines.append(engine)
 	engine.setup(Game.current_run, "scout")
 	return engine
 

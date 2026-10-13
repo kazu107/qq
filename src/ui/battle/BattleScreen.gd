@@ -1545,6 +1545,8 @@ func _refresh_developer_panel() -> void:
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
 			{"id": "DevBattleDetails", "label": Localization.get_text("battle.analysis.details", "Battle details"), "callback": Callable(self, "_on_dev_battle_details"), "disabled": _lan_mode},
+			{"id": "DevBossCharge", "label": Localization.get_text("boss.timekeeper.dev_charge", "Boss charge x2"), "callback": func() -> void: _on_dev_boss_charge(true), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
+			{"id": "DevBossClearCharge", "label": Localization.get_text("boss.timekeeper.dev_clear", "Clear boss charge"), "callback": func() -> void: _on_dev_boss_charge(false), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
 			{"id": "DevWinBattle", "label": Localization.get_text("battle.dev.force_victory", "Force Victory"), "callback": Callable(self, "_on_dev_force_victory")},
 			{"id": "DevLoseBattle", "label": Localization.get_text("battle.dev.force_defeat", "Force Defeat"), "callback": Callable(self, "_on_dev_force_defeat")},
 			{"id": "DevRestoreHp", "label": Localization.get_text("map.dev.restore_hp", "Restore HP"), "callback": Callable(self, "_on_dev_restore_hp")},
@@ -1557,6 +1559,18 @@ func _refresh_developer_panel() -> void:
 func _on_dev_battle_details() -> void:
 	if Game.is_developer_mode_enabled() and not _lan_mode and _engine.battle_state != null:
 		_analysis_panel.show_details(_engine.build_summary(false), _local_side)
+
+
+func _on_dev_boss_charge(enabled: bool) -> void:
+	if not Game.is_developer_mode_enabled() or _lan_mode or _engine.battle_state == null:
+		return
+	if _engine.battle_state.enemy.unit_id != "boss_timekeeper":
+		return
+	if enabled:
+		_engine.battle_state.enemy.charge_next_attack(2.0)
+	else:
+		_engine.battle_state.enemy.consume_next_attack_multiplier()
+	_refresh_ui(1.0)
 
 
 func _on_dev_fatigue() -> void:

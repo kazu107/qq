@@ -1,11 +1,16 @@
 {
-  "updated_at": "2026-10-12",
+  "updated_at": "2026-10-13",
   "complete": true,
-  "registered_assets": 318,
+  "registered_assets": 322,
   "coverage": {
     "Cards": {
       "done": 93,
       "total": 93,
+      "remaining": []
+    },
+    "Boss cards": {
+      "done": 3,
+      "total": 3,
       "remaining": []
     },
     "Fatigue": {
@@ -29,8 +34,8 @@
       "remaining": []
     },
     "Status": {
-      "done": 4,
-      "total": 4,
+      "done": 5,
+      "total": 5,
       "remaining": []
     },
     "UI": {

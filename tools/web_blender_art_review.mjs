@@ -72,7 +72,7 @@ try {
     await click('ArtPreviewClose');
     state = await command('inspect');
     assert.equal(state.art.preview, false);
-    for (const asset_id of ['action_sell', 'action_ready', 'environment_fatigue', 'boss_eternity_zero', 'environment_field']) {
+    for (const asset_id of ['timekeeper_final_strike', 'timekeeper_amplify', 'timekeeper_time_mark', 'attack_charge', 'action_sell', 'action_ready', 'environment_fatigue', 'boss_eternity_zero', 'environment_field']) {
       state = await command('art_preview', undefined, { asset_id });
       validateBounds(state);
       assert.equal(state.art.preview, true, `Preview failed: ${asset_id}`);

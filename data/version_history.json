@@ -1,9 +1,28 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.35.0",
+  "current_version": "QQ-0.36.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.36.0", "date": "2026-10-13",
+      "title_ja": "タイムキーパーの大技準備コンボ",
+      "title_en": "Timekeeper's prepared strike combo",
+      "changes_ja": [
+        "タイムキーパーを開幕40秒詠唱の大技、次攻撃2倍、脆弱付与を順番に使う専用AIへリワークしました。HP77・攻撃6・速度6は維持し、旧定期遅延は廃止しています。",
+        "次攻撃2倍は攻撃力込みで計算し、詠唱中のカードにも適用します。重複せず、攻撃カード1枚の解決で消費します。大技は中断不可、強化・刻印は中断可能です。",
+        "専用カード3枚と強化アイコンをBlenderで制作しました。専用カードはショップ・報酬・プレイヤーデッキ・オンラインのプロフィールに混ざりません。",
+        "3D状態プレートに倍化アイコンを追加し、タイムラインには大技の残り時間と補正込みの威力を表示します。重なったカードはホバーで手前に表示できます。",
+        "開発者モードにボス倍化の切り替えを追加し、リプレイにも強化状態を保存します。専用カードのSEは既存の大技・時間操作・弱体化音を使用します。"
+      ],
+      "changes_en": [
+        "Rework Timekeeper into a scripted 40-second opening strike, next-attack amplification and late Vulnerable combo; preserve base stats and remove periodic delay.",
+        "Double attack-inclusive damage once per resolved attack card, including already-casting cards. Amplification does not stack; support is interruptible, the strike is not.",
+        "Create three Blender boss cards and a charge icon, isolated from collectible pools and player profiles.",
+        "Show live charge status and a strike damage/countdown forecast; hover overlapping timeline cards to bring them forward.",
+        "Add developer charge toggles, preserve charge in replays, and route boss card sounds to existing heavy, time and status effects."
+      ]
+    },
     {
       "version": "QQ-0.35.0",
       "date": "2026-10-12",

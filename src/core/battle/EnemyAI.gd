@@ -4,13 +4,22 @@ class_name EnemyAI
 var think_interval: float = 2.4
 var side: String = "enemy"
 var _think_timer: float = 0.0
+var _timekeeper_cycle: int = -1
+var _amplify_attempted: bool = false
+var _mark_attempted: bool = false
 
 
 func reset() -> void:
 	_think_timer = 0.0
+	_timekeeper_cycle = -1
+	_amplify_attempted = false
+	_mark_attempted = false
 
 
 func update(engine: RealtimeBattleEngine, delta: float) -> void:
+	if side == "enemy" and engine.battle_state != null and engine.battle_state.enemy.unit_id == "boss_timekeeper":
+		_update_timekeeper(engine)
+		return
 	_think_timer -= delta
 	if _think_timer > 0.0:
 		return
@@ -42,6 +51,37 @@ func update(engine: RealtimeBattleEngine, delta: float) -> void:
 			best_runtime = runtime_state
 	if best_runtime != null:
 		engine.request_use_card(side, best_runtime.runtime_id)
+
+
+func _update_timekeeper(engine: RealtimeBattleEngine) -> void:
+	var state: BattleState = engine.battle_state
+	if state.winner != "" or not state.enemy.is_alive():
+		return
+	var strike: ActiveCardInstance = null
+	for instance: ActiveCardInstance in state.get_active_instances_for_side("enemy"):
+		if instance.card_id == "timekeeper_final_strike":
+			strike = instance
+			break
+	if strike == null:
+		_use_timekeeper_card(engine, "timekeeper_final_strike")
+		return
+	if _timekeeper_cycle != strike.instance_id:
+		_timekeeper_cycle = strike.instance_id
+		_amplify_attempted = false
+		_mark_attempted = false
+	# Register once per cycle so interrupting the supporting cards is meaningful.
+	if not _amplify_attempted and state.battle_time - strike.created_at >= 6.0:
+		_amplify_attempted = _use_timekeeper_card(engine, "timekeeper_amplify")
+		return
+	if not _mark_attempted and strike.scheduled_time - state.battle_time <= 8.0:
+		_mark_attempted = _use_timekeeper_card(engine, "timekeeper_time_mark")
+
+
+func _use_timekeeper_card(engine: RealtimeBattleEngine, id: String) -> bool:
+	for runtime: CardRuntimeState in engine.battle_state.enemy.card_runtime_states:
+		if runtime.card_id == id and runtime.can_use():
+			return engine.request_use_card("enemy", runtime.runtime_id)
+	return false
 
 
 func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, card_def: CardDef) -> float:

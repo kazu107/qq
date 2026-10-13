@@ -2,6 +2,7 @@ extends RefCounted
 class_name CardDef
 
 var id: String = ""
+var boss_only: bool = false
 var name: String = ""
 var description: String = ""
 var rarity: String = "common"
@@ -20,6 +21,7 @@ var upgrade_profile: Dictionary = {}
 static func from_dict(data: Dictionary) -> CardDef:
 	var card_def := CardDef.new()
 	card_def.id = String(data.get("id", ""))
+	card_def.boss_only = bool(data.get("boss_only", false))
 	card_def.name = String(data.get("name", card_def.id))
 	card_def.description = String(data.get("description", ""))
 	card_def.rarity = String(data.get("rarity", "common"))
@@ -39,6 +41,7 @@ static func from_dict(data: Dictionary) -> CardDef:
 func to_dict() -> Dictionary:
 	return {
 		"id": id,
+		"boss_only": boss_only,
 		"name": name,
 		"description": description,
 		"rarity": rarity,

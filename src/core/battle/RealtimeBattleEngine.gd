@@ -205,6 +205,8 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 	var card_def: CardDef = _get_card_def(side, runtime_state.card_id)
 	if card_def == null:
 		return false
+	if card_def.boss_only and (side == "player" or _pvp_mode):
+		return false
 	var commit_profile: Dictionary = _relic_controller.build_commit_profile(side, card_def)
 	if not _relic_controller.can_commit(side, card_def, commit_profile):
 		return false
@@ -410,6 +412,8 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 		queued_card_id = source_instance.card_id
 	var card_def: CardDef = _get_card_def(side, queued_card_id)
 	if card_def == null:
+		return 0
+	if card_def.boss_only and (side == "player" or _pvp_mode):
 		return 0
 
 	var unit: UnitState = battle_state.get_unit(side)
@@ -625,6 +629,8 @@ func _start_battle() -> void:
 		}
 	))
 	_play_sfx("boss_intro" if battle_state.enemy.unit_id.begins_with("boss_") else "battle_start")
+	if not _pvp_mode and _enemy_ai_enabled and battle_state.enemy.unit_id == "boss_timekeeper":
+		_enemy_ai.update(self, 0.0)
 
 
 func _tick_shields(delta: float) -> void:
@@ -1222,6 +1228,7 @@ func _snapshot_unit(unit: UnitState) -> Dictionary:
 		"max_hp": unit.max_hp,
 		"shield": unit.shield,
 		"attack": unit.attack,
+		"next_attack_multiplier": unit.next_attack_multiplier,
 		"speed": unit.speed,
 		"statuses": unit.statuses.duplicate(true),
 		"active_slots_used": unit.active_slots_used,

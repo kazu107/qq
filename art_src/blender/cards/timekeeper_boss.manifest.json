@@ -1,0 +1,81 @@
+{
+  "batch_id": "timekeeper_boss_rework",
+  "blender_version": "5.2.2 LTS",
+  "generator": "tools/blender/build_timekeeper_boss.py",
+  "generator_sha256": {
+    "tools/blender/build_timekeeper_boss.py": "fa3181af90179f5530685f12adc90dc1b5e51c16ba6021286d6a21ce74f2cbc8",
+    "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+  },
+  "source": "art_src/blender/cards/timekeeper_boss.blend",
+  "source_sha256": "24a59d1ce899d2ec46b9943239b268cec85ae448a8fc786aea3387eed97cb2c7",
+  "assets": [
+    {
+      "id": "timekeeper_final_strike",
+      "visual_id": "timekeeper_final_strike",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/timekeeper_final_strike.png",
+      "source_path": "art_src/blender/cards/timekeeper_boss.blend",
+      "source_collection": "boss_timekeeper_final_strike",
+      "size": 512,
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "objects": 26,
+      "render_path": "tools/.local/timekeeper-art/timekeeper_final_strike.png",
+      "render_sha256": "40064ad6959a133c11df6d89ec3ce8ddc229154a2ea7023d74f49a7e2a98a79d",
+      "export_sha256": "b1553fc724ddedc62396d28494c84bd12115dc459e66e00771cfa801666b96db"
+    },
+    {
+      "id": "timekeeper_amplify",
+      "visual_id": "timekeeper_amplify",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/timekeeper_amplify.png",
+      "source_path": "art_src/blender/cards/timekeeper_boss.blend",
+      "source_collection": "boss_timekeeper_amplify",
+      "size": 512,
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "objects": 41,
+      "render_path": "tools/.local/timekeeper-art/timekeeper_amplify.png",
+      "render_sha256": "0439a46eec8f4594a408a7dbc9272f93cd2a1e48742041da2656d739138af374",
+      "export_sha256": "78d55058b8d0cb5ab06a41d73de9681996390737b55ee555a472590ecaa1a671"
+    },
+    {
+      "id": "timekeeper_time_mark",
+      "visual_id": "timekeeper_time_mark",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/timekeeper_time_mark.png",
+      "source_path": "art_src/blender/cards/timekeeper_boss.blend",
+      "source_collection": "boss_timekeeper_time_mark",
+      "size": 512,
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "objects": 23,
+      "render_path": "tools/.local/timekeeper-art/timekeeper_time_mark.png",
+      "render_sha256": "bdca1f0ea5c788ab32eed9cee336040177e997ba1a7e5b8063ee06c608e17410",
+      "export_sha256": "e4452863fa704d2e019b75a0dace8a71c645689a4601ba267b50addc673c8166"
+    },
+    {
+      "id": "attack_charge",
+      "visual_id": "attack_charge",
+      "category": "status",
+      "runtime_path": "assets/icons/status/attack_charge.png",
+      "source_path": "art_src/blender/cards/timekeeper_boss.blend",
+      "source_collection": "boss_attack_charge",
+      "size": 96,
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "objects": 7,
+      "render_path": "tools/.local/timekeeper-art/attack_charge.png",
+      "render_sha256": "227eec7bd7bb3ca21de5c3b2ccd84033f0b6378f6319b853146e8facc55bb2a7",
+      "export_sha256": "2275d6cdef30cc6696ee408423779b81bdad2fa85f01ca9a77afb8a039f8aaec"
+    }
+  ]
+}

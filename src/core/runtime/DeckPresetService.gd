@@ -46,7 +46,7 @@ static func valid_cards(cards: Array[String]) -> bool:
 	if cards.is_empty() or cards.size() > MAX_CARDS:
 		return false
 	for card_id in cards:
-		if Database.get_card(card_id) == null:
+		if not Database.is_collectible_card(card_id):
 			return false
 	return true
 

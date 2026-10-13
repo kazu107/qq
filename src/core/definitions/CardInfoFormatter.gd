@@ -49,6 +49,8 @@ static func format_grade_label(tier: int) -> String:
 static func _describe_effect(effect: Dictionary, compact: bool, comparison_effect: Dictionary = {}, rich: bool = false) -> String:
 	var effect_type: String = String(effect.get("type", ""))
 	match effect_type:
+		"next_attack_multiplier":
+			return Localization.get_text("effect.next_attack_multiplier", "Double the next resolved attack card (including attack bonuses). Already-casting cards qualify. Does not stack; consumed once per card.")
 		"consume_shield":
 			return Localization.get_textf("effect.consume_shield", "Consume {amount} shield", {
 				"amount": _format_compared_int(effect, comparison_effect, "amount", false, rich),

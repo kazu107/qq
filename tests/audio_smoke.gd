@@ -3,6 +3,12 @@ extends Node
 const EXPECTED_SHARED_SFX_COUNT: int = 124
 
 var _failed: bool = false
+var _engine: RealtimeBattleEngine
+
+
+func _exit_tree() -> void:
+	if _engine != null:
+		_engine.dispose()
 
 
 func _ready() -> void:
@@ -78,6 +84,7 @@ func _run() -> void:
 
 	AudioManager.clear_play_history()
 	var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	_engine = engine
 	engine.setup(Game.current_run, String(battle_node.get("enemy_id", "scout")))
 	if AudioManager.has_played_sfx("battle_start") or engine.has_battle_started():
 		_fail("Audio smoke failed: battle setup should wait for the first committed card")
@@ -160,17 +167,18 @@ func _run() -> void:
 
 func _assert_sfx_assets() -> void:
 	var catalog: Array[Dictionary] = AudioManager.get_sfx_catalog()
-	var expected_count: int = EXPECTED_SHARED_SFX_COUNT + Database.get_all_card_ids().size() + Database.get_all_relic_ids().size()
+	var expected_count: int = EXPECTED_SHARED_SFX_COUNT + Database.get_all_card_ids().size() + Database.get_boss_card_ids().size() + Database.get_all_relic_ids().size()
 	if catalog.size() != expected_count:
 		_fail("Audio smoke failed: catalog size was %d, expected %d" % [catalog.size(), expected_count])
 		return
 	var seen_ids: Dictionary = {}
 	for entry: Dictionary in catalog:
 		var sfx_id: String = String(entry.get("sfx_id", ""))
-		if sfx_id == "" or seen_ids.has(sfx_id):
-			_fail("Audio smoke failed: blank or duplicate catalog ID %s" % sfx_id)
+		var entry_id: String = String(entry.get("id", ""))
+		if sfx_id == "" or entry_id == "" or seen_ids.has(entry_id):
+			_fail("Audio smoke failed: blank or duplicate catalog ID %s" % entry_id)
 			return
-		seen_ids[sfx_id] = true
+		seen_ids[entry_id] = true
 		if not ResourceLoader.exists("res://assets/audio/sfx/%s.wav" % sfx_id):
 			_fail("Audio smoke failed: missing SFX asset %s" % sfx_id)
 			return
