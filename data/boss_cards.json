@@ -1,6 +1,6 @@
 [
   {
-    "id": "timekeeper_final_strike", "name": "Final Hour Strike", "boss_only": true,
+    "id": "timekeeper_final_strike", "name": "Final Hour Strike", "boss_only": true, "timeline_scale_excluded": true,
     "description": "Timekeeper-only. A long, uninterruptible strike prepared before the supporting cards.",
     "rarity": "legendary", "tags": ["attack", "finisher", "boss"], "loadout_cost": 0,
     "cast_time": 40.0, "recast_time": 8.0, "active_slot_cost": 2, "interruptible": false,

@@ -342,12 +342,16 @@ func _inspect() -> Dictionary:
 				var cards: Array[Dictionary] = []
 				for card: CardButton in panel._cards:
 					if card.visible:
-						cards.append({"id": card._art_rect.texture.resource_path.get_file().get_basename(), "rect": _rect_values(card.get_global_rect()), "z": card.z_index})
+						cards.append({"id": card._art_rect.texture.resource_path.get_file().get_basename(),
+							"rect": _rect_values(card.get_global_transform() * Rect2(Vector2.ZERO, card.size)), "z": card.z_index, "scale": card.scale.x,
+							"seconds": card._meta_label.text})
 				result["timekeeper"] = {"time": engine.battle_state.battle_time,
 					"multiplier": engine.battle_state.enemy.next_attack_multiplier, "hp": engine.battle_state.player.hp,
 					"vulnerable": engine.battle_state.player.has_status("vulnerable"),
 					"forecast": forecast.text, "forecast_visible": forecast.visible, "forecast_rect": _rect_values(forecast.get_global_rect()),
 					"regions": charge_regions, "cards": cards,
+					"horizon": panel._rendered_scale_horizon,
+					"ticks": panel._scale_row.get_children().map(func(label: Label) -> String: return label.text),
 					"art": [CardButton._load_card_texture("timekeeper_final_strike").resource_path, CardButton._load_card_texture("timekeeper_amplify").resource_path, CardButton._load_card_texture("timekeeper_time_mark").resource_path]}
 			var outcome: BattleResultAnalysisPanel = screen.find_child("BattleResultAnalysisPanel", true, false) as BattleResultAnalysisPanel
 			if outcome != null:

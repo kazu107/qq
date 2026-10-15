@@ -2,6 +2,8 @@
 
 ## In-game entry points
 
+QQ-0.36.2 keeps Timekeeper's long strike outside the fixed scale and grows all out-of-range cards at the right edge. Use **Delay enemy cards +10s** in the battle developer panel to inspect ordinary cards crossing the boundary. `TimelineOverflowSmoke` checks continuity, stable frame size, previews, continuous flow and replays; the Web Timekeeper review also covers the delay button and three viewports. See `docs/TIMELINE_OVERFLOW.md`.
+
 QQ-0.36.1 lets Timekeeper repeatedly amplify its prepared strike: x2, x4, x8, with additional casts if the strike is delayed. Select Timekeeper in the Hub debug battle lab; each press of the developer charge button adds another x2 stack, while Clear removes all stacks. Status hover, forecasts, snapshots and replays retain the actual multiplier. Boss-only cards never enter collectible or online decks. `TimekeeperReworkSmoke` and `tools/web_timekeeper_review.mjs` cover repeat casting, interruption, stacked damage and browser rendering. See `docs/TIMEKEEPER_REWORK.md` for exact rules and assets.
 
 QQ-0.34.0 adds 36 Blender action/navigation icons, compact equip/sell/preset/replay controls and live icon hover on the 3D status plates. The existing developer **Art Review Lab** includes their editable source paths. See `docs/UI_ICON_AUDIT.md` for the screen-by-screen audit, icon-only rules and reproduction steps. `UiActionIconsSmoke` is included in the quality runner; `tools/web_action_icons_review.mjs` checks 13 browser screens, three viewport sizes, the four-player preparation roster, and actual status hover/update/exit using the Web Layout Review build.

@@ -14,6 +14,26 @@ const PREVIEW_Z_INDEX: int = 1000
 const DELAY_SLIDE_SECONDS: float = 0.5
 const SCHEDULE_CHANGE_EPSILON: float = 0.001
 const CONTINUOUS_SHIFT_DISPLAY_TOLERANCE: float = 1.0
+const OVERFLOW_MIN_SCALE: float = 0.35
+
+
+static func compute_loadout_horizon(player: UnitState, enemy: UnitState, player_run: RunState = null, enemy_run: RunState = null) -> float:
+	var horizon: float = maxf(DEFAULT_TIMELINE_HORIZON, FatigueRules.CAST_TIME)
+	for pair: Dictionary in [{"unit": player, "run": player_run}, {"unit": enemy, "run": enemy_run}]:
+		var unit: UnitState = pair["unit"] as UnitState
+		var run: RunState = pair["run"] as RunState
+		if unit == null:
+			continue
+		for runtime: CardRuntimeState in unit.card_runtime_states:
+			var card: CardDef = CardUpgradeResolver.build_effective_card(runtime.card_id, run) if run != null else Database.get_card(runtime.card_id)
+			if card != null and not card.timeline_scale_excluded:
+				horizon = maxf(horizon, card.cast_time)
+	return horizon
+
+
+static func get_overflow_scale(remaining: float, horizon: float) -> float:
+	var ratio: float = clampf(maxf(0.1, horizon) / maxf(0.1, remaining), 0.0, 1.0)
+	return lerpf(OVERFLOW_MIN_SCALE, 1.0, ratio)
 
 var _title_label: Label
 var _summary_label: Label
@@ -404,7 +424,7 @@ func _layout_cards() -> void:
 		var button: CardButton = layout_data.get("button") as CardButton
 		if button == null:
 			continue
-		var remaining: float = clampf(float(layout_data.get("remaining", 0.0)), 0.0, horizon)
+		var remaining: float = maxf(float(layout_data.get("remaining", 0.0)), 0.0)
 		_position_timeline_card(button, remaining, usable_width, y_position, horizon, _card_layouts.size() - layout_index, axis_start)
 
 	if _preview_button != null and _preview_button.visible:
@@ -422,8 +442,17 @@ func _position_timeline_card(
 ) -> void:
 	var clamped_remaining: float = clampf(remaining, 0.0, horizon)
 	var ratio: float = clamped_remaining / horizon
-	button.position = Vector2(axis_start + usable_width * ratio - TIMELINE_TILE_SIZE.x * 0.5, y_position)
-	button.size = CardButton.get_tile_extent(TIMELINE_TILE_SIZE)
+	var full_size: Vector2 = CardButton.get_tile_extent(TIMELINE_TILE_SIZE)
+	var card_scale: float = get_overflow_scale(remaining, horizon)
+	var x_position: float = axis_start + usable_width * ratio - full_size.x * 0.5
+	if remaining > horizon:
+		# Keep overflow cards inside the right edge and join the scale without a size/position jump.
+		var normal_right: float = axis_start + usable_width + full_size.x * 0.5
+		var edge: float = lerpf(normal_right, maxf(normal_right, _cards_scroll.size.x - 4.0), 1.0 - horizon / remaining)
+		x_position = edge - full_size.x * card_scale
+	button.size = full_size
+	button.scale = Vector2.ONE * card_scale
+	button.position = Vector2(x_position, y_position + full_size.y * (1.0 - card_scale) * 0.5)
 	button.z_index = PREVIEW_Z_INDEX - 1 if button.is_hovered() and button != _preview_button else z_index
 
 

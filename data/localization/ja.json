@@ -17,6 +17,7 @@
   "boss.timekeeper.forecast_hint": "威力は現在の攻撃力・倍化・脆弱を含むシールド適用前の値です。重なったカードはホバーで手前に表示できます。",
   "boss.timekeeper.dev_charge": "ボス倍化を重ねる x2",
   "boss.timekeeper.dev_clear": "ボス倍化を解除",
+  "developer.timeline_delay": "敵カードを+10秒遅延",
   "hub.mode.normal_detail": "ルートを選び、カードと遺物を集めてボスに挑む。自分だけのデッキで冒険へ。",
   "hub.mode.arena_detail": "戦闘の合間にデッキを強化。ショップで準備を整えて、連勝を目指す。",
   "hub.mode.online_detail": "部屋を作って友達と対戦。観戦者として、みんなの試合を見ることもできます。",

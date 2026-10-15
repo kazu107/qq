@@ -758,7 +758,7 @@ func _run() -> void:
 		push_error("Card UI smoke failed: status icon mouseover should show a visible detail popup")
 		get_tree().quit(1)
 		return
-	if status_tooltip_popup.size.y > 120.0:
+	if status_tooltip_popup.size.y > status_tooltip_popup.get_combined_minimum_size().y + 1.0:
 		push_error("Card UI smoke failed: status tooltip should size to its text instead of stretching down")
 		get_tree().quit(1)
 		return

@@ -1457,29 +1457,10 @@ func _build_hover_preview_entry(
 func _compute_timeline_horizon() -> float:
 	if _engine.battle_state == null:
 		return TimelinePanel.DEFAULT_TIMELINE_HORIZON
-	var max_cast_time: float = maxf(TimelinePanel.DEFAULT_TIMELINE_HORIZON, FatigueRules.CAST_TIME)
-	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(
-		_engine.battle_state.player,
-		_get_active_run()
-	))
-	max_cast_time = maxf(max_cast_time, _get_unit_loadout_max_cast_time(
-		_engine.battle_state.enemy,
-		NetworkManager.get_match_run("enemy") if _lan_mode else null
-	))
-	return max_cast_time
-
-
-func _get_unit_loadout_max_cast_time(unit: UnitState, run_state: RunState) -> float:
-	var max_cast_time: float = 0.1
-	for runtime_state in unit.card_runtime_states:
-		var card_def: CardDef = null
-		if run_state != null:
-			card_def = CardUpgradeResolver.build_effective_card(runtime_state.card_id, run_state)
-		else:
-			card_def = Database.get_card(runtime_state.card_id)
-		if card_def != null:
-			max_cast_time = maxf(max_cast_time, card_def.cast_time)
-	return max_cast_time
+	return TimelinePanel.compute_loadout_horizon(
+		_engine.battle_state.player, _engine.battle_state.enemy,
+		_get_active_run(), NetworkManager.get_match_run("enemy") if _lan_mode else null
+	)
 
 
 func _on_log_button_pressed() -> void:
@@ -1547,6 +1528,7 @@ func _refresh_developer_panel() -> void:
 			{"id": "DevBattleDetails", "label": Localization.get_text("battle.analysis.details", "Battle details"), "callback": Callable(self, "_on_dev_battle_details"), "disabled": _lan_mode},
 			{"id": "DevBossCharge", "label": Localization.get_text("boss.timekeeper.dev_charge", "Stack boss charge x2"), "callback": func() -> void: _on_dev_boss_charge(true), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
 			{"id": "DevBossClearCharge", "label": Localization.get_text("boss.timekeeper.dev_clear", "Clear boss charge"), "callback": func() -> void: _on_dev_boss_charge(false), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
+			{"id": "DevTimelineDelay", "label": Localization.get_text("developer.timeline_delay", "Delay enemy cards +10s"), "callback": Callable(self, "_on_dev_timeline_delay"), "disabled": _lan_mode},
 			{"id": "DevWinBattle", "label": Localization.get_text("battle.dev.force_victory", "Force Victory"), "callback": Callable(self, "_on_dev_force_victory")},
 			{"id": "DevLoseBattle", "label": Localization.get_text("battle.dev.force_defeat", "Force Defeat"), "callback": Callable(self, "_on_dev_force_defeat")},
 			{"id": "DevRestoreHp", "label": Localization.get_text("map.dev.restore_hp", "Restore HP"), "callback": Callable(self, "_on_dev_restore_hp")},
@@ -1584,6 +1566,13 @@ func _on_dev_fatigue() -> void:
 		_engine.debug_schedule_fatigue()
 		if _lan_mode:
 			_publish_lan_snapshot(true)
+	_refresh_ui(1.0)
+
+
+func _on_dev_timeline_delay() -> void:
+	if not Game.is_developer_mode_enabled() or _lan_mode or _engine.battle_state == null:
+		return
+	_engine.delay_active_cards("enemy", 10.0, "all")
 	_refresh_ui(1.0)
 
 

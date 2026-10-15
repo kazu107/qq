@@ -83,12 +83,10 @@ func load_replay(replay: Dictionary) -> void:
 	_player_id = String(_frames[0]["player"].get("unit_id", "player"))
 	_enemy_id = String(_frames[0]["enemy"].get("unit_id", "enemy"))
 	_stage.configure_combatants(_player_id, _enemy_id, "player", String(_visual.get("player_visual", "balanced")), String(_visual.get("enemy_visual", "scout")))
-	var horizon: float = FatigueRules.CAST_TIME
-	for side: String in ["player", "enemy"]:
-		for runtime: Dictionary in _frames[0][side].get("runtime_states", []):
-			var card: CardDef = Database.get_card(String(runtime.get("card_id", "")))
-			if card != null:
-				horizon = maxf(horizon, card.cast_time)
+	var horizon: float = TimelinePanel.compute_loadout_horizon(
+		BattleStateCodec._decode_unit(Dictionary(_frames[0]["player"])),
+		BattleStateCodec._decode_unit(Dictionary(_frames[0]["enemy"]))
+	)
 	_timeline.set_fixed_horizon(horizon)
 	seek(0.0)
 
