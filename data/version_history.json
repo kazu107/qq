@@ -1,9 +1,26 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.37.0",
+  "current_version": "QQ-0.37.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.37.1", "date": "2026-10-15",
+      "title_ja": "ルートの分岐拡充とイベント選択肢の修正",
+      "title_en": "More route choices and later-chapter event fixes",
+      "changes_ja": [
+        "1区画のノードを18個から26個へ増やしました。ボスへの合流を除き、左右端でも最低2択、一部は3分岐になり、戦闘・回復・ショップ・鍛冶・イベントを選ぶ経路が増えます。",
+        "進行中のセーブは、通過済みの段や処理中のノード、購入済み商品を保ち、未選択部分だけ候補を増やします。5列のノードも選択領域が重ならないよう調整しました。",
+        "第2区画以降でイベントの選択肢が表示されない不具合と、エリア別の回復量などが0になる問題を修正しました。専用データがない場合は区画内の位置に対応した既存データを使用します。",
+        "空の選択肢を保存したイベントは再表示時に復旧します。有効な選択肢は再抽選せず、イベントを取得できない場合にも報酬なしで先へ進めます。"
+      ],
+      "changes_en": [
+        "Expand each chapter from 18 to 26 nodes, with at least two outgoing choices outside boss convergence and some three-way branches, including both edge lanes.",
+        "Expand only pending rows in existing saves while preserving completed routes, active encounters and purchased offers; keep five-column hitboxes separate.",
+        "Fix empty events and missing area-table values in later chapters by falling back to chapter-relative content when no explicit later-area data exists.",
+        "Repair saved empty events when reopened without rerolling valid choices, and provide a rewardless exit if event content is unavailable."
+      ]
+    },
     {
       "version": "QQ-0.37.0", "date": "2026-10-15",
       "title_ja": "分岐と合流のノードマップ",

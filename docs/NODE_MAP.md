@@ -1,6 +1,6 @@
 # 分岐・合流型ノードマップ
 
-2026-10-15 / graph_version=2（ローカル更新）
+QQ-0.37.1 / 2026-10-15 / graph_version=2
 
 ## 進行
 
@@ -34,7 +34,7 @@
 
 `tools/web_node_map_review.mjs` は Web Layout Review 出力を実ブラウザで確認します。1440×900・960×600・900×1200で26ノード、選択領域の非重複、左右端を連続して選ぶ経路、現在地、接続候補、履歴、ロードアウト、区画切り替えとボスゲートを確認し、実際のクリックから移動演出を経て戦闘へ遷移することも確認します。今回のログは `tools/.local/node-map-branch-tests`、画像とブラウザ結果は `tools/.local/node-map-browser` に出力します。
 
-2026-10-15の検証では、NodeMapSmoke、MapFacilitySmoke、RunScoreSmoke、ProgressionTierSmoke、SaveContinueSmoke、ArenaFlowSmokeと上記ブラウザ検証が成功しました。汎用FlowSmokeの初回タイムアウトは、戦闘後に表示される結果画面で「続行」を押さない古いテスト手順が原因でした。現在は勝利・敗北演出の完了と結果表示を確認してから続行を押し、Rewardへの遷移が成功しています。公開ホストへのデプロイはこの更新では行っていません。
+2026-10-15の検証では、NodeMapSmoke、MapFacilitySmoke、RunScoreSmoke、ProgressionTierSmoke、SaveContinueSmoke、ArenaFlowSmokeと上記ブラウザ検証が成功しました。汎用FlowSmokeの初回タイムアウトは、戦闘後に表示される結果画面で「続行」を押さない古いテスト手順が原因でした。現在は勝利・敗北演出の完了と結果表示を確認してから続行を押し、Rewardへの遷移が成功しています。公開版の動作確認はローカル検証と別に行います。
 
 ## 後半区画のイベント
 
