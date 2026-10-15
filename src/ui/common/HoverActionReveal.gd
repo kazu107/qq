@@ -49,7 +49,7 @@ func _sync_reserved_space() -> void:
 
 
 func _process(_delta: float) -> void:
-	if not is_instance_valid(_target) or get_window() == null or not get_window().has_focus() or not _target.get_global_rect().has_point(_target.get_global_mouse_position()):
+	if not is_inside_tree() or not is_instance_valid(_target) or not _target.is_inside_tree() or get_window() == null or not get_window().has_focus() or not _target.get_global_rect().has_point(_target.get_global_mouse_position()):
 		update_for_control(null)
 		return
 	# Descendant buttons, clipping, scrolling, and modal overlays share one hit test.

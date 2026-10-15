@@ -2020,6 +2020,8 @@ func select_map_node(node_id: String) -> String:
 	if current_run == null or node_id == "":
 		return ""
 	_ensure_map_state()
+	if not MapRouteGraph.can_select(current_run.map_state, node_id):
+		return ""
 
 	var location: Dictionary = _find_node_location(node_id)
 	if location.is_empty():
@@ -2049,6 +2051,24 @@ func select_map_node(node_id: String) -> String:
 	AudioManager.play_sfx("map_select")
 	SaveManager.save_game(current_screen_hint)
 	return current_screen_hint
+
+
+func developer_advance_map_route() -> bool:
+	if not is_developer_mode_enabled() or current_run == null or current_run.arena_mode or current_screen_hint != "map": return false
+	_ensure_map_state()
+	for node: Dictionary in get_current_step_data().get("nodes", []):
+		var id: String = String(node["id"])
+		if not MapRouteGraph.can_select(current_run.map_state, id): continue
+		var location: Dictionary = _find_node_location(id)
+		node["status"] = "selected"
+		_set_node(int(location["step_index"]), int(location["node_index"]), node)
+		current_run.map_state["active_node_id"] = id
+		_complete_active_map_node_and_advance()
+		pending_enemy_id = ""
+		current_screen_hint = "result" if current_run.run_complete else "map"
+		SaveManager.save_game(current_screen_hint)
+		return true
+	return false
 
 
 func buy_shop_offer(offer_index: int) -> bool:
@@ -2396,6 +2416,7 @@ func _ensure_map_state() -> void:
 			current_run.map_state = _map_generator.generate_infinite_run(current_run.seed)
 		else:
 			current_run.map_state = _map_generator.generate_run(current_run.seed, get_unlocked_step_tier())
+	MapRouteGraph.migrate(current_run.map_state, current_run.seed)
 
 
 func _prepare_non_battle_node(step_index: int, node_index: int) -> void:
@@ -2833,20 +2854,7 @@ func _complete_active_map_node_and_advance() -> void:
 
 
 func _unlock_step_nodes(step_index: int) -> void:
-	var steps: Array = Array(current_run.map_state.get("steps", []))
-	if step_index < 0 or step_index >= steps.size():
-		return
-
-	var step_data: Dictionary = Dictionary(steps[step_index])
-	var nodes: Array = Array(step_data.get("nodes", []))
-	for index in range(nodes.size()):
-		var node_data: Dictionary = Dictionary(nodes[index])
-		if String(node_data.get("status", "locked")) == "locked":
-			node_data["status"] = "available"
-		nodes[index] = node_data
-	step_data["nodes"] = nodes
-	steps[step_index] = step_data
-	current_run.map_state["steps"] = steps
+	MapRouteGraph.unlock(current_run.map_state, step_index)
 
 
 func _get_step(step_index: int) -> Dictionary:

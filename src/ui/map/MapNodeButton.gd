@@ -48,6 +48,11 @@ static func has_cached_lock_icon() -> bool:
 
 
 var _node_id: String = ""
+var graph_mode: bool = false
+var graph_current: bool = false
+var _graph_status: String = "locked"
+var _graph_boss: bool = false
+var _pulse: float = 0.0
 var _visual_root: Control
 var _content_box: VBoxContainer
 var _type_icon: TextureRect
@@ -57,13 +62,15 @@ var _lock_icon: TextureRect
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(170.0, 100.0)
-	focus_mode = Control.FOCUS_NONE
+	custom_minimum_size = Vector2(132.0, 92.0) if graph_mode else Vector2(170.0, 100.0)
+	focus_mode = Control.FOCUS_ALL if graph_mode else Control.FOCUS_NONE
 	flat = true
 	alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_ensure_visuals()
 	if not pressed.is_connected(_on_pressed):
 		pressed.connect(_on_pressed)
+	set_process(false)
+	resized.connect(queue_redraw)
 
 
 func bind(node_data: Dictionary, step_label: String, is_current_step: bool) -> void:
@@ -73,18 +80,69 @@ func bind(node_data: Dictionary, step_label: String, is_current_step: bool) -> v
 	var node_type: String = String(node_data.get("type", ""))
 	var node_label: String = Localization.get_node_label(node_data)
 	var status: String = String(node_data.get("status", "locked"))
+	_graph_status = status
+	_graph_boss = node_type == "boss"
 
 	text = ""
 	disabled = status != "available"
 	_type_icon.texture = _get_type_icon_texture(node_type)
 	_name_label.text = node_label
 	_content_box.modulate = Color(1.0, 1.0, 1.0, 0.42) if status == "locked" else Color(1.0, 1.0, 1.0, 1.0)
-	_lock_overlay.visible = status == "locked"
+	_lock_overlay.visible = status == "locked" and not graph_mode
 	tooltip_text = "\n".join([
 		step_label,
 		Localization.get_textf("map.node.tooltip.type", "Type: {value}", {"value": _type_text(node_type)}),
 	])
 	_apply_style(node_type, status, is_current_step)
+	if graph_mode:
+		custom_minimum_size = Vector2(152, 112) if _graph_boss else Vector2(132, 92)
+		_type_icon.custom_minimum_size = Vector2.ONE * (64.0 if _graph_boss else 48.0)
+		_name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		_name_label.add_theme_font_size_override("font_size", 14)
+		_content_box.add_theme_constant_override("separation", 7)
+		_content_box.modulate.a = 1.0 if status in ["available", "completed", "selected"] else (0.35 if status in ["blocked", "skipped"] else 0.68)
+		for style: String in ["normal", "hover", "pressed", "disabled"]:
+			add_theme_stylebox_override(style, StyleBoxEmpty.new())
+		tooltip_text = node_label + "\n" + tooltip_text + "\n" + Localization.get_text("map.route.hint." + node_type, _type_text(node_type))
+		set_process(status == "available")
+		queue_redraw()
+
+
+func _process(delta: float) -> void:
+	_pulse = fposmod(_pulse + delta, 2.0)
+	queue_redraw()
+
+
+func get_disc_center() -> Vector2:
+	if not is_inside_tree() or not _type_icon.is_inside_tree(): return Vector2(size.x * 0.5, 34.0)
+	return get_global_transform().affine_inverse() * (_type_icon.get_global_transform() * (_type_icon.size * 0.5))
+
+
+func _make_custom_tooltip(for_text: String) -> Object:
+	if not graph_mode: return null
+	var label: Label = Label.new()
+	label.text = for_text
+	label.add_theme_font_size_override("font_size", ceili(16.0 * scale.x))
+	return label
+
+
+func _draw() -> void:
+	if not graph_mode or _type_icon == null: return
+	var center: Vector2 = get_disc_center()
+	var radius: float = 42.0 if _graph_boss else 33.0
+	var color: Color = Color("485763")
+	if _graph_status in ["completed", "selected"]: color = Color("efbe5b")
+	elif _graph_status == "available": color = Color("74d9e5")
+	if _graph_status == "available":
+		draw_circle(center, radius + 7.0, Color(color, 0.09 + 0.06 * sin(_pulse * PI)))
+	draw_circle(center + Vector2(0, 4), radius + 2, Color(0, 0, 0, 0.45))
+	draw_circle(center, radius, Color("0b1820"))
+	draw_arc(center, radius, 0, TAU, 48, color, 2.0, true)
+	if _graph_status == "completed":
+		draw_arc(center, radius + 4, 0, TAU, 48, Color(color, 0.45), 1.0, true)
+	if graph_current:
+		draw_arc(center, radius + 9, 0, TAU, 48, Color("ffe5a1"), 3.0, true)
 
 
 func _on_pressed() -> void:

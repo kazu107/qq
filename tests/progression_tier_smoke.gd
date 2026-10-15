@@ -202,8 +202,9 @@ func _test_extended_midboss_and_final_rank() -> void:
 		return
 	var map_scene: Control = load("res://scenes/map/Map.tscn").instantiate() as Control
 	add_child(map_scene)
+	map_scene.call("_change_chapter", 1)
 	await get_tree().process_frame
-	if map_scene.find_child("MapStep_13", true, false) == null:
+	if map_scene.find_child(String(Game.get_map_steps()[13]["nodes"][0]["id"]), true, false) == null:
 		_fail("Progression tier smoke failed: map UI did not render Step 14")
 		return
 	map_scene.queue_free()
@@ -368,8 +369,11 @@ func _test_infinite_mode_flow() -> void:
 func _assert_map_renders_step(node_name: String, label: String) -> void:
 	var map_scene: Control = load("res://scenes/map/Map.tscn").instantiate() as Control
 	add_child(map_scene)
+	var step_index: int = node_name.trim_prefix("MapStep_").to_int()
+	map_scene.set("_chapter_start", floori(float(step_index) / 7.0) * 7)
+	map_scene.call("_rebuild_steps")
 	await get_tree().process_frame
-	if map_scene.find_child(node_name, true, false) == null:
+	if map_scene.find_child(String(Game.get_map_steps()[step_index]["nodes"][0]["id"]), true, false) == null:
 		_fail("Progression tier smoke failed: map UI did not render %s" % label)
 	map_scene.queue_free()
 	await get_tree().process_frame
@@ -430,6 +434,7 @@ func _prepare_boss_step(step_index: int) -> void:
 	steps[step_index] = step_data
 	Game.current_run.map_state["steps"] = steps
 	Game.current_run.map_state["current_step"] = step_index
+	Game.current_run.map_state["active_node_id"] = ""
 	Game.select_map_node(String(boss_node.get("id", "")))
 
 

@@ -2,6 +2,8 @@
 
 ## In-game entry points
 
+QQ-0.37.0 adds seven-step branching maps. The Map developer panel can advance the route without normal battle rewards; step-entry relic effects still apply. `NodeMapSmoke` validates 320 seeded graphs, migration, adjacency, infinite-cycle links and route-aware scoring. `tools/web_node_map_review.mjs` checks the map, responsive loadout, history, chapter gates and animated battle entry at three browser sizes. See `docs/NODE_MAP.md`.
+
 QQ-0.36.2 keeps Timekeeper's long strike outside the fixed scale and grows all out-of-range cards at the right edge. Use **Delay enemy cards +10s** in the battle developer panel to inspect ordinary cards crossing the boundary. `TimelineOverflowSmoke` checks continuity, stable frame size, previews, continuous flow and replays; the Web Timekeeper review also covers the delay button and three viewports. See `docs/TIMELINE_OVERFLOW.md`.
 
 QQ-0.36.1 lets Timekeeper repeatedly amplify its prepared strike: x2, x4, x8, with additional casts if the strike is delayed. Select Timekeeper in the Hub debug battle lab; each press of the developer charge button adds another x2 stack, while Clear removes all stacks. Status hover, forecasts, snapshots and replays retain the actual multiplier. Boss-only cards never enter collectible or online decks. `TimekeeperReworkSmoke` and `tools/web_timekeeper_review.mjs` cover repeat casting, interruption, stacked damage and browser rendering. See `docs/TIMEKEEPER_REWORK.md` for exact rules and assets.

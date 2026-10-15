@@ -5,9 +5,22 @@ const LOADOUT_COUNT_ICON_SIZE: Vector2 = Vector2(22.0, 22.0)
 const RUN_SUMMARY_ICON_SIZE: Vector2 = Vector2(22.0, 22.0)
 
 var _run_history_box: VBoxContainer
-var _steps_box: VBoxContainer
 var _steps_scroll: ScrollContainer
-var _steps_scroll_tail: Control
+var _route_canvas: MapRouteCanvas
+var _root_row: HBoxContainer
+var _loadout_frame: PanelContainer
+var _loadout_box: VBoxContainer
+var _loadout_overlay: Control
+var _loadout_modal_body: VBoxContainer
+var _history_overlay: Control
+var _loadout_button: Button
+var _chapter_label: Label
+var _map_header: Label
+var _previous_button: Button
+var _next_button: Button
+var _chapter_start: int = -1
+var _traveling: bool = false
+var _history_signature: String = ""
 var _equipped_summary_label: Label
 var _equipped_panel: CardHandPanel
 var _inventory_box: LoadoutInventoryGrid
@@ -29,6 +42,10 @@ func _ready() -> void:
 	AudioManager.play_sfx("map_reveal", 1.0, -4.0)
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+	get_viewport().size_changed.connect(_responsive_layout)
+	if not get_window().size_changed.is_connected(_responsive_layout):
+		get_window().size_changed.connect(_responsive_layout)
+	call_deferred("_responsive_layout")
 
 
 func _build_ui() -> void:
@@ -51,49 +68,57 @@ func _build_ui() -> void:
 	screen_root.add_child(_run_info_banner)
 
 	var root: HBoxContainer = HBoxContainer.new()
+	_root_row = root
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 20)
 	screen_root.add_child(root)
 
-	var info_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.run_status", "ラン状況"))
-	(info_panel.get_parent() as Control).size_flags_stretch_ratio = 0.72
-
-	var history_scroll: ScrollContainer = ScrollContainer.new()
-	history_scroll.name = "RunBattleSummaryScroll"
-	history_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	history_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	info_panel.add_child(history_scroll)
-
-	_run_history_box = VBoxContainer.new()
-	_run_history_box.name = "RunBattleSummary"
-	_run_history_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_run_history_box.add_theme_constant_override("separation", 8)
-	history_scroll.add_child(_run_history_box)
-
-	var back_button: Button = Button.new()
-	back_button.text = Localization.get_text("map.return_hub", "Return to Hub")
-	UiIconHelper.decorate(back_button, "home")
-	back_button.pressed.connect(_on_return_to_hub)
-	info_panel.add_child(back_button)
-
 	var map_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.node_map", "マップ"))
-	(map_panel.get_parent() as Control).size_flags_stretch_ratio = 1.15
+	_map_header = map_panel.get_child(0) as Label
+	(map_panel.get_parent() as Control).size_flags_stretch_ratio = 2.35
 	map_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var toolbar: HBoxContainer = HBoxContainer.new()
+	toolbar.add_theme_constant_override("separation", 8)
+	map_panel.add_child(toolbar)
+	_previous_button = _map_button(toolbar, "MapPreviousChapter", "back", Localization.get_text("map.route.previous", "Previous chapter"), true)
+	_previous_button.pressed.connect(_change_chapter.bind(-1))
+	_chapter_label = Label.new()
+	_chapter_label.name = "MapChapterLabel"
+	_chapter_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_chapter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_chapter_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	toolbar.add_child(_chapter_label)
+	_next_button = _map_button(toolbar, "MapNextChapter", "next", Localization.get_text("map.route.next", "Next chapter"), true)
+	_next_button.pressed.connect(_change_chapter.bind(1))
+	var history: Button = _map_button(toolbar, "MapHistoryButton", "log", Localization.get_text("map.route.history", "Run history"), true)
+	history.pressed.connect(_show_history)
+	_loadout_button = _map_button(toolbar, "MapLoadoutButton", "equip", Localization.get_text("map.panel.loadout", "Loadout"), true)
+	_loadout_button.pressed.connect(func() -> void: _loadout_overlay.visible = true)
+	var back: Button = _map_button(toolbar, "MapHubButton", "home", Localization.get_text("map.return_hub", "Return to Hub"), true)
+	back.pressed.connect(_on_return_to_hub)
 
 	_steps_scroll = ScrollContainer.new()
 	_steps_scroll.name = "MapStepsScroll"
 	_steps_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_steps_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_steps_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	map_panel.add_child(_steps_scroll)
-
-	_steps_box = VBoxContainer.new()
-	_steps_box.name = "MapSteps"
-	_steps_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_steps_box.add_theme_constant_override("separation", 14)
-	_steps_scroll.add_child(_steps_box)
+	_route_canvas = MapRouteCanvas.new()
+	_route_canvas.node_selected.connect(_on_node_selected)
+	_steps_scroll.add_child(_route_canvas)
+	var legend: Label = Label.new()
+	legend.name = "MapRouteLegend"
+	legend.text = Localization.get_text("map.route.legend", "Gold: your trail   /   Glow: next destinations   /   Lines: available routes")
+	legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	legend.add_theme_font_size_override("font_size", 14)
+	legend.add_theme_color_override("font_color", Color("acbfc2"))
+	map_panel.add_child(legend)
 
 	var loadout_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.loadout", "Loadout"))
+	_loadout_box = loadout_panel
+	_loadout_frame = loadout_panel.get_parent() as PanelContainer
+	_loadout_frame.size_flags_stretch_ratio = 1.0
 	loadout_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var presets: DeckPresetBar = DeckPresetBar.new()
 	presets.get_cards = func() -> Array[String]: return Game.current_run.equipped_cards
@@ -136,6 +161,95 @@ func _build_ui() -> void:
 	_inventory_box.name = "LoadoutInventory"
 	_inventory_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inventory_scroll.add_child(_inventory_box)
+	_build_map_modals()
+
+
+func _map_button(parent: Control, id: String, icon: String, hint: String, compact: bool) -> Button:
+	var button: Button = Button.new()
+	button.name = id
+	button.text = hint
+	UiIconHelper.decorate(button, icon, hint, compact)
+	parent.add_child(button)
+	return button
+
+
+func _make_modal(id: String, title: String) -> Dictionary:
+	var overlay: Control = Control.new()
+	overlay.name = id
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.z_index = 160
+	overlay.visible = false
+	add_child(overlay)
+	var shade: ColorRect = ColorRect.new()
+	shade.color = Color(0, 0, 0, 0.78)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(shade)
+	var center: CenterContainer = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(center)
+	var frame: PanelContainer = PanelContainer.new()
+	frame.name = id + "Frame"
+	frame.custom_minimum_size = Vector2(620, 660)
+	center.add_child(frame)
+	var body: VBoxContainer = VBoxContainer.new()
+	body.add_theme_constant_override("separation", 12)
+	frame.add_child(body)
+	var row: HBoxContainer = HBoxContainer.new()
+	body.add_child(row)
+	var heading: Label = Label.new()
+	heading.text = title
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.theme_type_variation = "SectionTitle"
+	row.add_child(heading)
+	var close: Button = _map_button(row, id + "Close", "close", Localization.get_text("common.close", "Close"), true)
+	close.pressed.connect(func() -> void: overlay.visible = false)
+	return {"overlay": overlay, "body": body, "frame": frame}
+
+
+func _build_map_modals() -> void:
+	var history: Dictionary = _make_modal("MapHistory", Localization.get_text("map.panel.run_status", "Run history"))
+	_history_overlay = history["overlay"]
+	var history_scroll: ScrollContainer = ScrollContainer.new()
+	history_scroll.name = "RunBattleSummaryScroll"
+	history_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	history_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	(history["body"] as VBoxContainer).add_child(history_scroll)
+	_run_history_box = VBoxContainer.new()
+	_run_history_box.name = "RunBattleSummary"
+	_run_history_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_run_history_box.add_theme_constant_override("separation", 8)
+	history_scroll.add_child(_run_history_box)
+	var loadout: Dictionary = _make_modal("MapLoadout", Localization.get_text("map.panel.loadout", "Loadout"))
+	_loadout_overlay = loadout["overlay"]
+	_loadout_modal_body = loadout["body"]
+
+
+func _responsive_layout() -> void:
+	if not is_inside_tree() or not is_instance_valid(_loadout_frame): return
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var narrow: bool = viewport_size.x < viewport_size.y * 1.15
+	var density: float = 1.0 if DisplayServer.get_name() == "headless" else clampf(viewport_size.x / maxf(1.0, get_window().size.x), 0.75, 3.0)
+	_chapter_label.add_theme_font_size_override("font_size", ceili(18 * density))
+	_map_header.add_theme_font_size_override("font_size", ceili(22 * density))
+	(find_child("MapRouteLegend", true, false) as Label).add_theme_font_size_override("font_size", ceili(14 * density))
+	for button: Button in [_previous_button, _next_button, _loadout_button, find_child("MapHistoryButton", true, false), find_child("MapHubButton", true, false)]:
+		button.custom_minimum_size = Vector2.ONE * 40.0 * density
+		button.add_theme_constant_override("icon_max_width", ceili(22 * density))
+	_loadout_button.visible = narrow
+	if narrow and _loadout_frame.get_parent() != _loadout_modal_body:
+		_loadout_frame.reparent(_loadout_modal_body)
+		_loadout_frame.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	elif not narrow and _loadout_frame.get_parent() != _root_row:
+		_loadout_frame.reparent(_root_row)
+		_loadout_frame.remove_theme_stylebox_override("panel")
+		_loadout_overlay.visible = false
+	_loadout_box.get_child(0).visible = not narrow
+	_loadout_box.get_child(1).visible = not narrow
+	for overlay: Control in [_history_overlay, _loadout_overlay]:
+		var frame: PanelContainer = overlay.find_child(String(overlay.name) + "Frame", true, false) as PanelContainer
+		frame.custom_minimum_size = Vector2(maxf(280, minf(680, viewport_size.x - 72)), maxf(300, minf(820, viewport_size.y - 88)))
+	call_deferred("_scroll_to_current_step", Game.get_current_step_index())
 
 
 func _create_panel(parent: Control, title: String) -> VBoxContainer:
@@ -162,7 +276,6 @@ func _refresh_ui() -> void:
 	var current_run: RunState = Game.current_run
 	if _run_info_banner != null:
 		_run_info_banner.refresh()
-	_rebuild_run_history_summary(current_run)
 	_equipped_summary_label.text = Localization.get_textf("map.loadout_cost", "Loadout Cost {used} / {limit}", {
 		"used": Game.get_current_loadout_cost(),
 		"limit": Game.get_loadout_limit(),
@@ -175,59 +288,47 @@ func _refresh_ui() -> void:
 
 
 func _rebuild_steps() -> void:
-	for child in _steps_box.get_children():
-		_steps_box.remove_child(child)
-		child.queue_free()
-
-	var steps: Array[Dictionary] = Game.get_map_steps()
 	var current_step_index: int = Game.get_current_step_index()
-	for step_index in range(steps.size()):
-		var step_data: Dictionary = steps[step_index]
-		var nodes: Array = Array(step_data.get("nodes", []))
-		var step_locked: bool = _is_step_locked(nodes)
-		var is_current_step: bool = step_index == current_step_index
-		var panel: PanelContainer = PanelContainer.new()
-		panel.name = "MapStep_%d" % step_index
-		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		panel.add_theme_stylebox_override("panel", _make_step_stylebox(step_locked, is_current_step))
-		_steps_box.add_child(panel)
+	if _chapter_start < 0: _chapter_start = floori(float(current_step_index) / 7.0) * 7
+	var steps: Array[Dictionary] = Game.get_map_steps()
+	var previous_signature: String = _route_canvas._signature
+	_route_canvas.configure(Game.current_run.map_state, _chapter_start)
+	_chapter_label.text = Localization.get_textf("map.route.chapter", "Chapter {chapter} | Steps {start}-{end}", {"chapter": _chapter_start / 7 + 1, "start": _chapter_start + 1, "end": mini(_chapter_start + 7, steps.size())})
+	_previous_button.disabled = _chapter_start == 0
+	_next_button.disabled = _chapter_start + 7 >= steps.size()
+	if _next_button.disabled and steps.size() < 28 and not Game.current_run.infinite_mode:
+		_next_button.icon = MapNodeButton._load_lock_icon_texture()
+		_next_button.tooltip_text = Localization.get_text("map.route.unlock_hint", "Claim the S-rank achievement to unlock the next chapter.")
+	else:
+		_next_button.icon = StatIconFactory.get_icon("next")
+		_next_button.tooltip_text = Localization.get_text("map.route.next", "Next chapter")
+	for id: String in _route_canvas._buttons:
+		var button: MapNodeButton = _route_canvas._buttons[id]
+		if not button.disabled and not button.has_meta("visual_preload"):
+			button.set_meta("visual_preload", true)
+			button.mouse_entered.connect(_preload_node_visual.bind(id))
+	if previous_signature != _route_canvas._signature:
+		call_deferred("_scroll_to_current_step", current_step_index)
 
-		var box: VBoxContainer = VBoxContainer.new()
-		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		box.add_theme_constant_override("separation", 10)
-		panel.add_child(box)
 
-		var header: Label = Label.new()
-		header.name = "MapStepHeader_%d" % step_index
-		header.text = Localization.get_textf("map.step_header", "Step {step} | {label}", {
-			"step": step_index + 1,
-			"area": int(step_data.get("area", 1)),
-			"label": Localization.get_step_label(step_data),
-		})
-		box.add_child(header)
+func _show_history() -> void:
+	var signature: String = JSON.stringify(Game.current_run.battle_history)
+	if signature != _history_signature:
+		_history_signature = signature
+		_rebuild_run_history_summary(Game.current_run)
+	_history_overlay.visible = true
 
-		var row: HFlowContainer = HFlowContainer.new()
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_theme_constant_override("h_separation", 12)
-		row.add_theme_constant_override("v_separation", 12)
-		box.add_child(row)
 
-		for raw_node in nodes:
-			var node_data: Dictionary = Dictionary(raw_node)
-			var node_button: MapNodeButton = MapNodeButton.new()
-			node_button.name = String(node_data.get("id", "Node"))
-			node_button.bind(node_data, Localization.get_step_label(step_data), is_current_step)
-			node_button.node_selected.connect(_on_node_selected)
-			if is_current_step and String(node_data.get("type", "")) in ["normal_battle", "elite_battle", "boss"]:
-				node_button.mouse_entered.connect(
-					SceneRouter.schedule_battle_visuals.bind(Game.current_run.starter_id, String(node_data.get("enemy_id", "")))
-				)
-			row.add_child(node_button)
+func _preload_node_visual(id: String) -> void:
+	for step: Dictionary in Game.get_map_steps():
+		for node: Dictionary in step.get("nodes", []):
+			if String(node["id"]) == id and node.get("type", "") in ["normal_battle", "elite_battle", "boss"]:
+				SceneRouter.schedule_battle_visuals(Game.current_run.starter_id, String(node.get("enemy_id", "")))
 
-	_steps_scroll_tail = Control.new()
-	_steps_scroll_tail.name = "MapStepsScrollTail"
-	_steps_box.add_child(_steps_scroll_tail)
-	call_deferred("_scroll_to_current_step", current_step_index)
+
+func _change_chapter(direction: int) -> void:
+	_chapter_start = clampi(_chapter_start + direction * 7, 0, maxi(0, floori(float(Game.get_map_step_count() - 1) / 7.0) * 7))
+	_rebuild_steps()
 
 
 func _schedule_current_step_card_preload() -> void:
@@ -238,6 +339,7 @@ func _schedule_current_step_card_preload() -> void:
 	var step_data: Dictionary = Game.get_current_step_data()
 	for raw_node: Variant in Array(step_data.get("nodes", [])):
 		var node_data: Dictionary = Dictionary(raw_node)
+		if String(node_data.get("status", "")) != "available": continue
 		if String(node_data.get("type", "")) not in ["normal_battle", "elite_battle", "boss"]:
 			continue
 		var enemy: EnemyDef = Database.get_enemy(String(node_data.get("enemy_id", "")))
@@ -420,22 +522,16 @@ func _make_battle_summary_stylebox() -> StyleBoxFlat:
 
 
 func _scroll_to_current_step(step_index: int) -> void:
-	if _steps_scroll == null or _steps_box == null:
+	if not is_inside_tree() or _steps_scroll == null or _route_canvas == null:
 		return
 	var scene_tree: SceneTree = get_tree()
 	if scene_tree == null:
 		return
 	await scene_tree.process_frame
-	if not is_inside_tree():
-		return
-	var current_panel: Control = _steps_box.find_child("MapStep_%d" % step_index, false, false) as Control
-	if current_panel == null or _steps_scroll_tail == null:
-		return
-	_steps_scroll_tail.custom_minimum_size.y = maxf(0.0, _steps_scroll.size.y - current_panel.size.y - 14.0)
 	await scene_tree.process_frame
 	if not is_inside_tree():
 		return
-	_steps_scroll.scroll_vertical = maxi(0, roundi(current_panel.position.y))
+	_steps_scroll.scroll_vertical = maxi(0, roundi(_route_canvas.get_focus_y() - _steps_scroll.size.y * 0.48))
 
 
 func _is_step_locked(nodes: Array) -> bool:
@@ -591,6 +687,11 @@ func _make_loadout_card_stylebox() -> StyleBoxFlat:
 
 
 func _on_node_selected(node_id: String) -> void:
+	if _traveling or not MapRouteGraph.can_select(Game.current_run.map_state, node_id): return
+	_traveling = true
+	await _route_canvas.animate_travel(node_id)
+	if not is_inside_tree(): return
+	_traveling = false
 	var destination: String = Game.select_map_node(node_id)
 	match destination:
 		"battle":
@@ -599,6 +700,7 @@ func _on_node_selected(node_id: String) -> void:
 			SceneRouter.go_to_facility()
 		_:
 			AudioManager.play_sfx("ui_error")
+			_route_canvas._layout()
 			_refresh_ui()
 
 
@@ -622,6 +724,13 @@ func _on_return_to_hub() -> void:
 	SceneRouter.go_to_hub()
 
 
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and (_history_overlay.visible or _loadout_overlay.visible):
+		_history_overlay.visible = false
+		_loadout_overlay.visible = false
+		get_viewport().set_input_as_handled()
+
+
 func _build_developer_panel() -> void:
 	_developer_panel = DeveloperPanel.new()
 	add_child(_developer_panel)
@@ -641,6 +750,7 @@ func _refresh_developer_panel() -> void:
 
 func _build_developer_actions() -> Array[Dictionary]:
 	var actions: Array[Dictionary] = [
+		{"id": "DevMapAdvance", "label": Localization.get_text("map.route.dev_advance", "Advance route (no rewards)"), "callback": Callable(self, "_on_dev_map_advance")},
 		{"id": "DevAddGold", "label": Localization.get_text("map.dev.add_gold", "Add 50 Gold"), "callback": Callable(self, "_on_dev_add_gold")},
 		{"id": "DevRestoreHp", "label": Localization.get_text("map.dev.restore_hp", "Restore HP"), "callback": Callable(self, "_on_dev_restore_hp")},
 		{"id": "DevGrantRelic", "label": Localization.get_text("map.dev.grant_relic", "Grant Relic"), "callback": Callable(self, "_on_dev_grant_relic")},
@@ -656,6 +766,16 @@ func _build_developer_actions() -> Array[Dictionary]:
 			"callback": Callable(self, "_on_dev_open_event").bind(event_id),
 		})
 	return actions
+
+
+func _on_dev_map_advance() -> void:
+	if not Game.developer_advance_map_route(): return
+	if Game.current_run.run_complete:
+		SceneRouter.go_to_result()
+	else:
+		_chapter_start = -1
+		_refresh_ui()
+		_schedule_current_step_card_preload()
 
 
 func _on_dev_add_gold() -> void:

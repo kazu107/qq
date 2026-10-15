@@ -1,9 +1,28 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.36.2",
+  "current_version": "QQ-0.37.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.37.0", "date": "2026-10-15",
+      "title_ja": "分岐と合流のノードマップ",
+      "title_en": "Branching route map",
+      "changes_ja": [
+        "7ステップごとにボスへ合流する縦型マップに変更しました。接続された次のノードだけ選べるようになり、安全な戦闘・回復や高リスクなエリート・危険地帯を選んで進めます。",
+        "既存のBlender製アイコン、曲線の道、金色の通過経路、発光する候補、移動する駒を追加しました。ホバーで先の経路を強調し、帰還時は現在地へスクロールします。",
+        "地図を広げ、ラン履歴をウィンドウへ移しました。横長画面では右側にロードアウト、縦長画面ではボタンからウィンドウで開きます。履歴は必要時に構築・再利用します。",
+        "既存セーブの現在の候補・選択・購入済み商品を保持して移行し、無限モードの周期間も接続します。スコアの未戦闘分は実際に到達できる経路で計算します。",
+        "開発者モードに戦闘を省略する経路テストを追加し、通常の戦闘報酬なしで進行と接続を確認できるようにしました。"
+      ],
+      "changes_en": [
+        "Replace the stage list with seven-step branching maps that converge on a boss; only connected next nodes can be selected.",
+        "Reuse Blender icons with curved paths, golden visited routes, glowing destinations, hover route previews and a traveling marker.",
+        "Give the map more space, open run history in a lazy-built cached modal, and use a loadout sidebar or portrait modal.",
+        "Migrate existing choices and purchased offers without resetting runs, connect infinite cycles, and include reachable unplayed battles in scoring.",
+        "Add a developer route-advance action that skips battles without granting normal battle rewards."
+      ]
+    },
     {
       "version": "QQ-0.36.2", "date": "2026-10-15",
       "title_ja": "タイムライン範囲外のカード表示",

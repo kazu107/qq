@@ -1,6 +1,11 @@
 extends Node
 
 var _failed: bool = false
+var _engine: RealtimeBattleEngine
+
+
+func _exit_tree() -> void:
+	if _engine != null: _engine.dispose()
 
 
 func _ready() -> void:
@@ -164,6 +169,7 @@ func _assert_relic_and_enemy_content() -> void:
 		return
 
 	var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+	_engine = engine
 	engine.setup(run_state, "chronoguard")
 	var battle_state: BattleState = engine.battle_state
 	if battle_state == null:

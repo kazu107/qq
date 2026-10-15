@@ -85,11 +85,12 @@ func _assert_map_scene() -> void:
 	add_child(map_scene)
 	await get_tree().process_frame
 
-	var steps_box: VBoxContainer = map_scene.find_child("MapSteps", true, false) as VBoxContainer
+	var steps_box: MapRouteCanvas = map_scene.find_child("MapRoutes", true, false) as MapRouteCanvas
+	map_scene.call("_show_history")
 	var equipped_deck: CardHandPanel = map_scene.find_child("EquippedDeck", true, false) as CardHandPanel
 	var inventory_box: LoadoutInventoryGrid = map_scene.find_child("LoadoutInventory", true, false) as LoadoutInventoryGrid
 	var battle_summary_box: VBoxContainer = map_scene.find_child("RunBattleSummary", true, false) as VBoxContainer
-	if steps_box == null or steps_box.get_child_count() == 0:
+	if steps_box == null or steps_box._buttons.size() < 14 or steps_box._edges.is_empty():
 		_fail("Map/facility smoke failed: map scene did not render step nodes")
 	elif equipped_deck == null or equipped_deck.get_child_count() == 0:
 		_fail("Map/facility smoke failed: map scene did not render equipped loadout")
@@ -106,17 +107,9 @@ func _assert_map_scene() -> void:
 	_assert_map_loadout_inventory(map_scene)
 	if _failed:
 		return
-	var current_step_panel: PanelContainer = steps_box.find_child("MapStep_0", true, false) as PanelContainer
-	var first_step_header: Label = steps_box.find_child("MapStepHeader_0", true, false) as Label
-	var area_one_text: String = Localization.get_textf("map.summary.area", "Area {value}", {"value": 1})
-	if first_step_header == null or first_step_header.text.count(area_one_text) != 1:
-		_fail("Map/facility smoke failed: step header should show the area label only once")
-		return
-	var current_step_style: StyleBoxFlat = null
-	if current_step_panel != null:
-		current_step_style = current_step_panel.get_theme_stylebox("panel") as StyleBoxFlat
-	if current_step_style == null or current_step_style.border_color.r < 0.95 or current_step_style.border_color.g < 0.65 or current_step_style.border_width_top < 3:
-		_fail("Map/facility smoke failed: current map step should have a yellow outline")
+	var chapter: Label = map_scene.find_child("MapChapterLabel", true, false) as Label
+	if chapter == null or chapter.text == "" or steps_box._marker == Vector2.ZERO:
+		_fail("Map/facility smoke failed: chapter header or current marker missing")
 		return
 	var first_node_button: MapNodeButton = _find_first_map_node_button(steps_box)
 	if first_node_button == null:
@@ -130,21 +123,16 @@ func _assert_map_scene() -> void:
 	if first_node_button.tooltip_text.find("Status:") != -1 or first_node_button.tooltip_text.find("Locked") != -1:
 		_fail("Map/facility smoke failed: node map should not expose lock status wording")
 		return
-	var locked_node_button: MapNodeButton = _find_first_locked_map_node_button(steps_box)
+	var locked_node_button: MapNodeButton = null
+	for button: MapNodeButton in steps_box._buttons.values():
+		if button.disabled: locked_node_button = button
 	if locked_node_button == null:
-		_fail("Map/facility smoke failed: locked node should render a lock icon")
+		_fail("Map/facility smoke failed: future nodes should remain visible on the graph")
 		return
-	var lock_icon: TextureRect = locked_node_button.find_child("MapNodeLockIcon", true, false) as TextureRect
-	if lock_icon == null or lock_icon.texture == null:
-		_fail("Map/facility smoke failed: locked node lock icon was missing")
+	if locked_node_button._lock_overlay.visible or locked_node_button._content_box.modulate.a >= 0.8:
+		_fail("Map/facility smoke failed: future nodes should be dimmed without hiding their type")
 		return
-	var locked_step_panel: PanelContainer = _get_step_panel_for_node(locked_node_button)
-	var locked_step_style: StyleBoxFlat = null
-	if locked_step_panel != null:
-		locked_step_style = locked_step_panel.get_theme_stylebox("panel") as StyleBoxFlat
-	if locked_step_style == null or locked_step_style.bg_color.a < 0.5:
-		_fail("Map/facility smoke failed: locked step frame should be dimmed")
-		return
+	(map_scene.get("_history_overlay") as Control).visible = false
 
 	Game.current_run.map_state["current_step"] = 4
 	map_scene.call("_refresh_ui")
@@ -152,9 +140,9 @@ func _assert_map_scene() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var steps_scroll: ScrollContainer = map_scene.find_child("MapStepsScroll", true, false) as ScrollContainer
-	var advanced_step_panel: PanelContainer = map_scene.find_child("MapStep_4", true, false) as PanelContainer
-	if steps_scroll == null or advanced_step_panel == null or absf(float(steps_scroll.scroll_vertical) - advanced_step_panel.position.y) > 3.0:
-		_fail("Map/facility smoke failed: map should scroll the current step to the top")
+	var expected_scroll: float = clampf(steps_box.get_focus_y() - steps_scroll.size.y * 0.48, 0, maxf(0, steps_scroll.get_v_scroll_bar().max_value - steps_scroll.get_v_scroll_bar().page))
+	if steps_scroll == null or absf(float(steps_scroll.scroll_vertical) - expected_scroll) > 3.0:
+		_fail("Map/facility smoke failed: map should focus the current route")
 		return
 	Game.current_run.map_state["current_step"] = 0
 
@@ -228,6 +216,7 @@ func _assert_map_loadout_inventory(map_scene: Control) -> void:
 func _assert_map_battle_summary_with_history() -> void:
 	var map_scene: Control = load("res://scenes/map/Map.tscn").instantiate() as Control
 	add_child(map_scene)
+	map_scene.call("_show_history")
 	await get_tree().process_frame
 
 	var summary_total: HBoxContainer = map_scene.find_child("RunBattleSummaryTotal", true, false) as HBoxContainer

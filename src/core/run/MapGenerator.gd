@@ -54,8 +54,11 @@ func generate_run(seed: int, unlocked_step_tier: int = 1) -> Dictionary:
 	if unlocked_step_tier >= 4:
 		_mark_step_as_gate(steps, 20, "map.step.axiom_gate", "Axiom Gate")
 		steps.append_array(_build_tier_four_steps(rng))
+	_expand_route_choices(steps, rng)
+	MapRouteGraph.decorate(steps, seed)
 	_unlock_step_nodes(steps, 0)
 	return {
+		"graph_version": MapRouteGraph.VERSION,
 		"current_step": 0,
 		"active_node_id": "",
 		"steps": steps,
@@ -86,6 +89,12 @@ func append_infinite_cycle(map_state: Dictionary, seed: int) -> void:
 	var area_offset: int = cycle_index * INFINITE_AREA_SPAN
 	var cycle_number: int = cycle_index + 1
 	var infinite_power: int = cycle_number
+	var remapped_ids: Dictionary = {}
+	for local_index: int in source_steps.size():
+		var source_nodes: Array = source_steps[local_index].get("nodes", [])
+		for node_index: int in source_nodes.size():
+			var node: Dictionary = source_nodes[node_index]
+			remapped_ids[String(node["id"])] = "%s_c%d_s%d_n%d" % [node["type"], cycle_number, step_offset + local_index + 1, node_index]
 
 	for local_step_index in range(source_steps.size()):
 		var step_data: Dictionary = Dictionary(source_steps[local_step_index]).duplicate(true)
@@ -97,8 +106,17 @@ func append_infinite_cycle(map_state: Dictionary, seed: int) -> void:
 		step_data["label_key"] = ""
 		step_data["label"] = "∞%d / %s" % [cycle_number, Localization.get_step_label(Dictionary(source_steps[local_step_index]))]
 		step_data["nodes"] = _remap_infinite_nodes(Array(step_data.get("nodes", [])), cycle_number, step_index, area_offset, infinite_power)
+		for node: Dictionary in step_data["nodes"]:
+			var next_ids: Array[String] = []
+			for id: Variant in node.get("next_ids", []): next_ids.append(String(remapped_ids[String(id)]))
+			node["next_ids"] = next_ids
 		steps.append(step_data)
 
+	if step_offset > 0:
+		var first_ids: Array[String] = []
+		for node: Dictionary in steps[step_offset]["nodes"]: first_ids.append(String(node["id"]))
+		for node: Dictionary in steps[step_offset - 1]["nodes"]: node["next_ids"] = first_ids.duplicate()
+	map_state["graph_version"] = MapRouteGraph.VERSION
 	map_state["steps"] = steps
 	map_state["cycle_count"] = cycle_index + 1
 	map_state["infinite"] = true
@@ -219,6 +237,21 @@ func _mark_step_as_gate(steps: Array, step_index: int, label_key: String, label:
 	gate_step["label_key"] = label_key
 	gate_step["label"] = label
 	steps[step_index] = gate_step
+
+
+func _expand_route_choices(steps: Array, rng: RandomNumberGenerator) -> void:
+	for index: int in steps.size():
+		var local_index: int = index % MapRouteGraph.CHAPTER_STEPS
+		var nodes: Array = steps[index]["nodes"]
+		if local_index == 0 or local_index == 6 or nodes.size() >= 3: continue
+		var area: int = int(steps[index]["area"])
+		if local_index in [2, 4]:
+			var pool: Array = AREA_ONE_POOL if area <= 3 else (AREA_FOUR_POOL if area <= 6 else (AREA_SEVEN_POOL if area <= 9 else AREA_TEN_POOL))
+			nodes.append(_build_battle_node(index, 2, area, "normal_battle", _pick_enemy(rng, pool), "map.node.enemy_name", "Battle"))
+		else:
+			var has_heal: bool = nodes.any(func(node: Dictionary) -> bool: return String(node["type"]) == "heal")
+			nodes.append(_build_non_battle_node(index, 2, area, "event" if has_heal else "heal", "map.node.unknown_signal" if has_heal else "map.node.repair_bay", "Unknown Signal" if has_heal else "Repair Bay"))
+		steps[index]["nodes"] = nodes
 
 
 func _build_step(step_index: int, area: int, label_key: String, label: String, nodes: Array) -> Dictionary:

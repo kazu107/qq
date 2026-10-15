@@ -34,6 +34,18 @@ func _command(arguments: Array) -> void:
 		_simulate_battle_result()
 	elif String(payload.get("action", "")) == "timekeeper_advance":
 		_advance_timekeeper(float(payload.get("seconds", 0.0)))
+	elif String(payload.get("action", "")) == "map_advance":
+		var was_developer: bool = Game.is_developer_mode_enabled()
+		Game.settings["developer_mode"] = true
+		Game.developer_advance_map_route()
+		Game.settings["developer_mode"] = was_developer
+		var screen: Control = get_tree().current_scene as Control
+		screen.set("_chapter_start", -1)
+		screen.call("_refresh_ui")
+	elif String(payload.get("action", "")) == "map_focus":
+		var screen: Control = get_tree().current_scene as Control
+		var scroll: ScrollContainer = screen.get("_steps_scroll") as ScrollContainer
+		scroll.scroll_vertical = int(payload.get("scroll", 0))
 	elif String(payload.get("action", "")) == "finish_score":
 		get_tree().current_scene.call("_finish_score_animation")
 	elif String(payload.get("action", "")) == "status_icons":
@@ -153,8 +165,9 @@ func _open_screen(screen: String) -> void:
 				{"id": 1000000003, "name": "BOT 3", "starterId": "balanced"},
 			], true, "")
 			SceneRouter.go_to_online_lobby()
-		"map":
+		"map", "map_extended":
 			Game.start_new_run("balanced", 4242)
+			if screen == "map_extended": Game.current_run.map_state = MapGenerator.new().generate_run(4242, 4)
 			SceneRouter.go_to_map()
 		"online_arena":
 			NetworkManager._clear_session(false)
@@ -231,7 +244,7 @@ func _process(_delta: float) -> void:
 		return
 	var cover: Control = SceneRouter.get("_transition_cover") as Control
 	var scene: CanvasItem = get_tree().current_scene as CanvasItem
-	if scene == null or not scene.visible or (cover != null and cover.visible):
+	if scene == null or not scene.is_inside_tree() or not scene.visible or (cover != null and cover.visible):
 		return
 	_pending_frames -= 1
 	if _pending_frames == 0:
@@ -242,16 +255,31 @@ func _inspect() -> Dictionary:
 	var screen: Control = get_tree().current_scene as Control
 	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
 	var controls: Array[Dictionary] = []
+	var result: Dictionary = {}
 	if screen != null:
+		if screen.scene_file_path.get_file().get_basename() == "Map":
+			var canvas: MapRouteCanvas = screen.get("_route_canvas") as MapRouteCanvas
+			var map_nodes: Array[Dictionary] = []
+			for step: Dictionary in canvas._steps:
+				for node: Dictionary in step.get("nodes", []):
+					var button: MapNodeButton = canvas._buttons[String(node["id"])]
+					map_nodes.append({"id": node["id"], "status": node["status"], "type": node["type"], "next": node["next_ids"],
+						"rect": _rect_values(button.get_global_transform() * Rect2(Vector2.ZERO, button.size)), "disabled": button.disabled, "name": button._name_label.text})
+			var map_scroll: ScrollContainer = screen.get("_steps_scroll") as ScrollContainer
+			result["map"] = {"nodes": map_nodes, "edges": canvas._edges.size(), "chapter": screen.get("_chapter_start"),
+				"step": Game.get_current_step_index(), "scroll": map_scroll.scroll_vertical, "scroll_rect": _rect_values(map_scroll.get_global_rect()),
+				"traveling": canvas._traveling, "current": canvas._current_id,
+				"history": (screen.get("_history_overlay") as Control).visible, "drawer": (screen.get("_loadout_button") as Button).visible,
+				"loadout_open": (screen.get("_loadout_overlay") as Control).visible}
 		_collect_controls(screen, controls, false)
-	var result: Dictionary = {
+	result.merge({
 		"sequence": _sequence,
 		"screen": screen.scene_file_path.get_file().get_basename() if screen != null else "",
 		"viewport": [viewport_rect.size.x, viewport_rect.size.y],
 		"window": [get_window().size.x, get_window().size.y],
 		"aspect": get_window().content_scale_aspect,
 		"controls": controls,
-	}
+	})
 	if screen != null:
 		if screen.has_method("is_tutorial_mode") and bool(screen.call("is_tutorial_mode")):
 			var director: BattleTutorialDirector = screen.get("_tutorial_director") as BattleTutorialDirector

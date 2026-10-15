@@ -111,6 +111,9 @@ func _calculate_efficiency(run_state: RunState) -> int:
 func _planned_battle_weight(run_state: RunState, recorded_weight: float) -> float:
 	if run_state.arena_mode:
 		return recorded_weight + float(maxi(0, run_state.arena_target_wins - run_state.arena_wins))
+	if int(run_state.map_state.get("graph_version", 0)) >= MapRouteGraph.VERSION:
+		var graph_weight: float = MapRouteGraph.minimum_route_weight(run_state.map_state, _node_battle_weight)
+		if is_finite(graph_weight): return graph_weight
 	var total: float = 0.0
 	for step: Dictionary in Array(run_state.map_state.get("steps", [])):
 		var chosen: Dictionary = {}
