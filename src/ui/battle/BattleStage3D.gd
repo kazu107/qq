@@ -133,6 +133,7 @@ func set_playback_speed(value: float) -> void:
 
 
 func reset_replay_pose(entries: Array, player_hp: int, enemy_hp: int) -> void:
+	reset_hp_animations()
 	_battle_end_queued = false
 	_battle_end_finished = false
 	_queued_events.clear()
@@ -164,6 +165,7 @@ func configure_combatants(
 	local_visual_id: String = "default_player",
 	opponent_visual_id: String = "default_enemy"
 ) -> void:
+	reset_hp_animations()
 	_battle_end_queued = false
 	_battle_end_finished = false
 	_local_unit_id = local_unit_id
@@ -200,6 +202,8 @@ func play_battle_event(event_data: Dictionary) -> void:
 		return
 	if _battle_end_queued and String(event_data.get("event_type", "")) != "battle_end":
 		return
+	# Audio follows authoritative resolution, never the potentially backlogged visual queue.
+	_play_event_audio(event_data)
 	if String(event_data.get("event_type", "")) == "battle_end":
 		if _battle_end_queued:
 			return
@@ -218,6 +222,33 @@ func play_battle_event(event_data: Dictionary) -> void:
 		_queued_events.pop_front()
 	if _active_event.is_empty():
 		_start_next_event()
+
+
+func reset_hp_animations() -> void:
+	for plate: BattleUnitStatus3D in [_player_status, _enemy_status]:
+		if plate != null:
+			plate.reset_hp_animation()
+
+
+func _play_event_audio(event_data: Dictionary) -> void:
+	var type: String = String(event_data.get("event_type", ""))
+	var result: Dictionary = Dictionary(event_data.get("result", {}))
+	if type == "resolve_card":
+		var card_def: CardDef = Database.get_card(String(event_data.get("card_id", "")))
+		var blocked: bool = bool(result.get("fully_blocked", false))
+		if card_def != null and not result.has("fully_blocked"):
+			var target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
+			var delta_data: Dictionary = _unit_delta(result, target)
+			for effect: Dictionary in card_def.effects:
+				if String(effect.get("type", "")) == "deal_damage":
+					blocked = int(delta_data.get("hp", 0)) >= 0 and int(delta_data.get("shield", 0)) < 0
+					break
+		AudioManager.play_card_resolution(card_def, blocked)
+	elif type == "fatigue_card":
+		var blocked: bool = true
+		for actor: BattleActor3D in [_player_actor, _enemy_actor]:
+			blocked = blocked and int(_unit_delta(result, actor).get("hp", 0)) >= 0
+		AudioManager.play_sfx("battle_full_block" if blocked else "status_bleed_tick", 0.85)
 
 
 func ensure_battle_end_presentation(winner: String) -> void:
@@ -1084,14 +1115,11 @@ func _begin_event(event_data: Dictionary) -> float:
 			return _begin_resolution(event_data)
 		"fatigue_card":
 			var result: Dictionary = Dictionary(event_data.get("result", {}))
-			var fully_blocked: bool = true
 			for actor: BattleActor3D in [_player_actor, _enemy_actor]:
 				var delta_data: Dictionary = _unit_delta(result, actor)
 				var hp_loss: bool = int(delta_data.get("hp", 0)) < 0
-				fully_blocked = fully_blocked and not hp_loss
 				actor.play_action(BattleActor3D.ACTION_HIT if hp_loss else BattleActor3D.ACTION_BLOCK)
 				_spawn_impact(_actor_effect_position(actor), FatigueRules.BORDER_COLOR if hp_loss else SHIELD_COLOR, 0.55, 1.6)
-			AudioManager.play_sfx("battle_full_block" if fully_blocked else "status_bleed_tick", 0.85)
 			_add_camera_shake(0.08)
 			return 0.55
 		"status_damage":
@@ -1256,15 +1284,12 @@ func _apply_pending_resolution_visuals() -> void:
 		return
 	var actor: BattleActor3D = _pending_resolution_visual.get("actor") as BattleActor3D
 	var target: BattleActor3D = _pending_resolution_visual.get("target") as BattleActor3D
-	var card_def: CardDef = _pending_resolution_visual.get("card_def") as CardDef
 	var profile: Dictionary = Dictionary(_pending_resolution_visual.get("profile", {}))
 	var actor_delta: Dictionary = Dictionary(_pending_resolution_visual.get("actor_delta", {}))
 	var target_delta: Dictionary = Dictionary(_pending_resolution_visual.get("target_delta", {}))
 	var offensive: bool = bool(_pending_resolution_visual.get("offensive", false))
-	var result: Dictionary = Dictionary(_active_event.get("result", {}))
 	if offensive:
 		_spawn_pending_resolution_projectile()
-	AudioManager.play_card_resolution(card_def, bool(result.get("fully_blocked", false)))
 	_apply_unit_delta(actor, actor_delta, profile, false)
 	if target != actor:
 		_apply_unit_delta(target, target_delta, profile, true)

@@ -143,6 +143,7 @@ func _render() -> void:
 	_scrub.set_value_no_signal(_time)
 	var player: UnitState = BattleStateCodec._decode_unit(Dictionary(frame["player"]))
 	var enemy: UnitState = BattleStateCodec._decode_unit(Dictionary(frame["enemy"]))
+	_stage.refresh_unit_status(player, enemy)
 	_status.text = "%.2f / %.2fs    %s HP %d/%d  +%d    |    %s HP %d/%d  +%d" % [_time, _duration, player.display_name, player.hp, player.max_hp, player.shield, enemy.display_name, enemy.hp, enemy.max_hp, enemy.shield]
 	var entries: Array[TimelineEntry] = []
 	for raw: Dictionary in frame.get("timeline", []):

@@ -68,6 +68,7 @@ var _portrait_rect: TextureRect
 var _info_column: VBoxContainer
 var _hp_bar: ProgressBar
 var _hp_label: Label
+var _hp_animation: HpBarAnimation = HpBarAnimation.new()
 var _shield_icon_rect: TextureRect
 var _shield_label: Label
 var _slots_label: Label
@@ -313,6 +314,7 @@ func _apply_stage_overlay_mode() -> void:
 
 
 func configure_visual(unit_side: String, portrait_key: String) -> void:
+	_hp_animation.reset()
 	_unit_side = unit_side
 	_portrait_key = portrait_key
 	if _portrait_rect != null:
@@ -330,7 +332,8 @@ func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 
 	_name_label.text = unit.display_name
 	_hp_bar.max_value = float(max_hp_value)
-	_hp_bar.value = float(hp_value)
+	_hp_animation.set_value(unit.unit_id, hp_value, max_hp_value)
+	_hp_bar.value = _hp_animation.displayed_ratio * _hp_bar.max_value
 	_hp_label.text = "%d / %d" % [hp_value, max_hp_value]
 	_shield_label.text = "%d" % shield_value
 	_slots_label.text = ""
@@ -580,6 +583,9 @@ func _ensure_slot_cell_count(total_slots: int) -> void:
 
 
 func _process(delta: float) -> void:
+	_hp_animation.advance(delta)
+	if _hp_bar != null:
+		_hp_bar.value = _hp_animation.displayed_ratio * _hp_bar.max_value
 	if _slot_preview_active:
 		_slot_preview_elapsed = fposmod(_slot_preview_elapsed + delta, SLOT_PREVIEW_ALPHA_CYCLE_SECONDS)
 		_apply_slot_battery_styles()

@@ -37,6 +37,7 @@ var _hovered_player_runtime_id: String = ""
 var _processed_vfx_event_count: int = 0
 var _lan_battle_event_total: int = 0
 var _lan_snapshot_initialized: bool = false
+var _snap_hp_on_next_snapshot: bool = true
 var _lan_mode: bool = false
 var _spectator_mode: bool = false
 var _local_side: String = "player"
@@ -397,6 +398,9 @@ func _apply_lan_snapshot(snapshot: Dictionary) -> void:
 	if snapshot_client and not _lan_snapshot_initialized:
 		_processed_vfx_event_count = _lan_battle_event_total
 	_lan_snapshot_initialized = true
+	if _snap_hp_on_next_snapshot and _battle_stage != null:
+		_battle_stage.reset_hp_animations()
+		_snap_hp_on_next_snapshot = false
 	_engine.apply_network_snapshot(decoded_state, snapshot_started)
 	if snapshot_client and _engine.battle_state != null:
 		_engine.battle_state.battle_time = display_battle_time
@@ -473,6 +477,7 @@ func _on_lan_connection_state_changed(_state: int, message: String) -> void:
 	if not _lan_mode or _slow_mode_label == null:
 		return
 	if NetworkManager.is_waiting_for_reconnect():
+		_snap_hp_on_next_snapshot = true
 		_slow_mode_label.text = message
 		_slow_mode_label.visible = true
 
@@ -1257,22 +1262,6 @@ func _process_resolution_vfx(battle_state: BattleState) -> void:
 		var event_type: String = String(event_data.get("event_type", ""))
 		if event_type != "shield_decay":
 			_battle_stage.play_battle_event(event_data)
-		if event_type != "resolve_card":
-			continue
-		if compact_lan_events:
-			var card_def: CardDef = Database.get_card(String(event_data.get("card_id", "")))
-			var result: Dictionary = Dictionary(event_data.get("result", {}))
-			var has_damage: bool = false
-			if card_def != null:
-				for effect_data: Dictionary in card_def.effects:
-					if String(effect_data.get("type", "")) == "deal_damage":
-						has_damage = true
-						break
-			var fully_blocked: bool = has_damage and (
-				int(result.get("target_hp_after", 0)) == int(result.get("target_hp_before", 0))
-				and int(result.get("target_shield_after", 0)) < int(result.get("target_shield_before", 0))
-			)
-			AudioManager.play_card_resolution(card_def, fully_blocked)
 	_processed_vfx_event_count = _lan_battle_event_total if compact_lan_events else battle_events.size()
 
 
@@ -1532,6 +1521,7 @@ func _refresh_developer_panel() -> void:
 			{"id": "DevWinBattle", "label": Localization.get_text("battle.dev.force_victory", "Force Victory"), "callback": Callable(self, "_on_dev_force_victory")},
 			{"id": "DevLoseBattle", "label": Localization.get_text("battle.dev.force_defeat", "Force Defeat"), "callback": Callable(self, "_on_dev_force_defeat")},
 			{"id": "DevRestoreHp", "label": Localization.get_text("map.dev.restore_hp", "Restore HP"), "callback": Callable(self, "_on_dev_restore_hp")},
+			{"id": "DevHpBarTest", "label": Localization.get_text("battle.dev.hp_bar_test", "HP -10 (200ms bar test)"), "callback": Callable(self, "_on_dev_hp_bar_test"), "disabled": _lan_mode},
 			{"id": "DevFatigue", "label": Localization.get_text("fatigue.dev", "Queue fatigue in 1s"), "callback": Callable(self, "_on_dev_fatigue"), "disabled": _lan_mode and (not NetworkManager.is_host() or _spectator_mode)},
 		],
 		Localization.get_text("battle.dev.summary", "Battle shortcuts for deterministic manual testing.")
@@ -1590,6 +1580,14 @@ func _on_dev_restore_hp() -> void:
 	var local_unit: UnitState = _engine.battle_state.get_unit(_local_side)
 	local_unit.hp = local_unit.max_hp
 	_refresh_ui(SlowModeController.get_time_scale(Input.is_key_pressed(KEY_SPACE)))
+
+
+func _on_dev_hp_bar_test() -> void:
+	if not Game.is_developer_mode_enabled() or _lan_mode or _engine.battle_state == null or _handled_finish:
+		return
+	var unit: UnitState = _engine.battle_state.get_unit(_local_side)
+	unit.hp = maxi(1, unit.hp - 10)
+	_refresh_ui(1.0)
 
 
 func _force_battle_result(winner: String) -> void:

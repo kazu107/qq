@@ -116,6 +116,8 @@ static func _encode_network_result(result: Dictionary) -> Dictionary:
 	for key: String in NETWORK_RESULT_SCALAR_KEYS:
 		if result.has(key):
 			compact_result[key] = int(result[key])
+	if result.has("fully_blocked"):
+		compact_result["fully_blocked"] = bool(result["fully_blocked"])
 	return compact_result
 
 

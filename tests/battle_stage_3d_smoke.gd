@@ -170,15 +170,15 @@ func _run() -> void:
 	))
 	if player_actor.get_action_name() != "attack" \
 	or enemy_actor.get_action_name() == "hit" \
-	or AudioManager.get_last_sfx_id() != "":
-		_fail("3D battle stage smoke failed: target reaction should wait for the impact marker")
+	or AudioManager.get_last_sfx_id() != "card_strike":
+		_fail("3D battle stage smoke failed: SE should be immediate while the target reaction waits for impact")
 		return
 	_advance(stage, player_actor, enemy_actor, 0.76)
 	if enemy_actor.get_action_name() != "hit":
 		_fail("3D battle stage smoke failed: impact marker should animate the target hit")
 		return
-	if AudioManager.get_last_sfx_id() != "card_strike":
-		_fail("3D battle stage smoke failed: card SE should play on the impact marker")
+	if AudioManager.get_play_history() != ["card_strike"]:
+		_fail("3D battle stage smoke failed: impact marker must not replay the resolution SE")
 		return
 	if stage.find_child("BattleProjectile3D", true, false) == null or stage.find_child("BattleImpact3D", true, false) == null:
 		_fail("3D battle stage smoke failed: release and impact markers should spawn synchronized VFX")

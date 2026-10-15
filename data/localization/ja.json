@@ -637,6 +637,7 @@
   "battle.player_name": "プレイヤー",
   "battle.dev.force_victory": "強制勝利",
   "battle.dev.force_defeat": "強制敗北",
+  "battle.dev.hp_bar_test": "HP -10（バー200ms確認）",
   "battle.dev.summary": "戦闘中の再現確認用ショートカットです。",
   "battle.log.started_against": "{enemy_name} との戦闘を開始",
   "battle.log.prepared_card": "{unit_name} が {card_name} を準備",

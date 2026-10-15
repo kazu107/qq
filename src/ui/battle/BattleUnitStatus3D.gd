@@ -25,6 +25,8 @@ var _speed_label: Label3D
 var _status_label: Label3D
 var _slot_cells: Array[MeshInstance3D] = []
 var _last_hp_ratio: float = 1.0
+var _hp_animation: HpBarAnimation = HpBarAnimation.new()
+var _rendered_hp_ratio: float = -1.0
 var _last_preview_slot_cost: int = 0
 var _last_slot_overflow: int = 0
 var _status_cells: Dictionary = {}
@@ -41,16 +43,33 @@ func _ready() -> void:
 	_build_model()
 
 
+func _process(delta: float) -> void:
+	_hp_animation.advance(delta)
+	_update_hp_fill()
+
+
+func reset_hp_animation() -> void:
+	_hp_animation.reset()
+
+
+func _update_hp_fill() -> void:
+	if _hp_fill == null or _rendered_hp_ratio == _hp_animation.displayed_ratio:
+		return
+	_rendered_hp_ratio = _hp_animation.displayed_ratio
+	var fill_width: float = HP_BAR_SIZE.x * _hp_animation.displayed_ratio
+	_hp_fill_mesh.size = Vector2(maxf(0.001, fill_width), HP_BAR_SIZE.y)
+	_hp_fill.position.x = HP_BAR_CENTER_X - HP_BAR_SIZE.x * 0.5 + fill_width * 0.5
+	_hp_fill.visible = _hp_animation.displayed_ratio > 0.0
+
+
 func refresh_unit(unit: UnitState, preview_slot_cost: int = 0) -> void:
 	if unit == null or _hp_label == null:
 		return
 	var hp_value: int = maxi(0, unit.hp)
 	var max_hp_value: int = maxi(1, unit.max_hp)
-	_last_hp_ratio = clampf(float(hp_value) / float(max_hp_value), 0.0, 1.0)
-	var fill_width: float = HP_BAR_SIZE.x * _last_hp_ratio
-	_hp_fill_mesh.size = Vector2(maxf(0.001, fill_width), HP_BAR_SIZE.y)
-	_hp_fill.position.x = HP_BAR_CENTER_X - HP_BAR_SIZE.x * 0.5 + fill_width * 0.5
-	_hp_fill.visible = hp_value > 0
+	_hp_animation.set_value(unit.unit_id, hp_value, max_hp_value)
+	_last_hp_ratio = _hp_animation.target_ratio
+	_update_hp_fill()
 	_name_label.text = unit.display_name
 	_hp_label.text = "%d / %d" % [hp_value, max_hp_value]
 	_shield_label.text = "%d" % maxi(0, unit.shield)
@@ -67,6 +86,10 @@ func get_hp_text() -> String:
 
 func get_hp_ratio() -> float:
 	return _last_hp_ratio
+
+
+func get_displayed_hp_ratio() -> float:
+	return _hp_animation.displayed_ratio
 
 
 func get_status_text() -> String:

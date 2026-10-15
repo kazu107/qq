@@ -5,6 +5,9 @@ var _bridge: JavaScriptObject
 var _sequence: int = 0
 var _pending_frames: int = 0
 var _tutorial_samples: Array[Dictionary] = []
+var _feedback_samples: Array[Dictionary] = []
+var _feedback_started_ms: int = -1
+var _feedback_initial_audio: Array[String] = []
 
 
 func _ready() -> void:
@@ -41,6 +44,25 @@ func _command(arguments: Array) -> void:
 		_simulate_battle_result()
 	elif String(payload.get("action", "")) == "timekeeper_advance":
 		_advance_timekeeper(float(payload.get("seconds", 0.0)))
+	elif String(payload.get("action", "")) == "feedback_damage":
+		var battle: Control = get_tree().current_scene as Control
+		battle.set_process(false)
+		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+		engine.set_audio_enabled(false)
+		var stage: BattleStage3D = battle.get("_battle_stage") as BattleStage3D
+		stage.configure_combatants("player", engine.battle_state.enemy.unit_id)
+		engine.battle_state.player.hp = engine.battle_state.player.max_hp
+		battle.call("_refresh_ui", 1.0)
+		_feedback_samples.clear()
+		_feedback_started_ms = Time.get_ticks_msec()
+		engine.battle_state.player.hp = int(engine.battle_state.player.max_hp / 2.0)
+		stage.play_battle_event({"event_type": "battle_start"})
+		AudioManager.clear_play_history()
+		stage.play_battle_event({"event_type": "resolve_card", "actor_id": "player", "target_id": engine.battle_state.enemy.unit_id,
+			"card_id": "strike", "result": {"fully_blocked": false}})
+		_feedback_initial_audio = AudioManager.get_play_history()
+		battle.call("_refresh_ui", 1.0)
+		_sample_feedback(battle)
 	elif String(payload.get("action", "")) == "map_advance":
 		var was_developer: bool = Game.is_developer_mode_enabled()
 		Game.settings["developer_mode"] = true
@@ -264,6 +286,8 @@ func _process(_delta: float) -> void:
 	var current: Node = get_tree().current_scene
 	if current != null and current.scene_file_path == SceneRouter.BATTLE_SCENE and not current.is_processing():
 		current.call("_refresh_ui", 1.0)
+		if _feedback_started_ms >= 0 and Time.get_ticks_msec() - _feedback_started_ms <= 450:
+			call_deferred("_sample_feedback", current)
 	if current != null and current.has_method("is_tutorial_mode") and bool(current.call("is_tutorial_mode")):
 		var panel: TimelinePanel = current.get("_timeline_panel") as TimelinePanel
 		var director: BattleTutorialDirector = current.get("_tutorial_director") as BattleTutorialDirector
@@ -283,11 +307,20 @@ func _process(_delta: float) -> void:
 		_window.qqLayoutState = JSON.stringify(_inspect())
 
 
+func _sample_feedback(battle: Node) -> void:
+	var stage: BattleStage3D = battle.get("_battle_stage") as BattleStage3D
+	var plate: BattleUnitStatus3D = stage.get_player_status_model()
+	_feedback_samples.append({"ms": Time.get_ticks_msec() - _feedback_started_ms,
+		"target": plate.get_hp_ratio(), "displayed": plate.get_displayed_hp_ratio(), "text": plate.get_hp_text()})
+
+
 func _inspect() -> Dictionary:
 	var screen: Control = get_tree().current_scene as Control
 	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
 	var controls: Array[Dictionary] = []
 	var result: Dictionary = {}
+	if not _feedback_samples.is_empty():
+		result["feedback"] = {"samples": _feedback_samples, "immediate_audio": _feedback_initial_audio, "audio": AudioManager.get_play_history()}
 	if screen != null:
 		if screen.scene_file_path.get_file().get_basename() in ["MetaProgress", "CardLibrary"]:
 			result["content_progress"] = Game.get_content_progress()

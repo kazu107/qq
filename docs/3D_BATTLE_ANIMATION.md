@@ -24,12 +24,24 @@ Battle state remains authoritative and is never derived from animation time.
 The animation markers only schedule presentation:
 
 - `release`: projectile creation
-- `impact`: target reaction, damage VFX, combat number, camera shake, card SE
+- `impact`: target reaction, damage VFX, combat number, camera shake
 - `effect`: heal, shield, or status VFX and combat number
 
 If a marker is unavailable or an animation cannot finish, `BattleStage3D`
 flushes the pending visual cue at the end of the event. Gameplay therefore
 cannot stall because of a visual asset.
+
+Card-effect SE plays immediately when the authoritative resolution event reaches
+the presentation, before entering the animation queue. Local battles, network
+snapshots, fatigue, the animation lab and replays use the same path; animation
+markers never replay SE. Compact snapshots preserve the shield-block result.
+
+HP numbers update immediately. The 3D and fallback 2D HP fills follow changes
+linearly over 200 ms of real frame time, independent of slow mode or animation
+speed. Repeated snapshots do not restart the animation; a new hit starts from
+the currently displayed fill. New combatants, max-HP changes, reconnects and
+replay seeks snap to the current state. The developer battle panel includes an
+HP -10 test action; Restore HP also demonstrates healing.
 
 ## Regeneration
 
