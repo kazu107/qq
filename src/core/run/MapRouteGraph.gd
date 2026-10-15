@@ -1,7 +1,8 @@
 extends RefCounted
 class_name MapRouteGraph
 
-const VERSION: int = 1
+const VERSION: int = 2
+const FIRST_ROUTED_VERSION: int = 1
 const CHAPTER_STEPS: int = 7
 
 
@@ -17,14 +18,15 @@ static func decorate(steps: Array, seed: int) -> void:
 		var rightward: bool = rng.randf() < 0.5
 		for index: int in nodes.size():
 			var node: Dictionary = nodes[index]
-			var lane: float = 0.5 if nodes.size() == 1 else lerpf(0.16, 0.84, float(index) / float(nodes.size() - 1))
-			node["map_x"] = (1.0 - lane if mirrored else lane) + rng.randf_range(-0.025, 0.025)
-			node["next_ids"] = _targets(index, nodes.size(), next, rightward)
+			var lane: float = 0.5 if nodes.size() == 1 else lerpf(0.08, 0.92, float(index) / float(nodes.size() - 1))
+			node["map_x"] = (1.0 - lane if mirrored else lane) + rng.randf_range(-0.015, 0.015)
+			node["next_ids"] = _targets(index, nodes.size(), next, rightward, rng.randf() < 0.35)
 			nodes[index] = node
+		_ensure_incoming(nodes, next)
 		steps[step_index]["nodes"] = nodes
 
 
-static func _targets(index: int, count: int, next: Array, rightward: bool) -> Array[String]:
+static func _targets(index: int, count: int, next: Array, rightward: bool, extra_branch: bool = false) -> Array[String]:
 	var targets: Array[String] = []
 	if next.is_empty():
 		return targets
@@ -33,17 +35,28 @@ static func _targets(index: int, count: int, next: Array, rightward: bool) -> Ar
 		for target: int in next.size(): indices.append(target)
 	elif next.size() == 1:
 		indices.append(0)
-	elif count < next.size():
-		indices = [index, index + 1]
-	elif count > next.size():
-		indices = [0] if index == 0 else ([next.size() - 1] if index == count - 1 else [0, 1])
 	else:
-		indices.append(index)
-		var neighbor: int = index + (1 if rightward else -1)
-		if neighbor >= 0 and neighbor < next.size(): indices.append(neighbor)
+		var center: int = roundi(float(index) * float(next.size() - 1) / float(count - 1))
+		var direction: int = 1 if rightward else -1
+		var neighbor: int = center + direction
+		if neighbor < 0 or neighbor >= next.size(): neighbor = center - direction
+		indices = [center, neighbor]
+		var other: int = center - direction
+		if extra_branch and other >= 0 and other < next.size() and not indices.has(other):
+			indices.append(other)
+	indices.sort()
 	for target: int in indices:
 		if target < next.size(): targets.append(String(next[target]["id"]))
 	return targets
+
+
+static func _ensure_incoming(nodes: Array, next: Array) -> void:
+	if nodes.is_empty(): return
+	for target: int in next.size():
+		var id: String = String(next[target]["id"])
+		if nodes.any(func(node: Dictionary) -> bool: return Array(node["next_ids"]).has(id)): continue
+		var source: int = roundi(float(target) * float(nodes.size() - 1) / float(maxi(1, next.size() - 1)))
+		nodes[source]["next_ids"].append(id)
 
 
 static func migrate(map: Dictionary, seed: int) -> void:
@@ -65,6 +78,7 @@ static func migrate(map: Dictionary, seed: int) -> void:
 			if not Array(previous["next_ids"]).has(id): previous["next_ids"].append(id)
 	map["steps"] = steps
 	map["graph_version"] = VERSION
+	if String(map.get("active_node_id", "")) == "": unlock(map, current)
 
 
 static func chosen_node(step: Dictionary) -> Dictionary:

@@ -37,7 +37,7 @@ func _command(arguments: Array) -> void:
 	elif String(payload.get("action", "")) == "map_advance":
 		var was_developer: bool = Game.is_developer_mode_enabled()
 		Game.settings["developer_mode"] = true
-		Game.developer_advance_map_route()
+		Game.developer_advance_map_route(String(payload.get("node_id", "")))
 		Game.settings["developer_mode"] = was_developer
 		var screen: Control = get_tree().current_scene as Control
 		screen.set("_chapter_start", -1)

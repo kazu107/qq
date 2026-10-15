@@ -76,12 +76,13 @@ func _test_unplayed_efficiency() -> void:
 	var run_state: RunState = _build_run_state()
 	var fast_battle: Dictionary = {"enemy_id": "scout", "node_type": "normal_battle", "battle_time": 32.0}
 	run_state.battle_history = [fast_battle]
-	if int(resolver.calculate(run_state)["efficiency"]) != roundi(1500.0 / 4.5):
+	# Support detours can bypass middle fights; the opening battle and boss remain.
+	if int(resolver.calculate(run_state)["efficiency"]) != roundi(1500.0 / 2.5):
 		_fail("Run score smoke failed: future battle steps were omitted from efficiency denominator")
 		return
 	for tier: int in [2, 3, 4]:
 		run_state.map_state = MapGenerator.new().generate_run(777, tier)
-		if int(resolver.calculate(run_state)["efficiency"]) != roundi(1500.0 / (4.5 * tier)):
+		if int(resolver.calculate(run_state)["efficiency"]) != roundi(1500.0 / (2.5 * tier)):
 			_fail("Run score smoke failed: extended unplayed steps were omitted")
 			return
 	run_state.map_state = {"steps": [{"nodes": [

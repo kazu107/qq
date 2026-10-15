@@ -55,9 +55,13 @@ try {
     await page.setViewportSize(viewport);
     let state = await command('screen', { screen: 'map_extended' });
     bounds(state);
-    assert.equal(state.map.nodes.length, 18);
+    assert.equal(state.map.nodes.length, 26);
     assert(state.map.edges > 14);
-    assert.equal(state.map.nodes.filter(node => !node.disabled).length, 2);
+    assert.equal(state.map.nodes.filter(node => !node.disabled).length, 3);
+    for (const a of state.map.nodes) for (const b of state.map.nodes) {
+      if (a.id >= b.id || Math.abs(a.rect[1] - b.rect[1]) > 2) continue;
+      assert(a.rect[0] + a.rect[2] <= b.rect[0] + 2 || b.rect[0] + b.rect[2] <= a.rect[0] + 2, 'Map node hitboxes overlap');
+    }
     await page.screenshot({ path: resolve(output, `start-${viewport.width}x${viewport.height}.png`) });
     await writeFile(resolve(output, `state-${viewport.width}x${viewport.height}.json`), JSON.stringify(state, null, 2));
     const firstAvailable = state.map.nodes.find(node => !node.disabled).rect;
@@ -94,8 +98,21 @@ try {
     for (let step = 1; step < 7; step++) state = await command('map_advance');
     assert.equal(state.map.step, 7);
     assert.equal(state.map.chapter, 7, 'Did not enter the next seven-step chapter');
-    assert.equal(state.map.nodes.filter(node => !node.disabled).length, 2);
+    assert.equal(state.map.nodes.filter(node => !node.disabled).length, 3);
     bounds(state);
+    for (const side of ['left', 'right']) {
+      state = await command('screen', { screen: 'map_extended' });
+      for (let step = 0; step < 6; step++) {
+        const choices = state.map.nodes.filter(node => !node.disabled).sort((a, b) => a.rect[0] - b.rect[0]);
+        assert(choices.length >= 2, `${side} route became a single-choice corridor at ${step}`);
+        const choice = side === 'left' ? choices[0] : choices.at(-1);
+        state = await command('map_advance', { node_id: choice.id });
+        assert.equal(state.map.current, choice.id);
+        assert.deepEqual(state.map.nodes.filter(node => !node.disabled).map(node => node.id).sort(), [...choice.next].sort());
+        bounds(state);
+      }
+      await page.screenshot({ path: resolve(output, `${side}-route-${viewport.width}x${viewport.height}.png`) });
+    }
     cases.push(`${viewport.width}x${viewport.height}: routes, initial focus, history, responsive loadout, chapter navigation, connected options, boss gate`);
   }
   await page.setViewportSize({ width: 1440, height: 900 });

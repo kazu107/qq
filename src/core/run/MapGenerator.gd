@@ -12,6 +12,16 @@ const AREA_TWELVE_POOL := ["omega_seraph", "grave_architect"]
 const MAX_IMPLEMENTED_STEP_TIER: int = 4
 const INFINITE_AREA_SPAN: int = 12
 const INFINITE_STEP_SPAN: int = 28
+const ROUTE_ROW_WIDTHS: Array[int] = [3, 4, 5, 4, 5, 4, 1]
+const ROUTE_ROW_TYPES: Array = [
+	["normal_battle"],
+	["heal", "shop", "event", "forge"],
+	["elite_battle", "hazard", "normal_battle", "event", "forge"],
+	["forge", "event", "heal", "shop"],
+	["normal_battle", "elite_battle", "hazard", "heal", "event"],
+	["heal", "shop", "event", "forge"],
+	["boss"],
+]
 
 
 func generate_run(seed: int, unlocked_step_tier: int = 1) -> Dictionary:
@@ -239,19 +249,50 @@ func _mark_step_as_gate(steps: Array, step_index: int, label_key: String, label:
 	steps[step_index] = gate_step
 
 
-func _expand_route_choices(steps: Array, rng: RandomNumberGenerator) -> void:
-	for index: int in steps.size():
+func upgrade_pending_choices(map: Dictionary, seed: int) -> void:
+	if bool(map.get("arena", false)) or int(map.get("graph_version", 0)) >= MapRouteGraph.VERSION: return
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed ^ 0x4272616e
+	var first: int = int(map.get("current_step", 0))
+	if String(map.get("active_node_id", "")) != "": first += 1
+	_expand_route_choices(map.get("steps", []), rng, first)
+
+
+func _expand_route_choices(steps: Array, rng: RandomNumberGenerator, first: int = 0) -> void:
+	for index: int in range(first, steps.size()):
 		var local_index: int = index % MapRouteGraph.CHAPTER_STEPS
 		var nodes: Array = steps[index]["nodes"]
-		if local_index == 0 or local_index == 6 or nodes.size() >= 3: continue
+		if local_index == 6: continue
 		var area: int = int(steps[index]["area"])
-		if local_index in [2, 4]:
-			var pool: Array = AREA_ONE_POOL if area <= 3 else (AREA_FOUR_POOL if area <= 6 else (AREA_SEVEN_POOL if area <= 9 else AREA_TEN_POOL))
-			nodes.append(_build_battle_node(index, 2, area, "normal_battle", _pick_enemy(rng, pool), "map.node.enemy_name", "Battle"))
-		else:
-			var has_heal: bool = nodes.any(func(node: Dictionary) -> bool: return String(node["type"]) == "heal")
-			nodes.append(_build_non_battle_node(index, 2, area, "event" if has_heal else "heal", "map.node.unknown_signal" if has_heal else "map.node.repair_bay", "Unknown Signal" if has_heal else "Repair Bay"))
+		while nodes.size() < ROUTE_ROW_WIDTHS[local_index]:
+			var node_type: String = "normal_battle"
+			for candidate: String in ROUTE_ROW_TYPES[local_index]:
+				if not nodes.any(func(node: Dictionary) -> bool: return String(node["type"]) == candidate):
+					node_type = candidate
+					break
+			var added: Dictionary = _build_route_choice(index, nodes.size(), area, node_type, nodes, rng)
+			for field: String in ["cycle", "infinite_power"]:
+				if steps[index].has(field): added[field] = steps[index][field]
+			if steps[index].has("cycle"):
+				added["id"] = "%s_c%d_s%d_n%d" % [node_type, int(steps[index]["cycle"]), index + 1, nodes.size()]
+			nodes.append(added)
 		steps[index]["nodes"] = nodes
+
+
+func _build_route_choice(index: int, ordinal: int, area: int, type: String, existing: Array, rng: RandomNumberGenerator) -> Dictionary:
+	if type == "normal_battle":
+		var local_area: int = (area - 1) % INFINITE_AREA_SPAN + 1
+		var pool: Array = AREA_ONE_POOL if local_area == 1 else (AREA_THREE_POOL if local_area <= 3 else (AREA_FOUR_POOL if local_area <= 6 else (AREA_SEVEN_POOL if local_area <= 9 else AREA_TEN_POOL)))
+		var unused: Array = pool.filter(func(enemy: String) -> bool: return not existing.any(func(node: Dictionary) -> bool: return node.get("enemy_id", "") == enemy))
+		return _build_battle_node(index, ordinal, area, type, _pick_enemy(rng, unused if not unused.is_empty() else pool), "map.node.enemy_name", "Battle")
+	var labels: Dictionary = {
+		"heal": ["map.node.repair_bay", "Repair Bay"],
+		"shop": ["map.node.field_shop", "Field Shop"],
+		"forge": ["map.node.forge", "Forge"],
+		"event": ["map.node.unknown_signal", "Unknown Signal"],
+		"hazard": ["map.node.hazard_zone", "Hazard Zone"],
+	}
+	return _build_non_battle_node(index, ordinal, area, type, labels[type][0], labels[type][1])
 
 
 func _build_step(step_index: int, area: int, label_key: String, label: String, nodes: Array) -> Dictionary:

@@ -2053,11 +2053,12 @@ func select_map_node(node_id: String) -> String:
 	return current_screen_hint
 
 
-func developer_advance_map_route() -> bool:
+func developer_advance_map_route(node_id: String = "") -> bool:
 	if not is_developer_mode_enabled() or current_run == null or current_run.arena_mode or current_screen_hint != "map": return false
 	_ensure_map_state()
 	for node: Dictionary in get_current_step_data().get("nodes", []):
 		var id: String = String(node["id"])
+		if node_id != "" and id != node_id: continue
 		if not MapRouteGraph.can_select(current_run.map_state, id): continue
 		var location: Dictionary = _find_node_location(id)
 		node["status"] = "selected"
@@ -2416,6 +2417,7 @@ func _ensure_map_state() -> void:
 			current_run.map_state = _map_generator.generate_infinite_run(current_run.seed)
 		else:
 			current_run.map_state = _map_generator.generate_run(current_run.seed, get_unlocked_step_tier())
+	_map_generator.upgrade_pending_choices(current_run.map_state, current_run.seed)
 	MapRouteGraph.migrate(current_run.map_state, current_run.seed)
 
 

@@ -23,7 +23,7 @@ var _pitch: float = ROW_PITCH
 
 func _ready() -> void:
 	name = "MapRoutes"
-	custom_minimum_size.x = 480
+	custom_minimum_size.x = 560
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	mouse_filter = Control.MOUSE_FILTER_PASS
@@ -66,19 +66,25 @@ func configure(map: Dictionary, chapter_start: int) -> void:
 func _layout() -> void:
 	if not is_inside_tree() or _steps.is_empty(): return
 	_density = 1.0 if DisplayServer.get_name() == "headless" else clampf(get_viewport_rect().size.x / maxf(1.0, get_window().size.x), 0.75, 3.0)
-	custom_minimum_size = Vector2(480, maxf(300.0, float(_steps.size() - 1) * ROW_PITCH + 144.0)) * _density
+	custom_minimum_size = Vector2(560, maxf(300.0, float(_steps.size() - 1) * ROW_PITCH + 144.0)) * _density
 	_pitch = maxf(ROW_PITCH * _density, (size.y - 144.0 * _density) / maxf(1.0, _steps.size() - 1))
 	_points.clear()
 	_current_id = ""
 	var current_step: int = int(_map.get("current_step", 0))
 	_marker_visible = current_step >= _chapter_start and current_step <= _chapter_start + _steps.size()
 	for index: int in _steps.size():
+		var row: Array = _steps[index].get("nodes", [])
+		var route_width: float = minf(1040.0 * _density, size.x - 100.0 * _density)
+		var slot_width: float = 132.0
+		for a: int in row.size():
+			for b: int in range(a + 1, row.size()):
+				slot_width = minf(slot_width, absf(float(row[a]["map_x"]) - float(row[b]["map_x"])) * route_width / _density - 8.0)
 		for node: Dictionary in _steps[index].get("nodes", []):
 			var id: String = String(node["id"])
 			var button: MapNodeButton = _buttons[id]
+			button.custom_minimum_size.x = 152.0 if node.get("type", "") == "boss" else clampf(slot_width, 72.0, 132.0)
 			button.size = button.custom_minimum_size
 			button.scale = Vector2.ONE * _density
-			var route_width: float = minf(720.0 * _density, size.x - 140.0 * _density)
 			var center_x: float = size.x * 0.5 + (float(node.get("map_x", 0.5)) - 0.5) * route_width
 			button.position = Vector2(center_x - button.size.x * _density * 0.5, 22.0 * _density + float(_steps.size() - 1 - index) * _pitch)
 			_points[id] = button.position + Vector2(button.size.x * 0.5, 34.0 if node.get("type", "") != "boss" else 42.0) * _density
