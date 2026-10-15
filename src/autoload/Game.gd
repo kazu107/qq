@@ -144,6 +144,7 @@ func ensure_meta_initialized() -> void:
 	if not settings.has("online_automatic_upnp"):
 		settings["online_automatic_upnp"] = true
 	last_replay_export_path = String(settings.get("last_replay_export_path", last_replay_export_path))
+	_freeze_legacy_content_pools()
 	_meta_progress_service.ensure_defaults(meta_progress)
 	AudioManager.apply_settings(settings)
 	_apply_resolution_from_settings()
@@ -237,6 +238,7 @@ func start_new_run(starter_id: String, seed_override: int = 0) -> void:
 		return
 	suspended_runs.erase(RUN_SETUP_MODE_NORMAL)
 	current_run = RunState.from_starter(starter, seed_override)
+	current_run.content_pool = ContentPoolService.build_snapshot(meta_progress)
 	_apply_permanent_bonuses_to_run(current_run)
 	current_run.map_state = _map_generator.generate_run(current_run.seed, get_unlocked_step_tier())
 	pending_enemy_id = ""
@@ -262,6 +264,7 @@ func start_infinite_run(starter_id: String = "", seed_override: int = 0) -> bool
 		return false
 	suspended_runs.erase(RUN_SETUP_MODE_NORMAL)
 	current_run = RunState.from_starter(starter, seed_override)
+	current_run.content_pool = ContentPoolService.build_snapshot(meta_progress)
 	current_run.infinite_mode = true
 	_apply_permanent_bonuses_to_run(current_run)
 	_apply_infinite_player_boost(current_run)
@@ -287,6 +290,7 @@ func start_arena_run(starter_id: String, seed_override: int = 0) -> bool:
 		return false
 	suspended_runs.erase(RUN_SETUP_MODE_ARENA)
 	current_run = RunState.from_starter(starter, seed_override)
+	current_run.content_pool = ContentPoolService.build_snapshot(meta_progress, true)
 	_arena_service.configure_run(current_run, _get_arena_card_pool_ids(), _get_arena_relic_pool_ids())
 	pending_enemy_id = ""
 	reward_options.clear()
@@ -377,6 +381,7 @@ func complete_battle(summary: Dictionary) -> void:
 		return
 
 	_meta_progress_service.increment_achievement_stat(meta_progress, "victories")
+	_award_content_victory()
 	if node_type == "boss" or String(summary.get("enemy_id", "")) == "boss_timekeeper":
 		_meta_progress_service.increment_achievement_stat(meta_progress, "boss_wins")
 
@@ -574,6 +579,100 @@ func get_unlocked_card_ids() -> Array[String]:
 func get_unlocked_relic_ids() -> Array[String]:
 	ensure_meta_initialized()
 	return _meta_progress_service.get_unlocked_relics(meta_progress)
+
+
+func get_run_card_pool_ids() -> Array[String]:
+	ensure_meta_initialized()
+	if current_run != null:
+		return ContentPoolService.valid_ids(current_run.content_pool.get("cards", []), "cards")
+	return ContentPoolService.valid_ids(ContentPoolService.build_snapshot(meta_progress).get("cards", []), "cards")
+
+
+func get_run_relic_pool_ids() -> Array[String]:
+	ensure_meta_initialized()
+	if current_run != null:
+		return ContentPoolService.valid_ids(current_run.content_pool.get("relics", []), "relics")
+	return ContentPoolService.valid_ids(ContentPoolService.build_snapshot(meta_progress).get("relics", []), "relics")
+
+
+func _freeze_legacy_content_pools() -> void:
+	# Freeze old runs before account migration grants any new content. Keep offers untouched.
+	if current_run != null and current_run.content_pool.is_empty():
+		current_run.content_pool = _legacy_content_pool(current_run.arena_mode)
+	for slot: Variant in suspended_runs.keys():
+		var snapshot: Dictionary = Dictionary(suspended_runs[slot])
+		var run_data: Dictionary = Dictionary(snapshot.get("run", {}))
+		if not run_data.is_empty() and Dictionary(run_data.get("content_pool", {})).is_empty():
+			run_data["content_pool"] = _legacy_content_pool(bool(run_data.get("arena_mode", false)))
+			snapshot["run"] = run_data
+			suspended_runs[slot] = snapshot
+
+
+func _legacy_content_pool(arena: bool) -> Dictionary:
+	var legacy: Dictionary = meta_progress.duplicate(true)
+	legacy["sealed_cards"] = []
+	legacy["sealed_relics"] = []
+	if Array(legacy.get("unlocked_cards", [])).is_empty():
+		legacy["unlocked_cards"] = _meta_progress_service.get_default_unlocked_card_ids()
+	if Array(legacy.get("unlocked_relics", [])).is_empty():
+		legacy["unlocked_relics"] = _meta_progress_service.get_default_unlocked_relic_ids()
+	var pool: Dictionary = ContentPoolService.build_snapshot(legacy, arena)
+	pool["version"] = 0
+	pool["mode"] = "arena" if arena else "legacy"
+	return pool
+
+
+func get_content_progress() -> Dictionary:
+	ensure_meta_initialized()
+	return _meta_progress_service.get_content_progress(meta_progress)
+
+
+func get_content_progress_text() -> String:
+	var progress: Dictionary = get_content_progress()
+	if int(progress.get("next_xp", 0)) == 0:
+		return Localization.get_textf("progress.complete", "Unlocks complete | {xp} XP", {"xp": progress["xp"]})
+	return Localization.get_textf("progress.next", "Unlock XP {xp}/{target} | Stage {stage}/{total}", {
+		"xp": progress["xp"], "target": progress["next_xp"], "stage": progress["stage"], "total": progress["stage_count"],
+	})
+
+
+func get_content_seal_text() -> String:
+	var progress: Dictionary = get_content_progress()
+	return Localization.get_textf("progress.seal_summary", "Sealed: cards {cards}/{card_limit} | relics {relics}/{relic_limit}", {
+		"cards": Array(progress["sealed_cards"]).size(), "card_limit": progress["card_seal_limit"],
+		"relics": Array(progress["sealed_relics"]).size(), "relic_limit": progress["relic_seal_limit"],
+	})
+
+
+func get_content_entry_status(entry: Dictionary) -> String:
+	if bool(entry.get("sealed", false)):
+		return Localization.get_text("progress.sealed", "Sealed (next run)")
+	if bool(entry.get("unlocked", false)):
+		return Localization.get_text("meta.unlocked", "Unlocked")
+	return Localization.get_textf("progress.requires_xp", "Unlocks automatically at {xp} XP", {"xp": int(entry.get("unlock_xp", 0))})
+
+
+func set_content_sealed(kind: String, id: String, sealed: bool) -> bool:
+	ensure_meta_initialized()
+	if not _meta_progress_service.set_content_sealed(meta_progress, kind, id, sealed):
+		return false
+	SaveManager.request_save(current_screen_hint)
+	return true
+
+
+func _award_content_victory() -> void:
+	var result: Dictionary = _meta_progress_service.add_unlock_xp(meta_progress, int(Database.content_progression.get("xp_per_victory", 1)))
+	last_battle_summary["content_unlocks"] = result
+	_update_latest_battle_history({"content_unlocks": result.duplicate(true)})
+
+
+func get_last_content_unlock_text() -> String:
+	var unlocks: Dictionary = Dictionary(last_battle_summary.get("content_unlocks", {}))
+	var cards: int = Array(unlocks.get("cards", [])).size()
+	var relics: int = Array(unlocks.get("relics", [])).size()
+	if cards + relics == 0:
+		return ""
+	return Localization.get_textf("progress.unlocked_notice", "New unlocks: {cards} cards / {relics} relics (new normal/infinite runs)", {"cards": cards, "relics": relics})
 
 
 func get_unlocked_step_tier() -> int:
@@ -942,10 +1041,14 @@ func get_arena_pending_rewards() -> Array[Dictionary]:
 
 
 func _get_arena_card_pool_ids() -> Array[String]:
+	if current_run != null and String(current_run.content_pool.get("mode", "")) == "arena":
+		return ContentPoolService.valid_ids(current_run.content_pool.get("cards", []), "cards")
 	return Database.get_all_card_ids()
 
 
 func _get_arena_relic_pool_ids() -> Array[String]:
+	if current_run != null and String(current_run.content_pool.get("mode", "")) == "arena":
+		return ContentPoolService.valid_ids(current_run.content_pool.get("relics", []), "relics")
 	return Database.get_all_relic_ids()
 
 
@@ -1303,8 +1406,8 @@ func developer_open_event(event_id: String, area: int = -1, starter_id: String =
 		event_id,
 		resolved_area,
 		current_run,
-		get_unlocked_card_ids(),
-		get_unlocked_relic_ids()
+		get_run_card_pool_ids(),
+		get_run_relic_pool_ids()
 	)
 	if debug_node.is_empty():
 		return
@@ -1424,7 +1527,7 @@ func developer_restore_hp() -> int:
 func developer_grant_random_relic() -> String:
 	if current_run == null:
 		return ""
-	var relic_id: String = _relic_service.roll_random_relic(current_run.relics, get_unlocked_relic_ids())
+	var relic_id: String = _relic_service.roll_random_relic(current_run.relics, get_run_relic_pool_ids())
 	if relic_id == "" or not _relic_service.grant_relic(current_run, relic_id):
 		return ""
 	AudioManager.play_sfx("relic_gain")
@@ -2440,7 +2543,7 @@ func _prepare_non_battle_node(step_index: int, node_index: int) -> void:
 					3,
 					_get_shop_rarity_pool(area),
 					current_run.player_cards,
-					get_unlocked_card_ids()
+					get_run_card_pool_ids()
 				)
 		"forge":
 			var options: Array[String] = _to_string_array(node_data.get("forge_options", []))
@@ -2457,10 +2560,10 @@ func _prepare_non_battle_node(step_index: int, node_index: int) -> void:
 				var saved_id: String = String(node_data.get("event_id", ""))
 				if saved_id != "":
 					event_data = _event_service.build_specific_event_node(saved_id, area, current_run,
-						get_unlocked_card_ids(), get_unlocked_relic_ids())
+						get_run_card_pool_ids(), get_run_relic_pool_ids())
 				if Array(event_data.get("event_choices", [])).is_empty():
 					event_data = _event_service.build_event_node(area, current_run, _get_used_event_ids(),
-						get_unlocked_card_ids(), get_unlocked_relic_ids())
+						get_run_card_pool_ids(), get_run_relic_pool_ids())
 				for key in event_data.keys():
 					node_data[key] = event_data[key]
 		"hazard":
@@ -2548,6 +2651,7 @@ func _handle_arena_battle_result(summary: Dictionary) -> void:
 	if winner == "player":
 		_meta_progress_service.increment_achievement_stat(meta_progress, "victories")
 		_meta_progress_service.increment_achievement_stat(meta_progress, "arena_victories")
+		_award_content_victory()
 		var enemy_id: String = String(summary.get("enemy_id", ""))
 		if enemy_id.begins_with("boss_"):
 			_meta_progress_service.increment_achievement_stat(meta_progress, "boss_wins")
@@ -2644,7 +2748,7 @@ func _apply_reward_bundle(reward_bundle: Dictionary) -> void:
 
 func _grant_random_relic_note() -> String:
 	last_battle_summary.erase("bonus_relic_id")
-	var relic_id: String = _relic_service.roll_random_relic(current_run.relics, get_unlocked_relic_ids())
+	var relic_id: String = _relic_service.roll_random_relic(current_run.relics, get_run_relic_pool_ids())
 	if relic_id == "":
 		return ""
 	if not _relic_service.grant_relic(current_run, relic_id):
@@ -2963,7 +3067,7 @@ func preview_reward_package(reward_key: String, area: int = -1) -> Dictionary:
 		reward_table,
 		resolved_area,
 		owned_cards,
-		get_unlocked_card_ids()
+		get_run_card_pool_ids()
 	)
 
 

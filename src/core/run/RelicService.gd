@@ -8,14 +8,8 @@ func _init() -> void:
 	_rng.randomize()
 
 
-func roll_random_relic(excluded_ids: Array[String], allowed_ids: Array[String] = []) -> String:
-	var candidates: Array[String] = []
-	for relic_id in Database.get_all_relic_ids():
-		if not allowed_ids.is_empty() and not allowed_ids.has(relic_id):
-			continue
-		if excluded_ids.has(relic_id):
-			continue
-		candidates.append(relic_id)
+func roll_random_relic(excluded_ids: Array[String], allowed_ids: Variant = null) -> String:
+	var candidates: Array[String] = ContentPoolService.available_relics(excluded_ids, allowed_ids)
 	if candidates.is_empty():
 		return ""
 	return candidates[_rng.randi_range(0, candidates.size() - 1)]

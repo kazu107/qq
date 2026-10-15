@@ -12,18 +12,8 @@ func can_buy(run_state: RunState, price: int) -> bool:
 	return run_state.gold >= price
 
 
-func roll_inventory(count: int, rarity_pool: Array[String], owned_cards: Array[String], allowed_card_ids: Array[String] = []) -> Array[Dictionary]:
-	var weighted_pool: Array[String] = []
-	for rarity in rarity_pool:
-		for card_id in Database.get_card_ids_by_rarity(rarity):
-			if not allowed_card_ids.is_empty() and not allowed_card_ids.has(card_id):
-				continue
-			weighted_pool.append(card_id)
-	if weighted_pool.is_empty():
-		if allowed_card_ids.is_empty():
-			weighted_pool = Database.get_all_card_ids()
-		else:
-			weighted_pool = allowed_card_ids.duplicate()
+func roll_inventory(count: int, rarity_pool: Array[String], owned_cards: Array[String], allowed_card_ids: Variant = null) -> Array[Dictionary]:
+	var weighted_pool: Array[String] = ContentPoolService.weighted_cards(rarity_pool, allowed_card_ids)
 
 	var offers: Array[Dictionary] = []
 	var seen: Dictionary = {}

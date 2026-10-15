@@ -6,6 +6,7 @@ const ENEMIES_PATH := "res://data/enemies.json"
 const STARTERS_PATH := "res://data/starters.json"
 const REWARDS_PATH := "res://data/rewards.json"
 const META_PROGRESS_PATH := "res://data/meta_progress.json"
+const CONTENT_PROGRESSION_PATH := "res://data/content_progression.json"
 const RELICS_PATH := "res://data/relics.json"
 const EVENTS_PATH := "res://data/events.json"
 const ACHIEVEMENTS_PATH := "res://data/achievements.json"
@@ -17,6 +18,7 @@ var enemies: Dictionary = {}
 var starters: Array[Dictionary] = []
 var rewards: Dictionary = {}
 var meta_progress_template: Dictionary = {}
+var content_progression: Dictionary = {}
 var relics: Dictionary = {}
 var events: Dictionary = {}
 var event_order: Array[String] = []
@@ -33,6 +35,7 @@ func load_all() -> void:
 	starters.clear()
 	rewards.clear()
 	meta_progress_template.clear()
+	content_progression.clear()
 	relics.clear()
 	events.clear()
 	event_order.clear()
@@ -50,6 +53,7 @@ func load_all() -> void:
 	starters = _load_json_dictionary_array(STARTERS_PATH)
 	rewards = _load_json_dictionary(REWARDS_PATH)
 	meta_progress_template = _load_json_dictionary(META_PROGRESS_PATH)
+	content_progression = _load_json_dictionary(CONTENT_PROGRESSION_PATH)
 	_load_relics()
 	_load_events()
 	_load_achievements()

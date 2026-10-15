@@ -3,6 +3,9 @@ extends Control
 const BUILD_BATCH_SIZE := 10
 
 var _summary_label: RichTextLabel
+var _content_progress_label: Label
+var _content_progress_bar: ProgressBar
+var _seal_summary_label: Label
 var _achievement_box: VBoxContainer
 var _starter_box: VBoxContainer
 var _relic_box: VBoxContainer
@@ -53,7 +56,7 @@ func _build_ui() -> void:
 	var page: VBoxContainer = VBoxContainer.new()
 	page.add_theme_constant_override("separation", 24)
 	margin.add_child(page)
-	UiTheme.add_page_heading(page, Localization.get_text("meta.title", "Meta Progress"), Localization.get_text("meta.page_hint", "Track your milestones and use rewards to unlock new possibilities."))
+	UiTheme.add_page_heading(page, Localization.get_text("meta.title", "Meta Progress"), Localization.get_text("meta.page_hint", "Achievements, automatic unlock progress, and next-run seals."))
 	var root: HBoxContainer = HBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -104,6 +107,20 @@ func _build_ui() -> void:
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 18)
 	scroll.add_child(content)
+	var progression: VBoxContainer = _create_panel(content, Localization.get_text("progress.title", "Automatic Unlocks & Seals"))
+	_content_progress_label = Label.new()
+	_content_progress_label.name = "MetaContentProgress"
+	_content_progress_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	progression.add_child(_content_progress_label)
+	_content_progress_bar = ProgressBar.new()
+	_content_progress_bar.name = "MetaContentProgressBar"
+	_content_progress_bar.custom_minimum_size.y = 18.0
+	_content_progress_bar.show_percentage = false
+	progression.add_child(_content_progress_bar)
+	_seal_summary_label = Label.new()
+	_seal_summary_label.name = "MetaSealSummary"
+	_seal_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	progression.add_child(_seal_summary_label)
 
 	var achievements_panel: VBoxContainer = _create_panel(content, Localization.get_text("meta.achievements", "Achievements"))
 	_achievement_box = VBoxContainer.new()
@@ -175,6 +192,19 @@ func _create_entry_row(parent: VBoxContainer, frame_name: String, row_name: Stri
 
 
 func _refresh_ui() -> void:
+	var progress: Dictionary = Game.get_content_progress()
+	_content_progress_label.text = Game.get_content_progress_text()
+	_content_progress_label.tooltip_text = Localization.get_text("progress.xp_hint", "Each battle victory grants 1 cumulative unlock XP. Stages unlock automatically in a fixed order without spending XP.")
+	_content_progress_bar.max_value = maxi(1, int(progress.get("next_xp", 0)))
+	_content_progress_bar.value = int(progress["xp"]) if int(progress.get("next_xp", 0)) > 0 else _content_progress_bar.max_value
+	var next_names: Array[String] = []
+	for id: String in ContentPoolService.valid_ids(progress.get("next_cards", []), "cards"):
+		next_names.append(Database.get_card(id).name)
+	for id: String in ContentPoolService.valid_ids(progress.get("next_relics", []), "relics"):
+		next_names.append(Database.get_relic(id).name)
+	_content_progress_bar.tooltip_text = ", ".join(next_names)
+	_seal_summary_label.text = Game.get_content_seal_text()
+	_seal_summary_label.tooltip_text = Localization.get_text("progress.seal_hint", "Seals apply to new normal/infinite runs only. Up to 25% of unlocked items; each card rarity keeps at least one candidate.")
 	var starter_entries: Array[Dictionary] = Game.get_meta_starter_entries()
 	var card_entries: Array[Dictionary] = Game.get_meta_card_entries()
 	var relic_entries: Array[Dictionary] = Game.get_meta_relic_entries()
@@ -393,7 +423,6 @@ func _rebuild_starters(entries: Array[Dictionary]) -> void:
 func _rebuild_relics(entries: Array[Dictionary]) -> void:
 	_clear_box(_relic_box)
 	_relic_widgets.clear()
-	var meta_points: int = Game.get_meta_points()
 	var built_count: int = 0
 	for entry in entries:
 		var relic_id: String = String(entry.get("id", ""))
@@ -415,10 +444,7 @@ func _rebuild_relics(entries: Array[Dictionary]) -> void:
 		row.add_child(info)
 
 		var name_label: Label = Label.new()
-		name_label.text = Localization.get_textf("meta.cost_line", "{name} | Cost {cost}", {
-			"name": String(entry.get("name", relic_id)),
-			"cost": int(entry.get("cost", 0)),
-		})
+		name_label.text = String(entry.get("name", relic_id))
 		info.add_child(name_label)
 
 		var desc_label: Label = Label.new()
@@ -428,20 +454,23 @@ func _rebuild_relics(entries: Array[Dictionary]) -> void:
 
 		var status_label: Label = Label.new()
 		status_label.name = "StatusRelic_%s" % relic_id
-		status_label.text = Localization.get_text("meta.%s" % ("unlocked" if bool(entry.get("unlocked", false)) else "locked"), "Unlocked" if bool(entry.get("unlocked", false)) else "Locked")
+		status_label.text = Game.get_content_entry_status(entry)
 		info.add_child(status_label)
 
-		var unlock_button: Button = Button.new()
-		unlock_button.name = "UnlockRelic_%s" % relic_id
-		unlock_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
-		unlock_button.disabled = bool(entry.get("unlocked", false)) or meta_points < int(entry.get("cost", 0))
-		unlock_button.pressed.connect(_on_unlock_relic.bind(relic_id))
-		row.add_child(unlock_button)
+		var seal_button: CheckButton = CheckButton.new()
+		seal_button.name = "SealRelic_%s" % relic_id
+		seal_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		seal_button.text = Localization.get_text("progress.seal", "Seal")
+		seal_button.tooltip_text = _seal_summary_label.tooltip_text
+		seal_button.visible = bool(entry.get("unlocked", false))
+		seal_button.disabled = not bool(entry.get("can_seal", false))
+		seal_button.set_pressed_no_signal(bool(entry.get("sealed", false)))
+		seal_button.toggled.connect(_on_relic_seal_toggled.bind(relic_id))
+		row.add_child(seal_button)
 		_relic_widgets[relic_id] = {
 			"icon": relic_icon,
 			"status": status_label,
-			"button": unlock_button,
+			"button": seal_button,
 		}
 		built_count += 1
 		if built_count % BUILD_BATCH_SIZE == 0:
@@ -535,7 +564,6 @@ func _update_starter_rows(entries: Array[Dictionary]) -> void:
 
 
 func _update_relic_rows(entries: Array[Dictionary]) -> void:
-	var meta_points: int = Game.get_meta_points()
 	for entry in entries:
 		var relic_id: String = String(entry.get("id", ""))
 		var widgets: Dictionary = Dictionary(_relic_widgets.get(relic_id, {}))
@@ -544,11 +572,13 @@ func _update_relic_rows(entries: Array[Dictionary]) -> void:
 		var unlocked: bool = bool(entry.get("unlocked", false))
 		var relic_icon: RelicIcon = widgets.get("icon") as RelicIcon
 		var status_label: Label = widgets.get("status") as Label
-		var unlock_button: Button = widgets.get("button") as Button
+		var seal_button: CheckButton = widgets.get("button") as CheckButton
 		relic_icon.bind_relic_id(relic_id, not unlocked)
 		relic_icon.name = "MetaRelic_%s" % relic_id
-		status_label.text = Localization.get_text("meta.%s" % ("unlocked" if unlocked else "locked"), "Unlocked" if unlocked else "Locked")
-		unlock_button.disabled = unlocked or meta_points < int(entry.get("cost", 0))
+		status_label.text = Game.get_content_entry_status(entry)
+		seal_button.visible = unlocked
+		seal_button.disabled = not bool(entry.get("can_seal", false))
+		seal_button.set_pressed_no_signal(bool(entry.get("sealed", false)))
 
 
 func _clear_box(box: VBoxContainer) -> void:
@@ -562,9 +592,9 @@ func _on_unlock_starter(starter_id: String) -> void:
 		_refresh_ui()
 
 
-func _on_unlock_relic(relic_id: String) -> void:
-	if Game.unlock_meta_relic(relic_id):
-		_refresh_ui()
+func _on_relic_seal_toggled(sealed: bool, relic_id: String) -> void:
+	Game.set_content_sealed("relics", relic_id, sealed)
+	_refresh_ui()
 
 
 func _on_claim_achievement(achievement_id: String) -> void:

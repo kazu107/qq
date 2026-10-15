@@ -168,11 +168,12 @@ func _test_progression_and_prices() -> bool:
 
 	var isolated_meta: Dictionary = {"points": 4}
 	meta_service.ensure_defaults(isolated_meta)
-	if not meta_service.unlock_card(isolated_meta, EXPECTED_LEGENDARY_IDS[0]):
-		_fail("Legendary card smoke failed: a legendary card could not be unlocked for 4 points")
+	if meta_service.unlock_card(isolated_meta, EXPECTED_LEGENDARY_IDS[0]):
+		_fail("Legendary card smoke failed: individual legendary purchase should be disabled")
 		return false
-	if int(isolated_meta.get("points", -1)) != 0:
-		_fail("Legendary card smoke failed: legendary unlock did not spend 4 points")
+	meta_service.add_unlock_xp(isolated_meta, 125)
+	if not meta_service.get_unlocked_cards(isolated_meta).has(EXPECTED_LEGENDARY_IDS[0]) or int(isolated_meta.get("points", -1)) != 4:
+		_fail("Legendary card smoke failed: staged unlock should grant legendary cards without spending points")
 		return false
 	return true
 
@@ -221,9 +222,8 @@ func _test_library_filter() -> bool:
 		return false
 
 	var rarity_filter: OptionButton = library_scene.find_child("LibraryRarityFilter", true, false) as OptionButton
-	var legendary_row: Control = library_scene.find_child("LibraryRow_solar_verdict", true, false) as Control
 	var common_row: Control = library_scene.find_child("LibraryRow_guard", true, false) as Control
-	if rarity_filter == null or legendary_row == null or common_row == null:
+	if rarity_filter == null or common_row == null:
 		_fail("Legendary card smoke failed: library widgets are missing")
 		return false
 
@@ -237,8 +237,12 @@ func _test_library_filter() -> bool:
 		return false
 	rarity_filter.select(legendary_index)
 	rarity_filter.emit_signal("item_selected", legendary_index)
-	await get_tree().process_frame
-	if not legendary_row.visible or common_row.visible:
+	for _frame: int in range(180):
+		await get_tree().process_frame
+		if bool(library_scene.call("is_content_ready")):
+			break
+	var legendary_row: Control = library_scene.find_child("LibraryRow_solar_verdict", true, false) as Control
+	if legendary_row == null or not legendary_row.visible or library_scene.find_child("LibraryRow_guard", true, false) != null:
 		_fail("Legendary card smoke failed: legendary library filter did not isolate the new rarity")
 		return false
 	library_scene.queue_free()

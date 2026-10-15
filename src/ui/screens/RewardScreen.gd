@@ -114,6 +114,14 @@ func _ready() -> void:
 	info.text = Localization.get_text("reward.choose_one", "Choose one card. Hover to inspect details.")
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(info)
+	var unlock_notice: Label = Label.new()
+	unlock_notice.name = "RewardContentUnlocks"
+	unlock_notice.text = Game.get_last_content_unlock_text()
+	unlock_notice.visible = unlock_notice.text != ""
+	unlock_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	unlock_notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	unlock_notice.add_theme_color_override("font_color", UiTheme.ACCENT_GOLD)
+	root.add_child(unlock_notice)
 
 	_refresh_reward_ui()
 	AudioManager.play_sfx("legendary_reveal" if _has_legendary_reward() else "reward_reveal")

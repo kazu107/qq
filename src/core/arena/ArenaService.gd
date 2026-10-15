@@ -618,16 +618,7 @@ func _fill_relic_offers(run_state: RunState, offers: Array[Dictionary], target_c
 
 
 func _build_card_pool(allowed_card_ids: Array[String], rarity_pool: Array[String]) -> Array[String]:
-	var pool: Array[String] = []
-	for rarity in rarity_pool:
-		var ids: Array[String] = Database.get_card_ids_by_rarity(rarity)
-		for card_id in ids:
-			if not allowed_card_ids.is_empty() and not allowed_card_ids.has(card_id):
-				continue
-			pool.append(card_id)
-	if pool.is_empty():
-		pool = Database.get_all_card_ids() if allowed_card_ids.is_empty() else allowed_card_ids.duplicate()
-	return pool
+	return ContentPoolService.weighted_cards(rarity_pool, allowed_card_ids)
 
 
 func _pick_reward_card(run_state: RunState, allowed_card_ids: Array[String], rng: RandomNumberGenerator) -> String:
@@ -708,18 +699,7 @@ func _unique_strings(values: Array[String]) -> Array[String]:
 
 
 func _build_relic_pool(run_state: RunState, allowed_relic_ids: Array[String]) -> Array[String]:
-	var pool: Array[String] = []
-	for relic_id in Database.get_all_relic_ids():
-		if not allowed_relic_ids.is_empty() and not allowed_relic_ids.has(relic_id):
-			continue
-		if run_state.relics.has(relic_id):
-			continue
-		pool.append(relic_id)
-	if pool.is_empty() and not allowed_relic_ids.is_empty():
-		for relic_id in allowed_relic_ids:
-			if not run_state.relics.has(relic_id):
-				pool.append(relic_id)
-	return pool
+	return ContentPoolService.available_relics(run_state.relics, allowed_relic_ids)
 
 
 func _get_card_rarity_pool(wins: int) -> Array[String]:

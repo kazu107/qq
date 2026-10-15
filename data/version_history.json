@@ -1,9 +1,26 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.37.1",
+  "current_version": "QQ-0.38.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.38.0", "date": "2026-10-16",
+      "title_ja": "自動解放と封印による抽選候補の調整",
+      "title_en": "Automatic unlock progression and bounded pool seals",
+      "changes_ja": [
+        "カードと遺物の個別購入を段階的な自動解放に変更しました。戦闘勝利で解放経験値を1獲得し、固定順の10段階で追加コンテンツを解放します。開始デッキの購入と実績報酬は従来どおりです。",
+        "図鑑にカードの封印、メタ進行に遺物の封印を追加しました。解放済みの25%まで、カード最大5枚・遺物最大2個を次の通常・無限ランのランダム入手から除外できます。",
+        "ラン開始時の候補を保存し、途中の解放や封印変更では報酬・ショップ・イベントの抽選条件が変わらないようにしました。アリーナは全種類を候補とする共通条件を維持します。",
+        "旧セーブの解放済みアイテムと進行中の候補・商品・選択肢を維持します。購入履歴はないため、旧解放分の現行価格相当のポイントを一度だけ補償します。"
+      ],
+      "changes_en": [
+        "Replace individual card/relic purchases with ten fixed automatic unlock stages, earning one cumulative unlock XP per battle victory. Starter purchases and achievement rewards remain unchanged.",
+        "Add card seals in the library and relic seals in Meta Progress. Exclude up to 25 percent of unlocked items, capped at five cards and two relics, from random acquisitions in new normal/infinite runs.",
+        "Persist each run's eligible pool so account unlocks and seal changes do not alter active rewards, shops or events. Arena retains a full shared catalog.",
+        "Preserve legacy unlocks, active pools and pending offers/choices. Grant one current-catalog-cost credit for legacy unlocks, without claiming to reconstruct historical purchases."
+      ]
+    },
     {
       "version": "QQ-0.37.1", "date": "2026-10-15",
       "title_ja": "ルートの分岐拡充とイベント選択肢の修正",

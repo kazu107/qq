@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "xp_per_victory": 1,
+  "seals": {
+    "cards": 5,
+    "relics": 2,
+    "max_fraction": 0.25,
+    "minimum_cards": 12,
+    "minimum_relics": 2,
+    "minimum_per_rarity": 1
+  },
+  "stages": [
+    {
+      "xp": 3,
+      "cards": ["assault", "barrier_deploy", "interrupt_shot", "time_buy", "recirculate", "stasis_field", "rupture_strike"],
+      "relics": ["tempered_edge", "kinetic_boots", "auxiliary_core", "chrono_shard", "salvage_magnet", "repair_nanites", "war_banner", "aegis_matrix"]
+    },
+    {
+      "xp": 8,
+      "cards": ["bastion_drive", "adrenaline_link", "purge_pulse", "execution", "fortify", "time_flow_control", "blood_chain"],
+      "relics": ["surge_gimbal", "phase_capacitor", "echo_coil", "paradox_prism", "rift_compass", "entropy_battery", "omega_crown", "eternity_engine"]
+    },
+    {
+      "xp": 15,
+      "cards": ["over_reload", "meteor_crash", "self_tuning_edge", "overclock_routine", "sequence_loader", "auto_turret", "phase_lance"],
+      "relics": ["titanium_rib", "loadout_harness", "war_cache", "signal_lens", "pulse_injector", "barrier_seed", "stasis_clock", "blood_pump"]
+    },
+    {
+      "xp": 24,
+      "cards": ["recursive_protocol", "chronostasis", "entropy_reversal", "crisis_drone_swarm", "mirror_aegis", "rift_volley", "entropy_armor"],
+      "relics": ["scavenger_contract", "emergency_foam", "overclock_key", "chrono_metronome", "armor_garden", "bounty_drone", "prism_furnace", "archive_compass"]
+    },
+    {
+      "xp": 35,
+      "cards": ["null_cascade", "paradox_loop", "axiom_sever", "omega_ray", "grave_protocol", "zero_hour", "barrier_overdrive"],
+      "relics": ["triplet_relay", "borrowed_second_hand", "terminal_echo_ring", "four_name_quartet", "dead_heat_needle", "silent_three_second_timer", "delay_return_gear", "zero_hour_clapper"]
+    },
+    {
+      "xp": 48,
+      "cards": ["bulwark_cannon", "hammer_feint", "prism_guard", "rupture_mark", "phase_zip", "recycler_claw", "reactor_leech"],
+      "relics": ["terminal_bell", "paradox_mortgage", "overtake_signal", "reversal_turbine", "full_slot_bell", "vacancy_interest_meter", "fourth_reserve_rack", "single_seat_duel_sheath"]
+    },
+    {
+      "xp": 63,
+      "cards": ["drone_foundry", "tactical_mirror", "gravity_snare", "field_medic", "singularity_guard", "blood_moon_protocol", "chrono_blackout"],
+      "relics": ["reserved_seat_tag", "echo_rectifier", "waste_heat_printer", "isolation_chamber", "resin_memory_block", "full_absorption_gauge", "evaporation_recovery_valve", "residual_pressure_detonator"]
+    },
+    {
+      "xp": 80,
+      "cards": ["recursive_battery", "execution_matrix", "final_archive", "solar_verdict", "citadel_prime", "epoch_breaker", "phoenix_circuit"],
+      "relics": ["rupture_insurance_film", "compression_caliper", "twilight_pacemaker", "bleed_pulsator", "slow_charge_accumulator", "four_symptom_seal", "quarantine_buffer", "symptom_transfer_paper"]
+    },
+    {
+      "xp": 100,
+      "cards": ["atlas_protocol", "worldline_collapse", "seraph_array", "ragnarok_engine", "absolute_zero", "quantum_exchange", "crown_of_thorns"],
+      "relics": ["critical_pathology_meter", "grade_staircase", "unpolished_motherboard", "overload_seal", "empty_rack_bus", "full_load_latch", "weight_ticket_punch", "grade_differential_wheel"]
+    },
+    {
+      "xp": 125,
+      "cards": ["infinity_arsenal", "omega_sanctuary", "event_horizon", "deus_ex_machina", "golden_ratio", "tempest_choir", "last_bastion", "dominion_pulse", "chronicle_sovereign"],
+      "relics": ["solar_pinion", "overcharge_confection_furnace", "polarization_converter", "balanced_three_phase_unit", "memorial_fund_coil", "seven_step_validator", "depth_pressure_gauge", "emergency_recovery_line", "carryover_price_tag", "defeat_wiring", "overtime_key", "loop_wear_wheel"]
+    }
+  ]
+}

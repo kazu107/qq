@@ -88,6 +88,157 @@ func ensure_defaults(meta_progress: Dictionary) -> void:
 		meta_progress.get("permanent_bonuses", {}),
 		DEFAULT_PERMANENT_BONUSES
 	)
+	if not Database.cards.is_empty():
+		_migrate_content_progression(meta_progress)
+		_apply_content_unlocks(meta_progress)
+		for kind: String in ["cards", "relics"]:
+			meta_progress["sealed_%s" % kind] = _normalized_seals(meta_progress, kind, meta_progress.get("sealed_%s" % kind, []))
+
+
+func _migrate_content_progression(meta_progress: Dictionary) -> void:
+	if int(meta_progress.get("content_progression_version", 0)) >= 1:
+		return
+	# Historical purchase amounts were not recorded. Credit current catalog costs once.
+	var credit: int = 0
+	for card_id: String in ContentPoolService.valid_ids(meta_progress.get("unlocked_cards", []), "cards"):
+		credit += get_card_unlock_cost(card_id)
+	for relic_id: String in ContentPoolService.valid_ids(meta_progress.get("unlocked_relics", []), "relics"):
+		credit += get_relic_unlock_cost(relic_id)
+	meta_progress["points"] = int(meta_progress.get("points", 0)) + credit
+	meta_progress["legacy_unlock_credit"] = credit
+	var victories: int = int(Dictionary(meta_progress.get("achievement_stats", {})).get("victories", 0))
+	meta_progress["unlock_xp"] = maxi(0, victories) * int(Database.content_progression.get("xp_per_victory", 1))
+	meta_progress["content_progression_version"] = 1
+
+
+func _apply_content_unlocks(meta_progress: Dictionary) -> void:
+	var xp: int = maxi(0, int(meta_progress.get("unlock_xp", 0)))
+	meta_progress["unlock_xp"] = xp
+	var cards: Array[String] = ContentPoolService.valid_ids(meta_progress.get("unlocked_cards", []), "cards")
+	var relics: Array[String] = ContentPoolService.valid_ids(meta_progress.get("unlocked_relics", []), "relics")
+	_append_unique(cards, get_default_unlocked_card_ids())
+	_append_unique(relics, get_default_unlocked_relic_ids())
+	for raw_stage: Variant in Database.content_progression.get("stages", []):
+		var stage: Dictionary = Dictionary(raw_stage)
+		if xp >= int(stage.get("xp", 0)):
+			_append_unique(cards, ContentPoolService.valid_ids(stage.get("cards", []), "cards"))
+			_append_unique(relics, ContentPoolService.valid_ids(stage.get("relics", []), "relics"))
+	meta_progress["unlocked_cards"] = cards
+	meta_progress["unlocked_relics"] = relics
+
+
+func add_unlock_xp(meta_progress: Dictionary, amount: int) -> Dictionary:
+	ensure_defaults(meta_progress)
+	var before_cards: Array[String] = _to_string_array(meta_progress.get("unlocked_cards", []))
+	var before_relics: Array[String] = _to_string_array(meta_progress.get("unlocked_relics", []))
+	meta_progress["unlock_xp"] = int(meta_progress.get("unlock_xp", 0)) + maxi(0, amount)
+	_apply_content_unlocks(meta_progress)
+	var result: Dictionary = {"cards": [], "relics": [], "xp": int(meta_progress["unlock_xp"])}
+	for kind: String in ["cards", "relics"]:
+		var previous: Array[String] = before_cards if kind == "cards" else before_relics
+		for id: String in _to_string_array(meta_progress.get("unlocked_%s" % kind, [])):
+			if not previous.has(id):
+				result[kind].append(id)
+	return result
+
+
+func get_content_progress(meta_progress: Dictionary) -> Dictionary:
+	ensure_defaults(meta_progress)
+	var xp: int = int(meta_progress.get("unlock_xp", 0))
+	var stages: Array = Array(Database.content_progression.get("stages", []))
+	var completed: int = 0
+	var next_xp: int = 0
+	var next_cards: Array[String] = []
+	var next_relics: Array[String] = []
+	for raw_stage: Variant in stages:
+		var stage: Dictionary = Dictionary(raw_stage)
+		if xp >= int(stage.get("xp", 0)):
+			completed += 1
+		elif next_xp == 0:
+			next_xp = int(stage.get("xp", 0))
+			next_cards = ContentPoolService.valid_ids(stage.get("cards", []), "cards")
+			next_relics = ContentPoolService.valid_ids(stage.get("relics", []), "relics")
+	return {
+		"xp": xp, "stage": completed, "stage_count": stages.size(), "next_xp": next_xp,
+		"next_cards": next_cards, "next_relics": next_relics,
+		"sealed_cards": _to_string_array(meta_progress.get("sealed_cards", [])),
+		"sealed_relics": _to_string_array(meta_progress.get("sealed_relics", [])),
+		"card_seal_limit": _seal_limit(meta_progress, "cards"),
+		"relic_seal_limit": _seal_limit(meta_progress, "relics"),
+	}
+
+
+func get_content_unlock_xp(kind: String, id: String) -> int:
+	for raw_stage: Variant in Database.content_progression.get("stages", []):
+		var stage: Dictionary = Dictionary(raw_stage)
+		if Array(stage.get(kind, [])).has(id):
+			return int(stage.get("xp", 0))
+	return 0
+
+
+func set_content_sealed(meta_progress: Dictionary, kind: String, id: String, sealed: bool) -> bool:
+	ensure_defaults(meta_progress)
+	if not ["cards", "relics"].has(kind) or not Array(meta_progress.get("unlocked_%s" % kind, [])).has(id):
+		return false
+	var current: Array[String] = _to_string_array(meta_progress.get("sealed_%s" % kind, []))
+	if sealed == current.has(id):
+		return false
+	if sealed:
+		current.append(id)
+		if not _normalized_seals(meta_progress, kind, current).has(id):
+			return false
+	else:
+		current.erase(id)
+	meta_progress["sealed_%s" % kind] = current
+	return true
+
+
+func _can_seal(meta_progress: Dictionary, kind: String, id: String) -> bool:
+	if not Array(meta_progress.get("unlocked_%s" % kind, [])).has(id):
+		return false
+	var current: Array[String] = _to_string_array(meta_progress.get("sealed_%s" % kind, []))
+	if current.has(id):
+		return true
+	current.append(id)
+	return _normalized_seals(meta_progress, kind, current).has(id)
+
+
+func _seal_limit(meta_progress: Dictionary, kind: String) -> int:
+	var config: Dictionary = Dictionary(Database.content_progression.get("seals", {}))
+	var count: int = ContentPoolService.valid_ids(meta_progress.get("unlocked_%s" % kind, []), kind).size()
+	var minimum: int = int(config.get("minimum_%s" % kind, 12 if kind == "cards" else 2))
+	var fractional_limit: int = floori(count * clampf(float(config.get("max_fraction", 0.25)), 0.0, 1.0))
+	return maxi(0, mini(int(config.get(kind, 5 if kind == "cards" else 2)), mini(fractional_limit, count - minimum)))
+
+
+func _normalized_seals(meta_progress: Dictionary, kind: String, values: Variant) -> Array[String]:
+	var result: Array[String] = []
+	var limit: int = _seal_limit(meta_progress, kind)
+	var unlocked: Array[String] = ContentPoolService.valid_ids(meta_progress.get("unlocked_%s" % kind, []), kind)
+	var rarity_counts: Dictionary = {}
+	var minimum: int = int(Dictionary(Database.content_progression.get("seals", {})).get("minimum_per_rarity", 1))
+	if kind == "cards":
+		for card_id: String in unlocked:
+			var rarity: String = Database.get_card(card_id).rarity
+			rarity_counts[rarity] = int(rarity_counts.get(rarity, 0)) + 1
+	for id: String in ContentPoolService.valid_ids(values, kind):
+		if result.size() >= limit:
+			break
+		if not unlocked.has(id):
+			continue
+		if kind == "cards":
+			var rarity: String = Database.get_card(id).rarity
+			if int(rarity_counts.get(rarity, 0)) <= minimum:
+				continue
+			rarity_counts[rarity] = int(rarity_counts[rarity]) - 1
+		result.append(id)
+	return result
+
+
+func _append_unique(target: Array[String], additions: Array[String]) -> void:
+	for id: String in additions:
+		if not target.has(id):
+			target.append(id)
 
 
 func get_default_unlocked_card_ids() -> Array[String]:
@@ -102,7 +253,7 @@ func get_default_unlocked_card_ids() -> Array[String]:
 
 
 func get_default_unlocked_relic_ids() -> Array[String]:
-	return DEFAULT_UNLOCKED_RELICS.duplicate()
+	return _to_string_array(DEFAULT_UNLOCKED_RELICS)
 
 
 func get_unlocked_starters(meta_progress: Dictionary) -> Array[String]:
@@ -213,30 +364,15 @@ func unlock_starter(meta_progress: Dictionary, starter_id: String) -> bool:
 	return true
 
 
-func unlock_card(meta_progress: Dictionary, card_id: String) -> bool:
-	if card_id == "" or is_card_unlocked(meta_progress, card_id):
-		return false
-	var cost: int = get_card_unlock_cost(card_id)
-	if int(meta_progress.get("points", 0)) < cost:
-		return false
-	meta_progress["points"] = int(meta_progress.get("points", 0)) - cost
-	var unlocked: Array[String] = get_unlocked_cards(meta_progress)
-	unlocked.append(card_id)
-	meta_progress["unlocked_cards"] = unlocked
-	return true
+func unlock_card(meta_progress: Dictionary, _card_id: String) -> bool:
+	# Retain the API for old callers, but individual purchases are no longer allowed.
+	ensure_defaults(meta_progress)
+	return false
 
 
-func unlock_relic(meta_progress: Dictionary, relic_id: String) -> bool:
-	if relic_id == "" or is_relic_unlocked(meta_progress, relic_id):
-		return false
-	var cost: int = get_relic_unlock_cost(relic_id)
-	if int(meta_progress.get("points", 0)) < cost:
-		return false
-	meta_progress["points"] = int(meta_progress.get("points", 0)) - cost
-	var unlocked: Array[String] = get_unlocked_relics(meta_progress)
-	unlocked.append(relic_id)
-	meta_progress["unlocked_relics"] = unlocked
-	return true
+func unlock_relic(meta_progress: Dictionary, _relic_id: String) -> bool:
+	ensure_defaults(meta_progress)
+	return false
 
 
 func unlock_all(meta_progress: Dictionary) -> void:
@@ -247,6 +383,9 @@ func unlock_all(meta_progress: Dictionary) -> void:
 	meta_progress["unlocked_starters"] = all_starters
 	meta_progress["unlocked_cards"] = Database.get_all_card_ids()
 	meta_progress["unlocked_relics"] = Database.get_all_relic_ids()
+	var stages: Array = Array(Database.content_progression.get("stages", []))
+	if not stages.is_empty():
+		meta_progress["unlock_xp"] = maxi(int(meta_progress.get("unlock_xp", 0)), int(Dictionary(stages.back()).get("xp", 0)))
 	meta_progress["unlocked_step_tier"] = MapGenerator.MAX_IMPLEMENTED_STEP_TIER
 	meta_progress["infinite_mode_unlocked"] = true
 
@@ -288,6 +427,9 @@ func build_card_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 			"unlocked": unlocked_ids.has(card_id),
 			"type": "card",
 			"rarity": card_def.rarity,
+			"unlock_xp": get_content_unlock_xp("cards", card_id),
+			"sealed": Array(meta_progress.get("sealed_cards", [])).has(card_id),
+			"can_seal": _can_seal(meta_progress, "cards", card_id),
 		})
 	return entries
 
@@ -306,6 +448,9 @@ func build_relic_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 			"cost": get_relic_unlock_cost(relic_id),
 			"unlocked": unlocked_ids.has(relic_id),
 			"type": "relic",
+			"unlock_xp": get_content_unlock_xp("relics", relic_id),
+			"sealed": Array(meta_progress.get("sealed_relics", [])).has(relic_id),
+			"can_seal": _can_seal(meta_progress, "relics", relic_id),
 		})
 	return entries
 

@@ -273,6 +273,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/RunSetup3DPreviewSmoke.tscn"
     )
+    Invoke-GodotCheck "[15-content/31] Running automatic unlock and seal smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/ContentProgressionSmoke.tscn"
+    )
     Invoke-GodotCheck "[16/31] Running replay export smoke" $godotExe @(
         "--no-header",
         "--headless",

@@ -30,6 +30,13 @@ func _command(arguments: Array) -> void:
 	_sequence = int(payload.get("sequence", 0))
 	if String(payload.get("action", "")) == "screen":
 		_open_screen(String(payload.get("screen", "hub")))
+	elif String(payload.get("action", "")) == "content_fixture":
+		Game.current_run = null
+		Game.suspended_runs.clear()
+		Game.meta_progress = Database.meta_progress_template.duplicate(true)
+		Game.ensure_meta_initialized()
+		MetaProgressService.new().add_unlock_xp(Game.meta_progress, int(payload.get("xp", 0)))
+		_open_screen(String(payload.get("screen", "library")))
 	elif String(payload.get("action", "")) == "battle_simulate":
 		_simulate_battle_result()
 	elif String(payload.get("action", "")) == "timekeeper_advance":
@@ -282,6 +289,9 @@ func _inspect() -> Dictionary:
 	var controls: Array[Dictionary] = []
 	var result: Dictionary = {}
 	if screen != null:
+		if screen.scene_file_path.get_file().get_basename() in ["MetaProgress", "CardLibrary"]:
+			result["content_progress"] = Game.get_content_progress()
+			result["content_pool"] = ContentPoolService.build_snapshot(Game.meta_progress)
 		if screen.scene_file_path.get_file().get_basename() == "Facility":
 			var event_data: Dictionary = Game.get_active_event_data()
 			result["facility"] = {"area": Game.get_active_map_node().get("area", 0), "step": Game.get_current_step_index(),
@@ -433,7 +443,7 @@ func _collect_controls(node: Node, controls: Array[Dictionary], in_scroll: bool)
 	if control != null and (not control.is_visible_in_tree() or control.get_viewport() != get_viewport()):
 		return
 	var scrolling: bool = in_scroll or node is ScrollContainer
-	if control != null and (control is Container or control is BaseButton or control is LineEdit or control is SpinBox):
+	if control != null and (control is Container or control is BaseButton or control is LineEdit or control is SpinBox or control is ProgressBar):
 		controls.append({
 			"name": String(control.name), "class": control.get_class(), "icon": control.get_meta("semantic_icon", ""),
 			"rect": _rect_values(control.get_global_rect()), "scroll": scrolling,

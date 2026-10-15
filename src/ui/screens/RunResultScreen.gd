@@ -350,7 +350,7 @@ func _build_summary_text() -> String:
 	var relic_text: String = Localization.get_text("status.none", "None")
 	if not relic_names.is_empty():
 		relic_text = ", ".join(relic_names)
-	return "\n".join([
+	var lines: Array[String] = [
 		Localization.get_textf("result.summary.starter", "Starter: {value}", {
 			"value": String(_summary_data.get("starter_name", _summary_data.get("starter_id", ""))),
 		}),
@@ -372,7 +372,11 @@ func _build_summary_text() -> String:
 			"count": int(_summary_data.get("relic_count", 0)),
 			"value": relic_text,
 		}),
-	])
+	]
+	var unlock_notice: String = Game.get_last_content_unlock_text()
+	if unlock_notice != "":
+		lines.append(unlock_notice)
+	return "\n".join(lines)
 
 
 func _start_score_animation() -> void:

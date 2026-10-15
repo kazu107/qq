@@ -34,6 +34,11 @@ Herokuはルートの`package.json`と`Procfile`を検出し、`build/web`を配
 - `server/`: Heroku用静的配信・WebRTCシグナリングサーバー。
 - `tests/`: smoke testと検証スクリプト。
 
+## 自動解放・封印
+
+カード・遺物の段階解放、封印、既存セーブの移行仕様は
+[`docs/CONTENT_PROGRESSION.md`](docs/CONTENT_PROGRESSION.md)を参照してください。
+
 ## バージョン管理
 
 ゲーム独自の `QQ-MAJOR.MINOR.PATCH` 形式を使用します。現在の番号と更新履歴は `data/version_history.json` を唯一の情報源とし、実装を変更するたびに番号と履歴を更新します。詳細は `docs/VERSIONING.md` を参照してください。

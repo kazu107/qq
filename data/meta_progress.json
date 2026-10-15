@@ -1,5 +1,9 @@
 {
   "points": 0,
+  "content_progression_version": 1,
+  "unlock_xp": 0,
+  "sealed_cards": [],
+  "sealed_relics": [],
   "best_clear": 0,
   "unlocked_step_tier": 1,
   "infinite_mode_unlocked": false,

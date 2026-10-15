@@ -29,6 +29,7 @@ func _run() -> void:
 			return
 
 	Game.developer_unlock_all_meta()
+	Game.start_new_run("balanced")
 	var area_one_bundle: Dictionary = Game.preview_reward_package("normal", 1)
 	var area_three_bundle: Dictionary = Game.preview_reward_package("normal", 3)
 	if int(area_three_bundle.get("gold", 0)) <= int(area_one_bundle.get("gold", 0)):

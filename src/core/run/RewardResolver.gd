@@ -8,7 +8,7 @@ func _init() -> void:
 	_rng.randomize()
 
 
-func build_reward_bundle(reward_key: String, reward_table: Dictionary, area: int, owned_cards: Array[String], allowed_card_ids: Array[String] = []) -> Dictionary:
+func build_reward_bundle(reward_key: String, reward_table: Dictionary, area: int, owned_cards: Array[String], allowed_card_ids: Variant = null) -> Dictionary:
 	var resolved_area: int = max(1, area)
 	var rarity_pool: Array[String] = _resolve_rarity_pool(reward_table, resolved_area)
 	var option_count: int = int(reward_table.get("option_count", 3))
@@ -32,18 +32,8 @@ func build_reward_bundle(reward_key: String, reward_table: Dictionary, area: int
 	return package
 
 
-func roll_card_rewards(count: int, rarity_pool: Array, owned_cards: Array[String], allowed_card_ids: Array[String] = [], guarantee_new: bool = false) -> Array[String]:
-	var weighted_pool: Array[String] = []
-	for rarity in rarity_pool:
-		for card_id in Database.get_card_ids_by_rarity(rarity):
-			if not allowed_card_ids.is_empty() and not allowed_card_ids.has(card_id):
-				continue
-			weighted_pool.append(card_id)
-	if weighted_pool.is_empty():
-		if allowed_card_ids.is_empty():
-			weighted_pool = Database.get_all_card_ids()
-		else:
-			weighted_pool = allowed_card_ids.duplicate()
+func roll_card_rewards(count: int, rarity_pool: Array, owned_cards: Array[String], allowed_card_ids: Variant = null, guarantee_new: bool = false) -> Array[String]:
+	var weighted_pool: Array[String] = ContentPoolService.weighted_cards(rarity_pool, allowed_card_ids)
 
 	var options: Array[String] = []
 	if guarantee_new and count > 0:

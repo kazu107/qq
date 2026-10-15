@@ -6,6 +6,7 @@ const CARD_GRID_COLUMNS: int = 3
 
 var _summary_label: Label
 var _points_label: Label
+var _progress_label: Label
 var _cards_scroll: ScrollContainer
 var _cards_grid: GridContainer
 var _rarity_filter: OptionButton
@@ -77,6 +78,11 @@ func _build_ui() -> void:
 	_summary_label.theme_type_variation = "MutedLabel"
 	_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	header.get_child(0).add_child(_summary_label)
+	_progress_label = Label.new()
+	_progress_label.name = "LibraryContentProgress"
+	_progress_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_progress_label.add_theme_font_size_override("font_size", 16)
+	header.get_child(0).add_child(_progress_label)
 	_points_label = Label.new()
 	_points_label.name = "LibraryMetaPoints"
 	_points_label.add_theme_font_size_override("font_size", 22)
@@ -184,6 +190,8 @@ func _build_ui() -> void:
 
 
 func _refresh_ui() -> void:
+	_progress_label.text = "%s\n%s" % [Game.get_content_progress_text(), Game.get_content_seal_text()]
+	_progress_label.tooltip_text = Localization.get_text("progress.seal_hint", "Seals apply to new normal/infinite runs only. Up to 25% of unlocked items; each card rarity keeps at least one candidate.")
 	_points_label.text = str(Game.get_meta_points())
 	_points_label.tooltip_text = Localization.get_textf("hub.meta_points", "Meta Points: {points}", {"points": Game.get_meta_points()})
 	var entries: Array[Dictionary] = Game.get_meta_card_entries()
@@ -291,24 +299,20 @@ func _rebuild_card_rows(reset: bool = true) -> void:
 			status_label.name = "LibraryStatus_%s" % card_id
 			status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			status_label.add_theme_font_size_override("font_size", 15)
-			if bool(entry.get("unlocked", false)):
-				status_label.text = Localization.get_text("meta.unlocked", "Unlocked")
-			else:
-				status_label.text = Localization.get_textf("library.locked_cost", "Locked | Unlock cost {cost}", {
-					"cost": int(entry.get("cost", 0)),
-				})
+			status_label.text = Game.get_content_entry_status(entry)
 			info.add_child(status_label)
 
-			var unlock_button: Button = Button.new()
-			unlock_button.name = "UnlockCard_%s" % card_id
-			unlock_button.custom_minimum_size = Vector2(104.0, 38.0)
-			unlock_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			unlock_button.theme_type_variation = "PrimaryButton"
-			unlock_button.text = Localization.get_text("meta.unlock", "Unlock")
-			unlock_button.visible = not bool(entry.get("unlocked", false))
-			unlock_button.disabled = Game.get_meta_points() < int(entry.get("cost", 0))
-			unlock_button.pressed.connect(_on_unlock_card.bind(card_id))
-			top_row.add_child(unlock_button)
+			var seal_button: CheckButton = CheckButton.new()
+			seal_button.name = "SealCard_%s" % card_id
+			seal_button.custom_minimum_size = Vector2(100.0, 38.0)
+			seal_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			seal_button.text = Localization.get_text("progress.seal", "Seal")
+			seal_button.tooltip_text = _progress_label.tooltip_text
+			seal_button.visible = bool(entry.get("unlocked", false))
+			seal_button.disabled = not bool(entry.get("can_seal", false))
+			seal_button.set_pressed_no_signal(bool(entry.get("sealed", false)))
+			seal_button.toggled.connect(_on_card_seal_toggled.bind(card_id))
+			cell.add_child(seal_button)
 
 			var desc_label: Label = Label.new()
 			desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -319,7 +323,7 @@ func _rebuild_card_rows(reset: bool = true) -> void:
 				"row": row,
 				"preview": preview,
 				"status": status_label,
-				"button": unlock_button,
+				"button": seal_button,
 				"rarity": rarity,
 				"tags": card_def.tags.duplicate(),
 			}
@@ -407,7 +411,6 @@ func _request_more_if_needed() -> void:
 
 
 func _update_card_rows(entries: Array[Dictionary]) -> void:
-	var meta_points: int = Game.get_meta_points()
 	for entry in entries:
 		var card_id: String = String(entry.get("id", ""))
 		var widgets: Dictionary = Dictionary(_card_widgets.get(card_id, {}))
@@ -416,18 +419,14 @@ func _update_card_rows(entries: Array[Dictionary]) -> void:
 		var unlocked: bool = bool(entry.get("unlocked", false))
 		var preview: CardButton = widgets.get("preview") as CardButton
 		var status_label: Label = widgets.get("status") as Label
-		var unlock_button: Button = widgets.get("button") as Button
-		if preview == null or status_label == null or unlock_button == null:
+		var seal_button: CheckButton = widgets.get("button") as CheckButton
+		if preview == null or status_label == null or seal_button == null:
 			continue
 		preview.modulate = Color(1.0, 1.0, 1.0, 1.0) if unlocked else Color(0.55, 0.55, 0.55, 1.0)
-		if unlocked:
-			status_label.text = Localization.get_text("meta.unlocked", "Unlocked")
-		else:
-			status_label.text = Localization.get_textf("library.locked_cost", "Locked | Unlock cost {cost}", {
-				"cost": int(entry.get("cost", 0)),
-			})
-		unlock_button.visible = not unlocked
-		unlock_button.disabled = unlocked or meta_points < int(entry.get("cost", 0))
+		status_label.text = Game.get_content_entry_status(entry)
+		seal_button.visible = unlocked
+		seal_button.disabled = not bool(entry.get("can_seal", false))
+		seal_button.set_pressed_no_signal(bool(entry.get("sealed", false)))
 		status_label.add_theme_color_override("font_color", Color(0.42, 0.82, 0.65) if unlocked else UiTheme.ACCENT_GOLD)
 
 
@@ -520,9 +519,9 @@ func _make_card_cell_stylebox(rarity: String) -> StyleBoxFlat:
 	return style
 
 
-func _on_unlock_card(card_id: String) -> void:
-	if Game.unlock_meta_card(card_id):
-		_refresh_ui()
+func _on_card_seal_toggled(sealed: bool, card_id: String) -> void:
+	Game.set_content_sealed("cards", card_id, sealed)
+	_refresh_ui()
 
 
 func _build_developer_panel() -> void:

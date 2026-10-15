@@ -142,12 +142,8 @@ func _run() -> void:
 	if _failed:
 		return
 
-	var locked_card_id: String = _find_affordable_locked_card_id()
-	if locked_card_id == "":
-		_fail("Audio smoke failed: no affordable locked card was found for unlock verification")
-		return
-	if not Game.unlock_meta_card(locked_card_id):
-		_fail("Audio smoke failed: unlock_meta_card did not unlock an affordable card")
+	if not Game.unlock_meta_starter("tempo"):
+		_fail("Audio smoke failed: unlock_meta_starter did not unlock an affordable starter")
 		return
 	_assert_last_sfx("meta_unlock", "Audio smoke failed: unlocking meta content should play the unlock SFX")
 	if _failed:

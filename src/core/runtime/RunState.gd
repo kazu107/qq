@@ -3,6 +3,7 @@ class_name RunState
 
 var starter_id: String = ""
 var seed: int = 0
+var content_pool: Dictionary = {}
 var current_area: int = 1
 var player_hp: int = 1
 var max_hp: int = 1
@@ -94,6 +95,11 @@ static func from_dict(data: Dictionary) -> RunState:
 	var run_state := RunState.new()
 	run_state.starter_id = String(data.get("starter_id", ""))
 	run_state.seed = int(data.get("seed", 0))
+	run_state.content_pool = Dictionary(data.get("content_pool", {})).duplicate(true)
+	if not run_state.content_pool.is_empty():
+		run_state.content_pool["version"] = int(run_state.content_pool.get("version", 0))
+		for key: String in ["cards", "relics", "sealed_cards", "sealed_relics"]:
+			run_state.content_pool[key] = _to_string_array(run_state.content_pool.get(key, []))
 	run_state.current_area = int(data.get("current_area", 1))
 	run_state.player_hp = int(data.get("player_hp", 1))
 	run_state.max_hp = int(data.get("max_hp", 1))
@@ -142,6 +148,7 @@ func to_dict() -> Dictionary:
 	return {
 		"starter_id": starter_id,
 		"seed": seed,
+		"content_pool": content_pool.duplicate(true),
 		"current_area": current_area,
 		"player_hp": player_hp,
 		"max_hp": max_hp,
