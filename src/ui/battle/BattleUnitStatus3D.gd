@@ -115,14 +115,15 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		icon.pixel_size = 0.0021 if count > 4 else 0.0025
 		var label: Label3D = cell["time"]
 		label.position = Vector3(x + 0.14, -0.64, 0.08)
-		label.text = "x2" if id == "attack_charge" else "%.1fs" % remaining
+		var multiplier: float = float(Dictionary(statuses[id]).get("multiplier", 1.0))
+		label.text = "x%s" % String.num(multiplier, 0) if id == "attack_charge" else "%.1fs" % remaining
 		label.pixel_size = 0.0044 if count > 4 else 0.005
 		label.visible = true
 		var corners: Array[Vector3] = []
 		for dx: float in [-spacing * 0.48, spacing * 0.48]:
 			for dy: float in [-0.13, 0.13]:
 				corners.append(to_global(Vector3(x + dx, -0.64 + dy, 0.08)))
-		_status_regions.append({"id": id, "corners": corners, "tooltip": StatusInfoFormatter.tooltip(id, remaining)})
+		_status_regions.append({"id": id, "corners": corners, "tooltip": StatusInfoFormatter.tooltip(id, remaining, multiplier)})
 
 
 func is_player_status() -> bool:
@@ -248,7 +249,7 @@ func _build_status_text(statuses: Dictionary) -> String:
 		var status_data: Dictionary = Dictionary(statuses.get(status_id, {}))
 		var remaining: float = float(status_data.get("duration", 0.0))
 		if status_id == "attack_charge":
-			parts.append(Localization.get_status_name(status_id) + " x2")
+			parts.append(Localization.get_status_name(status_id) + " x%s" % String.num(float(status_data.get("multiplier", 1.0)), 0))
 			continue
 		if remaining <= 0.0:
 			continue

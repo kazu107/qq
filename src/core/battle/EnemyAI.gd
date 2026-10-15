@@ -5,14 +5,12 @@ var think_interval: float = 2.4
 var side: String = "enemy"
 var _think_timer: float = 0.0
 var _timekeeper_cycle: int = -1
-var _amplify_attempted: bool = false
 var _mark_attempted: bool = false
 
 
 func reset() -> void:
 	_think_timer = 0.0
 	_timekeeper_cycle = -1
-	_amplify_attempted = false
 	_mark_attempted = false
 
 
@@ -67,14 +65,13 @@ func _update_timekeeper(engine: RealtimeBattleEngine) -> void:
 		return
 	if _timekeeper_cycle != strike.instance_id:
 		_timekeeper_cycle = strike.instance_id
-		_amplify_attempted = false
 		_mark_attempted = false
-	# Register once per cycle so interrupting the supporting cards is meaningful.
-	if not _amplify_attempted and state.battle_time - strike.created_at >= 6.0:
-		_amplify_attempted = _use_timekeeper_card(engine, "timekeeper_amplify")
-		return
+	# Reserve the final window for the mark; amplify repeatedly while time remains.
 	if not _mark_attempted and strike.scheduled_time - state.battle_time <= 8.0:
 		_mark_attempted = _use_timekeeper_card(engine, "timekeeper_time_mark")
+		return
+	if strike.scheduled_time - state.battle_time > 8.0 and state.battle_time - strike.created_at >= 6.0:
+		_use_timekeeper_card(engine, "timekeeper_amplify")
 
 
 func _use_timekeeper_card(engine: RealtimeBattleEngine, id: String) -> bool:

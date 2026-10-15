@@ -1545,7 +1545,7 @@ func _refresh_developer_panel() -> void:
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
 			{"id": "DevBattleDetails", "label": Localization.get_text("battle.analysis.details", "Battle details"), "callback": Callable(self, "_on_dev_battle_details"), "disabled": _lan_mode},
-			{"id": "DevBossCharge", "label": Localization.get_text("boss.timekeeper.dev_charge", "Boss charge x2"), "callback": func() -> void: _on_dev_boss_charge(true), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
+			{"id": "DevBossCharge", "label": Localization.get_text("boss.timekeeper.dev_charge", "Stack boss charge x2"), "callback": func() -> void: _on_dev_boss_charge(true), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
 			{"id": "DevBossClearCharge", "label": Localization.get_text("boss.timekeeper.dev_clear", "Clear boss charge"), "callback": func() -> void: _on_dev_boss_charge(false), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
 			{"id": "DevWinBattle", "label": Localization.get_text("battle.dev.force_victory", "Force Victory"), "callback": Callable(self, "_on_dev_force_victory")},
 			{"id": "DevLoseBattle", "label": Localization.get_text("battle.dev.force_defeat", "Force Defeat"), "callback": Callable(self, "_on_dev_force_defeat")},

@@ -9,7 +9,7 @@
   },
   {
     "id": "timekeeper_amplify", "name": "Clockwork Amplifier", "boss_only": true,
-    "description": "Timekeeper-only. Double the next resolved attack card, including one already casting. Does not stack.",
+    "description": "Timekeeper-only. Double the next resolved attack card, including one already casting. Repeated casts stack multiplicatively: x2, x4, x8.",
     "rarity": "legendary", "tags": ["support", "boss"], "loadout_cost": 0,
     "cast_time": 3.0, "recast_time": 8.0, "active_slot_cost": 1, "interruptible": true,
     "target_type": "self", "effects": [{"type": "next_attack_multiplier", "multiplier": 2.0}]

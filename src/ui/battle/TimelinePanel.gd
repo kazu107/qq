@@ -444,7 +444,7 @@ func _refresh_boss_forecast(entries: Array[TimelineEntry], time: float, local_un
 		_boss_forecast.visible = true
 		_boss_forecast.text = Localization.get_textf("boss.timekeeper.forecast", "Final Strike: {seconds}s / {damage} damage{charge}", {
 			"seconds": "%.1f" % maxf(0.0, entry.scheduled_time - time), "damage": damage,
-			"charge": Localization.get_text("boss.timekeeper.amplified_forecast", " (x2 included)") if unit.next_attack_multiplier > 1.0 else ""})
+			"charge": Localization.get_textf("boss.timekeeper.amplified_forecast", " (x{multiplier} included)", {"multiplier": String.num(unit.next_attack_multiplier, 0)}) if unit.next_attack_multiplier > 1.0 else ""})
 		_boss_forecast.tooltip_text = Localization.get_text("boss.timekeeper.forecast_hint", "Damage includes current attack, charge and Vulnerable, before shielding. Hover an overlapping card to bring it forward.")
 		return
 

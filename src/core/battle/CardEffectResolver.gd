@@ -32,7 +32,7 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 		match effect_type:
 			"next_attack_multiplier":
 				actor.charge_next_attack(float(effect.get("multiplier", 2.0)))
-				messages.append(Localization.get_text("battle.log.attack_charge", "Next resolved attack is amplified."))
+				messages.append(Localization.get_textf("battle.log.attack_charge", "Next resolved attack is now {multiplier} times as strong.", {"multiplier": String.num(actor.next_attack_multiplier, 0)}))
 			"consume_shield":
 				messages.append(Localization.get_textf("battle.log.card_consume_shield", "{card_name} consumed {amount} shield", {
 					"card_name": card_def.name,

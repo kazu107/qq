@@ -37,7 +37,11 @@ func get_attack_value() -> int:
 
 
 func charge_next_attack(multiplier: float) -> void:
-	next_attack_multiplier = maxf(next_attack_multiplier, clampf(multiplier, 1.0, 2.0))
+	next_attack_multiplier *= maxf(1.0, multiplier)
+
+
+func get_attack_charge_label() -> String:
+	return "x%s" % String.num(next_attack_multiplier, 0)
 
 
 func consume_next_attack_multiplier() -> float:
@@ -156,7 +160,7 @@ func get_status_summary() -> String:
 	var parts: Array[String] = []
 	for status_id in display.keys():
 		if String(status_id) == "attack_charge":
-			parts.append(Localization.get_status_name("attack_charge") + " x2")
+			parts.append(Localization.get_status_name("attack_charge") + " " + get_attack_charge_label())
 			continue
 		var remaining: float = snappedf(float(display[status_id].get("duration", 0.0)), 0.1)
 		parts.append("%s %.1fs" % [Localization.get_status_name(String(status_id)), remaining])

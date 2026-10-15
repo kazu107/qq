@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.36.0",
+  "current_version": "QQ-0.36.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.36.1", "date": "2026-10-15",
+      "title_ja": "タイムキーパーの累積倍化",
+      "title_en": "Stacking Timekeeper amplification",
+      "changes_ja": [
+        "時計仕掛けの増幅を重ねるたびに、次の攻撃が2倍・4倍・8倍と乗算で強くなるようにしました。攻撃カード1枚の解決ですべて消費します。",
+        "大技の詠唱中、約6秒後から再使用ごとに増幅を繰り返します。通常は3回で8倍になり、遅延で詠唱を延ばすとさらに重ねます。発動前の8秒間は刻印を優先します。",
+        "3D・2D状態アイコン、ホバー説明、ログ、予測威力に現在の合計倍率を表示し、スナップショットとリプレイでも保持します。開発者ボタンも繰り返し押して重ねられます。"
+      ],
+      "changes_en": [
+        "Amplification stacks multiplicatively: x2, x4, x8, then all stacks are consumed by one resolved attack card.",
+        "Repeat amplification after the first six seconds while the strike casts. Normally three casts produce x8; delaying the strike can permit further casts. Reserve the final eight seconds for the mark.",
+        "Show the actual multiplier in 2D/3D status, hover details, logs and damage forecasts, preserve it in snapshots/replays, and let developer controls add stacks."
+      ]
+    },
     {
       "version": "QQ-0.36.0", "date": "2026-10-13",
       "title_ja": "タイムキーパーの大技準備コンボ",

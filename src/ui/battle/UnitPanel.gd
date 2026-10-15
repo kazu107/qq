@@ -359,13 +359,14 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		active_status_ids.append(status_id)
 		var icon: TextureRect = _get_or_create_status_icon(status_id)
 		var time_label: Label = _status_time_labels[status_id] as Label
-		var tooltip_text: String = _build_status_tooltip(status_id, remaining)
+		var multiplier: float = float(status_data.get("multiplier", 1.0))
+		var tooltip_text: String = StatusInfoFormatter.tooltip(status_id, remaining, multiplier)
 		icon.visible = true
 		icon.texture = _get_status_icon_texture(status_id)
 		icon.self_modulate = Color.WHITE
 		icon.tooltip_text = ""
 		_status_tooltip_texts[status_id] = tooltip_text
-		time_label.text = "x2" if status_id == "attack_charge" else _format_status_remaining(remaining)
+		time_label.text = "x%s" % String.num(multiplier, 0) if status_id == "attack_charge" else _format_status_remaining(remaining)
 		time_label.self_modulate = STATUS_TIME_COLOR
 		if _status_hovered_id == status_id:
 			_status_hovered_icon = icon
