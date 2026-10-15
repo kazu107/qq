@@ -169,6 +169,8 @@ func _open_screen(screen: String) -> void:
 			Game.start_new_run("balanced", 4242)
 			if screen == "map_extended": Game.current_run.map_state = MapGenerator.new().generate_run(4242, 4)
 			SceneRouter.go_to_map()
+		"event_later", "event_saved_empty", "event_fallback":
+			_open_later_event(screen)
 		"online_arena":
 			NetworkManager._clear_session(false)
 			NetworkManager._is_host = true
@@ -228,6 +230,29 @@ func _open_screen(screen: String) -> void:
 			SceneRouter.go_to_result()
 
 
+func _open_later_event(mode: String) -> void:
+	Database.load_all()
+	Game.start_new_run("balanced", 4242)
+	Game.current_run.map_state = MapGenerator.new().generate_run(4242, 4)
+	var was_developer: bool = Game.is_developer_mode_enabled()
+	Game.settings["developer_mode"] = true
+	for index: int in 8: Game.developer_advance_map_route()
+	Game.settings["developer_mode"] = was_developer
+	for node: Dictionary in Game.get_current_step_data()["nodes"]:
+		if node["type"] == "event" and node["status"] == "available":
+			Game.select_map_node(node["id"])
+			break
+	if mode != "event_later":
+		var node: Dictionary = Game.get_active_map_node().duplicate(true)
+		node["event_id"] = ""
+		node["event_choices"] = []
+		var location: Dictionary = Game._get_active_node_location()
+		Game._set_node(location["step_index"], location["node_index"], node)
+		Game.apply_loaded_save(SaveData.from_dict(Game.build_save_data("facility").to_dict()))
+		if mode == "event_fallback": Database.events.clear()
+	SceneRouter.go_to_facility()
+
+
 func _process(_delta: float) -> void:
 	var current: Node = get_tree().current_scene
 	if current != null and current.scene_file_path == SceneRouter.BATTLE_SCENE and not current.is_processing():
@@ -257,6 +282,12 @@ func _inspect() -> Dictionary:
 	var controls: Array[Dictionary] = []
 	var result: Dictionary = {}
 	if screen != null:
+		if screen.scene_file_path.get_file().get_basename() == "Facility":
+			var event_data: Dictionary = Game.get_active_event_data()
+			result["facility"] = {"area": Game.get_active_map_node().get("area", 0), "step": Game.get_current_step_index(),
+				"choices": event_data.get("choices", []), "id": event_data.get("id", ""),
+				"gold": Game.current_run.gold, "hp": Game.current_run.player_hp,
+				"cards": Game.current_run.player_cards.duplicate(), "relics": Game.current_run.relics.duplicate()}
 		if screen.scene_file_path.get_file().get_basename() == "Map":
 			var canvas: MapRouteCanvas = screen.get("_route_canvas") as MapRouteCanvas
 			var map_nodes: Array[Dictionary] = []

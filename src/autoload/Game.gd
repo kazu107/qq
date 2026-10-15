@@ -1868,6 +1868,12 @@ func get_active_event_data() -> Dictionary:
 	var active_node: Dictionary = get_active_map_node()
 	if String(active_node.get("type", "")) != "event":
 		return {}
+	if Array(active_node.get("event_choices", [])).is_empty():
+		var location: Dictionary = _get_active_node_location()
+		if not location.is_empty():
+			_prepare_non_battle_node(int(location["step_index"]), int(location["node_index"]))
+			active_node = get_active_map_node()
+			if not Array(active_node.get("event_choices", [])).is_empty(): SaveManager.request_save("facility")
 	return {
 		"id": String(active_node.get("event_id", "")),
 		"title": String(active_node.get("event_title", "Event")),
@@ -2446,14 +2452,15 @@ func _prepare_non_battle_node(step_index: int, node_index: int) -> void:
 			if not node_data.has("heal_amount"):
 				node_data["heal_amount"] = 10 + area * 4
 		"event":
-			if not node_data.has("event_id"):
-				var event_data: Dictionary = _event_service.build_event_node(
-					area,
-					current_run,
-					_get_used_event_ids(),
-					get_unlocked_card_ids(),
-					get_unlocked_relic_ids()
-				)
+			if Array(node_data.get("event_choices", [])).is_empty():
+				var event_data: Dictionary = {}
+				var saved_id: String = String(node_data.get("event_id", ""))
+				if saved_id != "":
+					event_data = _event_service.build_specific_event_node(saved_id, area, current_run,
+						get_unlocked_card_ids(), get_unlocked_relic_ids())
+				if Array(event_data.get("event_choices", [])).is_empty():
+					event_data = _event_service.build_event_node(area, current_run, _get_used_event_ids(),
+						get_unlocked_card_ids(), get_unlocked_relic_ids())
 				for key in event_data.keys():
 					node_data[key] = event_data[key]
 		"hazard":

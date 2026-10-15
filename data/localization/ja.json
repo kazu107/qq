@@ -1804,5 +1804,6 @@
   "online.bot.random": "botのデッキ：ランダム",
   "online.bot.count": " | bot {count}人",
   "online.bot.rejected": "botを変更できませんでした。人数上限と対戦中かどうかを確認してください。",
-  "online.bot.dev": "botで空き枠を埋める"
+  "online.bot.dev": "botで空き枠を埋める",
+  "event.empty.description": "利用できるイベントがありません。イベント報酬を受け取らずに先へ進みます。"
 }

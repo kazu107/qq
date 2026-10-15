@@ -41,31 +41,35 @@ func get_event_title(event_id: String) -> String:
 
 
 func _pick_template(area: int, used_event_ids: Array[String]) -> Dictionary:
+	var eligible: Array[String] = _eligible_event_ids(area)
+	# The original templates cover one three-area chapter; keep absolute-area content first.
+	if eligible.is_empty() and area > 3:
+		eligible = _eligible_event_ids((area - 1) % 3 + 1)
+	var unused: Array[String] = []
+	for event_id: String in eligible:
+		if not used_event_ids.has(event_id): unused.append(event_id)
+	if unused.is_empty(): unused = eligible
 	var weighted_ids: Array[String] = []
-	for event_id in Database.get_all_event_ids():
-		if used_event_ids.has(event_id):
-			continue
+	for event_id: String in unused:
 		var template: Dictionary = Database.get_event(event_id)
-		if not _supports_area(template, area):
-			continue
 		var weight: int = max(1, int(template.get("weight", 1)))
 		for _repeat_index in range(weight):
 			weighted_ids.append(event_id)
-
-	if weighted_ids.is_empty():
-		for event_id in Database.get_all_event_ids():
-			var template: Dictionary = Database.get_event(event_id)
-			if not _supports_area(template, area):
-				continue
-			var weight: int = max(1, int(template.get("weight", 1)))
-			for _repeat_index in range(weight):
-				weighted_ids.append(event_id)
 
 	if weighted_ids.is_empty():
 		return {}
 
 	var picked_id: String = weighted_ids[_rng.randi_range(0, weighted_ids.size() - 1)]
 	return Database.get_event(picked_id)
+
+
+func _eligible_event_ids(area: int) -> Array[String]:
+	var ids: Array[String] = []
+	for event_id: String in Database.get_all_event_ids():
+		var template: Dictionary = Database.get_event(event_id)
+		if not template.is_empty() and not Array(template.get("choices", [])).is_empty() and _supports_area(template, area):
+			ids.append(event_id)
+	return ids
 
 
 func _resolve_template(
@@ -269,6 +273,9 @@ func _resolve_scalar(value: Variant, area: int, context: Dictionary) -> Variant:
 			return by_area[area_key]
 		if by_area.has("default"):
 			return by_area["default"]
+		var chapter_area_key: String = str((area - 1) % 3 + 1)
+		if area > 3 and by_area.has(chapter_area_key):
+			return by_area[chapter_area_key]
 
 	var base_value: Variant = value_data.get("base", 0)
 	var per_area_value: Variant = value_data.get("per_area", 0)

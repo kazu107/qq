@@ -116,6 +116,31 @@ try {
     cases.push(`${viewport.width}x${viewport.height}: routes, initial focus, history, responsive loadout, chapter navigation, connected options, boss gate`);
   }
   await page.setViewportSize({ width: 1440, height: 900 });
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 900, height: 1200 }]) {
+    await page.setViewportSize(viewport);
+    for (const screen of ['event_later', 'event_saved_empty', 'event_fallback']) {
+      let state = await command('screen', { screen });
+      assert.equal(state.screen, 'Facility');
+      assert.equal(state.facility.area, 4, 'Did not reproduce the second-chapter event');
+      const buttons = state.controls.filter(item => item.name.startsWith('EventChoiceButton_'));
+      const fallback = screen === 'event_fallback';
+      assert.equal(buttons.length, fallback ? 1 : 3, 'Event choices are missing');
+      for (const button of buttons) {
+        const [x, y, w, h] = button.rect;
+        assert(x >= -2 && x + w <= state.viewport[0] + 2 && y >= -2 && y + h <= state.viewport[1] + 2, 'Event option is outside the viewport');
+      }
+      const initial = state.facility;
+      state = await command('inspect');
+      assert.deepEqual(state.facility, initial, 'Inspecting the event rerolled choices or applied rewards');
+      await page.screenshot({ path: resolve(output, `${screen}-${viewport.width}x${viewport.height}.png`) });
+      const choice = fallback ? 'leave_empty_event' : state.facility.choices.find(item => item.enabled).id;
+      state = await click(state, `EventChoiceButton_${choice}`);
+      assert.equal(state.screen, 'Map', 'Event choice did not return to the route');
+      assert.equal(state.map.step, 9, 'Event choice did not advance exactly once');
+      cases.push(`${screen} ${viewport.width}x${viewport.height}: displayed choices, no reroll, continue to map`);
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
   let state = await command('screen', { screen: 'map' });
   const node = state.map.nodes.find(item => !item.disabled);
   await page.mouse.click(...await point(state, node.rect));

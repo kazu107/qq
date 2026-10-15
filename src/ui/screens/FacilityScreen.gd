@@ -363,6 +363,15 @@ func _render_event_options() -> void:
 	var choices: Array = Array(event_data.get("choices", []))
 
 	var choice_list: VBoxContainer = _create_choice_list("EventChoiceList")
+	if choices.is_empty():
+		choice_list.add_child(_build_event_choice_button({
+			"id": "leave_empty_event",
+			"label": Localization.get_text("facility.leave_node", "Leave Node"),
+			"description": Localization.get_text("event.empty.description", "No event choices are available. Continue without an event reward."),
+			"effects": [],
+			"enabled": true,
+		}, Callable(self, "_on_leave_facility")))
+		return
 
 	for raw_choice in choices:
 		var choice_data: Dictionary = Dictionary(raw_choice)
