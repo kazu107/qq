@@ -43,12 +43,15 @@ func apply_action(run_state: RunState, action: String, payload: Dictionary, deve
 			if not DeckPresetService.apply(run_state, cards):
 				return result
 		"buy_card":
+			var paid_price: int = _get_offer_price(run_state, "cards", int(payload.get("index", -1)))
 			var bought_card_id: String = _arena_service.buy_card_offer(run_state, int(payload.get("index", -1)))
 			if bought_card_id == "":
 				return result
 			_auto_equip_card_if_room(run_state, bought_card_id)
 			result["card_id"] = bought_card_id
+			result["gold_spent"] = paid_price
 		"buy_relic":
+			var paid_price: int = _get_offer_price(run_state, "relics", int(payload.get("index", -1)))
 			var bought_relic_id: String = _arena_service.buy_relic_offer(
 				run_state,
 				int(payload.get("index", -1)),
@@ -57,6 +60,7 @@ func apply_action(run_state: RunState, action: String, payload: Dictionary, deve
 			if bought_relic_id == "":
 				return result
 			result["relic_id"] = bought_relic_id
+			result["gold_spent"] = paid_price
 		"toggle_card_hold":
 			if not _arena_service.toggle_hold(run_state, "card", int(payload.get("index", -1))):
 				return result
@@ -64,8 +68,10 @@ func apply_action(run_state: RunState, action: String, payload: Dictionary, deve
 			if not _arena_service.toggle_hold(run_state, "relic", int(payload.get("index", -1))):
 				return result
 		"reroll":
+			var paid_price: int = maxi(0, run_state.arena_reroll_cost)
 			if not _arena_service.reroll_shop(run_state, Database.get_all_card_ids(), Database.get_all_relic_ids()):
 				return result
+			result["gold_spent"] = paid_price
 		"equip":
 			if not equip_card(run_state, String(payload.get("card_id", ""))):
 				return result
@@ -107,6 +113,13 @@ func apply_action(run_state: RunState, action: String, payload: Dictionary, deve
 	result["accepted"] = true
 	result["gold_delta"] = run_state.gold - gold_before
 	return result
+
+
+func _get_offer_price(run_state: RunState, kind: String, index: int) -> int:
+	var offers: Array = Array(run_state.arena_shop.get(kind, []))
+	if index < 0 or index >= offers.size():
+		return 0
+	return maxi(0, int(Dictionary(offers[index]).get("price", 0)))
 
 
 func apply_battle_result(run_state: RunState, won: bool, hp_after: int, battle_relic_gold: int = 0) -> Dictionary:

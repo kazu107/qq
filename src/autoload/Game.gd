@@ -754,6 +754,13 @@ func get_meta_achievement_entries() -> Array[Dictionary]:
 	return _meta_progress_service.build_achievement_entries(meta_progress)
 
 
+func record_gold_spent(amount: int) -> void:
+	if amount <= 0:
+		return
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", amount)
+	SaveManager.request_save(current_screen_hint)
+
+
 func get_permanent_bonuses() -> Dictionary:
 	ensure_meta_initialized()
 	return _meta_progress_service.get_permanent_bonuses(meta_progress)
@@ -1099,12 +1106,14 @@ func buy_arena_relic_offer(offer_index: int) -> bool:
 	if current_run == null or not current_run.arena_mode:
 		return false
 	var gold_before: int = current_run.gold
+	var offers: Array[Dictionary] = get_arena_relic_offers()
+	var paid_price: int = maxi(0, int(offers[offer_index].get("price", 0))) if offer_index >= 0 and offer_index < offers.size() else 0
 	var relic_id: String = _arena_service.buy_relic_offer(current_run, offer_index, _relic_service)
 	if relic_id == "":
 		AudioManager.play_sfx("ui_error")
 		return false
 	_meta_progress_service.increment_achievement_stat(meta_progress, "relics_bought")
-	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", paid_price)
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("relic_gain")
 	SaveManager.save_game(current_screen_hint)
@@ -2246,7 +2255,7 @@ func use_shop_service_choice(choice_id: String) -> bool:
 		var effect_data: Dictionary = Dictionary(raw_effect)
 		match String(effect_data.get("type", "")):
 			"lose_gold":
-				current_run.gold = max(0, current_run.gold - int(effect_data.get("amount", 0)))
+				_spend_run_gold(int(effect_data.get("amount", 0)))
 			"grant_gold":
 				current_run.gold += int(effect_data.get("amount", 0))
 			"heal":
@@ -2258,7 +2267,6 @@ func use_shop_service_choice(choice_id: String) -> bool:
 
 	node_data["shop_service_%s_used" % choice_id] = true
 	_meta_progress_service.increment_achievement_stat(meta_progress, "facility_choices")
-	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	_set_node(step_index, node_index, node_data)
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("shop_buy")
@@ -2322,7 +2330,7 @@ func use_forge_service_choice(choice_id: String) -> bool:
 		var effect_data: Dictionary = Dictionary(raw_effect)
 		match String(effect_data.get("type", "")):
 			"lose_gold":
-				current_run.gold = max(0, current_run.gold - int(effect_data.get("amount", 0)))
+				_spend_run_gold(int(effect_data.get("amount", 0)))
 			"modify_attack":
 				current_run.attack += int(effect_data.get("amount", 0))
 			"modify_loadout_limit":
@@ -2332,7 +2340,6 @@ func use_forge_service_choice(choice_id: String) -> bool:
 
 	node_data["forge_used"] = true
 	_meta_progress_service.increment_achievement_stat(meta_progress, "facility_choices")
-	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	_set_node(step_index, node_index, node_data)
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("forge_upgrade")
@@ -2359,7 +2366,7 @@ func use_heal_node_choice(choice_id: String) -> int:
 		var effect_data: Dictionary = Dictionary(raw_effect)
 		match String(effect_data.get("type", "")):
 			"lose_gold":
-				current_run.gold = max(0, current_run.gold - int(effect_data.get("amount", 0)))
+				_spend_run_gold(int(effect_data.get("amount", 0)))
 			"grant_gold":
 				current_run.gold += int(effect_data.get("amount", 0))
 			"heal":
@@ -2373,7 +2380,6 @@ func use_heal_node_choice(choice_id: String) -> int:
 	_complete_active_map_node_and_advance()
 	_meta_progress_service.increment_achievement_stat(meta_progress, "facility_choices")
 	_meta_progress_service.increment_achievement_stat(meta_progress, "healing_choices")
-	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	current_screen_hint = _get_post_progress_scene_hint()
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("heal_use")
@@ -2398,7 +2404,6 @@ func resolve_event_choice(choice_id: String) -> String:
 
 	_complete_active_map_node_and_advance()
 	_meta_progress_service.increment_achievement_stat(meta_progress, "events_resolved")
-	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", maxi(0, gold_before - current_run.gold))
 	current_screen_hint = _get_post_progress_scene_hint()
 	_show_gold_delta(current_run.gold - gold_before)
 	AudioManager.play_sfx("event_resolve")
@@ -2782,6 +2787,13 @@ func _apply_event_choice(choice_data: Dictionary) -> String:
 	return String(choice_data.get("label", ""))
 
 
+func _spend_run_gold(amount: int) -> void:
+	# Count the actual debit, not the net balance after relic grants or other gold gains.
+	var paid: int = clampi(amount, 0, current_run.gold)
+	current_run.gold -= paid
+	_meta_progress_service.increment_achievement_stat(meta_progress, "gold_spent", paid)
+
+
 func _apply_event_effect(effect_data: Dictionary) -> bool:
 	var effect_type: String = String(effect_data.get("type", ""))
 	match effect_type:
@@ -2791,7 +2803,7 @@ func _apply_event_effect(effect_data: Dictionary) -> bool:
 			var gold_cost: int = int(effect_data.get("amount", 0))
 			if current_run.gold < gold_cost:
 				return false
-			current_run.gold -= gold_cost
+			_spend_run_gold(gold_cost)
 		"heal":
 			current_run.player_hp = min(current_run.max_hp, current_run.player_hp + int(effect_data.get("amount", 0)))
 		"lose_hp":

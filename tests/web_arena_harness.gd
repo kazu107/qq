@@ -47,6 +47,16 @@ func _command(args: Array) -> void:
 			engine.battle_state.winner = winner
 		"prepare":
 			NetworkManager.start_lan_arena_preparation()
+		"spending_fixture":
+			if NetworkManager.is_host():
+				for fixture_run: RunState in NetworkManager._arena_runs_by_peer.values():
+					fixture_run.gold = 200
+					fixture_run.arena_reroll_cost = 7
+					fixture_run.arena_shop["cards"] = [{"card_id": "strike", "price": 22, "bought": false}]
+					fixture_run.arena_shop["relics"] = [{"relic_id": "war_cache", "price": 50, "bought": false}]
+				NetworkManager._send_arena_preparation_state()
+		"arena_action":
+			NetworkManager.submit_arena_action(String(payload.get("kind", "")), Dictionary(payload.get("args", {})))
 		"ready":
 			NetworkManager.set_local_arena_ready(true)
 		"choose_reward":
@@ -94,6 +104,8 @@ func _process(delta: float) -> void:
 			"time": engine.battle_state.battle_time, "active": engine.battle_state.active_instances.size(),
 			"finished": context.get("finished", false)})
 	var state: Dictionary = {"ticks": _ticks, "error": _error, "players": NetworkManager.get_lobby_players(),
+		"gold_spent": Dictionary(Game.meta_progress.get("achievement_stats", {})).get("gold_spent", 0),
+		"saved_gold_spent": Dictionary(SaveManager.current_save.meta_progress.get("achievement_stats", {})).get("gold_spent", 0),
 		"room": NetworkManager.get_online_room_code(),
 		"bot_matches": bot_matches, "arena_ready": NetworkManager.get_arena_ready_count(),
 		"rewards": NetworkManager.get_local_arena_pending_rewards(),

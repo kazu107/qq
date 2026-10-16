@@ -226,13 +226,18 @@
     ]
   },
   {
-    "id": "big_spender", "name": "Big Spender", "description": "Spend gold on cards, relics, rerolls, and facilities.",
+    "id": "big_spender", "name": "Lifetime Gold Spending", "description": "Spend gold cumulatively across runs on cards, relics, rerolls, and facilities. Gold gains never reduce this total.",
+    "legacy_claim_tier_count": 4,
     "condition": {"stat": "gold_spent", "value": 25}, "rewards": [{"type": "meta_points", "amount": 1}],
     "tiers": [
       {"condition": {"stat": "gold_spent", "value": 25}, "rewards": [{"type": "meta_points", "amount": 1}]},
       {"condition": {"stat": "gold_spent", "value": 100}, "rewards": [{"type": "meta_points", "amount": 2}]},
       {"condition": {"stat": "gold_spent", "value": 300}, "rewards": [{"type": "meta_points", "amount": 3}]},
-      {"condition": {"stat": "gold_spent", "value": 750}, "rewards": [{"type": "meta_points", "amount": 5}]}
+      {"condition": {"stat": "gold_spent", "value": 750}, "rewards": [{"type": "meta_points", "amount": 5}]},
+      {"condition": {"stat": "gold_spent", "value": 1500}, "rewards": [{"type": "meta_points", "amount": 6}]},
+      {"condition": {"stat": "gold_spent", "value": 3000}, "rewards": [{"type": "meta_points", "amount": 8}]},
+      {"condition": {"stat": "gold_spent", "value": 6000}, "rewards": [{"type": "meta_points", "amount": 10}]},
+      {"condition": {"stat": "gold_spent", "value": 10000}, "rewards": [{"type": "meta_points", "amount": 12}]}
     ]
   },
   {

@@ -610,6 +610,7 @@ func _build_developer_panel() -> void:
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
 			{"id": "DevMetaAddPoints", "label": Localization.get_text("hub.dev.add_points", "Add 5 Points"), "callback": Callable(self, "_on_dev_add_points")},
+			{"id": "DevMetaGoldSpent", "label": Localization.get_text("meta.dev.gold_spent", "Gold spent +100 (test)"), "callback": Callable(self, "_on_dev_add_gold_spent")},
 			{"id": "DevMetaUnlockTier2", "label": Localization.get_text("meta.dev.unlock_tier_2", "Unlock Steps 8-14"), "callback": Callable(self, "_on_dev_unlock_tier_2")},
 			{"id": "DevMetaUnlockTier3", "label": Localization.get_text("meta.dev.unlock_tier_3", "Unlock Steps 15-21"), "callback": Callable(self, "_on_dev_unlock_tier_3")},
 			{"id": "DevMetaUnlockTier4", "label": Localization.get_text("meta.dev.unlock_tier_4", "Unlock Steps 22-28"), "callback": Callable(self, "_on_dev_unlock_tier_4")},
@@ -624,6 +625,13 @@ func _build_developer_panel() -> void:
 
 func _on_dev_add_points() -> void:
 	Game.developer_add_points(5)
+	_refresh_ui()
+
+
+func _on_dev_add_gold_spent() -> void:
+	if not Game.is_developer_mode_enabled():
+		return
+	Game.developer_add_achievement_stat("gold_spent", 100)
 	_refresh_ui()
 
 

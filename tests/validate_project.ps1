@@ -279,6 +279,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/ContentProgressionSmoke.tscn"
     )
+    Invoke-GodotCheck "[15-gold/31] Running lifetime gold spending smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/GoldSpendingSmoke.tscn"
+    )
     Invoke-GodotCheck "[16/31] Running replay export smoke" $godotExe @(
         "--no-header",
         "--headless",

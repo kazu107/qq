@@ -1658,7 +1658,7 @@ func _receive_arena_preparation_state_rpc(snapshot: Dictionary) -> void:
 
 @rpc("authority", "call_remote", "reliable", 0)
 func _arena_action_result_rpc(action: String, accepted: bool, result: Dictionary) -> void:
-	arena_action_result_received.emit(action, accepted, result.duplicate(true))
+	_receive_local_arena_action_result(action, accepted, result)
 
 
 @rpc("authority", "call_remote", "unreliable_ordered", 0)
@@ -1867,9 +1867,16 @@ func _send_arena_action_result(peer_id: int, action: String, accepted: bool, res
 	if is_bot_peer(peer_id):
 		return
 	if peer_id <= 1:
-		arena_action_result_received.emit(action, accepted, result.duplicate(true))
+		_receive_local_arena_action_result(action, accepted, result)
 	else:
 		_arena_action_result_rpc.rpc_id(peer_id, action, accepted, result)
+
+
+func _receive_local_arena_action_result(action: String, accepted: bool, result: Dictionary) -> void:
+	# Reliable, sequence-checked action acknowledgements belong only to this player, not spectators or bots.
+	if accepted and action in ["buy_card", "buy_relic", "reroll"]:
+		Game.record_gold_spent(maxi(0, int(result.get("gold_spent", 0))))
+	arena_action_result_received.emit(action, accepted, result.duplicate(true))
 
 
 func _send_arena_preparation_state() -> void:

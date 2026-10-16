@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.38.1",
+  "current_version": "QQ-0.38.2",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.38.2", "date": "2026-10-16",
+      "title_ja": "累計ゴールド使用額の実績を8段階に拡張",
+      "title_en": "Eight lifetime gold-spending achievement tiers",
+      "changes_ja": [
+        "累計ゴールド使用額の実績を25・100・300・750・1500・3000・6000・10000Gの8段階に拡張しました。段階ごとにメタポイントを受け取れます。",
+        "既存の使用額と受取済み4段階を保持し、追加段階から続けられます。遺物などでゴールドが還元されても実際に払った額を計上し、Web対戦の購入・リロールも自分の累計に反映します。",
+        "開発者モードのメタ進行画面に、累計使用額を100G増やす実績確認ボタンを追加しました。"
+      ],
+      "changes_en": [
+        "Extend lifetime gold spending to eight thresholds: 25, 100, 300, 750, 1500, 3000, 6000 and 10000, each awarding meta points.",
+        "Preserve tracked spending and the four previously claimable tiers. Count actual payments even when relics or choices also grant gold, including each player's purchases and rerolls in Web Arena.",
+        "Add a developer Meta Progress action to increase tracked gold spending by 100 for achievement testing."
+      ]
+    },
     {
       "version": "QQ-0.38.1", "date": "2026-10-16",
       "title_ja": "カード発動時のSEとHPバーのアニメーション",

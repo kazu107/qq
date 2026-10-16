@@ -40,6 +40,21 @@ func _command(arguments: Array) -> void:
 		Game.ensure_meta_initialized()
 		MetaProgressService.new().add_unlock_xp(Game.meta_progress, int(payload.get("xp", 0)))
 		_open_screen(String(payload.get("screen", "library")))
+	elif String(payload.get("action", "")) == "gold_spending_fixture":
+		Game.current_run = null
+		Game.meta_progress = Database.meta_progress_template.duplicate(true)
+		Game.ensure_meta_initialized()
+		Game.meta_progress["achievement_stats"]["gold_spent"] = int(payload.get("spent", 0))
+		Game.meta_progress["achievement_claim_counts"]["big_spender"] = int(payload.get("claimed", 0))
+		if int(payload.get("claimed", 0)) >= 4:
+			Game.meta_progress["claimed_achievements"].append("big_spender")
+		_open_screen("meta")
+	elif String(payload.get("action", "")) == "gold_spending_focus":
+		var screen: Control = get_tree().current_scene as Control
+		var row: Control = screen.find_child("MetaAchievementFrame_big_spender", true, false) as Control
+		var scroll: ScrollContainer = screen.find_child("MetaContentScroll", true, false) as ScrollContainer
+		if row != null:
+			scroll.ensure_control_visible(row)
 	elif String(payload.get("action", "")) == "battle_simulate":
 		_simulate_battle_result()
 	elif String(payload.get("action", "")) == "timekeeper_advance":
@@ -325,6 +340,15 @@ func _inspect() -> Dictionary:
 		if screen.scene_file_path.get_file().get_basename() in ["MetaProgress", "CardLibrary"]:
 			result["content_progress"] = Game.get_content_progress()
 			result["content_pool"] = ContentPoolService.build_snapshot(Game.meta_progress)
+		if screen.scene_file_path.get_file().get_basename() == "MetaProgress":
+			var name_label: Label = screen.find_child("AchievementName_big_spender", true, false) as Label
+			if name_label != null:
+				var progress: Label = screen.find_child("AchievementProgress_big_spender", true, false) as Label
+				var bar: ProgressBar = screen.find_child("AchievementProgressBar_big_spender", true, false) as ProgressBar
+				var button: Button = screen.find_child("ClaimAchievement_big_spender", true, false) as Button
+				result["gold_spending"] = {"name": name_label.text, "progress": progress.text, "progress_rect": _rect_values(progress.get_global_rect()),
+					"bar_rect": _rect_values(bar.get_global_rect()), "button_rect": _rect_values(button.get_global_rect()), "disabled": button.disabled,
+					"value": bar.value, "max": bar.max_value, "claimed": Game.meta_progress["achievement_claim_counts"].get("big_spender", 0)}
 		if screen.scene_file_path.get_file().get_basename() == "Facility":
 			var event_data: Dictionary = Game.get_active_event_data()
 			result["facility"] = {"area": Game.get_active_map_node().get("area", 0), "step": Game.get_current_step_index(),
