@@ -135,11 +135,12 @@ func _test_ui() -> void:
 	var button: Button = scene.find_child("BuyMetaStatUpgrade_max_hp", true, false) as Button
 	var frame: Control = scene.find_child("MetaStatUpgradeFrame_max_hp", true, false) as Control
 	var identity: int = frame.get_instance_id()
-	_check(button != null and not button.disabled and button.text.contains("2"), "purchase button/cost missing")
+	_check(button != null and not button.disabled and button.text == "2 強化", "purchase button must show cost, space, action")
+	_check(button.icon != null and button.icon.resource_path == "res://assets/icons/ui/meta_points.png", "purchase button point icon missing")
 	button.pressed.emit()
-	_check(Game.get_meta_points() == 4 and button.text.contains("4") and not button.disabled, "next cost was not refreshed")
+	_check(Game.get_meta_points() == 4 and button.text == "4 強化" and not button.disabled, "next cost/order was not refreshed")
 	button.pressed.emit()
-	_check(Game.get_meta_points() == 0 and button.disabled and button.text.contains("7"), "unaffordable next stage still enabled")
+	_check(Game.get_meta_points() == 0 and button.disabled and button.text == "7 強化", "unaffordable next stage must retain cost/action order")
 	_check((scene.find_child("MetaStatUpgradeFrame_max_hp", true, false) as Control).get_instance_id() == identity, "purchase rebuilt stat cards")
 	var bar: ProgressBar = scene.find_child("MetaStatUpgradeBar_max_hp", true, false) as ProgressBar
 	_check(bar.value == 2 and bar.max_value == 10 and bar.has_theme_stylebox_override("background"), "level bar or zero background missing")

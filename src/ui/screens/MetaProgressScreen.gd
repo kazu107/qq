@@ -257,7 +257,7 @@ func _update_stat_upgrades() -> void:
 		bar.value = int(entry["level"])
 		var button: Button = widgets["button"] as Button
 		button.disabled = not bool(entry["can_buy"])
-		button.text = Localization.get_text("meta.stat_upgrade.max", "MAX") if entry["complete"] else Localization.get_textf("meta.stat_upgrade.buy", "Upgrade {cost}", {"cost": entry["cost"]})
+		button.text = Localization.get_text("meta.stat_upgrade.max", "MAX") if entry["complete"] else Localization.get_textf("meta.stat_upgrade.buy", "{cost} Upgrade", {"cost": entry["cost"]})
 		button.tooltip_text = Localization.get_text("meta.stat_upgrade.max_hint", "All stages purchased.") if entry["complete"] else Localization.get_textf("meta.stat_upgrade.cost_hint", "Next stage: +{amount}. Costs {cost} Meta Points.", {"amount": entry["amount"], "cost": entry["cost"]})
 		if not entry["complete"] and not entry["can_buy"]:
 			button.tooltip_text += "\n" + Localization.get_text("meta.stat_upgrade.not_enough", "Not enough Meta Points.")

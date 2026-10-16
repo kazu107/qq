@@ -43,6 +43,7 @@ try {
         assert(left >= x - 1 && top >= y - 1 && left + pw <= x + w + 1 && top + ph <= y + h + 1, `${card.id}/${part} overflow`);
       }
       assert.equal(card.disabled, !card.can_buy);
+      if (!card.complete) assert(new RegExp(`^${card.cost} (強化|Upgrade)$`).test(card.text), 'Button must show cost then action with a space');
     }
     assert.equal(state.stat_upgrades.gold_spent, 0, 'Meta Point purchases counted as gold spending');
   }

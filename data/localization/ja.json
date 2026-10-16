@@ -8,7 +8,7 @@
   "meta.stat_upgrade.level": "Lv. {level}/{max} | 購入補正 +{current} → +{next}",
   "meta.stat_upgrade.level_max": "Lv. {level}/{max} | 購入補正 +{current}",
   "meta.stat_upgrade.total": "合計永続補正 +{total}（実績 +{achievement} / 購入 +{purchased}）",
-  "meta.stat_upgrade.buy": "強化 {cost}",
+  "meta.stat_upgrade.buy": "{cost} 強化",
   "meta.stat_upgrade.max": "最大強化済み",
   "meta.stat_upgrade.max_hint": "すべての段階を購入済みです。",
   "meta.stat_upgrade.cost_hint": "次の段階で +{amount}。必要メタポイント: {cost}",

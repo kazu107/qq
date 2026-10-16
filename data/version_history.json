@@ -1,9 +1,16 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.44.0",
+  "current_version": "QQ-0.44.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.44.1", "date": "2026-10-17",
+      "title_ja": "永続強化ボタンの表記順を調整",
+      "title_en": "Reorder permanent upgrade button labels",
+      "changes_ja": ["永続ステータス強化のボタンを、メタポイントのアイコン・必要ポイント数・スペース・「強化」の順にしました。購入後の次の費用表示も同じ順で更新します。"],
+      "changes_en": ["Show the Meta Point icon, cost, a space and Upgrade in that order, including refreshed next-stage prices."]
+    },
     {
       "version": "QQ-0.44.0", "date": "2026-10-17",
       "title_ja": "メタポイントによる永続ステータス強化",
