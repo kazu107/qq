@@ -65,8 +65,10 @@ func _make_custom_tooltip(for_text: String) -> Object:
 	var panel: PanelContainer = PanelContainer.new()
 	panel.name = "RelicTooltipPopup"
 	panel.custom_minimum_size = Vector2(TOOLTIP_WIDTH, 0.0)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var margin: MarginContainer = MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_theme_constant_override("margin_left", 10)
 	margin.add_theme_constant_override("margin_top", 8)
 	margin.add_theme_constant_override("margin_right", 10)
@@ -75,6 +77,7 @@ func _make_custom_tooltip(for_text: String) -> Object:
 
 	var label: RichTextLabel = RichTextLabel.new()
 	label.name = "RelicTooltipText"
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.fit_content = true
 	label.scroll_active = false
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -82,6 +85,11 @@ func _make_custom_tooltip(for_text: String) -> Object:
 	label.text = for_text
 	margin.add_child(label)
 	return panel
+
+
+func refresh_tooltip() -> void:
+	var relic_def: RelicDef = Database.get_relic(relic_id)
+	tooltip_text = _build_tooltip(relic_def) if relic_def != null else ""
 
 
 func _ensure_visuals() -> void:

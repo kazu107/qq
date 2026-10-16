@@ -239,6 +239,14 @@ func _check_ui() -> void:
 	seal.button_pressed = false
 	_check(not Array(Game.meta_progress["sealed_cards"]).has("strike"), "Library control did not unseal")
 	_check(library.find_child("UnlockCard_strike", true, false) == null, "Manual unlock button remains")
+	(library.get("_tabs") as TabContainer).current_tab = 1
+	for _frame: int in range(180):
+		if library.is_content_ready(): break
+		await get_tree().process_frame
+	var relic_seal: CheckButton = library.find_child("SealRelic_iron_plating", true, false) as CheckButton
+	_check(relic_seal != null and relic_seal.visible and not relic_seal.disabled, "Relic seal control missing in library")
+	relic_seal.button_pressed = true
+	_check(Array(Game.meta_progress["sealed_relics"]).has("iron_plating"), "Relic control did not save seal")
 	library.queue_free()
 	await get_tree().process_frame
 	var meta: Control = load("res://scenes/meta/MetaProgress.tscn").instantiate() as Control
@@ -248,10 +256,7 @@ func _check_ui() -> void:
 		if meta.is_content_ready():
 			break
 	_check(meta.is_content_ready(), "Meta screen did not finish building")
-	var relic_seal: CheckButton = meta.find_child("SealRelic_iron_plating", true, false) as CheckButton
-	_check(relic_seal != null and relic_seal.visible and not relic_seal.disabled, "Relic seal control missing")
-	relic_seal.button_pressed = true
-	_check(Array(Game.meta_progress["sealed_relics"]).has("iron_plating"), "Relic control did not save seal")
+	_check(meta.find_child("MetaRelicBox", true, false) == null and meta.find_child("SealRelic_iron_plating", true, false) == null, "Meta still builds relic controls")
 	_check(meta.find_child("MetaContentProgressBar", true, false) != null, "Unlock progress not displayed")
 	meta.queue_free()
 	await get_tree().process_frame

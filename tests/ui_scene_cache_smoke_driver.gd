@@ -27,6 +27,15 @@ func _run() -> void:
 	SceneRouter.go_to_card_library()
 	await _next_screen()
 	var library_id: int = get_tree().current_scene.get_instance_id()
+	var tabs: TabContainer = get_tree().current_scene.get("_tabs") as TabContainer
+	tabs.current_tab = 1
+	for _frame: int in 120:
+		if bool(get_tree().current_scene.call("is_content_ready")): break
+		await get_tree().process_frame
+	var relic_row: Control = get_tree().current_scene.find_child("LibraryRelicRow_iron_plating", true, false) as Control
+	if not _check(relic_row != null, "relic tab did not initialize"):
+		return
+	var relic_row_id: int = relic_row.get_instance_id()
 	if not _check(_only_current_scene_is_attached(), "previous screen remained attached behind library"):
 		return
 	if not _check(SceneRouter.get_cached_ui_scene_count() >= 1, "meta screen was not cached on exit"):
@@ -52,6 +61,8 @@ func _run() -> void:
 	var revisit_library_ms: float = (Time.get_ticks_usec() - revisit_start_us) / 1000.0
 	await _next_screen()
 	if not _check(get_tree().current_scene.get_instance_id() == library_id, "library screen was rebuilt on revisit"):
+		return
+	if not _check(tabs.current_tab == 1 and get_tree().current_scene.find_child("LibraryRelicRow_iron_plating", true, false).get_instance_id() == relic_row_id, "relic tab or rows were lost on revisit"):
 		return
 	SceneRouter.go_to_hub()
 	await _next_screen()

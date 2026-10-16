@@ -27,6 +27,9 @@ var _awaiting_more: bool = false
 var _next_entry_index: int = 0
 var _initial_build_started_us: int = 0
 var _initial_build_measured: bool = false
+var _tabs: TabContainer
+var _cards_page: VBoxContainer
+var _relics_page: RelicLibraryPanel
 
 
 func _ready() -> void:
@@ -42,7 +45,7 @@ func _ready() -> void:
 
 
 func is_content_ready() -> bool:
-	return _content_ready
+	return _relics_page.is_content_ready() if _tabs != null and _tabs.current_tab == 1 else _content_ready
 
 
 func on_reenter() -> void:
@@ -73,7 +76,7 @@ func _build_ui() -> void:
 	root.add_theme_constant_override("separation", 12)
 	margin.add_child(root)
 
-	var header: HBoxContainer = UiTheme.add_page_heading(root, Localization.get_text("library.title", "Card Library"))
+	var header: HBoxContainer = UiTheme.add_page_heading(root, Localization.get_text("library.title", "Card & Relic Library"))
 	_summary_label = Label.new()
 	_summary_label.theme_type_variation = "MutedLabel"
 	_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -118,7 +121,24 @@ func _build_ui() -> void:
 	)
 	action_row.add_child(hub_button)
 
-	var toolbar: VBoxContainer = UiTheme.add_section(root, "", "LibraryToolbar")
+	_tabs = TabContainer.new()
+	_tabs.name = "LibraryTabs"
+	_tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_tabs.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	_tabs.add_theme_stylebox_override("tab_selected", _make_tab_style(true))
+	_tabs.add_theme_stylebox_override("tab_unselected", _make_tab_style(false))
+	_tabs.add_theme_stylebox_override("tab_hovered", _make_tab_style(false, true))
+	_tabs.add_theme_color_override("font_selected_color", UiTheme.ACCENT_GOLD)
+	_tabs.add_theme_color_override("font_unselected_color", UiTheme.TEXT_MUTED)
+	_tabs.add_theme_font_size_override("font_size", 20)
+	root.add_child(_tabs)
+	_cards_page = VBoxContainer.new()
+	_cards_page.name = "Cards"
+	_cards_page.add_theme_constant_override("separation", 12)
+	_tabs.add_child(_cards_page)
+	_tabs.set_tab_title(0, Localization.get_text("library.tab.cards", "Cards"))
+	var toolbar: VBoxContainer = UiTheme.add_section(_cards_page, "", "LibraryToolbar")
 	var filter_row: HBoxContainer = HBoxContainer.new()
 	filter_row.name = "LibraryFilterRow"
 	filter_row.add_theme_constant_override("separation", 10)
@@ -126,7 +146,7 @@ func _build_ui() -> void:
 	filter_row.add_child(UiIconHelper.icon_node("filter"))
 
 	var rarity_label: Label = Label.new()
-	rarity_label.text = Localization.get_text("library.filter.rarity", "レア度")
+	rarity_label.text = Localization.get_text("library.filter.rarity", "Rarity")
 	rarity_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	filter_row.add_child(rarity_label)
 
@@ -137,7 +157,7 @@ func _build_ui() -> void:
 	filter_row.add_child(_rarity_filter)
 
 	var tag_label: Label = Label.new()
-	tag_label.text = Localization.get_text("library.filter.type", "種類")
+	tag_label.text = Localization.get_text("library.filter.type", "Type")
 	tag_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	filter_row.add_child(tag_label)
 
@@ -170,14 +190,14 @@ func _build_ui() -> void:
 	_empty_label.text = Localization.get_text("library.empty", "No cards match. Try another name or filter.")
 	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_empty_label.visible = false
-	root.add_child(_empty_label)
+	_cards_page.add_child(_empty_label)
 
 	_cards_scroll = ScrollContainer.new()
 	_cards_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_cards_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_cards_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_cards_scroll.get_v_scroll_bar().value_changed.connect(_on_scroll_changed)
-	root.add_child(_cards_scroll)
+	_cards_page.add_child(_cards_scroll)
 
 	_cards_grid = GridContainer.new()
 	_cards_grid.name = "LibraryCards"
@@ -187,6 +207,27 @@ func _build_ui() -> void:
 	_cards_grid.add_theme_constant_override("v_separation", 12)
 	_cards_scroll.add_child(_cards_grid)
 	_populate_filters()
+	_relics_page = RelicLibraryPanel.new()
+	_relics_page.name = "Relics"
+	_relics_page.cell_style_factory = Callable(self, "_make_card_cell_stylebox")
+	_relics_page.content_changed.connect(_refresh_ui)
+	_tabs.add_child(_relics_page)
+	_tabs.set_tab_title(1, Localization.get_text("library.tab.relics", "Relics"))
+	_tabs.tab_changed.connect(_on_tab_changed)
+
+
+func _make_tab_style(selected: bool, hovered: bool = false) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.07, 0.14, 0.19, 0.98) if selected or hovered else UiTheme.PANEL_FILL_DEEP
+	style.border_color = UiTheme.ACCENT_GOLD if selected else UiTheme.PANEL_STROKE
+	style.border_width_bottom = 3 if selected else 1
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.content_margin_left = 28.0
+	style.content_margin_right = 28.0
+	style.content_margin_top = 12.0
+	style.content_margin_bottom = 12.0
+	return style
 
 
 func _refresh_ui() -> void:
@@ -194,6 +235,14 @@ func _refresh_ui() -> void:
 	_progress_label.tooltip_text = Localization.get_text("progress.seal_hint", "Seals apply to new normal/infinite runs only. Up to 25% of unlocked items; each card rarity keeps at least one candidate.")
 	_points_label.text = str(Game.get_meta_points())
 	_points_label.tooltip_text = Localization.get_textf("hub.meta_points", "Meta Points: {points}", {"points": Game.get_meta_points()})
+	if _tabs.current_tab == 1:
+		var relic_entries: Array[Dictionary] = Game.get_meta_relic_entries()
+		var unlocked_relics: int = 0
+		for entry: Dictionary in relic_entries:
+			if bool(entry.get("unlocked", false)): unlocked_relics += 1
+		_summary_label.text = Localization.get_textf("library.relic.collection_summary", "{current} / {total} relics unlocked. Hover an icon for details.", {"current": unlocked_relics, "total": relic_entries.size()})
+		_relics_page.activate(relic_entries)
+		return
 	var entries: Array[Dictionary] = Game.get_meta_card_entries()
 	var unlocked_count: int = 0
 	for entry in entries:
@@ -213,15 +262,17 @@ func _refresh_ui() -> void:
 	if not _content_ready:
 		if not _content_building:
 			_content_building = true
-			_rebuild_card_rows.call_deferred()
+			_rebuild_card_rows.call_deferred(true, _build_generation)
 		return
 	_update_card_rows(entries)
 	_apply_filters()
 
 
-func _rebuild_card_rows(reset: bool = true) -> void:
+func _rebuild_card_rows(reset: bool = true, requested_generation: int = -1) -> void:
 	var page_started_us: int = Time.get_ticks_usec()
 	var generation: int = _build_generation
+	if requested_generation >= 0 and requested_generation != generation:
+		return
 	if reset:
 		for child in _cards_grid.get_children():
 			_cards_grid.remove_child(child)
@@ -398,16 +449,16 @@ func _on_scroll_changed(_value: float) -> void:
 
 
 func _request_more_if_needed() -> void:
-	if not _awaiting_more or not visible or _cards_scroll == null:
+	if not _awaiting_more or not visible or _cards_scroll == null or _tabs.current_tab != 0:
 		return
 	await get_tree().process_frame
-	if not _awaiting_more or not visible:
+	if not _awaiting_more or not visible or _tabs.current_tab != 0:
 		return
 	var bar: ScrollBar = _cards_scroll.get_v_scroll_bar()
 	if bar.value + bar.page >= bar.max_value - 180.0:
 		_awaiting_more = false
 		_content_building = true
-		_rebuild_card_rows.call_deferred(false)
+		_rebuild_card_rows.call_deferred(false, _build_generation)
 
 
 func _update_card_rows(entries: Array[Dictionary]) -> void:
@@ -432,7 +483,7 @@ func _update_card_rows(entries: Array[Dictionary]) -> void:
 
 func _populate_filters() -> void:
 	_rarity_filter.clear()
-	_rarity_filter.add_item(Localization.get_text("library.filter.all", "すべて"))
+	_rarity_filter.add_item(Localization.get_text("library.filter.all", "All"))
 	_rarity_filter.set_item_metadata(_rarity_filter.item_count - 1, "all")
 	var rarity_options: Array[String] = ["common", "rare", "epic", "legendary"]
 	for rarity: String in rarity_options:
@@ -441,7 +492,7 @@ func _populate_filters() -> void:
 	_rarity_filter.select(0)
 
 	_tag_filter.clear()
-	_tag_filter.add_item(Localization.get_text("library.filter.all", "すべて"))
+	_tag_filter.add_item(Localization.get_text("library.filter.all", "All"))
 	_tag_filter.set_item_metadata(_tag_filter.item_count - 1, "all")
 	var tags: Array[String] = _collect_card_tags()
 	for tag in tags:
@@ -483,7 +534,18 @@ func _queue_filtered_rebuild() -> void:
 	_awaiting_more = false
 	_content_ready = false
 	_content_building = true
-	_rebuild_card_rows.call_deferred()
+	if _tabs.current_tab != 0:
+		_content_building = false
+		return
+	_rebuild_card_rows.call_deferred(true, _build_generation)
+
+
+func _on_tab_changed(index: int) -> void:
+	if index == 0:
+		_relics_page.deactivate()
+	_refresh_ui()
+	if index == 0:
+		_request_more_if_needed.call_deferred()
 
 
 func _apply_filters() -> void:

@@ -291,6 +291,12 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/InfiniteScoreSmoke.tscn"
     )
+    Invoke-GodotCheck "[15-catalog/31] Running card and relic library smoke" $godotExe @(
+        "--no-header",
+        "--headless",
+        "--path", $root,
+        "--scene", "res://tests/CardRelicLibrarySmoke.tscn"
+    )
     Invoke-GodotCheck "[16/31] Running replay export smoke" $godotExe @(
         "--no-header",
         "--headless",

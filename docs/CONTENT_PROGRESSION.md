@@ -15,7 +15,9 @@
 
 ## Seals
 
-- Card Library provides card seal toggles; Meta Progress provides relic toggles.
+- Card & Relic Library provides both seal toggles in separate Cards/Relics tabs.
+- Meta Progress retains achievements, starters and automatic unlock progress;
+  it no longer builds a duplicate relic list.
 - Only unlocked content can be sealed. Unsealing is always available.
 - At most five cards and two relics may be sealed, also capped at 25 percent of
   each unlocked catalog (rounded down). At least twelve cards and two relics
@@ -54,6 +56,14 @@
 - `RunState`: snapshot persistence and typed round-trip normalization.
 - `ContentProgressionSmoke`: catalog coverage, thresholds, migration/credit,
   random-source exclusion, empty pools, modes, save/resume, and UI toggles.
+- `CardRelicLibrarySmoke`: tab switches, deferred relic pages, independent search
+  and rarity/type filters, tooltips, locked states, seals and full catalog loading.
+- Both catalog tabs reuse their rows across switching and cached scene visits;
+  the Relics tab builds no item rows until first selected. Save IDs and the
+  `library` scene hint are unchanged, so no save migration is required.
+- `tools/web_card_relic_library_review.mjs` checks Japanese/English at three
+  viewport sizes with real tab/filter/search input, tooltip hover, seal toggles,
+  all 86 relics loaded by scrolling, and cache identity after scene revisits.
 - `tools/test_quality.ps1`: regression suite, including the new smoke test.
 - `tests/validate_project.ps1`: standard validation also runs the new smoke.
 - `tools/web_content_progression_review.mjs`: nine Web viewport/XP layouts,

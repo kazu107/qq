@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.39.0",
+  "current_version": "QQ-0.40.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.40.0", "date": "2026-10-16",
+      "title_ja": "カード・遺物図鑑とタブ切り替え",
+      "title_en": "Tabbed Card & Relic Library",
+      "changes_ja": [
+        "図鑑を「カード・遺物図鑑」に変更し、カードと遺物をタブで切り替えられるようにしました。ハブとメタ進行の案内も更新しました。",
+        "メタ進行の遺物一覧と封印操作を図鑑の遺物タブへ移動しました。画像・効果の説明・解放状態・ツールチップを表示し、レア度・種類・名前や効果で検索できます。",
+        "遺物はタブ初回表示時に分割読み込みし、タブごとの検索条件と読み込み済みの表示を再利用します。カード側の遅延読み込み、封印の保存と制限、既存の解放状況は維持します。"
+      ],
+      "changes_en": [
+        "Rename the catalog to Card & Relic Library and switch between cards and relics with tabs; update Hub and Meta Progress navigation.",
+        "Move relic browsing and seals from Meta Progress into the Relics tab, with art, descriptions, unlock states, tooltips, rarity/type filters and name/effect search.",
+        "Build relic rows in pages only on first use and retain each tab's filters and cached widgets. Preserve card lazy loading, saved seals, seal limits and existing unlock progress."
+      ]
+    },
     {
       "version": "QQ-0.39.0", "date": "2026-10-16",
       "title_ja": "無限モード専用の累積スコアとハイスコア",

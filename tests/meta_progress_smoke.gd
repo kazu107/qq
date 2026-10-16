@@ -72,13 +72,12 @@ func _run() -> void:
 	if card_box != null:
 		_fail("Meta progress smoke failed: card unlock section should move to the card library")
 		return
-	if relic_box == null or relic_box.get_child_count() == 0:
-		_fail("Meta progress smoke failed: relic unlock section did not render")
+	if relic_box != null or meta_scene.find_child("SealRelic_chrono_shard", true, false) != null:
+		_fail("Meta progress smoke failed: relic controls should move to the tabbed library")
 		return
 	for frame_name: String in [
 		"MetaAchievementFrame_victory_milestones",
 		"MetaStarterFrame_balanced",
-		"MetaRelicFrame_iron_plating",
 	]:
 		var entry_frame: PanelContainer = meta_scene.find_child(frame_name, true, false) as PanelContainer
 		var entry_style: StyleBoxFlat = null
@@ -87,10 +86,6 @@ func _run() -> void:
 		if entry_style == null or entry_style.border_width_top < 1:
 			_fail("Meta progress smoke failed: entry frame %s did not render a visible divider" % frame_name)
 			return
-	var iron_relic_icon: RelicIcon = meta_scene.find_child("MetaRelic_iron_plating", true, false) as RelicIcon
-	if iron_relic_icon == null or iron_relic_icon.tooltip_text.find("Iron Plating") == -1:
-		_fail("Meta progress smoke failed: relic unlock section should render relic icons with tooltips")
-		return
 	var initial_victory_progress_label: Label = meta_scene.find_child("AchievementProgress_victory_milestones", true, false) as Label
 	var initial_victory_stage_label: Label = meta_scene.find_child("AchievementStage_victory_milestones", true, false) as Label
 	var initial_victory_progress_bar: ProgressBar = meta_scene.find_child("AchievementProgressBar_victory_milestones", true, false) as ProgressBar
@@ -155,9 +150,8 @@ func _run() -> void:
 	meta_scene.call("_refresh_ui")
 	await get_tree().process_frame
 
-	if meta_scene.find_child("UnlockStarter_tempo", true, false) == null \
-	or meta_scene.find_child("SealRelic_chrono_shard", true, false) == null:
-		_fail("Meta progress smoke failed: starter and relic seal controls were not rendered")
+	if meta_scene.find_child("UnlockStarter_tempo", true, false) == null:
+		_fail("Meta progress smoke failed: starter controls were not rendered")
 		return
 	if meta_scene.find_child("UnlockCard_assault", true, false) != null:
 		_fail("Meta progress smoke failed: card unlock buttons should not render on the meta progress screen")
@@ -189,10 +183,14 @@ func _run() -> void:
 		_fail("Meta progress smoke failed: sealing should update the existing card row")
 		return
 	assault_button.button_pressed = false
-	library_for_unlock.queue_free()
-	await get_tree().process_frame
-	var chrono_button: CheckButton = meta_scene.find_child("SealRelic_chrono_shard", true, false) as CheckButton
-	var chrono_row_id: int = meta_scene.find_child("MetaRelicRow_chrono_shard", true, false).get_instance_id()
+	(library_for_unlock.get("_tabs") as TabContainer).current_tab = 1
+	if not await _wait_for_content_ready(library_for_unlock, "relic library"):
+		return
+	var chrono_button: CheckButton = library_for_unlock.find_child("SealRelic_chrono_shard", true, false) as CheckButton
+	if chrono_button == null:
+		_fail("Meta progress smoke failed: relic seal control did not move to the library")
+		return
+	var chrono_row_id: int = library_for_unlock.find_child("LibraryRelicRow_chrono_shard", true, false).get_instance_id()
 	chrono_button.button_pressed = true
 	if not Array(Game.meta_progress["sealed_relics"]).has("chrono_shard"):
 		_fail("Meta progress smoke failed: relic seal did not apply")
@@ -200,9 +198,11 @@ func _run() -> void:
 	chrono_button.button_pressed = false
 	await get_tree().process_frame
 	if meta_scene.find_child("MetaStarterRow_tempo", true, false).get_instance_id() != tempo_row_id \
-	or meta_scene.find_child("MetaRelicRow_chrono_shard", true, false).get_instance_id() != chrono_row_id:
+	or library_for_unlock.find_child("LibraryRelicRow_chrono_shard", true, false).get_instance_id() != chrono_row_id:
 		_fail("Meta progress smoke failed: unlock action rebuilt meta entry rows")
 		return
+	library_for_unlock.queue_free()
+	await get_tree().process_frame
 
 	if not _has_starter_id(Game.get_unlocked_starters(), "tempo"):
 		_fail("Meta progress smoke failed: starter unlock did not apply")

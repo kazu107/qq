@@ -143,7 +143,7 @@ func _ready() -> void:
 
 	var library_button: Button = Button.new()
 	library_button.name = "HubCardLibraryButton"
-	library_button.text = Localization.get_text("hub.card_library", "Card Library")
+	library_button.text = Localization.get_text("hub.card_library", "Card & Relic Library")
 	library_button.pressed.connect(_on_open_card_library)
 	_setup_navigation_button(navigation, library_button, "card_owned")
 

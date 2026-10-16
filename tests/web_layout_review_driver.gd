@@ -34,6 +34,9 @@ func _command(arguments: Array) -> void:
 	if String(payload.get("action", "")) == "screen":
 		_open_screen(String(payload.get("screen", "hub")))
 	elif String(payload.get("action", "")) == "content_fixture":
+		var language: String = String(payload.get("language", Localization.get_language()))
+		if language != Localization.get_language():
+			Game.set_language(language)
 		Game.current_run = null
 		Game.suspended_runs.clear()
 		Game.meta_progress = Database.meta_progress_template.duplicate(true)
@@ -350,6 +353,39 @@ func _inspect() -> Dictionary:
 		if screen.scene_file_path.get_file().get_basename() in ["MetaProgress", "CardLibrary"]:
 			result["content_progress"] = Game.get_content_progress()
 			result["content_pool"] = ContentPoolService.build_snapshot(Game.meta_progress)
+		if screen.scene_file_path.get_file().get_basename() == "CardLibrary":
+			var tabs: TabContainer = screen.get("_tabs") as TabContainer
+			var bar: TabBar = tabs.get_tab_bar()
+			var tab_rects: Array[Array] = []
+			for index: int in tabs.get_tab_count():
+				tab_rects.append(_rect_values(bar.get_global_transform() * bar.get_tab_rect(index)))
+			var panel: RelicLibraryPanel = screen.get("_relics_page") as RelicLibraryPanel
+			var relic_rows: Array[Dictionary] = []
+			for raw_id: Variant in Dictionary(panel.get("_widgets")):
+				var id: String = String(raw_id)
+				var widgets: Dictionary = Dictionary(panel.get("_widgets"))[id]
+				var row: Control = widgets["row"]
+				var icon: RelicIcon = widgets["icon"]
+				relic_rows.append({"id": id, "instance": row.get_instance_id(), "rect": _rect_values(row.get_global_rect()),
+					"icon": _rect_values(icon.get_global_rect()), "tooltip": icon.tooltip_text,
+					"rarity": Database.get_relic(id).rarity, "tags": Database.get_relic(id).tags})
+			var card_rows: Array[Dictionary] = []
+			for raw_id: Variant in Dictionary(screen.get("_card_widgets")):
+				var widgets: Dictionary = Dictionary(screen.get("_card_widgets"))[raw_id]
+				card_rows.append({"id": String(raw_id), "instance": (widgets["row"] as Control).get_instance_id()})
+			var popup: Control = get_tree().root.find_child("RelicTooltipPopup", true, false) as Control
+			result["library"] = {"active": tabs.current_tab, "tabs": tab_rects, "titles": [tabs.get_tab_title(0), tabs.get_tab_title(1)],
+				"ready": screen.call("is_content_ready"), "card_rows": card_rows, "relics": relic_rows,
+				"card_rarity": screen.get("_selected_rarity"), "card_search": screen.get("_search_text"),
+				"relic_rarity": panel.get("_rarity"), "relic_tag": panel.get("_tag"), "relic_search": panel.get("_search"),
+				"relic_matching": Array(panel.get("_filtered_entries")).size(), "relic_empty": (panel.get("_empty_label") as Label).visible,
+				"relic_scroll": _rect_values((panel.get("_scroll") as Control).get_global_rect()),
+				"tooltip_visible": popup != null and popup.is_visible_in_tree(),
+				"relic_h_scroll": ((panel.get("_scroll") as ScrollContainer).get_h_scroll_bar()).visible}
+			for option: OptionButton in [screen.get("_rarity_filter"), screen.get("_tag_filter"), panel.get("_rarity_filter"), panel.get("_tag_filter")]:
+				var menu: PopupMenu = option.get_popup()
+				if menu.visible:
+					result["library"]["option_menu"] = {"name": String(option.name), "focus": menu.get_focused_item(), "count": menu.item_count}
 		if screen.scene_file_path.get_file().get_basename() == "MetaProgress":
 			var grid: GridContainer = screen.find_child("MetaAchievementBox", true, false) as GridContainer
 			var cards: Array[Dictionary] = []
@@ -436,7 +472,9 @@ func _inspect() -> Dictionary:
 		if screen.scene_file_path.get_file().get_basename() == "CardLibrary":
 			var search: LineEdit = screen.find_child("LibrarySearch", true, false) as LineEdit
 			var empty: Label = screen.find_child("LibraryEmptyNotice", true, false) as Label
-			result["library"] = {"cards": Dictionary(screen.get("_card_widgets")).keys(), "search": search.text, "empty": empty.visible}
+			var library_data: Dictionary = Dictionary(result.get("library", {}))
+			library_data.merge({"cards": Dictionary(screen.get("_card_widgets")).keys(), "search": search.text, "empty": empty.visible})
+			result["library"] = library_data
 		elif screen.scene_file_path.get_file().get_basename() == "OnlineLobby":
 			result["lobby"] = {"connected": NetworkManager.is_session_connected(), "capacity": NetworkManager.get_player_capacity()}
 		elif screen.scene_file_path.get_file().get_basename() == "ArtLab":
