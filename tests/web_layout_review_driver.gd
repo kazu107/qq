@@ -55,6 +55,9 @@ func _command(arguments: Array) -> void:
 		var scroll: ScrollContainer = screen.find_child("MetaContentScroll", true, false) as ScrollContainer
 		if row != null:
 			scroll.ensure_control_visible(row)
+	elif String(payload.get("action", "")) == "meta_top":
+		var screen: Control = get_tree().current_scene as Control
+		(screen.find_child("MetaContentScroll", true, false) as ScrollContainer).scroll_vertical = 0
 	elif String(payload.get("action", "")) == "battle_simulate":
 		_simulate_battle_result()
 	elif String(payload.get("action", "")) == "timekeeper_advance":
@@ -341,6 +344,16 @@ func _inspect() -> Dictionary:
 			result["content_progress"] = Game.get_content_progress()
 			result["content_pool"] = ContentPoolService.build_snapshot(Game.meta_progress)
 		if screen.scene_file_path.get_file().get_basename() == "MetaProgress":
+			var grid: GridContainer = screen.find_child("MetaAchievementBox", true, false) as GridContainer
+			var cards: Array[Dictionary] = []
+			for frame: Control in grid.get_children():
+				var id: String = String(frame.name).trim_prefix("MetaAchievementFrame_")
+				var widgets: Dictionary = Dictionary(screen.get("_achievement_widgets")).get(id, {})
+				var parts: Dictionary = {}
+				for key: String in ["name", "description", "reward", "progress", "progress_bar", "button"]:
+					parts[key] = _rect_values((widgets[key] as Control).get_global_rect())
+				cards.append({"id": id, "instance": frame.get_instance_id(), "rect": _rect_values(frame.get_global_rect()), "parts": parts})
+			result["achievements"] = {"columns": grid.columns, "cards": cards}
 			var name_label: Label = screen.find_child("AchievementName_big_spender", true, false) as Label
 			if name_label != null:
 				var progress: Label = screen.find_child("AchievementProgress_big_spender", true, false) as Label

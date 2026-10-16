@@ -1,12 +1,13 @@
 extends Control
 
 const BUILD_BATCH_SIZE := 10
+const ACHIEVEMENT_TWO_COLUMN_WIDTH: float = 1320.0
 
 var _summary_label: RichTextLabel
 var _content_progress_label: Label
 var _content_progress_bar: ProgressBar
 var _seal_summary_label: Label
-var _achievement_box: VBoxContainer
+var _achievement_box: GridContainer
 var _starter_box: VBoxContainer
 var _relic_box: VBoxContainer
 var _developer_panel: DeveloperPanel
@@ -23,6 +24,8 @@ func _ready() -> void:
 		SaveManager.request_save("meta")
 
 	_build_ui()
+	resized.connect(_update_achievement_columns)
+	_update_achievement_columns()
 	_refresh_ui()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
@@ -123,9 +126,12 @@ func _build_ui() -> void:
 	progression.add_child(_seal_summary_label)
 
 	var achievements_panel: VBoxContainer = _create_panel(content, Localization.get_text("meta.achievements", "Achievements"))
-	_achievement_box = VBoxContainer.new()
+	_achievement_box = GridContainer.new()
 	_achievement_box.name = "MetaAchievementBox"
-	_achievement_box.add_theme_constant_override("separation", 10)
+	_achievement_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_achievement_box.columns = 2
+	_achievement_box.add_theme_constant_override("h_separation", 12)
+	_achievement_box.add_theme_constant_override("v_separation", 12)
 	achievements_panel.add_child(_achievement_box)
 
 	var starters_panel: VBoxContainer = _create_panel(content, Localization.get_text("meta.starters", "Starter Unlocks"))
@@ -161,7 +167,12 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 	return box
 
 
-func _create_entry_row(parent: VBoxContainer, frame_name: String, row_name: String) -> HBoxContainer:
+func _update_achievement_columns() -> void:
+	if _achievement_box != null:
+		_achievement_box.columns = 2 if size.x >= ACHIEVEMENT_TWO_COLUMN_WIDTH else 1
+
+
+func _create_entry_frame(parent: Container, frame_name: String) -> PanelContainer:
 	var frame: PanelContainer = PanelContainer.new()
 	frame.name = frame_name
 	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -182,7 +193,11 @@ func _create_entry_row(parent: VBoxContainer, frame_name: String, row_name: Stri
 	style.content_margin_bottom = 10.0
 	frame.add_theme_stylebox_override("panel", style)
 	parent.add_child(frame)
+	return frame
 
+
+func _create_entry_row(parent: Container, frame_name: String, row_name: String) -> HBoxContainer:
+	var frame: PanelContainer = _create_entry_frame(parent, frame_name)
 	var row: HBoxContainer = HBoxContainer.new()
 	row.name = row_name
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -279,22 +294,24 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 	for entry in entries:
 		var achievement_id: String = String(entry.get("id", ""))
 
-		var row: HBoxContainer = _create_entry_row(
-			_achievement_box,
-			"MetaAchievementFrame_%s" % achievement_id,
-			"MetaAchievementRow_%s" % achievement_id
-		)
-		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		var frame: PanelContainer = _create_entry_frame(_achievement_box, "MetaAchievementFrame_%s" % achievement_id)
+		frame.custom_minimum_size = Vector2(380.0, 180.0)
+		var card: VBoxContainer = VBoxContainer.new()
+		card.name = "MetaAchievementRow_%s" % achievement_id
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.add_theme_constant_override("separation", 12)
+		frame.add_child(card)
 
 		var info: VBoxContainer = VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.custom_minimum_size = Vector2(360.0, 0.0)
+		info.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		info.add_theme_constant_override("separation", 5)
-		row.add_child(info)
+		card.add_child(info)
 
 		var name_label: Label = Label.new()
 		name_label.name = "AchievementName_%s" % achievement_id
 		name_label.text = String(entry.get("name", achievement_id))
+		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		name_label.add_theme_font_size_override("font_size", 20)
 		info.add_child(name_label)
 
@@ -315,11 +332,16 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		})
 		info.add_child(reward_label)
 
+		var footer: HBoxContainer = HBoxContainer.new()
+		footer.name = "AchievementFooter_%s" % achievement_id
+		footer.add_theme_constant_override("separation", 12)
+		card.add_child(footer)
 		var progress_box: VBoxContainer = VBoxContainer.new()
 		progress_box.name = "AchievementProgressBox_%s" % achievement_id
-		progress_box.custom_minimum_size = Vector2(220.0, 0.0)
+		progress_box.custom_minimum_size = Vector2(160.0, 0.0)
+		progress_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		progress_box.add_theme_constant_override("separation", 6)
-		row.add_child(progress_box)
+		footer.add_child(progress_box)
 
 		var stage_label: Label = Label.new()
 		stage_label.name = "AchievementStage_%s" % achievement_id
@@ -339,7 +361,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 
 		var progress_bar: ProgressBar = ProgressBar.new()
 		progress_bar.name = "AchievementProgressBar_%s" % achievement_id
-		progress_bar.custom_minimum_size = Vector2(220.0, 18.0)
+		progress_bar.custom_minimum_size = Vector2(160.0, 18.0)
 		progress_bar.show_percentage = false
 		progress_bar.add_theme_stylebox_override("background", _make_achievement_progress_background_style())
 		progress_bar.add_theme_stylebox_override("fill", _make_achievement_progress_fill_style())
@@ -353,7 +375,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		claim_button.text = Localization.get_text("meta.claim", "Claim")
 		claim_button.disabled = not bool(entry.get("claimable", false))
 		claim_button.pressed.connect(_on_claim_achievement.bind(achievement_id))
-		row.add_child(claim_button)
+		footer.add_child(claim_button)
 		_achievement_widgets[achievement_id] = {
 			"name": name_label,
 			"description": desc_label,
@@ -581,7 +603,7 @@ func _update_relic_rows(entries: Array[Dictionary]) -> void:
 		seal_button.set_pressed_no_signal(bool(entry.get("sealed", false)))
 
 
-func _clear_box(box: VBoxContainer) -> void:
+func _clear_box(box: Container) -> void:
 	for child in box.get_children():
 		box.remove_child(child)
 		child.queue_free()

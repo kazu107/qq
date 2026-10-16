@@ -42,9 +42,29 @@ func _run() -> void:
 	var starter_box: VBoxContainer = meta_scene.find_child("MetaStarterBox", true, false) as VBoxContainer
 	var card_box: VBoxContainer = meta_scene.find_child("MetaCardBox", true, false) as VBoxContainer
 	var relic_box: VBoxContainer = meta_scene.find_child("MetaRelicBox", true, false) as VBoxContainer
-	var achievement_box: VBoxContainer = meta_scene.find_child("MetaAchievementBox", true, false) as VBoxContainer
+	var achievement_box: GridContainer = meta_scene.find_child("MetaAchievementBox", true, false) as GridContainer
 	if achievement_box == null or achievement_box.get_child_count() == 0:
 		_fail("Meta progress smoke failed: achievement section did not render")
+		return
+	if achievement_box.columns != 2 or achievement_box.get_child_count() != Database.get_all_achievement_ids().size():
+		_fail("Meta progress smoke failed: achievements should form a two-column grid")
+		return
+	var first_card: Control = achievement_box.get_child(0) as Control
+	var second_card: Control = achievement_box.get_child(1) as Control
+	var third_card: Control = achievement_box.get_child(2) as Control
+	if absf(first_card.position.y - second_card.position.y) > 1.0 or second_card.position.x <= first_card.position.x or third_card.position.y <= first_card.position.y:
+		_fail("Meta progress smoke failed: achievement cards should fill rows left-to-right")
+		return
+	var first_card_id: int = first_card.get_instance_id()
+	meta_scene.size.x = 1100.0
+	await get_tree().process_frame
+	if achievement_box.columns != 1:
+		_fail("Meta progress smoke failed: narrow screens should use one column")
+		return
+	meta_scene.size.x = 1920.0
+	await get_tree().process_frame
+	if achievement_box.columns != 2 or first_card.get_instance_id() != first_card_id:
+		_fail("Meta progress smoke failed: resizing should not rebuild achievement cards")
 		return
 	if starter_box == null or starter_box.get_child_count() == 0:
 		_fail("Meta progress smoke failed: starter unlock section did not render")

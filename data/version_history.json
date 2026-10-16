@@ -1,9 +1,22 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.38.2",
+  "current_version": "QQ-0.38.3",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.38.3", "date": "2026-10-16",
+      "title_ja": "実績一覧を2列に変更",
+      "title_en": "Two-column achievement cards",
+      "changes_ja": [
+        "実績を2列のカード状の枠で表示するようにしました。上に名前・説明・報酬、下に進捗バーと受け取りボタンを配置します。進捗の数値はバーの上に表示します。",
+        "幅の狭い画面では1列へ切り替え、長い名前や説明文を折り返します。画面幅の変更や報酬の受け取りで一覧を作り直さず、表示を再利用します。"
+      ],
+      "changes_en": [
+        "Display achievements in a two-column card grid with title, description and rewards above a progress/claim footer. Keep progress numbers above their bars.",
+        "Use one column on narrow layouts and wrap long text, without rebuilding the list when resizing or claiming rewards."
+      ]
+    },
     {
       "version": "QQ-0.38.2", "date": "2026-10-16",
       "title_ja": "累計ゴールド使用額の実績を8段階に拡張",
