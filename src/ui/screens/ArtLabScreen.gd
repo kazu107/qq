@@ -8,6 +8,7 @@ const CATEGORIES: Dictionary = {
 	"ui": ["UI", "UI"], "effect": ["効果", "Effects"], "map": ["マップ", "Map"],
 	"control": ["操作部品", "Controls"], "background": ["背景", "Backgrounds"],
 	"branding": ["ロゴ", "Branding"], "environment": ["フィールド", "Field"],
+	"achievement": ["実績アイコン", "Achievements"],
 }
 
 var _catalog: Array[Dictionary] = []
@@ -130,6 +131,8 @@ func _asset_name(entry: Dictionary) -> String:
 	if String(entry.get("category", "")) == "ui" and UiIconHelper.get_ids().has(visual_id):
 		return UiIconHelper.get_hint(visual_id)
 	match String(entry.get("category", "")):
+		"achievement":
+			return String(Database.get_achievement(visual_id).get("name", visual_id))
 		"card":
 			var card: CardDef = _card_definition(id)
 			return card.name if card != null else id

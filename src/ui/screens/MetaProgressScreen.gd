@@ -2,6 +2,7 @@ extends Control
 
 const BUILD_BATCH_SIZE := 10
 const ACHIEVEMENT_TWO_COLUMN_WIDTH: float = 1320.0
+const ACHIEVEMENT_ICON_SIZE: Vector2 = Vector2(88.0, 88.0)
 
 var _summary_label: RichTextLabel
 var _content_progress_label: Label
@@ -287,11 +288,25 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		card.add_theme_constant_override("separation", 12)
 		frame.add_child(card)
 
+		var heading: HBoxContainer = HBoxContainer.new()
+		heading.name = "AchievementHeading_%s" % achievement_id
+		heading.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		heading.add_theme_constant_override("separation", 16)
+		card.add_child(heading)
+		var icon: TextureRect = TextureRect.new()
+		icon.name = "AchievementIcon_%s" % achievement_id
+		icon.texture = AchievementIconCatalog.get_icon(achievement_id)
+		icon.custom_minimum_size = ACHIEVEMENT_ICON_SIZE
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		heading.add_child(icon)
 		var info: VBoxContainer = VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		info.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		info.add_theme_constant_override("separation", 5)
-		card.add_child(info)
+		heading.add_child(info)
 
 		var name_label: Label = Label.new()
 		name_label.name = "AchievementName_%s" % achievement_id
@@ -362,6 +377,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		claim_button.pressed.connect(_on_claim_achievement.bind(achievement_id))
 		footer.add_child(claim_button)
 		_achievement_widgets[achievement_id] = {
+			"icon": icon,
 			"name": name_label,
 			"description": desc_label,
 			"stage": stage_label,

@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.42.0",
+  "current_version": "QQ-0.43.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.43.0", "date": "2026-10-17",
+      "title_ja": "全実績のBlenderアイコンと上段レイアウト",
+      "title_en": "Blender achievement icons and aligned information rows",
+      "changes_ja": [
+        "全30実績に、それぞれの条件を表した専用の3DアイコンをBlenderで制作しました。トロフィー、カード、遺物、鍛冶道具、時計、ランクメダルなど、実績ごとに形と色を変えています。",
+        "実績カードの上段を「左にアイコン、右に名前・説明・報酬」という配置にしました。進捗の数値・バーと受け取りボタンは下段に維持します。",
+        "ゲームには小さな透過PNGだけを読み込み、起動時にキャッシュします。編集可能なBlender原本、再生成スクリプト、制作台帳を保存し、開発者用アートラボにも実績カテゴリを追加しました。"
+      ],
+      "changes_en": [
+        "Create thirty distinct, editable Blender achievement sculptures, including trophies, cards, relics, forge tools, clocks and rank medals.",
+        "Place each icon to the left of the upper name, description and reward block. Keep progress numbers, bars and claim buttons in the lower row.",
+        "Ship lightweight transparent PNGs and cache them at startup; retain editable Blender sources, rebuild scripts and provenance. Add an achievement category to the developer Art Lab."
+      ]
+    },
     {
       "version": "QQ-0.42.0", "date": "2026-10-17",
       "title_ja": "無限スコア・時間操作の実績と段階の大幅追加",

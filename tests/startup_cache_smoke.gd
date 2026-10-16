@@ -21,6 +21,9 @@ func _run() -> void:
 	var expected_portraits: int = _count_png_files("res://assets/portraits")
 	var expected_status_icons: int = _count_png_files("res://assets/icons/status")
 	var expected_sfx: int = AudioManager.get_available_sfx_ids().size()
+	if int(summary.get("achievement_icons", 0)) != Database.get_all_achievement_ids().size():
+		_fail("Startup cache smoke failed: achievement icons were not cached")
+		return
 
 	if int(summary.get("scenes", 0)) < 12:
 		_fail("Startup cache smoke failed: scene cache did not include all major screens")

@@ -55,6 +55,7 @@ static func warm_all() -> Dictionary:
 		"portraits": int(unit_counts.get("portraits", 0)),
 		"status_icons": int(unit_counts.get("statuses", 0)),
 		"stat_icons": stat_icon_count,
+		"achievement_icons": AchievementIconCatalog.warm_cache(),
 		"card_effect_icons": card_effect_icon_count,
 		"map_icons": map_icon_count,
 		"battle_3d_meshes": battle_3d_mesh_count,
@@ -100,6 +101,7 @@ static func warm_all_async(progress_callback: Callable = Callable()) -> Dictiona
 	_report_progress(progress_callback, "boot.caching_ui", 0.96)
 	await _next_frame()
 	data.summary["stat_icons"] = StatIconFactory.warm_cache()
+	data.summary["achievement_icons"] = AchievementIconCatalog.warm_cache()
 	data.summary["card_effect_icons"] = CardEffectIconFactory.warm_cache(data.status_ids)
 	data.summary["map_icons"] = MapNodeButton.warm_icon_cache()
 	data.summary["environment_models"] = BattleEnvironmentArt.warm_cache()

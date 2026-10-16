@@ -37,6 +37,12 @@ try {
         assert(x >= left - 1 && y >= top - 1 && x + w <= left + width + 1 && y + h <= top + height + 1, `${card.id}/${key} overflows its frame`);
       }
       assert(card.parts.progress[1] + card.parts.progress[3] <= card.parts.progress_bar[1] + 1, 'Progress number is not above its bar');
+      assert.equal(card.icon_path, `res://assets/icons/achievements/${card.id}.png`, 'Wrong/missing achievement image');
+      const icon = card.parts.icon;
+      assert.equal(icon[2], icon[3], 'Achievement image is not square');
+      assert(icon[0] + icon[2] < card.parts.name[0], 'Icon must be left of upper text');
+      assert(Math.abs(icon[1] - card.parts.name[1]) < 1, 'Icon must align with upper text');
+      assert(icon[1] + icon[3] <= card.parts.progress_bar[1], 'Icon overlaps the lower progress bar');
     }
   }
   async function clickClaim(state, id) {

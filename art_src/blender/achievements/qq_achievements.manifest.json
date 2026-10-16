@@ -1,0 +1,614 @@
+{
+  "batch_id": "blender_achievement_icons_08",
+  "blender_version": "5.2.2 LTS",
+  "generator": "tools/blender/build_achievement_icons.py",
+  "generator_sha256": {
+    "tools/blender/build_achievement_icons.py": "3d98455b9e8428093d6b1ef2046cf666624a89c4cce160cf997fd307e471d5a0",
+    "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+  },
+  "source": "art_src/blender/achievements/qq_achievements.blend",
+  "source_sha256": "b6937340b06cf75e7980f6a27676fc9aae7d00be4faca989e465e3fca8b49735",
+  "assets": [
+    {
+      "asset_id": "achievement_victory_milestones",
+      "visual_id": "victory_milestones",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/victory_milestones.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_victory_milestones",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Golden victory cup with cyan laurel leaves",
+      "objects": 16,
+      "render_path": "tools/.local/blender_achievement_icons/victory_milestones.png",
+      "render_sha256": "fc12274f1e5f75865cdeca5fcfc47d23d3a6294fa32361c0934c34a4badd758c",
+      "export_sha256": "62e53e3d34b29d615118b6e8ce142bb8c43f0f04dd7c52233e883603c0566a93",
+      "visible_pixels_at_48px": 814
+    },
+    {
+      "asset_id": "achievement_run_milestones",
+      "visual_id": "run_milestones",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/run_milestones.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_run_milestones",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Open doorway with an outward arrow",
+      "objects": 4,
+      "render_path": "tools/.local/blender_achievement_icons/run_milestones.png",
+      "render_sha256": "5f70452daf9432ff224736762e40cbfb65c5f3d3495946ca5455a19b820a568f",
+      "export_sha256": "be8cbfec9f77a8538581dee40a944617f707dbb01bc1015a2a9ebf22a7ebcadd",
+      "visible_pixels_at_48px": 1447
+    },
+    {
+      "asset_id": "achievement_normal_explorer",
+      "visual_id": "normal_explorer",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/normal_explorer.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_normal_explorer",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Branching route with a compass marker",
+      "objects": 6,
+      "render_path": "tools/.local/blender_achievement_icons/normal_explorer.png",
+      "render_sha256": "b2141f73937c52457242e9b1260d90481356aacc6ff771932f832f78bc4fc6ee",
+      "export_sha256": "e8a5fa8118d96709d6860f45d50218358f9f7f30ec1d0b59a02ca5e77f06cd3d",
+      "visible_pixels_at_48px": 465
+    },
+    {
+      "asset_id": "achievement_arena_challenger",
+      "visual_id": "arena_challenger",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/arena_challenger.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_arena_challenger",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Crossed arena swords over an octagonal ring",
+      "objects": 11,
+      "render_path": "tools/.local/blender_achievement_icons/arena_challenger.png",
+      "render_sha256": "6c2dfd156b5727d2f4f244795826d9daaeaf8d2cd69c9a55d8bd91da89333416",
+      "export_sha256": "facb9a27e24720189fc30ac54bc43297c82e1d024a3257e688a1aaa4b4712783",
+      "visible_pixels_at_48px": 687
+    },
+    {
+      "asset_id": "achievement_infinite_pioneer",
+      "visual_id": "infinite_pioneer",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/infinite_pioneer.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_infinite_pioneer",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Infinity-shaped portal and ascending steps",
+      "objects": 5,
+      "render_path": "tools/.local/blender_achievement_icons/infinite_pioneer.png",
+      "render_sha256": "51dbbcf81e1369b63f96743dfd64f0f4da8f42ee28a88e1d9172f3e682a618c8",
+      "export_sha256": "a582fa9964b2f29f1ed43f98abee397fc1f86e370ab86093ac40b66dec202754",
+      "visible_pixels_at_48px": 782
+    },
+    {
+      "asset_id": "achievement_deep_push",
+      "visual_id": "deep_push",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/deep_push.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_deep_push",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Descending staircase inside a stone arch",
+      "objects": 6,
+      "render_path": "tools/.local/blender_achievement_icons/deep_push.png",
+      "render_sha256": "3c9219a6160134e412764ca470bb2f1cd6ef3cb702f9e3c7d2e5f8f1a2d45b31",
+      "export_sha256": "51d29006c5f433c06e4737ad2be2f3cf7989f212e11bbb97f1d072615d1d5768",
+      "visible_pixels_at_48px": 793
+    },
+    {
+      "asset_id": "achievement_deck_expander",
+      "visual_id": "deck_expander",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/deck_expander.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_deck_expander",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Fanned collectible cards with an expansion star",
+      "objects": 13,
+      "render_path": "tools/.local/blender_achievement_icons/deck_expander.png",
+      "render_sha256": "1927d78aeb51cff16051a0c0c9ab20820bd77c15693693810bc2f4936568a9ad",
+      "export_sha256": "4399b87422ec313039e3e8971f73cbf51f67580135f364fc3b44e640cfdda144",
+      "visible_pixels_at_48px": 1435
+    },
+    {
+      "asset_id": "achievement_relic_archivist",
+      "visual_id": "relic_archivist",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/relic_archivist.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_relic_archivist",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Relic display cabinet holding three crystals",
+      "objects": 9,
+      "render_path": "tools/.local/blender_achievement_icons/relic_archivist.png",
+      "render_sha256": "0d2d1366dafa051e3078aee1f8ff0b3061831e6f70a12f61eed2cb56fbebf576",
+      "export_sha256": "71f8b4d67e30b30504fa87f619501278e3e16de1a753be2d119d95b807b67f94",
+      "visible_pixels_at_48px": 1848
+    },
+    {
+      "asset_id": "achievement_starter_collector",
+      "visual_id": "starter_collector",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/starter_collector.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_starter_collector",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Three differently colored armored helmets",
+      "objects": 12,
+      "render_path": "tools/.local/blender_achievement_icons/starter_collector.png",
+      "render_sha256": "71cde1b1b317f2e7422482fcabd69eb66a14ca929f2cf1c5236f07be292bd8b5",
+      "export_sha256": "e0c0d1c28d19ac7ca1db83eaae25cd2e81560578756b42403163540e6ecfa722",
+      "visible_pixels_at_48px": 872
+    },
+    {
+      "asset_id": "achievement_timekeeper_down",
+      "visual_id": "timekeeper_down",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/timekeeper_down.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_timekeeper_down",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Horned boss helmet split by a sword",
+      "objects": 11,
+      "render_path": "tools/.local/blender_achievement_icons/timekeeper_down.png",
+      "render_sha256": "ca139cb1a5db077d45b1214cad6679dfe4ae4eb0fa93e7fe2866637daff03b36",
+      "export_sha256": "d024de05e65e9b7a1732e68244ff3b74f6227158a54deed6ce5da30fd112e021",
+      "visible_pixels_at_48px": 889
+    },
+    {
+      "asset_id": "achievement_arena_victor",
+      "visual_id": "arena_victor",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/arena_victor.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_arena_victor",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Arena crown resting above crossed blades",
+      "objects": 15,
+      "render_path": "tools/.local/blender_achievement_icons/arena_victor.png",
+      "render_sha256": "a97a883cdf6c26b1762a7885b14269787d38bce9e44bfa6f6d7bc380930cfcdc",
+      "export_sha256": "29ae0648a8387b081716422a842518402873bfe918378e75a7a6b5e68130884d",
+      "visible_pixels_at_48px": 1099
+    },
+    {
+      "asset_id": "achievement_comeback_spirit",
+      "visual_id": "comeback_spirit",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/comeback_spirit.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_comeback_spirit",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "A rising phoenix emerging from a broken shield",
+      "objects": 5,
+      "render_path": "tools/.local/blender_achievement_icons/comeback_spirit.png",
+      "render_sha256": "dbe6cc0f6b3cbfe96b18ad30fe779a38cba72d9a6274aeec171d5cdd56534965",
+      "export_sha256": "a1b21aa9fb127f9ad4bca2a68daec320f700fbe45425a8d0eaa2ee8f9960a868",
+      "visible_pixels_at_48px": 925
+    },
+    {
+      "asset_id": "achievement_card_shopper",
+      "visual_id": "card_shopper",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/card_shopper.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_card_shopper",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Purchased card and two gold coins",
+      "objects": 10,
+      "render_path": "tools/.local/blender_achievement_icons/card_shopper.png",
+      "render_sha256": "251b1c1e129cdd579f731f5a39957f222f9aee2aa24c2fc6062d2b9837e78b9e",
+      "export_sha256": "6ca3a5e1d8b2910f7abb6e73fabd322e300593604a3a05c1b5a77b02e116642f",
+      "visible_pixels_at_48px": 1426
+    },
+    {
+      "asset_id": "achievement_relic_shopper",
+      "visual_id": "relic_shopper",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/relic_shopper.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_relic_shopper",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Golden coin and a suspended faceted relic",
+      "objects": 6,
+      "render_path": "tools/.local/blender_achievement_icons/relic_shopper.png",
+      "render_sha256": "55f852941336a9b1b56100d7aed42aa0d9ab39b091be27a9d4d35e93d9be04f9",
+      "export_sha256": "3200fd2bae11bd9f413a7ea7922afbe27fd81ba5eeb05d88b8bf7bdcf051254d",
+      "visible_pixels_at_48px": 812
+    },
+    {
+      "asset_id": "achievement_master_smith",
+      "visual_id": "master_smith",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/master_smith.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_master_smith",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Forging hammer, anvil and a bright spark",
+      "objects": 4,
+      "render_path": "tools/.local/blender_achievement_icons/master_smith.png",
+      "render_sha256": "c546fb4d71c722a7c75178f97f0ee5151854383b7ef3efa0ce17aac7e72dcdb5",
+      "export_sha256": "bd39ca141aee4ac3b98b9a71c90a1759d83d9c3d5efc57ed0a3f02fc51a8bab4",
+      "visible_pixels_at_48px": 685
+    },
+    {
+      "asset_id": "achievement_reward_collector",
+      "visual_id": "reward_collector",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/reward_collector.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_reward_collector",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Open reward chest with an upward star",
+      "objects": 6,
+      "render_path": "tools/.local/blender_achievement_icons/reward_collector.png",
+      "render_sha256": "060c040c2042991f9ae9d32d1ef7aaad1a1b0390a324d1d572e374c03327bfd9",
+      "export_sha256": "7ac3146a60d817a6b4c914aeb9cfd36bc6f146f5792637e20dbb6547bea8a38e",
+      "visible_pixels_at_48px": 1036
+    },
+    {
+      "asset_id": "achievement_event_explorer",
+      "visual_id": "event_explorer",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/event_explorer.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_event_explorer",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Compass rose over an unfolding scroll",
+      "objects": 6,
+      "render_path": "tools/.local/blender_achievement_icons/event_explorer.png",
+      "render_sha256": "75e71f02038df77bd9ef007b856353e0ed245f807d260bcae94399263cbf3871",
+      "export_sha256": "7ab89ae9c80f83300f636f2b91609825609452ac6f28ec30faef261dea7b9ff8",
+      "visible_pixels_at_48px": 1668
+    },
+    {
+      "asset_id": "achievement_facility_regular",
+      "visual_id": "facility_regular",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/facility_regular.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_facility_regular",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Workshop house with a gear and repair tool",
+      "objects": 12,
+      "render_path": "tools/.local/blender_achievement_icons/facility_regular.png",
+      "render_sha256": "7eb4b59dff4ddbc515c6bd2346f8409c5449359020b908b5ac1accb4f63fa1f6",
+      "export_sha256": "96ce1df10dfc502fd8d32a4466de3136a406d89ce31b141ce947809bbfaea07d",
+      "visible_pixels_at_48px": 1133
+    },
+    {
+      "asset_id": "achievement_field_medic",
+      "visual_id": "field_medic",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/field_medic.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_field_medic",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Medical bag, white cross and healing capsule",
+      "objects": 5,
+      "render_path": "tools/.local/blender_achievement_icons/field_medic.png",
+      "render_sha256": "78bcc51a383612048e0b5ef6cdab7fa9ba01fc525a7ab507f18e0a39960244bb",
+      "export_sha256": "fc697bdcef29c14e01698307ab205e341c22f6a8330859040ba922997c00296e",
+      "visible_pixels_at_48px": 1474
+    },
+    {
+      "asset_id": "achievement_card_merchant",
+      "visual_id": "card_merchant",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/card_merchant.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_card_merchant",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Merchant balance weighing a card against coins",
+      "objects": 14,
+      "render_path": "tools/.local/blender_achievement_icons/card_merchant.png",
+      "render_sha256": "295933681d6716af142e3f8097f3389d61c6479f3c4e496996adca2d996ebc44",
+      "export_sha256": "347877f49ed6926fd6752562a0606040b2e769e1a070e38c797b171de829d9b9",
+      "visible_pixels_at_48px": 685
+    },
+    {
+      "asset_id": "achievement_reward_reroller",
+      "visual_id": "reward_reroller",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/reward_reroller.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_reward_reroller",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "A card encircled by opposing reroll arrows",
+      "objects": 8,
+      "render_path": "tools/.local/blender_achievement_icons/reward_reroller.png",
+      "render_sha256": "323dc11174f2f7d92345627a0c9966b00f9651668544b561d72bf467c7e53616",
+      "export_sha256": "12cd07da744a3a4794e87193ec02e85ba19565f054b603e387b1d05215c397b3",
+      "visible_pixels_at_48px": 1020
+    },
+    {
+      "asset_id": "achievement_shop_reroller",
+      "visual_id": "shop_reroller",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/shop_reroller.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_shop_reroller",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Shop awning over a turning inventory carousel",
+      "objects": 8,
+      "render_path": "tools/.local/blender_achievement_icons/shop_reroller.png",
+      "render_sha256": "325d1ddb29593236c493687f8c526891d11f36b356e1775c0461a5732a6d68e2",
+      "export_sha256": "de365bd039531e068d89bebedf9432f7fb155a32030fd641892c2bebb4bd7683",
+      "visible_pixels_at_48px": 1346
+    },
+    {
+      "asset_id": "achievement_big_spender",
+      "visual_id": "big_spender",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/big_spender.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_big_spender",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Open treasury with stacked gold coins flowing out",
+      "objects": 17,
+      "render_path": "tools/.local/blender_achievement_icons/big_spender.png",
+      "render_sha256": "cef776a1d545c156bf2a1895abf9abc42fc930b3a12ef7bcb9156ac4d39b1eb8",
+      "export_sha256": "ee13315012878252ede6ba7a78a083b3a40cc5a38cb479a26d8f53a4ddc34ef9",
+      "visible_pixels_at_48px": 1376
+    },
+    {
+      "asset_id": "achievement_rank_b_milestones",
+      "visual_id": "rank_b_milestones",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/rank_b_milestones.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_rank_b_milestones",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Bronze B medallion with one blue gemstone",
+      "objects": 6,
+      "render_path": "tools/.local/blender_achievement_icons/rank_b_milestones.png",
+      "render_sha256": "5c2a1e28673cd3506c896409ea78a3fc34e67edab8d9fc53310572369d288036",
+      "export_sha256": "71e5fabd2cb02741546fcb35300246e55ee08a09a9db037fc05b82a2fb898650",
+      "visible_pixels_at_48px": 1413
+    },
+    {
+      "asset_id": "achievement_rank_a_milestones",
+      "visual_id": "rank_a_milestones",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/rank_a_milestones.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_rank_a_milestones",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Silver A medal with two teal gemstones",
+      "objects": 8,
+      "render_path": "tools/.local/blender_achievement_icons/rank_a_milestones.png",
+      "render_sha256": "6fa0a8322d9418892ca613955861e17c6535a0115849ae5720e8bd81ab095dec",
+      "export_sha256": "327c96642ee8306752c14f6d665fa13605693e12f7f3229e7bc5f41b7dd5b4e5",
+      "visible_pixels_at_48px": 1413
+    },
+    {
+      "asset_id": "achievement_rank_s_milestones",
+      "visual_id": "rank_s_milestones",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/rank_s_milestones.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_rank_s_milestones",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Gold S laurel medal with three red gemstones",
+      "objects": 18,
+      "render_path": "tools/.local/blender_achievement_icons/rank_s_milestones.png",
+      "render_sha256": "c3dd09815f0c84c0f16a447ec99fdb4ccca3abca34ad44729cb4e27be4ba333e",
+      "export_sha256": "c8b612129021adf6686c619aab2d4ba8fe01ae5eea21bd36e94d091816bfbba5",
+      "visible_pixels_at_48px": 1286
+    },
+    {
+      "asset_id": "achievement_infinite_score_collector",
+      "visual_id": "infinite_score_collector",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/infinite_score_collector.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_infinite_score_collector",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Infinity loop, score crystal and three ascending bars",
+      "objects": 6,
+      "render_path": "tools/.local/blender_achievement_icons/infinite_score_collector.png",
+      "render_sha256": "1807e4609f1fe2ce904968bef3fc6ba2a8474126d8382e3143e42f56539f01c7",
+      "export_sha256": "8d43419bdb6cb52a8f0f6078598e2a220a4ffb6c4dfe619c0fbe291903613283",
+      "visible_pixels_at_48px": 931
+    },
+    {
+      "asset_id": "achievement_timeline_delayer",
+      "visual_id": "timeline_delayer",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/timeline_delayer.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_timeline_delayer",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Hourglass and a leftward red time arrow",
+      "objects": 5,
+      "render_path": "tools/.local/blender_achievement_icons/timeline_delayer.png",
+      "render_sha256": "de1cd0ea518c38a7c9d6b446b26a366ed2bf336ecd926a96a6ba420e5b0a3d08",
+      "export_sha256": "a3978a080807c85f1a458c113590003876ca153c135919fbc33af7c6441e398f",
+      "visible_pixels_at_48px": 924
+    },
+    {
+      "asset_id": "achievement_timeline_accelerator",
+      "visual_id": "timeline_accelerator",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/timeline_accelerator.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_timeline_accelerator",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "Clock and two rightward green time chevrons",
+      "objects": 19,
+      "render_path": "tools/.local/blender_achievement_icons/timeline_accelerator.png",
+      "render_sha256": "a85c505437327c43dc03ae22ac3239cbe7eec53b0956a58d433d285b27912aa2",
+      "export_sha256": "6337c80de2d3418e67099a6813e53be27c7e434122c52d3bba30e38710b63e8c",
+      "visible_pixels_at_48px": 1161
+    },
+    {
+      "asset_id": "achievement_cast_breaker",
+      "visual_id": "cast_breaker",
+      "category": "achievement",
+      "size": 128,
+      "runtime_path": "assets/icons/achievements/cast_breaker.png",
+      "source_path": "art_src/blender/achievements/qq_achievements.blend",
+      "source_collection": "achievement_cast_breaker",
+      "source_render_size": [
+        1024,
+        1024
+      ],
+      "presentation": "transparent_3d_sculpture",
+      "motif": "A severed casting staff with two opposing interruption bolts",
+      "objects": 7,
+      "render_path": "tools/.local/blender_achievement_icons/cast_breaker.png",
+      "render_sha256": "22e8ad9073cb484838f41ed7e335c5f85f288d71d6544510193e580ec408bf7a",
+      "export_sha256": "f7b873926c68762d08c7ee5743898a8e73ee40e62322c23cb5401254d80c8fb3",
+      "visible_pixels_at_48px": 363
+    }
+  ],
+  "finalizer_sha256": "3fb7ae51c903fd4ac95e933b1a10f72a079a54e7a012907a8efab524b1b65597"
+}

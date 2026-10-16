@@ -431,9 +431,11 @@ func _inspect() -> Dictionary:
 				var id: String = String(frame.name).trim_prefix("MetaAchievementFrame_")
 				var widgets: Dictionary = Dictionary(screen.get("_achievement_widgets")).get(id, {})
 				var parts: Dictionary = {}
-				for key: String in ["name", "description", "reward", "progress", "progress_bar", "button"]:
+				for key: String in ["icon", "name", "description", "reward", "progress", "progress_bar", "button"]:
 					parts[key] = _rect_values((widgets[key] as Control).get_global_rect())
-				cards.append({"id": id, "instance": frame.get_instance_id(), "rect": _rect_values(frame.get_global_rect()), "parts": parts})
+				var icon: TextureRect = widgets["icon"] as TextureRect
+				cards.append({"id": id, "instance": frame.get_instance_id(), "rect": _rect_values(frame.get_global_rect()), "parts": parts,
+					"icon_path": icon.texture.resource_path if icon.texture != null else ""})
 			result["achievements"] = {"columns": grid.columns, "cards": cards}
 			var progress_entries: Dictionary = {}
 			for entry: Dictionary in Game.get_meta_achievement_entries():
