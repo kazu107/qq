@@ -655,6 +655,7 @@ func _build_developer_panel() -> void:
 			{"id": "DevOpenBattle", "label": Localization.get_text("hub.dev.open_battle", "Open Battle"), "callback": Callable(self, "_on_dev_open_battle")},
 			{"id": "DevOpenReward", "label": Localization.get_text("hub.dev.open_reward", "Open Reward"), "callback": Callable(self, "_on_dev_open_reward")},
 			{"id": "DevOpenResult", "label": Localization.get_text("hub.dev.open_result", "Open Result"), "callback": Callable(self, "_on_dev_open_result")},
+			{"id": "DevInfiniteScorePreview", "label": Localization.get_text("result.infinite.dev_preview", "Infinite Score Preview"), "callback": Callable(self, "_on_dev_infinite_result")},
 			{"id": "DevAddPoints", "label": Localization.get_text("hub.dev.add_points", "Add 5 Points"), "callback": Callable(self, "_on_dev_add_points")},
 			{"id": "DevUnlockAll", "label": Localization.get_text("hub.dev.unlock_all", "Unlock All Meta"), "callback": Callable(self, "_on_dev_unlock_all")},
 			{"id": "DevResetMeta", "label": Localization.get_text("hub.dev.reset_meta", "Reset Meta"), "callback": Callable(self, "_on_dev_reset_meta")},
@@ -686,6 +687,11 @@ func _on_dev_open_reward() -> void:
 
 func _on_dev_open_result() -> void:
 	Game.developer_open_result()
+	SceneRouter.go_to_result()
+
+
+func _on_dev_infinite_result() -> void:
+	Game.developer_open_infinite_result()
 	SceneRouter.go_to_result()
 
 

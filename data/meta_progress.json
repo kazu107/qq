@@ -7,6 +7,7 @@
   "best_clear": 0,
   "unlocked_step_tier": 1,
   "infinite_mode_unlocked": false,
+  "infinite_record": {"version": 1, "high_score": 0, "best_reached_step": 0},
   "unlocked_starters": ["balanced"],
   "unlocked_cards": [
     "quick_slash",

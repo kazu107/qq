@@ -34,6 +34,8 @@ const ENEMY_PAR_TIMES: Dictionary = {
 func calculate(run_state: RunState) -> Dictionary:
 	if run_state == null:
 		return _empty_score()
+	if run_state.infinite_mode and not run_state.arena_mode:
+		return InfiniteScoreResolver.new().calculate(run_state)
 
 	var cleared: bool = run_state.run_complete and not run_state.defeated
 	var progress_score: int = _calculate_progress(run_state, cleared)

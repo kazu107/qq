@@ -28,10 +28,13 @@ var _animation_complete: bool = false
 var _rank_revealed: bool = false
 var _run_info_banner: RunInfoBanner
 var _developer_panel: DeveloperPanel
+var _category_ids: Array[String] = []
+var _infinite_record_label: Label
 
 
 func _ready() -> void:
 	_summary_data = Game.get_run_summary()
+	_category_ids = _to_string_array(_summary_data.get("category_ids", CATEGORY_IDS))
 	_build_background()
 	_build_ui()
 	_start_score_animation()
@@ -132,7 +135,7 @@ func _build_header(parent: VBoxContainer) -> void:
 
 	var title: Label = Label.new()
 	title.name = "ResultTitle"
-	title.text = Localization.get_text("result.title", "Run Result")
+	title.text = Localization.get_text("result.infinite.title", "Infinite Run Result") if _is_infinite_score() else Localization.get_text("result.title", "Run Result")
 	title.add_theme_font_size_override("font_size", 38)
 	title.add_theme_color_override("font_color", Color(0.95, 0.98, 1.0, 1.0))
 	title_box.add_child(title)
@@ -174,7 +177,7 @@ func _build_score_panel(parent: HBoxContainer) -> void:
 	heading.add_theme_color_override("font_color", Color(0.72, 0.84, 0.92, 1.0))
 	content.add_child(heading)
 
-	for index in range(CATEGORY_IDS.size()):
+	for index in range(_category_ids.size()):
 		_build_score_row(content, index)
 
 	var divider: HSeparator = HSeparator.new()
@@ -193,7 +196,7 @@ func _build_score_panel(parent: HBoxContainer) -> void:
 
 	_total_score_label = Label.new()
 	_total_score_label.name = "ResultTotalScore"
-	_total_score_label.text = "0 / %s" % _format_score(int(_summary_data.get("max_score", 10000)))
+	_total_score_label.text = _score_text(0, int(_summary_data.get("max_score", 10000)))
 	_total_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_total_score_label.add_theme_font_size_override("font_size", 30)
 	_total_score_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.28, 1.0))
@@ -208,7 +211,7 @@ func _build_score_panel(parent: HBoxContainer) -> void:
 
 
 func _build_score_row(parent: VBoxContainer, index: int) -> void:
-	var category_id: String = CATEGORY_IDS[index]
+	var category_id: String = _category_ids[index]
 	var max_points: int = int(_summary_data.get("%s_max" % category_id, 0))
 	var row: VBoxContainer = VBoxContainer.new()
 	row.name = "ResultScoreRow_%s" % category_id
@@ -222,7 +225,10 @@ func _build_score_row(parent: VBoxContainer, index: int) -> void:
 
 	var label: Label = Label.new()
 	label.text = Localization.get_text("result.score.%s" % category_id, category_id.capitalize())
-	if category_id == "efficiency":
+	if _is_infinite_score():
+		label.text = Localization.get_text("result.infinite.category." + category_id, category_id.capitalize())
+		label.tooltip_text = Localization.get_text("result.infinite.hint", "Points accumulate at each award with a cycle multiplier of 1 + 0.25 x (cycle - 1). Bars show contribution to this run's score, not a score cap.")
+	elif category_id == "efficiency":
 		label.tooltip_text = Localization.get_text("result.score.efficiency_hint", "Unplayed battles count as zero in the denominator. Alternative branches are counted once per step.")
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.add_theme_font_size_override("font_size", 17)
@@ -231,7 +237,7 @@ func _build_score_row(parent: VBoxContainer, index: int) -> void:
 
 	var score_label: Label = Label.new()
 	score_label.name = "ResultScoreValue_%s" % category_id
-	score_label.text = "0 / %s" % _format_score(max_points)
+	score_label.text = _score_text(0, max_points)
 	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	score_label.add_theme_font_size_override("font_size", 17)
 	header.add_child(score_label)
@@ -283,6 +289,8 @@ func _build_detail_panel(parent: HBoxContainer) -> void:
 
 	_rank_caption = Label.new()
 	_rank_caption.text = Localization.get_text("result.score.rank", "RANK")
+	if _is_infinite_score():
+		_rank_caption.text = Localization.get_text("result.infinite.reached", "REACHED")
 	_rank_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_rank_caption.add_theme_font_size_override("font_size", 16)
 	_rank_caption.add_theme_color_override("font_color", Color(0.66, 0.74, 0.80, 1.0))
@@ -295,6 +303,19 @@ func _build_detail_panel(parent: HBoxContainer) -> void:
 	_rank_label.add_theme_font_size_override("font_size", 92)
 	_rank_label.add_theme_color_override("font_color", Color(0.48, 0.56, 0.62, 1.0))
 	rank_box.add_child(_rank_label)
+	if _is_infinite_score():
+		_infinite_record_label = Label.new()
+		_infinite_record_label.name = "ResultInfiniteRecord"
+		_infinite_record_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_infinite_record_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_infinite_record_label.add_theme_font_size_override("font_size", 18)
+		_infinite_record_label.add_theme_color_override("font_color", UiTheme.ACCENT_GOLD)
+		_infinite_record_label.text = Localization.get_textf("result.infinite.best", "BEST: {score}", {"score": _format_score(int(_summary_data.get("high_score", 0)))})
+		if bool(_summary_data.get("is_new_record", false)):
+			_infinite_record_label.text += "  " + Localization.get_text("result.infinite.new_record", "NEW RECORD")
+		if bool(_summary_data.get("score_preview", false)):
+			_infinite_record_label.text += "\n" + Localization.get_text("result.infinite.preview", "Preview (not recorded)")
+		rank_box.add_child(_infinite_record_label)
 
 	var detail_heading: Label = Label.new()
 	detail_heading.text = Localization.get_text("result.details", "RUN DETAILS")
@@ -335,6 +356,8 @@ func _build_footer(parent: VBoxContainer) -> void:
 	retry_button.name = "ResultRetrySameSeedButton"
 	retry_button.text = Localization.get_text("result.retry", "Retry Same Seed")
 	retry_button.disabled = not Game.can_retry_last_seed_run()
+	if _is_infinite_score() and not Game.is_infinite_mode_unlocked():
+		retry_button.disabled = true
 	retry_button.pressed.connect(_on_retry_same_seed)
 	footer.add_child(retry_button)
 
@@ -374,6 +397,9 @@ func _build_summary_text() -> String:
 		}),
 	]
 	var unlock_notice: String = Game.get_last_content_unlock_text()
+	if _is_infinite_score():
+		lines.push_front(Localization.get_textf("result.infinite.completed", "Completed: {steps} steps / {cycles} full cycles", {
+			"steps": int(_summary_data.get("completed_steps", 0)), "cycles": int(_summary_data.get("completed_cycles", 0))}))
 	if unlock_notice != "":
 		lines.append(unlock_notice)
 	return "\n".join(lines)
@@ -421,17 +447,11 @@ func _set_category_progress(value: float, index: int) -> void:
 	if bar != null:
 		bar.value = value
 	if score_label != null:
-		score_label.text = "%s / %s" % [
-			_format_score(display_value),
-			_format_score(int(entry.get("max_points", 0))),
-		]
+		score_label.text = _score_text(display_value, int(entry.get("max_points", 0)))
 
 
 func _set_total_progress(value: float) -> void:
-	_total_score_label.text = "%s / %s" % [
-		_format_score(roundi(value)),
-		_format_score(int(_summary_data.get("max_score", 10000))),
-	]
+	_total_score_label.text = _score_text(roundi(value), int(_summary_data.get("max_score", 10000)))
 
 
 func _reveal_rank() -> void:
@@ -443,6 +463,11 @@ func _reveal_rank() -> void:
 	var rank: String = String(_summary_data.get("rank", "E"))
 	var rank_color: Color = Color(RANK_COLORS.get(rank, Color.WHITE))
 	_rank_label.text = rank
+	if _is_infinite_score():
+		rank_color = UiTheme.ACCENT_GOLD if bool(_summary_data.get("is_new_record", false)) else UiTheme.ACCENT_BLUE
+		_rank_label.add_theme_font_size_override("font_size", 36)
+		_rank_label.text = Localization.get_textf("result.infinite.reach_value", "Cycle {cycle}\nStep {step}", {
+			"cycle": int(_summary_data.get("reached_cycle", 1)), "step": int(_summary_data.get("step_in_cycle", 1))})
 	_rank_label.add_theme_color_override("font_color", rank_color)
 	_rank_panel.add_theme_stylebox_override("panel", _make_rank_style(rank_color))
 	var reveal: Tween = create_tween()
@@ -465,6 +490,14 @@ func _finish_score_animation() -> void:
 		_set_category_progress(float(int(_category_rows[index].get("points", 0))), index)
 	_set_total_progress(float(int(_summary_data.get("total_score", 0))))
 	_reveal_rank()
+
+
+func _is_infinite_score() -> bool:
+	return String(_summary_data.get("score_mode", "")) == "infinite"
+
+
+func _score_text(value: int, maximum: int) -> String:
+	return _format_score(value) if _is_infinite_score() else "%s / %s" % [_format_score(value), _format_score(maximum)]
 
 
 func _format_score(value: int) -> String:
@@ -564,6 +597,7 @@ func _build_developer_panel() -> void:
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
 			{"id": "DevFinishScoreAnimation", "label": Localization.get_text("result.dev.finish_score", "Finish Score Animation"), "callback": Callable(self, "_finish_score_animation")},
+			{"id": "DevInfiniteScorePreview", "label": Localization.get_text("result.infinite.dev_preview", "Infinite Score Preview"), "callback": Callable(self, "_on_dev_infinite_preview")},
 			{"id": "DevRestartRun", "label": Localization.get_text("result.dev.restart", "Restart Run"), "callback": Callable(self, "_on_dev_restart_run")},
 			{"id": "DevOpenBattle", "label": Localization.get_text("hub.dev.open_battle", "Open Battle"), "callback": Callable(self, "_on_dev_open_battle")},
 			{"id": "DevExportReplay", "label": Localization.get_text("reward.dev.export_replay", "Export Replay"), "callback": Callable(self, "_on_dev_export_replay")},
@@ -575,6 +609,11 @@ func _build_developer_panel() -> void:
 
 func _on_dev_restart_run() -> void:
 	_on_retry_same_seed()
+
+
+func _on_dev_infinite_preview() -> void:
+	Game.developer_open_infinite_result()
+	SceneRouter.go_to_result()
 
 
 func _on_dev_open_battle() -> void:

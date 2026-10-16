@@ -17,6 +17,7 @@ var _enemy_name: String = ""
 var _pvp_mode: bool = false
 var _audio_enabled: bool = true
 var _defer_resolution_audio: bool = false
+var _infinite_score_context: Dictionary = {}
 var analysis: BattleAnalysis = BattleAnalysis.new()
 var recording: BattleRecording = BattleRecording.new()
 var resolution_metrics: Dictionary = {}
@@ -57,6 +58,7 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 		return
 
 	_player_run = player_run
+	_infinite_score_context = _capture_infinite_score_context(player_run)
 	_enemy_run = null
 	_pvp_mode = false
 	var infinite_power: int = _get_infinite_power(player_run)
@@ -91,6 +93,7 @@ func setup_pvp(
 	_player_run = player_run
 	_enemy_run = opponent_run
 	_pvp_mode = true
+	_infinite_score_context.clear()
 	_battle_started = false
 	_manual_start_required = true
 	_enemy_ai_enabled = false
@@ -534,6 +537,8 @@ func build_summary(include_battle_events: bool = true) -> Dictionary:
 		"player_relic_bonus_gold": _relic_controller.victory_gold_bonus("player") if battle_state.winner == "player" else 0,
 		"enemy_relic_bonus_gold": _relic_controller.victory_gold_bonus("enemy") if battle_state.winner == "enemy" else 0,
 	}
+	if not _infinite_score_context.is_empty():
+		summary["infinite_score_context"] = _infinite_score_context.duplicate(true)
 	if include_battle_events:
 		summary["battle_events"] = battle_state.battle_events.duplicate(true)
 		summary["visual_replay"] = {
@@ -1117,6 +1122,20 @@ func _check_victory() -> void:
 		))
 
 
+func _capture_infinite_score_context(run: RunState) -> Dictionary:
+	if not run.infinite_mode or run.arena_mode:
+		return {}
+	var index: int = int(run.map_state.get("current_step", 0))
+	var steps: Array = Array(run.map_state.get("steps", []))
+	if index < 0 or index >= steps.size():
+		return {}
+	for node: Dictionary in steps[index].get("nodes", []):
+		if String(node.get("id", "")) == String(run.map_state.get("active_node_id", "")):
+			return {"node_id": String(node["id"]), "step_index": index,
+				"wave": int(node.get("hazard_cleared_waves", 0)) + 1 if node.get("type", "") == "hazard" else 0}
+	return {}
+
+
 func _get_infinite_power(player_run: RunState) -> int:
 	if player_run == null or not player_run.infinite_mode:
 		return 0
@@ -1133,11 +1152,15 @@ func _get_infinite_power(player_run: RunState) -> int:
 	return maxi(1, int(floor(float(current_step_index) / 28.0)) + 1)
 
 
+static func get_infinite_hp_multiplier(infinite_power: int) -> float:
+	return 1.25 + float(maxi(1, infinite_power)) * 0.18
+
+
 func _build_scaled_enemy_def(enemy_def: EnemyDef, infinite_power: int) -> EnemyDef:
 	if infinite_power <= 0:
 		return enemy_def
 	var scaled_def: EnemyDef = EnemyDef.new()
-	var hp_multiplier: float = 1.25 + float(infinite_power) * 0.18
+	var hp_multiplier: float = get_infinite_hp_multiplier(infinite_power)
 	scaled_def.id = enemy_def.id
 	scaled_def.name = "%s ∞%d" % [enemy_def.name, infinite_power]
 	scaled_def.max_hp = maxi(1, int(round(float(enemy_def.max_hp) * hp_multiplier)))

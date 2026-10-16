@@ -24,6 +24,7 @@ var hp_damage_taken: int = 0
 var run_complete: bool = false
 var defeated: bool = false
 var infinite_mode: bool = false
+var infinite_score: Dictionary = {}
 var arena_mode: bool = false
 var arena_round: int = 1
 var arena_wins: int = 0
@@ -122,6 +123,7 @@ static func from_dict(data: Dictionary) -> RunState:
 	run_state.run_complete = bool(data.get("run_complete", false))
 	run_state.defeated = bool(data.get("defeated", false))
 	run_state.infinite_mode = bool(data.get("infinite_mode", false))
+	run_state.infinite_score = Dictionary(data.get("infinite_score", {})).duplicate(true)
 	run_state.arena_mode = bool(data.get("arena_mode", false))
 	run_state.arena_round = int(data.get("arena_round", 1))
 	run_state.arena_wins = int(data.get("arena_wins", 0))
@@ -169,6 +171,7 @@ func to_dict() -> Dictionary:
 		"run_complete": run_complete,
 		"defeated": defeated,
 		"infinite_mode": infinite_mode,
+		"infinite_score": infinite_score.duplicate(true),
 		"arena_mode": arena_mode,
 		"arena_round": arena_round,
 		"arena_wins": arena_wins,

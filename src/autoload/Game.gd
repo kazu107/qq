@@ -249,6 +249,7 @@ func start_new_run(starter_id: String, seed_override: int = 0) -> void:
 	_meta_progress_service.increment_achievement_stat(meta_progress, "normal_runs_started")
 	settings["last_run_starter_id"] = current_run.starter_id
 	settings["last_run_seed"] = current_run.seed
+	settings["last_run_infinite"] = false
 	current_screen_hint = "map"
 	AudioManager.play_sfx("run_start")
 	SaveManager.save_game(current_screen_hint)
@@ -269,6 +270,7 @@ func start_infinite_run(starter_id: String = "", seed_override: int = 0) -> bool
 	_apply_permanent_bonuses_to_run(current_run)
 	_apply_infinite_player_boost(current_run)
 	current_run.map_state = _map_generator.generate_infinite_run(current_run.seed)
+	InfiniteScoreResolver.new().start_fresh(current_run)
 	pending_enemy_id = ""
 	reward_options.clear()
 	last_battle_summary.clear()
@@ -277,6 +279,7 @@ func start_infinite_run(starter_id: String = "", seed_override: int = 0) -> bool
 	_meta_progress_service.increment_achievement_stat(meta_progress, "infinite_runs_started")
 	settings["last_run_starter_id"] = current_run.starter_id
 	settings["last_run_seed"] = current_run.seed
+	settings["last_run_infinite"] = true
 	current_screen_hint = "map"
 	AudioManager.play_sfx("run_start", 0.92)
 	SaveManager.save_game(current_screen_hint)
@@ -300,6 +303,7 @@ func start_arena_run(starter_id: String, seed_override: int = 0) -> bool:
 	_meta_progress_service.increment_achievement_stat(meta_progress, "arena_runs_started")
 	settings["last_run_starter_id"] = current_run.starter_id
 	settings["last_run_seed"] = current_run.seed
+	settings["last_run_infinite"] = false
 	current_screen_hint = "arena"
 	AudioManager.play_sfx("run_start", 0.98)
 	SaveManager.save_game(current_screen_hint)
@@ -331,6 +335,10 @@ func complete_battle(summary: Dictionary) -> void:
 	if current_run == null:
 		return
 	ensure_meta_initialized()
+	if current_run.infinite_mode and not current_run.arena_mode:
+		var context: Dictionary = Dictionary(summary.get("infinite_score_context", {}))
+		if not context.is_empty() and InfiniteScoreResolver.new().was_result_recorded(current_run, context):
+			return
 
 	var active_node: Dictionary = get_active_map_node()
 	last_battle_summary = summary.duplicate(true)
@@ -374,6 +382,7 @@ func complete_battle(summary: Dictionary) -> void:
 		_meta_progress_service.increment_achievement_stat(meta_progress, "defeats")
 		current_run.defeated = true
 		current_run.run_complete = true
+		_update_infinite_record()
 		reward_options.clear()
 		last_reward_bundle.clear()
 		current_screen_hint = "result"
@@ -487,7 +496,31 @@ func reroll_rewards_for_gold() -> bool:
 func get_run_summary() -> Dictionary:
 	if current_run == null:
 		return {}
-	return RunSummaryResolver.new().summarize(current_run, last_battle_summary)
+	if _update_infinite_record():
+		SaveManager.request_save(current_screen_hint)
+	var result: Dictionary = RunSummaryResolver.new().summarize(current_run, last_battle_summary)
+	if current_run.infinite_mode and not current_run.arena_mode:
+		var record: Dictionary = Dictionary(meta_progress.get("infinite_record", {}))
+		result["high_score"] = int(record.get("high_score", 0))
+		result["is_new_record"] = bool(current_run.infinite_score.get("is_new_record", false)) and int(result["total_score"]) >= int(result["high_score"])
+	return result
+
+
+func _update_infinite_record() -> bool:
+	if current_run == null or not current_run.infinite_mode or current_run.arena_mode or not current_run.run_complete:
+		return false
+	var score: Dictionary = InfiniteScoreResolver.new().calculate(current_run)
+	if bool(current_run.infinite_score.get("preview", false)) or bool(current_run.infinite_score.get("recorded", false)):
+		return false
+	var record: Dictionary = Dictionary(meta_progress.get("infinite_record", {})).duplicate(true)
+	if int(record.get("version", 0)) != InfiniteScoreResolver.VERSION:
+		record = {"version": InfiniteScoreResolver.VERSION, "high_score": 0, "best_reached_step": 0}
+	current_run.infinite_score["is_new_record"] = int(score["total_score"]) > int(record.get("high_score", 0))
+	current_run.infinite_score["recorded"] = true
+	record["high_score"] = maxi(int(record.get("high_score", 0)), int(score["total_score"]))
+	record["best_reached_step"] = maxi(int(record.get("best_reached_step", 0)), int(score["reached_step"]))
+	meta_progress["infinite_record"] = record
+	return true
 
 
 func abandon_run_to_hub() -> void:
@@ -1302,6 +1335,8 @@ func can_retry_last_seed_run() -> bool:
 
 func retry_last_seed_run() -> bool:
 	if current_run != null and current_run.starter_id != "" and current_run.seed > 0:
+		if current_run.infinite_mode:
+			return start_infinite_run(current_run.starter_id, current_run.seed)
 		start_new_run(current_run.starter_id, current_run.seed)
 		return true
 	ensure_meta_initialized()
@@ -1309,6 +1344,8 @@ func retry_last_seed_run() -> bool:
 	var seed_value: int = int(settings.get("last_run_seed", 0))
 	if starter_id == "" or seed_value <= 0:
 		return false
+	if bool(settings.get("last_run_infinite", false)):
+		return start_infinite_run(starter_id, seed_value)
 	start_new_run(starter_id, seed_value)
 	return true
 
@@ -1435,6 +1472,19 @@ func developer_open_event(event_id: String, area: int = -1, starter_id: String =
 	SaveManager.save_game(current_screen_hint)
 
 
+func developer_open_infinite_result() -> void:
+	if not is_developer_mode_enabled():
+		return
+	if current_run != null and not current_run.run_complete:
+		stash_active_run_for_hub()
+	current_run = InfiniteScoreResolver.new().build_preview_run()
+	pending_enemy_id = ""
+	reward_options.clear()
+	last_battle_summary.clear()
+	last_reward_bundle.clear()
+	current_screen_hint = "result"
+
+
 func developer_open_result(starter_id: String = "balanced") -> void:
 	if current_run == null:
 		start_new_run(starter_id)
@@ -1464,14 +1514,25 @@ func developer_open_result(starter_id: String = "balanced") -> void:
 func _record_run_battle(summary: Dictionary, active_node: Dictionary) -> void:
 	if current_run == null:
 		return
+	var infinite: bool = current_run.infinite_mode and not current_run.arena_mode
+	if infinite:
+		InfiniteScoreResolver.new().ensure_initialized(current_run)
 	var battle_time: float = float(summary.get("battle_time", 0.0))
+	var entry: Dictionary = {
+		"enemy_id": String(summary.get("enemy_id", "")),
+		"node_type": String(active_node.get("type", "normal_battle")),
+		"battle_time": battle_time,
+		"winner": String(summary.get("winner", "")),
+	}
+	if infinite:
+		var location: Dictionary = _get_active_node_location()
+		entry.merge({"node_id": String(active_node.get("id", "")), "step_index": int(location.get("step_index", -1)),
+			"wave": int(active_node.get("hazard_cleared_waves", 0)) + 1 if active_node.get("type", "") == "hazard" else 0,
+			"battle_id": String(summary.get("battle_id", "")), "forced_hazard_withdraw": bool(summary.get("forced_hazard_withdraw", false))})
+		entry.merge(Dictionary(summary.get("infinite_score_context", {})), true)
+		InfiniteScoreResolver.new().record_battle(current_run, entry)
 	if battle_time > 0.0:
-		current_run.battle_history.append({
-			"enemy_id": String(summary.get("enemy_id", "")),
-			"node_type": String(active_node.get("type", "normal_battle")),
-			"battle_time": battle_time,
-			"winner": String(summary.get("winner", "")),
-		})
+		current_run.battle_history.append(entry)
 
 	for raw_event in Array(summary.get("battle_events", [])):
 		var event_data: Dictionary = Dictionary(raw_event)
@@ -2905,7 +2966,7 @@ func _is_active_node_final_step() -> bool:
 
 
 func _record_completed_run_rank() -> void:
-	if current_run == null or current_run.defeated or not current_run.run_complete:
+	if current_run == null or current_run.infinite_mode or current_run.defeated or not current_run.run_complete:
 		return
 	var score_data: Dictionary = RunScoreResolver.new().calculate(current_run)
 	var rank: String = String(score_data.get("rank", "E"))
@@ -2949,6 +3010,8 @@ func _complete_active_map_node_and_advance() -> void:
 
 	var step_data: Dictionary = Dictionary(steps[step_index])
 	var nodes: Array = Array(step_data.get("nodes", []))
+	if current_run.infinite_mode:
+		InfiniteScoreResolver.new().record_step(current_run, Dictionary(nodes[node_index]), step_index)
 	for index in range(nodes.size()):
 		var node_data: Dictionary = Dictionary(nodes[index])
 		if index == node_index:

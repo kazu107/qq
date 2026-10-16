@@ -267,6 +267,13 @@ func _open_screen(screen: String) -> void:
 			Game.start_new_run("balanced", 4242)
 			Game.developer_open_result()
 			SceneRouter.go_to_result()
+		"result_infinite", "result_infinite_record", "result_infinite_empty":
+			Game.meta_progress["infinite_mode_unlocked"] = true
+			Game.meta_progress["infinite_record"] = {"version": 1, "high_score": 0, "best_reached_step": 0}
+			Game.current_run = InfiniteScoreResolver.new().build_preview_run(0 if screen == "result_infinite_empty" else 35)
+			if screen != "result_infinite":
+				Game.current_run.infinite_score.erase("preview")
+			SceneRouter.go_to_result()
 		"result_partial":
 			Game.start_new_run("balanced", 4242)
 			Game.current_run.run_complete = true
@@ -438,6 +445,14 @@ func _inspect() -> Dictionary:
 				"preview": screen.find_child("ArtPreviewOverlay", true, false) != null}
 		elif screen.scene_file_path.get_file().get_basename() == "RunResult":
 			result["score"] = screen.get("_summary_data")
+			var bars: Array[Dictionary] = []
+			for row: Dictionary in Array(screen.get("_category_rows")):
+				var bar: ProgressBar = row["bar"]
+				bars.append({"id": row["id"], "value": bar.value, "max": bar.max_value, "label": (row["score_label"] as Label).text})
+			var record: Label = screen.find_child("ResultInfiniteRecord", true, false) as Label
+			result["score_ui"] = {"total": (screen.find_child("ResultTotalScore", true, false) as Label).text,
+				"reach": (screen.find_child("ResultRankLabel", true, false) as Label).text, "bars": bars,
+				"record": record.text if record != null else ""}
 		var stage: BattleStage3D = screen.find_child("BattleStage3D", true, false) as BattleStage3D
 		if stage != null:
 			var status_regions: Array[Dictionary] = []

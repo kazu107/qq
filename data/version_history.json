@@ -1,9 +1,26 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.38.3",
+  "current_version": "QQ-0.39.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.39.0", "date": "2026-10-16",
+      "title_ja": "無限モード専用の累積スコアとハイスコア",
+      "title_en": "Cumulative Infinite scoring and personal records",
+      "changes_ja": [
+        "無限モードを上限なしの累積加点方式に変更しました。ステップ踏破1000点、ボス勝利2000点、エリート勝利300点、危険地帯全波突破500点、勝利時の戦闘効率0〜100点に、周回ごとに25%ずつ増える倍率を適用します。",
+        "獲得済みの点数を保存し、周回追加・敗北・セーブ再開で点数が下がらず、同じステップやウェーブを二重計上しないようにしました。旧セーブは保存済みの経路・戦闘履歴から特定できる分を復元します。",
+        "無限モードの結果画面ではS〜Eランクや1万点の上限を使わず、到達周回・ステップ、累積点の内訳、ハイスコア更新を演出付きで表示します。同じシードの再挑戦でも無限モードを維持します。",
+        "開発者モードに無限スコアのプレビューを追加しました。確認用データは実際のハイスコアに反映しません。通常ランとアリーナの採点は変更していません。"
+      ],
+      "changes_en": [
+        "Give Infinite mode uncapped cumulative points: 1000 per completed step, 2000 per boss victory, 300 per elite victory, 500 per fully cleared hazard and 0-100 efficiency points per victory, multiplied by 1 + 0.25 x (cycle - 1).",
+        "Persist earned points and unique award keys across cycle additions, defeat and resume. Restore identifiable awards from legacy routes/history without guessing unknown encounters.",
+        "Show reached cycle/step, animated score contributions and persistent high scores instead of ordinary S-E ranks or a 10000-point cap. Same-seed retry stays in Infinite mode.",
+        "Add developer score previews excluded from personal records. Normal and Arena scoring remain unchanged."
+      ]
+    },
     {
       "version": "QQ-0.38.3", "date": "2026-10-16",
       "title_ja": "実績一覧を2列に変更",
