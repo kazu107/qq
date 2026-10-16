@@ -574,7 +574,7 @@ func _build_run_unit(run_state: RunState, side: String, display_name: String) ->
 	return unit
 
 
-func _build_enemy_unit(enemy_def: EnemyDef) -> UnitState:
+static func _build_enemy_unit(enemy_def: EnemyDef) -> UnitState:
 	var unit := UnitState.new()
 	unit.unit_id = enemy_def.id
 	unit.display_name = enemy_def.name
@@ -588,7 +588,7 @@ func _build_enemy_unit(enemy_def: EnemyDef) -> UnitState:
 	return unit
 
 
-func _create_runtime_states(side: String, card_ids: Array[String]) -> Array[CardRuntimeState]:
+static func _create_runtime_states(side: String, card_ids: Array[String]) -> Array[CardRuntimeState]:
 	var states: Array[CardRuntimeState] = []
 	for index in range(card_ids.size()):
 		var runtime_state := CardRuntimeState.new()
@@ -1132,11 +1132,11 @@ func _capture_infinite_score_context(run: RunState) -> Dictionary:
 	for node: Dictionary in steps[index].get("nodes", []):
 		if String(node.get("id", "")) == String(run.map_state.get("active_node_id", "")):
 			return {"node_id": String(node["id"]), "step_index": index,
-				"wave": int(node.get("hazard_cleared_waves", 0)) + 1 if node.get("type", "") == "hazard" else 0}
+				"wave": EncounterSeries.score_wave(node)}
 	return {}
 
 
-func _get_infinite_power(player_run: RunState) -> int:
+static func _get_infinite_power(player_run: RunState) -> int:
 	if player_run == null or not player_run.infinite_mode:
 		return 0
 	var active_node_id: String = String(player_run.map_state.get("active_node_id", ""))
@@ -1156,7 +1156,7 @@ static func get_infinite_hp_multiplier(infinite_power: int) -> float:
 	return 1.25 + float(maxi(1, infinite_power)) * 0.18
 
 
-func _build_scaled_enemy_def(enemy_def: EnemyDef, infinite_power: int) -> EnemyDef:
+static func _build_scaled_enemy_def(enemy_def: EnemyDef, infinite_power: int) -> EnemyDef:
 	if infinite_power <= 0:
 		return enemy_def
 	var scaled_def: EnemyDef = EnemyDef.new()
@@ -1172,7 +1172,7 @@ func _build_scaled_enemy_def(enemy_def: EnemyDef, infinite_power: int) -> EnemyD
 	return scaled_def
 
 
-func _apply_enemy_card_scaling(enemy_unit: UnitState, infinite_power: int) -> void:
+static func _apply_enemy_card_scaling(enemy_unit: UnitState, infinite_power: int) -> void:
 	if enemy_unit == null or infinite_power <= 0:
 		return
 	var tier: int = clampi(infinite_power, 1, CardUpgradeResolver.MAX_TIER)
@@ -1189,6 +1189,17 @@ func _apply_enemy_card_scaling(enemy_unit: UnitState, infinite_power: int) -> vo
 			modifier_totals["delay"] = float(overflow_power) * 0.3
 			modifier_totals["haste"] = float(overflow_power) * 0.3
 		enemy_unit.temporary_card_modifiers[runtime_state.card_id] = modifier_totals
+
+
+static func build_enemy_preview(run: RunState, enemy_id: String, node: Dictionary) -> UnitState:
+	var definition: EnemyDef = Database.get_enemy(enemy_id)
+	if definition == null: return null
+	var power: int = 0
+	if run != null and run.infinite_mode:
+		power = maxi(1, int(node.get("infinite_power", _get_infinite_power(run))))
+	var unit: UnitState = _build_enemy_unit(_build_scaled_enemy_def(definition, power))
+	_apply_enemy_card_scaling(unit, power)
+	return unit
 
 
 func _get_card_def(side: String, card_id: String) -> CardDef:

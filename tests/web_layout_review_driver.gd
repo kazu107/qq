@@ -43,6 +43,30 @@ func _command(arguments: Array) -> void:
 		Game.ensure_meta_initialized()
 		MetaProgressService.new().add_unlock_xp(Game.meta_progress, int(payload.get("xp", 0)))
 		_open_screen(String(payload.get("screen", "library")))
+	elif String(payload.get("action", "")) == "encounter_fixture":
+		Game.set_language(String(payload.get("language", "ja")))
+		Game.start_new_run("balanced", 4242)
+		Game.settings["developer_mode"] = true
+		var node_id: String = Game.developer_prepare_encounter_chain(bool(payload.get("hazard", false)))
+		if bool(payload.get("single", false)):
+			var location: Dictionary = Game._find_node_location(node_id)
+			var node: Dictionary = Game._get_node(int(location["step_index"]), int(location["node_index"]))
+			node.erase("encounter_queue")
+			Game._set_node(int(location["step_index"]), int(location["node_index"]), node)
+		if bool(payload.get("infinite", false)):
+			Game.current_run.infinite_mode = true
+			InfiniteScoreResolver.new().start_fresh(Game.current_run)
+		Game.settings["developer_mode"] = false
+		SceneRouter.go_to_map()
+	elif String(payload.get("action", "")) == "encounter_win":
+		var screen: Control = get_tree().current_scene as Control
+		if screen.scene_file_path == SceneRouter.BATTLE_SCENE:
+			screen.set_process(false)
+			var engine: RealtimeBattleEngine = screen.get("_engine") as RealtimeBattleEngine
+			engine.battle_state.winner = "player"
+			engine.battle_state.battle_time = 30.0
+			Game.complete_battle(engine.build_summary())
+			SceneRouter.go_to_reward()
 	elif String(payload.get("action", "")) == "gold_spending_fixture":
 		Game.current_run = null
 		Game.meta_progress = Database.meta_progress_template.duplicate(true)
@@ -426,6 +450,22 @@ func _inspect() -> Dictionary:
 				"history": (screen.get("_history_overlay") as Control).visible, "drawer": (screen.get("_loadout_button") as Button).visible,
 				"loadout_open": (screen.get("_loadout_overlay") as Control).visible}
 		_collect_controls(screen, controls, false)
+		var intel: EnemyEncounterDialog = screen.find_child("EnemyEncounterDialog", true, false) as EnemyEncounterDialog
+		if intel != null and intel.visible:
+			var data: Dictionary = intel.preview_data
+			var unit: UnitState = data["unit"] as UnitState
+			var cards: Array[Dictionary] = []
+			for card: CardButton in intel._card_buttons:
+				if card.visible: cards.append({"rect": _rect_values(card.get_global_rect()), "tooltip": card.tooltip_text})
+			result["encounter"] = {"index": data["index"], "total": data["total"], "enemy": data["enemy_id"],
+				"type": data["node_type"], "hp": unit.hp, "attack": unit.attack, "speed": unit.speed,
+				"counter": intel._counter.text, "name": intel._enemy_name.text,
+				"rect": _rect_values(intel._frame.get_global_rect()), "model_rect": _rect_values(intel._model.get_global_rect()),
+				"model_ready": intel._model.is_preview_ready(), "model_id": intel._model.get_selected_starter_id(),
+				"cards": cards}
+		if Game.current_run != null:
+			result["encounter_progress"] = {"step": Game.get_current_step_index(), "active": Game.current_run.map_state.get("active_node_id", ""),
+				"cleared": EncounterSeries.cleared(Game.get_active_map_node()), "hint": Game.current_screen_hint, "pending": Game.pending_enemy_id}
 	result.merge({
 		"sequence": _sequence,
 		"screen": screen.scene_file_path.get_file().get_basename() if screen != null else "",

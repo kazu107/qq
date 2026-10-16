@@ -323,7 +323,7 @@ func prepare_next_battle() -> String:
 	if pending_enemy_id == "":
 		var active_node: Dictionary = get_active_map_node()
 		if not active_node.is_empty():
-			pending_enemy_id = String(active_node.get("enemy_id", ""))
+			pending_enemy_id = EncounterSeries.next_enemy(active_node)
 		if pending_enemy_id == "":
 			pending_enemy_id = _roll_enemy_id()
 	current_screen_hint = "battle"
@@ -417,9 +417,15 @@ func complete_battle(summary: Dictionary) -> void:
 	else:
 		last_battle_summary.erase("relic_bonus_text")
 
+	if node_type in ["normal_battle", "elite_battle", "boss"]:
+		var location: Dictionary = _get_active_node_location()
+		if not location.is_empty():
+			active_node[EncounterSeries.cleared_key(active_node)] = EncounterSeries.cleared(active_node) + 1
+			_set_node(int(location["step_index"]), int(location["node_index"]), active_node)
+
 	match node_type:
 		"boss":
-			_handle_battle_reward("boss", _is_active_node_final_step())
+			_handle_battle_reward("boss", _is_active_node_final_step() and not EncounterSeries.has_next(active_node))
 		"elite_battle":
 			_handle_battle_reward("elite")
 		"hazard":
@@ -443,6 +449,8 @@ func choose_reward(card_id: String) -> void:
 	last_reward_bundle.clear()
 	if _should_return_to_hazard_after_reward():
 		current_screen_hint = "facility"
+	elif _should_continue_encounter_chain():
+		current_screen_hint = "map"
 	else:
 		_complete_active_map_node_and_advance()
 		current_screen_hint = _get_post_progress_scene_hint()
@@ -455,6 +463,8 @@ func skip_reward() -> void:
 	last_reward_bundle.clear()
 	if _should_return_to_hazard_after_reward():
 		current_screen_hint = "facility"
+	elif _should_continue_encounter_chain():
+		current_screen_hint = "map"
 	else:
 		_complete_active_map_node_and_advance()
 		current_screen_hint = _get_post_progress_scene_hint()
@@ -1527,7 +1537,7 @@ func _record_run_battle(summary: Dictionary, active_node: Dictionary) -> void:
 	if infinite:
 		var location: Dictionary = _get_active_node_location()
 		entry.merge({"node_id": String(active_node.get("id", "")), "step_index": int(location.get("step_index", -1)),
-			"wave": int(active_node.get("hazard_cleared_waves", 0)) + 1 if active_node.get("type", "") == "hazard" else 0,
+			"wave": EncounterSeries.score_wave(active_node),
 			"battle_id": String(summary.get("battle_id", "")), "forced_hazard_withdraw": bool(summary.get("forced_hazard_withdraw", false))})
 		entry.merge(Dictionary(summary.get("infinite_score_context", {})), true)
 		InfiniteScoreResolver.new().record_battle(current_run, entry)
@@ -2072,6 +2082,35 @@ func get_hazard_status() -> Dictionary:
 	}
 
 
+func get_encounter_preview(node_id: String = "") -> Dictionary:
+	if current_run == null or current_run.arena_mode or current_run.run_complete: return {}
+	var node: Dictionary = get_active_map_node()
+	if node_id != "":
+		if not MapRouteGraph.can_select(current_run.map_state, node_id): return {}
+		var location: Dictionary = _find_node_location(node_id)
+		if location.is_empty(): return {}
+		node = _get_node(int(location["step_index"]), int(location["node_index"]))
+	if node.get("type", "") not in ["normal_battle", "elite_battle", "boss", "hazard"]: return {}
+	var enemy_id: String = EncounterSeries.next_enemy(node)
+	if enemy_id == "" or Database.get_enemy(enemy_id) == null: return {}
+	return {"node_id": String(node.get("id", "")), "node_type": String(node.get("type", "")),
+		"enemy_id": enemy_id, "index": EncounterSeries.cleared(node) + 1, "total": EncounterSeries.queue(node).size(),
+		"unit": RealtimeBattleEngine.build_enemy_preview(current_run, enemy_id, node)}
+
+
+func start_active_encounter() -> bool:
+	if current_run == null or current_run.run_complete or current_screen_hint not in ["map", "facility"] or not _has_valid_loadout(): return false
+	var node: Dictionary = get_active_map_node()
+	if node.get("type", "") == "hazard": return continue_hazard()
+	if node.get("type", "") not in ["normal_battle", "elite_battle", "boss"]: return false
+	var next_id: String = EncounterSeries.next_enemy(node)
+	if next_id == "" or Database.get_enemy(next_id) == null: return false
+	pending_enemy_id = next_id
+	current_screen_hint = "battle"
+	SaveManager.save_game(current_screen_hint)
+	return true
+
+
 func get_last_battle_enemy_name() -> String:
 	var enemy_id: String = String(last_battle_summary.get("enemy_id", ""))
 	return Localization.get_enemy_name(enemy_id, String(last_battle_summary.get("enemy_name", "")))
@@ -2220,7 +2259,7 @@ func select_map_node(node_id: String) -> String:
 	_set_node(step_index, node_index, node_data)
 	current_run.map_state["current_step"] = step_index
 	current_run.map_state["active_node_id"] = node_id
-	pending_enemy_id = String(node_data.get("enemy_id", ""))
+	pending_enemy_id = EncounterSeries.next_enemy(node_data)
 
 	if NON_BATTLE_NODE_TYPES.has(node_type):
 		_prepare_non_battle_node(step_index, node_index)
@@ -2230,6 +2269,22 @@ func select_map_node(node_id: String) -> String:
 	AudioManager.play_sfx("map_select")
 	SaveManager.save_game(current_screen_hint)
 	return current_screen_hint
+
+
+func developer_prepare_encounter_chain(hazard: bool = false) -> String:
+	if not is_developer_mode_enabled() or current_run == null or current_run.arena_mode or current_run.run_complete or current_screen_hint != "map": return ""
+	for node: Dictionary in get_current_step_data().get("nodes", []):
+		var node_id: String = String(node["id"])
+		if not MapRouteGraph.can_select(current_run.map_state, node_id): continue
+		var location: Dictionary = _find_node_location(node_id)
+		node["type"] = "hazard" if hazard else "normal_battle"
+		node["enemy_id"] = "scout"
+		node["hazard_queue" if hazard else "encounter_queue"] = ["scout", "guardian", "brute"] if hazard else ["scout", "guardian"]
+		node[EncounterSeries.cleared_key(node)] = 0
+		_set_node(int(location["step_index"]), int(location["node_index"]), node)
+		SaveManager.save_game("map")
+		return node_id
+	return ""
 
 
 func developer_advance_map_route(node_id: String = "") -> bool:
@@ -2473,7 +2528,7 @@ func resolve_event_choice(choice_id: String) -> String:
 
 
 func continue_hazard() -> bool:
-	if current_run == null:
+	if current_run == null or current_run.run_complete or current_screen_hint != "facility" or not _has_valid_loadout():
 		return false
 	var location: Dictionary = _get_active_node_location()
 	if location.is_empty():
@@ -2487,7 +2542,7 @@ func continue_hazard() -> bool:
 
 	var queue: Array[String] = _to_string_array(node_data.get("hazard_queue", []))
 	var cleared_waves: int = int(node_data.get("hazard_cleared_waves", 0))
-	if cleared_waves >= queue.size():
+	if cleared_waves >= queue.size() or Database.get_enemy(queue[cleared_waves]) == null:
 		return false
 
 	pending_enemy_id = queue[cleared_waves]
@@ -2781,6 +2836,12 @@ func _handle_arena_battle_result(summary: Dictionary) -> void:
 		current_screen_hint = "result"
 		return
 	current_screen_hint = "arena"
+
+
+func _should_continue_encounter_chain() -> bool:
+	var node: Dictionary = get_active_map_node()
+	# Older saves can be awaiting a single-fight reward without a per-node counter.
+	return node.get("type", "") in ["normal_battle", "elite_battle", "boss"] and EncounterSeries.queue(node).size() > 1 and EncounterSeries.cleared(node) > 0 and EncounterSeries.has_next(node)
 
 
 func _should_return_to_hazard_after_reward() -> bool:

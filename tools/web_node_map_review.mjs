@@ -144,6 +144,9 @@ try {
   let state = await command('screen', { screen: 'map' });
   const node = state.map.nodes.find(item => !item.disabled);
   await page.mouse.click(...await point(state, node.rect));
+  state = await command('inspect');
+  assert(state.encounter, 'Battle node did not open Enemy Intel');
+  state = await click(state, 'EnemyEncounterStart');
   for (let attempt = 0; attempt < 40; attempt++) {
     await page.waitForTimeout(100);
     state = await command('inspect');

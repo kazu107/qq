@@ -52,7 +52,10 @@ func ensure_initialized(run: RunState) -> void:
 			for wave: int in count:
 				expected.append(_battle_context(node, index, wave + 1, String(queue[wave])))
 		elif type in ["normal_battle", "elite_battle", "boss"]:
-			expected.append(_battle_context(node, index, 0, String(node.get("enemy_id", ""))))
+			var enemies: Array[String] = EncounterSeries.queue(node)
+			var count: int = enemies.size() if index < completed else mini(enemies.size(), EncounterSeries.cleared(node) + 1)
+			for encounter: int in count:
+				expected.append(_battle_context(node, index, encounter + 1 if enemies.size() > 1 else 0, enemies[encounter]))
 	# Older histories lack node/wave IDs. Match only identifiable encounters in saved route order.
 	var cursor: int = 0
 	for battle: Dictionary in run.battle_history:

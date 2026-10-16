@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.40.0",
+  "current_version": "QQ-0.41.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.41.0", "date": "2026-10-16",
+      "title_ja": "戦闘前の敵紹介と共通の連戦フロー",
+      "title_en": "Enemy Intel and shared encounter chains",
+      "changes_ja": [
+        "マップの戦闘ノードを押すと、敵のアニメーション付き3Dモデル、HP・攻撃・速度・スロット、使用カード、何人目かを前面のウィンドウで確認できます。確認してから戦闘へ進みます。",
+        "危険地帯では各ウェーブの報酬受け取り後にも次の敵紹介を表示します。ウィンドウを閉じれば撤退でき、続行の選択肢で紹介を開き直せます。",
+        "通常・エリート・ボスも同じ敵リストで連戦を設定できる土台を追加しました。既存の戦闘数は変えず、連戦途中の報酬・ロードアウト変更・セーブ再開・スコア計算に対応します。開発者モードで通常2連戦と危険地帯3連戦を確認できます。"
+      ],
+      "changes_en": [
+        "Battle nodes now open Enemy Intel with an animated 3D enemy, HP, attack, speed, active slots, actual cards and an enemy counter before confirmation.",
+        "Hazards show the next enemy again after each wave's rewards. Close the dialog to withdraw or reopen it with the Continue choice.",
+        "Share the same encounter-list flow with normal, elite and boss nodes, without changing existing fight counts. Support intermediate rewards, loadout edits, save/resume and scoring; add two-enemy and three-wave developer fixtures."
+      ]
+    },
     {
       "version": "QQ-0.40.0", "date": "2026-10-16",
       "title_ja": "カード・遺物図鑑とタブ切り替え",

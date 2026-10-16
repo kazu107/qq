@@ -1,4 +1,13 @@
 {
+  "encounter.title": "敵の情報",
+  "encounter.counter": "敵 {current} / {total}",
+  "encounter.cards": "使用カード",
+  "encounter.slots": "同時使用スロット",
+  "encounter.enter": "戦闘へ進む",
+  "encounter.note": "敵の能力とカードを確認して、戦闘へ進みましょう。",
+  "encounter.hazard_note": "毎戦闘後に報酬を獲得します。ウェーブの間で撤退できます。",
+  "encounter.dev_chain": "敵紹介・通常2連戦を確認",
+  "encounter.dev_hazard": "敵紹介・危険地帯3連戦を確認",
   "progress.title": "自動解放・封印",
   "progress.next": "解放経験値 {xp}/{target} | 段階 {stage}/{total}",
   "progress.complete": "段階解放完了 | 経験値 {xp}",

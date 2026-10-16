@@ -19,6 +19,7 @@ var _deck_summary_label: Label
 var _deck_panel: CardHandPanel
 var _run_info_banner: RunInfoBanner
 var _developer_panel: DeveloperPanel
+var _enemy_dialog: EnemyEncounterDialog
 
 
 func _ready() -> void:
@@ -34,6 +35,8 @@ func _ready() -> void:
 	AudioManager.play_sfx("facility_enter", 1.0, -3.0)
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+	if Game.get_active_facility_type() == "hazard":
+		call_deferred("_show_hazard_preview")
 
 
 func _build_ui() -> void:
@@ -732,8 +735,25 @@ func _on_resolve_event(choice_id: String) -> void:
 
 
 func _on_continue_hazard() -> void:
+	_show_hazard_preview()
+
+
+func _show_hazard_preview() -> void:
+	var data: Dictionary = Game.get_encounter_preview()
+	if data.is_empty(): return
+	if _enemy_dialog == null:
+		_enemy_dialog = EnemyEncounterDialog.new()
+		add_child(_enemy_dialog)
+		_enemy_dialog.confirmed.connect(_confirm_hazard)
+	_enemy_dialog.open(data)
+
+
+func _confirm_hazard(node_id: String) -> void:
+	if node_id != String(Game.get_active_map_node().get("id", "")): return
 	if Game.continue_hazard():
 		SceneRouter.go_to_battle()
+	else:
+		_show_hazard_preview()
 
 
 func _on_withdraw_hazard() -> void:

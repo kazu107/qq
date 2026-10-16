@@ -141,7 +141,7 @@ func _node_battle_weight(node: Dictionary) -> float:
 			waves = 2 if int(node.get("area", 1)) <= 2 else 3
 		return float(waves) * _get_battle_weight(type)
 	if type in ["normal_battle", "elite_battle", "boss"]:
-		return _get_battle_weight(type)
+		return _get_battle_weight(type) * maxi(1, EncounterSeries.queue(node).size())
 	return 0.0
 
 

@@ -104,6 +104,7 @@ func _ready() -> void:
 	button_row.add_child(_reroll_button)
 
 	var skip_button := Button.new()
+	skip_button.name = "RewardSkipButton"
 	skip_button.text = Localization.get_text("reward.skip", "Skip")
 	UiIconHelper.decorate(skip_button, "next")
 	skip_button.pressed.connect(_on_skip)

@@ -13,6 +13,7 @@ var _selected_starter_id: String = DEFAULT_STARTER_ID
 var _elapsed: float = 0.0
 var _selection_swing: float = 0.0
 var _auto_frame: bool = false
+var _preview_side: String = "player"
 
 
 func _ready() -> void:
@@ -35,9 +36,10 @@ func _process(delta: float) -> void:
 
 func show_starter(starter_id: String) -> void:
 	var resolved_id: String = starter_id if starter_id != "" else DEFAULT_STARTER_ID
-	if _selected_starter_id == resolved_id and _actor != null:
+	if _preview_side == "player" and _selected_starter_id == resolved_id and _actor != null:
 		_ensure_ready_pose()
 		return
+	_preview_side = "player"
 	_selected_starter_id = resolved_id
 	_selection_swing = deg_to_rad(-8.0)
 	_apply_starter_visual()
@@ -45,6 +47,13 @@ func show_starter(starter_id: String) -> void:
 
 func get_selected_starter_id() -> String:
 	return _selected_starter_id
+
+
+func show_enemy(enemy_id: String) -> void:
+	_preview_side = "enemy"
+	_selected_starter_id = enemy_id
+	_selection_swing = deg_to_rad(-8.0)
+	_apply_starter_visual()
 
 
 func set_auto_frame(enabled: bool) -> void:
@@ -217,8 +226,8 @@ func _build_camera() -> void:
 func _apply_starter_visual() -> void:
 	if _actor == null:
 		return
-	var profile: Dictionary = Database.get_battle_visual_profile(_selected_starter_id, "default_player")
-	_actor.configure("player", _selected_starter_id, profile)
+	var profile: Dictionary = Database.get_battle_visual_profile(_selected_starter_id, "default_enemy" if _preview_side == "enemy" else "default_player")
+	_actor.configure(_preview_side, _selected_starter_id, profile)
 	_actor.reset_performance()
 	_actor.start_timeline_stance()
 	_actor.set_animation_speed_scale(0.82)

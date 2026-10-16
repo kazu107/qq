@@ -26,6 +26,9 @@ var _equipped_panel: CardHandPanel
 var _inventory_box: LoadoutInventoryGrid
 var _run_info_banner: RunInfoBanner
 var _developer_panel: DeveloperPanel
+var _enemy_dialog: EnemyEncounterDialog
+var _preview_node_id: String = ""
+var _encounter_button: Button
 
 
 func _ready() -> void:
@@ -46,6 +49,7 @@ func _ready() -> void:
 	if not get_window().size_changed.is_connected(_responsive_layout):
 		get_window().size_changed.connect(_responsive_layout)
 	call_deferred("_responsive_layout")
+	call_deferred("_resume_encounter_preview")
 
 
 func _build_ui() -> void:
@@ -97,6 +101,8 @@ func _build_ui() -> void:
 	_loadout_button.pressed.connect(func() -> void: _loadout_overlay.visible = true)
 	var back: Button = _map_button(toolbar, "MapHubButton", "home", Localization.get_text("map.return_hub", "Return to Hub"), true)
 	back.pressed.connect(_on_return_to_hub)
+	_encounter_button = _map_button(toolbar, "MapEncounterButton", "card", Localization.get_text("encounter.title", "Enemy Intel"), true)
+	_encounter_button.pressed.connect(_resume_encounter_preview)
 
 	_steps_scroll = ScrollContainer.new()
 	_steps_scroll.name = "MapStepsScroll"
@@ -274,6 +280,7 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 
 func _refresh_ui() -> void:
 	var current_run: RunState = Game.current_run
+	_encounter_button.visible = not Game.get_encounter_preview().is_empty()
 	if _run_info_banner != null:
 		_run_info_banner.refresh()
 	_equipped_summary_label.text = Localization.get_textf("map.loadout_cost", "Loadout Cost {used} / {limit}", {
@@ -688,6 +695,37 @@ func _make_loadout_card_stylebox() -> StyleBoxFlat:
 
 func _on_node_selected(node_id: String) -> void:
 	if _traveling or not MapRouteGraph.can_select(Game.current_run.map_state, node_id): return
+	var preview: Dictionary = Game.get_encounter_preview(node_id)
+	if not preview.is_empty() and preview["node_type"] != "hazard":
+		_show_encounter_preview(preview)
+		return
+	await _enter_node(node_id)
+
+
+func _show_encounter_preview(data: Dictionary) -> void:
+	if _enemy_dialog == null:
+		_enemy_dialog = EnemyEncounterDialog.new()
+		add_child(_enemy_dialog)
+		_enemy_dialog.confirmed.connect(_confirm_encounter)
+	_preview_node_id = String(data["node_id"])
+	_enemy_dialog.open(data)
+
+
+func _resume_encounter_preview() -> void:
+	var data: Dictionary = Game.get_encounter_preview()
+	if not data.is_empty(): _show_encounter_preview(data)
+
+
+func _confirm_encounter(node_id: String) -> void:
+	if node_id != _preview_node_id: return
+	if String(Game.current_run.map_state.get("active_node_id", "")) == node_id:
+		if Game.start_active_encounter(): SceneRouter.go_to_battle()
+		else: _enemy_dialog.open(Game.get_encounter_preview())
+	else:
+		await _enter_node(node_id)
+
+
+func _enter_node(node_id: String) -> void:
 	_traveling = true
 	await _route_canvas.animate_travel(node_id)
 	if not is_inside_tree(): return
@@ -699,6 +737,7 @@ func _on_node_selected(node_id: String) -> void:
 		"facility":
 			SceneRouter.go_to_facility()
 		_:
+			if _enemy_dialog != null: _enemy_dialog.close()
 			AudioManager.play_sfx("ui_error")
 			_route_canvas._layout()
 			_refresh_ui()
@@ -750,6 +789,8 @@ func _refresh_developer_panel() -> void:
 
 func _build_developer_actions() -> Array[Dictionary]:
 	var actions: Array[Dictionary] = [
+		{"id": "DevEncounterChain", "label": Localization.get_text("encounter.dev_chain", "Preview two-enemy chain"), "callback": Callable(self, "_on_dev_encounter_chain")},
+		{"id": "DevHazardPreview", "label": Localization.get_text("encounter.dev_hazard", "Preview hazard encounters"), "callback": Callable(self, "_on_dev_encounter_chain").bind(true)},
 		{"id": "DevMapAdvance", "label": Localization.get_text("map.route.dev_advance", "Advance route (no rewards)"), "callback": Callable(self, "_on_dev_map_advance")},
 		{"id": "DevAddGold", "label": Localization.get_text("map.dev.add_gold", "Add 50 Gold"), "callback": Callable(self, "_on_dev_add_gold")},
 		{"id": "DevRestoreHp", "label": Localization.get_text("map.dev.restore_hp", "Restore HP"), "callback": Callable(self, "_on_dev_restore_hp")},
@@ -766,6 +807,13 @@ func _build_developer_actions() -> Array[Dictionary]:
 			"callback": Callable(self, "_on_dev_open_event").bind(event_id),
 		})
 	return actions
+
+
+func _on_dev_encounter_chain(hazard: bool = false) -> void:
+	var node_id: String = Game.developer_prepare_encounter_chain(hazard)
+	if node_id != "":
+		_refresh_ui()
+		_on_node_selected(node_id)
 
 
 func _on_dev_map_advance() -> void:
