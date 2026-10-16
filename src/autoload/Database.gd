@@ -6,6 +6,7 @@ const ENEMIES_PATH := "res://data/enemies.json"
 const STARTERS_PATH := "res://data/starters.json"
 const REWARDS_PATH := "res://data/rewards.json"
 const META_PROGRESS_PATH := "res://data/meta_progress.json"
+const META_STAT_UPGRADES_PATH := "res://data/meta_stat_upgrades.json"
 const CONTENT_PROGRESSION_PATH := "res://data/content_progression.json"
 const RELICS_PATH := "res://data/relics.json"
 const EVENTS_PATH := "res://data/events.json"
@@ -18,6 +19,7 @@ var enemies: Dictionary = {}
 var starters: Array[Dictionary] = []
 var rewards: Dictionary = {}
 var meta_progress_template: Dictionary = {}
+var meta_stat_upgrades: Array[Dictionary] = []
 var content_progression: Dictionary = {}
 var relics: Dictionary = {}
 var events: Dictionary = {}
@@ -35,6 +37,7 @@ func load_all() -> void:
 	starters.clear()
 	rewards.clear()
 	meta_progress_template.clear()
+	meta_stat_upgrades.clear()
 	content_progression.clear()
 	relics.clear()
 	events.clear()
@@ -53,6 +56,7 @@ func load_all() -> void:
 	starters = _load_json_dictionary_array(STARTERS_PATH)
 	rewards = _load_json_dictionary(REWARDS_PATH)
 	meta_progress_template = _load_json_dictionary(META_PROGRESS_PATH)
+	_load_meta_stat_upgrades()
 	content_progression = _load_json_dictionary(CONTENT_PROGRESSION_PATH)
 	_load_relics()
 	_load_events()
@@ -165,6 +169,38 @@ func get_achievement(achievement_id: String) -> Dictionary:
 
 func get_all_achievement_ids() -> Array[String]:
 	return achievement_order.duplicate()
+
+
+func _load_meta_stat_upgrades() -> void:
+	var seen: Dictionary = {}
+	for raw: Variant in _load_json_array(META_STAT_UPGRADES_PATH):
+		if raw is not Dictionary:
+			_record_error("%s entries must be objects" % META_STAT_UPGRADES_PATH)
+			continue
+		var data: Dictionary = Dictionary(raw)
+		if not _has_required_keys(data, META_STAT_UPGRADES_PATH, ["id", "name", "icon", "tiers"]): continue
+		var id: String = String(data["id"])
+		if id not in ["max_hp", "attack", "speed", "loadout_limit"] or seen.has(id):
+			_record_error("%s has unknown/duplicate stat %s" % [META_STAT_UPGRADES_PATH, id])
+			continue
+		if data["tiers"] is not Array or Array(data["tiers"]).is_empty():
+			_record_error("%s needs upgrade tiers for %s" % [META_STAT_UPGRADES_PATH, id])
+			continue
+		var valid: bool = true
+		for tier: Variant in data["tiers"]:
+			if tier is not Dictionary:
+				valid = false
+				continue
+			for key: String in ["amount", "cost"]:
+				var number: Variant = tier.get(key, 0)
+				if typeof(number) not in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(number)) or float(number) <= 0.0 or float(number) != floorf(float(number)):
+					valid = false
+		if not valid:
+			_record_error("%s needs positive integer costs/amounts for %s" % [META_STAT_UPGRADES_PATH, id])
+			continue
+		seen[id] = true
+		meta_stat_upgrades.append(data)
+	if seen.size() != 4: _record_error("%s must define all four upgrade stats" % META_STAT_UPGRADES_PATH)
 
 
 func _load_cards() -> void:

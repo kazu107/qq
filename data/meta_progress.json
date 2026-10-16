@@ -71,5 +71,11 @@
     "attack": 0,
     "speed": 0,
     "loadout_limit": 0
+  },
+  "permanent_upgrade_levels": {
+    "max_hp": 0,
+    "attack": 0,
+    "speed": 0,
+    "loadout_limit": 0
   }
 }

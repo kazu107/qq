@@ -67,6 +67,16 @@ func _command(arguments: Array) -> void:
 			engine.battle_state.battle_time = 30.0
 			Game.complete_battle(engine.build_summary())
 			SceneRouter.go_to_reward()
+	elif String(payload.get("action", "")) == "stat_upgrade_fixture":
+		Game.current_run = null
+		Game.suspended_runs.clear()
+		Game.meta_progress = Database.meta_progress_template.duplicate(true)
+		Game.meta_progress["points"] = int(payload.get("points", 0))
+		Game.ensure_meta_initialized()
+		Game.meta_progress["permanent_upgrade_levels"].merge(Dictionary(payload.get("levels", {})), true)
+		Game.meta_progress["permanent_bonuses"].merge(Dictionary(payload.get("awards", {})), true)
+		Game.set_language(String(payload.get("language", "ja")))
+		_open_screen("meta")
 	elif String(payload.get("action", "")) == "achievement_fixture":
 		Game.current_run = null
 		Game.suspended_runs.clear()
@@ -425,6 +435,19 @@ func _inspect() -> Dictionary:
 				if menu.visible:
 					result["library"]["option_menu"] = {"name": String(option.name), "focus": menu.get_focused_item(), "count": menu.item_count}
 		if screen.scene_file_path.get_file().get_basename() == "MetaProgress":
+			var upgrades: Array[Dictionary] = []
+			for entry: Dictionary in Game.get_meta_stat_upgrade_entries():
+				var widgets: Dictionary = Dictionary(screen.get("_upgrade_widgets")).get(entry["id"], {})
+				if widgets.is_empty(): continue
+				var item: Dictionary = entry.duplicate()
+				for part: String in ["frame", "level", "total", "bar", "button"]:
+					item[part + "_rect"] = _rect_values((widgets[part] as Control).get_global_rect())
+				item["instance"] = (widgets["frame"] as Control).get_instance_id()
+				item["text"] = (widgets["button"] as Button).text
+				item["level_text"] = (widgets["level"] as Label).text
+				item["disabled"] = (widgets["button"] as Button).disabled
+				upgrades.append(item)
+			result["stat_upgrades"] = {"points": Game.get_meta_points(), "cards": upgrades, "gold_spent": Game.meta_progress["achievement_stats"]["gold_spent"]}
 			var grid: GridContainer = screen.find_child("MetaAchievementBox", true, false) as GridContainer
 			var cards: Array[Dictionary] = []
 			for frame: Control in grid.get_children():

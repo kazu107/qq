@@ -812,6 +812,26 @@ func get_permanent_bonuses() -> Dictionary:
 	return _meta_progress_service.get_permanent_bonuses(meta_progress)
 
 
+func get_meta_stat_upgrade_entries() -> Array[Dictionary]:
+	return _meta_progress_service.build_stat_upgrade_entries(meta_progress)
+
+
+func purchase_meta_stat_upgrade(stat_id: String) -> bool:
+	if not _meta_progress_service.purchase_stat_upgrade(meta_progress, stat_id):
+		AudioManager.play_sfx("ui_error")
+		return false
+	AudioManager.play_sfx("meta_unlock")
+	SaveManager.request_save(current_screen_hint)
+	return true
+
+
+func developer_reset_stat_upgrades() -> bool:
+	if not is_developer_mode_enabled(): return false
+	_meta_progress_service.reset_stat_upgrades(meta_progress)
+	SaveManager.request_save(current_screen_hint)
+	return true
+
+
 func get_permanent_bonus_summary() -> String:
 	var bonuses: Dictionary = get_permanent_bonuses()
 	var parts: Array[String] = []

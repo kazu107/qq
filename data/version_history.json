@@ -1,9 +1,26 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.43.0",
+  "current_version": "QQ-0.44.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.44.0", "date": "2026-10-17",
+      "title_ja": "メタポイントによる永続ステータス強化",
+      "title_en": "Purchasable permanent stat upgrades",
+      "changes_ja": [
+        "メタ進行に永続ステータス強化の枠を追加しました。最大HPは10段階で合計+50、攻撃と速度は各8段階で合計+8、ロードアウト上限は5段階で合計+5まで、メタポイントで強化できます。",
+        "各能力に段階別の費用を設定し、レベル・購入補正・実績込みの合計補正・次の費用を表示します。ポイント不足や最大強化時は購入できず、購入内容は保存されます。",
+        "強化は次に開始する通常・無限ランから適用します。既存の実績報酬と加算し、進行中・中断中のランやアリーナ・Web対戦のステータスは変更しません。",
+        "既存のBlenderアイコンとキャッシュ済みの表示を再利用します。開発者モードにはテスト用ポイント追加と、購入強化だけのリセット・返却を追加しました。"
+      ],
+      "changes_en": [
+        "Add permanent stat upgrade cards to Meta Progress: ten HP levels for +50, eight Attack and Speed levels for +8 each, and five loadout-cap levels for +5.",
+        "Charge increasing Meta Point prices per level, show current/next purchased and combined achievement bonuses, and persist purchases. Reject unaffordable or maxed upgrades.",
+        "Apply bonuses only to newly started Normal and Infinite runs. Preserve achievement rewards and stored active/suspended runs; keep solo and Web Arena fair and unchanged.",
+        "Reuse authored Blender icons and cached widgets. Add developer funding and purchase-only reset/refund controls."
+      ]
+    },
     {
       "version": "QQ-0.43.0", "date": "2026-10-17",
       "title_ja": "全実績のBlenderアイコンと上段レイアウト",

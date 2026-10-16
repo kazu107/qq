@@ -15,6 +15,8 @@ var _content_ready: bool = false
 var _content_building: bool = false
 var _achievement_widgets: Dictionary = {}
 var _starter_widgets: Dictionary = {}
+var _upgrade_box: GridContainer
+var _upgrade_widgets: Dictionary = {}
 
 
 func _ready() -> void:
@@ -109,6 +111,21 @@ func _build_ui() -> void:
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 18)
 	scroll.add_child(content)
+	var upgrades: VBoxContainer = _create_panel(content, Localization.get_text("meta.stat_upgrade.title", "Permanent Stat Upgrades"))
+	upgrades.name = "MetaStatUpgradePanel"
+	var upgrade_hint: Label = Label.new()
+	upgrade_hint.name = "MetaStatUpgradeHint"
+	upgrade_hint.text = Localization.get_text("meta.stat_upgrade.hint", "Spend Meta Points to strengthen future Normal and Infinite runs. Current/suspended runs and Arena/Web matches are unchanged.")
+	upgrade_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	upgrade_hint.theme_type_variation = "MutedLabel"
+	upgrades.add_child(upgrade_hint)
+	_upgrade_box = GridContainer.new()
+	_upgrade_box.name = "MetaStatUpgradeGrid"
+	_upgrade_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_upgrade_box.add_theme_constant_override("h_separation", 12)
+	_upgrade_box.add_theme_constant_override("v_separation", 12)
+	upgrades.add_child(_upgrade_box)
+	_build_stat_upgrades()
 	var progression: VBoxContainer = _create_panel(content, Localization.get_text("progress.title", "Automatic Unlocks & Seals"))
 	_content_progress_label = Label.new()
 	_content_progress_label.name = "MetaContentProgress"
@@ -162,6 +179,93 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 func _update_achievement_columns() -> void:
 	if _achievement_box != null:
 		_achievement_box.columns = 2 if size.x >= ACHIEVEMENT_TWO_COLUMN_WIDTH else 1
+	if _upgrade_box != null:
+		_upgrade_box.columns = 2 if size.x >= ACHIEVEMENT_TWO_COLUMN_WIDTH else 1
+
+
+func _build_stat_upgrades() -> void:
+	for entry: Dictionary in Game.get_meta_stat_upgrade_entries():
+		var id: String = String(entry["id"])
+		var frame: PanelContainer = _create_entry_frame(_upgrade_box, "MetaStatUpgradeFrame_" + id)
+		frame.custom_minimum_size.x = 380
+		var body: VBoxContainer = VBoxContainer.new()
+		body.add_theme_constant_override("separation", 10)
+		frame.add_child(body)
+		var heading: HBoxContainer = HBoxContainer.new()
+		heading.add_theme_constant_override("separation", 14)
+		body.add_child(heading)
+		var icon: TextureRect = TextureRect.new()
+		icon.texture = StatIconFactory.get_icon(String(entry["icon"]))
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(48, 48)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		heading.add_child(icon)
+		var info: VBoxContainer = VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.add_theme_constant_override("separation", 6)
+		heading.add_child(info)
+		var title: Label = Label.new()
+		title.name = "MetaStatUpgradeName_" + id
+		title.text = String(entry["name"])
+		title.add_theme_font_size_override("font_size", 20)
+		info.add_child(title)
+		var level: Label = Label.new()
+		level.name = "MetaStatUpgradeLevel_" + id
+		level.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info.add_child(level)
+		var total: Label = Label.new()
+		total.name = "MetaStatUpgradeTotal_" + id
+		total.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		total.theme_type_variation = "MutedLabel"
+		body.add_child(total)
+		var footer: HBoxContainer = HBoxContainer.new()
+		body.add_child(footer)
+		var bar: ProgressBar = ProgressBar.new()
+		bar.name = "MetaStatUpgradeBar_" + id
+		bar.custom_minimum_size = Vector2(120, 18)
+		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		bar.show_percentage = false
+		bar.add_theme_stylebox_override("background", _make_achievement_progress_background_style())
+		bar.add_theme_stylebox_override("fill", _make_achievement_progress_fill_style())
+		footer.add_child(bar)
+		var button: Button = Button.new()
+		button.name = "BuyMetaStatUpgrade_" + id
+		button.custom_minimum_size = Vector2(164, 44)
+		button.icon = StatIconFactory.get_icon("meta_points")
+		button.add_theme_constant_override("icon_max_width", 22)
+		button.pressed.connect(_on_buy_stat_upgrade.bind(id))
+		footer.add_child(button)
+		_upgrade_widgets[id] = {"frame": frame, "level": level, "total": total, "bar": bar, "button": button}
+	_update_stat_upgrades()
+
+
+func _update_stat_upgrades() -> void:
+	for entry: Dictionary in Game.get_meta_stat_upgrade_entries():
+		var widgets: Dictionary = Dictionary(_upgrade_widgets.get(entry["id"], {}))
+		if widgets.is_empty(): continue
+		(widgets["level"] as Label).text = Localization.get_textf("meta.stat_upgrade.level", "Lv. {level}/{max} | +{current} -> +{next}", {
+			"level": entry["level"], "max": entry["max_level"], "current": entry["current_bonus"], "next": entry["next_bonus"]})
+		if entry["complete"]:
+			(widgets["level"] as Label).text = Localization.get_textf("meta.stat_upgrade.level_max", "Lv. {level}/{max} | Purchased +{current}", {
+				"level": entry["level"], "max": entry["max_level"], "current": entry["current_bonus"]})
+		(widgets["total"] as Label).text = Localization.get_textf("meta.stat_upgrade.total", "Total +{total} (Achievements +{achievement} / Purchased +{purchased})", {
+			"total": entry["total_bonus"], "achievement": entry["achievement_bonus"], "purchased": entry["current_bonus"]})
+		var bar: ProgressBar = widgets["bar"] as ProgressBar
+		bar.max_value = int(entry["max_level"])
+		bar.value = int(entry["level"])
+		var button: Button = widgets["button"] as Button
+		button.disabled = not bool(entry["can_buy"])
+		button.text = Localization.get_text("meta.stat_upgrade.max", "MAX") if entry["complete"] else Localization.get_textf("meta.stat_upgrade.buy", "Upgrade {cost}", {"cost": entry["cost"]})
+		button.tooltip_text = Localization.get_text("meta.stat_upgrade.max_hint", "All stages purchased.") if entry["complete"] else Localization.get_textf("meta.stat_upgrade.cost_hint", "Next stage: +{amount}. Costs {cost} Meta Points.", {"amount": entry["amount"], "cost": entry["cost"]})
+		if not entry["complete"] and not entry["can_buy"]:
+			button.tooltip_text += "\n" + Localization.get_text("meta.stat_upgrade.not_enough", "Not enough Meta Points.")
+
+
+func _on_buy_stat_upgrade(stat_id: String) -> void:
+	Game.purchase_meta_stat_upgrade(stat_id)
+	_refresh_ui()
 
 
 func _create_entry_frame(parent: Container, frame_name: String) -> PanelContainer:
@@ -199,6 +303,7 @@ func _create_entry_row(parent: Container, frame_name: String, row_name: String) 
 
 
 func _refresh_ui() -> void:
+	_update_stat_upgrades()
 	var progress: Dictionary = Game.get_content_progress()
 	_content_progress_label.text = Game.get_content_progress_text()
 	_content_progress_label.tooltip_text = Localization.get_text("progress.xp_hint", "Each battle victory grants 1 cumulative unlock XP. Stages unlock automatically in a fixed order without spending XP.")
@@ -556,6 +661,8 @@ func _build_developer_panel() -> void:
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
 			{"id": "DevMetaAddPoints", "label": Localization.get_text("hub.dev.add_points", "Add 5 Points"), "callback": Callable(self, "_on_dev_add_points")},
+			{"id": "DevMetaUpgradePoints", "label": Localization.get_text("meta.stat_upgrade.dev_points", "Stat test: +100 Points"), "callback": Callable(self, "_on_dev_upgrade_points")},
+			{"id": "DevMetaResetStatUpgrades", "label": Localization.get_text("meta.stat_upgrade.dev_reset", "Reset purchases + refund"), "callback": Callable(self, "_on_dev_reset_stat_upgrades")},
 			{"id": "DevMetaGoldSpent", "label": Localization.get_text("meta.dev.gold_spent", "Gold spent +100 (test)"), "callback": Callable(self, "_on_dev_add_gold_spent")},
 			{"id": "DevMetaInfiniteScore", "label": Localization.get_text("meta.dev.infinite_score", "Infinite score +1000"), "callback": Callable(self, "_on_dev_add_progress_stat").bind("infinite_score_total", 1000)},
 			{"id": "DevMetaDelaySeconds", "label": Localization.get_text("meta.dev.delay_seconds", "Delay +10 seconds"), "callback": Callable(self, "_on_dev_add_progress_stat").bind("timeline_delay_ms", 10000)},
@@ -576,6 +683,16 @@ func _build_developer_panel() -> void:
 func _on_dev_add_points() -> void:
 	Game.developer_add_points(5)
 	_refresh_ui()
+
+
+func _on_dev_upgrade_points() -> void:
+	if not Game.is_developer_mode_enabled(): return
+	Game.developer_add_points(100)
+	_refresh_ui()
+
+
+func _on_dev_reset_stat_upgrades() -> void:
+	if Game.developer_reset_stat_upgrades(): _refresh_ui()
 
 
 func _on_dev_add_gold_spent() -> void:

@@ -92,6 +92,11 @@ func ensure_defaults(meta_progress: Dictionary) -> void:
 		meta_progress.get("permanent_bonuses", {}),
 		DEFAULT_PERMANENT_BONUSES
 	)
+	var upgrade_levels: Dictionary = _normalized_int_dictionary(meta_progress.get("permanent_upgrade_levels", {}), DEFAULT_PERMANENT_BONUSES)
+	for upgrade: Dictionary in Database.meta_stat_upgrades:
+		var id: String = String(upgrade["id"])
+		upgrade_levels[id] = clampi(int(upgrade_levels.get(id, 0)), 0, Array(upgrade["tiers"]).size())
+	meta_progress["permanent_upgrade_levels"] = upgrade_levels
 	if not Database.cards.is_empty():
 		_migrate_content_progression(meta_progress)
 		_apply_content_unlocks(meta_progress)
@@ -287,7 +292,64 @@ func get_achievement_stats(meta_progress: Dictionary) -> Dictionary:
 
 func get_permanent_bonuses(meta_progress: Dictionary) -> Dictionary:
 	ensure_defaults(meta_progress)
-	return Dictionary(meta_progress.get("permanent_bonuses", {})).duplicate(true)
+	var bonuses: Dictionary = Dictionary(meta_progress.get("permanent_bonuses", {})).duplicate(true)
+	var purchased: Dictionary = _get_purchased_bonuses(meta_progress)
+	for id: String in purchased:
+		bonuses[id] = int(bonuses.get(id, 0)) + int(purchased[id])
+	return bonuses
+
+
+func _get_purchased_bonuses(meta_progress: Dictionary) -> Dictionary:
+	var bonuses: Dictionary = DEFAULT_PERMANENT_BONUSES.duplicate()
+	var levels: Dictionary = Dictionary(meta_progress.get("permanent_upgrade_levels", {}))
+	for upgrade: Dictionary in Database.meta_stat_upgrades:
+		var id: String = String(upgrade["id"])
+		var tiers: Array = upgrade["tiers"]
+		for index: int in clampi(int(levels.get(id, 0)), 0, tiers.size()):
+			bonuses[id] = int(bonuses[id]) + int(tiers[index]["amount"])
+	return bonuses
+
+
+func build_stat_upgrade_entries(meta_progress: Dictionary) -> Array[Dictionary]:
+	ensure_defaults(meta_progress)
+	var entries: Array[Dictionary] = []
+	var purchased: Dictionary = _get_purchased_bonuses(meta_progress)
+	for upgrade: Dictionary in Database.meta_stat_upgrades:
+		var id: String = String(upgrade["id"])
+		var tiers: Array = upgrade["tiers"]
+		var level: int = int(meta_progress["permanent_upgrade_levels"][id])
+		var complete: bool = level >= tiers.size()
+		var amount: int = 0 if complete else int(tiers[level]["amount"])
+		var cost: int = 0 if complete else int(tiers[level]["cost"])
+		var achievement_bonus: int = int(meta_progress["permanent_bonuses"].get(id, 0))
+		entries.append({"id": id, "name": Localization.get_text("meta.stat_upgrade.%s" % id, String(upgrade["name"])),
+			"icon": upgrade["icon"], "level": level, "max_level": tiers.size(), "current_bonus": purchased[id],
+			"next_bonus": int(purchased[id]) + amount, "amount": amount, "cost": cost, "complete": complete,
+			"achievement_bonus": achievement_bonus, "total_bonus": achievement_bonus + int(purchased[id]),
+			"can_buy": not complete and cost > 0 and int(meta_progress["points"]) >= cost})
+	return entries
+
+
+func purchase_stat_upgrade(meta_progress: Dictionary, stat_id: String) -> bool:
+	for entry: Dictionary in build_stat_upgrade_entries(meta_progress):
+		if entry["id"] != stat_id: continue
+		if not bool(entry["can_buy"]): return false
+		meta_progress["points"] = int(meta_progress["points"]) - int(entry["cost"])
+		meta_progress["permanent_upgrade_levels"][stat_id] = int(entry["level"]) + 1
+		return true
+	return false
+
+
+func reset_stat_upgrades(meta_progress: Dictionary) -> int:
+	ensure_defaults(meta_progress)
+	var refund: int = 0
+	for upgrade: Dictionary in Database.meta_stat_upgrades:
+		var id: String = String(upgrade["id"])
+		for index: int in int(meta_progress["permanent_upgrade_levels"][id]):
+			refund += int(upgrade["tiers"][index]["cost"])
+		meta_progress["permanent_upgrade_levels"][id] = 0
+	meta_progress["points"] = int(meta_progress["points"]) + refund
+	return refund
 
 
 func get_unlocked_step_tier(meta_progress: Dictionary) -> int:
@@ -743,7 +805,8 @@ func _apply_achievement_reward(meta_progress: Dictionary, reward_data: Dictionar
 			if stat_id == "":
 				return
 			var amount: int = int(reward_data.get("amount", 0))
-			var bonuses: Dictionary = get_permanent_bonuses(meta_progress)
+			# Achievement rewards must not fold purchased bonuses into the legacy reward bucket.
+			var bonuses: Dictionary = Dictionary(meta_progress.get("permanent_bonuses", {})).duplicate(true)
 			bonuses[stat_id] = int(bonuses.get(stat_id, 0)) + amount
 			meta_progress["permanent_bonuses"] = bonuses
 		"meta_points":

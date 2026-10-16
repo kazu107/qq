@@ -291,6 +291,10 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/InfiniteScoreSmoke.tscn"
     )
+    Invoke-GodotCheck "[15-stat-upgrades/31] Running permanent stat upgrade smoke" $godotExe @(
+        "--no-header", "--headless", "--path", $root,
+        "--scene", "res://tests/MetaStatUpgradeSmoke.tscn"
+    )
     Invoke-GodotCheck "[15-achievement-icons/31] Running achievement icon smoke" $godotExe @(
         "--no-header", "--headless", "--path", $root,
         "--scene", "res://tests/AchievementIconSmoke.tscn"

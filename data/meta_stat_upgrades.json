@@ -1,0 +1,38 @@
+[
+  {
+    "id": "max_hp", "name": "Maximum HP", "icon": "hp",
+    "tiers": [
+      {"amount": 5, "cost": 2}, {"amount": 5, "cost": 4},
+      {"amount": 5, "cost": 7}, {"amount": 5, "cost": 11},
+      {"amount": 5, "cost": 16}, {"amount": 5, "cost": 23},
+      {"amount": 5, "cost": 32}, {"amount": 5, "cost": 44},
+      {"amount": 5, "cost": 60}, {"amount": 5, "cost": 80}
+    ]
+  },
+  {
+    "id": "attack", "name": "Attack", "icon": "attack",
+    "tiers": [
+      {"amount": 1, "cost": 4}, {"amount": 1, "cost": 8},
+      {"amount": 1, "cost": 14}, {"amount": 1, "cost": 22},
+      {"amount": 1, "cost": 34}, {"amount": 1, "cost": 50},
+      {"amount": 1, "cost": 72}, {"amount": 1, "cost": 100}
+    ]
+  },
+  {
+    "id": "speed", "name": "Speed", "icon": "speed",
+    "tiers": [
+      {"amount": 1, "cost": 3}, {"amount": 1, "cost": 6},
+      {"amount": 1, "cost": 10}, {"amount": 1, "cost": 16},
+      {"amount": 1, "cost": 24}, {"amount": 1, "cost": 36},
+      {"amount": 1, "cost": 52}, {"amount": 1, "cost": 74}
+    ]
+  },
+  {
+    "id": "loadout_limit", "name": "Loadout Limit", "icon": "card_equipped",
+    "tiers": [
+      {"amount": 1, "cost": 6}, {"amount": 1, "cost": 12},
+      {"amount": 1, "cost": 22}, {"amount": 1, "cost": 38},
+      {"amount": 1, "cost": 60}
+    ]
+  }
+]
