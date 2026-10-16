@@ -23,6 +23,10 @@ const DEFAULT_ACHIEVEMENT_STATS := {
 	"reward_rerolls": 0,
 	"shop_rerolls": 0,
 	"gold_spent": 0,
+	"infinite_score_total": 0,
+	"timeline_delay_ms": 0,
+	"timeline_advance_ms": 0,
+	"cards_interrupted": 0,
 	"rank_b_tier_1": 0,
 	"rank_a_tier_1": 0,
 	"rank_s_tier_1": 0,
@@ -464,6 +468,50 @@ func increment_achievement_stat(meta_progress: Dictionary, stat_id: String, amou
 	return next_value
 
 
+func record_battle_control(meta_progress: Dictionary, summary: Dictionary, side: String = "player", receipt_id: String = "") -> bool:
+	if side not in ["player", "enemy"] or String(summary.get("winner", "")) not in ["player", "enemy", "draw"]: return false
+	var control: Dictionary = Dictionary(Dictionary(summary.get("analysis", {})).get("timeline_control", {}))
+	if not control.has(side): return false
+	var receipt: String = receipt_id if receipt_id != "" else String(summary.get("control_receipt_id", ""))
+	if receipt == "": return false
+	ensure_defaults(meta_progress)
+	var receipts: Array[String] = _to_string_array(meta_progress.get("battle_control_receipts", []))
+	if receipts.has(receipt): return false
+	receipts.append(receipt)
+	if receipts.size() > 512: receipts.pop_front()
+	meta_progress["battle_control_receipts"] = receipts
+	var stats: Dictionary = Dictionary(meta_progress["achievement_stats"])
+	var values: Dictionary = Dictionary(control[side])
+	for metric: String in ["delay", "advance"]:
+		var seconds: float = float(values.get(metric + "_seconds", 0.0))
+		if is_finite(seconds): stats["timeline_%s_ms" % metric] = int(stats["timeline_%s_ms" % metric]) + maxi(0, roundi(seconds * 1000.0))
+	stats["cards_interrupted"] = int(stats["cards_interrupted"]) + maxi(0, int(values.get("interrupts", 0)))
+	meta_progress["achievement_stats"] = stats
+	return true
+
+
+func record_infinite_score(meta_progress: Dictionary, run: RunState) -> bool:
+	if run == null or not run.infinite_mode or run.arena_mode or bool(run.infinite_score.get("preview", false)): return false
+	var score: Dictionary = InfiniteScoreResolver.new().calculate(run)
+	var earned: int = maxi(0, int(score["total_score"]))
+	var credited: int = maxi(0, int(run.infinite_score.get("achievement_credited_score", 0)))
+	if earned <= credited: return false
+	increment_achievement_stat(meta_progress, "infinite_score_total", earned - credited)
+	run.infinite_score["achievement_credited_score"] = earned
+	return true
+
+
+static func format_achievement_progress(entry: Dictionary) -> String:
+	if String(entry.get("progress_unit", "")) == "seconds":
+		return Localization.get_textf("meta.achievement_progress_seconds", "{current}s / {target}s", {
+			"current": String.num(floorf(float(entry.get("current", 0)) / 100.0) / 10.0, 1).trim_suffix(".0"),
+			"target": String.num(float(entry.get("target", 0)) / 1000.0, 1).trim_suffix(".0"),
+		})
+	return Localization.get_textf("meta.achievement_progress", "Progress: {current} / {target}", {
+		"current": entry.get("current", 0), "target": entry.get("target", 1),
+	})
+
+
 func is_achievement_claimed(meta_progress: Dictionary, achievement_id: String) -> bool:
 	ensure_defaults(meta_progress)
 	var target_data: Dictionary = _resolve_achievement_target(achievement_id)
@@ -517,7 +565,15 @@ func is_achievement_claimable(meta_progress: Dictionary, achievement_id: String)
 func build_achievement_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 	ensure_defaults(meta_progress)
 	var entries: Array[Dictionary] = []
-	var claimed_ids: Array[String] = get_claimed_achievement_ids(meta_progress)
+	var claimed_ids: Array[String] = _to_string_array(meta_progress.get("claimed_achievements", []))
+	# Snapshot normalized values once rather than normalizing all tiers again for every row.
+	var condition_values: Dictionary = Dictionary(meta_progress["achievement_stats"]).duplicate()
+	condition_values.merge({"best_clear": int(meta_progress.get("best_clear", 0)),
+		"unlocked_cards": Array(meta_progress.get("unlocked_cards", [])).size(),
+		"unlocked_relics": Array(meta_progress.get("unlocked_relics", [])).size(),
+		"unlocked_starters": Array(meta_progress.get("unlocked_starters", [])).size(),
+		"unlocked_step_tier": int(meta_progress.get("unlocked_step_tier", 1)),
+		"infinite_mode_unlocked": 1 if bool(meta_progress.get("infinite_mode_unlocked", false)) else 0}, true)
 	for achievement_id in Database.get_all_achievement_ids():
 		var achievement_data: Dictionary = Database.get_achievement(achievement_id)
 		if achievement_data.is_empty():
@@ -531,7 +587,7 @@ func build_achievement_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 			var tier_condition: Dictionary = _get_tier_condition(achievement_data, active_tier)
 			var tier_stat_id: String = String(tier_condition.get("stat", ""))
 			var tier_target_value: int = int(tier_condition.get("value", 1))
-			var tier_current_value: int = _get_condition_value(meta_progress, tier_stat_id)
+			var tier_current_value: int = int(condition_values.get(tier_stat_id, 0))
 			var tier_rewards: Array = _get_tier_rewards(achievement_data, active_tier)
 			var tier_description: String = String(active_tier.get("description", ""))
 			if tier_description == "":
@@ -541,6 +597,7 @@ func build_achievement_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 				"name": String(achievement_data.get("name", achievement_id)),
 				"description": tier_description,
 				"stat": tier_stat_id,
+				"progress_unit": String(achievement_data.get("progress_unit", "")),
 				"current": tier_current_value,
 				"target": tier_target_value,
 				"claimed": achievement_complete,
@@ -554,7 +611,7 @@ func build_achievement_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 		var condition: Dictionary = Dictionary(achievement_data.get("condition", {}))
 		var stat_id: String = String(condition.get("stat", ""))
 		var target_value: int = int(condition.get("value", 1))
-		var current_value: int = _get_condition_value(meta_progress, stat_id)
+		var current_value: int = int(condition_values.get(stat_id, 0))
 		var claimed: bool = claimed_ids.has(achievement_id)
 		var rewards: Array = Array(achievement_data.get("rewards", []))
 		entries.append({

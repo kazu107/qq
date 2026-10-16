@@ -460,10 +460,7 @@ func _update_achievement_row_widgets(achievement_id: String, entry: Dictionary) 
 			"stages": tier_count,
 		})
 	if progress_label != null:
-		progress_label.text = Localization.get_textf("meta.achievement_progress", "Progress: {current} / {target}", {
-			"current": current_value,
-			"target": target_value,
-		})
+		progress_label.text = MetaProgressService.format_achievement_progress(entry)
 	if progress_bar != null:
 		progress_bar.max_value = float(target_value)
 		progress_bar.value = float(clampi(current_value, 0, target_value))
@@ -544,6 +541,10 @@ func _build_developer_panel() -> void:
 		[
 			{"id": "DevMetaAddPoints", "label": Localization.get_text("hub.dev.add_points", "Add 5 Points"), "callback": Callable(self, "_on_dev_add_points")},
 			{"id": "DevMetaGoldSpent", "label": Localization.get_text("meta.dev.gold_spent", "Gold spent +100 (test)"), "callback": Callable(self, "_on_dev_add_gold_spent")},
+			{"id": "DevMetaInfiniteScore", "label": Localization.get_text("meta.dev.infinite_score", "Infinite score +1000"), "callback": Callable(self, "_on_dev_add_progress_stat").bind("infinite_score_total", 1000)},
+			{"id": "DevMetaDelaySeconds", "label": Localization.get_text("meta.dev.delay_seconds", "Delay +10 seconds"), "callback": Callable(self, "_on_dev_add_progress_stat").bind("timeline_delay_ms", 10000)},
+			{"id": "DevMetaAdvanceSeconds", "label": Localization.get_text("meta.dev.advance_seconds", "Advance +10 seconds"), "callback": Callable(self, "_on_dev_add_progress_stat").bind("timeline_advance_ms", 10000)},
+			{"id": "DevMetaInterrupts", "label": Localization.get_text("meta.dev.interrupts", "Interrupts +1"), "callback": Callable(self, "_on_dev_add_progress_stat").bind("cards_interrupted", 1)},
 			{"id": "DevMetaUnlockTier2", "label": Localization.get_text("meta.dev.unlock_tier_2", "Unlock Steps 8-14"), "callback": Callable(self, "_on_dev_unlock_tier_2")},
 			{"id": "DevMetaUnlockTier3", "label": Localization.get_text("meta.dev.unlock_tier_3", "Unlock Steps 15-21"), "callback": Callable(self, "_on_dev_unlock_tier_3")},
 			{"id": "DevMetaUnlockTier4", "label": Localization.get_text("meta.dev.unlock_tier_4", "Unlock Steps 22-28"), "callback": Callable(self, "_on_dev_unlock_tier_4")},
@@ -565,6 +566,12 @@ func _on_dev_add_gold_spent() -> void:
 	if not Game.is_developer_mode_enabled():
 		return
 	Game.developer_add_achievement_stat("gold_spent", 100)
+	_refresh_ui()
+
+
+func _on_dev_add_progress_stat(stat_id: String, amount: int) -> void:
+	if not Game.is_developer_mode_enabled(): return
+	Game.developer_add_achievement_stat(stat_id, amount)
 	_refresh_ui()
 
 

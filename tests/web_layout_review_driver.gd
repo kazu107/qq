@@ -67,6 +67,20 @@ func _command(arguments: Array) -> void:
 			engine.battle_state.battle_time = 30.0
 			Game.complete_battle(engine.build_summary())
 			SceneRouter.go_to_reward()
+	elif String(payload.get("action", "")) == "achievement_fixture":
+		Game.current_run = null
+		Game.suspended_runs.clear()
+		Game.meta_progress = Database.meta_progress_template.duplicate(true)
+		Game.ensure_meta_initialized()
+		Game.set_language(String(payload.get("language", "ja")))
+		Game.meta_progress["achievement_stats"].merge(Dictionary(payload.get("stats", {})), true)
+		Game.meta_progress["achievement_claim_counts"] = Dictionary(payload.get("claims", {})).duplicate(true)
+		_open_screen("meta")
+	elif String(payload.get("action", "")) == "achievement_focus":
+		var screen: Control = get_tree().current_scene as Control
+		var row: Control = screen.find_child("MetaAchievementFrame_" + String(payload.get("id", "")), true, false) as Control
+		if row != null:
+			(screen.find_child("MetaContentScroll", true, false) as ScrollContainer).ensure_control_visible(row)
 	elif String(payload.get("action", "")) == "gold_spending_fixture":
 		Game.current_run = null
 		Game.meta_progress = Database.meta_progress_template.duplicate(true)
@@ -421,6 +435,15 @@ func _inspect() -> Dictionary:
 					parts[key] = _rect_values((widgets[key] as Control).get_global_rect())
 				cards.append({"id": id, "instance": frame.get_instance_id(), "rect": _rect_values(frame.get_global_rect()), "parts": parts})
 			result["achievements"] = {"columns": grid.columns, "cards": cards}
+			var progress_entries: Dictionary = {}
+			for entry: Dictionary in Game.get_meta_achievement_entries():
+				var id: String = String(entry["id"])
+				var widgets: Dictionary = Dictionary(screen.get("_achievement_widgets")).get(id, {})
+				if widgets.is_empty(): continue
+				progress_entries[id] = {"progress": (widgets["progress"] as Label).text, "stage": (widgets["stage"] as Label).text,
+					"name": entry["name"], "target": entry["target"], "current": entry["current"], "count": entry["claimed_count"], "tiers": entry["tier_count"],
+					"disabled": (widgets["button"] as Button).disabled, "points": Game.meta_progress["points"]}
+			result["achievement_progress"] = progress_entries
 			var name_label: Label = screen.find_child("AchievementName_big_spender", true, false) as Label
 			if name_label != null:
 				var progress: Label = screen.find_child("AchievementProgress_big_spender", true, false) as Label
@@ -559,6 +582,8 @@ func _inspect() -> Dictionary:
 				"status_corners": _project_status_corners(stage, player_status) + _project_status_corners(stage, enemy_status),
 			}
 			var engine: RealtimeBattleEngine = screen.get("_engine") as RealtimeBattleEngine
+			result["battle_control"] = {"receipt": engine._control_receipt_id, "metrics": engine.analysis.timeline_control.duplicate(true),
+				"stats": Dictionary(Game.meta_progress["achievement_stats"]).duplicate()}
 			if engine.battle_state.enemy.unit_id == "boss_timekeeper":
 				var panel: TimelinePanel = screen.get("_timeline_panel") as TimelinePanel
 				var forecast: Label = panel.find_child("TimekeeperForecast", true, false) as Label

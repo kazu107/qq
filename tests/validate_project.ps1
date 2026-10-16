@@ -291,6 +291,10 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/InfiniteScoreSmoke.tscn"
     )
+    Invoke-GodotCheck "[15-achievements/31] Running achievement expansion smoke" $godotExe @(
+        "--no-header", "--headless", "--path", $root,
+        "--scene", "res://tests/AchievementExpansionSmoke.tscn"
+    )
     Invoke-GodotCheck "[15-encounter/31] Running encounter preview smoke" $godotExe @(
         "--no-header", "--headless", "--path", $root,
         "--scene", "res://tests/EncounterPreviewSmoke.tscn"

@@ -63,7 +63,7 @@ func update(delta: float) -> void:
 		_update_compression_caliper(side)
 		if has_relic(side, "fourth_reserve_rack") and unit.active_slots_used >= 4:
 			for instance: ActiveCardInstance in _state.get_active_instances_for_side(side):
-				instance.shift_schedule(delta * 0.25, _state.battle_time, true)
+				_engine.shift_instance_schedule(instance, delta * 0.25, side, true)
 		if has_relic(side, "vacancy_interest_meter"):
 			var empty_slots: int = maxi(0, unit.active_slot_max - unit.active_slots_used)
 			var accumulator: float = _number(side, "empty_slot_seconds") + delta * float(empty_slots)
@@ -395,7 +395,7 @@ func on_timeline_shift(target_side: String, source_side: String, instance: Activ
 				if instance.interruptible:
 					triggered = _engine.interrupt_instance(instance)
 				else:
-					instance.shift_schedule(3.0, _state.battle_time)
+					_engine.shift_instance_schedule(instance, 3.0, source_side)
 					triggered = true
 				if triggered:
 					instance.relic_delay_hits = 0

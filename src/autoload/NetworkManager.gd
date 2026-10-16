@@ -2819,6 +2819,12 @@ func _apply_match_finished(result: Dictionary) -> void:
 	_reconnecting = false
 	_waiting_for_reconnect = false
 	_last_match_result = result.duplicate(true)
+	var local_id: int = multiplayer.get_unique_id()
+	if not is_local_spectator():
+		if local_id == int(result.get("player_peer_id", -1)):
+			Game.record_online_battle_control(result, "player", String(result.get("match_id", "")))
+		elif local_id == int(result.get("enemy_peer_id", -1)):
+			Game.record_online_battle_control(result, "enemy", String(result.get("match_id", "")))
 	_local_profile["ready"] = false
 	_battle_ready_by_side = {"player": false, "enemy": false}
 	_battle_countdown_active = false

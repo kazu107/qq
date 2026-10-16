@@ -9,7 +9,23 @@ const MAX_HP_SAMPLES: int = 1024
 var hp_history: Array[Dictionary] = []
 var totals: Dictionary = {}
 var combatants: Dictionary = {}
+var timeline_control: Dictionary = {
+	"player": {"delay_seconds": 0.0, "advance_seconds": 0.0, "interrupts": 0},
+	"enemy": {"delay_seconds": 0.0, "advance_seconds": 0.0, "interrupts": 0},
+}
 var _sample_interval: float = 0.5
+
+
+func record_timeline_shift(source_side: String, actual_delta: float) -> void:
+	if not timeline_control.has(source_side) or not is_finite(actual_delta): return
+	var metric: String = "delay_seconds" if actual_delta > 0.0 else "advance_seconds"
+	timeline_control[source_side][metric] = float(timeline_control[source_side][metric]) + absf(actual_delta)
+
+
+func _actor_side(actor_id: String) -> String:
+	for side: String in combatants:
+		if actor_id == String(combatants[side].get("id", "")): return side
+	return "player" if actor_id == "player" else "enemy"
 
 
 func capture_state(state: BattleState, force: bool = false) -> void:
@@ -53,6 +69,10 @@ func record(event: Dictionary) -> void:
 			fatigue_hp_damage += maxi(0, int(before.get("hp", 0)) - int(after.get("hp", 0)))
 			fatigue_shield_damage += maxi(0, int(before.get("shield", 0)) - int(after.get("shield", 0)))
 		return
+	if kind == "interrupt_card":
+		var source_side: String = _actor_side(String(event.get("actor_id", "")))
+		timeline_control[source_side]["interrupts"] = int(timeline_control[source_side]["interrupts"]) + 1
+		return
 	if kind != "resolve_card":
 		return
 	var actor: String = String(event.get("actor_id", ""))
@@ -86,7 +106,8 @@ func record(event: Dictionary) -> void:
 func to_dict() -> Dictionary:
 	return {"cards": rows.values().duplicate(true), "fatigue_hits": fatigue_hits,
 		"fatigue_hp_damage": fatigue_hp_damage, "fatigue_shield_damage": fatigue_shield_damage,
-		"totals": totals.duplicate(true), "combatants": combatants.duplicate(true), "hp_history": hp_history.duplicate(true)}
+		"totals": totals.duplicate(true), "combatants": combatants.duplicate(true), "hp_history": hp_history.duplicate(true),
+		"timeline_control": timeline_control.duplicate(true)}
 
 
 static func get_totals(data: Dictionary) -> Dictionary:

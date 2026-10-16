@@ -37,7 +37,7 @@ try {
       for (let frame = 0; !state.gold_spending && frame < 15; frame++) state = await command('inspect');
       assert.equal(state.achievements.columns, 2, 'Achievements should use two columns');
       const cards = state.achievements.cards;
-      assert.equal(cards.length, 26);
+      assert.equal(cards.length, 30);
       for (let index = 0; index < cards.length; index++) {
         const card = cards[index];
         const [left, top, width, height] = card.rect;

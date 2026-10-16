@@ -169,6 +169,7 @@ func apply_loaded_save(save_data: SaveData) -> void:
 		current_run = RunState.from_dict(save_data.current_run)
 	ensure_meta_initialized()
 	_sync_language_from_settings(false)
+	_meta_progress_service.record_infinite_score(meta_progress, current_run)
 
 
 func build_save_data(scene_hint: String) -> SaveData:
@@ -520,8 +521,9 @@ func _update_infinite_record() -> bool:
 	if current_run == null or not current_run.infinite_mode or current_run.arena_mode or not current_run.run_complete:
 		return false
 	var score: Dictionary = InfiniteScoreResolver.new().calculate(current_run)
+	var score_credited: bool = _meta_progress_service.record_infinite_score(meta_progress, current_run)
 	if bool(current_run.infinite_score.get("preview", false)) or bool(current_run.infinite_score.get("recorded", false)):
-		return false
+		return score_credited
 	var record: Dictionary = Dictionary(meta_progress.get("infinite_record", {})).duplicate(true)
 	if int(record.get("version", 0)) != InfiniteScoreResolver.VERSION:
 		record = {"version": InfiniteScoreResolver.VERSION, "high_score": 0, "best_reached_step": 0}
@@ -583,6 +585,7 @@ func resume_suspended_run(mode: String) -> String:
 	last_battle_summary = Dictionary(snapshot.get("last_battle_summary", {})).duplicate(true)
 	last_reward_bundle = Dictionary(snapshot.get("last_reward_bundle", {})).duplicate(true)
 	current_screen_hint = String(snapshot.get("screen_hint", "arena" if current_run.arena_mode else "map"))
+	_meta_progress_service.record_infinite_score(meta_progress, current_run)
 	suspended_runs.erase(slot_id)
 	SaveManager.save_game(current_screen_hint)
 	return current_screen_hint
@@ -1524,6 +1527,7 @@ func developer_open_result(starter_id: String = "balanced") -> void:
 func _record_run_battle(summary: Dictionary, active_node: Dictionary) -> void:
 	if current_run == null:
 		return
+	_meta_progress_service.record_battle_control(meta_progress, summary)
 	var infinite: bool = current_run.infinite_mode and not current_run.arena_mode
 	if infinite:
 		InfiniteScoreResolver.new().ensure_initialized(current_run)
@@ -1541,6 +1545,7 @@ func _record_run_battle(summary: Dictionary, active_node: Dictionary) -> void:
 			"battle_id": String(summary.get("battle_id", "")), "forced_hazard_withdraw": bool(summary.get("forced_hazard_withdraw", false))})
 		entry.merge(Dictionary(summary.get("infinite_score_context", {})), true)
 		InfiniteScoreResolver.new().record_battle(current_run, entry)
+		_meta_progress_service.record_infinite_score(meta_progress, current_run)
 	if battle_time > 0.0:
 		current_run.battle_history.append(entry)
 
@@ -1568,6 +1573,13 @@ func _update_latest_battle_history(values: Dictionary) -> void:
 		var key: String = String(raw_key)
 		latest_entry[key] = values[raw_key]
 	current_run.battle_history[latest_index] = latest_entry
+
+
+func record_online_battle_control(summary: Dictionary, side: String, match_id: String) -> bool:
+	if match_id == "": return false
+	if not _meta_progress_service.record_battle_control(meta_progress, summary, side, "web:" + match_id): return false
+	SaveManager.request_save(current_screen_hint)
+	return true
 
 
 func developer_add_gold(amount: int = 50) -> int:
@@ -3073,6 +3085,7 @@ func _complete_active_map_node_and_advance() -> void:
 	var nodes: Array = Array(step_data.get("nodes", []))
 	if current_run.infinite_mode:
 		InfiniteScoreResolver.new().record_step(current_run, Dictionary(nodes[node_index]), step_index)
+		_meta_progress_service.record_infinite_score(meta_progress, current_run)
 	for index in range(nodes.size()):
 		var node_data: Dictionary = Dictionary(nodes[index])
 		if index == node_index:

@@ -1,9 +1,26 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.41.0",
+  "current_version": "QQ-0.42.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.42.0", "date": "2026-10-17",
+      "title_ja": "無限スコア・時間操作の実績と段階の大幅追加",
+      "title_en": "Infinite score and timeline achievements with expanded milestones",
+      "changes_ja": [
+        "無限モードの累計獲得スコア、カードを遅延した合計秒数、前進した合計秒数、中断成功回数の実績を追加しました。それぞれ12段階で、同じ枠から順番に報酬を受け取れます。",
+        "勝利・挑戦・ボス撃破・購入・強化・リロール・ゴールド使用額・ランク達成など、既存22実績の末尾に134段階を追加しました。全30実績・296段階となり、受け取り済みの段階と既存報酬は維持します。",
+        "時間操作は対象カードごとの実際の変化量を集計し、停止・逆流・遺物による操作も含めます。戦闘終了時に自分の分だけを保存し、観戦や結果の重複受信では加算しません。小数秒も保存して表示します。",
+        "無限スコアは獲得済みの差分だけを累計し、ラン中・セーブ再開・敗北でも重複しません。開発者用プレビューは除外します。メタ進行の開発者パネルに新実績の進捗追加ボタンを用意しました。"
+      ],
+      "changes_en": [
+        "Add twelve-tier achievements for lifetime Infinite score, actual card-delay seconds, card-advance seconds and successful interruptions.",
+        "Append 134 stages to 22 existing achievement groups, preserving previous thresholds, rewards and claims. The catalog now has 30 groups and 296 stages.",
+        "Track actual per-card shifts, including stop, reverse and relic effects. Save only the local player's completed-battle metrics; exclude spectators and duplicate results, while retaining fractional seconds.",
+        "Credit only newly earned Infinite points across runs, saves and defeats, excluding developer previews. Add developer controls for all four new progress counters."
+      ]
+    },
     {
       "version": "QQ-0.41.0", "date": "2026-10-16",
       "title_ja": "戦闘前の敵紹介と共通の連戦フロー",

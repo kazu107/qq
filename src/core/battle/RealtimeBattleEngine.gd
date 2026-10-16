@@ -18,6 +18,7 @@ var _pvp_mode: bool = false
 var _audio_enabled: bool = true
 var _defer_resolution_audio: bool = false
 var _infinite_score_context: Dictionary = {}
+var _control_receipt_id: String = ""
 var analysis: BattleAnalysis = BattleAnalysis.new()
 var recording: BattleRecording = BattleRecording.new()
 var resolution_metrics: Dictionary = {}
@@ -58,6 +59,7 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 		return
 
 	_player_run = player_run
+	_control_receipt_id = Crypto.new().generate_random_bytes(16).hex_encode()
 	_infinite_score_context = _capture_infinite_score_context(player_run)
 	_enemy_run = null
 	_pvp_mode = false
@@ -92,6 +94,7 @@ func setup_pvp(
 		return
 	_player_run = player_run
 	_enemy_run = opponent_run
+	_control_receipt_id = Crypto.new().generate_random_bytes(16).hex_encode()
 	_pvp_mode = true
 	_infinite_score_context.clear()
 	_battle_started = false
@@ -523,6 +526,7 @@ func build_summary(include_battle_events: bool = true) -> Dictionary:
 	analysis.capture_state(battle_state, true)
 	var summary: Dictionary = {
 		"battle_id": _build_battle_id(),
+		"control_receipt_id": _control_receipt_id,
 		"winner": battle_state.winner,
 		"battle_time": battle_state.battle_time,
 		"player_hp": battle_state.player.hp,
@@ -894,7 +898,7 @@ func _snapshot_timeline() -> Array[Dictionary]:
 
 
 func _force_interrupt(instance: ActiveCardInstance) -> bool:
-	if instance.owner_side == FatigueRules.SIDE:
+	if instance.owner_side == FatigueRules.SIDE or not battle_state.active_instances.has(instance):
 		return false
 	var unit := battle_state.get_unit(instance.owner_side)
 	var slots_before: int = unit.active_slots_used
@@ -942,14 +946,22 @@ func _shift_active_cards(side: String, delta_amount: float, scope: String, exclu
 	)
 	var count := 0
 	for instance in targets:
-		var before: float = instance.scheduled_time
-		instance.shift_schedule(delta_amount, battle_state.battle_time)
-		_relic_controller.on_timeline_shift(side, source_side, instance, instance.scheduled_time - before)
+		var actual_delta: float = shift_instance_schedule(instance, delta_amount, source_side)
+		_relic_controller.on_timeline_shift(side, source_side, instance, actual_delta)
 		count += 1
 		if scope != "all":
 			break
 	_timeline_resolver.rebuild_timeline(battle_state)
 	return count
+
+
+func shift_instance_schedule(instance: ActiveCardInstance, delta_amount: float, source_side: String, continuous: bool = false) -> float:
+	var before: float = instance.scheduled_time
+	instance.shift_schedule(delta_amount, battle_state.battle_time, continuous)
+	var actual_delta: float = instance.scheduled_time - before
+	# Callers iterate registered cards; avoid an extra linear membership scan per flow tick.
+	analysis.record_timeline_shift(source_side, actual_delta)
+	return actual_delta
 
 
 func _resolve_modifier_card_ids(side: String, source_card_id: String, effect: Dictionary) -> Array[String]:
@@ -1066,7 +1078,7 @@ func _apply_flow_shift(flow: Dictionary, shift_amount: float, reverse_distance: 
 			fraction = clampf((start + active_delta - maxf(start, instance.created_at)) / active_delta, 0.0, 1.0)
 		if fraction <= 0.0:
 			continue
-		instance.shift_schedule(shift_amount * fraction, battle_state.battle_time, true)
+		shift_instance_schedule(instance, shift_amount * fraction, String(flow.get("source_side", "")), true)
 		if String(flow.get("mode", "stop")) == "reverse" and instance.owner_side != FatigueRules.SIDE:
 			_relic_controller.on_reverse_shift(instance.owner_side, instance, reverse_distance)
 	return targets.size()

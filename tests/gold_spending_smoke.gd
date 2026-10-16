@@ -1,7 +1,7 @@
 extends Node
 
-const TARGETS: Array[int] = [25, 100, 300, 750, 1500, 3000, 6000, 10000]
-const REWARDS: Array[int] = [1, 2, 3, 5, 6, 8, 10, 12]
+const TARGETS: Array[int] = [25, 100, 300, 750, 1500, 3000, 6000, 10000, 20000, 50000, 100000, 250000, 500000, 1000000]
+const REWARDS: Array[int] = [1, 2, 3, 5, 6, 8, 10, 12, 15, 18, 22, 26, 30, 40]
 var _checks: int = 0
 var _service: MetaProgressService = MetaProgressService.new()
 
@@ -43,12 +43,12 @@ func _run() -> void:
 		_check(not _service.claim_achievement(meta, "big_spender"), "early tier claim accepted")
 		_service.increment_achievement_stat(meta, "gold_spent", 1)
 		var entry: Dictionary = _entry(meta)
-		_check(int(entry["tier_count"]) == 8 and int(entry["target"]) == TARGETS[index], "wrong tier threshold")
+		_check(int(entry["tier_count"]) == TARGETS.size() and int(entry["target"]) == TARGETS[index], "wrong tier threshold")
 		var points: int = int(meta["points"])
 		_check(_service.claim_achievement(meta, "big_spender"), "threshold claim failed")
 		_check(int(meta["points"]) == points + REWARDS[index], "incorrect tier reward")
 		_check(not _service.claim_achievement(meta, "big_spender"), "duplicate tier reward accepted")
-	_check(bool(_entry(meta)["claimed"]), "eighth tier must finish the achievement")
+	_check(bool(_entry(meta)["claimed"]), "last tier must finish the achievement")
 	for with_counts: bool in [false, true]:
 		var legacy: Dictionary = _fresh_meta()
 		legacy["claimed_achievements"] = ["big_spender"]
