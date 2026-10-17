@@ -11,11 +11,15 @@ var _debug_card_options: Array[CardIconPicker] = []
 var _debug_card_grade_options: Array[OptionButton] = []
 var _version_history_overlay: ColorRect
 var _version_history_content: RichTextLabel
+var _account_button: Button
 
 
 func _ready() -> void:
 	Game.stash_active_run_for_hub()
 	_build_top_right_actions()
+	AccountSession.changed.connect(_refresh_account_button)
+	_refresh_account_button()
+	AccountSession.refresh()
 	var margin: MarginContainer = MarginContainer.new()
 	margin.anchor_right = 1.0
 	margin.anchor_bottom = 1.0
@@ -202,7 +206,7 @@ func _build_top_right_actions() -> void:
 	actions.anchor_top = 0.0
 	actions.anchor_right = 1.0
 	actions.anchor_bottom = 0.0
-	actions.offset_left = -390.0
+	actions.offset_left = -700.0
 	actions.offset_top = 22.0
 	actions.offset_right = -22.0
 	actions.offset_bottom = 76.0
@@ -210,6 +214,14 @@ func _build_top_right_actions() -> void:
 	actions.add_theme_constant_override("separation", 10)
 	actions.z_index = 40
 	add_child(actions)
+	_account_button = Button.new()
+	_account_button.name = "HubAccountButton"
+	_account_button.custom_minimum_size = Vector2(300.0, 54.0)
+	_account_button.icon = StatIconFactory.get_icon("online")
+	_account_button.expand_icon = true
+	_account_button.add_theme_constant_override("icon_max_width", 24)
+	_account_button.pressed.connect(_open_account)
+	actions.add_child(_account_button)
 
 	var history_button: Button = Button.new()
 	history_button.name = "VersionHistoryButton"
@@ -236,6 +248,25 @@ func _build_top_right_actions() -> void:
 	settings_button.expand_icon = true
 	settings_button.pressed.connect(_open_settings)
 	actions.add_child(settings_button)
+
+
+func _refresh_account_button() -> void:
+	if not is_instance_valid(_account_button): return
+	var data: Dictionary = AccountSession.snapshot
+	_account_button.text = Localization.get_text("account.register_name", "Set username") if data.get("needsUsername", false) else Localization.get_text("account.signed_in", "Account: signed in") if data.get("authenticated", false) else Localization.get_text("account.open", "Sign in / Register")
+	_account_button.disabled = not AccountSession.is_supported()
+	_account_button.tooltip_text = Localization.get_text("account.open_hint", "Open your account. Game saves stay on this device/browser.") if AccountSession.is_supported() else Localization.get_text("account.web_only", "Account sign-in is available in the Web edition. Local play does not require an account.")
+
+
+func _open_account() -> void:
+	SaveManager.flush_requested_save()
+	if AccountSession.open_account(Localization.get_language()): return
+	var notice: AcceptDialog = AcceptDialog.new()
+	notice.dialog_text = Localization.get_text("account.popup_blocked", "Allow pop-ups for this site, then open your account again.")
+	notice.confirmed.connect(notice.queue_free)
+	notice.canceled.connect(notice.queue_free)
+	add_child(notice)
+	notice.popup_centered()
 
 
 func _build_version_history_overlay() -> void:

@@ -4,6 +4,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const { WebSocketServer, WebSocket } = require("ws");
+const { createAccountService } = require("./accounts/http");
 
 const MAX_SIGNAL_BYTES = 64 * 1024;
 const ROOM_CODE_PATTERN = /^[A-Z0-9]{6}$/;
@@ -45,6 +46,7 @@ function createQqServer(options = {}) {
   const rooms = new Map();
   const clients = new Map();
   const iceServers = options.iceServers || buildIceServers(options.env || process.env);
+  const account = createAccountService(options.env || process.env, options.account || {});
 
   const server = http.createServer((request, response) => {
     setSecurityHeaders(response);
@@ -53,7 +55,13 @@ function createQqServer(options = {}) {
       response.end(JSON.stringify({ ok: true, rooms: rooms.size }));
       return;
     }
-    serveStatic(publicDir, request, response);
+    account.handle(request, response).then(handled => {
+      if (!handled) serveStatic(publicDir, request, response);
+    }).catch(error => {
+      if (response.headersSent) { response.destroy(); return; }
+      response.writeHead(error instanceof URIError ? 400 : 500, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end("Request could not be processed.");
+    });
   });
 
   const websocketServer = new WebSocketServer({ noServer: true, maxPayload: MAX_SIGNAL_BYTES });
@@ -112,9 +120,10 @@ function createQqServer(options = {}) {
     clearInterval(heartbeat);
     for (const socket of clients.keys()) socket.terminate();
     websocketServer.close();
+    account.close().catch(() => {});
   });
 
-  return { server, rooms, clients };
+  return { server, rooms, clients, account };
 }
 
 function handleMessage(socket, message, rooms, clients, iceServers) {

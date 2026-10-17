@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.44.1",
+  "current_version": "QQ-0.45.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.45.0", "date": "2026-10-17",
+      "title_ja": "Google・GitHubアカウントの土台",
+      "title_en": "Google and GitHub accounts",
+      "changes_ja": [
+        "Web版ハブにログイン・新規登録の入口を追加しました。初めて本人確認したときに、日本語にも対応した重複不可のユーザー名を設定します。認証サービスの設定が済むまでは準備中と表示し、ログインなしで引き続き遊べます。",
+        "サーバー側のOAuth認証とPostgreSQLに、固定ID・ユーザー名・有効期限付きセッションを保存します。GoogleとGitHubのアカウントは自動統合せず、パスワード・メールアドレス・外部サービスのアクセストークンは保存しません。",
+        "ゲームのセーブは従来どおり端末・ブラウザ内に維持します。クラウドセーブと無限モードのランキング投稿は今後の機能です。設定手順、模擬認証と実DBのテストを追加しました。"
+      ],
+      "changes_en": [
+        "Add a Web Hub account popup for Google/GitHub sign-in and first-time registration with a unique Japanese-capable username. Unconfigured servers show a preparation notice without restricting guest play.",
+        "Use server-side OAuth and PostgreSQL for stable identities, usernames and expiring sessions. Never auto-link providers by email or store passwords, email addresses or provider access tokens.",
+        "Preserve local device/browser saves. Cloud saves and Infinite leaderboards remain future work. Include setup documentation and mock OAuth tests against a real database."
+      ]
+    },
     {
       "version": "QQ-0.44.1", "date": "2026-10-17",
       "title_ja": "永続強化ボタンの表記順を調整",

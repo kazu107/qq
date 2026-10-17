@@ -8,10 +8,13 @@
   },
   "scripts": {
     "start": "node server/server.js",
-    "test": "node --test server/server.test.js tests/r2_release_manifest.test.mjs",
-    "test:r2": "node --test tests/r2_release_manifest.test.mjs"
+    "test": "node --test server/*.test.js server/accounts/*.test.js tests/r2_release_manifest.test.mjs",
+    "test:r2": "node --test tests/r2_release_manifest.test.mjs",
+    "migrate:accounts": "node server/accounts/migrate.js"
   },
   "dependencies": {
+    "openid-client": "^6.8.8",
+    "pg": "^8.23.1",
     "ws": "^8.18.3"
   }
 }

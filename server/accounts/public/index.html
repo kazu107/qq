@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>QueueQuest | Account</title>
+  <link rel="icon" href="/queuequest-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/account/style.css">
+  <script src="/account/app.js" defer></script>
+</head>
+<body>
+  <main class="account-shell">
+    <header><a href="/" class="brand" aria-label="QueueQuest"><img src="/queuequest-logo.svg" alt="QueueQuest"></a><span class="eyebrow" id="eyebrow">ACCOUNT</span></header>
+    <section class="account-card">
+      <span class="section-mark" aria-hidden="true"></span>
+      <h1 id="title">アカウント</h1>
+      <p id="subtitle" class="muted">Google・GitHubで本人確認します。</p>
+      <p id="message" role="status" aria-live="polite">読み込み中...</p>
+      <div id="providers" class="providers" hidden>
+        <a id="google" class="provider google" aria-disabled="true"><img src="/account/google-g.png" width="20" height="20" alt=""><span id="google-label">Googleで続ける</span></a>
+        <a id="github" class="provider github" aria-disabled="true"><span aria-hidden="true" class="provider-mark">GH</span><span id="github-label">GitHubで続ける</span><span aria-hidden="true">↗</span></a>
+        <p class="small muted" id="provider-note"></p>
+      </div>
+      <form id="registration" hidden>
+        <label for="username" id="username-label">ユーザー名</label>
+        <input id="username" name="username" autocomplete="nickname" maxlength="40" spellcheck="false" required aria-describedby="username-hint">
+        <p id="username-hint" class="small muted"></p>
+        <button id="register" type="submit">登録を完了</button>
+      </form>
+      <div id="signed-in" hidden>
+        <span class="small muted" id="identity-label"></span>
+        <p id="username-display" dir="auto"></p>
+      </div>
+      <div class="actions">
+        <button id="refresh" class="secondary" type="button">再確認</button>
+        <button id="logout" class="secondary danger" type="button" hidden>ログアウト</button>
+        <button id="return" class="secondary" type="button">ゲームに戻る</button>
+      </div>
+    </section>
+    <footer><p id="local-save-note"></p><p id="privacy-note"></p></footer>
+    <noscript>JavaScriptを有効にしてください。 / Please enable JavaScript.</noscript>
+  </main>
+</body>
+</html>

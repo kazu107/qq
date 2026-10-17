@@ -9,6 +9,9 @@ Thumbs.db
 __pycache__/
 *.pyc
 node_modules/
+.env
+.env.*
+!.env.example
 
 # EOS local credentials and proprietary redistributables.
 /config/eos_credentials.local.cfg

@@ -1,4 +1,10 @@
 {
+  "account.open": "ログイン / 新規登録",
+  "account.signed_in": "アカウント：ログイン中",
+  "account.register_name": "ユーザー名を設定",
+  "account.open_hint": "アカウント画面を開きます。ゲームのセーブはこの端末／ブラウザに保存されます。",
+  "account.web_only": "アカウントへのログインはWeb版で利用できます。ローカルプレイにログインは必要ありません。",
+  "account.popup_blocked": "このサイトのポップアップを許可してから、もう一度アカウントを開いてください。",
   "meta.stat_upgrade.title": "永続ステータス強化",
   "meta.stat_upgrade.hint": "メタポイントで段階的に強化します。次に開始する通常・無限ランから適用され、進行中・中断中のランやアリーナ・Web対戦には反映されません。ロードアウトはコスト上限を増やします。",
   "meta.stat_upgrade.max_hp": "最大HP",
