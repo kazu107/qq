@@ -35,3 +35,13 @@ footer { color:var(--muted); font-size:12px; padding:10px 12px; }
 [hidden] { display:none !important; }
 @media(max-width:520px) { .account-shell { margin:24px auto; width:calc(100% - 28px); } .account-card { padding:23px; } h1 { font-size:24px; } .actions button { flex:1 1 auto; } }
 @media(prefers-reduced-motion:reduce) { .provider:hover { transform:none; } }
+.ranking-shell { width:min(1100px,100% - 28px); margin:36px auto; }
+.ranking-scroll { overflow-x:auto; }
+table { border-collapse:collapse; width:100%; text-align:left; white-space:nowrap; }
+td,th { padding:12px 10px; border-bottom:1px solid var(--line); }
+th { color:var(--gold); }
+select { background:var(--panel); color:var(--ink); padding:10px; border:1px solid var(--line); border-radius:6px; }
+.ranking-history { margin-top:24px; }
+dialog { background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:14px; max-width:calc(100% - 32px); }
+dialog::backdrop { background:#000b; }
+pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:55vh; overflow:auto; }

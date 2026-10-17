@@ -17,11 +17,13 @@ var _starter_buttons: Dictionary = {}
 var _starter_indicators: Dictionary = {}
 var _starter_button_group: ButtonGroup
 var _is_arena_setup: bool = false
+var _is_ranked_setup: bool = false
 var _compact_layout: bool = false
 
 
 func _ready() -> void:
 	_is_arena_setup = Game.get_run_setup_mode() == Game.RUN_SETUP_MODE_ARENA
+	_is_ranked_setup = Game.get_run_setup_mode() == Game.RUN_SETUP_MODE_RANKED
 	_compact_layout = get_viewport_rect().size.y < 850.0
 	_build_page()
 	_refresh_details()
@@ -183,6 +185,7 @@ func _build_deck_list(parent: HBoxContainer) -> void:
 	_starter_button_group = ButtonGroup.new()
 	_starter_button_group.allow_unpress = false
 	var unlocked_starters: Array[Dictionary] = Game.get_unlocked_starters()
+	if _is_ranked_setup: unlocked_starters = Database.starters.duplicate(true)
 	for starter: Dictionary in unlocked_starters:
 		var starter_id: String = String(starter.get("id", ""))
 		if starter_id == "":
@@ -410,6 +413,8 @@ func _build_detail_column(parent: HBoxContainer) -> void:
 		"Start Arena" if _is_arena_setup else "Start Run"
 	)
 	_start_button.custom_minimum_size = Vector2(0.0, 54.0 if _compact_layout else 64.0)
+	if _is_ranked_setup:
+		_start_button.text = "ランキングに挑戦" if Localization.get_language() == "ja" else "Start Ranked Infinite"
 	_start_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_start_button.add_theme_font_size_override("font_size", 18 if _compact_layout else 21)
 	_start_button.pressed.connect(_on_start_arena if _is_arena_setup else _on_start)
@@ -567,6 +572,13 @@ func _make_deck_button_style(fill_color: Color, border_color: Color, border_widt
 
 
 func _on_start() -> void:
+	if _is_ranked_setup:
+		_start_button.disabled = true
+		if await RankedSession.start(_selected_starter_id): SceneRouter.go_to_map()
+		else:
+			_details_label.append_text("\n" + RankedSession.status_text)
+			_start_button.disabled = false
+		return
 	Game.start_new_run(_selected_starter_id)
 	SceneRouter.go_to_map()
 

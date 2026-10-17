@@ -1,0 +1,752 @@
+{
+  "card": {
+    "quick_slash": {
+      "en": "Quick Slash",
+      "ja": "クイックスラッシュ"
+    },
+    "strike": {
+      "en": "Strike",
+      "ja": "ストライク"
+    },
+    "guard": {
+      "en": "Guard",
+      "ja": "ガード"
+    },
+    "heavy_swing": {
+      "en": "Heavy Swing",
+      "ja": "ヘビースイング"
+    },
+    "delay_step": {
+      "en": "Delay Step",
+      "ja": "ディレイステップ"
+    },
+    "haste_focus": {
+      "en": "Haste Focus",
+      "ja": "ヘイストフォーカス"
+    },
+    "weak_shot": {
+      "en": "Weak Shot",
+      "ja": "ウィークショット"
+    },
+    "bleed_cut": {
+      "en": "Bleed Cut",
+      "ja": "ブリードカット"
+    },
+    "quick_guard": {
+      "en": "Quick Guard",
+      "ja": "クイックガード"
+    },
+    "reload": {
+      "en": "Reload",
+      "ja": "リロード"
+    },
+    "assault": {
+      "en": "Assault",
+      "ja": "アサルト"
+    },
+    "barrier_deploy": {
+      "en": "Barrier Deploy",
+      "ja": "バリア展開"
+    },
+    "interrupt_shot": {
+      "en": "Interrupt Shot",
+      "ja": "インタラプトショット"
+    },
+    "time_buy": {
+      "en": "Time Buy",
+      "ja": "タイムバイ"
+    },
+    "recirculate": {
+      "en": "Recirculate",
+      "ja": "リサーキュレート"
+    },
+    "execution": {
+      "en": "Execution",
+      "ja": "エグゼキューション"
+    },
+    "fortify": {
+      "en": "Fortify",
+      "ja": "フォーティファイ"
+    },
+    "time_flow_control": {
+      "en": "Time Flow Control",
+      "ja": "タイムフロー制御"
+    },
+    "blood_chain": {
+      "en": "Blood Chain",
+      "ja": "ブラッドチェイン"
+    },
+    "over_reload": {
+      "en": "Over Reload",
+      "ja": "オーバーリロード"
+    },
+    "repair_burst": {
+      "en": "Repair Burst",
+      "ja": "リペアバースト"
+    },
+    "tripwire": {
+      "en": "Tripwire",
+      "ja": "トリップワイヤー"
+    },
+    "stasis_field": {
+      "en": "Stasis Field",
+      "ja": "ステイシスフィールド"
+    },
+    "rupture_strike": {
+      "en": "Rupture Strike",
+      "ja": "ラプチャーストライク"
+    },
+    "bastion_drive": {
+      "en": "Bastion Drive",
+      "ja": "バスティオンドライブ"
+    },
+    "adrenaline_link": {
+      "en": "Adrenaline Link",
+      "ja": "アドレナリンリンク"
+    },
+    "purge_pulse": {
+      "en": "Purge Pulse",
+      "ja": "パージパルス"
+    },
+    "meteor_crash": {
+      "en": "Meteor Crash",
+      "ja": "メテオクラッシュ"
+    },
+    "self_tuning_edge": {
+      "en": "Self Tuning Edge",
+      "ja": "自己調整エッジ"
+    },
+    "overclock_routine": {
+      "en": "Overclock Routine",
+      "ja": "オーバークロック手順"
+    },
+    "sequence_loader": {
+      "en": "Sequence Loader",
+      "ja": "シーケンスローダー"
+    },
+    "recursive_protocol": {
+      "en": "Recursive Protocol",
+      "ja": "再帰プロトコル"
+    },
+    "chronostasis": {
+      "en": "Chronostasis",
+      "ja": "クロノステイシス"
+    },
+    "entropy_reversal": {
+      "en": "Entropy Reversal",
+      "ja": "エントロピー反転"
+    },
+    "auto_turret": {
+      "en": "Auto Turret",
+      "ja": "オートタレット"
+    },
+    "crisis_drone_swarm": {
+      "en": "Crisis Drone Swarm",
+      "ja": "クライシスドローンスウォーム"
+    },
+    "phase_lance": {
+      "en": "Phase Lance",
+      "ja": "フェイズランス"
+    },
+    "mirror_aegis": {
+      "en": "Mirror Aegis",
+      "ja": "ミラーイージス"
+    },
+    "null_cascade": {
+      "en": "Null Cascade",
+      "ja": "ヌルカスケード"
+    },
+    "paradox_loop": {
+      "en": "Paradox Loop",
+      "ja": "パラドックスループ"
+    },
+    "rift_volley": {
+      "en": "Rift Volley",
+      "ja": "リフトボレー"
+    },
+    "entropy_armor": {
+      "en": "Entropy Armor",
+      "ja": "エントロピーアーマー"
+    },
+    "axiom_sever": {
+      "en": "Axiom Sever",
+      "ja": "アクシオムセヴァー"
+    },
+    "omega_ray": {
+      "en": "Omega Ray",
+      "ja": "オメガレイ"
+    },
+    "grave_protocol": {
+      "en": "Grave Protocol",
+      "ja": "グレイヴプロトコル"
+    },
+    "zero_hour": {
+      "en": "Zero Hour",
+      "ja": "ゼロアワー"
+    },
+    "aegis_ram": {
+      "en": "Aegis Ram",
+      "ja": "イージスラム"
+    },
+    "barrier_overdrive": {
+      "en": "Barrier Overdrive",
+      "ja": "バリアオーバードライブ"
+    },
+    "bulwark_cannon": {
+      "en": "Bulwark Cannon",
+      "ja": "ブルワークキャノン"
+    },
+    "spark_jab": {
+      "en": "Spark Jab",
+      "ja": "スパークジャブ"
+    },
+    "brace_patch": {
+      "en": "Brace Patch",
+      "ja": "ブレイスパッチ"
+    },
+    "marking_dart": {
+      "en": "Marking Dart",
+      "ja": "マーキングダート"
+    },
+    "timer_hook": {
+      "en": "Timer Hook",
+      "ja": "タイマーフック"
+    },
+    "blood_siphon": {
+      "en": "Blood Siphon",
+      "ja": "ブラッドサイフォン"
+    },
+    "capacitor_step": {
+      "en": "Capacitor Step",
+      "ja": "キャパシタステップ"
+    },
+    "grit_reload": {
+      "en": "Grit Reload",
+      "ja": "グリットリロード"
+    },
+    "rust_cloud": {
+      "en": "Rust Cloud",
+      "ja": "ラストクラウド"
+    },
+    "hammer_feint": {
+      "en": "Hammer Feint",
+      "ja": "ハンマーフェイント"
+    },
+    "prism_guard": {
+      "en": "Prism Guard",
+      "ja": "プリズムガード"
+    },
+    "rupture_mark": {
+      "en": "Rupture Mark",
+      "ja": "ラプチャーマーク"
+    },
+    "phase_zip": {
+      "en": "Phase Zip",
+      "ja": "フェイズジップ"
+    },
+    "recycler_claw": {
+      "en": "Recycler Claw",
+      "ja": "リサイクラークロー"
+    },
+    "reactor_leech": {
+      "en": "Reactor Leech",
+      "ja": "リアクターリーチ"
+    },
+    "drone_foundry": {
+      "en": "Drone Foundry",
+      "ja": "ドローン鋳造所"
+    },
+    "tactical_mirror": {
+      "en": "Tactical Mirror",
+      "ja": "タクティカルミラー"
+    },
+    "gravity_snare": {
+      "en": "Gravity Snare",
+      "ja": "グラビティスネア"
+    },
+    "field_medic": {
+      "en": "Field Medic",
+      "ja": "フィールドメディック"
+    },
+    "singularity_guard": {
+      "en": "Singularity Guard",
+      "ja": "シンギュラリティガード"
+    },
+    "blood_moon_protocol": {
+      "en": "Blood Moon Protocol",
+      "ja": "ブラッドムーンプロトコル"
+    },
+    "chrono_blackout": {
+      "en": "Chrono Blackout",
+      "ja": "クロノブラックアウト"
+    },
+    "recursive_battery": {
+      "en": "Recursive Battery",
+      "ja": "再帰バッテリー"
+    },
+    "execution_matrix": {
+      "en": "Execution Matrix",
+      "ja": "エグゼキューションマトリクス"
+    },
+    "final_archive": {
+      "en": "Final Archive",
+      "ja": "ファイナルアーカイブ"
+    },
+    "solar_verdict": {
+      "en": "Solar Verdict",
+      "ja": "ソーラーヴァーディクト"
+    },
+    "citadel_prime": {
+      "en": "Citadel Prime",
+      "ja": "シタデルプライム"
+    },
+    "epoch_breaker": {
+      "en": "Epoch Breaker",
+      "ja": "エポックブレイカー"
+    },
+    "phoenix_circuit": {
+      "en": "Phoenix Circuit",
+      "ja": "フェニックスサーキット"
+    },
+    "atlas_protocol": {
+      "en": "Atlas Protocol",
+      "ja": "アトラスプロトコル"
+    },
+    "worldline_collapse": {
+      "en": "Worldline Collapse",
+      "ja": "ワールドラインコラプス"
+    },
+    "seraph_array": {
+      "en": "Seraph Array",
+      "ja": "セラフアレイ"
+    },
+    "ragnarok_engine": {
+      "en": "Ragnarok Engine",
+      "ja": "ラグナロクエンジン"
+    },
+    "absolute_zero": {
+      "en": "Absolute Zero",
+      "ja": "アブソリュートゼロ"
+    },
+    "quantum_exchange": {
+      "en": "Quantum Exchange",
+      "ja": "クォンタムエクスチェンジ"
+    },
+    "crown_of_thorns": {
+      "en": "Crown of Thorns",
+      "ja": "クラウンオブソーンズ"
+    },
+    "infinity_arsenal": {
+      "en": "Infinity Arsenal",
+      "ja": "インフィニティアーセナル"
+    },
+    "omega_sanctuary": {
+      "en": "Omega Sanctuary",
+      "ja": "オメガサンクチュアリ"
+    },
+    "event_horizon": {
+      "en": "Event Horizon",
+      "ja": "イベントホライズン"
+    },
+    "deus_ex_machina": {
+      "en": "Deus Ex Machina",
+      "ja": "デウスエクスマキナ"
+    },
+    "golden_ratio": {
+      "en": "Golden Ratio",
+      "ja": "ゴールデンレシオ"
+    },
+    "tempest_choir": {
+      "en": "Tempest Choir",
+      "ja": "テンペストクワイア"
+    },
+    "last_bastion": {
+      "en": "Last Bastion",
+      "ja": "ラストバスティオン"
+    },
+    "dominion_pulse": {
+      "en": "Dominion Pulse",
+      "ja": "ドミニオンパルス"
+    },
+    "chronicle_sovereign": {
+      "en": "Chronicle Sovereign",
+      "ja": "クロニクルソヴリン"
+    }
+  },
+  "relic": {
+    "iron_plating": {
+      "en": "Iron Plating",
+      "ja": "鉄装甲"
+    },
+    "tempered_edge": {
+      "en": "Tempered Edge",
+      "ja": "焼入れ刃"
+    },
+    "kinetic_boots": {
+      "en": "Kinetic Boots",
+      "ja": "キネティックブーツ"
+    },
+    "auxiliary_core": {
+      "en": "Auxiliary Core",
+      "ja": "補助コア"
+    },
+    "reactive_barrier": {
+      "en": "Reactive Barrier",
+      "ja": "開幕バリア"
+    },
+    "chrono_shard": {
+      "en": "Chrono Shard",
+      "ja": "クロノシャード"
+    },
+    "salvage_magnet": {
+      "en": "Salvage Magnet",
+      "ja": "サルベージマグネット"
+    },
+    "repair_nanites": {
+      "en": "Repair Nanites",
+      "ja": "リペアナノマシン"
+    },
+    "war_banner": {
+      "en": "War Banner",
+      "ja": "戦旗"
+    },
+    "aegis_matrix": {
+      "en": "Aegis Matrix",
+      "ja": "イージスマトリクス"
+    },
+    "surge_gimbal": {
+      "en": "Surge Gimbal",
+      "ja": "サージジンバル"
+    },
+    "phase_capacitor": {
+      "en": "Phase Capacitor",
+      "ja": "フェイズキャパシタ"
+    },
+    "echo_coil": {
+      "en": "Echo Coil",
+      "ja": "エコーコイル"
+    },
+    "paradox_prism": {
+      "en": "Paradox Prism",
+      "ja": "パラドックスプリズム"
+    },
+    "rift_compass": {
+      "en": "Rift Compass",
+      "ja": "リフトコンパス"
+    },
+    "entropy_battery": {
+      "en": "Entropy Battery",
+      "ja": "エントロピーバッテリー"
+    },
+    "omega_crown": {
+      "en": "Omega Crown",
+      "ja": "オメガクラウン"
+    },
+    "eternity_engine": {
+      "en": "Eternity Engine",
+      "ja": "エタニティエンジン"
+    },
+    "titanium_rib": {
+      "en": "Titanium Rib",
+      "ja": "チタンリブ"
+    },
+    "loadout_harness": {
+      "en": "Loadout Harness",
+      "ja": "ロードアウトハーネス"
+    },
+    "war_cache": {
+      "en": "War Cache",
+      "ja": "ウォーキャッシュ"
+    },
+    "signal_lens": {
+      "en": "Signal Lens",
+      "ja": "シグナルレンズ"
+    },
+    "pulse_injector": {
+      "en": "Pulse Injector",
+      "ja": "パルスインジェクター"
+    },
+    "barrier_seed": {
+      "en": "Barrier Seed",
+      "ja": "バリアシード"
+    },
+    "stasis_clock": {
+      "en": "Stasis Clock",
+      "ja": "ステイシスクロック"
+    },
+    "blood_pump": {
+      "en": "Blood Pump",
+      "ja": "ブラッドポンプ"
+    },
+    "scavenger_contract": {
+      "en": "Scavenger Contract",
+      "ja": "スカベンジャー契約"
+    },
+    "emergency_foam": {
+      "en": "Emergency Foam",
+      "ja": "緊急フォーム"
+    },
+    "overclock_key": {
+      "en": "Overclock Key",
+      "ja": "オーバークロックキー"
+    },
+    "chrono_metronome": {
+      "en": "Chrono Metronome",
+      "ja": "クロノメトロノーム"
+    },
+    "armor_garden": {
+      "en": "Armor Garden",
+      "ja": "アーマーガーデン"
+    },
+    "bounty_drone": {
+      "en": "Bounty Drone",
+      "ja": "バウンティドローン"
+    },
+    "prism_furnace": {
+      "en": "Prism Furnace",
+      "ja": "プリズムファーネス"
+    },
+    "archive_compass": {
+      "en": "Archive Compass",
+      "ja": "アーカイブコンパス"
+    },
+    "triplet_relay": {
+      "en": "Triplet Relay",
+      "ja": "三拍子リレー"
+    },
+    "borrowed_second_hand": {
+      "en": "Borrowed Second Hand",
+      "ja": "借りものの秒針"
+    },
+    "terminal_echo_ring": {
+      "en": "Terminal Echo Ring",
+      "ja": "最後のこだまリング"
+    },
+    "four_name_quartet": {
+      "en": "Four-Name Quartet",
+      "ja": "四つの連奏符"
+    },
+    "dead_heat_needle": {
+      "en": "Dead-Heat Needle",
+      "ja": "同時発動の針"
+    },
+    "silent_three_second_timer": {
+      "en": "Silent Three-Second Timer",
+      "ja": "無音の三秒計"
+    },
+    "delay_return_gear": {
+      "en": "Delay Return Gear",
+      "ja": "遅延返し歯"
+    },
+    "zero_hour_clapper": {
+      "en": "Zero-Hour Clapper",
+      "ja": "十秒ごとの拍子木"
+    },
+    "terminal_bell": {
+      "en": "Terminal Bell",
+      "ja": "終端ベル"
+    },
+    "paradox_mortgage": {
+      "en": "Paradox Mortgage",
+      "ja": "パラドックス抵当証"
+    },
+    "overtake_signal": {
+      "en": "Overtake Signal",
+      "ja": "追い越しの信号"
+    },
+    "reversal_turbine": {
+      "en": "Reversal Turbine",
+      "ja": "反転タービン"
+    },
+    "full_slot_bell": {
+      "en": "Full-Slot Bell",
+      "ja": "満員ベル"
+    },
+    "vacancy_interest_meter": {
+      "en": "Vacancy Interest Meter",
+      "ja": "空きスロット貯金箱"
+    },
+    "fourth_reserve_rack": {
+      "en": "Fourth Reserve Rack",
+      "ja": "第四の予備架"
+    },
+    "single_seat_duel_sheath": {
+      "en": "Single-Seat Duel Sheath",
+      "ja": "一騎打ちの鞘"
+    },
+    "reserved_seat_tag": {
+      "en": "Reserved Seat Tag",
+      "ja": "予約席タグ"
+    },
+    "echo_rectifier": {
+      "en": "Echo Rectifier",
+      "ja": "こだまの充電器"
+    },
+    "waste_heat_printer": {
+      "en": "Waste-Heat Printer",
+      "ja": "廃熱プリンター"
+    },
+    "isolation_chamber": {
+      "en": "Isolation Chamber",
+      "ja": "隔離チャンバー"
+    },
+    "resin_memory_block": {
+      "en": "Resin Memory Block",
+      "ja": "記憶の樹脂"
+    },
+    "full_absorption_gauge": {
+      "en": "Full Absorption Gauge",
+      "ja": "完全ガード計"
+    },
+    "evaporation_recovery_valve": {
+      "en": "Evaporation Recovery Valve",
+      "ja": "シールド回収バルブ"
+    },
+    "residual_pressure_detonator": {
+      "en": "Residual Pressure Detonator",
+      "ja": "空っぽの加速栓"
+    },
+    "rupture_insurance_film": {
+      "en": "Rupture Insurance Film",
+      "ja": "中断保険フィルム"
+    },
+    "compression_caliper": {
+      "en": "Compression Caliper",
+      "ja": "圧縮キャリパー"
+    },
+    "twilight_pacemaker": {
+      "en": "Twilight Pacemaker",
+      "ja": "薄明ペースメーカー"
+    },
+    "bleed_pulsator": {
+      "en": "Bleed Pulsator",
+      "ja": "血の加速器"
+    },
+    "slow_charge_accumulator": {
+      "en": "Slow-Charge Accumulator",
+      "ja": "鈍化チャージャー"
+    },
+    "four_symptom_seal": {
+      "en": "Four-Symptom Seal",
+      "ja": "四つの病の封印"
+    },
+    "quarantine_buffer": {
+      "en": "Quarantine Buffer",
+      "ja": "防疫バッファ"
+    },
+    "symptom_transfer_paper": {
+      "en": "Symptom Transfer Paper",
+      "ja": "病をうつす紙"
+    },
+    "critical_pathology_meter": {
+      "en": "Critical Pathology Meter",
+      "ja": "病の余波"
+    },
+    "grade_staircase": {
+      "en": "Grade Staircase",
+      "ja": "グレードの階段"
+    },
+    "unpolished_motherboard": {
+      "en": "Unpolished Motherboard",
+      "ja": "粗削りの基板"
+    },
+    "overload_seal": {
+      "en": "Overload Seal",
+      "ja": "詰め込みのお守り"
+    },
+    "empty_rack_bus": {
+      "en": "Empty-Rack Bus",
+      "ja": "空架式バス"
+    },
+    "full_load_latch": {
+      "en": "Full-Load Latch",
+      "ja": "満載ラッチ"
+    },
+    "weight_ticket_punch": {
+      "en": "Weight Ticket Punch",
+      "ja": "重いカードの検札機"
+    },
+    "grade_differential_wheel": {
+      "en": "Grade Differential Wheel",
+      "ja": "グレード差の歯車"
+    },
+    "solar_pinion": {
+      "en": "Solar Pinion",
+      "ja": "日輪ピニオン"
+    },
+    "overcharge_confection_furnace": {
+      "en": "Overcharge Confection Furnace",
+      "ja": "オーバーチャージ窯"
+    },
+    "polarization_converter": {
+      "en": "Polarization Converter",
+      "ja": "攻防スイッチ"
+    },
+    "balanced_three_phase_unit": {
+      "en": "Balanced Three-Phase Unit",
+      "ja": "バランス調整器"
+    },
+    "memorial_fund_coil": {
+      "en": "Memorial Fund Coil",
+      "ja": "記念基金コイル"
+    },
+    "seven_step_validator": {
+      "en": "Seven-Step Validator",
+      "ja": "七歩ごとの検印"
+    },
+    "depth_pressure_gauge": {
+      "en": "Depth Pressure Gauge",
+      "ja": "深掘りメーター"
+    },
+    "emergency_recovery_line": {
+      "en": "Emergency Recovery Line",
+      "ja": "緊急脱出ロープ"
+    },
+    "carryover_price_tag": {
+      "en": "Carryover Price Tag",
+      "ja": "持越し値札"
+    },
+    "defeat_wiring": {
+      "en": "Defeat Wiring",
+      "ja": "再起の配線"
+    },
+    "overtime_key": {
+      "en": "Overtime Key",
+      "ja": "延長戦の鍵"
+    },
+    "loop_wear_wheel": {
+      "en": "Loop-Wear Wheel",
+      "ja": "周回の歯車"
+    }
+  },
+  "starter": {
+    "balanced": {
+      "en": "Balanced Frame",
+      "ja": "バランスフレーム"
+    },
+    "tempo": {
+      "en": "Tempo Frame",
+      "ja": "テンポフレーム"
+    },
+    "fortress": {
+      "en": "Fortress Frame",
+      "ja": "フォートレスフレーム"
+    },
+    "vanguard": {
+      "en": "Vanguard Frame",
+      "ja": "ヴァンガードフレーム"
+    },
+    "aegis": {
+      "en": "Aegis Frame",
+      "ja": "イージスフレーム"
+    },
+    "chrono": {
+      "en": "Chrono Frame",
+      "ja": "クロノフレーム"
+    },
+    "turret": {
+      "en": "Turret Frame",
+      "ja": "タレットフレーム"
+    }
+  }
+}

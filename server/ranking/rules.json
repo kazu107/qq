@@ -1,0 +1,5 @@
+{
+  "ruleset": "infinite-1",
+  "score_version": 1,
+  "starters": ["balanced", "tempo", "fortress", "vanguard", "aegis", "chrono", "turret"]
+}

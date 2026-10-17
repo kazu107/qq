@@ -12,7 +12,7 @@
         const response = await fetch("/api/account", { credentials:"same-origin", cache:"no-store", signal:AbortSignal.timeout(6000) });
         const data = await response.json();
         status = { available:!!data.available, authenticated:!!data.authenticated, needsUsername:!!data.needsUsername,
-          user:data.user ? { id:data.user.id, username:data.user.username } : null,
+          user:data.user ? { id:data.user.id, username:data.user.username } : null, canDeveloper:!!data.canDeveloper,
           providers:Array.isArray(data.providers) ? data.providers : [], reason:data.reason || (response.ok ? "" : "unavailable") };
       } catch { status = { available:false, authenticated:false, needsUsername:false, user:null, providers:[], reason:"unavailable" }; }
       broadcast();

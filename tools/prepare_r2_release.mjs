@@ -97,6 +97,7 @@ export async function prepareR2Release({
   const currentManifestKey = "releases/current.json";
   const manifest = {
     schema_version: 1,
+    ranking_ruleset: "infinite-1",
     game_version: gameVersion,
     commit: normalizedCommit,
     published_at: publishedAt,

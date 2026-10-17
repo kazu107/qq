@@ -104,6 +104,20 @@ jobs:
       - name: Test release metadata generator
         run: node --test tests/r2_release_manifest.test.mjs
 
+      - name: Verify ranked journal replay with the native runtime and exported PCK
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOME="$RUNNER_TEMP/qq-ranked-test-home"
+          mkdir -p "$HOME"
+          godot --headless --path . res://tests/RankedRunSmoke.tscn --quit-after 600 > build/ranked-smoke.log 2>&1
+          cat build/ranked-smoke.log
+          grep -q RANKED_RUN_SMOKE_OK build/ranked-smoke.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/ranked-smoke.log; then exit 1; fi
+          godot --headless --main-pack build/web/index.pck res://scenes/ranking/Verifier.tscn -- "$PWD/build/ranked-fixture.json" > build/ranked-pack.log 2>&1
+          cat build/ranked-pack.log
+          node -e 'const fs=require("fs");const expected=JSON.parse(fs.readFileSync("build/ranked-fixture.json")).expected_score;const line=fs.readFileSync("build/ranked-pack.log","utf8").split(/\r?\n/).find(x=>x.startsWith("QQ_RANKED_RESULT "));const result=JSON.parse(line.slice(17));if(result.result?.total_score!==expected)throw Error("Ranked PCK replay mismatch");console.log("RANKED_NATIVE_PACK_REPLAY_OK");'
+
       - name: Prepare R2 release
         shell: bash
         run: |

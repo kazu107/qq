@@ -192,6 +192,11 @@ func _build_ui() -> void:
 	_developer_toggle.text = Localization.get_text("settings.developer_mode", "Enable developer mode")
 	_developer_toggle.toggled.connect(_on_developer_toggle_changed)
 	advanced.add_child(_developer_toggle)
+	_developer_toggle.visible = AccountSession.can_use_developer_mode()
+	AccountSession.changed.connect(func() -> void:
+		_developer_toggle.visible = AccountSession.can_use_developer_mode()
+		_developer_toggle.set_pressed_no_signal(Game.is_developer_mode_enabled())
+	)
 
 	_status_label = Label.new()
 	_status_label.name = "SettingsStatusLabel"
@@ -240,6 +245,7 @@ func _refresh_ui() -> void:
 			break
 	_replay_toggle.set_pressed_no_signal(Game.is_replay_auto_export_enabled())
 	_developer_toggle.set_pressed_no_signal(Game.is_developer_mode_enabled())
+	_developer_toggle.visible = AccountSession.can_use_developer_mode()
 	var replay_path: String = Game.get_last_replay_export_path()
 	if replay_path == "":
 		_status_label.text = Localization.get_text("settings.replay_none", "Replay export path: none yet")

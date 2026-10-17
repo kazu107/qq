@@ -39,7 +39,8 @@ Herokuはルートの`package.json`と`Procfile`を検出し、`build/web`を配
 ハブ右上のログインボタンからGoogle・GitHubで本人確認し、初回だけユーザー名を決めて登録できます。
 OAuthクライアントとPostgreSQLを設定するまでは「準備中」と表示します。cloneしただけでもログインなしで遊べます。
 設定手順は[`docs/ACCOUNT_SETUP.md`](docs/ACCOUNT_SETUP.md)を参照してください。
-現在のセーブは端末内に残り、クラウド同期・ランキング投稿・Google/GitHubアカウントの統合にはまだ対応していません。
+通常セーブは端末内に残り、クラウド同期・Google/GitHubアカウントの統合にはまだ対応していません。
+ランキング専用の無限モード、サーバー検証とユーザー別の開発者権限は[`docs/RANKINGS.md`](docs/RANKINGS.md)を参照してください。
 
 ## 自動解放・封印
 

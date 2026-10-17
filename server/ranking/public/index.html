@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QueueQuest | 無限ランキング</title><link rel="stylesheet" href="/account/style.css"><script src="/rankings/app.js" defer></script></head>
+<body><main class="ranking-shell"><header><a class="brand" href="/"><img src="/queuequest-logo.svg" alt="QueueQuest"></a><a class="secondary" href="/account">アカウント</a></header>
+<section class="account-card"><h1>無限ランキング</h1><p class="muted">永続強化なし・全カード／遺物共通。サーバー検証済みの自己ベストだけを掲載します。</p>
+<div class="actions"><label>シーズン <select id="season"></select></label><label>開始デッキ <select id="starter"><option value="">すべて</option></select></label><button id="refresh">更新</button></div>
+<p id="notice" role="status">読み込み中...</p><p id="self"></p><div class="ranking-scroll"><table><thead><tr><th>順位</th><th>ユーザー名</th><th>スコア</th><th>到達ステップ</th><th>デッキ</th><th>達成日時</th></tr></thead><tbody id="entries"></tbody></table></div>
+<div class="actions"><button id="previous" class="secondary">前へ</button><span id="page"></span><button id="next" class="secondary">次へ</button></div></section>
+<section class="account-card ranking-history"><h2>自分の挑戦履歴</h2><p class="muted">中断中・送信待ち・検証待ち・対象外の記録は正式ランキングに含みません。シーズンは日本時間の月単位です。</p><div id="history"></div></section>
+<dialog id="details"><h2 id="detail-name"></h2><pre id="detail-body"></pre><button id="close">閉じる</button></dialog></main></body></html>

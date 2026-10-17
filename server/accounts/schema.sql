@@ -29,3 +29,23 @@ CREATE TABLE IF NOT EXISTS qq_accounts_oauth_attempts (
   expires_at timestamptz NOT NULL
 );
 CREATE INDEX IF NOT EXISTS qq_accounts_attempts_expiry ON qq_accounts_oauth_attempts(expires_at);
+
+CREATE TABLE IF NOT EXISTS qq_ranked_seasons (
+  id text PRIMARY KEY, ruleset text NOT NULL, starts_at timestamptz NOT NULL, ends_at timestamptz NOT NULL
+);
+CREATE TABLE IF NOT EXISTS qq_ranked_runs (
+  id uuid PRIMARY KEY, user_id uuid NOT NULL REFERENCES qq_accounts_users(id),
+  season_id text NOT NULL REFERENCES qq_ranked_seasons(id), ruleset text NOT NULL,
+  seed integer NOT NULL, starter_id text NOT NULL, next_sequence integer NOT NULL DEFAULT 0,
+  status text NOT NULL DEFAULT 'active' CHECK(status IN ('active','pending','verifying','verified','rejected','disqualified','unverified')),
+  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+  finished_at timestamptz, result jsonb, reason text, attempts integer NOT NULL DEFAULT 0,
+  lease_until timestamptz, locked_by uuid
+);
+CREATE INDEX IF NOT EXISTS qq_ranked_owner ON qq_ranked_runs(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS qq_ranked_queue ON qq_ranked_runs(status, updated_at);
+CREATE INDEX IF NOT EXISTS qq_ranked_board ON qq_ranked_runs(season_id, status);
+CREATE TABLE IF NOT EXISTS qq_ranked_commands (
+  run_id uuid NOT NULL REFERENCES qq_ranked_runs(id), sequence integer NOT NULL,
+  command jsonb NOT NULL, PRIMARY KEY(run_id, sequence)
+);

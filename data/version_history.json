@@ -1,9 +1,26 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.45.1",
+  "current_version": "QQ-0.46.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.46.0", "date": "2026-10-18",
+      "title_ja": "無限ランキングとアカウント別開発者権限",
+      "title_en": "Verified Infinite rankings and account developer access",
+      "changes_ja": [
+        "ログインして挑戦できるランキング専用の無限モードを追加しました。永続強化なし・全デッキとカード・遺物共通で開始し、通常のランとは別に中断・再開できます。",
+        "月単位のシーズン、開始デッキ別の絞り込み、同点同順位、アカウントごとの自己ベストと挑戦履歴を追加しました。未検証や対象外の記録は正式ランキングに掲載しません。",
+        "サーバーがランIDとseedを発行し、操作記録をGodotで再実行して点数を計算します。二重送信、他人の記録の操作、開発者操作や不正な進行を拒否します。通信中断時は記録を保留します。",
+        "Web版の開発者モード切り替えを、サーバーで許可したユーザーだけに表示します。Godotエディタの開発・テストは維持し、一般ユーザーや未ログイン時は保存済みの設定でも有効になりません。"
+      ],
+      "changes_en": [
+        "Add authenticated Ranked Infinite runs with common unlocks, no permanent bonuses and a separate suspend/resume slot.",
+        "Add monthly seasons, starter filters, tied ranks, account bests and private run history. Exclude unverified, pending and ineligible records from official boards.",
+        "Issue server-owned run IDs and seeds; replay input journals in native headless Godot to derive scores. Reject duplicate mutations, cross-account writes, developer actions and illegal progression; retain uploads across disconnection.",
+        "Restrict the Web developer toggle to server-allowlisted accounts, retaining editor testing and denying guest or unauthorized saved settings."
+      ]
+    },
     {
       "version": "QQ-0.45.1", "date": "2026-10-17",
       "title_ja": "GitHubログインの発行元検証を修正",

@@ -2,7 +2,7 @@ name: Account and signaling tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, "codex/rankings-validation"]
     paths: ["server/**", "tests/helpers/account_fixture.js", "package.json", "package-lock.json", ".github/workflows/account-tests.yml"]
   pull_request:
     paths: ["server/**", "tests/helpers/account_fixture.js", "package.json", "package-lock.json", ".github/workflows/account-tests.yml"]
@@ -37,3 +37,27 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Native Godot replay and exported-pack verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qq-godot" build
+          curl --fail --location --retry 4 "https://github.com/godotengine/godot-builds/releases/download/4.6.2-stable/Godot_v4.6.2-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/qq-godot"
+          export PATH="$RUNNER_TEMP/qq-godot:$PATH"
+          mv "$RUNNER_TEMP/qq-godot/Godot_v4.6.2-stable_linux.x86_64" "$RUNNER_TEMP/qq-godot/godot"
+          chmod +x "$RUNNER_TEMP/qq-godot/godot"
+          godot --headless --path . --editor --quit > build/import.log 2>&1
+          godot --headless --path . res://tests/RankedRunSmoke.tscn --quit-after 600 > build/ranked-smoke.log 2>&1
+          cat build/ranked-smoke.log
+          grep -q RANKED_RUN_SMOKE_OK build/ranked-smoke.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/ranked-smoke.log; then exit 1; fi
+          godot --headless --path . --export-pack Web build/ranked-test.pck > build/export.log 2>&1
+          godot --headless --main-pack build/ranked-test.pck res://scenes/ranking/Verifier.tscn -- "$PWD/build/ranked-fixture.json" > build/ranked-pack.log 2>&1
+          cat build/ranked-pack.log
+          node -e 'const fs=require("fs");const expected=JSON.parse(fs.readFileSync("build/ranked-fixture.json")).expected_score;const line=fs.readFileSync("build/ranked-pack.log","utf8").split(/\r?\n/).find(x=>x.startsWith("QQ_RANKED_RESULT "));const result=JSON.parse(line.slice(17));if(result.result?.total_score!==expected)throw Error("Ranked PCK replay mismatch");console.log("RANKED_NATIVE_PACK_REPLAY_OK");'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ranked-validation-logs
+          path: build/*.log

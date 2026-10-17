@@ -23,6 +23,12 @@ func refresh() -> void:
 	if is_supported(): _bridge.refresh()
 
 
+func can_use_developer_mode() -> bool:
+	if OS.has_feature("editor") and not OS.has_feature("web"): return true
+	if OS.has_feature("qq_layout_review") or OS.has_feature("qq_validation"): return true
+	return is_supported() and bool(snapshot.get("authenticated", false)) and bool(snapshot.get("canDeveloper", false))
+
+
 func open_account(language: String) -> bool:
 	return is_supported() and bool(_bridge.open(language))
 
@@ -35,4 +41,5 @@ func _on_snapshot(arguments: Array) -> void:
 	if parsed is not Dictionary: return
 	# Display-only identity; never persist browser sessions or OAuth tokens in the game save.
 	snapshot = Dictionary(parsed)
+	if not can_use_developer_mode(): Game.settings["developer_mode"] = false
 	changed.emit()

@@ -91,8 +91,11 @@ func _ready() -> void:
 		SceneRouter.go_to_hub()
 		return
 
-	var enemy_id: String = Game.prepare_next_battle()
-	_engine.setup(Game.current_run, enemy_id)
+	if RankedSession.active() and RankedSession.engine != null and RankedSession.engine.battle_state != null:
+		_engine = RankedSession.engine
+	else:
+		var enemy_id: String = Game.prepare_next_battle()
+		_engine.setup(Game.current_run, enemy_id)
 	_processed_vfx_event_count = 0
 	_configure_battle_stage()
 	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())

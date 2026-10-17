@@ -81,6 +81,7 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 	_boss_passive_timer = float(enemy_def.passive.get("interval", 0.0))
 	_timeline_flows.clear()
 	analysis.capture_state(battle_state, true)
+	RankedSession.attach(self, player_run, enemy_id)
 
 
 func setup_pvp(
@@ -116,6 +117,9 @@ func setup_pvp(
 
 
 func update(delta: float) -> void:
+	if RankedSession.tracks(self):
+		RankedSession.advance(self, delta)
+		return
 	if battle_state == null or battle_state.winner != "":
 		return
 	if delta <= 0.0:
@@ -198,6 +202,7 @@ func _resolve_fatigue(instance: ActiveCardInstance) -> void:
 
 
 func request_use_card(side: String, runtime_id: String) -> bool:
+	if side == "player" and RankedSession.tracks(self): return bool(RankedSession.battle_action("card", runtime_id))
 	if battle_state == null or battle_state.winner != "":
 		return false
 	if _manual_start_required and not _battle_started:
@@ -285,6 +290,7 @@ func set_enemy_ai_enabled(enabled: bool) -> void:
 
 
 func start_battle() -> bool:
+	if RankedSession.tracks(self): return bool(RankedSession.battle_action("start"))
 	if _battle_started or battle_state == null or battle_state.winner != "":
 		return false
 	_start_battle()

@@ -124,7 +124,10 @@ function createAccountService(env = process.env, options = {}) {
     return ++limits.get(key).count > maximum;
   }
   function profile(config, user = null, session = "", reason = "") {
+    const allowedNames = String(env.DEVELOPER_USERNAMES || "").split(",").map(value => value.normalize("NFKC").trim().toLowerCase()).filter(Boolean);
+    const allowedIds = String(env.DEVELOPER_USER_IDS || "").split(",").map(value => value.trim()).filter(Boolean);
     return { available: !!config, authenticated: !!user, needsUsername: !!user && !user.username, user,
+      canDeveloper: !!user?.username && (allowedNames.includes(user.username.toLowerCase()) || allowedIds.includes(user.id)),
       csrfToken: user ? csrf(session) : null, reason,
       providers: PROVIDERS.map(id => ({ id, enabled: !!config && oauth.enabled(id) })) };
   }
@@ -228,7 +231,23 @@ function createAccountService(env = process.env, options = {}) {
       return true;
     }
   }
-  return { handle, close() {
+  return { handle,
+    async storage() {
+      if (!configuration()) throw Object.assign(new Error(), { status: 503, code: "accounts_unavailable" });
+      await store.ready(); return store;
+    },
+    async authorize(request, write = false) {
+      const config = configuration();
+      if (!config) throw Object.assign(new Error(), { status: 503, code: "accounts_unavailable" });
+      await store.ready();
+      const session = cookie(request, config.sessionCookie);
+      const user = session ? await store.getSession(hash(session)) : null;
+      if (!user?.username) throw Object.assign(new Error(), { status: 401, code: "login_required" });
+      if (write && (request.headers.origin !== config.origin.origin || request.headers["sec-fetch-site"] === "cross-site" || !equal(request.headers["x-csrf-token"], csrf(session)))) {
+        throw Object.assign(new Error(), { status: 403, code: "invalid_csrf" });
+      }
+      return user;
+    }, close() {
     if (!closePromise) closePromise = Promise.resolve(store?.close());
     return closePromise;
   } };

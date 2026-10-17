@@ -5,6 +5,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { WebSocketServer, WebSocket } = require("ws");
 const { createAccountService } = require("./accounts/http");
+const { createRankingService } = require("./ranking/http");
+const { VerifierWorker } = require("./ranking/worker");
 
 const MAX_SIGNAL_BYTES = 64 * 1024;
 const ROOM_CODE_PATTERN = /^[A-Z0-9]{6}$/;
@@ -47,6 +49,9 @@ function createQqServer(options = {}) {
   const clients = new Map();
   const iceServers = options.iceServers || buildIceServers(options.env || process.env);
   const account = createAccountService(options.env || process.env, options.account || {});
+  const rankings = createRankingService(account);
+  const verifier = new VerifierWorker(account, options.env || process.env);
+  verifier.start();
 
   const server = http.createServer((request, response) => {
     setSecurityHeaders(response);
@@ -55,7 +60,8 @@ function createQqServer(options = {}) {
       response.end(JSON.stringify({ ok: true, rooms: rooms.size }));
       return;
     }
-    account.handle(request, response).then(handled => {
+    account.handle(request, response).then(async handled => {
+      if (!handled) handled = await rankings.handle(request, response);
       if (!handled) serveStatic(publicDir, request, response);
     }).catch(error => {
       if (response.headersSent) { response.destroy(); return; }
@@ -117,6 +123,7 @@ function createQqServer(options = {}) {
   heartbeat.unref();
 
   server.on("close", () => {
+    verifier.stop();
     clearInterval(heartbeat);
     for (const socket of clients.keys()) socket.terminate();
     websocketServer.close();

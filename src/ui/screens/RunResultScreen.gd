@@ -38,6 +38,16 @@ func _ready() -> void:
 	_build_background()
 	_build_ui()
 	_start_score_animation()
+	if RankedSession.active():
+		var status: Label = Label.new()
+		status.name = "ResultRankingStatus"
+		status.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+		status.offset_top = 70.0
+		status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		status.text = RankedSession.status_text
+		add_child(status)
+		RankedSession.changed.connect(func() -> void: status.text = RankedSession.status_text)
+		RankedSession.finish()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
 

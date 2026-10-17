@@ -12,7 +12,11 @@ func roll_candidates(run_state: RunState, count: int) -> Array[String]:
 	var unique_cards: Array[String] = get_upgradable_cards(run_state)
 	if unique_cards.is_empty():
 		return []
-	unique_cards.shuffle()
+	for index: int in range(unique_cards.size() - 1, 0, -1):
+		var other: int = _rng.randi_range(0, index)
+		var value: String = unique_cards[index]
+		unique_cards[index] = unique_cards[other]
+		unique_cards[other] = value
 	return unique_cards.slice(0, min(count, unique_cards.size()))
 
 

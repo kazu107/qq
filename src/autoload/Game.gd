@@ -14,6 +14,7 @@ const AVAILABLE_RESOLUTION_CODES := ["1280x720", "1600x900", "1920x1080", "2560x
 const REWARD_REROLL_COST: int = 10
 const RUN_SETUP_MODE_NORMAL := "normal"
 const RUN_SETUP_MODE_ARENA := "arena"
+const RUN_SETUP_MODE_RANKED := "ranked"
 
 var current_run: RunState
 var suspended_runs: Dictionary = {}
@@ -209,7 +210,7 @@ func get_unlocked_starters() -> Array[Dictionary]:
 
 
 func prepare_run_setup(mode: String = RUN_SETUP_MODE_NORMAL) -> void:
-	run_setup_mode = RUN_SETUP_MODE_ARENA if mode == RUN_SETUP_MODE_ARENA else RUN_SETUP_MODE_NORMAL
+	run_setup_mode = mode if mode in [RUN_SETUP_MODE_ARENA, RUN_SETUP_MODE_RANKED] else RUN_SETUP_MODE_NORMAL
 	current_screen_hint = "run_setup"
 
 
@@ -312,6 +313,8 @@ func start_arena_run(starter_id: String, seed_override: int = 0) -> bool:
 
 
 func prepare_next_battle() -> String:
+	if RankedSession.should_record():
+		return String(RankedSession.invoke("prepare_next_battle", []))
 	if current_run == null:
 		return ""
 	if current_run.arena_mode:
@@ -333,6 +336,9 @@ func prepare_next_battle() -> String:
 
 
 func complete_battle(summary: Dictionary) -> void:
+	if RankedSession.should_record():
+		RankedSession.complete()
+		return
 	if current_run == null:
 		return
 	ensure_meta_initialized()
@@ -438,6 +444,9 @@ func complete_battle(summary: Dictionary) -> void:
 
 
 func choose_reward(card_id: String) -> void:
+	if RankedSession.should_record():
+		RankedSession.invoke("choose_reward", [card_id])
+		return
 	if current_run == null or (card_id != "" and not Database.is_collectible_card(card_id)):
 		return
 	if card_id != "":
@@ -459,6 +468,9 @@ func choose_reward(card_id: String) -> void:
 
 
 func skip_reward() -> void:
+	if RankedSession.should_record():
+		RankedSession.invoke("skip_reward", [])
+		return
 	AudioManager.play_sfx("reward_skip")
 	reward_options.clear()
 	last_reward_bundle.clear()
@@ -483,6 +495,8 @@ func can_reroll_rewards() -> bool:
 
 
 func reroll_rewards_for_gold() -> bool:
+	if RankedSession.should_record():
+		return bool(RankedSession.invoke("reroll_rewards_for_gold", []))
 	if current_run == null or reward_options.is_empty():
 		AudioManager.play_sfx("ui_error")
 		return false
@@ -547,7 +561,7 @@ func abandon_run_to_hub() -> void:
 func stash_active_run_for_hub() -> bool:
 	if current_run == null or current_run.run_complete:
 		return false
-	var mode: String = RUN_SETUP_MODE_ARENA if current_run.arena_mode else RUN_SETUP_MODE_NORMAL
+	var mode: String = RUN_SETUP_MODE_RANKED if not current_run.ranking.is_empty() else RUN_SETUP_MODE_ARENA if current_run.arena_mode else RUN_SETUP_MODE_NORMAL
 	var resume_hint: String = current_screen_hint
 	if resume_hint in ["", "hub", "title", "run_setup", "meta", "library", "settings"]:
 		resume_hint = "arena" if current_run.arena_mode else "map"
@@ -585,6 +599,7 @@ func resume_suspended_run(mode: String) -> String:
 	last_battle_summary = Dictionary(snapshot.get("last_battle_summary", {})).duplicate(true)
 	last_reward_bundle = Dictionary(snapshot.get("last_reward_bundle", {})).duplicate(true)
 	current_screen_hint = String(snapshot.get("screen_hint", "arena" if current_run.arena_mode else "map"))
+	if not current_run.ranking.is_empty(): RankedSession.restore_current()
 	_meta_progress_service.record_infinite_score(meta_progress, current_run)
 	suspended_runs.erase(slot_id)
 	SaveManager.save_game(current_screen_hint)
@@ -600,7 +615,7 @@ func _clear_active_run_state() -> void:
 
 
 func _normalize_run_slot_id(mode: String) -> String:
-	return RUN_SETUP_MODE_ARENA if mode == RUN_SETUP_MODE_ARENA else RUN_SETUP_MODE_NORMAL
+	return mode if mode in [RUN_SETUP_MODE_ARENA, RUN_SETUP_MODE_RANKED] else RUN_SETUP_MODE_NORMAL
 
 
 func has_active_run() -> bool:
@@ -1385,12 +1400,13 @@ func retry_last_seed_run() -> bool:
 
 func is_developer_mode_enabled() -> bool:
 	ensure_meta_initialized()
-	return bool(settings.get("developer_mode", false))
+	return AccountSession.can_use_developer_mode() and bool(settings.get("developer_mode", false))
 
 
 func set_developer_mode_enabled(enabled: bool) -> void:
 	ensure_meta_initialized()
-	settings["developer_mode"] = enabled
+	settings["developer_mode"] = enabled and AccountSession.can_use_developer_mode()
+	if bool(settings["developer_mode"]): RankedSession.disqualify("developer_mode")
 	SaveManager.save_game(current_screen_hint)
 
 
@@ -2131,6 +2147,8 @@ func get_encounter_preview(node_id: String = "") -> Dictionary:
 
 
 func start_active_encounter() -> bool:
+	if RankedSession.should_record():
+		return bool(RankedSession.invoke("start_active_encounter", []))
 	if current_run == null or current_run.run_complete or current_screen_hint not in ["map", "facility"] or not _has_valid_loadout(): return false
 	var node: Dictionary = get_active_map_node()
 	if node.get("type", "") == "hazard": return continue_hazard()
@@ -2209,6 +2227,8 @@ func get_relic_names() -> Array[String]:
 
 
 func equip_card(card_id: String) -> bool:
+	if RankedSession.should_record():
+		return bool(RankedSession.invoke("equip_card", [card_id]))
 	if current_run == null or not Database.is_collectible_card(card_id):
 		return false
 	if _count_card_occurrences(current_run.equipped_cards, card_id) >= _count_card_occurrences(current_run.player_cards, card_id):
@@ -2227,6 +2247,8 @@ func equip_card(card_id: String) -> bool:
 
 
 func unequip_card(card_id: String) -> bool:
+	if RankedSession.should_record():
+		return bool(RankedSession.invoke("unequip_card", [card_id]))
 	if current_run == null or current_run.equipped_cards.size() <= 1:
 		return false
 	for index in range(current_run.equipped_cards.size() - 1, -1, -1):
@@ -2245,6 +2267,8 @@ func get_card_sell_value(card_id: String) -> int:
 
 
 func sell_loadout_card(card_id: String) -> bool:
+	if RankedSession.should_record():
+		return bool(RankedSession.invoke("sell_loadout_card", [card_id]))
 	if current_run == null or not _can_sell_loadout_card(card_id):
 		AudioManager.play_sfx("ui_error")
 		return false
@@ -2267,6 +2291,8 @@ func sell_loadout_card(card_id: String) -> bool:
 
 
 func select_map_node(node_id: String) -> String:
+	if RankedSession.should_record():
+		return String(RankedSession.invoke("select_map_node", [node_id]))
 	if current_run == null or node_id == "":
 		return ""
 	_ensure_map_state()
@@ -2339,6 +2365,8 @@ func developer_advance_map_route(node_id: String = "") -> bool:
 
 
 func buy_shop_offer(offer_index: int) -> bool:
+	if RankedSession.should_record():
+		return bool(RankedSession.invoke("buy_shop_offer", [offer_index]))
 	if current_run == null:
 		return false
 	var gold_before: int = current_run.gold
@@ -2380,6 +2408,8 @@ func buy_shop_offer(offer_index: int) -> bool:
 
 
 func use_shop_service_choice(choice_id: String) -> bool:
+	if RankedSession.should_record():
+		return bool(RankedSession.invoke("use_shop_service_choice", [choice_id]))
 	if current_run == null:
 		return false
 	var gold_before: int = current_run.gold
@@ -2423,6 +2453,8 @@ func use_shop_service_choice(choice_id: String) -> bool:
 
 
 func upgrade_forge_card(card_id: String) -> int:
+	if RankedSession.should_record():
+		return int(RankedSession.invoke("upgrade_forge_card", [card_id]))
 	if current_run == null:
 		return 0
 
@@ -2455,6 +2487,8 @@ func upgrade_forge_card(card_id: String) -> int:
 
 
 func use_forge_service_choice(choice_id: String) -> bool:
+	if RankedSession.should_record():
+		return bool(RankedSession.invoke("use_forge_service_choice", [choice_id]))
 	if current_run == null:
 		return false
 	var gold_before: int = current_run.gold
@@ -2500,6 +2534,8 @@ func use_heal_node() -> int:
 
 
 func use_heal_node_choice(choice_id: String) -> int:
+	if RankedSession.should_record():
+		return int(RankedSession.invoke("use_heal_node_choice", [choice_id]))
 	if current_run == null:
 		return 0
 	var gold_before: int = current_run.gold
@@ -2536,6 +2572,8 @@ func use_heal_node_choice(choice_id: String) -> int:
 
 
 func resolve_event_choice(choice_id: String) -> String:
+	if RankedSession.should_record():
+		return String(RankedSession.invoke("resolve_event_choice", [choice_id]))
 	if current_run == null:
 		return ""
 	var gold_before: int = current_run.gold
@@ -2560,6 +2598,8 @@ func resolve_event_choice(choice_id: String) -> String:
 
 
 func continue_hazard() -> bool:
+	if RankedSession.should_record():
+		return bool(RankedSession.invoke("continue_hazard", []))
 	if current_run == null or current_run.run_complete or current_screen_hint != "facility" or not _has_valid_loadout():
 		return false
 	var location: Dictionary = _get_active_node_location()
@@ -2587,6 +2627,9 @@ func continue_hazard() -> bool:
 
 
 func withdraw_hazard() -> void:
+	if RankedSession.should_record():
+		RankedSession.invoke("withdraw_hazard", [])
+		return
 	if current_run == null:
 		return
 	_complete_active_map_node_and_advance()
@@ -2596,6 +2639,9 @@ func withdraw_hazard() -> void:
 
 
 func leave_facility() -> void:
+	if RankedSession.should_record():
+		RankedSession.invoke("leave_facility", [])
+		return
 	if current_run == null:
 		return
 	if get_active_facility_type() == "hazard":

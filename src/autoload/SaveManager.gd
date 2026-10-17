@@ -39,6 +39,7 @@ func load_save() -> SaveData:
 
 
 func save_game(scene_hint: String = "hub") -> bool:
+	if RankedSession.verifying: return true
 	if _save_timer != null:
 		_save_timer.stop()
 	_pending_scene_hint = ""
@@ -52,6 +53,7 @@ func save_game(scene_hint: String = "hub") -> bool:
 
 
 func request_save(scene_hint: String = "hub") -> void:
+	if RankedSession.verifying: return
 	_pending_scene_hint = scene_hint
 	_ensure_save_timer()
 	_save_request_scheduled = true

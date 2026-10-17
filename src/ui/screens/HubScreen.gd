@@ -152,11 +152,68 @@ func _ready() -> void:
 	_setup_navigation_button(navigation, library_button, "card_owned")
 
 	_build_version_history_overlay()
+	_build_ranking_actions(root)
 
 	if Game.is_developer_mode_enabled():
 		_build_debug_battle_lab(root)
 		_build_developer_panel()
 		call_deferred("_warm_debug_card_pickers")
+
+
+func _build_ranking_actions(parent: Control) -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.name = "HubRankingActions"
+	row.add_theme_constant_override("separation", 14)
+	parent.add_child(row)
+	var view: Button = Button.new()
+	view.name = "HubRankingsButton"
+	view.text = "無限ランキング" if Localization.get_language() == "ja" else "Infinite Rankings"
+	view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	view.custom_minimum_size.y = 50
+	view.pressed.connect(RankedSession.open_board)
+	row.add_child(view)
+	var start: Button = Button.new()
+	start.name = "HubRankedStartButton"
+	start.text = "ランキングに挑戦" if Localization.get_language() == "ja" else "Ranked Infinite"
+	start.tooltip_text = "ログインが必要です。永続強化なし・全カードと遺物共通。"
+	start.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	start.disabled = not AccountSession.is_supported() or not bool(AccountSession.snapshot.get("authenticated", false)) or bool(AccountSession.snapshot.get("needsUsername", false))
+	AccountSession.changed.connect(func() -> void: start.disabled = not AccountSession.is_supported() or not bool(AccountSession.snapshot.get("authenticated", false)) or bool(AccountSession.snapshot.get("needsUsername", false)))
+	start.pressed.connect(func() -> void:
+		SceneRouter.go_to_run_setup(Game.RUN_SETUP_MODE_RANKED)
+	)
+	row.add_child(start)
+	if Game.has_suspended_run(Game.RUN_SETUP_MODE_RANKED):
+		var resume: Button = Button.new()
+		resume.name = "HubRankedResumeButton"
+		resume.text = "ランキングの続き" if Localization.get_language() == "ja" else "Continue Ranked"
+		resume.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		resume.pressed.connect(func() -> void:
+			Game.resume_suspended_run(Game.RUN_SETUP_MODE_RANKED)
+			SceneRouter.go_to_continue_target()
+		)
+		row.add_child(resume)
+		var retire: Button = Button.new()
+		retire.name = "HubRankedRetireButton"
+		retire.text = "挑戦を終了・送信" if Localization.get_language() == "ja" else "Finish & Submit"
+		retire.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		retire.pressed.connect(func() -> void:
+			Game.resume_suspended_run(Game.RUN_SETUP_MODE_RANKED)
+			if RankedSession.engine != null:
+				RankedSession.status_text = "戦闘を完了してから記録を確定してください"
+				SceneRouter.go_to_continue_target()
+				return
+			Game.current_run.run_complete = true
+			RankedSession.finish()
+			SceneRouter.go_to_result()
+		)
+		row.add_child(retire)
+	var status: Label = Label.new()
+	status.name = "RankingSyncStatus"
+	status.text = RankedSession.status_text
+	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	parent.add_child(status)
+	RankedSession.changed.connect(func() -> void: status.text = RankedSession.status_text)
 
 
 func _build_mode_card(parent: GridContainer, icon_id: String, title_text: String, description: String, accent: Color) -> VBoxContainer:
@@ -255,6 +312,8 @@ func _refresh_account_button() -> void:
 	var data: Dictionary = AccountSession.snapshot
 	_account_button.text = Localization.get_text("account.register_name", "Set username") if data.get("needsUsername", false) else Localization.get_text("account.signed_in", "Account: signed in") if data.get("authenticated", false) else Localization.get_text("account.open", "Sign in / Register")
 	_account_button.disabled = not AccountSession.is_supported()
+	var lab: Control = find_child("DebugBattleLab", true, false) as Control
+	if lab != null: lab.visible = Game.is_developer_mode_enabled()
 	_account_button.tooltip_text = Localization.get_text("account.open_hint", "Open your account. Game saves stay on this device/browser.") if AccountSession.is_supported() else Localization.get_text("account.web_only", "Account sign-in is available in the Web edition. Local play does not require an account.")
 
 
