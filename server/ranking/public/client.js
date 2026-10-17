@@ -1,7 +1,7 @@
 "use strict";
 (() => {
   window.qqRanked = {
-    open(language) { return !!window.open('/rankings?lang=' + (language === 'en' ? 'en' : 'ja'), 'qq-rankings', 'popup,width=1100,height=850'); },
+    open(language) { return !!window.qqServices?.open('rankings', language); },
     async request(method, path, rawBody, callback) {
       try {
         if (!/^\/api\/ranked\//.test(path)) throw new Error();

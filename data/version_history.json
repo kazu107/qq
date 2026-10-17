@@ -1,9 +1,26 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.46.0",
+  "current_version": "QQ-0.47.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.47.0", "date": "2026-10-18",
+      "title_ja": "アカウント別クラウド保存とゲーム内アカウント画面",
+      "title_en": "Account cloud saves and in-game account panels",
+      "changes_ja": [
+        "通常・無限・アリーナの進行、メタ進行、実績をアカウント別に自動保存し、別のデバイスから再開できるようにしました。音量・解像度・開発者設定は端末ごとに保持します。",
+        "ゲストとアカウントの保存先を分離し、初回の引き継ぎ確認、ログアウト時のゲスト復帰、未送信データの保留と競合時の比較選択を追加しました。進行やポイントは自動合算しません。",
+        "保存世代の照合と操作端末の切り替え、保存履歴5世代からの復元を追加しました。ランキングの正式記録は引き続きサーバー再生検証だけを採用します。",
+        "アカウント管理とランキングをゲーム内のパネルへ移しました。ユーザー名登録やログアウトもゲーム内で行えます。Google・GitHubの本人確認だけ認証用の外部画面を使用します。"
+      ],
+      "changes_en": [
+        "Automatically save normal, Infinite and Arena progress, Meta Progress and achievements per account for cross-device continuation. Keep audio, display and developer preferences per device.",
+        "Separate guest and account saves, confirm first-time transfers, return to guest progress on sign-out, and preserve offline changes and conflicting saves without adding currencies or rewards together.",
+        "Use revision checks and a single active writer, retain five save revisions for restoration, and keep official Ranked records independent and replay-verified.",
+        "Embed account management and rankings inside the game, including username registration and sign-out. Only Google/GitHub authentication opens an external provider window."
+      ]
+    },
     {
       "version": "QQ-0.46.0", "date": "2026-10-18",
       "title_ja": "無限ランキングとアカウント別開発者権限",

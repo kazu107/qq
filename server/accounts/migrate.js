@@ -11,7 +11,7 @@ async function main(env = process.env) {
   const store = new AccountStore(env);
   try {
     await store.migrate();
-    console.log("ACCOUNT_SCHEMA_MIGRATION_OK: additive account and ranked-run tables");
+    console.log("ACCOUNT_SCHEMA_MIGRATION_OK: additive account, ranked-run and cloud-save tables");
   } finally { await store.close(); }
 }
 

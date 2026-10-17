@@ -11,6 +11,7 @@ var _feedback_initial_audio: Array[String] = []
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_window = JavaScriptBridge.get_interface("window")
 	_bridge = JavaScriptBridge.create_callback(_command)
 	_window.qqLayoutCommand = _bridge
@@ -31,7 +32,14 @@ func _start_boot() -> void:
 func _command(arguments: Array) -> void:
 	var payload: Dictionary = JSON.parse_string(String(arguments[0]))
 	_sequence = int(payload.get("sequence", 0))
-	if String(payload.get("action", "")) == "screen":
+	if String(payload.get("action", "")) == "cloud_fixture":
+		if payload.has("points"): Game.meta_progress["points"] = int(payload["points"])
+		if bool(payload.get("run", false)):
+			Game.start_new_run("balanced", 426)
+			Game.stash_active_run_for_hub()
+		SaveManager.save_game(Game.current_screen_hint)
+		if bool(payload.get("sync", false)): CloudSession.sync_now()
+	elif String(payload.get("action", "")) == "screen":
 		_open_screen(String(payload.get("screen", "hub")))
 	elif String(payload.get("action", "")) == "permission_fixture":
 		AccountSession.enforce_web_permissions = true
@@ -541,6 +549,11 @@ func _inspect() -> Dictionary:
 		"developer_allowed": AccountSession.can_use_developer_mode(),
 		"developer_enabled": Game.is_developer_mode_enabled(),
 		"ranked_active": RankedSession.active(),
+		"cloud_state": CloudSession.state,
+		"cloud_profile": SaveManager.active_profile,
+		"cloud_points": Game.get_meta_points(),
+		"cloud_dirty": bool(SaveManager.profile_meta.get("dirty", false)),
+		"cloud_revision": int(SaveManager.profile_meta.get("revision", 0)),
 		"ranked_score": int(InfiniteScoreResolver.new().calculate(Game.current_run).get("total_score", 0)) if RankedSession.active() else 0,
 	})
 	if screen != null:

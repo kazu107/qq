@@ -5,6 +5,13 @@
   const t = (ja,en) => language === 'ja' ? ja : en;
   document.documentElement.lang=language;
   document.title='QueueQuest | '+t('無限ランキング','Infinite Rankings');
+  const embedded = window.parent !== window;
+  if (embedded) {
+    document.body.classList.add('embedded');
+    document.querySelector('header > a.secondary').addEventListener('click', event => { event.preventDefault(); window.parent.postMessage({type:'qq-service-open',kind:'account',language},location.origin); });
+    document.querySelector('.brand').addEventListener('click', event => { event.preventDefault(); window.parent.postMessage({type:'qq-service-close'},location.origin); });
+    window.addEventListener('message', event => { if(event.source===window.parent && event.origin===location.origin && event.data?.type==='qq-service-refresh') refresh(); });
+  }
   document.querySelector('header > a.secondary').href='/account?lang='+language;
   if(language==='en') {
     document.querySelectorAll('[data-en]').forEach(node=>{node.textContent=node.dataset.en;});

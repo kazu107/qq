@@ -1,0 +1,75 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {resolve} from 'node:path';
+import {mkdir,writeFile} from 'node:fs/promises';
+const require=createRequire(import.meta.url);
+const {chromium}=process.env.QQ_NODE_MODULES ? createRequire(resolve(process.env.QQ_NODE_MODULES,'../package.json'))('playwright') : require('playwright');
+const {createQqServer}=require('../server/server');
+const app=createQqServer({env:{},publicDir:resolve('build/web-layout-review')});
+await new Promise(done=>app.server.listen(0,'127.0.0.1',done));
+const origin=`http://127.0.0.1:${app.server.address().port}`;
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const out=resolve('tools/.local/cloud-review'); await mkdir(out,{recursive:true});
+const saves=new Map(),errors=[],checks=[],devices=[];
+const ownerA='11111111-1111-4111-8111-111111111111',ownerB='22222222-2222-4222-8222-222222222222';
+let serial=0;
+async function device(owner='') {
+ const context=await browser.newContext({viewport:{width:1440,height:900}});
+ const state={context,owner,offline:false};
+ devices.push(state);
+ await context.route('**/api/account',route=>route.fulfill({json:{available:true,authenticated:!!state.owner,needsUsername:false,user:state.owner?{id:state.owner,username:state.owner===ownerA?'CloudA':'CloudB'}:null,csrfToken:'test-only',providers:[]}}));
+ await context.route('**/api/account/logout',route=>{state.owner='';return route.fulfill({json:{authenticated:false,available:true}});});
+ await context.route('**/api/cloud/**',route=>{
+  const request=route.request(),path=new URL(request.url()).pathname.split('/').at(-1),writer=request.headers()['x-qq-writer'];
+  const send=(json,status=200)=>route.fulfill({json,status});
+  if(state.offline) return send({error:'network_error'},503);
+  if(request.headers()['x-qq-account']!==state.owner||!state.owner) return send({error:'account_changed'},409);
+  if(!saves.has(state.owner)) saves.set(state.owner,{revision:0,payload:null,writer:'',history:[]});
+  const row=saves.get(state.owner),body=JSON.parse(request.postData()||'{}');
+  const snapshot=()=>({...row,writer_active:!!row.writer,owns_lease:row.writer===writer,updated_at:new Date().toISOString()});
+  if(path==='save'&&request.method()==='GET') return send(snapshot());
+  if(path==='claim') {if(row.writer&&row.writer!==body.writer_id&&!body.takeover)return send({error:'device_busy'},409);row.writer=body.writer_id;return send(snapshot());}
+  if(path==='lease'||path==='release') {if(row.writer!==body.writer_id)return send({error:'lease_lost'},409);if(path==='release')row.writer='';return send(snapshot());}
+  if(path==='save'&&request.method()==='PUT') {
+   if(row.writer!==body.writer_id)return send({error:'lease_lost'},409);
+   if(row.revision!==body.base_revision)return send({error:'revision_conflict'},409);
+   row.payload=body.payload;row.revision++;row.request_id=body.request_id;
+   return send({revision:row.revision,request_id:row.request_id,updated_at:new Date().toISOString()});
+  }
+  if(path==='history')return send({history:[]});
+  return send({error:'not_found'},404);
+ });
+ async function page() {
+  const p=await context.newPage();state.page=p;
+  p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error'&&/SCRIPT ERROR|Parse Error|ERROR:/.test(m.text()))errors.push(m.text());});
+  await p.goto(origin+'/?pack=local&cloud_review=1');
+  await p.waitForFunction(()=>window.qqLayoutCommand&&window.qqLoadMetrics?.some(x=>x.event==='scene_transition'&&x.details.screen==='Hub'),undefined,{timeout:180000});
+  await p.waitForSelector('#status',{state:'detached'});return p;
+ }
+ state.open=page;await page();return state;
+}
+async function wait(d,value) {await d.page.waitForFunction(v=>window.qqCloud.stateSnapshot().state===v,value,{timeout:30000});}
+async function inspect(d) {const sequence=++serial;await d.page.evaluate(sequence=>window.qqLayoutCommand(JSON.stringify({action:'inspect',sequence})),sequence);await d.page.waitForFunction(sequence=>JSON.parse(window.qqLayoutState||'{}').sequence===sequence,sequence);return d.page.evaluate(()=>JSON.parse(window.qqLayoutState));}
+async function fixture(d,points,sync=false,run=false) {await d.page.evaluate(data=>window.qqLayoutCommand(JSON.stringify(data)),{action:'cloud_fixture',points,sync,run,sequence:++serial});}
+async function action(d,id) {await d.page.evaluate(id=>window.qqCloud.action({id}),id);}
+async function synced(d) {await d.page.waitForFunction(()=>{const s=window.qqCloud.stateSnapshot();return s.state==='ready'&&!s.dirty&&s.revision>0;},undefined,{timeout:30000});}
+try {
+ const a=await device();await wait(a,'guest');await fixture(a,123,false,true);assert.equal((await inspect(a)).cloud_points,123,'guest fixture');
+ a.owner=ownerA;await a.page.evaluate(()=>window.qqAccount.refresh());await wait(a,'import_choice');
+ const frame=a.page.frameLocator('#qq-service-panel iframe');await frame.locator('[data-cloud-action=import]').click();await synced(a);
+ assert.equal(saves.get(ownerA).payload.meta_progress.points,123);
+ await a.page.screenshot({path:resolve(out,'import-complete.png')});
+ await frame.locator('#logout').click();await wait(a,'guest');assert.equal((await inspect(a)).cloud_points,0);checks.push('guest_move_then_logout_starts_new_guest');
+ a.owner=ownerB;await a.page.evaluate(()=>window.qqAccount.refresh());await wait(a,'import_choice');await frame.locator('[data-cloud-action=new]').click();await synced(a);assert.equal((await inspect(a)).cloud_points,0);
+ await frame.locator('#logout').click();await wait(a,'guest');a.owner=ownerA;await a.page.evaluate(()=>window.qqAccount.refresh());await synced(a);assert.equal((await inspect(a)).cloud_points,123);checks.push('account_switch_and_return_preserves_separate_progress');
+ const b=await device(ownerA);await wait(b,'device_busy');await action(b,'takeover');await synced(b);assert.equal((await inspect(b)).cloud_points,123);checks.push('second_device_loads_cloud_and_explicitly_takes_over');
+ await fixture(a,222,true);await wait(a,'device_busy');assert.equal(saves.get(ownerA).payload.meta_progress.points,123);
+ await action(a,'takeover');await synced(a);assert.equal(saves.get(ownerA).payload.meta_progress.points,222);checks.push('old_writer_rejected_and_unsent_progress_preserved');
+ a.offline=true;await fixture(a,333,true);await wait(a,'offline');assert.equal((await inspect(a)).cloud_dirty,true);
+ await action(b,'takeover');await synced(b);await fixture(b,444,true);await synced(b);assert.equal(saves.get(ownerA).payload.meta_progress.points,444);
+ await a.page.waitForTimeout(1500);await a.page.close();a.offline=false;await a.open();await wait(a,'conflict');assert.equal((await inspect(a)).cloud_points,333);
+ await a.page.screenshot({path:resolve(out,'conflict.png')});await action(a,'cloud');await synced(a);assert.equal((await inspect(a)).cloud_points,444);checks.push('offline_restart_preserves_local_conflict_and_explicit_resolution');
+ await a.page.locator('#qq-service-close').click();await a.page.evaluate(()=>window.qqRanked.open('ja'));assert.equal(a.context.pages().length,1);await a.page.waitForSelector('#qq-service-panel iframe:not([hidden])');checks.push('account_and_rankings_embedded_without_new_windows');
+ assert.deepEqual(errors,[]);await writeFile(resolve(out,'report.json'),JSON.stringify({checks,errors},null,2));console.log('WEB_CLOUD_REVIEW_OK',JSON.stringify({checks,errors}));
+} catch(error) {console.error('CLOUD_REVIEW_DIAGNOSTIC',JSON.stringify({checks,errors,devices:await Promise.all(devices.map(async d=>({owner:d.owner,state:await d.page.evaluate(()=>window.qqCloud.stateSnapshot()).catch(()=>null)}))),saves:[...saves].map(([owner,row])=>({owner,revision:row.revision,points:row.payload?.meta_progress?.points,writer:row.writer}))}));throw error;}
+finally {await browser.close();app.server.closeAllConnections();await new Promise(done=>app.server.close(done));}

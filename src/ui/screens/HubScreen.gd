@@ -332,7 +332,7 @@ func _refresh_account_button() -> void:
 			_build_debug_battle_lab(root)
 			_build_developer_panel()
 			call_deferred("_warm_debug_card_pickers")
-	_account_button.tooltip_text = Localization.get_text("account.open_hint", "Open your account. Game saves stay on this device/browser.") if AccountSession.is_supported() else Localization.get_text("account.web_only", "Account sign-in is available in the Web edition. Local play does not require an account.")
+	_account_button.tooltip_text = Localization.get_text("account.open_hint", "Open your account and cloud-save controls inside the game.") if AccountSession.is_supported() else Localization.get_text("account.web_only", "Account sign-in is available in the Web edition. Local play does not require an account.")
 
 
 func _open_account() -> void:

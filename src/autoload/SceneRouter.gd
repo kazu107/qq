@@ -31,6 +31,7 @@ var _gold_popup_index: int = 0
 var _scene_cache: Dictionary = {}
 var _ui_scene_cache: Dictionary = {}
 var _warming_ui_scene: bool = false
+var _profile_reset_pending: bool = false
 var _battle_stage_cache: BattleStage3D
 var _pending_battle_card_ids: Array[String] = []
 var _pending_battle_visuals: Array[Dictionary] = []
@@ -523,7 +524,8 @@ func _change_scene(scene_path: String) -> void:
 			})
 	else:
 		schedule_current_battle_cards()
-	_cache_current_ui_scene(current_scene)
+	if not _profile_reset_pending: _cache_current_ui_scene(current_scene)
+	_profile_reset_pending = false
 	if _ui_scene_cache.has(scene_path):
 		if current_scene != null and current_scene.get_parent() == get_tree().root \
 		and _ui_scene_cache.get(current_scene.scene_file_path) != current_scene:
@@ -567,6 +569,11 @@ func _on_language_changed(_language_code: String) -> void:
 		if is_instance_valid(cached_screen):
 			cached_screen.queue_free()
 	_ui_scene_cache.clear()
+
+
+func invalidate_profile_cache() -> void:
+	_on_language_changed(Localization.get_language())
+	_profile_reset_pending = true
 
 
 func _store_battle_stage(stage: BattleStage3D) -> void:

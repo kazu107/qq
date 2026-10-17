@@ -1,5 +1,11 @@
 @font-face { font-family:"Google Sans"; font-style:normal; font-weight:500; font-display:swap; src:url("/account/GoogleSans-Medium.ttf") format("truetype"); }
 :root { color-scheme: dark; --bg:#061019; --panel:#101b25; --line:#344c5c; --gold:#f1c76d; --ink:#ecf1ef; --muted:#a9bbc4; }
+.embedded .account-shell { width:min(100% - 32px,850px); margin:24px auto; }
+.embedded header { display:none; }
+.cloud-card { margin-top:22px; }
+.cloud-comparison { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
+.cloud-comparison > div { border:1px solid var(--line); border-radius:10px; padding:12px; background:#06101988; }
+.cloud-comparison p { font-size:13px; }
 * { box-sizing: border-box; }
 body { margin:0; min-height:100vh; color:var(--ink); font:16px/1.65 "Yu Gothic UI","Trebuchet MS",sans-serif; background:radial-gradient(ellipse at 0 0,#173e55 0,transparent 55%),radial-gradient(ellipse at 100% 100%,#46351c 0,transparent 50%),var(--bg); }
 .account-shell { width:min(100% - 40px,540px); margin:48px auto; }

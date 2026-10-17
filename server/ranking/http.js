@@ -21,7 +21,7 @@ function createRankingService(account, wakeVerifier = () => {}) {
     if (FILES[url.pathname]) {
       if (!["GET", "HEAD"].includes(req.method)) { respond(res, 405, { error: "method_not_allowed" }); return true; }
       const [file, type] = FILES[url.pathname];
-      res.setHeader("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'");
+      res.setHeader("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'self'");
       res.setHeader("Content-Type", type + "; charset=utf-8");
       res.end(req.method === "HEAD" ? undefined : fs.readFileSync(path.join(__dirname, "public", file))); return true;
     }

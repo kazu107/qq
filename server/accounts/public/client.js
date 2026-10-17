@@ -23,7 +23,11 @@
     refresh,
     subscribe(listener) { listeners.add(listener); listener(JSON.stringify(status)); },
     open(language) {
-      popup = window.open(`/account?lang=${language === "en" ? "en" : "ja"}`, "qq-account", "popup,width=620,height=780");
+      return !!window.qqServices?.open("account", language);
+    },
+    oauth(provider, language) {
+      if (!["google", "github"].includes(provider)) return false;
+      popup = window.open(`/auth/${provider}/start?lang=${language === "en" ? "en" : "ja"}`, "qq-auth", "popup,width=620,height=780");
       if (!popup) return false;
       clearInterval(poll);
       let attempts = 0;

@@ -6,6 +6,7 @@ const path = require("node:path");
 const { WebSocketServer, WebSocket } = require("ws");
 const { createAccountService } = require("./accounts/http");
 const { createRankingService } = require("./ranking/http");
+const { createCloudService } = require("./cloud/http");
 const { VerifierWorker } = require("./ranking/worker");
 
 const MAX_SIGNAL_BYTES = 64 * 1024;
@@ -50,6 +51,7 @@ function createQqServer(options = {}) {
   const iceServers = options.iceServers || buildIceServers(options.env || process.env);
   const account = createAccountService(options.env || process.env, options.account || {});
   const rankings = createRankingService(account, () => verifier.wake());
+  const cloud = createCloudService(account);
   const verifier = new VerifierWorker(account, options.env || process.env);
   verifier.start();
 
@@ -62,6 +64,7 @@ function createQqServer(options = {}) {
     }
     account.handle(request, response).then(async handled => {
       if (!handled) handled = await rankings.handle(request, response);
+      if (!handled) handled = await cloud.handle(request, response);
       if (!handled) serveStatic(publicDir, request, response);
     }).catch(error => {
       if (response.headersSent) { response.destroy(); return; }

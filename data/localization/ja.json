@@ -2,7 +2,7 @@
   "account.open": "ログイン / 新規登録",
   "account.signed_in": "アカウント：ログイン中",
   "account.register_name": "ユーザー名を設定",
-  "account.open_hint": "アカウント画面を開きます。ゲームのセーブはこの端末／ブラウザに保存されます。",
+  "account.open_hint": "ゲーム内でアカウントとクラウド保存を管理します。ゲストの進行と端末設定は別に保持します。",
   "account.web_only": "アカウントへのログインはWeb版で利用できます。ローカルプレイにログインは必要ありません。",
   "account.popup_blocked": "このサイトのポップアップを許可してから、もう一度アカウントを開いてください。",
   "meta.stat_upgrade.title": "永続ステータス強化",

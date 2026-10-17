@@ -1,5 +1,7 @@
 extends Node
 
+signal profile_saved(profile: String)
+
 const SAVE_PATH := "user://save.json"
 const REPLAY_DIR := "user://replays"
 const REQUEST_SAVE_DELAY_SECONDS := 0.12
@@ -9,6 +11,14 @@ var last_recovery_source: String = ""
 var _pending_scene_hint: String = ""
 var _save_request_scheduled: bool = false
 var _save_timer: Timer
+var profiles_enabled: bool = false
+var active_profile: String = "guest"
+var profile_meta: Dictionary = {}
+var device: Dictionary = {}
+var _profiles_initialized: bool = false
+const DEVICE_PATH := "user://profiles/device.json"
+const DEVICE_KEYS := ["master_volume", "sfx_volume", "language", "resolution", "developer_mode", "developer_panel_collapsed", "replay_auto_export", "last_replay_export_path", "replay_view_path", "replay_view_return_hint", "lan_player_name", "lan_last_address", "lan_port", "online_player_name", "online_last_address", "online_room_code", "online_port", "online_automatic_upnp", "ranked_outbox"]
+const RESUME_KEYS := ["screen_hint", "pending_enemy_id", "reward_options", "last_battle_summary", "last_reward_bundle", "last_run_starter_id", "last_run_seed", "last_run_infinite", "settings_return_hint"]
 
 
 func _ready() -> void:
@@ -16,25 +26,32 @@ func _ready() -> void:
 
 
 func has_save() -> bool:
-	return SafeSaveStore.has_any(SAVE_PATH)
+	return SafeSaveStore.has_any(active_path())
 
 
 func load_save() -> SaveData:
+	if OS.has_feature("web") or profiles_enabled:
+		_initialize_profiles()
 	last_recovery_source = ""
 	if not has_save():
 		current_save = SaveData.new()
 		return current_save
 
-	var recovered: Dictionary = SafeSaveStore.read_best(SAVE_PATH)
+	var recovered: Dictionary = SafeSaveStore.read_best(active_path())
 	if not bool(recovered.get("found", false)):
 		push_error("No valid save file or backup could be read")
 		current_save = SaveData.new()
 		return current_save
 	var source: String = String(recovered.get("source", ""))
-	if source != SAVE_PATH:
+	if source != active_path():
 		last_recovery_source = source
 		push_warning("Recovered save data from %s" % source)
 	current_save = SaveData.from_dict(Dictionary(recovered.get("data", {})))
+	if _profiles_initialized:
+		profile_meta = Dictionary(current_save.settings.get("_cloud_meta", {})).duplicate(true)
+		current_save.settings.erase("_cloud_meta")
+		for key: String in DEVICE_KEYS:
+			if device.has(key): current_save.settings[key] = device[key]
 	return current_save
 
 
@@ -45,11 +62,103 @@ func save_game(scene_hint: String = "hub") -> bool:
 	_pending_scene_hint = ""
 	_save_request_scheduled = false
 	var save_data := Game.build_save_data(scene_hint)
-	if not SafeSaveStore.write(SAVE_PATH, save_data.to_dict()):
+	var stored: Dictionary = save_data.to_dict().duplicate(true)
+	if _profiles_initialized:
+		profile_meta["dirty"] = JSON.stringify(cloud_payload(save_data)).sha256_text() != String(profile_meta.get("synced_hash", ""))
+		for key: String in DEVICE_KEYS:
+			if Game.settings.has(key): device[key] = Game.settings[key]
+			stored["settings"].erase(key)
+		stored["settings"]["_cloud_meta"] = profile_meta.duplicate(true)
+		_save_device()
+	if not SafeSaveStore.write(active_path(), stored):
 		push_error("Failed to safely write save file")
 		return false
 	current_save = save_data
+	profile_saved.emit(active_profile)
 	return true
+
+
+func active_path() -> String:
+	return profile_path(active_profile) if _profiles_initialized else SAVE_PATH
+
+
+func profile_path(profile: String) -> String:
+	assert(profile == "guest" or (profile.length() == 36 and profile.replace("-", "").is_valid_hex_number(false)))
+	return "user://profiles/%s.json" % profile
+
+
+func _initialize_profiles() -> void:
+	if _profiles_initialized: return
+	var record: Dictionary = SafeSaveStore.read_best(DEVICE_PATH)
+	device = Dictionary(record.get("data", {}).get("settings", {})).duplicate(true)
+	var legacy: Dictionary = Dictionary(SafeSaveStore.read_best(SAVE_PATH).get("data", {}))
+	if not SafeSaveStore.has_any(profile_path("guest")) and not legacy.is_empty():
+		SafeSaveStore.write(profile_path("guest"), legacy)
+		for key: String in DEVICE_KEYS:
+			if legacy.get("settings", {}).has(key) and not device.has(key): device[key] = legacy["settings"][key]
+	active_profile = String(device.get("active_profile", "guest"))
+	if active_profile != "guest" and (active_profile.length() != 36 or not active_profile.replace("-", "").is_valid_hex_number(false)): active_profile = "guest"
+	_profiles_initialized = true
+	_save_device()
+
+
+func _save_device() -> void:
+	device["active_profile"] = active_profile
+	SafeSaveStore.write(DEVICE_PATH, {"current_run": {}, "meta_progress": {}, "settings": device})
+
+
+func read_profile(profile: String) -> Dictionary:
+	return Dictionary(SafeSaveStore.read_best(profile_path(profile)).get("data", {})).duplicate(true)
+
+
+func activate_profile(profile: String, replacement: Dictionary = {}) -> bool:
+	if not replacement.is_empty():
+		var clean: Dictionary = replacement.duplicate(true)
+		clean.erase(SafeSaveStore.CHECKSUM_KEY)
+		if not SafeSaveStore.write(profile_path(profile), clean): return false
+	active_profile = profile
+	profile_meta = {}
+	_save_device()
+	var data: SaveData = load_save()
+	# A fresh profile must inherit device preferences too.
+	for key: String in DEVICE_KEYS:
+		if device.has(key): data.settings[key] = device[key]
+	Game.apply_loaded_save(data)
+	Game.active_battle_tutorial_id = ""
+	Game.stash_active_run_for_hub()
+	return true
+
+
+func cloud_payload(data: SaveData = null) -> Dictionary:
+	var save: SaveData = current_save if data == null else data
+	var result: Dictionary = save.to_dict().duplicate(true)
+	result["schema_version"] = 1
+	var resume: Dictionary = {}
+	for key: String in RESUME_KEYS:
+		if save.settings.has(key): resume[key] = save.settings[key]
+	result["settings"] = resume
+	return result
+
+
+func archive_profile(profile: String, suffix: String = "conflict") -> bool:
+	var source: Dictionary = read_profile(profile)
+	if source.is_empty(): return true
+	return SafeSaveStore.write("user://profiles/backups/%s-%s-%d.json" % [profile, suffix, Time.get_unix_time_from_system() * 1000000], source)
+
+
+func finish_guest_import() -> void:
+	if not bool(profile_meta.get("guest_import_pending", false)): return
+	if not archive_profile("guest", "imported"): return
+	if SafeSaveStore.write(profile_path("guest"), SaveData.new().to_dict()):
+		profile_meta.erase("guest_import_pending")
+
+
+func forget_cached_profile(profile: String) -> void:
+	if profile == "guest" or profile == active_profile: return
+	# Only exact, validated profile paths and their known recovery files are removed.
+	for suffix: String in ["", ".tmp", ".previous", ".bak1", ".bak2", ".bak3"]:
+		var path: String = profile_path(profile) + suffix
+		if FileAccess.file_exists(path): DirAccess.remove_absolute(path)
 
 
 func request_save(scene_hint: String = "hub") -> void:

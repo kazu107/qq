@@ -110,6 +110,7 @@ func _boot() -> void:
 	if not OS.has_feature("web"):
 		SceneRouter.retain_boot_loading_overlay(_loading_content)
 	SceneRouter.go_to_hub()
+	CloudSession.call_deferred("begin")
 
 
 func _set_loading_status(text: String, progress: float) -> void:

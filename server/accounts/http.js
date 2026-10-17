@@ -17,6 +17,7 @@ const FILES = new Map([
   ["/account/", ["index.html", "text/html; charset=utf-8"]],
   ["/account/app.js", ["app.js", "text/javascript; charset=utf-8"]],
   ["/account/client.js", ["client.js", "text/javascript; charset=utf-8"]],
+  ["/account/services.js", ["services.js", "text/javascript; charset=utf-8"]],
   ["/account/style.css", ["style.css", "text/css; charset=utf-8"]],
   ["/account/google-g.png", ["google-g.png", "image/png"]],
   ["/account/GoogleSans-Medium.ttf", ["GoogleSans-Medium.ttf", "font/ttf"]],
@@ -145,8 +146,8 @@ function createAccountService(env = process.env, options = {}) {
     if (FILES.has(url.pathname)) {
       if (!["GET", "HEAD"].includes(request.method)) { json(response, 405, { error: "method_not_allowed" }); return true; }
       const [file, mime] = FILES.get(url.pathname);
-      response.setHeader("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
-      response.setHeader("X-Frame-Options", "DENY");
+      response.setHeader("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'self'; form-action 'self'");
+      response.setHeader("X-Frame-Options", "SAMEORIGIN");
       response.setHeader("Content-Type", mime);
       response.end(request.method === "HEAD" ? undefined : fs.readFileSync(path.join(__dirname, "public", file)));
       return true;
@@ -211,6 +212,7 @@ function createAccountService(env = process.env, options = {}) {
       }
       if (limited(`write:${hash(session)}`, 30, 60000)) { response.setHeader("Retry-After", "60"); json(response, 429, { error: "rate_limited" }); return true; }
       if (url.pathname === "/api/account/logout") {
+        if (request.headers["x-qq-account"] && request.headers["x-qq-account"] !== user.id) { json(response, 409, { error: "account_changed" }); return true; }
         await store.deleteSession(hash(session));
         setCookie(response, config.sessionCookie, "", 0, config.secure);
         json(response, 200, profile(config));

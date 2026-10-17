@@ -49,7 +49,8 @@ test("disabled login preserves static game and requires no database or OAuth sec
     assert.equal((await fetch(`${origin}/auth/google/start`)).status, 503);
     const page = await fetch(`${origin}/account`);
     assert.equal(page.status, 200);
-    assert(page.headers.get("content-security-policy").includes("frame-ancestors 'none'"));
+    assert(page.headers.get("content-security-policy").includes("frame-ancestors 'self'"));
+    assert.equal(page.headers.get("x-frame-options"), "SAMEORIGIN");
     assert.equal((await fetch(`${origin}/account/client.js`)).status, 200);
     assert.equal((await fetch(`${origin}/health`)).status, 200);
     assert.equal((await fetch(`${origin}/`)).status, 200);

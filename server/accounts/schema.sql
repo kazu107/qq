@@ -49,3 +49,14 @@ CREATE TABLE IF NOT EXISTS qq_ranked_commands (
   run_id uuid NOT NULL REFERENCES qq_ranked_runs(id), sequence integer NOT NULL,
   command jsonb NOT NULL, PRIMARY KEY(run_id, sequence)
 );
+
+CREATE TABLE IF NOT EXISTS qq_cloud_saves (
+  user_id uuid PRIMARY KEY REFERENCES qq_accounts_users(id), revision integer NOT NULL DEFAULT 0,
+  payload jsonb, updated_at timestamptz, writer_id uuid, device_label varchar(48), lease_until timestamptz,
+  request_id uuid, payload_hash char(64)
+);
+CREATE TABLE IF NOT EXISTS qq_cloud_save_history (
+  user_id uuid NOT NULL REFERENCES qq_accounts_users(id), revision integer NOT NULL,
+  payload jsonb NOT NULL, updated_at timestamptz NOT NULL,
+  PRIMARY KEY(user_id, revision)
+);

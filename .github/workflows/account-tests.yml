@@ -2,7 +2,7 @@ name: Account and signaling tests
 
 on:
   push:
-    branches: [main, "codex/rankings-validation"]
+    branches: [main, "codex/rankings-validation", "codex/cloud-saves"]
     paths: ["server/**", "tests/helpers/account_fixture.js", "package.json", "package-lock.json", ".github/workflows/account-tests.yml"]
   pull_request:
     paths: ["server/**", "tests/helpers/account_fixture.js", "package.json", "package-lock.json", ".github/workflows/account-tests.yml"]
@@ -58,6 +58,11 @@ jobs:
           cat build/ranked-outbox.log
           grep -q RANKED_OUTBOX_SMOKE_OK build/ranked-outbox.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/ranked-outbox.log; then exit 1; fi
+          mkdir -p build/cloud-test-home
+          HOME="$PWD/build/cloud-test-home" godot --headless --path . res://tests/CloudProfileSmoke.tscn --quit-after 600 > build/cloud-profile.log 2>&1
+          cat build/cloud-profile.log
+          grep -q CLOUD_PROFILE_SMOKE_OK build/cloud-profile.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/cloud-profile.log; then exit 1; fi
           godot --headless --path . --export-pack Web build/ranked-test.pck > build/export.log 2>&1
           godot --headless --main-pack build/ranked-test.pck res://scenes/ranking/Verifier.tscn -- "$PWD/build/ranked-fixture.json" > build/ranked-pack.log 2>&1
           cat build/ranked-pack.log
