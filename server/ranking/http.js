@@ -11,7 +11,7 @@ async function body(req) {
   try { const value = JSON.parse(Buffer.concat(chunks).toString()); if (!value || typeof value !== "object" || Array.isArray(value)) fail("invalid_json"); return value; }
   catch { fail("invalid_json"); }
 }
-function createRankingService(account) {
+function createRankingService(account, wakeVerifier = () => {}) {
   let store;
   const limits = new Map();
   return { async handle(req, res) {
@@ -36,6 +36,11 @@ function createRankingService(account) {
         respond(res, 200, { season, seasons: seasons.rows, rules, catalog: require("./catalog.json"), ...await store.board(selected, url.searchParams.get("starter") || "", user?.id, Number(url.searchParams.get("page")) || 0) });
       } else if (req.method === "GET" && url.pathname === "/api/ranked/history") {
         const user = await account.authorize(req); respond(res, 200, { runs: await store.history(user.id) });
+      } else if (req.method === "GET" && /^\/api\/ranked\/runs\/([^/]+)\/journal$/.test(url.pathname)) {
+        const user = await account.authorize(req);
+        respond(res, 200, await store.journal(user.id, url.pathname.split("/")[4], Number(url.searchParams.get("from")) || 0));
+      } else if (req.method === "GET" && /^\/api\/ranked\/runs\/([^/]+)$/.test(url.pathname)) {
+        const user = await account.authorize(req); respond(res, 200, await store.status(user.id, url.pathname.split("/")[4]));
       } else if (req.method === "GET" && /^\/api\/ranked\/entries\//.test(url.pathname)) {
         respond(res, 200, await store.detail(url.pathname.split("/").at(-1)));
       } else if (req.method === "POST") {
@@ -48,7 +53,9 @@ function createRankingService(account) {
         else {
           const route = /^\/api\/ranked\/runs\/([^/]+)\/(commands|finish)$/.exec(url.pathname);
           if (!route) fail("not_found", 404);
-          respond(res, 200, route[2] === "commands" ? await store.append(user.id, route[1], data.sequence, data.commands) : await store.finish(user.id, route[1], data.sequence, data.disqualified));
+          const result = route[2] === "commands" ? await store.append(user.id, route[1], data.sequence, data.commands) : await store.finish(user.id, route[1], data.sequence, data.disqualified);
+          respond(res, 200, result);
+          if (route[2] === "finish" && result.status === "pending") wakeVerifier();
         }
       } else respond(res, 405, { error: "method_not_allowed" });
     } catch (error) { respond(res, error.status || 503, { error: error.status ? error.code : "rankings_unavailable" }); }

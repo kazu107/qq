@@ -41,17 +41,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/qq-godot" build
-          curl --fail --location --retry 4 "https://github.com/godotengine/godot-builds/releases/download/4.6.2-stable/Godot_v4.6.2-stable_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
-          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/qq-godot"
-          export PATH="$RUNNER_TEMP/qq-godot:$PATH"
-          mv "$RUNNER_TEMP/qq-godot/Godot_v4.6.2-stable_linux.x86_64" "$RUNNER_TEMP/qq-godot/godot"
-          chmod +x "$RUNNER_TEMP/qq-godot/godot"
+          mkdir -p build
+          node server/ranking/install-runtime.js
+          export PATH="$PWD/server/ranking/vendor:$PATH"
+          godot --version
           godot --headless --path . --editor --quit > build/import.log 2>&1
           godot --headless --path . res://tests/RankedRunSmoke.tscn --quit-after 600 > build/ranked-smoke.log 2>&1
           cat build/ranked-smoke.log
           grep -q RANKED_RUN_SMOKE_OK build/ranked-smoke.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/ranked-smoke.log; then exit 1; fi
+          godot --headless --path . res://tests/RankedFacilitySmoke.tscn --quit-after 600 > build/ranked-facilities.log 2>&1
+          cat build/ranked-facilities.log
+          grep -q RANKED_FACILITY_SMOKE_OK build/ranked-facilities.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/ranked-facilities.log; then exit 1; fi
+          godot --headless --path . res://tests/RankedOutboxSmoke.tscn --quit-after 600 > build/ranked-outbox.log 2>&1
+          cat build/ranked-outbox.log
+          grep -q RANKED_OUTBOX_SMOKE_OK build/ranked-outbox.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/ranked-outbox.log; then exit 1; fi
           godot --headless --path . --export-pack Web build/ranked-test.pck > build/export.log 2>&1
           godot --headless --main-pack build/ranked-test.pck res://scenes/ranking/Verifier.tscn -- "$PWD/build/ranked-fixture.json" > build/ranked-pack.log 2>&1
           cat build/ranked-pack.log

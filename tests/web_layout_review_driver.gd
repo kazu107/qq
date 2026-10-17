@@ -33,6 +33,23 @@ func _command(arguments: Array) -> void:
 	_sequence = int(payload.get("sequence", 0))
 	if String(payload.get("action", "")) == "screen":
 		_open_screen(String(payload.get("screen", "hub")))
+	elif String(payload.get("action", "")) == "permission_fixture":
+		AccountSession.enforce_web_permissions = true
+		Game.settings["developer_mode"] = bool(payload.get("enabled", false))
+		_open_screen(String(payload.get("screen", "settings")))
+	elif String(payload.get("action", "")) == "ranked_replay":
+		var smoke: Node = load("res://tests/RankedRunSmoke.tscn").instantiate()
+		smoke.quit_when_done = false
+		smoke.completed.connect(func(data: Dictionary) -> void: _window.qqRankedReplay = JSON.stringify(data))
+		add_child(smoke)
+	elif String(payload.get("action", "")) == "ranked_resume_fixture":
+		RankedSession.verifying = false
+		RankedSession.initialize(Dictionary(payload["ticket"]))
+		var commands: Array = Array(payload["commands"]).duplicate(true)
+		commands[0] = {"kind": "game", "method": "developer_add_gold", "args": [99999]}
+		Game.current_run.ranking["commands"] = commands
+		Game.stash_active_run_for_hub()
+		SceneRouter.go_to_hub()
 	elif String(payload.get("action", "")) == "content_fixture":
 		var language: String = String(payload.get("language", Localization.get_language()))
 		if language != Localization.get_language():
@@ -521,6 +538,10 @@ func _inspect() -> Dictionary:
 		"window": [get_window().size.x, get_window().size.y],
 		"aspect": get_window().content_scale_aspect,
 		"controls": controls,
+		"developer_allowed": AccountSession.can_use_developer_mode(),
+		"developer_enabled": Game.is_developer_mode_enabled(),
+		"ranked_active": RankedSession.active(),
+		"ranked_score": int(InfiniteScoreResolver.new().calculate(Game.current_run).get("total_score", 0)) if RankedSession.active() else 0,
 	})
 	if screen != null:
 		if screen.has_method("is_tutorial_mode") and bool(screen.call("is_tutorial_mode")):

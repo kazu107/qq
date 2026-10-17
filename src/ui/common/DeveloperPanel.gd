@@ -22,7 +22,11 @@ func _init() -> void:
 func _ready() -> void:
 	name = "DeveloperPanel"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	AccountSession.changed.connect(func() -> void: visible = Game.is_developer_mode_enabled())
+	AccountSession.changed.connect(_refresh_permission)
+
+
+func _refresh_permission() -> void:
+	visible = Game.is_developer_mode_enabled()
 
 
 func configure(title: String, actions: Array, status_text: String = "") -> void:

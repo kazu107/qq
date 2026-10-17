@@ -108,6 +108,7 @@ func _build_header(parent: VBoxContainer) -> void:
 	)
 	mode_label.add_theme_color_override("font_color", Color(0.48, 0.86, 1.0, 1.0))
 	mode_chip.add_child(mode_label)
+	if _is_ranked_setup: mode_label.text = "無限ランキング" if Localization.get_language() == "ja" else "RANKED INFINITE"
 
 	var back_button: Button = Button.new()
 	back_button.name = "RunSetupBackButton"
@@ -445,11 +446,12 @@ func _refresh_details() -> void:
 	var cards: Array[String] = _to_string_array(starter.get("cards", []))
 	_selected_name_label.text = String(starter.get("name", ""))
 	_details_label.text = String(starter.get("description", ""))
+	if _is_ranked_setup: _details_label.append_text("\n永続強化なし・全カードと遺物共通。無限補正: HP+18 / 攻撃+2 / 速度+2。")
 	_model_preview.show_starter(_selected_starter_id)
 	_starter_stats_grid.visible = true
-	_hp_value_label.text = "%d" % int(starter.get("max_hp", 0))
-	_attack_value_label.text = "%d" % int(starter.get("attack", 0))
-	_speed_value_label.text = "%d" % int(starter.get("speed", 0))
+	_hp_value_label.text = "%d" % (int(starter.get("max_hp", 0)) + (18 if _is_ranked_setup else 0))
+	_attack_value_label.text = "%d" % (int(starter.get("attack", 0)) + (2 if _is_ranked_setup else 0))
+	_speed_value_label.text = "%d" % (int(starter.get("speed", 0)) + (2 if _is_ranked_setup else 0))
 	_starter_cards_panel.refresh_card_ids(cards, false, "KIT")
 	_card_count_label.text = "%d" % cards.size()
 	_start_button.disabled = false
@@ -574,7 +576,9 @@ func _make_deck_button_style(fill_color: Color, border_color: Color, border_widt
 func _on_start() -> void:
 	if _is_ranked_setup:
 		_start_button.disabled = true
-		if await RankedSession.start(_selected_starter_id): SceneRouter.go_to_map()
+		var started: bool = await RankedSession.start(_selected_starter_id)
+		if not is_instance_valid(self) or not is_inside_tree(): return
+		if started: SceneRouter.go_to_map()
 		else:
 			_details_label.append_text("\n" + RankedSession.status_text)
 			_start_button.disabled = false

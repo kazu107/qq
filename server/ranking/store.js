@@ -117,6 +117,16 @@ class RankingStore {
     const rows = await this.pool.query("SELECT * FROM qq_ranked_runs WHERE user_id=$1 ORDER BY created_at DESC LIMIT 30", [userId]);
     return rows.rows.map(row => ({ ...publicRun(row), next_sequence: row.next_sequence }));
   }
+  async journal(userId, id, from) {
+    if (!Number.isInteger(from) || from < 0 || from > 200000) fail("invalid_sequence");
+    const row = await this.owned(this.pool, userId, id);
+    const commands = await this.pool.query("SELECT command FROM qq_ranked_commands WHERE run_id=$1 AND sequence >= $2 AND sequence < $3 ORDER BY sequence LIMIT 250", [id, from, row.next_sequence]);
+    return { ticket: ticket(row), status: row.status, next_sequence: row.next_sequence, commands: commands.rows.map(item => item.command) };
+  }
+  async status(userId, id) {
+    const row = await this.owned(this.pool, userId, id);
+    return publicRun(row);
+  }
   async detail(id) {
     if (!UUID.test(id)) fail("not_found", 404);
     const result = await this.pool.query("SELECT r.*,u.username FROM qq_ranked_runs r JOIN qq_accounts_users u ON u.id=r.user_id WHERE r.id=$1 AND status='verified'", [id]);

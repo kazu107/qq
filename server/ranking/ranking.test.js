@@ -5,10 +5,16 @@ const { accountFixture, BrowserSession, testDatabaseEnv } = require("../../tests
 const { RankingStore, seasonAt, validateCommands, rules } = require("./store");
 
 test("JST season boundaries, command schemas and privileged methods", () => {
+  assert.equal(require("./build.json").game_version,require("../../data/version_history.json").current_version);
+  assert.deepEqual(rules.starters, require("../../data/starters.json").map(starter=>starter.id));
+  const fs = require("node:fs");
+  assert.equal(rules.ruleset,/const RULESET := "([^"]+)"/.exec(fs.readFileSync(require("node:path").join(__dirname,"../../src/autoload/RankedSession.gd"),"utf8"))[1]);
   assert.equal(seasonAt(new Date("2026-10-31T14:59:59Z")).id, "infinite-1:2026-10");
   assert.equal(seasonAt(new Date("2026-10-31T15:00:00Z")).id, "infinite-1:2026-11");
   assert.throws(() => validateCommands([{ kind: "game", method: "developer_add_gold", args: [10] }]));
   assert.throws(() => validateCommands([{ kind: "advance", ticks: -1 }]));
+  assert.throws(() => validateCommands([{ kind: "advance", ticks: 1, injected: "unexpected" }]));
+  assert.throws(() => validateCommands([{ kind: "game", method: "equip_card", args: [] }]));
   assert.throws(() => validateCommands([{ kind: "game", method: "equip_card", args: [{ id: "strike" }] }]));
   assert.doesNotThrow(() => validateCommands([{ kind: "game", method: "equip_card", args: ["strike"] }]));
 });
@@ -42,6 +48,12 @@ test("ranked ownership, CSRF, idempotence, seasons, best records and developer p
     assert.equal((await second.write(`/api/ranked/runs/${run.id}/commands`, { sequence: 0, commands })).status, 404);
     assert.equal((await first.write(`/api/ranked/runs/${run.id}/commands`, { sequence: 1, commands })).status, 409);
     for(let i=0;i<2;i++) assert.equal((await first.write(`/api/ranked/runs/${run.id}/commands`, { sequence: 0, commands })).status, 200);
+    const journal = await (await first.request(`/api/ranked/runs/${run.id}/journal?from=0`)).json();
+    assert.deepEqual(journal.commands,commands);
+    assert.equal(journal.next_sequence,1);
+    assert.equal((await second.request(`/api/ranked/runs/${run.id}/journal?from=0`)).status,404);
+    assert.equal((await second.request(`/api/ranked/runs/${run.id}`)).status,404);
+    assert.equal((await first.request(`/api/ranked/runs/${run.id}`)).status,200);
     assert.equal((await first.write(`/api/ranked/runs/${run.id}/commands`, { sequence: 0, commands: [{ kind: "start" }] })).status, 409);
     assert.equal((await first.write(`/api/ranked/runs/${run.id}/finish`, { sequence: 0 })).status, 409);
     assert.equal((await first.write(`/api/ranked/runs/${run.id}/finish`, { sequence: 1, total_score: 999999999 })).status, 200);

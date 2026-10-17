@@ -30,6 +30,7 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	if _elapsed > 10.0:
 		_elapsed = 0.0
+		if active(): SaveManager.request_save(Game.current_screen_hint)
 		flush()
 
 
@@ -38,7 +39,7 @@ func active() -> bool:
 
 
 func should_record() -> bool:
-	return active() and not verifying and not dispatching
+	return active() and not bool(Game.current_run.ranking.get("disqualified", false)) and not verifying and not dispatching
 
 
 func tracks(value: Variant) -> bool:
@@ -48,6 +49,10 @@ func tracks(value: Variant) -> bool:
 func open_board() -> void:
 	if _bridge != null: _bridge.open(Localization.get_language())
 	else: OS.shell_open("https://masterqueue.kazu107.xyz/rankings")
+
+
+func is_supported() -> bool:
+	return _bridge != null
 
 
 func request(method: String, path: String, body: Dictionary = {}) -> Dictionary:
@@ -63,9 +68,15 @@ func request(method: String, path: String, body: Dictionary = {}) -> Dictionary:
 
 
 func start(starter_id: String) -> bool:
+	var source_scene: Node = get_tree().current_scene
 	var result: Dictionary = await request("POST", "/api/ranked/runs", {"starter_id": starter_id})
+	if not is_instance_valid(source_scene) or get_tree().current_scene != source_scene: return false
 	if result.has("error"):
 		status_text = "ランキング開始不可: " + String(result["error"])
+		changed.emit()
+		return false
+	if String(result.get("ticket", {}).get("ruleset", "")) != RULESET:
+		status_text = "ルールが更新されています。ブラウザを再読み込みしてください。"
 		changed.emit()
 		return false
 	initialize(Dictionary(result["ticket"]))
@@ -108,13 +119,17 @@ func _append(command: Dictionary) -> void:
 	if commands.size() > 200000: disqualify("record_limit")
 
 
-func _seed_services(_index: int) -> void:
-	_random_step += 1
+func _seed_services(_index: int, advance_rng: bool = true) -> void:
+	if advance_rng: _random_step += 1
 	var value: int = Game.current_run.seed ^ (_random_step * 7919)
 	Game._rng.seed = value
 	var services: Array = [Game._reward_resolver, Game._shop_service, Game._forge_service, Game._relic_service, Game._event_service]
 	for i: int in services.size(): services[i]._rng.seed = value + i * 104729
 	Game._event_service._reward_resolver._rng.seed = value + 999983
+
+
+func _advances_rng(method: String) -> bool:
+	return method not in ["equip_card", "unequip_card", "prepare_next_battle", "start_active_encounter", "continue_hazard"]
 
 
 func restore_current() -> void:
@@ -128,9 +143,46 @@ func restore_current() -> void:
 	if response.has("error") and response["error"] != "battle_in_progress": disqualify("resume_mismatch")
 
 
+func resume_saved() -> bool:
+	var previous_run: RunState = Game.current_run
+	var snapshot: Dictionary = Dictionary(Game.suspended_runs.get("ranked", {}))
+	var run: Dictionary = Dictionary(snapshot.get("run", {}))
+	var ranking: Dictionary = Dictionary(run.get("ranking", {}))
+	if ranking.is_empty(): return false
+	var commands: Array = Array(ranking.get("commands", [])).duplicate(true)
+	var cursor: int = mini(int(ranking.get("ack", 0)), commands.size())
+	var next: int = cursor
+	var conflict: bool = false
+	while true:
+		var response: Dictionary = await request("GET", "/api/ranked/runs/%s/journal?from=%d" % [ranking["ticket"]["id"], cursor])
+		if Game.current_run != previous_run: return false
+		if response.has("error") or response.get("status", "active") != "active":
+			status_text = "所有者のログインと接続を確認してください。記録は保持しています。"
+			changed.emit()
+			return false
+		next = int(response["next_sequence"])
+		var remote: Array = Array(response.get("commands", []))
+		for index: int in remote.size():
+			if cursor + index < commands.size():
+				if commands[cursor + index] != remote[index]: conflict = true
+				commands[cursor + index] = remote[index]
+			else: commands.append(remote[index])
+		cursor += remote.size()
+		if cursor >= next: break
+		if remote.is_empty(): return false
+	if conflict: commands.resize(next)
+	ranking["commands"] = commands
+	ranking["ack"] = next
+	run["ranking"] = ranking
+	snapshot["run"] = run
+	Game.suspended_runs["ranked"] = snapshot
+	Game.resume_suspended_run("ranked")
+	return true
+
+
 func invoke(method: String, arguments: Array) -> Variant:
 	_append({"kind": "game", "method": method, "args": arguments.duplicate(true)})
-	_seed_services(Array(Game.current_run.ranking["commands"]).size())
+	_seed_services(Array(Game.current_run.ranking["commands"]).size(), _advances_rng(method))
 	dispatching = true
 	var result: Variant = Game.callv(method, arguments)
 	dispatching = false
@@ -189,33 +241,100 @@ func disqualify(reason: String) -> void:
 	if not active(): return
 	Game.current_run.ranking["disqualified"] = true
 	Game.current_run.ranking["reason"] = reason
+	_outbox()[String(Game.current_run.ranking["ticket"]["id"])] = Game.current_run.ranking
+	SaveManager.request_save(Game.current_screen_hint)
 	status_text = "ランキング対象外: " + reason
 	changed.emit()
 
 
 func finish() -> void:
 	_finish_requested = true
-	if active(): Game.current_run.ranking["finish_requested"] = true
+	if active():
+		Game.current_run.ranking["finish_requested"] = true
+		_outbox()[String(Game.current_run.ranking["ticket"]["id"])] = Game.current_run.ranking
+		SaveManager.request_save(Game.current_screen_hint)
 	flush()
+
+
+func _outbox() -> Dictionary:
+	if not Game.settings.has("ranked_outbox"): Game.settings["ranked_outbox"] = {}
+	return Dictionary(Game.settings["ranked_outbox"])
+
+
+func _drop_terminal(ranking: Dictionary) -> void:
+	if ranking.get("status", "active") not in ["active", "pending", "verifying"]: _outbox().erase(String(ranking["ticket"]["id"]))
+
+
+func _upload_run() -> RunState:
+	var user: Variant = AccountSession.snapshot.get("user")
+	var owner: String = String(user.get("id", "")) if user is Dictionary else ""
+	var queued: Array[Dictionary] = []
+	for key: String in _outbox().keys():
+		var entry: Dictionary = Dictionary(_outbox()[key])
+		if entry.get("status", "active") not in ["active", "pending", "verifying"]:
+			_outbox().erase(key)
+			continue
+		if entry.get("ticket", {}).get("user_id", "") != owner: continue
+		if entry.get("status", "active") == "active":
+			var run: RunState = RunState.new()
+			run.ranking = entry
+			return run
+		queued.append(entry)
+	if active() and Game.current_run.ranking.get("status", "active") == "active":
+		var ranking: Dictionary = Game.current_run.ranking
+		var sendable: int = Array(ranking["commands"]).size() - (1 if engine != null else 0)
+		if sendable > int(ranking.get("ack", 0)) or bool(ranking.get("disqualified", false)): return Game.current_run
+	if not queued.is_empty():
+		var run: RunState = RunState.new()
+		run.ranking = queued[0]
+		return run
+	return null
 
 
 func flush() -> void:
 	if _sending or verifying or _bridge == null: return
-	if active(): _tracked = Game.current_run
-	if _tracked == null or _tracked.ranking.is_empty(): return
-	var run: RunState = _tracked
+	var run: RunState = _upload_run()
+	if run == null: return
 	var ranking: Dictionary = run.ranking
-	if ranking.get("status", "active") != "active": return
+	if ranking.get("status", "active") not in ["active", "pending", "verifying"]: return
 	var user: Variant = AccountSession.snapshot.get("user")
 	if user is not Dictionary or user.get("id", "") != ranking["ticket"].get("user_id", ""):
 		status_text = "記録の所有者でログインすると送信を再開します"
 		changed.emit()
 		return
 	_sending = true
+	if bool(ranking.get("disqualified", false)):
+		var receipt: Dictionary = await request("GET", "/api/ranked/runs/%s/journal?from=0" % ranking["ticket"]["id"])
+		if not receipt.has("error"):
+			var closed: Dictionary = await request("POST", "/api/ranked/runs/%s/finish" % ranking["ticket"]["id"], {"sequence": int(receipt.get("next_sequence", 0)), "disqualified": true})
+			if not closed.has("error"):
+				ranking["status"] = closed.get("status", "disqualified")
+				status_text = "ランキング対象外 / ローカルプレイとして続行できます"
+				if active() and Game.current_run.ranking.get("ticket", {}).get("id", "") == ranking["ticket"]["id"]: Game.current_run.ranking = {}
+		_sending = false
+		_drop_terminal(ranking)
+		SaveManager.request_save(Game.current_screen_hint)
+		changed.emit()
+		return
+	if ranking.get("status", "active") in ["pending", "verifying"]:
+		var history: Dictionary = await request("GET", "/api/ranked/runs/%s" % ranking["ticket"]["id"])
+		for record: Dictionary in ([] if history.has("error") else [history]):
+			if record.get("id", "") != ranking["ticket"]["id"]: continue
+			ranking["status"] = record.get("status", "pending")
+			match String(ranking["status"]):
+				"verified": status_text = "正式記録: %s点" % String.num(float(record.get("result", {}).get("total_score", 0)), 0)
+				"rejected", "disqualified", "unverified": status_text = "ランキング対象外: " + String(record.get("reason", "unverified"))
+				_: status_text = "サーバーで記録を検証しています"
+			break
+		_sending = false
+		_drop_terminal(ranking)
+		SaveManager.request_save(Game.current_screen_hint)
+		changed.emit()
+		return
 	var commands: Array = ranking["commands"]
 	var first: int = int(ranking.get("ack", 0))
 	# Do not upload a mutable tail while its battle is advancing.
-	var limit: int = commands.size() if engine == null else maxi(0, commands.size() - 1)
+	var limit: int = commands.size() if engine == null or Game.current_run != run else maxi(0, commands.size() - 1)
 	while first < limit:
 		var last: int = mini(first + 250, limit)
 		var response: Dictionary = await request("POST", "/api/ranked/runs/%s/commands" % ranking["ticket"]["id"], {"sequence": first, "commands": commands.slice(first, last).duplicate(true)})
@@ -226,13 +345,14 @@ func flush() -> void:
 			return
 		first = int(response["next_sequence"])
 		ranking["ack"] = first
-	if (bool(ranking.get("finish_requested", false)) or _finish_requested) and first == commands.size():
+	if bool(ranking.get("finish_requested", false)) and first == commands.size():
 		var response: Dictionary = await request("POST", "/api/ranked/runs/%s/finish" % ranking["ticket"]["id"], {"sequence": first, "disqualified": bool(ranking.get("disqualified", false))})
 		if not response.has("error"):
 			ranking["status"] = response.get("status", "pending")
-			status_text = "送信済み / サーバー検証待ち"
+			status_text = "送信済み / サーバー検証待ち" if ranking["status"] in ["pending", "verifying"] else "記録を確定しました。ランキング履歴を確認してください。"
 		else: status_text = "記録を保留中: " + String(response["error"])
 	_sending = false
+	_drop_terminal(ranking)
 	SaveManager.request_save(Game.current_screen_hint)
 	changed.emit()
 
@@ -251,7 +371,7 @@ func replay(ticket: Dictionary, commands: Array) -> Dictionary:
 				var method: String = String(command.get("method", ""))
 				var arguments: Array = Array(command.get("args", []))
 				if not METHODS.has(method) or not _legal(method, arguments, phase): return {"error": "illegal_action", "sequence": index}
-				_seed_services(index + 1)
+				_seed_services(index + 1, _advances_rng(method))
 				if method == "start_active_encounter" and phase == "battle": Game.current_screen_hint = "map"
 				var applied: Variant = Game.callv(method, arguments)
 				if applied is bool and not applied: return {"error": "rejected_action", "sequence": index}
@@ -286,6 +406,16 @@ func replay(ticket: Dictionary, commands: Array) -> Dictionary:
 	result["cards"] = Game.current_run.equipped_cards.duplicate()
 	result["relics"] = Game.current_run.relics.duplicate()
 	result["battle_count"] = Game.current_run.battle_history.size()
+	result["hp"] = Game.current_run.player_hp
+	result["max_hp"] = Game.current_run.max_hp
+	result["attack"] = Game.current_run.attack
+	result["speed"] = Game.current_run.speed
+	result["gold"] = Game.current_run.gold
+	result["loadout_limit"] = Game.current_run.loadout_limit
+	result["card_upgrades"] = Game.current_run.card_upgrades.duplicate(true)
+	var owned: Dictionary = {}
+	for id: String in Game.current_run.player_cards: owned[id] = int(owned.get(id, 0)) + 1
+	result["owned_cards"] = owned
 	result["ticks"] = ticks_total
 	return {"result": result}
 

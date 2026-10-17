@@ -12,6 +12,8 @@ var _debug_card_grade_options: Array[OptionButton] = []
 var _version_history_overlay: ColorRect
 var _version_history_content: RichTextLabel
 var _account_button: Button
+var _ranked_start_button: Button
+var _ranking_status_label: Label
 
 
 func _ready() -> void:
@@ -173,12 +175,13 @@ func _build_ranking_actions(parent: Control) -> void:
 	view.pressed.connect(RankedSession.open_board)
 	row.add_child(view)
 	var start: Button = Button.new()
+	_ranked_start_button = start
 	start.name = "HubRankedStartButton"
 	start.text = "ランキングに挑戦" if Localization.get_language() == "ja" else "Ranked Infinite"
 	start.tooltip_text = "ログインが必要です。永続強化なし・全カードと遺物共通。"
 	start.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	start.disabled = not AccountSession.is_supported() or not bool(AccountSession.snapshot.get("authenticated", false)) or bool(AccountSession.snapshot.get("needsUsername", false))
-	AccountSession.changed.connect(func() -> void: start.disabled = not AccountSession.is_supported() or not bool(AccountSession.snapshot.get("authenticated", false)) or bool(AccountSession.snapshot.get("needsUsername", false)))
+	start.disabled = not RankedSession.is_supported() or not AccountSession.is_supported() or not bool(AccountSession.snapshot.get("authenticated", false)) or bool(AccountSession.snapshot.get("needsUsername", false))
+	AccountSession.changed.connect(_refresh_ranking_access)
 	start.pressed.connect(func() -> void:
 		SceneRouter.go_to_run_setup(Game.RUN_SETUP_MODE_RANKED)
 	)
@@ -189,8 +192,7 @@ func _build_ranking_actions(parent: Control) -> void:
 		resume.text = "ランキングの続き" if Localization.get_language() == "ja" else "Continue Ranked"
 		resume.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		resume.pressed.connect(func() -> void:
-			Game.resume_suspended_run(Game.RUN_SETUP_MODE_RANKED)
-			SceneRouter.go_to_continue_target()
+			if await RankedSession.resume_saved(): SceneRouter.go_to_continue_target()
 		)
 		row.add_child(resume)
 		var retire: Button = Button.new()
@@ -198,7 +200,7 @@ func _build_ranking_actions(parent: Control) -> void:
 		retire.text = "挑戦を終了・送信" if Localization.get_language() == "ja" else "Finish & Submit"
 		retire.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		retire.pressed.connect(func() -> void:
-			Game.resume_suspended_run(Game.RUN_SETUP_MODE_RANKED)
+			if not await RankedSession.resume_saved(): return
 			if RankedSession.engine != null:
 				RankedSession.status_text = "戦闘を完了してから記録を確定してください"
 				SceneRouter.go_to_continue_target()
@@ -209,11 +211,21 @@ func _build_ranking_actions(parent: Control) -> void:
 		)
 		row.add_child(retire)
 	var status: Label = Label.new()
+	_ranking_status_label = status
 	status.name = "RankingSyncStatus"
 	status.text = RankedSession.status_text
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(status)
-	RankedSession.changed.connect(func() -> void: status.text = RankedSession.status_text)
+	RankedSession.changed.connect(_refresh_ranking_status)
+
+
+func _refresh_ranking_access() -> void:
+	if is_instance_valid(_ranked_start_button):
+		_ranked_start_button.disabled = not RankedSession.is_supported() or not AccountSession.is_supported() or not bool(AccountSession.snapshot.get("authenticated", false)) or bool(AccountSession.snapshot.get("needsUsername", false))
+
+
+func _refresh_ranking_status() -> void:
+	if is_instance_valid(_ranking_status_label): _ranking_status_label.text = RankedSession.status_text
 
 
 func _build_mode_card(parent: GridContainer, icon_id: String, title_text: String, description: String, accent: Color) -> VBoxContainer:
@@ -314,6 +326,12 @@ func _refresh_account_button() -> void:
 	_account_button.disabled = not AccountSession.is_supported()
 	var lab: Control = find_child("DebugBattleLab", true, false) as Control
 	if lab != null: lab.visible = Game.is_developer_mode_enabled()
+	elif Game.is_developer_mode_enabled():
+		var root: Control = find_child("HubModeSelection", true, false) as Control
+		if root != null:
+			_build_debug_battle_lab(root)
+			_build_developer_panel()
+			call_deferred("_warm_debug_card_pickers")
 	_account_button.tooltip_text = Localization.get_text("account.open_hint", "Open your account. Game saves stay on this device/browser.") if AccountSession.is_supported() else Localization.get_text("account.web_only", "Account sign-in is available in the Web edition. Local play does not require an account.")
 
 

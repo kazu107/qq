@@ -2,7 +2,8 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { createHash } = require("node:crypto");
-const { inflateRawSync } = require("node:zlib");
+const { execFile } = require("node:child_process");
+const { promisify } = require("node:util");
 
 async function main() {
   if (process.platform !== "linux") return;
@@ -17,23 +18,11 @@ async function main() {
   const zip = Buffer.from(await response.arrayBuffer());
   if (zip.length > 100000000 || "sha256:" + createHash("sha256").update(zip).digest("hex") !== asset.digest) throw new Error("Godot runtime digest mismatch");
   // Extract only the named executable; never apply archive paths to the filesystem.
-  let cursor = zip.length - 22;
-  while (cursor > zip.length - 65558 && zip.readUInt32LE(cursor) !== 0x06054b50) cursor--;
-  let offset = zip.readUInt32LE(cursor + 16), binary;
-  while (zip.readUInt32LE(offset) === 0x02014b50) {
-    const size = zip.readUInt32LE(offset + 20), raw = zip.readUInt32LE(offset + 24);
-    const filenameLength = zip.readUInt16LE(offset + 28), extra = zip.readUInt16LE(offset + 30), comment = zip.readUInt16LE(offset + 32);
-    if (zip.subarray(offset + 46, offset + 46 + filenameLength).toString() === executable) {
-      if (raw > 250000000) throw new Error("Godot executable exceeds bound");
-      const local = zip.readUInt32LE(offset + 42), begin = local + 30 + zip.readUInt16LE(local + 26) + zip.readUInt16LE(local + 28);
-      binary = zip.readUInt16LE(offset + 10) === 8 ? inflateRawSync(zip.subarray(begin, begin + size), { maxOutputLength: raw }) : zip.subarray(begin, begin + size);
-      if (binary.length !== raw) throw new Error("Invalid Godot executable size");
-      break;
-    }
-    offset += 46 + filenameLength + extra + comment;
-  }
-  if (!binary) throw new Error("Godot executable not found");
+  const archive = path.join(root, "godot.zip");
+  await fs.writeFile(archive, zip);
+  const { stdout: binary } = await promisify(execFile)("unzip", ["-p", archive, executable], { encoding: null, maxBuffer: 250000000, timeout: 30000 });
   await fs.writeFile(path.join(root, "godot"), binary, { mode: 0o755 });
+  await fs.unlink(archive);
   console.log("RANKED_VERIFIER_RUNTIME_INSTALLED", version);
 }
 if (require.main === module) main().catch(error => { console.error(error.message); process.exitCode = 1; });

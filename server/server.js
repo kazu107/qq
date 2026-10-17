@@ -49,7 +49,7 @@ function createQqServer(options = {}) {
   const clients = new Map();
   const iceServers = options.iceServers || buildIceServers(options.env || process.env);
   const account = createAccountService(options.env || process.env, options.account || {});
-  const rankings = createRankingService(account);
+  const rankings = createRankingService(account, () => verifier.wake());
   const verifier = new VerifierWorker(account, options.env || process.env);
   verifier.start();
 

@@ -561,7 +561,7 @@ func abandon_run_to_hub() -> void:
 func stash_active_run_for_hub() -> bool:
 	if current_run == null or current_run.run_complete:
 		return false
-	var mode: String = RUN_SETUP_MODE_RANKED if not current_run.ranking.is_empty() else RUN_SETUP_MODE_ARENA if current_run.arena_mode else RUN_SETUP_MODE_NORMAL
+	var mode: String = RUN_SETUP_MODE_RANKED if not current_run.ranking.is_empty() and not bool(current_run.ranking.get("disqualified", false)) else RUN_SETUP_MODE_ARENA if current_run.arena_mode else RUN_SETUP_MODE_NORMAL
 	var resume_hint: String = current_screen_hint
 	if resume_hint in ["", "hub", "title", "run_setup", "meta", "library", "settings"]:
 		resume_hint = "arena" if current_run.arena_mode else "map"
@@ -599,7 +599,7 @@ func resume_suspended_run(mode: String) -> String:
 	last_battle_summary = Dictionary(snapshot.get("last_battle_summary", {})).duplicate(true)
 	last_reward_bundle = Dictionary(snapshot.get("last_reward_bundle", {})).duplicate(true)
 	current_screen_hint = String(snapshot.get("screen_hint", "arena" if current_run.arena_mode else "map"))
-	if not current_run.ranking.is_empty(): RankedSession.restore_current()
+	if not current_run.ranking.is_empty() and not bool(current_run.ranking.get("disqualified", false)): RankedSession.restore_current()
 	_meta_progress_service.record_infinite_score(meta_progress, current_run)
 	suspended_runs.erase(slot_id)
 	SaveManager.save_game(current_screen_hint)
@@ -1319,6 +1319,7 @@ func get_settings_return_hint() -> String:
 
 
 func reset_settings_to_defaults() -> void:
+	var ranked_outbox: Dictionary = Dictionary(settings.get("ranked_outbox", {})).duplicate(true)
 	var developer_mode: bool = is_developer_mode_enabled()
 	settings = {
 		"master_volume": DEFAULT_MASTER_VOLUME,
@@ -1326,6 +1327,7 @@ func reset_settings_to_defaults() -> void:
 		"language": DEFAULT_GAME_LANGUAGE,
 		"resolution": DEFAULT_RESOLUTION,
 		"developer_mode": developer_mode,
+		"ranked_outbox": ranked_outbox,
 		"replay_auto_export": true,
 		"settings_return_hint": get_settings_return_hint(),
 		"last_replay_export_path": last_replay_export_path,
@@ -1377,11 +1379,13 @@ func open_replay_view(replay_path: String, return_hint: String = "result") -> bo
 
 
 func can_retry_last_seed_run() -> bool:
+	if RankedSession.active(): return false
 	ensure_meta_initialized()
 	return String(settings.get("last_run_starter_id", "")) != "" and int(settings.get("last_run_seed", 0)) > 0
 
 
 func retry_last_seed_run() -> bool:
+	if RankedSession.active(): return false
 	if current_run != null and current_run.starter_id != "" and current_run.seed > 0:
 		if current_run.infinite_mode:
 			return start_infinite_run(current_run.starter_id, current_run.seed)
@@ -1424,7 +1428,7 @@ func set_developer_panel_collapsed(collapsed: bool) -> void:
 func toggle_developer_mode() -> bool:
 	var enabled: bool = not is_developer_mode_enabled()
 	set_developer_mode_enabled(enabled)
-	return enabled
+	return is_developer_mode_enabled()
 
 
 func developer_start_run(starter_id: String = "balanced") -> void:

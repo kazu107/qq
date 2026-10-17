@@ -95,9 +95,10 @@ export async function prepareR2Release({
   const objectKey = `objects/${sha256}.pck`;
   const releaseManifestKey = `releases/${normalizedCommit}.json`;
   const currentManifestKey = "releases/current.json";
+  const rankingRules = JSON.parse(await readFile(new URL("../server/ranking/rules.json", import.meta.url), "utf8"));
   const manifest = {
     schema_version: 1,
-    ranking_ruleset: "infinite-1",
+    ranking_ruleset: rankingRules.ruleset,
     game_version: gameVersion,
     commit: normalizedCommit,
     published_at: publishedAt,

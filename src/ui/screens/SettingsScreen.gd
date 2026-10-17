@@ -193,10 +193,7 @@ func _build_ui() -> void:
 	_developer_toggle.toggled.connect(_on_developer_toggle_changed)
 	advanced.add_child(_developer_toggle)
 	_developer_toggle.visible = AccountSession.can_use_developer_mode()
-	AccountSession.changed.connect(func() -> void:
-		_developer_toggle.visible = AccountSession.can_use_developer_mode()
-		_developer_toggle.set_pressed_no_signal(Game.is_developer_mode_enabled())
-	)
+	AccountSession.changed.connect(_refresh_developer_access)
 
 	_status_label = Label.new()
 	_status_label.name = "SettingsStatusLabel"
@@ -224,6 +221,12 @@ func _build_ui() -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(spacer)
 	buttons.add_child(back_button)
+
+
+func _refresh_developer_access() -> void:
+	if not is_instance_valid(_developer_toggle): return
+	_developer_toggle.visible = AccountSession.can_use_developer_mode()
+	_developer_toggle.set_pressed_no_signal(Game.is_developer_mode_enabled())
 
 
 func _refresh_ui() -> void:

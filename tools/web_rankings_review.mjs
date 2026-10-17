@@ -1,0 +1,82 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {resolve} from 'node:path';
+import {mkdir,writeFile} from 'node:fs/promises';
+const require=createRequire(import.meta.url);
+const {chromium}=process.env.QQ_NODE_MODULES ? createRequire(resolve(process.env.QQ_NODE_MODULES,'../package.json'))('playwright') : require('playwright');
+const {createQqServer}=require('../server/server');
+const {VerifierWorker}=require('../server/ranking/worker');
+const catalog=require('../server/ranking/catalog.json');
+const rules=require('../server/ranking/rules.json');
+const out=resolve('tools/.local/rankings-review'); await mkdir(out,{recursive:true});
+const app=createQqServer({env:{},publicDir:resolve('build/web-layout-review')});
+await new Promise(done=>app.server.listen(0,'127.0.0.1',done));
+const origin=`http://127.0.0.1:${app.server.address().port}`;
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const context=await browser.newContext({viewport:{width:1440,height:900}});
+const errors=[],requests=[],checks=[];
+let canDeveloper=false,sequence=0,serverJournal=[];
+const profile={available:true,authenticated:true,needsUsername:false,user:{id:'22222222-2222-4222-8222-222222222222',username:'ReviewUser'},csrfToken:'test-only-csrf',providers:[]};
+await context.route('**/api/account',route=>route.fulfill({json:{...profile,canDeveloper}}));
+await context.route('**/api/ranked/**',route=>{
+ const url=new URL(route.request().url()); requests.push(url.pathname+url.search);
+ if(url.pathname==='/api/ranked/runs') return route.fulfill({json:{ticket:{id:'11111111-1111-4111-8111-111111111111',user_id:profile.user.id,seed:426042,starter_id:JSON.parse(route.request().postData()).starter_id,ruleset:rules.ruleset,season_id:'test'}}});
+ if(url.pathname.endsWith('/commands')) return route.fulfill({json:{next_sequence:JSON.parse(route.request().postData()).sequence+JSON.parse(route.request().postData()).commands.length}});
+ if(url.pathname.endsWith('/finish')) return route.fulfill({json:{status:'pending'}});
+ if(url.pathname==='/api/ranked/history') return route.fulfill({json:{runs:[{status:'pending',starter_id:'balanced'},{status:'verified',starter_id:'tempo',result:{total_score:12000}}]}});
+ if(url.pathname.endsWith('/journal')) { const first=Number(url.searchParams.get('from'))||0;return route.fulfill({json:{status:'active',next_sequence:serverJournal.length,commands:serverJournal.slice(first,first+250)}}); }
+ const entry={rank:1,id:'test',username:'検証ユーザー',starter_id:'balanced',finished_at:'2026-10-18T00:00:00Z',result:{total_score:12000,reached_step:12,reached_cycle:1,progress:10000,boss:2000,challenge:0,efficiency:0,cards:['strike','guard'],relics:['iron_plating'],battle_count:9}};
+ return route.fulfill({json:{season:{id:'test'},seasons:[{id:'test'}],rules,catalog,entries:[entry],self:entry}});
+});
+try {
+ const page=await context.newPage();
+ page.on('pageerror',error=>errors.push(error.message));
+ page.on('console',message=>{if(message.type()==='error'&&/SCRIPT ERROR|Parse Error|ERROR:/.test(message.text()))errors.push(message.text());});
+ await page.goto(origin+'/?pack=local');
+ await page.waitForFunction(()=>window.qqLayoutCommand&&window.qqLoadMetrics?.some(x=>x.event==='scene_transition'&&x.details.screen==='Hub'),undefined,{timeout:180000});
+ await page.waitForSelector('#status',{state:'detached'});
+ async function command(payload){const current=++sequence;await page.evaluate(data=>window.qqLayoutCommand(JSON.stringify(data)),{...payload,sequence:current});await page.waitForFunction(expected=>JSON.parse(window.qqLayoutState||'{}').sequence===expected,current);return page.evaluate(()=>JSON.parse(window.qqLayoutState));}
+ async function click(state,name){const c=state.controls.find(x=>x.name===name);assert(c,name);const[x,y,w,h]=c.rect;const v=page.viewportSize();await page.mouse.click((x+w/2)*v.width/state.viewport[0],(y+h/2)*v.height/state.viewport[1]);}
+ let state=await command({action:'permission_fixture',screen:'settings',enabled:true});
+ assert.equal(state.developer_allowed,false); assert.equal(state.developer_enabled,false);
+ assert(!state.controls.some(x=>x.name==='DeveloperModeToggle'));
+ await page.screenshot({path:resolve(out,'settings-unauthorized.png')});
+ canDeveloper=true; await page.evaluate(()=>window.qqAccount.refresh());
+ state=await command({action:'permission_fixture',screen:'settings',enabled:false});
+ assert.equal(state.developer_allowed,true);assert(state.controls.some(x=>x.name==='DeveloperModeToggle'));
+ await page.screenshot({path:resolve(out,'settings-authorized.png')});
+ canDeveloper=false;await page.evaluate(()=>window.qqAccount.refresh());state=await command({action:'inspect'});
+ assert.equal(state.developer_allowed,false);assert(!state.controls.some(x=>x.name==='DeveloperModeToggle'));
+ checks.push('unauthorized_hidden_authorized_visible_revoked_hidden');
+ state=await command({action:'screen',screen:'hub'});
+ await page.screenshot({path:resolve(out,'hub.png')});
+ const popupPromise=page.waitForEvent('popup');await click(state,'HubRankingsButton');const popup=await popupPromise;
+ await popup.waitForSelector('#entries button');
+ assert((await popup.locator('#self').innerText()).includes('1位'));
+ await popup.locator('#entries button').click();await popup.waitForSelector('dialog[open]');
+ assert((await popup.locator('#detail-body').innerText()).includes('ストライク'));
+ await popup.screenshot({path:resolve(out,'ranked-details.png')});await popup.locator('#close').click();
+ await popup.locator('#starter').selectOption('tempo');await popup.waitForTimeout(100);
+ assert(requests.some(x=>x.includes('starter=tempo')));
+ for(const size of [{width:1100,height:850},{width:390,height:844}]){await popup.setViewportSize(size);assert(await popup.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await popup.screenshot({path:resolve(out,`rankings-${size.width}.png`),fullPage:true});}
+ await popup.close();checks.push('ranking_popup_details_filters_self_rank_mobile');
+ const english=await context.newPage();await english.goto(origin+'/rankings?lang=en');await english.waitForSelector('#entries button');assert.equal(await english.locator('h1').innerText(),'Infinite Rankings');await english.locator('#entries button').click();assert((await english.locator('#detail-body').innerText()).includes('Strike'));await english.screenshot({path:resolve(out,'rankings-english.png')});await english.close();checks.push('english_rankings_and_localized_card_details');
+ state=await command({action:'screen',screen:'hub'});await click(state,'HubRankedStartButton');
+ await page.waitForTimeout(400);state=await command({action:'inspect'});assert.equal(state.screen,'RunSetup');
+ await click(state,'RunStartSelectedButton');await page.waitForTimeout(500);state=await command({action:'inspect'});assert.equal(state.screen,'Map');assert.equal(state.ranked_active,true);
+ await page.screenshot({path:resolve(out,'ranked-map.png')});checks.push('authenticated_hub_deck_selection_ranked_start');
+ await page.evaluate(()=>window.qqLayoutCommand(JSON.stringify({action:'ranked_replay',sequence:9999})));
+ await page.waitForFunction(()=>window.qqRankedReplay,undefined,{timeout:60000});
+ const payload=await page.evaluate(()=>JSON.parse(window.qqRankedReplay));
+ await writeFile(resolve(out,'web-journal.json'),JSON.stringify(payload));
+ const worker=new VerifierWorker({});
+ const verified=await worker.verify({executable:process.env.QQ_GODOT || 'C:/Users/kazuu/Downloads/Godot_v4.6.2-stable_win64.exe/Godot_v4.6.2-stable_win64_console.exe',pack:resolve('build/web-layout-review/index.pck')},payload);
+ assert.equal(verified.result?.total_score,payload.expected_score,JSON.stringify(verified));checks.push('real_web_wasm_journal_replayed_by_native_godot');
+ serverJournal=payload.commands;
+ state=await command({action:'ranked_resume_fixture',ticket:payload.ticket,commands:payload.commands});
+ await click(state,'HubRankedResumeButton');await page.waitForTimeout(500);state=await command({action:'inspect'});
+ assert.equal(state.screen,'Map');assert.equal(state.ranked_score,payload.expected_score);checks.push('resume_repairs_conflicting_local_journal_from_server_prefix');
+ assert.deepEqual(errors,[]);
+ await writeFile(resolve(out,'report.json'),JSON.stringify({checks,errors,score:verified.result.total_score},null,2));
+ console.log('WEB_RANKINGS_REVIEW_OK',JSON.stringify({checks,score:verified.result.total_score,errors}));
+}finally{await browser.close();app.server.closeAllConnections();await new Promise(done=>app.server.close(done));}

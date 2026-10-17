@@ -10,7 +10,8 @@
       hint:"3〜20文字。日本語・英数字・ハイフン・アンダースコアを使えます。大文字小文字や全角半角の違いだけの名前は重複扱いになります。登録後の変更には対応していません。",
       providerNote:"初回はユーザー名を設定します。GoogleとGitHubは別々のアカウントです。同じメールアドレスでも自動で統合しません。",
       local:"通常のラン・メタ進行はこの端末／ブラウザに保存されます。ランキング専用の挑戦だけをサーバーに記録します。通常セーブのクラウド同期は行いません。",
-      privacy:"保存するのはログイン方法の固定IDとユーザー名です。パスワード・メールアドレス・外部サービスのアクセストークンは保存しません。",
+      privacy:"アカウントにはログイン方法の固定IDとユーザー名を保存します。ランキングでは操作記録と結果も保存します。パスワード・メールアドレス・外部サービスのアクセストークンは保存しません。",
+      developerAccess:"このアカウントは開発者モードを利用できます。",
       logout:"ログアウト", refresh:"再確認", back:"ゲームに戻る", complete:"登録が完了しました。ゲームに戻れます。", loggedOut:"ログアウトしました。",
       invalid_username:"ユーザー名は3〜20文字の日本語・英数字・ハイフン・アンダースコアで入力してください。予約名は使用できません。",
       username_taken:"そのユーザー名は既に使われています。別の名前を選んでください。", username_already_set:"ユーザー名は既に登録されています。再確認してください。",
@@ -23,7 +24,8 @@
       hint:"3-20 letters/numbers, including Japanese, hyphens or underscores. Case-only and width-only differences are not unique. Usernames cannot currently be changed after registration.",
       providerNote:"First-time users choose a username. Google and GitHub create separate accounts; matching emails are never automatically linked.",
       local:"Normal runs and Meta Progress stay on this device/browser. Only dedicated Ranked runs are recorded on the server; ordinary saves are not cloud-synced.",
-      privacy:"Only the provider's stable user ID and your username are stored. No passwords, email addresses or provider access tokens are stored.",
+      privacy:"Accounts store the provider's stable user ID and your username. Ranked runs also store input journals and results. No passwords, email addresses or provider access tokens are stored.",
+      developerAccess:"This account can use Developer Mode.",
       logout:"Sign out", refresh:"Check again", back:"Return to game", complete:"Registration complete. You can return to the game.", loggedOut:"You have signed out.",
       invalid_username:"Use 3-20 letters/numbers, hyphens or underscores. Reserved names are unavailable.", username_taken:"That username is already taken. Please choose another.", username_already_set:"Your username is already registered. Check your account again.",
       login_required:"Your session expired. Please sign in again.", cancelled:"Sign-in cancelled.", invalid_login:"This sign-in expired or started in another browser. Please start again.", login_failed:"Sign-in failed. Please try again later.",
@@ -47,6 +49,8 @@
     el("signed-in").hidden = !snapshot?.authenticated || snapshot.needsUsername;
     el("logout").hidden = !snapshot?.authenticated;
     el("username-display").textContent = snapshot?.user?.username || "";
+    el("developer-access").textContent = t.developerAccess;
+    el("developer-access").hidden = !snapshot?.canDeveloper;
     for (const id of ["google", "github"]) {
       const enabled = !!snapshot?.available && snapshot.providers.some(provider => provider.id === id && provider.enabled);
       el(id).setAttribute("aria-disabled", String(!enabled));

@@ -30,6 +30,7 @@ var _run_info_banner: RunInfoBanner
 var _developer_panel: DeveloperPanel
 var _category_ids: Array[String] = []
 var _infinite_record_label: Label
+var _ranking_status_label: Label
 
 
 func _ready() -> void:
@@ -40,16 +41,21 @@ func _ready() -> void:
 	_start_score_animation()
 	if RankedSession.active():
 		var status: Label = Label.new()
+		_ranking_status_label = status
 		status.name = "ResultRankingStatus"
 		status.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 		status.offset_top = 70.0
 		status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		status.text = RankedSession.status_text
 		add_child(status)
-		RankedSession.changed.connect(func() -> void: status.text = RankedSession.status_text)
+		RankedSession.changed.connect(_refresh_ranking_status)
 		RankedSession.finish()
 	if Game.is_developer_mode_enabled():
 		_build_developer_panel()
+
+
+func _refresh_ranking_status() -> void:
+	if is_instance_valid(_ranking_status_label): _ranking_status_label.text = RankedSession.status_text
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -366,6 +372,9 @@ func _build_footer(parent: VBoxContainer) -> void:
 	retry_button.name = "ResultRetrySameSeedButton"
 	retry_button.text = Localization.get_text("result.retry", "Retry Same Seed")
 	retry_button.disabled = not Game.can_retry_last_seed_run()
+	if RankedSession.active():
+		retry_button.disabled = false
+		retry_button.text = "ランキング再挑戦" if Localization.get_language() == "ja" else "New Ranked Run"
 	if _is_infinite_score() and not Game.is_infinite_mode_unlocked():
 		retry_button.disabled = true
 	retry_button.pressed.connect(_on_retry_same_seed)
@@ -593,6 +602,9 @@ func _on_open_replay_viewer() -> void:
 
 
 func _on_retry_same_seed() -> void:
+	if RankedSession.active():
+		SceneRouter.go_to_run_setup(Game.RUN_SETUP_MODE_RANKED)
+		return
 	if not Game.retry_last_seed_run():
 		AudioManager.play_sfx("ui_error")
 		return

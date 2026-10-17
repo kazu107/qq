@@ -1,5 +1,8 @@
 extends Node
 
+signal completed(data: Dictionary)
+var quit_when_done: bool = true
+
 const TICKET := {"id": "11111111-1111-4111-8111-111111111111", "user_id": "22222222-2222-4222-8222-222222222222", "seed": 426042, "starter_id": "balanced", "ruleset": "infinite-1", "season_id": "test"}
 
 
@@ -12,17 +15,21 @@ func _ready() -> void:
 
 
 func _run() -> void:
+	Game.meta_progress["permanent_bonuses"] = {"max_hp": 50, "attack": 8, "speed": 8, "loadout_limit": 5}
+	Game.meta_progress["permanent_upgrade_levels"] = {"max_hp": 10, "attack": 8, "speed": 8, "loadout_limit": 5}
 	RankedSession.initialize(TICKET)
 	assert(Game.current_run.max_hp == 78)
 	assert(Game.current_run.attack == 5)
 	assert(Game.current_run.content_pool["cards"].size() == Database.get_all_card_ids().size())
 	var node_id: String = MapRouteGraph.allowed_ids(Game.current_run.map_state, 0)[0]
-	assert(Game.select_map_node(node_id) == "battle")
+	var destination: String = Game.select_map_node(node_id)
+	assert(destination == "battle")
 	var enemy: String = Game.prepare_next_battle()
 	var battle: RealtimeBattleEngine = RealtimeBattleEngine.new()
 	battle.set_audio_enabled(false)
 	battle.record_visuals = false
 	battle.setup(Game.current_run, enemy)
+	assert(battle.battle_state.player.max_hp == 78 and battle.battle_state.player.attack == 5 and battle.battle_state.player.speed == 7)
 	battle.start_battle()
 	for _tick: int in 120: battle.update(RankedSession.STEP)
 	var before_time: float = battle.battle_state.battle_time
@@ -55,5 +62,7 @@ func _run() -> void:
 	commands.append({"kind": "game", "method": "developer_add_gold", "args": [999]})
 	var tampered: Dictionary = RankedSession.replay(TICKET, commands)
 	assert(tampered.has("error"))
+	commands.pop_back()
+	completed.emit({"ticket": TICKET, "commands": commands, "expected_score": expected["total_score"]})
 	print("RANKED_RUN_SMOKE_OK ", JSON.stringify({"score": expected["total_score"], "commands": commands.size(), "resumed": true, "tamper_rejected": true}))
-	get_tree().quit()
+	if quit_when_done: get_tree().quit()
