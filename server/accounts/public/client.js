@@ -4,9 +4,17 @@
   let status = { available:false, authenticated:false, needsUsername:false, user:null, providers:[], reason:"loading" };
   const listeners = new Set();
   let pending = null, popup = null, poll = null;
-  const broadcast = () => { for (const listener of listeners) { try { listener(JSON.stringify(status)); } catch {} } };
-  async function refresh() {
-    if (pending) return pending;
+  let identityKey = "";
+  const broadcast = () => {
+    for (const listener of listeners) { try { listener(JSON.stringify(status)); } catch {} }
+    const key = JSON.stringify([status.authenticated,status.user,status.needsUsername,status.canDeveloper]);
+    if (key !== identityKey) { identityKey = key; window.qqServices?.identityChanged(); }
+  };
+  async function refresh(force = false) {
+    if (pending) {
+      if (force) { await pending; return refresh(false); }
+      return pending;
+    }
     pending = (async () => {
       try {
         const response = await fetch("/api/account", { credentials:"same-origin", cache:"no-store", signal:AbortSignal.timeout(6000) });
@@ -20,7 +28,7 @@
     return pending;
   }
   window.qqAccount = {
-    refresh,
+    refresh: () => refresh(true),
     subscribe(listener) { listeners.add(listener); listener(JSON.stringify(status)); },
     open(language) {
       return !!window.qqServices?.open("account", language);
@@ -39,9 +47,9 @@
     },
   };
   window.addEventListener("message", event => {
-    if (event.origin === location.origin && event.source === popup && event.data?.type === "qq-account-changed") refresh();
+    if (event.origin === location.origin && event.source === popup && event.data?.type === "qq-account-changed") refresh(true);
   });
-  window.addEventListener("focus", refresh);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+  window.addEventListener("focus", () => refresh(true));
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(true); });
   refresh();
 })();

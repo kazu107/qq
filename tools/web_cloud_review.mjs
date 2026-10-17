@@ -17,7 +17,7 @@ async function device(owner='') {
  const context=await browser.newContext({viewport:{width:1440,height:900}});
  const state={context,owner,offline:false};
  devices.push(state);
- await context.route('**/api/account',route=>route.fulfill({json:{available:true,authenticated:!!state.owner,needsUsername:false,user:state.owner?{id:state.owner,username:state.owner===ownerA?'CloudA':'CloudB'}:null,csrfToken:'test-only',providers:[]}}));
+ await context.route('**/api/account',route=>route.fulfill({json:{available:true,authenticated:!!state.owner,needsUsername:false,user:state.owner?{id:state.owner,username:state.owner===ownerA?'CloudA':'CloudB'}:null,csrfToken:'test-only',providers:[{id:'google',enabled:true},{id:'github',enabled:true}]}}));
  await context.route('**/api/account/logout',route=>{state.owner='';return route.fulfill({json:{authenticated:false,available:true}});});
  await context.route('**/api/cloud/**',route=>{
   const request=route.request(),path=new URL(request.url()).pathname.split('/').at(-1),writer=request.headers()['x-qq-writer'];
@@ -48,28 +48,34 @@ async function device(owner='') {
  }
  state.open=page;await page();return state;
 }
-async function wait(d,value) {await d.page.waitForFunction(v=>window.qqCloud.stateSnapshot().state===v,value,{timeout:30000});}
+async function wait(d,value) {await d.page.waitForFunction(v=>{const s=window.qqCloud.stateSnapshot();return s.state===v&&!s.busy;},value,{timeout:30000});}
 async function inspect(d) {const sequence=++serial;await d.page.evaluate(sequence=>window.qqLayoutCommand(JSON.stringify({action:'inspect',sequence})),sequence);await d.page.waitForFunction(sequence=>JSON.parse(window.qqLayoutState||'{}').sequence===sequence,sequence);return d.page.evaluate(()=>JSON.parse(window.qqLayoutState));}
 async function fixture(d,points,sync=false,run=false) {await d.page.evaluate(data=>window.qqLayoutCommand(JSON.stringify(data)),{action:'cloud_fixture',points,sync,run,sequence:++serial});}
 async function action(d,id) {await d.page.evaluate(id=>window.qqCloud.action({id}),id);}
-async function synced(d) {await d.page.waitForFunction(()=>{const s=window.qqCloud.stateSnapshot();return s.state==='ready'&&!s.dirty&&s.revision>0;},undefined,{timeout:30000});}
+async function synced(d) {await d.page.waitForFunction(()=>{const s=window.qqCloud.stateSnapshot();return s.state==='ready'&&!s.busy&&!s.dirty&&s.revision>0;},undefined,{timeout:30000});}
 try {
  const a=await device();await wait(a,'guest');await fixture(a,123,false,true);assert.equal((await inspect(a)).cloud_points,123,'guest fixture');
  a.owner=ownerA;await a.page.evaluate(()=>window.qqAccount.refresh());await wait(a,'import_choice');
- const frame=a.page.frameLocator('#qq-service-panel iframe');await frame.locator('[data-cloud-action=import]').click();await synced(a);
+ let frame=a.page.frameLocator('#qq-service-panel iframe[src^="/account"]');await frame.locator('[data-cloud-action=import]').click();await synced(a);
  assert.equal(saves.get(ownerA).payload.meta_progress.points,123);
  await a.page.screenshot({path:resolve(out,'import-complete.png')});
- await frame.locator('#logout').click();await wait(a,'guest');assert.equal((await inspect(a)).cloud_points,0);checks.push('guest_move_then_logout_starts_new_guest');
+ await frame.locator('#logout').click();await wait(a,'guest');await frame.locator('#signed-in').waitFor({state:'hidden'});assert.equal((await inspect(a)).cloud_points,0);checks.push('guest_move_then_logout_starts_new_guest');
  a.owner=ownerB;await a.page.evaluate(()=>window.qqAccount.refresh());await wait(a,'import_choice');await frame.locator('[data-cloud-action=new]').click();await synced(a);assert.equal((await inspect(a)).cloud_points,0);
  await frame.locator('#logout').click();await wait(a,'guest');a.owner=ownerA;await a.page.evaluate(()=>window.qqAccount.refresh());await synced(a);assert.equal((await inspect(a)).cloud_points,123);checks.push('account_switch_and_return_preserves_separate_progress');
  const b=await device(ownerA);await wait(b,'device_busy');await action(b,'takeover');await synced(b);assert.equal((await inspect(b)).cloud_points,123);checks.push('second_device_loads_cloud_and_explicitly_takes_over');
  await fixture(a,222,true);await wait(a,'device_busy');assert.equal(saves.get(ownerA).payload.meta_progress.points,123);
- await action(a,'takeover');await synced(a);assert.equal(saves.get(ownerA).payload.meta_progress.points,222);checks.push('old_writer_rejected_and_unsent_progress_preserved');
+ await action(a,'takeover');await a.page.waitForFunction(()=>['ready','conflict'].includes(window.qqCloud.stateSnapshot().state));if((await a.page.evaluate(()=>window.qqCloud.stateSnapshot().state))==='conflict')await action(a,'local');await synced(a);assert.equal(saves.get(ownerA).payload.meta_progress.points,222);checks.push('old_writer_rejected_and_unsent_progress_preserved');
  a.offline=true;await fixture(a,333,true);await wait(a,'offline');assert.equal((await inspect(a)).cloud_dirty,true);
  await action(b,'takeover');await synced(b);await fixture(b,444,true);await synced(b);assert.equal(saves.get(ownerA).payload.meta_progress.points,444);
- await a.page.waitForTimeout(1500);await a.page.close();a.offline=false;await a.open();await wait(a,'conflict');assert.equal((await inspect(a)).cloud_points,333);
+ await a.page.waitForTimeout(1500);await a.page.close();a.offline=false;await a.open();frame=a.page.frameLocator('#qq-service-panel iframe[src^="/account"]');await wait(a,'conflict');assert.equal((await inspect(a)).cloud_points,333);
  await a.page.screenshot({path:resolve(out,'conflict.png')});await action(a,'cloud');await synced(a);assert.equal((await inspect(a)).cloud_points,444);checks.push('offline_restart_preserves_local_conflict_and_explicit_resolution');
+ const backup=await a.page.evaluate(()=>window.qqCloud.stateSnapshot().local_backups[0]);assert(backup);await a.page.evaluate(filename=>window.qqCloud.action({id:'restore_local',filename}),backup);await synced(a);assert.equal((await inspect(a)).cloud_points,333);checks.push('discarded_local_conflict_can_be_restored');
+ await a.page.setViewportSize({width:390,height:844});assert(await frame.locator('body').evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await a.page.screenshot({path:resolve(out,'account-mobile.png')});await a.page.setViewportSize({width:1440,height:900});checks.push('embedded_account_fits_mobile_viewport');
  await a.page.locator('#qq-service-close').click();await a.page.evaluate(()=>window.qqRanked.open('ja'));assert.equal(a.context.pages().length,1);await a.page.waitForSelector('#qq-service-panel iframe:not([hidden])');checks.push('account_and_rankings_embedded_without_new_windows');
+ await a.page.locator('#qq-service-close').click();await a.page.evaluate(()=>window.qqAccount.open('ja'));await frame.locator('#logout').click();await wait(a,'guest');await frame.locator('#refresh').click();await frame.locator('#google[aria-disabled=false]').waitFor();
+ await a.context.route('**/auth/google/start**',route=>{a.owner=ownerB;return route.fulfill({status:302,headers:{location:'/account?result=authenticated&lang=ja'}});});
+ const authPromise=a.page.waitForEvent('popup');await frame.locator('#google').click();const auth=await authPromise;if(!auth.isClosed())await auth.waitForEvent('close');await synced(a);assert.equal(a.context.pages().length,1);assert.equal((await inspect(a)).cloud_profile,ownerB);checks.push('only_provider_auth_opens_a_window_and_returns_to_game');
+ await frame.locator('#logout').click();await wait(a,'guest');const emptyOwner='33333333-3333-4333-8333-333333333333';saves.set(emptyOwner,{revision:0,payload:null,writer:'other-unfinished-device',history:[]});a.owner=emptyOwner;await a.page.evaluate(()=>window.qqAccount.refresh());await wait(a,'import_choice');await action(a,'new');await wait(a,'device_busy');await action(a,'takeover');await wait(a,'import_choice');await action(a,'new');await synced(a);checks.push('takeover_of_unfinished_first_save_returns_to_import_choice');
  assert.deepEqual(errors,[]);await writeFile(resolve(out,'report.json'),JSON.stringify({checks,errors},null,2));console.log('WEB_CLOUD_REVIEW_OK',JSON.stringify({checks,errors}));
 } catch(error) {console.error('CLOUD_REVIEW_DIAGNOSTIC',JSON.stringify({checks,errors,devices:await Promise.all(devices.map(async d=>({owner:d.owner,state:await d.page.evaluate(()=>window.qqCloud.stateSnapshot()).catch(()=>null)}))),saves:[...saves].map(([owner,row])=>({owner,revision:row.revision,points:row.payload?.meta_progress?.points,writer:row.writer}))}));throw error;}
 finally {await browser.close();app.server.closeAllConnections();await new Promise(done=>app.server.close(done));}

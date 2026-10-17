@@ -39,7 +39,7 @@
   };
   const t = messages[language];
   const el = id => document.getElementById(id);
-  let snapshot = null, busy = false;
+  let snapshot = null, busy = false, refreshSerial = 0;
   document.documentElement.lang = language;
   document.title = `QueueQuest | ${t.title}`;
   for (const [id, value] of Object.entries({ title:t.title, subtitle:t.subtitle, "google-label":t.google, "github-label":t.github,
@@ -69,18 +69,22 @@
     el("refresh").disabled = busy;
   }
   async function refresh() {
+    const serial = ++refreshSerial;
     notice(t.loading);
     try {
       const response = await fetch("/api/account", { credentials:"same-origin", cache:"no-store", signal:AbortSignal.timeout(8000) });
-      snapshot = await response.json();
+      const value = await response.json();
+      if (serial !== refreshSerial) return;
+      snapshot = value;
       draw();
       notice(!response.ok ? t.unavailable : !snapshot.available ? t.setup : snapshot.needsUsername ? t.pending : snapshot.authenticated ? t.signedIn : t.guest, !response.ok);
       changed();
-    } catch { notice(t.unavailable, true); }
+    } catch { if (serial === refreshSerial) notice(t.unavailable, true); }
   }
   async function mutate(route, body) {
     if (busy || !snapshot?.csrfToken) return;
     busy = true; draw();
+    refreshSerial++;
     try {
       const response = await fetch(route, { method:"POST", credentials:"same-origin", cache:"no-store", signal:AbortSignal.timeout(10000),
         headers:{ "Content-Type":"application/json", "X-CSRF-Token":snapshot.csrfToken }, body:JSON.stringify(body) });
@@ -118,6 +122,7 @@
   function cloud(data) {
     el("cloud-panel").hidden = false;
     el("cloud-title").textContent = tx("クラウド保存", "Cloud Save");
+    el("return").disabled = !!data.blocked;
     const states = {
       starting:tx("進行データを準備しています。", "Preparing progress data."), guest:tx("ゲストの進行は、この端末にのみ保存されます。", "Guest progress is saved only on this device."),
       loading:tx("アカウントの保存データを確認中です。", "Checking account saves."), ready: data.dirty ? tx("端末に保存済み・クラウドへ送信待ち", "Saved locally; upload pending") : tx("クラウドと同期済み", "Cloud save synchronized"),
@@ -131,6 +136,8 @@
       logout_pending:tx("未送信のデータがあります。再試行するか、この端末に保留したままログアウトできます。別のアカウントには送りません。", "Unsynced changes remain. Retry, or sign out while retaining them on this device. They will not upload to another account."),
     };
     el("cloud-status").textContent = states[data.state] || data.state;
+    if (data.error === "logout_unavailable") el("cloud-status").textContent = tx("ログアウトを完了できませんでした。アカウントは切り替えていません。接続を確認して、もう一度ログアウトしてください。", "Sign-out did not complete; the active account is unchanged. Check the connection and try signing out again.");
+    if (["save_too_large", "save_too_complex"].includes(data.error)) el("cloud-status").textContent = tx("同期できるデータ量の上限に達しました。進行はこの端末に保持されています。", "The cloud-save size limit was reached. Progress is retained on this device.");
     el("cloud-meta").textContent = data.profile === "guest" ? "" : `${tx("保存世代", "Revision")} ${data.revision}${data.updated_at ? " / " + new Date(data.updated_at).toLocaleString(language === "ja" ? "ja-JP" : "en-US") : ""}`;
     el("cloud-policy").textContent = tx("ログアウト後はゲストへ戻ります。引き継ぎ済みのゲストは新規状態になります。音量・解像度は端末ごと。戦闘途中の通常ランは戦闘開始前から再開し、進行中のWeb対戦の端末移動には対応しません。認証だけ外部画面を使用します。", "Signing out returns to guest progress; an imported guest starts fresh. Audio/display preferences are per-device. Normal battles resume from their pre-battle checkpoint. Live multiplayer cannot move between devices. Only provider authentication uses an external window.");
     el("cloud-comparison").replaceChildren();
@@ -162,13 +169,22 @@
       restore.addEventListener("click", () => { if (window.confirm(replace)) window.parent.qqCloud.action({ id:"restore", revision:record.revision }); });
       row.append(text, restore); el("cloud-history").append(row);
     }
+    if (data.state === "ready" && data.history?.length >= 0) for (const filename of data.local_backups || []) {
+      const row = document.createElement("p"), text = document.createElement("span"), restore = document.createElement("button");
+      const stamp = Number(filename.match(/-(\d+)\.json$/)?.[1]);
+      text.textContent = tx("端末の退避データ ", "Local backup ") + (stamp ? new Date(stamp / 1000).toLocaleString(language === "ja" ? "ja-JP" : "en-US") : "") + " ";
+      restore.className = "secondary"; restore.textContent = tx("復元", "Restore"); restore.disabled = !!data.busy;
+      restore.addEventListener("click", () => { if (window.confirm(replace)) window.parent.qqCloud.action({ id:"restore_local", filename }); });
+      row.append(text, restore); el("cloud-history").append(row);
+    }
   }
   window.addEventListener("message", event => {
     if (!embedded || event.source !== window.parent || event.origin !== location.origin) return;
     if (event.data?.type === "qq-cloud-state") cloud(event.data.data);
-    if (event.data?.type === "qq-service-refresh") refresh();
+    if (["qq-service-refresh", "qq-profile-changed"].includes(event.data?.type)) refresh();
   });
   if (embedded) document.querySelector(".brand").addEventListener("click", event => { event.preventDefault(); window.parent.postMessage({ type:"qq-service-close" }, location.origin); });
+  document.addEventListener("keydown", event => { if (embedded && event.key === "Escape") window.parent.postMessage({type:"qq-service-close"},location.origin); });
   refresh().then(() => {
     const error = new URLSearchParams(location.search).get("error");
     if (error && t[error]) notice(t[error], true);

@@ -20,6 +20,8 @@ var _last_save: float = 0.0
 var _last_error: String = ""
 var _identity_known: bool = false
 var _action_pending: bool = false
+var _retry_at: float = 0.0
+var _failures: int = 0
 
 class Reply extends RefCounted:
 	signal completed(data: Dictionary)
@@ -68,6 +70,7 @@ func _transition(epoch: int, owner: String) -> void:
 	if owner == "":
 		if not _switch_local("guest"):
 			_loading = false
+			publish()
 			return
 		account_id = ""
 		state = "guest"
@@ -88,6 +91,7 @@ func _transition(epoch: int, owner: String) -> void:
 		publish()
 		return
 	remote = response
+	_last_error = ""
 	var cached: Dictionary = SaveManager.read_profile(owner)
 	var metadata: Dictionary = Dictionary(cached.get("settings", {}).get("_cloud_meta", {}))
 	if SaveManager.active_profile == owner:
@@ -98,7 +102,7 @@ func _transition(epoch: int, owner: String) -> void:
 		metadata["synced_hash"] = String(metadata.get("pending_hash", ""))
 		metadata["dirty"] = JSON.stringify(SaveManager.cloud_payload()).sha256_text() != String(metadata["synced_hash"]) if SaveManager.active_profile == owner else true
 	if response.get("payload") == null:
-		state = "import_choice"
+		state = "conflict" if not cached.is_empty() and bool(metadata.get("dirty", false)) else "import_choice"
 	elif cached.is_empty() and _has_guest_progress():
 		state = "guest_choice"
 	elif bool(metadata.get("dirty", false)) and int(metadata.get("revision", 0)) != int(remote["revision"]):
@@ -138,6 +142,10 @@ func _claim_and_load(takeover: bool, use_remote: bool, epoch: int) -> void:
 		publish()
 		return
 	remote = response
+	if use_remote and remote.get("payload") == null:
+		state = "import_choice"
+		publish()
+		return
 	if use_remote:
 		if not SaveManager.archive_profile(account_id):
 			state = "local_save_error"
@@ -202,7 +210,7 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	_dirty_elapsed += delta
 	if state in ["ready", "offline"] and SaveManager.active_profile == account_id and account_id != "":
-		if bool(SaveManager.profile_meta.get("dirty", false)) and (_dirty_elapsed > 2.0 or _elapsed > 15.0):
+		if bool(SaveManager.profile_meta.get("dirty", false)) and Time.get_ticks_msec() / 1000.0 >= _retry_at and (_dirty_elapsed > 2.0 or _elapsed > 15.0):
 			sync_now()
 		elif _elapsed > 15.0:
 			_heartbeat()
@@ -245,6 +253,8 @@ func sync_now() -> bool:
 	if response.has("error"):
 		_last_error = String(response["error"])
 		state = "conflict" if response["error"] == "revision_conflict" else "device_busy" if response["error"] == "lease_lost" else "offline"
+		_failures += 1
+		_retry_at = Time.get_ticks_msec() / 1000.0 + minf(60.0, 5.0 * pow(2.0, mini(4, _failures - 1)))
 		if state == "conflict":
 			var current: Dictionary = await request("GET", "/api/cloud/save")
 			if epoch != _epoch: return false
@@ -253,6 +263,10 @@ func sync_now() -> bool:
 		publish()
 		return false
 	remote.merge(response, true)
+	_last_error = ""
+	remote["payload"] = payload
+	_failures = 0
+	_retry_at = 0.0
 	SaveManager.profile_meta["revision"] = int(response["revision"])
 	SaveManager.profile_meta["synced_hash"] = hash
 	SaveManager.profile_meta.erase("pending_request")
@@ -312,9 +326,7 @@ func _action(command: Dictionary) -> void:
 		"import", "new":
 			if action == "import" and not SaveManager.archive_profile("guest", "before-import"): return
 			var payload: Dictionary = SaveManager.read_profile("guest") if action == "import" else SaveData.new().to_dict()
-			# Guest data never grants ownership of another account's Ranked journal.
-			if not payload.get("current_run", {}).get("ranking", {}).is_empty(): payload["current_run"] = {}
-			payload.get("suspended_runs", {}).erase("ranked")
+			_prepare_guest_rankings(payload, account_id)
 			payload.get("settings", {}).erase("_cloud_meta")
 			var epoch: int = _epoch
 			var claim: Dictionary = await request("POST", "/api/cloud/claim", {"writer_id": _writer, "takeover": false})
@@ -347,6 +359,19 @@ func _action(command: Dictionary) -> void:
 			else:
 				remote = response
 				await _claim_and_load(false, true, epoch)
+		"restore_local":
+			var payload: Dictionary = SaveManager.read_local_backup(account_id, String(command.get("filename", "")))
+			if payload.is_empty() or not SaveManager.archive_profile(account_id): return
+			var epoch: int = _epoch
+			var claim: Dictionary = await request("POST", "/api/cloud/claim", {"writer_id": _writer, "takeover": true})
+			if epoch != _epoch: return
+			if claim.has("error"): return
+			remote = claim
+			if not _switch_local(account_id, payload): return
+			SaveManager.profile_meta = {"revision": int(remote["revision"])}
+			state = "ready"
+			SaveManager.save_game("hub")
+			await sync_now()
 		"logout", "logout_anyway":
 			if action == "logout" and bool(SaveManager.profile_meta.get("dirty", false)) and SaveManager.active_profile == account_id:
 				if not await sync_now():
@@ -360,7 +385,7 @@ func _action(command: Dictionary) -> void:
 			var response: Dictionary = await request("POST", "/api/account/logout", {}, old)
 			if epoch != _epoch: return
 			if response.has("error"):
-				_last_error = String(response["error"])
+				_last_error = "logout_unavailable"
 				publish()
 				return
 			_target = ""
@@ -374,8 +399,20 @@ func publish() -> void:
 	var blocked: bool = state in ["loading", "load_error", "import_choice", "guest_choice", "conflict", "device_busy", "local_save_error", "logout_pending"]
 	if initialized: get_tree().paused = blocked
 	if _bridge != null:
-		_bridge.publish(JSON.stringify({"state": state, "blocked": blocked, "busy": _busy or _loading or _action_pending, "profile": SaveManager.active_profile, "account_id": account_id, "revision": int(SaveManager.profile_meta.get("revision", 0)), "updated_at": remote.get("updated_at", ""), "dirty": bool(SaveManager.profile_meta.get("dirty", false)), "error": _last_error, "local": _summary(SaveManager.read_profile(account_id) if account_id != "" else {}), "cloud": _summary(Dictionary(remote["payload"]) if remote.get("payload") is Dictionary else {}), "guest": _summary(SaveManager.read_profile("guest")), "history": history}))
+		var local: Dictionary = SaveManager.current_save.to_dict() if SaveManager.active_profile == account_id else SaveManager.read_profile(account_id) if account_id != "" else {}
+		var guest: Dictionary = SaveManager.read_profile("guest") if state in ["import_choice", "guest_choice", "conflict"] else {}
+		_bridge.publish(JSON.stringify({"state": state, "blocked": blocked, "busy": _busy or _loading or _action_pending, "profile": SaveManager.active_profile, "account_id": account_id, "revision": int(SaveManager.profile_meta.get("revision", 0)), "updated_at": remote.get("updated_at", ""), "dirty": bool(SaveManager.profile_meta.get("dirty", false)), "error": _last_error, "local": _summary(local), "cloud": _summary(Dictionary(remote["payload"]) if remote.get("payload") is Dictionary else {}), "guest": _summary(guest), "history": history, "local_backups": SaveManager.local_backups(account_id) if account_id != "" else []}))
 	changed.emit()
+
+
+func _prepare_guest_rankings(payload: Dictionary, owner: String) -> void:
+	# Preserve legitimately owned pre-migration Ranked runs, never reassign a foreign journal.
+	var active: Dictionary = Dictionary(payload.get("current_run", {}))
+	if not Dictionary(active.get("ranking", {})).is_empty() and active["ranking"].get("ticket", {}).get("user_id", "") != owner: payload["current_run"] = {}
+	var slots: Dictionary = Dictionary(payload.get("suspended_runs", {}))
+	for key: String in slots.keys():
+		var ranking: Dictionary = Dictionary(slots[key].get("run", {}).get("ranking", {}))
+		if not ranking.is_empty() and ranking.get("ticket", {}).get("user_id", "") != owner: slots.erase(key)
 
 
 func _summary(data: Dictionary) -> Dictionary:

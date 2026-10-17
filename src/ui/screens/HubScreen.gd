@@ -14,6 +14,7 @@ var _version_history_content: RichTextLabel
 var _account_button: Button
 var _ranked_start_button: Button
 var _ranking_status_label: Label
+var _cloud_status_label: Label
 
 
 func _ready() -> void:
@@ -217,6 +218,27 @@ func _build_ranking_actions(parent: Control) -> void:
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(status)
 	RankedSession.changed.connect(_refresh_ranking_status)
+	_cloud_status_label = Label.new()
+	_cloud_status_label.name = "CloudSaveStatus"
+	_cloud_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_cloud_status_label.add_theme_font_size_override("font_size", 16)
+	parent.add_child(_cloud_status_label)
+	CloudSession.changed.connect(_refresh_cloud_status)
+	_refresh_cloud_status()
+
+
+func _refresh_cloud_status() -> void:
+	if not is_instance_valid(_cloud_status_label): return
+	_cloud_status_label.visible = CloudSession.initialized
+	var ja: bool = Localization.get_language() == "ja"
+	var dirty: bool = bool(SaveManager.profile_meta.get("dirty", false))
+	var message: String = "クラウド同期済み" if ja else "Cloud synchronized"
+	if CloudSession.state == "guest": message = "ゲストの進行はこの端末のみ" if ja else "Guest progress is saved on this device only"
+	elif CloudSession.state == "offline": message = "オフライン・進行は端末に保留中" if ja else "Offline; changes retained on this device"
+	elif CloudSession.state != "ready": message = "アカウント画面で保存データを確認してください" if ja else "Check save data in your account panel"
+	elif dirty: message = "クラウドへ送信待ち" if ja else "Cloud upload pending"
+	_cloud_status_label.text = message
+	_cloud_status_label.modulate = UiTheme.ACCENT_GOLD if dirty or CloudSession.state != "ready" else Color(0.4, 0.88, 0.7)
 
 
 func _refresh_ranking_access() -> void:

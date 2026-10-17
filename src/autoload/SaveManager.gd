@@ -137,13 +137,43 @@ func cloud_payload(data: SaveData = null) -> Dictionary:
 	for key: String in RESUME_KEYS:
 		if save.settings.has(key): resume[key] = save.settings[key]
 	result["settings"] = resume
+	_strip_cloud_visuals(result)
 	return result
+
+
+func _strip_cloud_visuals(value: Variant) -> void:
+	if value is Dictionary:
+		value.erase("visual_replay")
+		for child: Variant in value.values():
+			if child is Dictionary or child is Array: _strip_cloud_visuals(child)
+	elif value is Array:
+		for child: Variant in value:
+			if child is Dictionary or child is Array: _strip_cloud_visuals(child)
 
 
 func archive_profile(profile: String, suffix: String = "conflict") -> bool:
 	var source: Dictionary = read_profile(profile)
 	if source.is_empty(): return true
-	return SafeSaveStore.write("user://profiles/backups/%s-%s-%d.json" % [profile, suffix, Time.get_unix_time_from_system() * 1000000], source)
+	var written: bool = SafeSaveStore.write("user://profiles/backups/%s-%s-%d.json" % [profile, suffix, Time.get_unix_time_from_system() * 1000000], source)
+	if written:
+		var backups: Array[String] = local_backups(profile)
+		for index: int in range(10, backups.size()): DirAccess.remove_absolute("user://profiles/backups/" + backups[index])
+	return written
+
+
+func local_backups(profile: String) -> Array[String]:
+	var result: Array[String] = []
+	var folder: DirAccess = DirAccess.open("user://profiles/backups")
+	if folder == null: return result
+	for filename: String in folder.get_files():
+		if filename.begins_with(profile + "-") and filename.ends_with(".json"): result.append(filename)
+	result.sort_custom(func(a: String, b: String) -> bool: return a.get_basename().split("-")[-1].to_int() > b.get_basename().split("-")[-1].to_int())
+	return result
+
+
+func read_local_backup(profile: String, filename: String) -> Dictionary:
+	if not local_backups(profile).has(filename): return {}
+	return Dictionary(SafeSaveStore.read_best("user://profiles/backups/" + filename).get("data", {}))
 
 
 func finish_guest_import() -> void:

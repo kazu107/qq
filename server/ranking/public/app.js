@@ -10,7 +10,8 @@
     document.body.classList.add('embedded');
     document.querySelector('header > a.secondary').addEventListener('click', event => { event.preventDefault(); window.parent.postMessage({type:'qq-service-open',kind:'account',language},location.origin); });
     document.querySelector('.brand').addEventListener('click', event => { event.preventDefault(); window.parent.postMessage({type:'qq-service-close'},location.origin); });
-    window.addEventListener('message', event => { if(event.source===window.parent && event.origin===location.origin && event.data?.type==='qq-service-refresh') refresh(); });
+    window.addEventListener('message', event => { if(event.source===window.parent && event.origin===location.origin && ['qq-service-refresh','qq-profile-changed'].includes(event.data?.type)) refresh(); });
+    document.addEventListener('keydown', event => { if(event.key==='Escape' && !document.querySelector('dialog[open]')) window.parent.postMessage({type:'qq-service-close'},location.origin); });
   }
   document.querySelector('header > a.secondary').href='/account?lang='+language;
   if(language==='en') {
@@ -53,9 +54,11 @@
       el('self').textContent=data.self ? `${t('自分の順位','Your rank')}: ${data.self.rank}${t('位','')} / ${Number(data.self.result.total_score).toLocaleString()}${t('点',' pts')}` : t('この条件の自己ベストはまだありません。','You have no personal best for these filters yet.');
       el('page').textContent=String(page+1); el('previous').disabled=page===0; el('next').disabled=data.entries.length<50;
       const historyResponse=await fetch('/api/ranked/history',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(10000)});
+      if(current!==serial)return;
       el('history').replaceChildren();
       if(historyResponse.ok) {
         const history=await historyResponse.json();
+        if(current!==serial)return;
         for(const run of history.runs) { const line=document.createElement('p'); line.textContent=`${status[run.status] || run.status} | ${data.catalog.starter[run.starter_id]?.[language] || run.starter_id} | ${run.result ? Number(run.result.total_score).toLocaleString()+t('点',' pts') : '-'}${run.reason ? ' | '+run.reason : ''}`; el('history').append(line); }
       } else el('history').textContent=t('ログインすると自分の履歴を確認できます。','Sign in to see your run history.');
     } catch { el('notice').textContent=t('ランキングを読み込めませんでした。通常プレイは引き続き利用できます。','Rankings are unavailable. Local play is unaffected.'); }

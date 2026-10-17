@@ -50,16 +50,16 @@ try {
  checks.push('unauthorized_hidden_authorized_visible_revoked_hidden');
  state=await command({action:'screen',screen:'hub'});
  await page.screenshot({path:resolve(out,'hub.png')});
- const popupPromise=page.waitForEvent('popup');await click(state,'HubRankingsButton');const popup=await popupPromise;
- await popup.waitForSelector('#entries button');
+ await click(state,'HubRankingsButton');const popup=page.frameLocator('iframe[src^="/rankings"]');
+ await popup.locator('#entries button').waitFor();assert.equal(context.pages().length,1);
  assert((await popup.locator('#self').innerText()).includes('1位'));
- await popup.locator('#entries button').click();await popup.waitForSelector('dialog[open]');
+ await popup.locator('#entries button').click();await popup.locator('dialog[open]').waitFor();
  assert((await popup.locator('#detail-body').innerText()).includes('ストライク'));
- await popup.screenshot({path:resolve(out,'ranked-details.png')});await popup.locator('#close').click();
- await popup.locator('#starter').selectOption('tempo');await popup.waitForTimeout(100);
+ await page.screenshot({path:resolve(out,'ranked-details.png')});await popup.locator('#close').click();
+ await popup.locator('#starter').selectOption('tempo');await page.waitForTimeout(100);
  assert(requests.some(x=>x.includes('starter=tempo')));
- for(const size of [{width:1100,height:850},{width:390,height:844}]){await popup.setViewportSize(size);assert(await popup.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await popup.screenshot({path:resolve(out,`rankings-${size.width}.png`),fullPage:true});}
- await popup.close();checks.push('ranking_popup_details_filters_self_rank_mobile');
+ for(const size of [{width:1100,height:850},{width:390,height:844}]){await page.setViewportSize(size);assert(await popup.locator('body').evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:resolve(out,`rankings-${size.width}.png`),fullPage:true});}
+ await page.locator('#qq-service-close').click();await page.setViewportSize({width:1440,height:900});checks.push('embedded_ranking_details_filters_self_rank_mobile');
  const english=await context.newPage();await english.goto(origin+'/rankings?lang=en');await english.waitForSelector('#entries button');assert.equal(await english.locator('h1').innerText(),'Infinite Rankings');await english.locator('#entries button').click();assert((await english.locator('#detail-body').innerText()).includes('Strike'));await english.screenshot({path:resolve(out,'rankings-english.png')});await english.close();checks.push('english_rankings_and_localized_card_details');
  state=await command({action:'screen',screen:'hub'});await click(state,'HubRankedStartButton');
  await page.waitForTimeout(400);state=await command({action:'inspect'});assert.equal(state.screen,'RunSetup');

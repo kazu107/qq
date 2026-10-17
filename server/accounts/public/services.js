@@ -44,7 +44,7 @@
     if (overlay.hidden) previousFocus = document.activeElement;
     overlay.hidden = false; close.focus(); return true;
   }
-  window.qqServices = { open, close: hide };
+  window.qqServices = { open, close: hide, identityChanged() { for(const frame of frames.values()) frame.contentWindow?.postMessage({type:"qq-profile-changed"},location.origin); } };
   window.qqCloud = {
     stateSnapshot: () => structuredClone(snapshot),
     enableQA: () => new URLSearchParams(location.search).get("cloud_review") === "1",
