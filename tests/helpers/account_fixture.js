@@ -48,6 +48,7 @@ async function mockProviders() {
         const destination = new URL(url.searchParams.get("redirect_uri"));
         destination.searchParams.set("state", url.searchParams.get("state"));
         destination.searchParams.set("code", code);
+        destination.searchParams.set("iss", `${origin}/${provider}`);
         response.writeHead(302, { Location: destination.href }); response.end(); return;
       }
       if (provider === "google" && action === "jwks") { response.end(JSON.stringify({ keys: [jwk] })); return; }
@@ -66,6 +67,7 @@ async function mockProviders() {
         const access = randomBytes(24).toString("hex");
         state.access.set(access, grant.subject);
         const result = { access_token: access, token_type: "Bearer", expires_in: 3600 };
+        if (provider === "github") { result.scope = ""; result.token_type = "bearer"; delete result.expires_in; }
         if (provider === "google") {
           const now = Math.floor(Date.now() / 1000);
           const claims = { iss: `${origin}/google`, sub: grant.subject, aud: "google-test-client", iat: now,

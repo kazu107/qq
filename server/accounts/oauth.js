@@ -6,7 +6,7 @@ const SERVERS = Object.freeze({
   google: { issuer: "https://accounts.google.com", authorization_endpoint: "https://accounts.google.com/o/oauth2/v2/auth",
     token_endpoint: "https://oauth2.googleapis.com/token", jwks_uri: "https://www.googleapis.com/oauth2/v3/certs",
     id_token_signing_alg_values_supported: ["RS256"], code_challenge_methods_supported: ["S256"] },
-  github: { issuer: "https://github.com", authorization_endpoint: "https://github.com/login/oauth/authorize",
+  github: { issuer: "https://github.com/login/oauth", authorization_endpoint: "https://github.com/login/oauth/authorize",
     token_endpoint: "https://github.com/login/oauth/access_token", code_challenge_methods_supported: ["S256"] },
 });
 
