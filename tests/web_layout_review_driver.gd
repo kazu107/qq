@@ -34,6 +34,17 @@ func _command(arguments: Array) -> void:
 	_sequence = int(payload.get("sequence", 0))
 	if String(payload.get("action", "")) == "guest_snapshot":
 		_window.qqGuestSnapshot = JSON.stringify(SaveManager.read_profile("guest"))
+	elif String(payload.get("action", "")) == "legacy_guest_pending_fixture":
+		var owner: String = String(AccountSession.snapshot["user"]["id"])
+		SaveManager.activate_profile("guest", SaveData.new().to_dict())
+		Game.meta_progress["points"] = 321
+		SaveManager.save_game("hub")
+		_window.qqLegacyGuest = JSON.stringify(SaveManager.guest_identity())
+		SaveManager.activate_profile(owner)
+		SaveManager.profile_meta["guest_import_pending"] = true
+		SaveManager.save_game("hub")
+		CloudSession._epoch += 1
+		CloudSession._transition(CloudSession._epoch, owner)
 	elif String(payload.get("action", "")) == "guest_restore_fixture":
 		SaveManager.activate_profile("guest", Dictionary(payload["snapshot"]))
 		SaveManager.save_game("hub")

@@ -290,7 +290,7 @@ func _prepare_guest_file() -> void:
 	var meta: Dictionary = Dictionary(raw.get("settings", {}).get("_cloud_meta", {}))
 	var consumed: Dictionary = Dictionary(device.get("guest_receipts", {})).get(String(meta.get("guest_identity", {}).get("origin_id", "")), {})
 	if consumed.is_empty() and meta.get("guest_receipt") is Dictionary: consumed = Dictionary(meta["guest_receipt"]).duplicate(true)
-	if consumed.is_empty() and _meaningful_guest(raw):
+	if consumed.is_empty() and not meta.has("guest_identity") and _meaningful_guest(raw):
 		consumed = Dictionary(device.get("consumed_guest_fingerprints", {})).get(_guest_fingerprint(raw), {}).duplicate(true)
 		if not consumed.is_empty(): consumed["legacy"] = true
 	if not consumed.is_empty():

@@ -89,7 +89,8 @@ class CloudSaveStore {
   }
   async guestStatus(user, ticket) {
     const hash = guestCredential(ticket);
-    const result = await this.pool.query("SELECT * FROM qq_guest_transfers WHERE origin_id=$1 AND token_hash=$2", [ticket.origin_id || ticket.id, hash]);
+    const field = ticket.origin_id ? "origin_id" : "id";
+    const result = await this.pool.query(`SELECT * FROM qq_guest_transfers WHERE ${field}=$1 AND token_hash=$2`, [ticket.origin_id || ticket.id, hash]);
     if (!result.rowCount) return { status: "unregistered", guest_receipt: null };
     const row = result.rows[0];
     // Possession of the source capability permits checking its destination, never reading that account's save.
@@ -108,6 +109,7 @@ class CloudSaveStore {
       if (guestTicket) {
         guest = (await client.query("SELECT * FROM qq_guest_transfers WHERE id=$1 AND token_hash=$2 FOR UPDATE", [guestTicket.id, guestCredential(guestTicket)])).rows[0];
         if (!guest) fail("guest_ticket_not_found", 404);
+        if (guestTicket.origin_id && guestTicket.origin_id !== guest.origin_id) fail("invalid_guest_ticket");
         if (guest.claimed_by) {
           if (guest.claimed_by !== user) throw Object.assign(new Error("guest_already_claimed"), { code: "guest_already_claimed", status: 409, guest_receipt: receipt(guest) });
           return { ...view(row, body.writer_id), already_imported: true, guest_receipt: receipt(guest) };

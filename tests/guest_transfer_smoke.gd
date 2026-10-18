@@ -39,6 +39,13 @@ func _ready() -> void:
 	assert(not as_guest)
 	var own: bool = SaveManager.activate_profile(OWNER, bound)
 	assert(own and Game.get_meta_points() == 123)
+	var independent: Dictionary = original.duplicate(true)
+	independent["settings"]["_cloud_meta"] = fresh["settings"]["_cloud_meta"].duplicate(true)
+	independent.erase(SafeSaveStore.CHECKSUM_KEY)
+	var independent_written: bool = SafeSaveStore.write(SaveManager.profile_path("guest"), independent)
+	assert(independent_written)
+	SaveManager._prepare_guest_file()
+	assert(SaveManager.read_profile("guest").get("meta_progress", {}).get("points", 0) == 123, "Independent guest identities must not be rejected merely for equal progress values")
 	# Restore a pre-issuance source; the durable origin tombstone must still retire it.
 	var restored: bool = SafeSaveStore.write(SaveManager.profile_path("guest"), restored_copy)
 	assert(restored)

@@ -66,6 +66,8 @@ test("guest transfers commit exactly once, bind the first owner and survive rece
       return clients[index].write("/api/cloud/" + path, body, { "X-QQ-Account": users[index].user.id, "X-QQ-Cloud-Version": protocol });
     }
     const identity = { origin_id: randomUUID(), secret: randomBytes(32).toString("base64url") };
+    const oldClient = await a.request("/api/cloud/save", { method: "PUT", headers: { Origin: fixture.origin, "Content-Type": "application/json", "X-CSRF-Token": users[0].csrfToken, "X-QQ-Account": users[0].user.id }, body: JSON.stringify({ writer_id: writers[0], base_revision: 0, request_id: randomUUID(), payload: save(50) }) });
+    assert.equal(oldClient.status, 426, "An old client must not bypass transfers through the old save API");
     assert.equal((await post(0, "guest-ticket", { guest_identity: identity }, "1")).status, 426);
     const issued = await (await post(0, "guest-ticket", { guest_identity: identity })).json();
     const retryIssue = await (await post(1, "guest-ticket", { guest_identity: identity })).json();
@@ -103,5 +105,7 @@ test("guest transfers commit exactly once, bind the first owner and survive rece
     const issuedAgain = await (await post(loser, "guest-ticket", { guest_identity: identity })).json();
     assert.equal(issuedAgain.guest_receipt.owner_id, users[winner].user.id);
     assert.equal((await post(loser, "import-guest", { ...attempts[loser], request_id: randomUUID() })).status, 409);
+    const independent = await (await post(loser, "guest-ticket", { guest_identity: { origin_id: randomUUID(), secret: randomBytes(32).toString("base64url") } })).json();
+    assert.equal((await post(loser, "import-guest", { ...attempts[loser], request_id: randomUUID(), guest_ticket: independent.guest_ticket })).status, 200, "Equal progress from a different guest origin is not a duplicate transfer");
   } finally { await fixture.close(); }
 });
