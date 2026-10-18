@@ -84,7 +84,7 @@ OAuthクライアントとDBの準備が終わるまでは`AUTH_ENABLED`を未�
 heroku run npm run migrate:accounts -a <アプリ名>
 ```
 
-`ACCOUNT_SCHEMA_MIGRATION_OK`を確認してください。繰り返し実行できます。既存データを変更せず、`qq_accounts_*`の4テーブルと`qq_ranked_*`の3テーブル・インデックスを作成します。
+`ACCOUNT_SCHEMA_MIGRATION_OK`を確認してください。繰り返し実行できます。既存データを変更せず、`qq_accounts_*`の4テーブル、`qq_ranked_*`の3テーブル、クラウド保存2テーブル、ゲスト移行記録1テーブルとインデックスを作成します。
 設定後のデプロイでは自動実行されます。失敗したreleaseは公開しません。
 `AUTH_ENABLED=false`ならDB不要でスキップし、これまでどおりデプロイできます。
 

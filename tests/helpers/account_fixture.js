@@ -107,7 +107,7 @@ async function accountFixture({ reset = true, publicOrigin = "", publicDir, extr
   const env = { ...databaseEnv, ...extraEnv };
   const store = new AccountStore(env);
   await store.migrate();
-  if (reset) await store.pool.query("TRUNCATE qq_cloud_save_history, qq_cloud_saves, qq_ranked_commands, qq_ranked_runs, qq_ranked_seasons, qq_accounts_oauth_attempts, qq_accounts_sessions, qq_accounts_identities, qq_accounts_users");
+  if (reset) await store.pool.query("TRUNCATE qq_guest_transfers, qq_cloud_save_history, qq_cloud_saves, qq_ranked_commands, qq_ranked_runs, qq_ranked_seasons, qq_accounts_oauth_attempts, qq_accounts_sessions, qq_accounts_identities, qq_accounts_users");
   const mock = await mockProviders();
   let origin;
   const instance = createQqServer({ env, publicDir, account: { enabled: true, store, oauth: mock.oauth, getOrigin: () => publicOrigin || origin } });

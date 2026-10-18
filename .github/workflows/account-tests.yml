@@ -63,6 +63,11 @@ jobs:
           cat build/cloud-profile.log
           grep -q CLOUD_PROFILE_SMOKE_OK build/cloud-profile.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/cloud-profile.log; then exit 1; fi
+          mkdir -p build/guest-test-home
+          HOME="$PWD/build/guest-test-home" godot --headless --path . res://tests/GuestTransferSmoke.tscn --quit-after 600 > build/guest-transfer.log 2>&1
+          cat build/guest-transfer.log
+          grep -q GUEST_TRANSFER_SMOKE_OK build/guest-transfer.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/guest-transfer.log; then exit 1; fi
           godot --headless --path . --export-pack Web build/ranked-test.pck > build/export.log 2>&1
           godot --headless --main-pack build/ranked-test.pck res://scenes/ranking/Verifier.tscn -- "$PWD/build/ranked-fixture.json" > build/ranked-pack.log 2>&1
           cat build/ranked-pack.log

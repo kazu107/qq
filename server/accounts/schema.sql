@@ -60,3 +60,11 @@ CREATE TABLE IF NOT EXISTS qq_cloud_save_history (
   payload jsonb NOT NULL, updated_at timestamptz NOT NULL,
   PRIMARY KEY(user_id, revision)
 );
+CREATE TABLE IF NOT EXISTS qq_guest_transfers (
+  id uuid PRIMARY KEY, origin_id uuid UNIQUE NOT NULL, token_hash char(64) NOT NULL,
+  issued_by uuid NOT NULL REFERENCES qq_accounts_users(id), created_at timestamptz NOT NULL DEFAULT now(),
+  claimed_by uuid REFERENCES qq_accounts_users(id), claimed_at timestamptz,
+  import_revision integer, request_id uuid,
+  CHECK ((claimed_by IS NULL) = (claimed_at IS NULL))
+);
+CREATE INDEX IF NOT EXISTS qq_guest_transfer_issues ON qq_guest_transfers(issued_by, created_at);

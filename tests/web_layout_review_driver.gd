@@ -32,7 +32,13 @@ func _start_boot() -> void:
 func _command(arguments: Array) -> void:
 	var payload: Dictionary = JSON.parse_string(String(arguments[0]))
 	_sequence = int(payload.get("sequence", 0))
-	if String(payload.get("action", "")) == "cloud_fixture":
+	if String(payload.get("action", "")) == "guest_snapshot":
+		_window.qqGuestSnapshot = JSON.stringify(SaveManager.read_profile("guest"))
+	elif String(payload.get("action", "")) == "guest_restore_fixture":
+		SaveManager.activate_profile("guest", Dictionary(payload["snapshot"]))
+		SaveManager.save_game("hub")
+		SceneRouter.go_to_hub()
+	elif String(payload.get("action", "")) == "cloud_fixture":
 		if payload.has("points"): Game.meta_progress["points"] = int(payload["points"])
 		if bool(payload.get("run", false)):
 			Game.start_new_run("balanced", 426)

@@ -92,6 +92,35 @@ func _transition(epoch: int, owner: String) -> void:
 		return
 	remote = response
 	_last_error = ""
+	var previous_meta: Dictionary = Dictionary(SaveManager.read_profile(owner).get("settings", {}).get("_cloud_meta", {}))
+	if SaveManager.active_profile == owner: previous_meta = SaveManager.profile_meta
+	var pending_cleanup: Dictionary = Dictionary(previous_meta.get("guest_cleanup_receipt", {}))
+	if not pending_cleanup.is_empty() and pending_cleanup.get("owner_id", "") == owner:
+		if not _cleanup_guest(pending_cleanup): return
+	var consumed: Dictionary = SaveManager.consumed_guest_receipt()
+	if not consumed.is_empty():
+		if not _cleanup_guest(consumed): return
+		if consumed.get("owner_id", "") != owner:
+			state = "guest_claimed"
+			publish()
+			return
+	var identity: Dictionary = SaveManager.guest_identity()
+	if not identity.is_empty():
+		_loading = true
+		var guest_status: Dictionary = await request("POST", "/api/cloud/guest-status", {"guest_ticket": identity})
+		if epoch != _epoch: return
+		_loading = false
+		if guest_status.has("error"):
+			state = "load_error"
+			publish()
+			return
+		if guest_status.get("guest_receipt") is Dictionary:
+			var confirmed: Dictionary = Dictionary(guest_status["guest_receipt"])
+			if not _cleanup_guest(confirmed): return
+			if confirmed.get("owner_id", "") != owner:
+				state = "guest_claimed"
+				publish()
+				return
 	var cached: Dictionary = SaveManager.read_profile(owner)
 	var metadata: Dictionary = Dictionary(cached.get("settings", {}).get("_cloud_meta", {}))
 	if SaveManager.active_profile == owner:
@@ -167,7 +196,11 @@ func _claim_and_load(takeover: bool, use_remote: bool, epoch: int) -> void:
 
 
 func _switch_local(profile: String, replacement: Dictionary = {}) -> bool:
-	if SaveManager.active_profile == profile and replacement.is_empty(): return true
+	if SaveManager.active_profile == profile and replacement.is_empty():
+		if SaveManager.is_profile_writable(): return true
+		state = "local_save_error"
+		publish()
+		return false
 	SaveManager.flush_requested_save()
 	var previous: SaveData = Game.build_save_data(Game.current_screen_hint)
 	if not SaveManager.save_game(Game.current_screen_hint):
@@ -241,6 +274,8 @@ func sync_now() -> bool:
 	var hash: String = JSON.stringify(payload).sha256_text()
 	if hash == String(SaveManager.profile_meta.get("synced_hash", "")):
 		_busy = false
+		var pending: Dictionary = Dictionary(SaveManager.profile_meta.get("guest_cleanup_receipt", {}))
+		if not pending.is_empty(): return _cleanup_guest(pending)
 		return true
 	var epoch: int = _epoch
 	if SaveManager.profile_meta.get("pending_hash", "") != hash or String(SaveManager.profile_meta.get("pending_request", "")) == "":
@@ -271,7 +306,13 @@ func sync_now() -> bool:
 	SaveManager.profile_meta["synced_hash"] = hash
 	SaveManager.profile_meta.erase("pending_request")
 	SaveManager.profile_meta.erase("pending_hash")
-	SaveManager.finish_guest_import()
+	var cleanup: Dictionary = Dictionary(SaveManager.profile_meta.get("guest_cleanup_receipt", {}))
+	if not cleanup.is_empty():
+		if not _cleanup_guest(cleanup): return false
+	elif not SaveManager.finish_guest_import():
+		state = "guest_cleanup_pending"
+		publish()
+		return false
 	state = "ready"
 	SaveManager.save_game(Game.current_screen_hint)
 	publish()
@@ -323,11 +364,9 @@ func _action(command: Dictionary) -> void:
 		"local":
 			if not SaveManager.archive_profile(account_id): return
 			await _claim_and_load(true, false, _epoch)
-		"import", "new":
-			if action == "import" and not SaveManager.archive_profile("guest", "before-import"): return
-			var payload: Dictionary = SaveManager.read_profile("guest") if action == "import" else SaveData.new().to_dict()
-			_prepare_guest_rankings(payload, account_id)
-			payload.get("settings", {}).erase("_cloud_meta")
+		"import": await _import_guest()
+		"new":
+			var payload: Dictionary = SaveData.new().to_dict()
 			var epoch: int = _epoch
 			var claim: Dictionary = await request("POST", "/api/cloud/claim", {"writer_id": _writer, "takeover": false})
 			if epoch != _epoch: return
@@ -338,7 +377,7 @@ func _action(command: Dictionary) -> void:
 				return
 			if not SaveManager.archive_profile(account_id): return
 			if not _switch_local(account_id, payload): return
-			SaveManager.profile_meta = {"revision": int(remote.get("revision", 0)), "guest_import_pending": action == "import"}
+			SaveManager.profile_meta = {"revision": int(remote.get("revision", 0))}
 			state = "ready"
 			SaveManager.save_game("hub")
 			await sync_now()
@@ -396,13 +435,116 @@ func _action(command: Dictionary) -> void:
 
 
 func publish() -> void:
-	var blocked: bool = state in ["loading", "load_error", "import_choice", "guest_choice", "conflict", "device_busy", "local_save_error", "logout_pending"]
+	var blocked: bool = state in ["loading", "load_error", "import_choice", "guest_choice", "conflict", "device_busy", "local_save_error", "logout_pending", "guest_claimed", "guest_transfer_pending", "guest_cleanup_pending"]
 	if initialized: get_tree().paused = blocked
 	if _bridge != null:
 		var local: Dictionary = SaveManager.current_save.to_dict() if SaveManager.active_profile == account_id else SaveManager.read_profile(account_id) if account_id != "" else {}
 		var guest: Dictionary = SaveManager.read_profile("guest") if state in ["import_choice", "guest_choice", "conflict"] else {}
-		_bridge.publish(JSON.stringify({"state": state, "blocked": blocked, "busy": _busy or _loading or _action_pending, "profile": SaveManager.active_profile, "account_id": account_id, "revision": int(SaveManager.profile_meta.get("revision", 0)), "updated_at": remote.get("updated_at", ""), "dirty": bool(SaveManager.profile_meta.get("dirty", false)), "error": _last_error, "local": _summary(local), "cloud": _summary(Dictionary(remote["payload"]) if remote.get("payload") is Dictionary else {}), "guest": _summary(guest), "history": history, "local_backups": SaveManager.local_backups(account_id) if account_id != "" else []}))
+		_bridge.publish(JSON.stringify({"state": state, "blocked": blocked, "busy": _busy or _loading or _action_pending, "profile": SaveManager.active_profile, "account_id": account_id, "revision": int(SaveManager.profile_meta.get("revision", 0)), "updated_at": remote.get("updated_at", ""), "dirty": bool(SaveManager.profile_meta.get("dirty", false)), "error": _last_error, "has_cloud": remote.get("payload") is Dictionary, "local": _summary(local), "cloud": _summary(Dictionary(remote["payload"]) if remote.get("payload") is Dictionary else {}), "guest": _summary(guest), "history": history, "local_backups": SaveManager.local_backups(account_id) if account_id != "" else []}))
 	changed.emit()
+
+
+func _cleanup_guest(receipt: Dictionary, source: Dictionary = {}) -> bool:
+	var was_guest: bool = SaveManager.active_profile == "guest"
+	if was_guest and SaveManager.is_profile_writable() and not SaveManager.flush_requested_save():
+		state = "local_save_error"
+		publish()
+		return false
+	var previous_origin: String = String(SaveManager.guest_identity().get("origin_id", ""))
+	if not SaveManager.finish_guest_import(receipt, source):
+		if not was_guest:
+			SaveManager.profile_meta["guest_cleanup_receipt"] = receipt.duplicate(true)
+			SaveManager.save_game(Game.current_screen_hint)
+		state = "guest_cleanup_pending"
+		publish()
+		return false
+	if was_guest and previous_origin != String(SaveManager.guest_identity().get("origin_id", "")):
+		if not SaveManager.activate_profile("guest"):
+			state = "local_save_error"
+			publish()
+			return false
+		_refresh_hub()
+	return true
+
+
+func _import_guest() -> void:
+	var epoch: int = _epoch
+	if SaveManager.active_profile == "guest" and not SaveManager.save_game(Game.current_screen_hint):
+		state = "local_save_error"
+		publish()
+		return
+	var identity: Dictionary = SaveManager.guest_identity()
+	if identity.is_empty():
+		state = "guest_claimed"
+		publish()
+		return
+	var issued: Dictionary = await request("POST", "/api/cloud/guest-ticket", {"guest_identity": identity})
+	if epoch != _epoch: return
+	if issued.has("error"):
+		state = "guest_transfer_pending"
+		publish()
+		return
+	identity = Dictionary(issued["guest_ticket"])
+	if not SaveManager.store_guest_identity(identity):
+		state = "local_save_error"
+		publish()
+		return
+	if issued.get("guest_receipt") is Dictionary:
+		var existing: Dictionary = Dictionary(issued["guest_receipt"])
+		if not _cleanup_guest(existing): return
+		if existing.get("owner_id", "") == account_id:
+			_epoch += 1
+			await _transition(_epoch, account_id)
+		else:
+			state = "guest_claimed"
+			publish()
+		return
+	var source: Dictionary = SaveManager.read_profile("guest")
+	var payload: Dictionary = SaveManager.cloud_payload(SaveData.from_dict(source))
+	_prepare_guest_rankings(payload, account_id)
+	var pending: Dictionary = Dictionary(SaveManager.device.get("pending_guest_import", {}))
+	if pending.get("origin_id", "") != identity["origin_id"] or pending.get("owner_id", "") != account_id:
+		pending = {"origin_id": identity["origin_id"], "owner_id": account_id, "request_id": _uuid()}
+		SaveManager.device["pending_guest_import"] = pending
+		if not SaveManager._save_device():
+			state = "local_save_error"
+			publish()
+			return
+	var claim: Dictionary = await request("POST", "/api/cloud/claim", {"writer_id": _writer, "takeover": false})
+	if epoch != _epoch: return
+	if claim.has("error") or int(claim["revision"]) != int(remote.get("revision", 0)):
+		state = "device_busy" if claim.get("error", "") == "device_busy" else "conflict"
+		if not claim.has("error"): remote = claim
+		publish()
+		return
+	var response: Dictionary = await request("POST", "/api/cloud/import-guest", {"writer_id": _writer, "base_revision": int(claim["revision"]), "request_id": pending["request_id"], "guest_ticket": identity, "payload": payload})
+	if epoch != _epoch: return
+	if response.has("error"):
+		if response.get("guest_receipt") is Dictionary:
+			if not _cleanup_guest(Dictionary(response["guest_receipt"]), source): return
+			state = "guest_claimed"
+		else: state = "guest_transfer_pending"
+		publish()
+		return
+	if not SaveManager.archive_profile(account_id):
+		state = "guest_cleanup_pending"
+		publish()
+		return
+	remote = response
+	if not _switch_local(account_id, Dictionary(response["payload"])): return
+	SaveManager.profile_meta = {"revision": int(response["revision"]), "guest_cleanup_receipt": response["guest_receipt"]}
+	var incoming: Dictionary = SaveManager.cloud_payload(SaveData.from_dict(Dictionary(response["payload"])))
+	var local: Dictionary = SaveManager.cloud_payload(Game.build_save_data("hub"))
+	SaveManager.profile_meta["synced_hash"] = JSON.stringify(local if local == incoming else incoming).sha256_text()
+	SaveManager.save_game("hub")
+	if not _cleanup_guest(Dictionary(response["guest_receipt"]), source): return
+	SaveManager.device.erase("pending_guest_import")
+	SaveManager._save_device()
+	state = "ready"
+	SaveManager.save_game("hub")
+	_refresh_hub()
+	publish()
+	if bool(SaveManager.profile_meta.get("dirty", false)): await sync_now()
 
 
 func _prepare_guest_rankings(payload: Dictionary, owner: String) -> void:

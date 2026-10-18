@@ -11,6 +11,7 @@ function createCloudService(account) {
     try {
       const user = await account.authorize(req, req.method !== "GET");
       if (req.headers["x-qq-account"] !== user.id) throw Object.assign(new Error(), { status: 409, code: "account_changed" });
+      if (req.method !== "GET" && req.headers["x-qq-cloud-version"] !== "2") throw Object.assign(new Error(), { status: 426, code: "cloud_update_required" });
       const now = Date.now();
       for (const [key, value] of limits) if (value.until < now) limits.delete(key);
       if (!limits.has(user.id)) limits.set(user.id, { count: 0, until: now + 60000 });
@@ -26,12 +27,15 @@ function createCloudService(account) {
         let body; try { body = JSON.parse(Buffer.concat(chunks).toString()); if (!body || typeof body !== "object" || Array.isArray(body)) throw Error(); }
         catch { throw Object.assign(new Error(), { status: 400, code: "invalid_json" }); }
         if (pathname === "/api/cloud/claim" && req.method === "POST") send(200, await store.claim(user.id, body.writer_id, body.device_label, body.takeover));
+        else if (pathname === "/api/cloud/guest-ticket" && req.method === "POST") send(201, await store.createGuest(user.id, body.guest_identity));
+        else if (pathname === "/api/cloud/guest-status" && req.method === "POST") send(200, await store.guestStatus(user.id, body.guest_ticket));
+        else if (pathname === "/api/cloud/import-guest" && req.method === "POST") send(200, await store.importGuest(user.id, body));
         else if (["/api/cloud/lease", "/api/cloud/release"].includes(pathname) && req.method === "POST") send(200, await store.lease(user.id, body.writer_id, pathname.endsWith("release")));
         else if (pathname === "/api/cloud/save" && req.method === "PUT") send(200, await store.write(user.id, body));
         else if (pathname === "/api/cloud/restore" && req.method === "POST") send(200, await store.write(user.id, body, body.revision));
         else send(404, { error: "not_found" });
       } else send(405, { error: "method_not_allowed" });
-    } catch (error) { send(error.status || 503, { error: error.code || "cloud_unavailable" }); }
+    } catch (error) { send(error.status || 503, { error: error.code || "cloud_unavailable", ...(error.guest_receipt ? { guest_receipt: error.guest_receipt } : {}) }); }
     return true;
   } };
 }

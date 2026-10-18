@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {resolve} from 'node:path';
 import {mkdir,writeFile} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
 const require=createRequire(import.meta.url);
 const {chromium}=process.env.QQ_NODE_MODULES ? createRequire(resolve(process.env.QQ_NODE_MODULES,'../package.json'))('playwright') : require('playwright');
 const {createQqServer}=require('../server/server');
@@ -11,6 +12,7 @@ const origin=`http://127.0.0.1:${app.server.address().port}`;
 const browser=await chromium.launch({channel:'chrome',headless:true});
 const out=resolve('tools/.local/cloud-review'); await mkdir(out,{recursive:true});
 const saves=new Map(),errors=[],checks=[],devices=[];
+const transfers=new Map();
 const ownerA='11111111-1111-4111-8111-111111111111',ownerB='22222222-2222-4222-8222-222222222222';
 let serial=0;
 async function device(owner='') {
@@ -27,6 +29,22 @@ async function device(owner='') {
   if(!saves.has(state.owner)) saves.set(state.owner,{revision:0,payload:null,writer:'',history:[]});
   const row=saves.get(state.owner),body=JSON.parse(request.postData()||'{}');
   const snapshot=()=>({...row,writer_active:!!row.writer,owns_lease:row.writer===writer,updated_at:new Date().toISOString()});
+  const credential=body.guest_identity||body.guest_ticket;
+  const guest=credential?transfers.get(credential.origin_id):null;
+  if(path==='guest-status')return send(guest&&guest.ticket.secret===credential.secret?{status:guest.receipt?(guest.receipt.owner_id===state.owner?'claimed_here':'claimed_elsewhere'):'available',guest_receipt:guest.receipt}:{status:'unregistered',guest_receipt:null});
+  if(path==='guest-ticket') {
+   if(guest&&guest.ticket.secret!==credential.secret)return send({error:'guest_ticket_not_found'},404);
+   const entry=guest||{ticket:{...credential,id:randomUUID()},receipt:null,imports:0};transfers.set(credential.origin_id,entry);return send({guest_ticket:entry.ticket,guest_receipt:entry.receipt});
+  }
+  if(path==='import-guest') {
+   if(!guest||guest.ticket.id!==credential.id||guest.ticket.secret!==credential.secret)return send({error:'guest_ticket_not_found'},404);
+   if(guest.receipt)return guest.receipt.owner_id===state.owner?send({...snapshot(),already_imported:true,guest_receipt:guest.receipt}):send({error:'guest_already_claimed',guest_receipt:guest.receipt},409);
+   if(row.writer!==body.writer_id)return send({error:'lease_lost'},409);
+   if(row.revision!==body.base_revision)return send({error:'revision_conflict'},409);
+   row.payload=body.payload;row.revision++;row.request_id=body.request_id;guest.imports++;guest.receipt={id:guest.ticket.id,origin_id:credential.origin_id,owner_id:state.owner,revision:row.revision};
+   if(state.dropImportReceipt){state.dropImportReceipt=false;return send({error:'network_error'},503);}
+   return send({...snapshot(),already_imported:false,guest_receipt:guest.receipt});
+  }
   if(path==='save'&&request.method()==='GET') return send(snapshot());
   if(path==='claim') {if(row.writer&&row.writer!==body.writer_id&&!body.takeover)return send({error:'device_busy'},409);row.writer=body.writer_id;return send(snapshot());}
   if(path==='lease'||path==='release') {if(row.writer!==body.writer_id)return send({error:'lease_lost'},409);if(path==='release')row.writer='';return send(snapshot());}
@@ -53,8 +71,9 @@ async function inspect(d) {const sequence=++serial;await d.page.evaluate(sequenc
 async function fixture(d,points,sync=false,run=false) {await d.page.evaluate(data=>window.qqLayoutCommand(JSON.stringify(data)),{action:'cloud_fixture',points,sync,run,sequence:++serial});}
 async function action(d,id) {await d.page.evaluate(id=>window.qqCloud.action({id}),id);}
 async function synced(d) {await d.page.waitForFunction(()=>{const s=window.qqCloud.stateSnapshot();return s.state==='ready'&&!s.busy&&!s.dirty&&s.revision>0;},undefined,{timeout:30000});}
+async function guestSnapshot(d) {await d.page.evaluate(()=>window.qqLayoutCommand(JSON.stringify({action:'guest_snapshot'})));return d.page.evaluate(()=>JSON.parse(window.qqGuestSnapshot));}
 try {
- const a=await device();await wait(a,'guest');await fixture(a,123,false,true);assert.equal((await inspect(a)).cloud_points,123,'guest fixture');
+ const a=await device();await wait(a,'guest');await fixture(a,123,false,true);assert.equal((await inspect(a)).cloud_points,123,'guest fixture');const originalGuest=await guestSnapshot(a);
  a.owner=ownerA;await a.page.evaluate(()=>window.qqAccount.refresh());await wait(a,'import_choice');
  let frame=a.page.frameLocator('#qq-service-panel iframe[src^="/account"]');await frame.locator('[data-cloud-action=import]').click();await synced(a);
  assert.equal(saves.get(ownerA).payload.meta_progress.points,123);
@@ -76,6 +95,10 @@ try {
  await a.context.route('**/auth/google/start**',route=>{a.owner=ownerB;return route.fulfill({status:302,headers:{location:'/account?result=authenticated&lang=ja'}});});
  const authPromise=a.page.waitForEvent('popup');await frame.locator('#google').click();const auth=await authPromise;if(!auth.isClosed())await auth.waitForEvent('close');await synced(a);assert.equal(a.context.pages().length,1);assert.equal((await inspect(a)).cloud_profile,ownerB);checks.push('only_provider_auth_opens_a_window_and_returns_to_game');
  await frame.locator('#logout').click();await wait(a,'guest');const emptyOwner='33333333-3333-4333-8333-333333333333';saves.set(emptyOwner,{revision:0,payload:null,writer:'other-unfinished-device',history:[]});a.owner=emptyOwner;await a.page.evaluate(()=>window.qqAccount.refresh());await wait(a,'import_choice');await action(a,'new');await wait(a,'device_busy');await action(a,'takeover');await wait(a,'import_choice');await action(a,'new');await synced(a);checks.push('takeover_of_unfinished_first_save_returns_to_import_choice');
+ await b.context.close();await a.context.close();
+ const c=await device();await wait(c,'guest');await c.page.evaluate(snapshot=>window.qqLayoutCommand(JSON.stringify({action:'guest_restore_fixture',snapshot})),originalGuest);
+ c.owner=ownerB;await c.page.evaluate(()=>window.qqAccount.refresh());await wait(c,'guest_claimed');assert.equal((await inspect(c)).cloud_points,0);assert.equal(transfers.get(originalGuest.settings._cloud_meta.guest_identity.origin_id).imports,1);await c.page.screenshot({path:resolve(out,'guest-already-claimed.png')});await action(c,'cloud');await synced(c);assert.equal((await inspect(c)).cloud_points,0);checks.push('copied_pre_issuance_guest_is_rejected_for_another_account');
+ await action(c,'logout');await wait(c,'guest');await fixture(c,777);const pendingSource=await guestSnapshot(c);const receiptOwner='44444444-4444-4444-8444-444444444444';c.owner=receiptOwner;await c.page.evaluate(()=>window.qqAccount.refresh());await wait(c,'import_choice');c.dropImportReceipt=true;await action(c,'import');await wait(c,'guest_transfer_pending');assert.equal(saves.get(receiptOwner).payload.meta_progress.points,777);assert.equal((await inspect(c)).cloud_points,777);await c.page.waitForTimeout(1500);await c.page.close();await c.open();await synced(c);assert.equal((await inspect(c)).cloud_points,777);assert.equal(transfers.get(pendingSource.settings._cloud_meta.guest_identity.origin_id).imports,1);checks.push('lost_transfer_receipt_recovers_after_restart_without_reimport');
  assert.deepEqual(errors,[]);await writeFile(resolve(out,'report.json'),JSON.stringify({checks,errors},null,2));console.log('WEB_CLOUD_REVIEW_OK',JSON.stringify({checks,errors}));
 } catch(error) {console.error('CLOUD_REVIEW_DIAGNOSTIC',JSON.stringify({checks,errors,devices:await Promise.all(devices.map(async d=>({owner:d.owner,state:await d.page.evaluate(()=>window.qqCloud.stateSnapshot()).catch(()=>null)}))),saves:[...saves].map(([owner,row])=>({owner,revision:row.revision,points:row.payload?.meta_progress?.points,writer:row.writer}))}));throw error;}
 finally {await browser.close();app.server.closeAllConnections();await new Promise(done=>app.server.close(done));}

@@ -59,8 +59,8 @@
     },
     async request(method, path, rawBody, owner, callback) {
       try {
-        if (!/^\/api\/cloud\/(save|history|claim|lease|release|restore)$/.test(path) && path !== "/api/account/logout") throw Error();
-        const headers = { "X-QQ-Account": owner, "X-QQ-Writer": writer };
+        if (!/^\/api\/cloud\/(save|history|claim|lease|release|restore|guest-ticket|guest-status|import-guest)$/.test(path) && path !== "/api/account/logout") throw Error();
+        const headers = { "X-QQ-Account": owner, "X-QQ-Writer": writer, "X-QQ-Cloud-Version": "2" };
         if (method !== "GET") {
           const profile = await (await fetch("/api/account", { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(8000) })).json();
           if (!profile.authenticated || profile.user?.id !== owner) { callback(JSON.stringify({ error: "account_changed" })); return; }

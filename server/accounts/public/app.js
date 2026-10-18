@@ -134,12 +134,16 @@
       load_error:tx("クラウドを確認できません。既存のデータは上書きしていません。再試行するか、ログアウトしてゲストで遊べます。", "Cloud saves are unavailable; existing data is untouched. Retry, or sign out to play as a guest."),
       local_save_error:tx("端末のバックアップに失敗しました。上書きを停止しています。", "Local backup failed. Replacement was stopped."),
       logout_pending:tx("未送信のデータがあります。再試行するか、この端末に保留したままログアウトできます。別のアカウントには送りません。", "Unsynced changes remain. Retry, or sign out while retaining them on this device. They will not upload to another account."),
+      guest_claimed:tx("このゲストの進行は、別のアカウントへ移行済みです。再移行はできません。元の進行は移行先アカウント専用のバックアップに保護し、ゲスト側を初期化しました。", "This guest progress is already assigned to another account and cannot be imported again. Its backup belongs only to that account; guest progress has been reset."),
+      guest_transfer_pending:tx("移行の完了を確認できません。元データは保持しています。再試行でサーバーの移行状態を確認します。", "Transfer confirmation is pending. Source data is retained. Retry to check the server receipt."),
+      guest_cleanup_pending:tx("クラウド側の移行は確認済みですが、端末側のバックアップ・初期化が未完了です。空き容量などを確認して再試行してください。二重移行は許可しません。", "The cloud transfer is confirmed, but local backup/reset is pending. Check device storage and retry. A second import is not allowed."),
     };
     el("cloud-status").textContent = states[data.state] || data.state;
     if (data.error === "logout_unavailable") el("cloud-status").textContent = tx("ログアウトを完了できませんでした。アカウントは切り替えていません。接続を確認して、もう一度ログアウトしてください。", "Sign-out did not complete; the active account is unchanged. Check the connection and try signing out again.");
+    if (data.error === "cloud_update_required") el("cloud-status").textContent = tx("ゲームの更新が必要です。進行は端末に保持しています。ページを再読み込みしてください。", "A game update is required. Progress is retained locally. Please reload the page.");
     if (["save_too_large", "save_too_complex"].includes(data.error)) el("cloud-status").textContent = tx("同期できるデータ量の上限に達しました。進行はこの端末に保持されています。", "The cloud-save size limit was reached. Progress is retained on this device.");
     el("cloud-meta").textContent = data.profile === "guest" ? "" : `${tx("保存世代", "Revision")} ${data.revision}${data.updated_at ? " / " + new Date(data.updated_at).toLocaleString(language === "ja" ? "ja-JP" : "en-US") : ""}`;
-    el("cloud-policy").textContent = tx("ログアウト後はゲストへ戻ります。引き継ぎ済みのゲストは新規状態になります。音量・解像度は端末ごと。戦闘途中の通常ランは戦闘開始前から再開し、進行中のWeb対戦の端末移動には対応しません。認証だけ外部画面を使用します。", "Signing out returns to guest progress; an imported guest starts fresh. Audio/display preferences are per-device. Normal battles resume from their pre-battle checkpoint. Live multiplayer cannot move between devices. Only provider authentication uses an external window.");
+    el("cloud-policy").textContent = tx("ゲストの移行先は1アカウントのみです。サーバーで移行を確定してからゲストを初期化し、バックアップも移行先専用にします。音量・解像度は端末ごと。通常戦闘は開始前から再開し、進行中のWeb対戦は端末移動できません。認証だけ外部画面を使用します。", "A guest can transfer to only one account. After server confirmation, guest progress is reset and backups are restricted to its owner. Audio/display preferences are per-device. Normal battles resume from their checkpoint; live multiplayer cannot move devices. Only authentication uses an external window.");
     el("cloud-comparison").replaceChildren();
     if (["import_choice", "guest_choice", "conflict"].includes(data.state)) for (const [key, label] of [["cloud", tx("クラウド", "Cloud")], ["local", tx("このアカウントの端末内データ", "Local account cache")], ["guest", tx("この端末のゲスト", "Device guest")]]) {
       const box = document.createElement("div"), info = data[key] || {};
@@ -158,7 +162,11 @@
     if (data.state === "guest_choice") { button("cloud", "クラウドを使う", "Use cloud save"); button("import", "ゲストの進行に置き換える", "Replace with guest save", replace); }
     if (data.state === "conflict") { button("cloud", "クラウドを使う", "Use cloud save", replace); button("local", "端末内の進行を使う", "Use local progress", replace); }
     if (data.state === "device_busy") button("takeover", "この端末で再開", "Continue on this device");
-    if (["load_error", "local_save_error", "logout_pending"].includes(data.state)) button("retry", "再試行", "Retry");
+    if (["load_error", "local_save_error", "logout_pending", "guest_transfer_pending", "guest_cleanup_pending"].includes(data.state)) button("retry", "再試行", "Retry");
+    if (data.state === "guest_claimed") {
+      if (data.has_cloud) button("cloud", "このアカウントのクラウドを使う", "Use this account's cloud save");
+      else button("new", "このアカウントで新しく始める", "Start fresh on this account");
+    }
     if (data.state === "logout_pending") button("logout_anyway", "端末に保留してログアウト", "Keep locally and sign out");
     if (["ready", "offline"].includes(data.state)) { button("sync", "今すぐ同期", "Sync now"); button("history", "保存履歴", "Save history"); }
     el("cloud-history").replaceChildren();

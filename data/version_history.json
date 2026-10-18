@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.47.0",
+  "current_version": "QQ-0.48.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.48.0", "date": "2026-10-18",
+      "title_ja": "ゲスト引き継ぎの二重移行防止",
+      "title_en": "One-time guest transfers and owner-bound recovery",
+      "changes_ja": [
+        "ゲストの移行元を識別し、サーバー発行の移行IDで移行先アカウントを一度だけ確定します。保存と移行済み処理は同じDBトランザクションで確定し、別アカウントへの再移行を拒否します。",
+        "移行成功後のゲストを初期化し、復旧用バックアップは移行先アカウント専用にしました。旧セーブやゲストの復旧コピーを再度ゲストとして使う経路を無効化し、必要な旧データは隔離して保持します。",
+        "通信中断で完了応答を受け取れなかった場合も、再起動時にサーバーの移行記録を確認して復旧します。同じアカウントで再送しても進行を巻き戻したり重複加算したりしません。"
+      ],
+      "changes_en": [
+        "Track guest source identities and server-issued transfer IDs, atomically binding each source to one account alongside its cloud save. Reject transfers to other accounts.",
+        "Reset guests only after confirmation and restrict recovery copies to the destination account. Prevent legacy and recovery files from reappearing as playable guests, retaining old data in quarantine where appropriate.",
+        "Recover missing completion receipts from the server after restart. Retrying a transfer to its owner neither rolls progress back nor adds rewards twice."
+      ]
+    },
     {
       "version": "QQ-0.47.0", "date": "2026-10-18",
       "title_ja": "アカウント別クラウド保存とゲーム内アカウント画面",

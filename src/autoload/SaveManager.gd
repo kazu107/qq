@@ -49,6 +49,9 @@ func load_save() -> SaveData:
 	current_save = SaveData.from_dict(Dictionary(recovered.get("data", {})))
 	if _profiles_initialized:
 		profile_meta = Dictionary(current_save.settings.get("_cloud_meta", {})).duplicate(true)
+		if not _owner_allows(profile_meta, active_profile):
+			push_warning("A profile from another owner was not loaded")
+			current_save = SaveData.new()
 		current_save.settings.erase("_cloud_meta")
 		for key: String in DEVICE_KEYS:
 			if device.has(key): current_save.settings[key] = device[key]
@@ -57,6 +60,7 @@ func load_save() -> SaveData:
 
 func save_game(scene_hint: String = "hub") -> bool:
 	if RankedSession.verifying: return true
+	if _profiles_initialized and not _owner_allows(profile_meta, active_profile): return false
 	if _save_timer != null:
 		_save_timer.stop()
 	_pending_scene_hint = ""
@@ -64,6 +68,8 @@ func save_game(scene_hint: String = "hub") -> bool:
 	var save_data := Game.build_save_data(scene_hint)
 	var stored: Dictionary = save_data.to_dict().duplicate(true)
 	if _profiles_initialized:
+		profile_meta["owner_id"] = active_profile
+		if active_profile == "guest": _ensure_guest_identity(profile_meta)
 		profile_meta["dirty"] = JSON.stringify(cloud_payload(save_data)).sha256_text() != String(profile_meta.get("synced_hash", ""))
 		for key: String in DEVICE_KEYS:
 			if Game.settings.has(key): device[key] = Game.settings[key]
@@ -82,6 +88,10 @@ func active_path() -> String:
 	return profile_path(active_profile) if _profiles_initialized else SAVE_PATH
 
 
+func is_profile_writable() -> bool:
+	return not _profiles_initialized or _owner_allows(profile_meta, active_profile)
+
+
 func profile_path(profile: String) -> String:
 	assert(profile == "guest" or (profile.length() == 36 and profile.replace("-", "").is_valid_hex_number(false)))
 	return "user://profiles/%s.json" % profile
@@ -92,27 +102,31 @@ func _initialize_profiles() -> void:
 	var record: Dictionary = SafeSaveStore.read_best(DEVICE_PATH)
 	device = Dictionary(record.get("data", {}).get("settings", {})).duplicate(true)
 	var legacy: Dictionary = Dictionary(SafeSaveStore.read_best(SAVE_PATH).get("data", {}))
-	if not SafeSaveStore.has_any(profile_path("guest")) and not legacy.is_empty():
+	if not bool(device.get("legacy_guest_import_disabled", false)) and not SafeSaveStore.has_any(profile_path("guest")) and not legacy.is_empty():
 		SafeSaveStore.write(profile_path("guest"), legacy)
 		for key: String in DEVICE_KEYS:
 			if legacy.get("settings", {}).has(key) and not device.has(key): device[key] = legacy["settings"][key]
 	active_profile = String(device.get("active_profile", "guest"))
 	if active_profile != "guest" and (active_profile.length() != 36 or not active_profile.replace("-", "").is_valid_hex_number(false)): active_profile = "guest"
 	_profiles_initialized = true
+	device["legacy_guest_import_disabled"] = true
+	_prepare_guest_file()
 	_save_device()
 
 
-func _save_device() -> void:
+func _save_device() -> bool:
 	device["active_profile"] = active_profile
-	SafeSaveStore.write(DEVICE_PATH, {"current_run": {}, "meta_progress": {}, "settings": device})
+	return SafeSaveStore.write(DEVICE_PATH, {"current_run": {}, "meta_progress": {}, "settings": device})
 
 
 func read_profile(profile: String) -> Dictionary:
-	return Dictionary(SafeSaveStore.read_best(profile_path(profile)).get("data", {})).duplicate(true)
+	var data: Dictionary = Dictionary(SafeSaveStore.read_best(profile_path(profile)).get("data", {})).duplicate(true)
+	return data if _owner_allows(Dictionary(data.get("settings", {}).get("_cloud_meta", {})), profile) else {}
 
 
 func activate_profile(profile: String, replacement: Dictionary = {}) -> bool:
 	if not replacement.is_empty():
+		if not _owner_allows(Dictionary(replacement.get("settings", {}).get("_cloud_meta", {})), profile): return false
 		var clean: Dictionary = replacement.duplicate(true)
 		clean.erase(SafeSaveStore.CHECKSUM_KEY)
 		if not SafeSaveStore.write(profile_path(profile), clean): return false
@@ -173,14 +187,174 @@ func local_backups(profile: String) -> Array[String]:
 
 func read_local_backup(profile: String, filename: String) -> Dictionary:
 	if not local_backups(profile).has(filename): return {}
-	return Dictionary(SafeSaveStore.read_best("user://profiles/backups/" + filename).get("data", {}))
+	var data: Dictionary = Dictionary(SafeSaveStore.read_best("user://profiles/backups/" + filename).get("data", {}))
+	return data if _owner_allows(Dictionary(data.get("settings", {}).get("_cloud_meta", {})), profile) else {}
 
 
-func finish_guest_import() -> void:
-	if not bool(profile_meta.get("guest_import_pending", false)): return
-	if not archive_profile("guest", "imported"): return
-	if SafeSaveStore.write(profile_path("guest"), SaveData.new().to_dict()):
-		profile_meta.erase("guest_import_pending")
+func finish_guest_import(receipt: Dictionary = {}, source: Dictionary = {}) -> bool:
+	# Compatibility cleanup for an acknowledged transfer made by QQ-0.47.
+	if receipt.is_empty():
+		if not bool(profile_meta.get("guest_import_pending", false)): return true
+		receipt = {"id": _uuid(), "owner_id": active_profile, "legacy": true}
+	var owner: String = String(receipt.get("owner_id", ""))
+	if owner.length() != 36 or not owner.replace("-", "").is_valid_hex_number(false): return false
+	var receipt_id: String = String(receipt.get("id", ""))
+	if receipt_id.length() != 36 or not receipt_id.replace("-", "").is_valid_hex_number(false): return false
+	var raw: Dictionary = Dictionary(SafeSaveStore.read_best(profile_path("guest")).get("data", {}))
+	var original: Dictionary = source.duplicate(true) if not source.is_empty() else raw.duplicate(true)
+	var identity: Dictionary = Dictionary(original.get("settings", {}).get("_cloud_meta", {}).get("guest_identity", {}))
+	var origin: String = String(receipt.get("origin_id", identity.get("origin_id", receipt["id"])))
+	if source.is_empty() and not bool(receipt.get("legacy", false)) and identity.get("origin_id", "") != origin and original.get("settings", {}).get("_cloud_meta", {}).get("owner_id", "") != owner: original = {}
+	var records: Dictionary = Dictionary(device.get("guest_receipts", {}))
+	records[origin] = receipt.duplicate(true)
+	device["guest_receipts"] = records
+	if _meaningful_guest(original):
+		var fingerprints: Dictionary = Dictionary(device.get("consumed_guest_fingerprints", {}))
+		fingerprints[_guest_fingerprint(original)] = receipt.duplicate(true)
+		device["consumed_guest_fingerprints"] = fingerprints
+	if not _save_device(): return false
+	if not original.is_empty():
+		var bound: Dictionary = original.duplicate(true)
+		bound.erase(SafeSaveStore.CHECKSUM_KEY)
+		bound["settings"] = Dictionary(bound.get("settings", {}))
+		bound["settings"]["_cloud_meta"] = {"owner_id": owner, "guest_receipt": receipt.duplicate(true)}
+		if not SafeSaveStore.write("user://profiles/backups/%s-guest-%s-%d.json" % [owner, receipt["id"], Time.get_unix_time_from_system() * 1000000], bound): return false
+		var owned_backups: Array[String] = local_backups(owner)
+		for index: int in range(10, owned_backups.size()): DirAccess.remove_absolute("user://profiles/backups/" + owned_backups[index])
+	var current_identity: Dictionary = Dictionary(raw.get("settings", {}).get("_cloud_meta", {}).get("guest_identity", {}))
+	var raw_owner: String = String(raw.get("settings", {}).get("_cloud_meta", {}).get("owner_id", ""))
+	if bool(receipt.get("legacy", false)) or current_identity.get("origin_id", "") == origin or raw_owner not in ["", "guest"]:
+		if not _write_fresh_guest(): return false
+	if not _quarantine_legacy_files(): return false
+	# Recovery copies with a consumed identity must not turn back into playable guests.
+	for filename: String in local_backups("guest"):
+		var path: String = "user://profiles/backups/" + filename
+		var backup: Dictionary = Dictionary(SafeSaveStore.read_best(path).get("data", {}))
+		if backup.is_empty(): continue
+		var meta: Dictionary = Dictionary(backup.get("settings", {}).get("_cloud_meta", {}))
+		backup["settings"] = Dictionary(backup.get("settings", {}))
+		if meta.get("guest_identity", {}).get("origin_id", "") == origin:
+			backup["settings"]["_cloud_meta"] = {"owner_id": owner, "guest_receipt": receipt.duplicate(true)}
+		else:
+			if meta.get("guest_identity", {}).get("origin_id", "") != "" or meta.get("owner_id", "") not in ["", "guest"]: continue
+			meta["guest_import_blocked"] = true
+			backup["settings"]["_cloud_meta"] = meta
+		backup.erase(SafeSaveStore.CHECKSUM_KEY)
+		if not SafeSaveStore.write(path, backup): return false
+	profile_meta.erase("guest_import_pending")
+	profile_meta.erase("guest_cleanup_receipt")
+	return true
+
+
+func guest_identity() -> Dictionary:
+	var raw: Dictionary = read_profile("guest")
+	return Dictionary(raw.get("settings", {}).get("_cloud_meta", {}).get("guest_identity", {})).duplicate(true)
+
+
+func consumed_guest_receipt() -> Dictionary:
+	var raw: Dictionary = Dictionary(SafeSaveStore.read_best(profile_path("guest")).get("data", {}))
+	var meta: Dictionary = Dictionary(raw.get("settings", {}).get("_cloud_meta", {}))
+	return Dictionary(device.get("guest_receipts", {})).get(String(meta.get("guest_identity", {}).get("origin_id", "")), {}).duplicate(true)
+
+
+func store_guest_identity(identity: Dictionary) -> bool:
+	var raw: Dictionary = read_profile("guest")
+	if raw.is_empty(): return false
+	var meta: Dictionary = Dictionary(raw.get("settings", {}).get("_cloud_meta", {}))
+	if meta.get("guest_identity", {}).get("origin_id", "") != identity.get("origin_id", ""): return false
+	meta["guest_identity"] = identity.duplicate(true)
+	raw["settings"]["_cloud_meta"] = meta
+	raw.erase(SafeSaveStore.CHECKSUM_KEY)
+	if not SafeSaveStore.write(profile_path("guest"), raw): return false
+	if active_profile == "guest": profile_meta = meta
+	return true
+
+
+func _ensure_guest_identity(meta: Dictionary) -> void:
+	if not meta.has("guest_identity"):
+		meta["guest_identity"] = {"origin_id": _uuid(), "secret": Marshalls.raw_to_base64(Crypto.new().generate_random_bytes(32)).replace("+", "-").replace("/", "_").trim_suffix("=")}
+
+
+func _owner_allows(meta: Dictionary, profile: String) -> bool:
+	var owner: String = String(meta.get("owner_id", ""))
+	var consumed: Dictionary = Dictionary(device.get("guest_receipts", {})).get(String(meta.get("guest_identity", {}).get("origin_id", "")), {})
+	if not consumed.is_empty() and consumed.get("owner_id", "") != profile: return false
+	if bool(meta.get("guest_import_blocked", false)) and owner != profile: return false
+	if profile == "guest":
+		return owner in ["", "guest"] and not bool(meta.get("guest_import_blocked", false)) and not Dictionary(device.get("guest_receipts", {})).has(String(meta.get("guest_identity", {}).get("origin_id", "")))
+	return owner in ["", "guest", profile]
+
+
+func _prepare_guest_file() -> void:
+	var raw: Dictionary = Dictionary(SafeSaveStore.read_best(profile_path("guest")).get("data", {}))
+	var meta: Dictionary = Dictionary(raw.get("settings", {}).get("_cloud_meta", {}))
+	var consumed: Dictionary = Dictionary(device.get("guest_receipts", {})).get(String(meta.get("guest_identity", {}).get("origin_id", "")), {})
+	if consumed.is_empty() and meta.get("guest_receipt") is Dictionary: consumed = Dictionary(meta["guest_receipt"]).duplicate(true)
+	if consumed.is_empty() and _meaningful_guest(raw):
+		consumed = Dictionary(device.get("consumed_guest_fingerprints", {})).get(_guest_fingerprint(raw), {}).duplicate(true)
+		if not consumed.is_empty(): consumed["legacy"] = true
+	if not consumed.is_empty():
+		finish_guest_import(consumed, raw)
+		return
+	if not _owner_allows(meta, "guest"):
+		# Keep unassignable old recovery data for manual recovery, not as an importable guest.
+		if not raw.is_empty() and not SafeSaveStore.write("user://profiles/quarantine/guest-%d.json" % (Time.get_unix_time_from_system() * 1000000), raw): return
+		_write_fresh_guest()
+		return
+	if raw.is_empty(): raw = SaveData.new().to_dict()
+	raw["settings"] = Dictionary(raw.get("settings", {}))
+	meta["owner_id"] = "guest"
+	_ensure_guest_identity(meta)
+	raw["settings"]["_cloud_meta"] = meta
+	raw.erase(SafeSaveStore.CHECKSUM_KEY)
+	SafeSaveStore.write(profile_path("guest"), raw)
+
+
+func _write_fresh_guest() -> bool:
+	var fresh: Dictionary = SaveData.new().to_dict()
+	var meta: Dictionary = {"owner_id": "guest"}
+	_ensure_guest_identity(meta)
+	fresh["settings"]["_cloud_meta"] = meta
+	if not SafeSaveStore.write(profile_path("guest"), fresh): return false
+	for suffix: String in [".tmp", ".previous", ".bak1", ".bak2", ".bak3"]:
+		var path: String = profile_path("guest") + suffix
+		if FileAccess.file_exists(path) and DirAccess.remove_absolute(path) != OK: return false
+	return true
+
+
+func _quarantine_legacy_files() -> bool:
+	device["legacy_guest_import_disabled"] = true
+	if not _save_device(): return false
+	for suffix: String in ["", ".tmp", ".previous", ".bak1", ".bak2", ".bak3"]:
+		var path: String = SAVE_PATH + suffix
+		if not FileAccess.file_exists(path): continue
+		var data: Dictionary = Dictionary(SafeSaveStore.read_best(path).get("data", {}))
+		if not data.is_empty():
+			data.erase(SafeSaveStore.CHECKSUM_KEY)
+			data["settings"] = Dictionary(data.get("settings", {}))
+			var meta: Dictionary = Dictionary(data.get("settings", {}).get("_cloud_meta", {}))
+			meta["guest_import_blocked"] = true
+			data["settings"]["_cloud_meta"] = meta
+			if not SafeSaveStore.write("user://profiles/quarantine/legacy%s-%d.json" % [suffix.replace(".", "-"), Time.get_unix_time_from_system() * 1000000], data): return false
+		if DirAccess.remove_absolute(path) != OK: return false
+	return true
+
+
+func _guest_fingerprint(data: Dictionary) -> String:
+	return JSON.stringify(cloud_payload(SaveData.from_dict(data))).sha256_text()
+
+
+func _meaningful_guest(data: Dictionary) -> bool:
+	if not Dictionary(data.get("current_run", {})).is_empty() or not Dictionary(data.get("suspended_runs", {})).is_empty(): return true
+	var meta: Dictionary = Dictionary(data.get("meta_progress", {}))
+	var defaults: Dictionary = Database.meta_progress_template.duplicate(true)
+	MetaProgressService.new().ensure_defaults(defaults)
+	return not meta.is_empty() and meta != defaults
+
+
+func _uuid() -> String:
+	var hex: String = Crypto.new().generate_random_bytes(16).hex_encode()
+	return "%s-%s-%s-%s-%s" % [hex.substr(0, 8), hex.substr(8, 4), hex.substr(12, 4), hex.substr(16, 4), hex.substr(20, 12)]
 
 
 func forget_cached_profile(profile: String) -> void:
