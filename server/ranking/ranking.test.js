@@ -9,8 +9,8 @@ test("JST season boundaries, command schemas and privileged methods", () => {
   assert.deepEqual(rules.starters, require("../../data/starters.json").map(starter=>starter.id));
   const fs = require("node:fs");
   assert.equal(rules.ruleset,/const RULESET := "([^"]+)"/.exec(fs.readFileSync(require("node:path").join(__dirname,"../../src/autoload/RankedSession.gd"),"utf8"))[1]);
-  assert.equal(seasonAt(new Date("2026-10-31T14:59:59Z")).id, "infinite-1:2026-10");
-  assert.equal(seasonAt(new Date("2026-10-31T15:00:00Z")).id, "infinite-1:2026-11");
+  assert.equal(seasonAt(new Date("2026-10-31T14:59:59Z")).id, `${rules.ruleset}:2026-10`);
+  assert.equal(seasonAt(new Date("2026-10-31T15:00:00Z")).id, `${rules.ruleset}:2026-11`);
   assert.throws(() => validateCommands([{ kind: "game", method: "developer_add_gold", args: [10] }]));
   assert.throws(() => validateCommands([{ kind: "advance", ticks: -1 }]));
   assert.throws(() => validateCommands([{ kind: "advance", ticks: 1, injected: "unexpected" }]));

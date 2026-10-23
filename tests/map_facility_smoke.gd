@@ -86,6 +86,9 @@ func _assert_map_scene() -> void:
 	await get_tree().process_frame
 
 	var steps_box: MapRouteCanvas = map_scene.find_child("MapRoutes", true, false) as MapRouteCanvas
+	if map_scene.find_child("MapRouteLegend", true, false) != null:
+		_fail("Map/facility smoke failed: map route legend should be removed")
+		return
 	map_scene.call("_show_history")
 	var equipped_deck: CardHandPanel = map_scene.find_child("EquippedDeck", true, false) as CardHandPanel
 	var inventory_box: LoadoutInventoryGrid = map_scene.find_child("LoadoutInventory", true, false) as LoadoutInventoryGrid
@@ -406,6 +409,12 @@ func _exercise_forge_node() -> void:
 
 	var card_id: String = forge_options[0]
 	var current_tier: int = CardUpgradeResolver.get_tier(Game.current_run, card_id)
+	if not _assert_forge_comparison(facility_scene, card_id, current_tier): return
+	Game.current_run.card_upgrades[card_id] = 2
+	facility_scene.call("_refresh_ui")
+	await get_tree().process_frame
+	if not _assert_forge_comparison(facility_scene, card_id, 2): return
+	current_tier = 2
 	var tier_after: int = Game.upgrade_forge_card(card_id)
 	if tier_after != current_tier + 1:
 		_fail("Map/facility smoke failed: forge upgrade did not advance card tier")
@@ -441,7 +450,7 @@ func _exercise_shop_node() -> void:
 		await get_tree().process_frame
 		return
 	var shop_choice_list: VBoxContainer = facility_scene.find_child("ShopChoiceList", true, false) as VBoxContainer
-	if shop_choice_list == null or shop_choice_list.get_child_count() < offers.size() + 4:
+	if shop_choice_list == null or shop_choice_list.get_child_count() != offers.size() + 3:
 		_fail("Map/facility smoke failed: shop should render card offers, service choices, and leave choice")
 		facility_scene.queue_free()
 		await get_tree().process_frame
@@ -451,7 +460,7 @@ func _exercise_shop_node() -> void:
 		facility_scene.queue_free()
 		await get_tree().process_frame
 		return
-	if Game.get_shop_service_choices().size() < 3:
+	if Game.get_shop_service_choices().size() != 2 or facility_scene.find_child("ShopChoiceButton_courier_job", true, false) != null:
 		_fail("Map/facility smoke failed: shop should expose additional service choices")
 		facility_scene.queue_free()
 		await get_tree().process_frame
@@ -461,8 +470,8 @@ func _exercise_shop_node() -> void:
 	var bought: bool = false
 	Game.current_run.gold = max(Game.current_run.gold, 200)
 	var gold_before_service: int = Game.current_run.gold
-	if not Game.use_shop_service_choice("courier_job") or Game.current_run.gold <= gold_before_service:
-		_fail("Map/facility smoke failed: shop courier service choice did not grant gold")
+	if Game.use_shop_service_choice("courier_job") or Game.current_run.gold != gold_before_service:
+		_fail("Map/facility smoke failed: removed courier service still grants gold")
 		facility_scene.queue_free()
 		await get_tree().process_frame
 		return
@@ -492,6 +501,27 @@ func _exercise_shop_node() -> void:
 
 	facility_scene.queue_free()
 	await get_tree().process_frame
+
+
+func _assert_forge_comparison(scene: Control, card_id: String, tier: int) -> bool:
+	var before: CardButton = scene.find_child("ChoiceCardPreview_upgrade_%s_%s_before" % [card_id, card_id], true, false) as CardButton
+	var after: CardButton = scene.find_child("ChoiceCardPreview_upgrade_%s_%s_after" % [card_id, card_id], true, false) as CardButton
+	if before == null or after == null:
+		_fail("Map/facility smoke failed: forge must show before and after cards")
+		return false
+	var expected_before: CardDef = CardUpgradeResolver.build_card_at_tier(card_id, tier)
+	var expected_after: CardDef = CardUpgradeResolver.build_card_at_tier(card_id, tier + 1)
+	if not String(before.get("_simple_tooltip_text")).begins_with(expected_before.name) or not String(after.get("_simple_tooltip_text")).begins_with(expected_after.name):
+		_fail("Map/facility smoke failed: forge previews use incorrect grades")
+		return false
+	if after.get_global_rect().position.x <= before.get_global_rect().end.x or not is_equal_approx(after.global_position.y, before.global_position.y):
+		_fail("Map/facility smoke failed: forge cards must be side by side")
+		return false
+	var button: Button = scene.find_child("ForgeChoiceButton_upgrade_" + card_id, true, false) as Button
+	if not button.get_global_rect().encloses(after.get_global_rect()):
+		_fail("Map/facility smoke failed: forge preview is clipped by choice button")
+		return false
+	return true
 
 
 func _exercise_hazard_node() -> void:
@@ -618,7 +648,7 @@ func _assert_facility_scene(expected_type: String) -> Control:
 			deck_frame = facility_deck.get_parent().get_parent() as Control
 		var expected_min_choices: int = 3
 		if expected_type == "shop":
-			expected_min_choices = 7
+			expected_min_choices = Game.get_shop_offers().size() + 3
 		elif expected_type == "forge":
 			expected_min_choices = 4
 		elif expected_type == "hazard":

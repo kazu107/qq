@@ -319,10 +319,11 @@ func _render_forge_options(forge_used: bool) -> void:
 		if card_def == null:
 			continue
 		var current_tier: int = CardUpgradeResolver.get_tier(Game.current_run, card_id)
-		var next_tier: int = current_tier + 1
+		var next_tier: int = mini(current_tier + 1, CardUpgradeResolver.MAX_TIER)
 		var choice_data: Dictionary = {
 			"id": "upgrade_%s" % card_id,
 			"name_prefix": "ForgeChoiceButton",
+			"preview_tiers": [current_tier, next_tier],
 			"label": Localization.get_textf("forge.choice.upgrade_card.label", "Upgrade {card_name} to {grade}", {
 				"card_name": card_def.name,
 				"grade": CardInfoFormatter.format_grade_label(next_tier),
@@ -462,16 +463,57 @@ func _build_event_choice_button(choice_data: Dictionary, pressed_callback: Calla
 	_add_event_effect_chips(content, choice_data, choice_id, disabled)
 	var preview_card_id: String = _get_choice_card_id(choice_data)
 	if preview_card_id != "":
-		var card_def: CardDef = Database.get_card(preview_card_id)
-		if card_def != null:
-			var preview: CardButton = CardButton.new()
-			preview.name = "ChoiceCardPreview_%s_%s" % [choice_id, preview_card_id]
-			preview.set_tile_size(Vector2(74.0, 74.0))
-			button.custom_minimum_size.y = maxf(button_height, preview.custom_minimum_size.y + 24.0)
-			preview.mouse_filter = Control.MOUSE_FILTER_PASS
-			preview.bind_preview(card_def, preview_card_id, false, "CARD")
-			body_row.add_child(preview)
+		var tiers: Array = Array(choice_data.get("preview_tiers", []))
+		if tiers.size() == 2:
+			_add_forge_comparison(body_row, button, choice_id, preview_card_id, int(tiers[0]), int(tiers[1]))
+		else:
+			var card_def: CardDef = Database.get_card(preview_card_id)
+			if card_def != null:
+				var preview: CardButton = _create_choice_card_preview(card_def, choice_id, preview_card_id)
+				button.custom_minimum_size.y = maxf(button_height, preview.custom_minimum_size.y + 24.0)
+				body_row.add_child(preview)
 	return button
+
+
+func _create_choice_card_preview(card_def: CardDef, choice_id: String, preview_id: String, comparison: CardDef = null) -> CardButton:
+	var preview: CardButton = CardButton.new()
+	preview.name = "ChoiceCardPreview_%s_%s" % [choice_id, preview_id]
+	preview.set_tile_size(Vector2(74.0, 74.0))
+	preview.mouse_filter = Control.MOUSE_FILTER_PASS
+	preview.bind_preview(card_def, preview_id, false, "CARD", comparison)
+	return preview
+
+
+func _add_forge_comparison(parent: HBoxContainer, button: Button, choice_id: String, card_id: String, current_tier: int, next_tier: int) -> void:
+	var before: CardDef = CardUpgradeResolver.build_effective_card(card_id, Game.current_run)
+	var after: CardDef = CardUpgradeResolver.build_card_at_tier(card_id, next_tier)
+	CardUpgradeResolver.apply_modifier_totals(after, Dictionary(Game.current_run.temporary_card_modifiers.get(card_id, {})))
+	var comparison: HBoxContainer = HBoxContainer.new()
+	comparison.name = "ForgeCardComparison_%s" % card_id
+	comparison.alignment = BoxContainer.ALIGNMENT_CENTER
+	comparison.add_theme_constant_override("separation", 8)
+	comparison.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(comparison)
+	for index: int in 2:
+		if index == 1:
+			var arrow: Label = Label.new()
+			arrow.text = ">"
+			arrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			comparison.add_child(arrow)
+		var column: VBoxContainer = VBoxContainer.new()
+		column.add_theme_constant_override("separation", 6)
+		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		comparison.add_child(column)
+		var grade: Label = Label.new()
+		grade.text = Localization.get_text("forge.preview.before", "Before") if index == 0 else Localization.get_text("forge.preview.after", "After")
+		grade.text += " " + CardInfoFormatter.format_grade_label(current_tier if index == 0 else next_tier)
+		grade.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		grade.add_theme_font_size_override("font_size", 14)
+		grade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_child(grade)
+		var preview: CardButton = _create_choice_card_preview(before if index == 0 else after, choice_id, "%s_%s" % [card_id, "before" if index == 0 else "after"], before if index == 1 else null)
+		column.add_child(preview)
+	button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, comparison.get_combined_minimum_size().y + 24.0)
 
 
 func _make_event_panel_stylebox() -> StyleBoxFlat:

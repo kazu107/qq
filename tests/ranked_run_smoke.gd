@@ -3,7 +3,7 @@ extends Node
 signal completed(data: Dictionary)
 var quit_when_done: bool = true
 
-const TICKET := {"id": "11111111-1111-4111-8111-111111111111", "user_id": "22222222-2222-4222-8222-222222222222", "seed": 426042, "starter_id": "balanced", "ruleset": "infinite-1", "season_id": "test"}
+const TICKET := {"id": "11111111-1111-4111-8111-111111111111", "user_id": "22222222-2222-4222-8222-222222222222", "seed": 426042, "starter_id": "balanced", "ruleset": RankedSession.RULESET, "season_id": "test"}
 
 
 func _ready() -> void:

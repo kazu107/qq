@@ -356,6 +356,17 @@ func _open_screen(screen: String) -> void:
 			Game.start_new_run("balanced", 4242)
 			Game.developer_open_event("salvage_cache")
 			SceneRouter.go_to_facility()
+		"forge", "shop":
+			Game.start_new_run("balanced", 4242)
+			var node: Dictionary = Game._get_node(0, 0)
+			node["type"] = screen
+			if screen == "forge":
+				node["forge_options"] = ["quick_slash", "guard", "strike"]
+				Game.current_run.card_upgrades["quick_slash"] = 1
+				Game.current_run.temporary_card_modifiers["quick_slash"] = {"damage": 2}
+			Game._set_node(0, 0, node)
+			Game.select_map_node(String(node["id"]))
+			SceneRouter.go_to_facility()
 		"result":
 			Game.start_new_run("balanced", 4242)
 			Game.developer_open_result()
@@ -521,8 +532,16 @@ func _inspect() -> Dictionary:
 					"value": bar.value, "max": bar.max_value, "claimed": Game.meta_progress["achievement_claim_counts"].get("big_spender", 0)}
 		if screen.scene_file_path.get_file().get_basename() == "Facility":
 			var event_data: Dictionary = Game.get_active_event_data()
+			var previews: Array[Dictionary] = []
+			for preview: Node in screen.find_children("ChoiceCardPreview_*", "", true, false):
+				var card: CardButton = preview as CardButton
+				previews.append({"id": String(card.name), "rect": _rect_values(card.get_global_rect()),
+					"text": card._simple_tooltip_text, "bbcode": card._simple_tooltip_bbcode})
+			var tooltip: RichTextLabel = get_tree().root.find_child("CardTooltipText", true, false) as RichTextLabel
 			result["facility"] = {"area": Game.get_active_map_node().get("area", 0), "step": Game.get_current_step_index(),
 				"choices": event_data.get("choices", []), "id": event_data.get("id", ""),
+				"previews": previews, "type": Game.get_active_facility_type(),
+				"tooltip": tooltip.get_parsed_text() if tooltip != null and tooltip.is_visible_in_tree() else "",
 				"gold": Game.current_run.gold, "hp": Game.current_run.player_hp,
 				"cards": Game.current_run.player_cards.duplicate(), "relics": Game.current_run.relics.duplicate()}
 		if screen.scene_file_path.get_file().get_basename() == "Map":

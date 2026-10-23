@@ -234,7 +234,10 @@ func _build_stat_upgrades() -> void:
 		button.name = "BuyMetaStatUpgrade_" + id
 		button.custom_minimum_size = Vector2(164, 44)
 		button.icon = StatIconFactory.get_icon("meta_points")
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.add_theme_constant_override("icon_max_width", 22)
+		button.add_theme_constant_override("h_separation", 4)
 		button.pressed.connect(_on_buy_stat_upgrade.bind(id))
 		footer.add_child(button)
 		_upgrade_widgets[id] = {"frame": frame, "level": level, "total": total, "bar": bar, "button": button}
@@ -245,19 +248,16 @@ func _update_stat_upgrades() -> void:
 	for entry: Dictionary in Game.get_meta_stat_upgrade_entries():
 		var widgets: Dictionary = Dictionary(_upgrade_widgets.get(entry["id"], {}))
 		if widgets.is_empty(): continue
-		(widgets["level"] as Label).text = Localization.get_textf("meta.stat_upgrade.level", "Lv. {level}/{max} | +{current} -> +{next}", {
-			"level": entry["level"], "max": entry["max_level"], "current": entry["current_bonus"], "next": entry["next_bonus"]})
-		if entry["complete"]:
-			(widgets["level"] as Label).text = Localization.get_textf("meta.stat_upgrade.level_max", "Lv. {level}/{max} | Purchased +{current}", {
-				"level": entry["level"], "max": entry["max_level"], "current": entry["current_bonus"]})
-		(widgets["total"] as Label).text = Localization.get_textf("meta.stat_upgrade.total", "Total +{total} (Achievements +{achievement} / Purchased +{purchased})", {
+		(widgets["level"] as Label).text = Localization.get_textf("meta.stat_upgrade.level", "Lv. {level}/{max}", {
+			"level": entry["level"], "max": entry["max_level"]})
+		(widgets["total"] as Label).text = Localization.get_textf("meta.stat_upgrade.total", "Total permanent bonus +{total}", {
 			"total": entry["total_bonus"], "achievement": entry["achievement_bonus"], "purchased": entry["current_bonus"]})
 		var bar: ProgressBar = widgets["bar"] as ProgressBar
 		bar.max_value = int(entry["max_level"])
 		bar.value = int(entry["level"])
 		var button: Button = widgets["button"] as Button
 		button.disabled = not bool(entry["can_buy"])
-		button.text = Localization.get_text("meta.stat_upgrade.max", "MAX") if entry["complete"] else Localization.get_textf("meta.stat_upgrade.buy", "{cost} Upgrade", {"cost": entry["cost"]})
+		button.text = Localization.get_text("meta.stat_upgrade.max", "MAX") if entry["complete"] else Localization.get_textf("meta.stat_upgrade.buy", "{cost}   Upgrade+{amount}", {"cost": entry["cost"], "amount": entry["amount"]})
 		button.tooltip_text = Localization.get_text("meta.stat_upgrade.max_hint", "All stages purchased.") if entry["complete"] else Localization.get_textf("meta.stat_upgrade.cost_hint", "Next stage: +{amount}. Costs {cost} Meta Points.", {"amount": entry["amount"], "cost": entry["cost"]})
 		if not entry["complete"] and not entry["can_buy"]:
 			button.tooltip_text += "\n" + Localization.get_text("meta.stat_upgrade.not_enough", "Not enough Meta Points.")

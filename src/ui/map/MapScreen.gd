@@ -113,13 +113,6 @@ func _build_ui() -> void:
 	_route_canvas = MapRouteCanvas.new()
 	_route_canvas.node_selected.connect(_on_node_selected)
 	_steps_scroll.add_child(_route_canvas)
-	var legend: Label = Label.new()
-	legend.name = "MapRouteLegend"
-	legend.text = Localization.get_text("map.route.legend", "Gold: your trail   /   Glow: next destinations   /   Lines: available routes")
-	legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	legend.add_theme_font_size_override("font_size", 14)
-	legend.add_theme_color_override("font_color", Color("acbfc2"))
-	map_panel.add_child(legend)
 
 	var loadout_panel: VBoxContainer = _create_panel(root, Localization.get_text("map.panel.loadout", "Loadout"))
 	_loadout_box = loadout_panel
@@ -238,7 +231,6 @@ func _responsive_layout() -> void:
 	var density: float = 1.0 if DisplayServer.get_name() == "headless" else clampf(viewport_size.x / maxf(1.0, get_window().size.x), 0.75, 3.0)
 	_chapter_label.add_theme_font_size_override("font_size", ceili(18 * density))
 	_map_header.add_theme_font_size_override("font_size", ceili(22 * density))
-	(find_child("MapRouteLegend", true, false) as Label).add_theme_font_size_override("font_size", ceili(14 * density))
 	for button: Button in [_previous_button, _next_button, _loadout_button, find_child("MapHistoryButton", true, false), find_child("MapHubButton", true, false)]:
 		button.custom_minimum_size = Vector2.ONE * 40.0 * density
 		button.add_theme_constant_override("icon_max_width", ceili(22 * density))

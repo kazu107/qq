@@ -6,7 +6,7 @@ func _ready() -> void:
 	Game.ensure_meta_initialized()
 	RankedSession.verifying = false
 	var id: String = "11111111-1111-4111-8111-111111111111"
-	var ticket: Dictionary = {"id": id, "user_id": "22222222-2222-4222-8222-222222222222", "seed": 1234, "starter_id": "balanced", "ruleset": "infinite-1"}
+	var ticket: Dictionary = {"id": id, "user_id": "22222222-2222-4222-8222-222222222222", "seed": 1234, "starter_id": "balanced", "ruleset": RankedSession.RULESET}
 	RankedSession.initialize(ticket)
 	RankedSession.finish()
 	assert(Dictionary(Game.settings.get("ranked_outbox", {})).has(id))

@@ -1877,7 +1877,6 @@ func get_shop_service_choices() -> Array[Dictionary]:
 	return [
 		_build_shop_service_choice(active_node, "buy_repair_kit", 12 + area * 4, 8 + area * 4, 0, 0),
 		_build_shop_service_choice(active_node, "buy_loadout_rail", 28 + area * 6, 0, 1, 0),
-		_build_shop_service_choice(active_node, "courier_job", 0, 0, 0, 12 + area * 4),
 	]
 
 
@@ -2030,8 +2029,6 @@ func _get_shop_choice_fallback_label(choice_id: String) -> String:
 			return "Buy repair kit ({cost}G)"
 		"buy_loadout_rail":
 			return "Buy loadout rail ({cost}G)"
-		"courier_job":
-			return "Take a courier job"
 		_:
 			return choice_id.capitalize()
 
@@ -2042,8 +2039,6 @@ func _get_shop_choice_fallback_description(choice_id: String) -> String:
 			return "Recover {heal} HP without leaving the shop."
 		"buy_loadout_rail":
 			return "Increase loadout capacity by {loadout}."
-		"courier_job":
-			return "Gain {gold} gold once."
 		_:
 			return ""
 

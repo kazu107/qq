@@ -43,7 +43,8 @@ try {
         assert(left >= x - 1 && top >= y - 1 && left + pw <= x + w + 1 && top + ph <= y + h + 1, `${card.id}/${part} overflow`);
       }
       assert.equal(card.disabled, !card.can_buy);
-      if (!card.complete) assert(new RegExp(`^${card.cost} (強化|Upgrade)$`).test(card.text), 'Button must show cost then action with a space');
+      if (!card.complete) assert(new RegExp(`^${card.cost}   (強化|Upgrade)\\+${card.amount}$`).test(card.text), 'Button must group icon/cost, separate the action and show its next bonus');
+      assert(!card.level_text.includes('購入補正'), 'Redundant purchased bonus text remains');
     }
     assert.equal(state.stat_upgrades.gold_spent, 0, 'Meta Point purchases counted as gold spending');
   }

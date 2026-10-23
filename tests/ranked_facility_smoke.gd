@@ -14,7 +14,7 @@ func _run() -> void:
 		var success: bool = false
 		for seed_value: int in range(1, 16):
 			RankedSession.verifying = false
-			var ticket: Dictionary = {"id": "test", "user_id": "test", "seed": seed_value, "starter_id": "balanced", "ruleset": "infinite-1"}
+			var ticket: Dictionary = {"id": "test", "user_id": "test", "seed": seed_value, "starter_id": "balanced", "ruleset": RankedSession.RULESET}
 			RankedSession.initialize(ticket)
 			Game.unequip_card("guard")
 			Game.equip_card("guard")

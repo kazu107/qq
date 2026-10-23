@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.48.0",
+  "current_version": "QQ-0.48.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.48.1", "date": "2026-10-23",
+      "title_ja": "鍛冶屋の比較表示とメタ強化UIの整理",
+      "title_en": "Forge comparisons and clearer upgrade controls",
+      "changes_ja": [
+        "鍛冶屋の強化選択肢に、強化前と強化後のカードをグレード付きで横並びに表示します。それぞれのカードにマウスを合わせて効果を確認できます。",
+        "マップ下の経路凡例と、ショップの「運び屋の小仕事」を削除しました。ランキングはルールinfinite-2として旧記録と分けます。",
+        "メタ強化ボタンのポイントアイコンと費用を近づけ、間を空けて「強化+5」など次の増加量を表示します。購入補正の文言は省き、レベルと合計補正を表示します。"
+      ],
+      "changes_en": [
+        "Show current and upgraded cards side by side with grades and individual tooltips in forge choices.",
+        "Remove the map route legend and shop courier job. Use ranked ruleset infinite-2 to keep prior records separate.",
+        "Group the Meta Point icon with its cost and show the next bonus beside Upgrade. Simplify purchased bonus text to level and total bonus."
+      ]
+    },
     {
       "version": "QQ-0.48.0", "date": "2026-10-18",
       "title_ja": "ゲスト引き継ぎの二重移行防止",
