@@ -2,7 +2,7 @@ name: Account and signaling tests
 
 on:
   push:
-    branches: [main, "codex/rankings-validation", "codex/cloud-saves"]
+    branches: [main, "codex/rankings-validation", "codex/cloud-saves", "codex/ranking-calendar-seasons"]
     paths: ["server/**", "tests/helpers/account_fixture.js", "package.json", "package-lock.json", ".github/workflows/account-tests.yml"]
   pull_request:
     paths: ["server/**", "tests/helpers/account_fixture.js", "package.json", "package-lock.json", ".github/workflows/account-tests.yml"]

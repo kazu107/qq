@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs");
 const path = require("node:path");
-const { RankingStore, rules, fail } = require("./store");
+const { RankingStore, rules, fail, selectBoard } = require("./store");
 const FILES = { "/rankings": ["index.html", "text/html"], "/rankings/": ["index.html", "text/html"], "/rankings/app.js": ["app.js", "text/javascript"], "/rankings/client.js": ["client.js", "text/javascript"] };
 const respond = (res, code, value) => { res.writeHead(code, { "Content-Type": "application/json; charset=utf-8" }); res.end(JSON.stringify(value)); };
 async function body(req) {
@@ -31,9 +31,9 @@ function createRankingService(account, wakeVerifier = () => {}) {
       const season = await store.ensureSeason();
       if (req.method === "GET" && url.pathname === "/api/ranked/board") {
         let user = null; try { user = await account.authorize(req); } catch {}
-        const selected = url.searchParams.get("season") || season.id;
-        const seasons = await database.pool.query("SELECT id,ruleset,starts_at,ends_at FROM qq_ranked_seasons ORDER BY starts_at DESC LIMIT 24");
-        respond(res, 200, { season, seasons: seasons.rows, rules, catalog: require("./catalog.json"), ...await store.board(selected, url.searchParams.get("starter") || "", user?.id, Number(url.searchParams.get("page")) || 0) });
+        const seasons = await store.listSeasons();
+        const selection = selectBoard(seasons, url.searchParams.get("season"), url.searchParams.get("ruleset"), season);
+        respond(res, 200, { season, seasons, selection, rules, catalog: require("./catalog.json"), ...await store.board(selection.season_id, url.searchParams.get("starter") || "", user?.id, Number(url.searchParams.get("page")) || 0, selection.ruleset) });
       } else if (req.method === "GET" && url.pathname === "/api/ranked/history") {
         const user = await account.authorize(req); respond(res, 200, { runs: await store.history(user.id) });
       } else if (req.method === "GET" && /^\/api\/ranked\/runs\/([^/]+)\/journal$/.test(url.pathname)) {

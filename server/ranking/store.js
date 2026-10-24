@@ -9,8 +9,33 @@ const NO_ARGS = new Set(["start_active_encounter", "prepare_next_battle", "skip_
 function fail(code, status = 400) { throw Object.assign(new Error(code), { code, status }); }
 function seasonAt(now = new Date()) {
   const date = new Date(now.getTime() + 9 * 3600000), year = date.getUTCFullYear(), month = date.getUTCMonth();
-  return { id: `${rules.ruleset}:${year}-${String(month + 1).padStart(2, "0")}`, ruleset: rules.ruleset,
+  return { id: `${year}-${String(month + 1).padStart(2, "0")}`, ruleset: rules.ruleset,
     startsAt: new Date(Date.UTC(year, month, 1) - 9 * 3600000), endsAt: new Date(Date.UTC(year, month + 1, 1) - 9 * 3600000) };
+}
+function parseSeason(value) {
+  const match = /^(?:([a-z0-9][a-z0-9._-]{0,39}):)?(\d{4})-(0[1-9]|1[0-2])$/.exec(value);
+  if (!match || Number(match[2]) < 2000) fail("invalid_filter");
+  const period = seasonAt(new Date(Date.UTC(Number(match[2]), Number(match[3]) - 1, 1) - 9 * 3600000));
+  return { ...period, legacyRuleset: match[1] || "" };
+}
+function groupSeasons(rows, current) {
+  const months = new Map();
+  for (const row of rows) {
+    const period = seasonAt(new Date(row.starts_at));
+    if (!months.has(period.id)) months.set(period.id, { id: period.id, starts_at: period.startsAt, ends_at: period.endsAt, rulesets: new Set() });
+    const month = months.get(period.id);
+    for (const ruleset of [row.ruleset, ...(row.run_rulesets || [])]) month.rulesets.add(ruleset);
+  }
+  if (months.has(current.id)) months.get(current.id).rulesets.add(current.ruleset);
+  return [...months.values()].sort((a, b) => b.id.localeCompare(a.id)).slice(0, 24)
+    .map(month => ({ ...month, rulesets: [...month.rulesets].sort((a, b) => a.localeCompare(b, "en", { numeric: true })) }));
+}
+function selectBoard(seasons, requestedSeason, requestedRuleset, current) {
+  const period = parseSeason(requestedSeason || current.id);
+  const available = seasons.find(month => month.id === period.id)?.rulesets || [];
+  const ruleset = requestedRuleset || period.legacyRuleset || (available.includes(current.ruleset) ? current.ruleset : available.at(-1)) || current.ruleset;
+  if (!/^[a-z0-9][a-z0-9._-]{0,39}$/.test(ruleset)) fail("invalid_filter");
+  return { season_id: period.id, ruleset };
 }
 function validateCommands(commands) {
   if (!Array.isArray(commands) || commands.length < 1 || commands.length > 250) fail("invalid_commands");
@@ -32,7 +57,7 @@ function validateCommands(commands) {
   }
 }
 function ticket(row) { return { id: row.id, user_id: row.user_id, season_id: row.season_id, ruleset: row.ruleset, seed: row.seed, starter_id: row.starter_id }; }
-function publicRun(row) { return { id: row.id, username: row.username, starter_id: row.starter_id, season_id: row.season_id, status: row.status,
+function publicRun(row) { return { id: row.id, username: row.username, starter_id: row.starter_id, season_id: row.season_id, ruleset: row.ruleset, status: row.status,
   finished_at: row.finished_at, result: row.result, reason: row.reason, rank: row.rank ? Number(row.rank) : undefined }; }
 
 class RankingStore {
@@ -102,15 +127,28 @@ class RankingStore {
     } catch (error) { await client.query("ROLLBACK"); throw error; }
     finally { client.release(); }
   }
-  async board(season, starter = "", userId = null, page = 0) {
+  async listSeasons() {
+    const current = await this.ensureSeason();
+    const result = await this.pool.query(`SELECT s.id,s.ruleset,s.starts_at,s.ends_at,
+      ARRAY(SELECT DISTINCT r.ruleset FROM qq_ranked_runs r WHERE r.season_id=s.id) AS run_rulesets
+      FROM qq_ranked_seasons s WHERE s.starts_at IN
+      (SELECT DISTINCT starts_at FROM qq_ranked_seasons ORDER BY starts_at DESC LIMIT 24)`);
+    return groupSeasons(result.rows, current);
+  }
+  async board(season, starter = "", userId = null, page = 0, selectedRuleset = "") {
     if (typeof season !== "string" || season.length > 70 || starter && !rules.starters.includes(starter)) fail("invalid_filter");
+    const period = parseSeason(season);
+    const ruleset = selectedRuleset || period.legacyRuleset || rules.ruleset;
+    if (!/^[a-z0-9][a-z0-9._-]{0,39}$/.test(ruleset)) fail("invalid_filter");
+    // Preserve issued tickets while sharing bests across old/new IDs for the same month and rules.
     const query = `WITH candidates AS (
       SELECT r.*,u.username,row_number() OVER(PARTITION BY r.user_id ORDER BY (r.result->>'total_score')::bigint DESC,r.finished_at,r.id) AS best
       FROM qq_ranked_runs r JOIN qq_accounts_users u ON u.id=r.user_id
-      WHERE r.season_id=$1 AND r.status='verified' AND ($2='' OR r.starter_id=$2)
+      WHERE r.season_id IN (SELECT id FROM qq_ranked_seasons WHERE starts_at=$1)
+        AND r.ruleset=$2 AND r.status='verified' AND ($3='' OR r.starter_id=$3)
     ), ranked AS (SELECT *,dense_rank() OVER(ORDER BY (result->>'total_score')::bigint DESC) AS rank FROM candidates WHERE best=1)`;
-    const result = await this.pool.query(query + " SELECT * FROM ranked ORDER BY (result->>'total_score')::bigint DESC,finished_at,id LIMIT 50 OFFSET $3", [season, starter, Math.min(200, Math.max(0, page)) * 50]);
-    const own = userId ? await this.pool.query(query + " SELECT * FROM ranked WHERE user_id=$3", [season, starter, userId]) : { rows: [] };
+    const result = await this.pool.query(query + " SELECT * FROM ranked ORDER BY (result->>'total_score')::bigint DESC,finished_at,id LIMIT 50 OFFSET $4", [period.startsAt, ruleset, starter, Math.min(200, Math.max(0, page)) * 50]);
+    const own = userId ? await this.pool.query(query + " SELECT * FROM ranked WHERE user_id=$4", [period.startsAt, ruleset, starter, userId]) : { rows: [] };
     return { entries: result.rows.map(publicRun), self: own.rows[0] ? publicRun(own.rows[0]) : null };
   }
   async history(userId) {
@@ -135,4 +173,4 @@ class RankingStore {
   }
 }
 
-module.exports = { RankingStore, rules, seasonAt, validateCommands, fail, ticket };
+module.exports = { RankingStore, rules, seasonAt, groupSeasons, selectBoard, validateCommands, fail, ticket };
