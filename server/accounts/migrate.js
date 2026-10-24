@@ -1,6 +1,7 @@
 "use strict";
 
 const { AccountStore } = require("./store");
+const { RankingStore } = require("../ranking/store");
 
 async function main(env = process.env) {
   if (env.AUTH_ENABLED !== "true") {
@@ -12,6 +13,8 @@ async function main(env = process.env) {
   try {
     await store.migrate();
     console.log("ACCOUNT_SCHEMA_MIGRATION_OK: additive account, ranked-run, cloud-save and guest-transfer tables");
+    const season = await new RankingStore(store.pool).ensureSeason();
+    console.log("RANKED_SEASON_READY", season.id);
   } finally { await store.close(); }
 }
 

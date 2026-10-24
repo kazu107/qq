@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs");
 const path = require("node:path");
-const { RankingStore, rules, fail, selectBoard } = require("./store");
+const { RankingStore, rules, fail, seasonNumber } = require("./store");
 const FILES = { "/rankings": ["index.html", "text/html"], "/rankings/": ["index.html", "text/html"], "/rankings/app.js": ["app.js", "text/javascript"], "/rankings/client.js": ["client.js", "text/javascript"] };
 const respond = (res, code, value) => { res.writeHead(code, { "Content-Type": "application/json; charset=utf-8" }); res.end(JSON.stringify(value)); };
 async function body(req) {
@@ -32,8 +32,9 @@ function createRankingService(account, wakeVerifier = () => {}) {
       if (req.method === "GET" && url.pathname === "/api/ranked/board") {
         let user = null; try { user = await account.authorize(req); } catch {}
         const seasons = await store.listSeasons();
-        const selection = selectBoard(seasons, url.searchParams.get("season"), url.searchParams.get("ruleset"), season);
-        respond(res, 200, { season, seasons, selection, rules, catalog: require("./catalog.json"), ...await store.board(selection.season_id, url.searchParams.get("starter") || "", user?.id, Number(url.searchParams.get("page")) || 0, selection.ruleset) });
+        const selected = url.searchParams.get("season") || season.id;
+        seasonNumber(selected);
+        respond(res, 200, { season, seasons, selection: { season_id: selected }, rules: { starters: rules.starters }, catalog: require("./catalog.json"), ...await store.board(selected, url.searchParams.get("starter") || "", user?.id, Number(url.searchParams.get("page")) || 0) });
       } else if (req.method === "GET" && url.pathname === "/api/ranked/history") {
         const user = await account.authorize(req); respond(res, 200, { runs: await store.history(user.id) });
       } else if (req.method === "GET" && /^\/api\/ranked\/runs\/([^/]+)\/journal$/.test(url.pathname)) {

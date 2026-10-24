@@ -31,8 +31,9 @@ CREATE TABLE IF NOT EXISTS qq_accounts_oauth_attempts (
 CREATE INDEX IF NOT EXISTS qq_accounts_attempts_expiry ON qq_accounts_oauth_attempts(expires_at);
 
 CREATE TABLE IF NOT EXISTS qq_ranked_seasons (
-  id text PRIMARY KEY, ruleset text NOT NULL, starts_at timestamptz NOT NULL, ends_at timestamptz NOT NULL
+  id text PRIMARY KEY, ruleset text NOT NULL, starts_at timestamptz NOT NULL, ends_at timestamptz
 );
+ALTER TABLE qq_ranked_seasons ALTER COLUMN ends_at DROP NOT NULL;
 CREATE TABLE IF NOT EXISTS qq_ranked_runs (
   id uuid PRIMARY KEY, user_id uuid NOT NULL REFERENCES qq_accounts_users(id),
   season_id text NOT NULL REFERENCES qq_ranked_seasons(id), ruleset text NOT NULL,

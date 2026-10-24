@@ -8,8 +8,7 @@ const {createQqServer}=require('../server/server');
 const {VerifierWorker}=require('../server/ranking/worker');
 const catalog=require('../server/ranking/catalog.json');
 const rules=require('../server/ranking/rules.json');
-const {seasonAt}=require('../server/ranking/store');
-const calendarSeason=seasonAt();
+const activeSeason={id:'season-1',number:1,startsAt:'2026-10-24T00:00:00Z',endsAt:null};
 const out=resolve('tools/.local/rankings-review'); await mkdir(out,{recursive:true});
 const app=createQqServer({env:{},publicDir:resolve('build/web-layout-review')});
 await new Promise(done=>app.server.listen(0,'127.0.0.1',done));
@@ -25,10 +24,10 @@ await context.route('**/api/ranked/**',route=>{
  if(url.pathname==='/api/ranked/runs') return route.fulfill({json:{ticket:{id:'11111111-1111-4111-8111-111111111111',user_id:profile.user.id,seed:426042,starter_id:JSON.parse(route.request().postData()).starter_id,ruleset:rules.ruleset,season_id:'test'}}});
  if(url.pathname.endsWith('/commands')) return route.fulfill({json:{next_sequence:JSON.parse(route.request().postData()).sequence+JSON.parse(route.request().postData()).commands.length}});
  if(url.pathname.endsWith('/finish')) return route.fulfill({json:{status:'pending'}});
- if(url.pathname==='/api/ranked/history') return route.fulfill({json:{runs:[{season_id:calendarSeason.id,ruleset:rules.ruleset,status:'pending',starter_id:'balanced'},{season_id:calendarSeason.id,ruleset:rules.ruleset,status:'verified',starter_id:'tempo',result:{total_score:12000}}]}});
+ if(url.pathname==='/api/ranked/history') return route.fulfill({json:{runs:[{season_id:activeSeason.id,status:'pending',starter_id:'balanced'},{season_id:activeSeason.id,status:'verified',starter_id:'tempo',result:{total_score:12000}}]}});
  if(url.pathname.endsWith('/journal')) { const first=Number(url.searchParams.get('from'))||0;return route.fulfill({json:{status:'active',next_sequence:serverJournal.length,commands:serverJournal.slice(first,first+250)}}); }
- const entry={rank:1,id:'test',season_id:calendarSeason.id,ruleset:rules.ruleset,username:'検証ユーザー',starter_id:'balanced',finished_at:'2026-10-18T00:00:00Z',result:{total_score:12000,reached_step:12,reached_cycle:1,progress:10000,boss:2000,challenge:0,efficiency:0,cards:['strike','guard'],relics:['iron_plating'],battle_count:9}};
- return route.fulfill({json:{season:calendarSeason,seasons:[{id:calendarSeason.id,rulesets:[rules.ruleset]}],selection:{season_id:calendarSeason.id,ruleset:rules.ruleset},rules,catalog,entries:[entry],self:entry}});
+ const entry={rank:1,id:'test',season_id:activeSeason.id,username:'検証ユーザー',starter_id:'balanced',finished_at:'2026-10-18T00:00:00Z',result:{total_score:12000,reached_step:12,reached_cycle:1,progress:10000,boss:2000,challenge:0,efficiency:0,cards:['strike','guard'],relics:['iron_plating'],battle_count:9}};
+ return route.fulfill({json:{season:activeSeason,seasons:[activeSeason],selection:{season_id:activeSeason.id},rules,catalog,entries:[entry],self:entry}});
 });
 try {
  const page=await context.newPage();
