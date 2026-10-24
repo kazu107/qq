@@ -16,7 +16,6 @@ var _fields_box: VBoxContainer
 var _preview: VBoxContainer
 var _heading: Label
 var _grade_tabs: TabBar
-var _grade_note: Label
 var _editor_grade: int = 0
 var _status: Label
 var _columns: BoxContainer
@@ -80,15 +79,11 @@ func _build_ui() -> void:
 	root.add_child(heading)
 	var title: Label = Label.new()
 	title.text = _t("バランス調整ラボ", "Balance Lab")
+	title.tooltip_text = _t("開発者専用 / 端末内の下書き。通常プレイ・セーブ・ランキングには適用しません。カード変更は模擬戦の両者、遺物変更は試験遺物に適用します。", "Developer sandbox / device-local draft. No live save, ranking or season changes. Card edits apply to both combatants; relic edits apply to your selected test relics.")
 	title.theme_type_variation = "PageTitle"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.add_child(title)
 	_button(heading, "BalanceBack", _t("戻る", "Back"), _back)
-	var note: Label = Label.new()
-	note.text = _t("開発者専用 / 端末内の下書き。通常プレイ・セーブ・ランキングには適用しません。カード変更は模擬戦の両者、遺物変更は試験遺物に適用します。", "Developer sandbox / device-local draft. No live save, ranking or season changes. Card edits apply to both combatants; relic edits apply to your selected test relics.")
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.theme_type_variation = "MutedLabel"
-	root.add_child(note)
 	var filters: HFlowContainer = HFlowContainer.new()
 	root.add_child(filters)
 	_button(filters, "BalanceCardsTab", _t("カード", "Cards"), _switch_kind.bind("card"))
@@ -152,7 +147,7 @@ func _build_ui() -> void:
 	for tier: int in range(CardUpgradeResolver.MAX_TIER + 1): _grade_tabs.add_tab(CardInfoFormatter.format_grade_label(tier))
 	edit.add_child(_grade_tabs)
 	_grade_tabs.tab_changed.connect(_on_editor_grade_changed)
-	_grade_note = Label.new(); _grade_note.text = _t("基本は全Grade共通の元値。+1以降はそのGradeだけの実数値を編集します。", "Base values feed all grades. Higher tabs override only that grade's actual values."); _grade_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; _grade_note.add_theme_font_size_override("font_size", 13); edit.add_child(_grade_note)
+	_grade_tabs.tooltip_text = _t("基本は全Grade共通の元値。+1以降はそのGradeだけの実数値を編集します。", "Base values feed all grades. Higher tabs override only that grade's actual values.")
 	var editor_scroll: ScrollContainer = _inner_scroll(edit, "BalanceEditorScroll")
 	_fields_box = VBoxContainer.new(); _fields_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_fields_box.add_theme_constant_override("separation", 8)
@@ -321,7 +316,6 @@ func _filter_catalog() -> void:
 func _select(kind: String, id: String) -> void:
 	_kind = kind; _selected = id
 	_grade_tabs.visible = kind == "card"
-	_grade_note.visible = kind == "card"
 	(find_child("BalanceResetGrade", true, false) as Button).visible = kind == "card"
 	(_fields_box.get_parent() as ScrollContainer).scroll_vertical = 0
 	_clear(_fields_box); _field_widgets.clear()
@@ -364,7 +358,7 @@ func _on_draft_changed() -> void:
 		var widget: Dictionary = _catalog_widgets[key]
 		(widget["label"] as Label).text = ("* " if draft.edits.has(key) else "") + _name(widget["kind"], widget["id"])
 	_refresh_preview()
-	_status.text = _t("変更項目: %d / 下書きはこの端末に自動保存。編集値はステータス補正前です。", "Changed fields: %d / Draft autosaves on this device. Editor values are before stat modifiers.") % draft.changes().size()
+	_status.text = _t("変更: %d / 自動保存", "Changes: %d / Auto-save") % draft.changes().size()
 	if draft.error_text != "": _status.text += "\n" + draft.error_text
 	if _only_changes.button_pressed and not _is_number_editing(): _filter_catalog()
 
@@ -412,7 +406,7 @@ func _refresh_preview() -> void:
 			var line: Label = Label.new(); line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			line.text = "%s: %s > %s" % [field["label"], str(field["before"]), str(BalanceDraft.read(draft.data("relic", _selected), field["path"]))]
 			_preview.add_child(line)
-	var note: Label = Label.new(); note.text = _t("プレビューは攻撃・速度込みの基礎性能です。戦闘では再使用4秒などの下限と、状態・遺物の条件を適用します。", "Preview shows base performance with attack/speed. Combat also applies existing floors (e.g. 4s recast) and conditional effects."); note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; note.theme_type_variation = "MutedLabel"; _preview.add_child(note)
+	_preview.tooltip_text = _t("プレビューは攻撃・速度込みの基礎性能です。戦闘では再使用4秒などの下限と、状態・遺物の条件を適用します。", "Preview shows base performance with attack/speed. Combat also applies existing floors (e.g. 4s recast) and conditional effects.")
 
 
 func _starter_changed(_index: int) -> void:
@@ -471,7 +465,7 @@ func _compare() -> void:
 	if not runner.begin(_config(), draft): _status.text = _t("試験条件を確認してください。", "Check the test setup."); return
 	_modal = _modal_frame()
 	var root: VBoxContainer = VBoxContainer.new(); _modal.add_child(root)
-	var note: Label = Label.new(); note.text = _t("A = 変更前 / B = 開始時の下書き。同じデッキ・遺物・Seedで比較。勝率はBot同士の参考値です。", "A = original / B = frozen draft. Same deck, relics and seeds. Bot win rates are estimates."); note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; root.add_child(note)
+	root.tooltip_text = _t("A = 変更前 / B = 開始時の下書き。同じデッキ・遺物・Seedで比較。勝率はBot同士の参考値です。", "A = original / B = frozen draft. Same deck, relics and seeds. Bot win rates are estimates.")
 	_progress = ProgressBar.new(); _progress.name = "BalanceComparisonProgress"; root.add_child(_progress)
 	_results = RichTextLabel.new(); _results.name = "BalanceComparisonResults"; _results.bbcode_enabled = true; _results.size_flags_vertical = Control.SIZE_EXPAND_FILL; root.add_child(_results)
 	_button(root, "BalanceCancelCompare", _t("中止 / 閉じる", "Cancel / Close"), _close_modal)
@@ -521,7 +515,7 @@ func _open_bulk() -> void:
 	if _selected == "": return
 	_close_modal(); _modal = _modal_frame()
 	var root: VBoxContainer = VBoxContainer.new(); _modal.add_child(root)
-	var note: Label = Label.new(); note.text = _t("現在の絞り込み対象だけを変更します。整数は四捨五入、小数は0.001単位。範囲外・項目なしは除外します。", "Edit visible filtered entries only. Round integers; decimals use 0.001 units. Invalid/missing fields are skipped."); note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; root.add_child(note)
+	root.tooltip_text = _t("現在の絞り込み対象だけを変更します。整数は四捨五入、小数は0.001単位。範囲外・項目なしは除外します。", "Edit visible filtered entries only. Round integers; decimals use 0.001 units. Invalid/missing fields are skipped.")
 	var field_option: OptionButton = OptionButton.new(); field_option.name = "BalanceBulkField"; root.add_child(field_option)
 	for field: Dictionary in BalanceDraft.fields_for_grade(_kind, _selected, _editor_grade):
 		field_option.add_item(field["label"]); field_option.set_item_metadata(field_option.item_count - 1, field["path"])

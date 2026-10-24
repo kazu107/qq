@@ -80,16 +80,6 @@ func _build_header(parent: VBoxContainer) -> void:
 	title.add_theme_color_override("font_color", Color(0.88, 0.96, 1.0, 1.0))
 	title_group.add_child(title)
 
-	var subtitle: Label = Label.new()
-	subtitle.name = "RunSetupSubtitle"
-	subtitle.text = Localization.get_text(
-		"run_setup.subtitle",
-		"Compare each frame, inspect its opening hand, then choose your combat loadout."
-	)
-	subtitle.add_theme_font_size_override("font_size", 14 if _compact_layout else 16)
-	subtitle.add_theme_color_override("font_color", UiTheme.TEXT_MUTED)
-	title_group.add_child(subtitle)
-
 	var mode_chip: PanelContainer = PanelContainer.new()
 	mode_chip.name = "RunSetupModeChip"
 	mode_chip.custom_minimum_size = Vector2(150.0, 44.0)
@@ -152,16 +142,6 @@ func _build_deck_list(parent: HBoxContainer) -> void:
 	_deck_count_label.name = "StarterDeckCount"
 	_deck_count_label.add_theme_color_override("font_color", UiTheme.ACCENT_GOLD)
 	header.add_child(_deck_count_label)
-
-	var guide: Label = Label.new()
-	guide.text = Localization.get_text(
-		"run_setup.deck_list_hint",
-		"Select a deck to compare its frame and opening cards."
-	)
-	guide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	guide.add_theme_font_size_override("font_size", 13 if _compact_layout else 15)
-	guide.add_theme_color_override("font_color", UiTheme.TEXT_MUTED)
-	root.add_child(guide)
 
 	var divider: ColorRect = ColorRect.new()
 	divider.custom_minimum_size = Vector2(0.0, 1.0)
@@ -298,29 +278,12 @@ func _build_model_column(parent: HBoxContainer) -> void:
 	title.add_theme_font_size_override("font_size", 18 if _compact_layout else 21)
 	preview_header.add_child(title)
 
-	var live_label: Label = Label.new()
-	live_label.text = "LIVE 3D"
-	live_label.add_theme_font_size_override("font_size", 12)
-	live_label.add_theme_color_override("font_color", Color(0.40, 0.92, 1.0, 1.0))
-	preview_header.add_child(live_label)
-
 	_model_preview = StarterModelPreview.new()
 	_model_preview.name = "StarterModelPreview"
 	_model_preview.custom_minimum_size = Vector2(0.0, 330.0 if _compact_layout else 430.0)
 	_model_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_model_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(_model_preview)
-
-	var hint: Label = Label.new()
-	hint.text = Localization.get_text(
-		"run_setup.preview_hint",
-		"The battle-ready stance and equipped frame are previewed in real time."
-	)
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.add_theme_font_size_override("font_size", 12 if _compact_layout else 14)
-	hint.add_theme_color_override("font_color", UiTheme.TEXT_MUTED)
-	root.add_child(hint)
 
 
 func _build_detail_column(parent: HBoxContainer) -> void:

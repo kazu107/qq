@@ -110,11 +110,6 @@ func _ready() -> void:
 	skip_button.pressed.connect(_on_skip)
 	button_row.add_child(skip_button)
 
-	var info := Label.new()
-	info.name = "RewardChooseHint"
-	info.text = Localization.get_text("reward.choose_one", "Choose one card. Hover to inspect details.")
-	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	root.add_child(info)
 	var unlock_notice: Label = Label.new()
 	unlock_notice.name = "RewardContentUnlocks"
 	unlock_notice.text = Game.get_last_content_unlock_text()

@@ -49,10 +49,7 @@ func _ready() -> void:
 	var title: Label = Label.new()
 	title.text = Localization.get_text("analysis.lab", "Automated battle lab")
 	root.add_child(title)
-	var note: Label = Label.new()
-	note.text = Localization.get_text("analysis.lab_note", "Bot estimates, not human win rates. No run progress or rewards are changed. The time cap is for simulations only.")
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	root.add_child(note)
+	title.tooltip_text = Localization.get_text("analysis.lab_note", "Bot estimates, not human win rates. No run progress or rewards are changed. The time cap is for simulations only.")
 	var row: HBoxContainer = HBoxContainer.new()
 	root.add_child(row)
 	_starter = _option(row, Game.get_debug_battle_starter_entries())

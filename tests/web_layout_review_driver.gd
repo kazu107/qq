@@ -481,6 +481,10 @@ func _inspect() -> Dictionary:
 	if not _feedback_samples.is_empty():
 		result["feedback"] = {"samples": _feedback_samples, "immediate_audio": _feedback_initial_audio, "audio": AudioManager.get_play_history()}
 	if screen != null:
+		if screen.scene_file_path.get_file().get_basename() == "Hub":
+			var history: RichTextLabel = screen.find_child("VersionHistoryContent", true, false) as RichTextLabel
+			result["history"] = {"open": (screen.find_child("VersionHistoryOverlay", true, false) as Control).visible,
+				"bbcode": history.text, "parsed": history.get_parsed_text(), "rect": _rect_values(history.get_global_rect()), "lines": history.get_line_count()}
 		if screen.scene_file_path.get_file().get_basename() in ["MetaProgress", "CardLibrary"]:
 			result["content_progress"] = Game.get_content_progress()
 			result["content_pool"] = ContentPoolService.build_snapshot(Game.meta_progress)
@@ -625,6 +629,9 @@ func _inspect() -> Dictionary:
 				"history": (screen.get("_history_overlay") as Control).visible, "drawer": (screen.get("_loadout_button") as Button).visible,
 				"loadout_open": (screen.get("_loadout_overlay") as Control).visible}
 		_collect_controls(screen, controls, false)
+		var captions: Array[String] = []
+		_collect_captions(screen, captions)
+		result["captions"] = captions
 		var intel: EnemyEncounterDialog = screen.find_child("EnemyEncounterDialog", true, false) as EnemyEncounterDialog
 		if intel != null and intel.visible:
 			var data: Dictionary = intel.preview_data
@@ -785,6 +792,13 @@ func _project_status_corners(stage: BattleStage3D, status: BattleUnitStatus3D) -
 			var world: Vector3 = status.to_global(Vector3(BattleUnitStatus3D.PANEL_SIZE.x * x_sign * 0.5, BattleUnitStatus3D.PANEL_SIZE.y * y_sign * 0.5, 0.0))
 			corners.append(_point_values(stage.global_position + stage.project_world_position(world)))
 	return corners
+
+
+func _collect_captions(node: Node, captions: Array[String]) -> void:
+	if node is Control and (not node.is_visible_in_tree() or node.get_viewport() != get_viewport()): return
+	if node is Label: captions.append(node.text)
+	elif node is RichTextLabel: captions.append(node.get_parsed_text())
+	for child: Node in node.get_children(): _collect_captions(child, captions)
 
 
 func _collect_controls(node: Node, controls: Array[Dictionary], in_scroll: bool) -> void:

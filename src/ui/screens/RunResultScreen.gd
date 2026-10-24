@@ -22,7 +22,6 @@ var _total_score_label: Label
 var _rank_label: Label
 var _rank_caption: Label
 var _rank_panel: PanelContainer
-var _skip_hint: Label
 var _score_tween: Tween
 var _animation_complete: bool = false
 var _rank_revealed: bool = false
@@ -143,12 +142,6 @@ func _build_header(parent: VBoxContainer) -> void:
 	title_box.add_theme_constant_override("separation", 1)
 	header.add_child(title_box)
 
-	var eyebrow: Label = Label.new()
-	eyebrow.text = Localization.get_text("result.eyebrow", "OPERATION REPORT")
-	eyebrow.add_theme_color_override("font_color", Color(0.34, 0.72, 0.96, 1.0))
-	eyebrow.add_theme_font_size_override("font_size", 14)
-	title_box.add_child(eyebrow)
-
 	var title: Label = Label.new()
 	title.name = "ResultTitle"
 	title.text = Localization.get_text("result.infinite.title", "Infinite Run Result") if _is_infinite_score() else Localization.get_text("result.title", "Run Result")
@@ -177,6 +170,7 @@ func _build_header(parent: VBoxContainer) -> void:
 func _build_score_panel(parent: HBoxContainer) -> void:
 	var panel: PanelContainer = PanelContainer.new()
 	panel.name = "ResultScorePanel"
+	panel.tooltip_text = Localization.get_text("result.score.skip_hint", "Click or press a key to skip")
 	panel.custom_minimum_size = Vector2(660.0, 0.0)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_stretch_ratio = 1.65
@@ -218,12 +212,6 @@ func _build_score_panel(parent: HBoxContainer) -> void:
 	_total_score_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.28, 1.0))
 	total_row.add_child(_total_score_label)
 
-	_skip_hint = Label.new()
-	_skip_hint.text = Localization.get_text("result.score.skip_hint", "Click or press a key to skip")
-	_skip_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_skip_hint.add_theme_font_size_override("font_size", 13)
-	_skip_hint.add_theme_color_override("font_color", Color(0.52, 0.62, 0.70, 1.0))
-	content.add_child(_skip_hint)
 
 
 func _build_score_row(parent: VBoxContainer, index: int) -> void:
@@ -478,7 +466,7 @@ func _reveal_rank() -> void:
 		return
 	_rank_revealed = true
 	_animation_complete = true
-	_skip_hint.visible = false
+	(find_child("ResultScorePanel", true, false) as Control).tooltip_text = ""
 	var rank: String = String(_summary_data.get("rank", "E"))
 	var rank_color: Color = Color(RANK_COLORS.get(rank, Color.WHITE))
 	_rank_label.text = rank

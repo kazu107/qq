@@ -72,16 +72,19 @@ func _run() -> void:
 	var history_button: Button = hub.find_child("VersionHistoryButton", true, false) as Button
 	var history_overlay: ColorRect = hub.find_child("VersionHistoryOverlay", true, false) as ColorRect
 	var history_content: RichTextLabel = hub.find_child("VersionHistoryContent", true, false) as RichTextLabel
-	var history_note: Label = hub.find_child("VersionHistoryNote", true, false) as Label
+	var history_title: Label = hub.find_child("VersionHistoryTitle", true, false) as Label
 	var close_button: Button = hub.find_child("VersionHistoryCloseButton", true, false) as Button
 	if top_actions == null or settings_button == null or history_button == null:
 		_fail("Hub version smoke failed: top-right Hub actions are incomplete")
 		return
-	if history_overlay == null or history_content == null or history_note == null or close_button == null:
+	if history_overlay == null or history_content == null or history_title == null or close_button == null:
 		_fail("Hub version smoke failed: version history modal is incomplete")
 		return
-	if history_note.text == "" or history_note.text.find("推定") == -1:
-		_fail("Hub version smoke failed: reconstructed history notice is missing")
+	if history_title.tooltip_text.find("推定") == -1 or hub.find_child("VersionHistoryNote", true, false) != null:
+		_fail("Hub version smoke failed: history notice should be available without an extra caption")
+		return
+	if history_content.text.find("[table=2]") == -1 or history_content.text.find("  [color=#c9d7e2]- ") != -1:
+		_fail("Hub version smoke failed: history should use hanging list markers")
 		return
 
 	var settings_buttons: Array[Node] = hub.find_children("OpenSettingsButton", "Button", true, false)

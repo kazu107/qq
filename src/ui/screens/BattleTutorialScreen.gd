@@ -55,11 +55,6 @@ func _build_ui() -> void:
 	title.add_theme_font_size_override("font_size", 34)
 	title.add_theme_color_override("font_color", Color(0.96, 0.98, 1.0, 1.0))
 	heading_box.add_child(title)
-	var subtitle := Label.new()
-	subtitle.text = Localization.get_text("tutorial.catalog.subtitle", "Choose a lesson. More tutorials can be added to this list later.")
-	subtitle.add_theme_font_size_override("font_size", 17)
-	subtitle.add_theme_color_override("font_color", Color(0.62, 0.74, 0.82, 1.0))
-	heading_box.add_child(subtitle)
 	var back := Button.new()
 	back.name = "TutorialBackButton"
 	back.text = Localization.get_text("common.back_hub", "Back to Hub")
@@ -130,11 +125,6 @@ func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	description.add_theme_font_size_override("font_size", 17)
 	description.add_theme_color_override("font_color", Color(0.74, 0.82, 0.88, 1.0))
 	copy.add_child(description)
-	var topics := Label.new()
-	topics.text = Localization.get_text(String(tutorial["topics_key"]), String(tutorial["topics_fallback"]))
-	topics.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	topics.add_theme_color_override("font_color", Color(0.42, 0.82, 1.0, 1.0))
-	copy.add_child(topics)
 
 	var action := VBoxContainer.new()
 	action.custom_minimum_size = Vector2(180.0, 0.0)

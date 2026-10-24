@@ -1,9 +1,22 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.50.0",
+  "current_version": "QQ-0.50.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.50.1", "date": "2026-10-25",
+      "title_ja": "履歴の折り返しと画面内の文言整理",
+      "title_en": "History wrapping and cleaner interface copy",
+      "changes_ja": [
+        "バージョン履歴をぶら下げ式の箇条書きに変更し、ハイフンの直後で本文が改行される表示を修正しました。",
+        "ハブ、デッキ選択、設定、メタ進行、報酬、チュートリアル一覧、各種ラボ、アカウントとランキングの重複する補足文を削減しました。必要な説明はツールチップに移し、効果説明・警告・チュートリアルの案内は維持しています。"
+      ],
+      "changes_en": [
+        "Use hanging bullet lists for release notes so markers cannot occupy a separate wrapped line.",
+        "Reduce redundant subtitles and captions across menus, rewards, labs, account and rankings. Keep essential explanations in tooltips and retain effect descriptions, warnings and lesson guidance."
+      ]
+    },
     {
       "version": "QQ-0.50.0", "date": "2026-10-25",
       "title_ja": "グレード別編集と戦闘用Grade 5",

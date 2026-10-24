@@ -100,14 +100,6 @@ func _build_ui() -> void:
 	title.add_theme_color_override("font_color", Color(0.42, 0.86, 1.0, 1.0))
 	title_group.add_child(title)
 
-	var subtitle := Label.new()
-	subtitle.text = _localized(
-		"モデル、動作、視点を固定してボーン姿勢を確認できます。",
-		"Inspect skeletal poses with fixed models, actions, and camera angles."
-	)
-	subtitle.add_theme_color_override("font_color", UiTheme.TEXT_MUTED)
-	title_group.add_child(subtitle)
-
 	var ready_both_button := Button.new()
 	ready_both_button.name = "BattleAnimationLabReadyBoth"
 	ready_both_button.text = _localized("両者を構え", "Ready both")

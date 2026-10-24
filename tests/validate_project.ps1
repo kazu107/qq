@@ -349,6 +349,10 @@ if ($godotExe) {
         "--path", $root,
         "--scene", "res://tests/HubVersionSmoke.tscn"
     )
+    Invoke-GodotCheck "[18b/31] Running concise UI copy smoke" $godotExe @(
+        "--no-header", "--headless", "--path", $root,
+        "--scene", "res://tests/UiCopySmoke.tscn"
+    )
     Invoke-GodotCheck "[19/31] Running audio smoke" $godotExe @(
         "--no-header",
         "--headless",

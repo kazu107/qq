@@ -16,6 +16,7 @@
   document.querySelector('header > a.secondary').href='/account?lang='+language;
   if(language==='en') {
     document.querySelectorAll('[data-en]').forEach(node=>{node.textContent=node.dataset.en;});
+    document.querySelectorAll('[data-title-en]').forEach(node=>{node.title=node.dataset.titleEn;});
     document.querySelectorAll('thead th').forEach((node,index)=>{node.textContent=['Rank','Username','Score','Reached Step','Starter','Achieved'][index];});
   }
   const status = { active:t('中断中／送信中','Active / uploading'), pending:t('検証待ち','Pending verification'), verifying:t('検証中','Verifying'), verified:t('正式記録','Verified'), rejected:t('対象外','Ineligible'), disqualified:t('開発者操作などで対象外','Disqualified'), unverified:t('未検証・参考外','Unverified') };

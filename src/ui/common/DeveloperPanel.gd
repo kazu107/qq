@@ -34,7 +34,8 @@ func configure(title: String, actions: Array, status_text: String = "") -> void:
 		_build_ui()
 	_title_text = title
 	_refresh_title()
-	set_status_text(status_text)
+	_title_label.tooltip_text = status_text
+	set_status_text("")
 	set_actions(actions)
 
 

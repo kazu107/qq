@@ -46,6 +46,10 @@ jobs:
           export PATH="$PWD/server/ranking/vendor:$PATH"
           godot --version
           godot --headless --path . --editor --quit > build/import.log 2>&1
+          godot --headless --path . res://tests/UiCopySmoke.tscn --quit-after 600 > build/ui-copy.log 2>&1
+          cat build/ui-copy.log
+          grep -q UI_COPY_SMOKE_OK build/ui-copy.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/ui-copy.log; then exit 1; fi
           godot --headless --path . res://tests/GradeFiveSmoke.tscn --quit-after 600 > build/grade-five.log 2>&1
           cat build/grade-five.log
           grep -q GRADE_FIVE_SMOKE_OK build/grade-five.log

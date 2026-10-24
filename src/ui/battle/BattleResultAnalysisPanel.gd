@@ -168,11 +168,7 @@ func _build_ui() -> void:
 	_card_rows.name = "BattleCardContributions"
 	_card_rows.add_theme_constant_override("separation", 8)
 	content.add_child(_card_rows)
-	var note: Label = Label.new()
-	note.text = _text("definition", "Damage is actual HP lost (excluding overkill); healing excludes overheal. Card bars show direct effects only. Status, relic, fatigue, and self-damage are not attributed to a card. Shield decay and shield costs are not blocked damage.")
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.theme_type_variation = &"MutedLabel"
-	content.add_child(note)
+	_card_rows.tooltip_text = _text("definition", "Damage is actual HP lost (excluding overkill); healing excludes overheal. Card bars show direct effects only. Status, relic, fatigue, and self-damage are not attributed to a card. Shield decay and shield costs are not blocked damage.")
 	_details_modal.hide()
 
 

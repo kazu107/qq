@@ -10,7 +10,7 @@
   if (embedded) document.body.classList.add("embedded");
   if (window.opener) sessionStorage.setItem("qq-account-popup", "1");
   const messages = {
-    ja: { title:"アカウント", subtitle:"Google・GitHubでログイン／新規登録します。", google:"Googleで続ける", github:"GitHubで続ける",
+    ja: { title:"アカウント", google:"Googleで続ける", github:"GitHubで続ける",
       loading:"アカウントを確認中...", guest:"ログイン方法を選んでください。", setup:"ログイン機能は準備中です。ゲームはログインなしで引き続き遊べます。",
       pending:"本人確認が完了しました。ユーザー名を決めて登録してください。", signedIn:"ログインしています。", username:"ユーザー名", register:"登録を完了", identity:"登録済みユーザー名",
       hint:"3〜20文字。日本語・英数字・ハイフン・アンダースコアを使えます。大文字小文字や全角半角の違いだけの名前は重複扱いになります。登録後の変更には対応していません。",
@@ -24,7 +24,7 @@
       login_required:"セッションが切れました。もう一度ログインしてください。", cancelled:"ログインをキャンセルしました。", invalid_login:"ログインの有効期限が切れたか、別のブラウザで開始されました。最初からやり直してください。",
       login_failed:"ログインできませんでした。時間をおいて、もう一度お試しください。", provider_unavailable:"このログイン方法は現在利用できません。", rate_limited:"操作が多いため、少し待ってから再試行してください。",
       unavailable:"アカウントに接続できません。ゲームのローカルプレイには影響しません。再確認してください。", invalid_csrf:"ページを再読み込みして、もう一度お試しください。" },
-    en: { title:"Your Account", subtitle:"Sign in or register with Google or GitHub.", google:"Continue with Google", github:"Continue with GitHub",
+    en: { title:"Your Account", google:"Continue with Google", github:"Continue with GitHub",
       loading:"Checking your account...", guest:"Choose a sign-in method.", setup:"Sign-in is being prepared. You can keep playing without an account.",
       pending:"Identity verified. Choose your username to finish registration.", signedIn:"You are signed in.", username:"Username", register:"Finish registration", identity:"Registered username",
       hint:"3-20 letters/numbers, including Japanese, hyphens or underscores. Case-only and width-only differences are not unique. Usernames cannot currently be changed after registration.",
@@ -42,7 +42,7 @@
   let snapshot = null, busy = false, refreshSerial = 0;
   document.documentElement.lang = language;
   document.title = `QueueQuest | ${t.title}`;
-  for (const [id, value] of Object.entries({ title:t.title, subtitle:t.subtitle, "google-label":t.google, "github-label":t.github,
+  for (const [id, value] of Object.entries({ title:t.title, "google-label":t.google, "github-label":t.github,
     "username-label":t.username, "username-hint":t.hint, "provider-note":t.providerNote, "local-save-note":t.local, "privacy-note":t.privacy,
     register:t.register, "identity-label":t.identity, logout:t.logout, refresh:t.refresh, return:t.back })) el(id).textContent = value;
   function notice(text, error = false) { el("message").textContent = text; el("message").classList.toggle("error", error); }

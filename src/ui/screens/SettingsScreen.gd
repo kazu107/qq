@@ -68,7 +68,7 @@ func _build_ui() -> void:
 	root.custom_minimum_size = Vector2(1240.0, 0.0)
 	root.add_theme_constant_override("separation", 24)
 	center.add_child(root)
-	UiTheme.add_page_heading(root, Localization.get_text("settings.title", "Settings"), Localization.get_text("settings.page_hint", "Changes are saved automatically and used throughout the game."))
+	UiTheme.add_page_heading(root, Localization.get_text("settings.title", "Settings"))
 	var columns: HBoxContainer = HBoxContainer.new()
 	columns.add_theme_constant_override("separation", 20)
 	root.add_child(columns)

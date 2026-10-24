@@ -27,7 +27,6 @@ var _reward_overlay: ColorRect
 var _reward_modal: PanelContainer
 var _reward_options_box: HBoxContainer
 var _reward_title_label: Label
-var _reward_hint_label: Label
 var _developer_panel: DeveloperPanel
 var _lan_mode: bool = false
 
@@ -429,11 +428,6 @@ func _build_reward_modal() -> void:
 	_reward_title_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.48, 1.0))
 	root.add_child(_reward_title_label)
 
-	_reward_hint_label = Label.new()
-	_reward_hint_label.text = Localization.get_text("arena.reward.hint", "Choose one reward before the next match.")
-	_reward_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_reward_hint_label.add_theme_color_override("font_color", Color(0.74, 0.80, 0.86, 1.0))
-	root.add_child(_reward_hint_label)
 
 	_reward_options_box = HBoxContainer.new()
 	_reward_options_box.name = "ArenaRewardOptions"
@@ -897,8 +891,6 @@ func _refresh_reward_modal() -> void:
 	var special_reward: bool = bool(rewards[0].get("special", false))
 	if _reward_title_label != null:
 		_reward_title_label.text = Localization.get_text("arena.special.title", "Special Reward") if special_reward else Localization.get_text("arena.reward.title", "Victory Reward")
-	if _reward_hint_label != null:
-		_reward_hint_label.text = Localization.get_text("arena.special.hint", "Choose one milestone reward. Its effect lasts for this Arena run.") if special_reward else Localization.get_text("arena.reward.hint", "Choose one reward before the next match.")
 	for reward_data in rewards:
 		_reward_options_box.add_child(_build_reward_choice(reward_data))
 

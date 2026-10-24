@@ -60,10 +60,6 @@ func _ready() -> void:
 	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
 	logo.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	identity.add_child(logo)
-	var tagline: Label = Label.new()
-	tagline.theme_type_variation = "MutedLabel"
-	tagline.text = Localization.get_text("hub.tagline", "Every card has its moment. Make yours count.")
-	identity.add_child(tagline)
 
 	_info_label = Label.new()
 	_info_label.name = "HubMetaPoints"
@@ -253,7 +249,8 @@ func _refresh_ranking_status() -> void:
 func _build_mode_card(parent: GridContainer, icon_id: String, title_text: String, description: String, accent: Color) -> VBoxContainer:
 	var box: VBoxContainer = UiTheme.add_section(parent, "")
 	var panel: PanelContainer = box.get_parent() as PanelContainer
-	panel.custom_minimum_size = Vector2(410.0, 270.0)
+	panel.custom_minimum_size = Vector2(410.0, 180.0)
+	panel.tooltip_text = description
 	var style: StyleBoxFlat = UiTheme.get_game_theme().get_stylebox("panel", "SectionPanel").duplicate() as StyleBoxFlat
 	style.border_color = Color(accent, 0.55)
 	style.border_width_top = 3
@@ -271,13 +268,6 @@ func _build_mode_card(parent: GridContainer, icon_id: String, title_text: String
 	title.add_theme_font_size_override("font_size", 26)
 	title.add_theme_color_override("font_color", accent)
 	header.add_child(title)
-	var copy: Label = Label.new()
-	copy.theme_type_variation = "MutedLabel"
-	copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	copy.custom_minimum_size.y = 72.0
-	copy.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	copy.text = description
-	box.add_child(copy)
 	return box
 
 
@@ -407,7 +397,9 @@ func _build_version_history_overlay() -> void:
 	root.add_child(header)
 
 	var title: Label = Label.new()
+	title.name = "VersionHistoryTitle"
 	title.text = Localization.get_text("hub.version_history.title", "Version History")
+	title.tooltip_text = GameVersion.get_history_note(Game.get_language())
 	title.add_theme_font_size_override("font_size", 30)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
@@ -422,23 +414,12 @@ func _build_version_history_overlay() -> void:
 	current_version.add_theme_font_size_override("font_size", 20)
 	current_version.add_theme_color_override("font_color", Color(0.46, 0.88, 1.0))
 	current_version.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	header.add_child(current_version)
-
-	var scheme: Label = Label.new()
-	scheme.text = Localization.get_textf(
+	current_version.tooltip_text = Localization.get_textf(
 		"hub.version_history.scheme",
 		"Version scheme: {scheme}",
 		{"scheme": GameVersion.get_scheme()}
 	)
-	scheme.add_theme_color_override("font_color", Color(0.66, 0.72, 0.78))
-	root.add_child(scheme)
-
-	var history_note: Label = Label.new()
-	history_note.name = "VersionHistoryNote"
-	history_note.text = GameVersion.get_history_note(Game.get_language())
-	history_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	history_note.add_theme_color_override("font_color", Color(0.76, 0.69, 0.50))
-	root.add_child(history_note)
+	header.add_child(current_version)
 	root.add_child(HSeparator.new())
 
 	_version_history_content = RichTextLabel.new()
@@ -447,6 +428,7 @@ func _build_version_history_overlay() -> void:
 	_version_history_content.fit_content = false
 	_version_history_content.scroll_active = true
 	_version_history_content.selection_enabled = true
+	_version_history_content.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_version_history_content.custom_minimum_size = Vector2(820.0, 470.0)
 	_version_history_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_version_history_content.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -470,6 +452,7 @@ func _refresh_version_history_content() -> void:
 	if _version_history_content == null:
 		return
 	var language_suffix: String = "ja" if Game.get_language() == "ja" else "en"
+	_version_history_content.language = language_suffix
 	var lines: PackedStringArray = []
 	for release: Dictionary in GameVersion.get_releases():
 		var version: String = String(release.get("version", ""))
@@ -482,8 +465,10 @@ func _refresh_version_history_content() -> void:
 		lines.append("[font_size=20][b]%s[/b][/font_size]" % title)
 		var raw_changes: Variant = release.get("changes_%s" % language_suffix, release.get("changes_en", []))
 		if raw_changes is Array:
+			var cells: PackedStringArray = []
 			for raw_change: Variant in raw_changes:
-				lines.append("  [color=#c9d7e2]- %s[/color]" % String(raw_change))
+				cells.append("[cell expand=0 padding=0,0,10,6]-[/cell][cell expand=1 padding=0,0,0,6]%s[/cell]" % String(raw_change))
+			lines.append("[color=#c9d7e2][table=2]%s[/table][/color]" % "".join(cells))
 		lines.append("")
 	_version_history_content.text = "\n".join(lines)
 	_version_history_content.scroll_to_line(0)

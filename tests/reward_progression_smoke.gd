@@ -64,8 +64,8 @@ func _run() -> void:
 	if dim_overlay == null or reward_modal == null or reward_title == null or reward_title.text == "":
 		_fail("Reward progression smoke failed: reward scene should render as a centered modal over a dim overlay")
 		return
-	if reward_gold == null or reward_hp == null or reward_gold.text == "" or reward_hp.text == "" or reward_hint == null:
-		_fail("Reward progression smoke failed: reward modal should show compact gold, HP, relic, and hint rows")
+	if reward_gold == null or reward_hp == null or reward_gold.text == "" or reward_hp.text == "" or reward_hint != null:
+		_fail("Reward progression smoke failed: reward modal should show gains without a redundant instruction row")
 		return
 	var reward_cards: CardHandPanel = reward_scene.find_child("RewardCards", true, false) as CardHandPanel
 	if reward_cards == null or reward_cards.get_child_count() != 3:

@@ -60,7 +60,7 @@ func _build_ui() -> void:
 	var page: VBoxContainer = VBoxContainer.new()
 	page.add_theme_constant_override("separation", 24)
 	margin.add_child(page)
-	UiTheme.add_page_heading(page, Localization.get_text("meta.title", "Meta Progress"), Localization.get_text("meta.page_hint", "Achievements and automatic unlocks. Manage seals in the Card & Relic Library."))
+	UiTheme.add_page_heading(page, Localization.get_text("meta.title", "Meta Progress"))
 	var root: HBoxContainer = HBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -113,12 +113,7 @@ func _build_ui() -> void:
 	scroll.add_child(content)
 	var upgrades: VBoxContainer = _create_panel(content, Localization.get_text("meta.stat_upgrade.title", "Permanent Stat Upgrades"))
 	upgrades.name = "MetaStatUpgradePanel"
-	var upgrade_hint: Label = Label.new()
-	upgrade_hint.name = "MetaStatUpgradeHint"
-	upgrade_hint.text = Localization.get_text("meta.stat_upgrade.hint", "Spend Meta Points to strengthen future Normal and Infinite runs. Current/suspended runs and Arena/Web matches are unchanged.")
-	upgrade_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	upgrade_hint.theme_type_variation = "MutedLabel"
-	upgrades.add_child(upgrade_hint)
+	upgrades.tooltip_text = Localization.get_text("meta.stat_upgrade.hint", "Spend Meta Points to strengthen future Normal and Infinite runs. Current/suspended runs and Arena/Web matches are unchanged.")
 	_upgrade_box = GridContainer.new()
 	_upgrade_box.name = "MetaStatUpgradeGrid"
 	_upgrade_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
