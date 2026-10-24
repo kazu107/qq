@@ -12,6 +12,7 @@ const AREA_TWELVE_POOL := ["omega_seraph", "grave_architect"]
 const MAX_IMPLEMENTED_STEP_TIER: int = 4
 const INFINITE_AREA_SPAN: int = 12
 const INFINITE_STEP_SPAN: int = 28
+const ENCOUNTER_GROWTH_VERSION: int = 1
 const ROUTE_ROW_WIDTHS: Array[int] = [3, 4, 5, 4, 5, 4, 1]
 const ROUTE_ROW_TYPES: Array = [
 	["normal_battle"],
@@ -65,10 +66,14 @@ func generate_run(seed: int, unlocked_step_tier: int = 1) -> Dictionary:
 		_mark_step_as_gate(steps, 20, "map.step.axiom_gate", "Axiom Gate")
 		steps.append_array(_build_tier_four_steps(rng))
 	_expand_route_choices(steps, rng)
+	for index: int in steps.size():
+		for node: Dictionary in steps[index]["nodes"]:
+			_apply_encounter_growth(node, index, false)
 	MapRouteGraph.decorate(steps, seed)
 	_unlock_step_nodes(steps, 0)
 	return {
 		"graph_version": MapRouteGraph.VERSION,
+		"encounter_growth_version": ENCOUNTER_GROWTH_VERSION,
 		"current_step": 0,
 		"active_node_id": "",
 		"steps": steps,
@@ -130,6 +135,7 @@ func append_infinite_cycle(map_state: Dictionary, seed: int) -> void:
 	map_state["steps"] = steps
 	map_state["cycle_count"] = cycle_index + 1
 	map_state["infinite"] = true
+	map_state["encounter_growth_version"] = ENCOUNTER_GROWTH_VERSION
 
 
 func _remap_infinite_nodes(nodes: Array, cycle_number: int, step_index: int, area_offset: int, infinite_power: int) -> Array:
@@ -146,8 +152,42 @@ func _remap_infinite_nodes(nodes: Array, cycle_number: int, step_index: int, are
 		node_data["infinite_power"] = infinite_power
 		node_data["area"] = int(node_data.get("area", 1)) + area_offset
 		node_data["status"] = "locked"
+		_apply_encounter_growth(node_data, step_index, true)
 		remapped.append(node_data)
 	return remapped
+
+
+func upgrade_encounter_growth(map_state: Dictionary, infinite: bool) -> void:
+	if int(map_state.get("encounter_growth_version", 0)) >= ENCOUNTER_GROWTH_VERSION: return
+	var steps: Array = Array(map_state.get("steps", []))
+	var first: int = maxi(0, int(map_state.get("current_step", 0)))
+	var active_id: String = String(map_state.get("active_node_id", ""))
+	for index: int in range(first, steps.size()):
+		for node: Dictionary in steps[index].get("nodes", []):
+			# Never replace an in-progress or explicitly authored encounter queue.
+			if String(node.get("id", "")) == active_id or node.get("status", "") in ["selected", "completed"]: continue
+			if node.has("encounter_queue") or node.has("hazard_queue"): continue
+			_apply_encounter_growth(node, index, infinite)
+	map_state["encounter_growth_version"] = ENCOUNTER_GROWTH_VERSION
+
+
+func _apply_encounter_growth(node: Dictionary, step_index: int, infinite: bool) -> void:
+	if node.get("type", "") == "hazard":
+		node["hazard_queue"] = EncounterSeries.build_hazard_queue(int(node.get("area", 1)), step_index, infinite)
+	elif node.get("type", "") == "normal_battle":
+		var first: String = String(node.get("enemy_id", ""))
+		if first == "": return
+		var pool: Array = _normal_enemy_pool(int(node.get("area", 1)))
+		var enemies: Array[String] = [first]
+		var start: int = maxi(0, pool.find(first))
+		for index: int in range(1, EncounterSeries.normal_battle_count(step_index)):
+			enemies.append(String(pool[(start + index) % pool.size()]))
+		node["encounter_queue"] = enemies
+
+
+func _normal_enemy_pool(area: int) -> Array:
+	var local_area: int = (maxi(1, area) - 1) % INFINITE_AREA_SPAN + 1
+	return AREA_ONE_POOL if local_area == 1 else (AREA_THREE_POOL if local_area <= 3 else (AREA_FOUR_POOL if local_area <= 6 else (AREA_SEVEN_POOL if local_area <= 9 else AREA_TEN_POOL)))
 
 
 func _build_tier_two_steps(rng: RandomNumberGenerator) -> Array:
@@ -281,8 +321,7 @@ func _expand_route_choices(steps: Array, rng: RandomNumberGenerator, first: int 
 
 func _build_route_choice(index: int, ordinal: int, area: int, type: String, existing: Array, rng: RandomNumberGenerator) -> Dictionary:
 	if type == "normal_battle":
-		var local_area: int = (area - 1) % INFINITE_AREA_SPAN + 1
-		var pool: Array = AREA_ONE_POOL if local_area == 1 else (AREA_THREE_POOL if local_area <= 3 else (AREA_FOUR_POOL if local_area <= 6 else (AREA_SEVEN_POOL if local_area <= 9 else AREA_TEN_POOL)))
+		var pool: Array = _normal_enemy_pool(area)
 		var unused: Array = pool.filter(func(enemy: String) -> bool: return not existing.any(func(node: Dictionary) -> bool: return node.get("enemy_id", "") == enemy))
 		return _build_battle_node(index, ordinal, area, type, _pick_enemy(rng, unused if not unused.is_empty() else pool), "map.node.enemy_name", "Battle")
 	var labels: Dictionary = {

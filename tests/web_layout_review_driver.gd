@@ -85,6 +85,25 @@ func _command(arguments: Array) -> void:
 		Game.ensure_meta_initialized()
 		MetaProgressService.new().add_unlock_xp(Game.meta_progress, int(payload.get("xp", 0)))
 		_open_screen(String(payload.get("screen", "library")))
+	elif String(payload.get("action", "")) == "encounter_growth_fixture":
+		Game.start_new_run("balanced", 4242)
+		var infinite: bool = bool(payload.get("infinite", true))
+		var index: int = int(payload.get("step", 29)) - 1
+		var generator: MapGenerator = MapGenerator.new()
+		Game.current_run.infinite_mode = infinite
+		Game.current_run.map_state = generator.generate_infinite_run(4242) if infinite else generator.generate_run(4242, 4)
+		while Array(Game.current_run.map_state["steps"]).size() <= index:
+			generator.append_infinite_cycle(Game.current_run.map_state, 4242)
+		var steps: Array = Game.current_run.map_state["steps"]
+		Game.current_run.map_state["current_step"] = index
+		var previous: Dictionary = steps[index - 1]["nodes"][0]
+		previous["status"] = "completed"
+		previous["next_ids"] = steps[index]["nodes"].map(func(node: Dictionary) -> String: return String(node["id"]))
+		MapRouteGraph.unlock(Game.current_run.map_state, index)
+		if infinite: InfiniteScoreResolver.new().start_fresh(Game.current_run)
+		Game.settings["developer_mode"] = false
+		Game.set_language("ja")
+		SceneRouter.go_to_map()
 	elif String(payload.get("action", "")) == "encounter_fixture":
 		Game.set_language(String(payload.get("language", "ja")))
 		Game.start_new_run("balanced", 4242)

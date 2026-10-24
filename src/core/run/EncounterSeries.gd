@@ -2,6 +2,31 @@ extends RefCounted
 class_name EncounterSeries
 
 
+static func normal_battle_count(step_index: int) -> int:
+	return 1 + floori(float(maxi(0, step_index)) / 14.0)
+
+
+static func build_hazard_queue(area: int, step_index: int = 0, infinite: bool = false) -> Array[String]:
+	var pattern: Array[String]
+	if area <= 2:
+		pattern = ["raider", "guardian"]
+	elif area <= 3:
+		pattern = ["chronoguard", "disruptor", "brute"]
+	elif area <= 6:
+		pattern = ["phase_stalker", "echo_revenant", "void_bastion"]
+	elif area <= 9:
+		pattern = ["rift_predator", "entropy_colossus", "rift_predator"]
+	else:
+		pattern = ["omega_seraph", "grave_architect", "omega_seraph"]
+	var count: int = pattern.size()
+	if infinite and step_index >= 28:
+		count = 4 + floori(float(step_index - 28) / 7.0)
+	var enemies: Array[String] = []
+	for index: int in count:
+		enemies.append(pattern[index % pattern.size()])
+	return enemies
+
+
 static func queue(node: Dictionary) -> Array[String]:
 	var result: Array[String] = []
 	var key: String = "hazard_queue" if node.get("type", "") == "hazard" else "encounter_queue"

@@ -2337,6 +2337,10 @@ func developer_prepare_encounter_chain(hazard: bool = false) -> String:
 		node["type"] = "hazard" if hazard else "normal_battle"
 		node["enemy_id"] = "scout"
 		node["hazard_queue" if hazard else "encounter_queue"] = ["scout", "guardian", "brute"] if hazard else ["scout", "guardian"]
+		var preview_queue: Array = node["hazard_queue" if hazard else "encounter_queue"]
+		var enemy_count: int = EncounterSeries.build_hazard_queue(int(node.get("area", 1)), get_current_step_index(), current_run.infinite_mode).size() if hazard else EncounterSeries.normal_battle_count(get_current_step_index())
+		while preview_queue.size() < enemy_count:
+			preview_queue.append(["scout", "guardian", "brute"][preview_queue.size() % 3])
 		node[EncounterSeries.cleared_key(node)] = 0
 		_set_node(int(location["step_index"]), int(location["node_index"]), node)
 		SaveManager.save_game("map")
@@ -2726,6 +2730,7 @@ func _ensure_map_state() -> void:
 			current_run.map_state = _map_generator.generate_run(current_run.seed, get_unlocked_step_tier())
 	_map_generator.upgrade_pending_choices(current_run.map_state, current_run.seed)
 	MapRouteGraph.migrate(current_run.map_state, current_run.seed)
+	_map_generator.upgrade_encounter_growth(current_run.map_state, current_run.infinite_mode)
 
 
 func _prepare_non_battle_node(step_index: int, node_index: int) -> void:
@@ -2765,10 +2770,9 @@ func _prepare_non_battle_node(step_index: int, node_index: int) -> void:
 				for key in event_data.keys():
 					node_data[key] = event_data[key]
 		"hazard":
-			if not node_data.has("hazard_queue"):
-				var hazard_data: Dictionary = _build_hazard_node(area)
-				for key in hazard_data.keys():
-					node_data[key] = hazard_data[key]
+			var hazard_data: Dictionary = _build_hazard_node(area, step_index)
+			for key in hazard_data.keys():
+				if not node_data.has(key): node_data[key] = hazard_data[key]
 
 	_set_node(step_index, node_index, node_data)
 	pending_enemy_id = ""
@@ -3041,18 +3045,8 @@ func _apply_event_effect(effect_data: Dictionary) -> bool:
 	return true
 
 
-func _build_hazard_node(area: int) -> Dictionary:
-	var queue: Array[String] = []
-	if area <= 2:
-		queue = ["raider", "guardian"]
-	elif area <= 3:
-		queue = ["chronoguard", "disruptor", "brute"]
-	elif area <= 6:
-		queue = ["phase_stalker", "echo_revenant", "void_bastion"]
-	elif area <= 9:
-		queue = ["rift_predator", "entropy_colossus", "rift_predator"]
-	else:
-		queue = ["omega_seraph", "grave_architect", "omega_seraph"]
+func _build_hazard_node(area: int, step_index: int = 0) -> Dictionary:
+	var queue: Array[String] = EncounterSeries.build_hazard_queue(area, step_index, current_run != null and current_run.infinite_mode)
 	return {
 		"hazard_title": Localization.get_text("hazard.title", "Hazard Zone"),
 		"hazard_description": Localization.get_text("hazard.description", "Push through chained battles. Each cleared wave pays immediately."),

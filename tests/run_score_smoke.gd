@@ -82,7 +82,7 @@ func _test_unplayed_efficiency() -> void:
 		return
 	for tier: int in [2, 3, 4]:
 		run_state.map_state = MapGenerator.new().generate_run(777, tier)
-		if int(resolver.calculate(run_state)["efficiency"]) != roundi(1500.0 / (2.5 * tier)):
+		if int(resolver.calculate(run_state)["efficiency"]) != roundi(1500.0 / (2.5 * tier + maxi(0, tier - 2))):
 			_fail("Run score smoke failed: extended unplayed steps were omitted")
 			return
 	run_state.map_state = {"steps": [{"nodes": [

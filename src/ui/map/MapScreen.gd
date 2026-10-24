@@ -781,7 +781,7 @@ func _refresh_developer_panel() -> void:
 
 func _build_developer_actions() -> Array[Dictionary]:
 	var actions: Array[Dictionary] = [
-		{"id": "DevEncounterChain", "label": Localization.get_text("encounter.dev_chain", "Preview two-enemy chain"), "callback": Callable(self, "_on_dev_encounter_chain")},
+		{"id": "DevEncounterChain", "label": Localization.get_text("encounter.dev_chain", "Preview normal encounters"), "callback": Callable(self, "_on_dev_encounter_chain")},
 		{"id": "DevHazardPreview", "label": Localization.get_text("encounter.dev_hazard", "Preview hazard encounters"), "callback": Callable(self, "_on_dev_encounter_chain").bind(true)},
 		{"id": "DevMapAdvance", "label": Localization.get_text("map.route.dev_advance", "Advance route (no rewards)"), "callback": Callable(self, "_on_dev_map_advance")},
 		{"id": "DevAddGold", "label": Localization.get_text("map.dev.add_gold", "Add 50 Gold"), "callback": Callable(self, "_on_dev_add_gold")},

@@ -46,6 +46,10 @@ jobs:
           export PATH="$PWD/server/ranking/vendor:$PATH"
           godot --version
           godot --headless --path . --editor --quit > build/import.log 2>&1
+          godot --headless --path . res://tests/EncounterGrowthSmoke.tscn --quit-after 600 > build/encounter-growth.log 2>&1
+          cat build/encounter-growth.log
+          grep -q ENCOUNTER_GROWTH_SMOKE_OK build/encounter-growth.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/encounter-growth.log; then exit 1; fi
           godot --headless --path . res://tests/RankedRunSmoke.tscn --quit-after 600 > build/ranked-smoke.log 2>&1
           cat build/ranked-smoke.log
           grep -q RANKED_RUN_SMOKE_OK build/ranked-smoke.log
