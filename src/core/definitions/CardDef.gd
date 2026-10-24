@@ -17,6 +17,7 @@ var interruptible: bool = false
 var target_type: String = "enemy"
 var effects: Array[Dictionary] = []
 var upgrade_profile: Dictionary = {}
+var grade_overrides: Dictionary = {}
 
 
 static func from_dict(data: Dictionary) -> CardDef:
@@ -37,6 +38,7 @@ static func from_dict(data: Dictionary) -> CardDef:
 	card_def.target_type = String(data.get("target_type", "enemy"))
 	card_def.effects = _to_dictionary_array(data.get("effects", []))
 	card_def.upgrade_profile = Dictionary(data.get("upgrade_profile", {}))
+	card_def.grade_overrides = Dictionary(data.get("grade_overrides", {})).duplicate(true)
 	return card_def
 
 
@@ -58,6 +60,7 @@ func to_dict() -> Dictionary:
 		"target_type": target_type,
 		"effects": effects.duplicate(true),
 		"upgrade_profile": upgrade_profile.duplicate(true),
+		"grade_overrides": grade_overrides.duplicate(true),
 	}
 
 

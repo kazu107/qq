@@ -4,7 +4,7 @@ class_name BalanceDraft
 signal changed
 
 const DRAFT_PATH := "user://balance_lab_draft.json"
-const FORMAT := "queuequest-balance-diff-v1"
+const FORMAT := "queuequest-balance-diff-v2"
 const LEGACY: Dictionary = {
 	"iron_plating": {"pickup_hp": 10}, "tempered_edge": {"pickup_attack": 1},
 	"kinetic_boots": {"pickup_speed": 1}, "auxiliary_core": {"pickup_loadout": 2},
@@ -51,6 +51,7 @@ static var _catalog: Dictionary = {}
 static var _fields: Dictionary = {}
 static var _source_hash: String = ""
 static var _consumers: Dictionary = {}
+static var _grade_origins: Dictionary = {}
 var edits: Dictionary = {}
 var error_text: String = ""
 var _backup_failed: bool = false
@@ -80,14 +81,49 @@ static func ids(kind: String) -> Array:
 
 static func original(kind: String, id: String) -> Dictionary:
 	warm_catalog()
-	return Dictionary(Dictionary(_catalog.get(kind, {})).get(id, {})).duplicate(true)
+	var result: Dictionary = Dictionary(Dictionary(_catalog.get(kind, {})).get(id, {})).duplicate(true)
+	if kind == "card" and not result.is_empty():
+		if not _grade_origins.has(id):
+			var grades: Dictionary = {}
+			var source: CardDef = CardDef.from_dict(result)
+			for tier: int in range(1, CardUpgradeResolver.MAX_TIER + 1):
+				var resolved: Dictionary = CardUpgradeResolver.build_card_at_tier(id, tier, source).to_dict()
+				var numbers: Dictionary = {}
+				for key: String in ["loadout_cost", "active_slot_cost", "cast_time", "recast_time", "priority_modifier", "effects"]: numbers[key] = _numeric_tree(resolved[key])
+				grades[str(tier)] = numbers
+			_grade_origins[id] = grades
+		result["grade_overrides"] = _grade_origins[id].duplicate(true)
+	return result
+
+
+static func _numeric_tree(value: Variant) -> Variant:
+	if value is float or value is int: return value
+	var result: Dictionary = {}
+	if value is Array:
+		for index: int in value.size():
+			var entry: Variant = _numeric_tree(value[index])
+			if entry != null and (entry is not Dictionary or not entry.is_empty()): result[str(index)] = entry
+	elif value is Dictionary:
+		for key: String in value:
+			var entry: Variant = _numeric_tree(value[key])
+			if entry != null and (entry is not Dictionary or not entry.is_empty()): result[key] = entry
+	else: return null
+	return result
 
 
 func data(kind: String, id: String) -> Dictionary:
-	var result: Dictionary = original(kind, id)
+	warm_catalog()
+	var result: Dictionary = Dictionary(Dictionary(_catalog.get(kind, {})).get(id, {})).duplicate(true)
 	for path: String in Dictionary(edits.get(kind + ":" + id, {})):
 		_write(result, path, edits[kind + ":" + id][path])
 	return result
+
+
+func value(kind: String, id: String, path: String) -> float:
+	if kind == "card" and path.begins_with("grade_overrides."):
+		var parts: PackedStringArray = path.split(".")
+		return float(read(card(id, int(parts[1])).to_dict(), ".".join(parts.slice(2))))
+	return float(read(data(kind, id), path))
 
 
 static func fields(kind: String, id: String) -> Array[Dictionary]:
@@ -95,10 +131,17 @@ static func fields(kind: String, id: String) -> Array[Dictionary]:
 	if _fields.has(key): return _fields[key].duplicate(true)
 	var result: Array[Dictionary] = []
 	var source: Dictionary = original(kind, id)
-	for root: String in (["loadout_cost", "active_slot_cost", "cast_time", "recast_time", "priority_modifier", "effects", "upgrade_profile"] if kind == "card" else ["parameters", "effects"]):
+	for root: String in (["loadout_cost", "active_slot_cost", "cast_time", "recast_time", "priority_modifier", "effects", "upgrade_profile", "grade_overrides"] if kind == "card" else ["parameters", "effects"]):
 		if source.has(root): _walk(source[root], root, result, source, kind)
 	_fields[key] = result
 	return result.duplicate(true)
+
+
+static func fields_for_grade(kind: String, id: String, tier: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for field: Dictionary in fields(kind, id):
+		if kind == "relic" or int(field["grade"]) == tier: result.append(field)
+	return result
 
 
 static func _walk(value: Variant, path: String, result: Array[Dictionary], source: Dictionary, kind: String) -> void:
@@ -108,23 +151,30 @@ static func _walk(value: Variant, path: String, result: Array[Dictionary], sourc
 		for index: int in value.size(): _walk(value[index], path + "." + str(index), result, source, kind)
 	elif value is float or value is int:
 		var parts: PackedStringArray = path.split(".")
+		var relative: String = path
+		var grade: int = 0
+		if path.begins_with("grade_overrides."):
+			grade = int(parts[1]); relative = ".".join(parts.slice(2)); parts = relative.split(".")
+		elif path.begins_with("upgrade_profile."): grade = -1
 		var key: String = parts[-2] if parts[-1].is_valid_int() else parts[-1]
 		var floating: bool = key.contains("time") or key.contains("duration") or key.contains("ratio") or key.contains("multiplier") or key.contains("delay") or key.contains("haste") or key.contains("interval") or key.contains("window") or key.contains("seconds") or key.contains("recast") or key.contains("cast") or key.contains("priority") or key in ["timing", "effective_ratio", "amount_per_grade", "added_cast_per_bonus"]
-		if key == "amount" and path.begins_with("effects."):
+		if key == "amount" and relative.begins_with("effects."):
 			var effect: Dictionary = source["effects"][int(parts[1])]
 			floating = String(effect.get("type", "")) in ["delay_enemy_active_card", "haste_own_active_card", "reduce_recast", "empower_card", "reduce_source_recast", "haste_ally_when_enemy_delayed", "bank_delay_as_recast", "haste_at_thresholds"] or not is_equal_approx(float(value), roundf(float(value)))
+			if effect.get("type", "") == "empower_card" and effect.get("stat", "") in ["grade", "tier"]: floating = false
 		floating = floating or key.contains("second") or key in ["thresholds", "max_extension", "max_per_instance", "minimum_cast", "window_min", "window_max"] or not is_equal_approx(float(value), roundf(float(value)))
 		var minimum: float = 0.0
-		if path.begins_with("upgrade_profile.") or key in ["priority_modifier", "amount"]: minimum = -10000.0 if path.begins_with("upgrade_profile.") or key == "priority_modifier" or source.get("id", "") != "" and path.begins_with("effects.") and String(source["effects"][int(parts[1])].get("type", "")) in ["modify_attack", "modify_speed", "empower_card"] else 0.0
+		if path.begins_with("upgrade_profile.") or key in ["priority_modifier", "amount"]: minimum = -10000.0 if path.begins_with("upgrade_profile.") or key == "priority_modifier" or source.get("id", "") != "" and relative.begins_with("effects.") and String(source["effects"][int(parts[1])].get("type", "")) in ["modify_attack", "modify_speed", "empower_card"] else 0.0
 		if key in ["every", "required_count", "seconds_per_charge", "added_cast_per_bonus", "unused_capacity_per_slot", "decay_per_token", "shield_per_gold"]: minimum = 0.01 if floating else 1.0
 		var maximum: float = 1.0 if key.ends_with("ratio") else 10000.0
 		minimum = minf(minimum, float(value))
 		maximum = maxf(maximum, float(value))
 		var label: String = String(LABELS.get(key, key.replace("_", " ")))
-		if path.begins_with("effects."): label = "%s %d / %s" % ["効果" if Localization.get_language() == "ja" else "Effect", int(parts[1]) + 1, label]
+		if relative.begins_with("effects."): label = "%s %d / %s" % ["効果" if Localization.get_language() == "ja" else "Effect", int(parts[1]) + 1, label]
 		if path.begins_with("upgrade_profile."): label = "G%d / %s" % [int(parts[-1]), label]
+		elif grade > 0: label = "G%d / %s" % [grade, label]
 		var combat: bool = kind == "card" or path.begins_with("parameters.") and not key.begins_with("victory_") or Array(_consumers.get(source["id"], [])).has(key)
-		result.append({"path": path, "label": label if Localization.get_language() == "ja" else path, "before": float(value), "integer": not floating, "min": minimum, "max": maximum, "combat": combat})
+		result.append({"path": path, "label": label if Localization.get_language() == "ja" else relative, "before": float(value), "integer": not floating, "min": minimum, "max": maximum, "combat": combat, "grade": grade})
 
 
 func set_value(kind: String, id: String, path: String, value: float) -> bool:
@@ -134,7 +184,15 @@ func set_value(kind: String, id: String, path: String, value: float) -> bool:
 		if value < float(field["min"]) or value > float(field["max"]) or bool(field["integer"]) and not is_equal_approx(value, roundf(value)): return false
 		var key: String = kind + ":" + id
 		var row: Dictionary = Dictionary(edits.get(key, {}))
-		if is_equal_approx(value, float(field["before"])): row.erase(path)
+		var inherited: float = float(field["before"])
+		if path.begins_with("grade_overrides."):
+			var previous: Variant = row.get(path)
+			row.erase(path)
+			if row.is_empty(): edits.erase(key)
+			else: edits[key] = row
+			inherited = self.value(kind, id, path)
+			if previous != null: row[path] = previous
+		if is_equal_approx(value, inherited): row.erase(path)
 		else: row[path] = roundi(value) if field["integer"] else value
 		if row.is_empty(): edits.erase(key)
 		else: edits[key] = row
@@ -146,6 +204,16 @@ func set_value(kind: String, id: String, path: String, value: float) -> bool:
 func reset(kind: String = "", id: String = "") -> void:
 	if kind == "": edits.clear()
 	else: edits.erase(kind + ":" + id)
+	changed.emit()
+
+
+func reset_grade(id: String, tier: int) -> void:
+	var key: String = "card:" + id
+	var row: Dictionary = Dictionary(edits.get(key, {}))
+	for field: Dictionary in fields("card", id):
+		if int(field["grade"]) == tier or String(field["path"]).begins_with("upgrade_profile.") and String(field["path"]).get_slice(".", 2) == str(tier): row.erase(field["path"])
+	if row.is_empty(): edits.erase(key)
+	else: edits[key] = row
 	changed.emit()
 
 
@@ -194,6 +262,16 @@ func load_draft() -> bool:
 	var raw: Variant = JSON.parse_string(FileAccess.get_file_as_string(DRAFT_PATH))
 	var saved: Dictionary = raw if raw is Dictionary else {}
 	if import_document(saved): return true
+	if saved.get("format", "") == "queuequest-balance-diff-v1":
+		var migrated: Dictionary = saved.duplicate(true)
+		migrated["format"] = FORMAT; migrated["source_hash"] = _source_hash
+		var candidate: BalanceDraft = BalanceDraft.new()
+		if candidate.import_document(migrated):
+			var legacy_path: String = DRAFT_PATH + ".v1-backup-%d.json" % int(Time.get_unix_time_from_system())
+			if DirAccess.copy_absolute(DRAFT_PATH, legacy_path) == OK:
+				edits = candidate.edits.duplicate(true)
+				error_text = "旧下書きの各変更前数値を照合して移行しました。元ファイルも退避済みです。" if Localization.get_language() == "ja" else "Migrated the legacy draft after checking every original value; the source was backed up."
+				return true
 	var backup_path: String = DRAFT_PATH + ".incompatible-%d.json" % int(Time.get_unix_time_from_system())
 	_backup_failed = DirAccess.copy_absolute(DRAFT_PATH, backup_path) != OK
 	error_text = "旧下書きは適用せず別ファイルに退避しました。" if Localization.get_language() == "ja" else "An incompatible draft was retained in a separate backup without applying it."
@@ -212,7 +290,7 @@ func batch_candidate(kind: String, target_ids: Array[String], path: String, oper
 	for id: String in target_ids:
 		for field: Dictionary in fields(kind, id):
 			if field["path"] != path: continue
-			var old: float = float(read(data(kind, id), path))
+			var old: float = self.value(kind, id, path)
 			var value: float = old * amount if operation == 0 else (old + amount if operation == 1 else amount)
 			if field["integer"]: value = roundf(value)
 			else: value = snappedf(value, 0.001)
@@ -221,10 +299,15 @@ func batch_candidate(kind: String, target_ids: Array[String], path: String, oper
 
 
 func card(id: String, tier: int = 0) -> CardDef:
-	var result: CardDef = CardDef.from_dict(data("card", id))
+	var result: CardDef = source_card(id)
 	if result.id == "": return null
-	result.name = Database.get_card(id).name
 	return CardUpgradeResolver.build_card_at_tier(id, tier, result)
+
+
+func source_card(id: String) -> CardDef:
+	var result: CardDef = CardDef.from_dict(data("card", id))
+	if result.id != "": result.name = Database.get_card(id).name
+	return result
 
 
 func relic_value(id: String, key: String, fallback: float) -> float:
@@ -244,6 +327,10 @@ static func read(source: Dictionary, path: String) -> Variant:
 static func _write(source: Dictionary, path: String, value: Variant) -> void:
 	var parts: PackedStringArray = path.split(".")
 	var current: Variant = source
-	for index: int in parts.size() - 1: current = current[int(parts[index])] if current is Array else current[parts[index]]
+	for index: int in parts.size() - 1:
+		if current is Array: current = current[int(parts[index])]
+		else:
+			if not current.has(parts[index]): current[parts[index]] = {}
+			current = current[parts[index]]
 	if current is Array: current[int(parts[-1])] = value
 	else: current[parts[-1]] = value

@@ -1,7 +1,8 @@
 extends RefCounted
 class_name CardUpgradeResolver
 
-const MAX_TIER := 3
+const MAX_TIER := 5
+const MAX_RUN_TIER := 3
 const ARENA_TIMING_DISCOUNT_MULTIPLIER: float = 0.9
 
 
@@ -11,8 +12,8 @@ static func get_tier(run_state: RunState, card_id: String) -> int:
 	return clampi(int(run_state.card_upgrades.get(card_id, 0)), 0, MAX_TIER)
 
 
-static func build_effective_card(card_id: String, run_state: RunState, source: CardDef = null) -> CardDef:
-	var card_def: CardDef = build_card_at_tier(card_id, get_tier(run_state, card_id), source)
+static func build_effective_card(card_id: String, run_state: RunState, source: CardDef = null, battle_grade_bonus: int = 0) -> CardDef:
+	var card_def: CardDef = build_card_at_tier(card_id, get_tier(run_state, card_id) + battle_grade_bonus, source)
 	if card_def == null or run_state == null:
 		return card_def
 	var modifier_totals: Dictionary = Dictionary(run_state.temporary_card_modifiers.get(card_id, {}))
@@ -37,11 +38,49 @@ static func build_card_at_tier(card_id: String, tier: int, source: CardDef = nul
 	var safe_tier: int = clampi(tier, 0, MAX_TIER)
 	var upgraded_card: CardDef = CardDef.from_dict(base_card.to_dict())
 	if safe_tier <= 0:
+		_apply_grade_override(upgraded_card, safe_tier)
 		return upgraded_card
 
 	upgraded_card.name = "%s +%d" % [base_card.name, safe_tier]
 	_apply_upgrades(upgraded_card, safe_tier)
+	_apply_grade_override(upgraded_card, safe_tier)
 	return upgraded_card
+
+
+static func battle_grade_bonus(unit: UnitState, card_id: String) -> int:
+	if unit == null: return 0
+	var modifiers: Dictionary = Dictionary(unit.battle_card_modifiers.get(card_id, {}))
+	return roundi(float(modifiers.get("grade", 0))) + roundi(float(modifiers.get("tier", 0)))
+
+
+static func get_battle_tier(run: RunState, unit: UnitState, card_id: String) -> int:
+	var base: int = get_tier(run, card_id) if run != null else (int(Dictionary(unit.temporary_card_modifiers.get(card_id, {})).get("tier", 0)) if unit != null else 0)
+	return clampi(base + battle_grade_bonus(unit, card_id), 0, MAX_TIER)
+
+
+static func _apply_grade_override(card: CardDef, tier: int) -> void:
+	var values: Dictionary = Dictionary(card.grade_overrides.get(str(tier), {}))
+	if values.is_empty(): return
+	var data: Dictionary = card.to_dict()
+	_apply_numeric_tree(data, values)
+	card.loadout_cost = int(data["loadout_cost"])
+	card.active_slot_cost = int(data["active_slot_cost"])
+	card.cast_time = maxf(0, float(data["cast_time"]))
+	card.recast_time = maxf(0, float(data["recast_time"]))
+	card.priority_modifier = float(data["priority_modifier"])
+	card.effects = CardDef._to_dictionary_array(data["effects"])
+
+
+static func _apply_numeric_tree(target: Variant, values: Dictionary) -> void:
+	for key: String in values:
+		var index: Variant = int(key) if target is Array and key.is_valid_int() else key
+		if target is Array:
+			if index is not int or index < 0 or index >= target.size(): continue
+		elif target is Dictionary:
+			if not target.has(key) or key in ["grade_overrides", "upgrade_profile"]: continue
+		else: return
+		if values[key] is Dictionary: _apply_numeric_tree(target[index], values[key])
+		elif (values[key] is float or values[key] is int) and (target[index] is float or target[index] is int): target[index] = values[key]
 
 
 static func _apply_upgrades(card_def: CardDef, tier: int) -> void:

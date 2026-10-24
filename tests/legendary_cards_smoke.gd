@@ -133,6 +133,7 @@ func _test_runtime_resolution() -> bool:
 				runtime_id = runtime_state.runtime_id
 				break
 		if runtime_id.is_empty() or not engine.request_use_card("player", runtime_id):
+			engine.dispose()
 			_fail("Legendary card smoke failed: could not queue %s in battle" % card_id)
 			return false
 
@@ -147,8 +148,10 @@ func _test_runtime_resolution() -> bool:
 			if resolved:
 				break
 		if not resolved:
+			engine.dispose()
 			_fail("Legendary card smoke failed: %s did not resolve in battle" % card_id)
 			return false
+		engine.dispose()
 	return true
 
 

@@ -331,7 +331,7 @@ func build_victory_rewards(run_state: RunState, allowed_card_ids: Array[String],
 	var upgrade_card_id: String = _pick_upgrade_card(run_state, rng)
 	if upgrade_card_id != "":
 		var current_tier: int = CardUpgradeResolver.get_tier(run_state, upgrade_card_id)
-		var next_tier: int = mini(CardUpgradeResolver.MAX_TIER, current_tier + 1)
+		var next_tier: int = mini(CardUpgradeResolver.MAX_RUN_TIER, current_tier + 1)
 		var upgraded_card_def: CardDef = CardUpgradeResolver.build_card_at_tier(upgrade_card_id, next_tier)
 		if upgraded_card_def != null:
 			rewards.append({
@@ -480,7 +480,7 @@ func apply_pending_reward(run_state: RunState, reward_id: String, relic_service:
 			if not run_state.player_cards.has(upgrade_card_id):
 				return result
 			var before_tier: int = CardUpgradeResolver.get_tier(run_state, upgrade_card_id)
-			if before_tier >= CardUpgradeResolver.MAX_TIER:
+			if before_tier >= CardUpgradeResolver.MAX_RUN_TIER:
 				return result
 			var next_tier: int = _forge_service.upgrade_card(run_state, upgrade_card_id)
 			result["upgraded_card_id"] = upgrade_card_id
@@ -655,7 +655,7 @@ func _get_upgrade_candidates(run_state: RunState) -> Array[String]:
 		if seen.has(card_id):
 			continue
 		seen[card_id] = true
-		if CardUpgradeResolver.get_tier(run_state, card_id) >= CardUpgradeResolver.MAX_TIER:
+		if CardUpgradeResolver.get_tier(run_state, card_id) >= CardUpgradeResolver.MAX_RUN_TIER:
 			continue
 		if Database.get_card(card_id) == null:
 			continue

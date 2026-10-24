@@ -293,7 +293,7 @@ static func _sanitize_upgrades(value: Variant, deck: Array[String]) -> Dictionar
 		var card_id: String = String(raw_card_id)
 		if not deck.has(card_id):
 			continue
-		result[card_id] = clampi(int(raw_upgrades.get(raw_card_id, 0)), 0, CardUpgradeResolver.MAX_TIER)
+		result[card_id] = clampi(int(raw_upgrades.get(raw_card_id, 0)), 0, CardUpgradeResolver.MAX_RUN_TIER)
 	return result
 
 

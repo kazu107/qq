@@ -319,7 +319,7 @@ func _render_forge_options(forge_used: bool) -> void:
 		if card_def == null:
 			continue
 		var current_tier: int = CardUpgradeResolver.get_tier(Game.current_run, card_id)
-		var next_tier: int = mini(current_tier + 1, CardUpgradeResolver.MAX_TIER)
+		var next_tier: int = mini(current_tier + 1, CardUpgradeResolver.MAX_RUN_TIER)
 		var choice_data: Dictionary = {
 			"id": "upgrade_%s" % card_id,
 			"name_prefix": "ForgeChoiceButton",
@@ -332,7 +332,7 @@ func _render_forge_options(forge_used: bool) -> void:
 			"effects": [
 				{"type": "upgrade_random_card", "card_id": card_id, "next_tier": next_tier},
 			],
-			"enabled": not forge_used and current_tier < CardUpgradeResolver.MAX_TIER,
+			"enabled": not forge_used and current_tier < CardUpgradeResolver.MAX_RUN_TIER,
 			"disabled_reason": Localization.get_text("forge.used", "Forge already used for this visit.") if forge_used else Localization.get_text("forge.unavailable", "Unavailable"),
 		}
 		choice_list.add_child(_build_event_choice_button(choice_data, Callable(self, "_on_upgrade_card").bind(card_id)))

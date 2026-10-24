@@ -534,6 +534,16 @@ func _inspect() -> Dictionary:
 				"document": draft.document(), "reports": trial.reports, "running": trial.running, "progress": trial.progress(),
 				"game_hash": JSON.stringify({"run": run.to_dict() if run != null else {}, "meta": Game.meta_progress}).sha256_text(),
 				"published_damage": Database.get_card("quick_slash").effects[0]["amount"], "relics": screen.get("_test_relics")}
+			var grade_tabs: TabBar = screen.find_child("BalanceGradeTabs", true, false) as TabBar
+			var tab_rects: Array[Dictionary] = []
+			for tier: int in grade_tabs.tab_count: tab_rects.append({"tier": tier, "rect": _rect_values(grade_tabs.get_global_transform() * grade_tabs.get_tab_rect(tier))})
+			var grade_previews: Dictionary = {}
+			for tier: int in range(CardUpgradeResolver.MAX_TIER + 1):
+				var text: RichTextLabel = screen.find_child("BalancePreviewGrade%d" % tier, true, false) as RichTextLabel
+				if text != null: grade_previews[str(tier)] = text.get_parsed_text()
+			result["balance"]["grade_tabs"] = tab_rects
+			result["balance"]["editor_grade"] = grade_tabs.current_tab
+			result["balance"]["grade_previews"] = grade_previews
 			var manual: BalanceBattlePreview = screen.get("_manual") as BalanceBattlePreview
 			var bulk: OptionButton = screen.find_child("BalanceBulkField", true, false) as OptionButton
 			if bulk != null:

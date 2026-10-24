@@ -420,7 +420,12 @@ func empower_cards(side: String, source_card_id: String, effect: Dictionary) -> 
 			continue
 		if Database.get_card(card_id) == null:
 			continue
-		_add_temporary_card_modifier(side, card_id, stat, amount)
+		if stat in ["grade", "tier"]:
+			var unit: UnitState = battle_state.get_unit(side)
+			var before: int = CardUpgradeResolver.get_battle_tier(get_run_for_side(side), unit, card_id)
+			add_battle_card_modifier(side, card_id, "grade", amount)
+			if CardUpgradeResolver.get_battle_tier(get_run_for_side(side), unit, card_id) == before: continue
+		else: _add_temporary_card_modifier(side, card_id, stat, amount)
 		changed += 1
 	return changed
 
@@ -1061,6 +1066,12 @@ func add_battle_card_modifier(side: String, card_id: String, stat: String, amoun
 	if unit == null:
 		return
 	var card_modifiers: Dictionary = Dictionary(unit.battle_card_modifiers.get(card_id, {}))
+	if stat in ["grade", "tier"]:
+		var base: int = CardUpgradeResolver.get_tier(get_run_for_side(side), card_id) if get_run_for_side(side) != null else int(Dictionary(unit.temporary_card_modifiers.get(card_id, {})).get("tier", 0))
+		card_modifiers["grade"] = clampi(base + CardUpgradeResolver.battle_grade_bonus(unit, card_id) + roundi(amount), 0, CardUpgradeResolver.MAX_TIER) - base
+		card_modifiers.erase("tier")
+		unit.battle_card_modifiers[card_id] = card_modifiers
+		return
 	card_modifiers[stat] = float(card_modifiers.get(stat, 0.0)) + amount
 	unit.battle_card_modifiers[card_id] = card_modifiers
 
@@ -1225,8 +1236,8 @@ static func _build_scaled_enemy_def(enemy_def: EnemyDef, infinite_power: int) ->
 static func _apply_enemy_card_scaling(enemy_unit: UnitState, infinite_power: int) -> void:
 	if enemy_unit == null or infinite_power <= 0:
 		return
-	var tier: int = clampi(infinite_power, 1, CardUpgradeResolver.MAX_TIER)
-	var overflow_power: int = maxi(0, infinite_power - CardUpgradeResolver.MAX_TIER)
+	var tier: int = clampi(infinite_power, 1, CardUpgradeResolver.MAX_RUN_TIER)
+	var overflow_power: int = maxi(0, infinite_power - CardUpgradeResolver.MAX_RUN_TIER)
 	for runtime_state in enemy_unit.card_runtime_states:
 		var modifier_totals: Dictionary = {
 			"tier": tier,
@@ -1255,14 +1266,15 @@ static func build_enemy_preview(run: RunState, enemy_id: String, node: Dictionar
 func _get_card_def(side: String, card_id: String) -> CardDef:
 	var unit: UnitState = battle_state.get_unit(side) if battle_state != null else null
 	var card_def: CardDef = null
-	var source: CardDef = balance_sandbox.card(card_id) if balance_sandbox != null else null
+	var source: CardDef = balance_sandbox.source_card(card_id) if balance_sandbox != null else null
+	var grade_bonus: int = CardUpgradeResolver.battle_grade_bonus(unit, card_id)
 	if _pvp_mode:
-		card_def = CardUpgradeResolver.build_effective_card(card_id, get_run_for_side(side), source)
+		card_def = CardUpgradeResolver.build_effective_card(card_id, get_run_for_side(side), source, grade_bonus)
 	elif side == "player":
-		card_def = CardUpgradeResolver.build_effective_card(card_id, _player_run, source)
+		card_def = CardUpgradeResolver.build_effective_card(card_id, _player_run, source, grade_bonus)
 	elif unit != null:
 		var modifier_totals: Dictionary = Dictionary(unit.temporary_card_modifiers.get(card_id, {}))
-		var tier: int = clampi(int(modifier_totals.get("tier", 0)), 0, CardUpgradeResolver.MAX_TIER)
+		var tier: int = clampi(int(modifier_totals.get("tier", 0)) + grade_bonus, 0, CardUpgradeResolver.MAX_TIER)
 		card_def = CardUpgradeResolver.build_card_with_modifiers(card_id, modifier_totals, tier, source)
 	else:
 		card_def = Database.get_card(card_id)

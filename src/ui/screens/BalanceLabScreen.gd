@@ -15,6 +15,9 @@ var _field_widgets: Dictionary = {}
 var _fields_box: VBoxContainer
 var _preview: VBoxContainer
 var _heading: Label
+var _grade_tabs: TabBar
+var _grade_note: Label
+var _editor_grade: int = 0
 var _status: Label
 var _columns: BoxContainer
 var _list_frame: PanelContainer
@@ -145,12 +148,18 @@ func _build_ui() -> void:
 	var edit: VBoxContainer = _panel(_columns, _t("数値を編集", "Edit values"))
 	_heading = Label.new(); _heading.name = "BalanceSelection"; _heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	edit.add_child(_heading)
+	_grade_tabs = TabBar.new(); _grade_tabs.name = "BalanceGradeTabs"
+	for tier: int in range(CardUpgradeResolver.MAX_TIER + 1): _grade_tabs.add_tab(CardInfoFormatter.format_grade_label(tier))
+	edit.add_child(_grade_tabs)
+	_grade_tabs.tab_changed.connect(_on_editor_grade_changed)
+	_grade_note = Label.new(); _grade_note.text = _t("基本は全Grade共通の元値。+1以降はそのGradeだけの実数値を編集します。", "Base values feed all grades. Higher tabs override only that grade's actual values."); _grade_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; _grade_note.add_theme_font_size_override("font_size", 13); edit.add_child(_grade_note)
 	var editor_scroll: ScrollContainer = _inner_scroll(edit, "BalanceEditorScroll")
 	_fields_box = VBoxContainer.new(); _fields_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_fields_box.add_theme_constant_override("separation", 8)
 	editor_scroll.add_child(_fields_box)
 	_button(edit, "BalanceAddTest", _t("試験デッキ / 試験遺物に追加・外す", "Add/remove from test setup"), _toggle_test)
 	_button(edit, "BalanceResetSelected", _t("この対象を元に戻す", "Reset selected"), _reset_selected)
+	_button(edit, "BalanceResetGrade", _t("このGradeの個別変更を戻す", "Reset this grade's overrides"), _reset_grade)
 	var preview: VBoxContainer = _panel(_columns, _t("変更前 / 変更後", "Before / After"))
 	var preview_scroll: ScrollContainer = _inner_scroll(preview, "BalancePreviewScroll")
 	_preview = VBoxContainer.new(); _preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -161,13 +170,16 @@ func _build_ui() -> void:
 	_hp = _spin(conditions, "BalanceHP", "HP", 1, 10000, 60, 1)
 	_attack = _spin(conditions, "BalanceAttack", _t("攻撃", "Attack"), 0, 1000, 3, 1)
 	_speed = _spin(conditions, "BalanceSpeed", _t("速度", "Speed"), 0, 1000, 5, 1)
-	_grade = _spin(conditions, "BalanceGrade", "Grade", 0, 3, 0, 1)
+	_grade = _spin(conditions, "BalanceGrade", "Grade", 0, CardUpgradeResolver.MAX_TIER, 0, 1)
 	_mode = OptionButton.new(); _mode.name = "BalanceMode"
 	for mode: String in [_t("通常条件", "Normal"), _t("危険地帯", "Hazard"), _t("アリーナ条件", "Arena"), _t("無限条件", "Infinite")]: _mode.add_item(mode)
 	conditions.add_child(_mode)
 	_power = _spin(conditions, "BalancePower", _t("周回/ウェーブ", "Cycle/wave"), 1, 50, 1, 1)
 	_starter.item_selected.connect(_starter_changed)
 	for spin: SpinBox in [_hp, _attack, _speed, _grade]: spin.value_changed.connect(func(_v: float) -> void: _refresh_preview())
+	_grade.value_changed.connect(func(value: float) -> void:
+		if _grade_tabs.current_tab != int(value): _grade_tabs.current_tab = int(value)
+	)
 	_deck_label = Label.new(); _deck_label.name = "BalanceTestSetup"; _deck_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	root.add_child(_deck_label)
 	var actions: HFlowContainer = HFlowContainer.new(); root.add_child(actions)
@@ -216,8 +228,27 @@ func _spin(parent: Control, id: String, text: String, minimum: float, maximum: f
 	var group: HBoxContainer = HBoxContainer.new(); parent.add_child(group)
 	var label: Label = Label.new(); label.text = text; label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER; group.add_child(label)
 	var spin: SpinBox = SpinBox.new(); spin.name = id; spin.min_value = minimum; spin.max_value = maximum; spin.step = step; spin.value = value; spin.custom_minimum_size.x = 84
+	_enable_live_input(spin)
 	group.add_child(spin)
 	return spin
+
+
+func _enable_live_input(spin: SpinBox) -> void:
+	# SpinBox's built-in live mode clamps partial text (typing 10 can become 100).
+	# Apply valid values immediately, but leave the user's text/caret untouched.
+	var line: LineEdit = spin.get_line_edit()
+	line.text_changed.connect(func(text: String) -> void:
+		if not text.is_valid_float(): return
+		var value: float = float(text)
+		if not is_finite(value) or value < spin.min_value or value > spin.max_value: return
+		var caret: int = line.caret_column
+		var before: float = spin.value
+		spin.set_value_no_signal(value)
+		spin.apply() # Refresh SpinBox's formatting cache before restoring partial text.
+		line.text = text
+		line.caret_column = caret
+		if not is_equal_approx(before, spin.value): spin.value_changed.emit(spin.value)
+	)
 
 
 func _option(parent: Control, id: String, entries: Array[Dictionary]) -> OptionButton:
@@ -289,24 +320,35 @@ func _filter_catalog() -> void:
 
 func _select(kind: String, id: String) -> void:
 	_kind = kind; _selected = id
+	_grade_tabs.visible = kind == "card"
+	_grade_note.visible = kind == "card"
+	(find_child("BalanceResetGrade", true, false) as Button).visible = kind == "card"
 	(_fields_box.get_parent() as ScrollContainer).scroll_vertical = 0
 	_clear(_fields_box); _field_widgets.clear()
 	if id == "": _heading.text = _t("該当する対象がありません", "No matching entries"); _clear(_preview); return
 	_heading.text = _name(kind, id)
-	for field: Dictionary in BalanceDraft.fields(kind, id):
+	for field: Dictionary in BalanceDraft.fields_for_grade(kind, id, _editor_grade):
 		var row: VBoxContainer = VBoxContainer.new(); row.add_theme_constant_override("separation", 3); _fields_box.add_child(row)
 		var label: Label = Label.new(); label.text = field["label"]; label.tooltip_text = field["path"]; label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; row.add_child(label)
 		var values: HBoxContainer = HBoxContainer.new(); row.add_child(values)
 		var before: Label = Label.new(); before.text = "%s  >" % String.num(float(field["before"]), 3).trim_suffix(".000"); before.size_flags_horizontal = Control.SIZE_EXPAND_FILL; before.vertical_alignment = VERTICAL_ALIGNMENT_CENTER; values.add_child(before)
 		var spin: SpinBox = SpinBox.new(); spin.name = "BalanceValue_" + String(field["path"]).replace(".", "_"); spin.min_value = field["min"]; spin.max_value = field["max"]; spin.step = 1 if field["integer"] else 0.001; spin.custom_minimum_size.x = 120
-		spin.value = float(BalanceDraft.read(draft.data(kind, id), field["path"]))
+		spin.value = draft.value(kind, id, field["path"])
+		_enable_live_input(spin)
 		values.add_child(spin)
 		spin.value_changed.connect(_edit_value.bind(kind, id, field["path"]))
+		spin.get_line_edit().focus_exited.connect(func() -> void: call_deferred("_filter_after_typing"))
 		_field_widgets[field["path"]] = spin
 		if not field["combat"]:
 			var note: Label = Label.new(); note.text = _t("戦闘外・構造値：差分出力用（模擬戦では固定）", "Overworld/structural: export only, fixed in battle tests"); note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; note.add_theme_font_size_override("font_size", 13); note.modulate = UiTheme.ACCENT_GOLD; row.add_child(note)
 	_refresh_preview()
-	if _only_changes.button_pressed: _filter_catalog()
+	if _only_changes.button_pressed and not _is_number_editing(): _filter_catalog()
+
+
+func _on_editor_grade_changed(tier: int) -> void:
+	_editor_grade = tier
+	if _grade != null and int(_grade.value) != tier: _grade.value = tier
+	if _ready_catalog and _kind == "card": _select(_kind, _selected)
 
 
 func _edit_value(value: float, kind: String, id: String, path: String) -> void:
@@ -322,9 +364,18 @@ func _on_draft_changed() -> void:
 		var widget: Dictionary = _catalog_widgets[key]
 		(widget["label"] as Label).text = ("* " if draft.edits.has(key) else "") + _name(widget["kind"], widget["id"])
 	_refresh_preview()
-	_status.text = _t("変更項目: %d / 下書きはこの端末に自動保存。数値は基礎値です。", "Changed fields: %d / Draft autosaves on this device. Editor values are base values.") % draft.changes().size()
+	_status.text = _t("変更項目: %d / 下書きはこの端末に自動保存。編集値はステータス補正前です。", "Changed fields: %d / Draft autosaves on this device. Editor values are before stat modifiers.") % draft.changes().size()
 	if draft.error_text != "": _status.text += "\n" + draft.error_text
-	if _only_changes.button_pressed: _filter_catalog()
+	if _only_changes.button_pressed and not _is_number_editing(): _filter_catalog()
+
+
+func _is_number_editing() -> bool:
+	var focus: Control = get_viewport().gui_get_focus_owner()
+	return focus is LineEdit and focus.get_parent() is SpinBox
+
+
+func _filter_after_typing() -> void:
+	if _only_changes.button_pressed and not _is_number_editing(): _filter_catalog()
 
 
 func _refresh_preview() -> void:
@@ -345,7 +396,7 @@ func _refresh_preview() -> void:
 		else:
 			var image: TextureRect = TextureRect.new(); image.texture = _texture(_kind, _selected); image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE; image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED; image.custom_minimum_size = Vector2(0, 110); box.add_child(image)
 	if _kind == "card":
-		for tier: int in 4:
+		for tier: int in range(CardUpgradeResolver.MAX_TIER + 1):
 			var before: CardDef = BalanceDraft.new().card(_selected, tier)
 			var after: CardDef = draft.card(_selected, tier)
 			CardTooltipResolver._apply_attack_to_damage(before, int(_attack.value) if _attack != null else 0)
@@ -472,7 +523,7 @@ func _open_bulk() -> void:
 	var root: VBoxContainer = VBoxContainer.new(); _modal.add_child(root)
 	var note: Label = Label.new(); note.text = _t("現在の絞り込み対象だけを変更します。整数は四捨五入、小数は0.001単位。範囲外・項目なしは除外します。", "Edit visible filtered entries only. Round integers; decimals use 0.001 units. Invalid/missing fields are skipped."); note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; root.add_child(note)
 	var field_option: OptionButton = OptionButton.new(); field_option.name = "BalanceBulkField"; root.add_child(field_option)
-	for field: Dictionary in BalanceDraft.fields(_kind, _selected):
+	for field: Dictionary in BalanceDraft.fields_for_grade(_kind, _selected, _editor_grade):
 		field_option.add_item(field["label"]); field_option.set_item_metadata(field_option.item_count - 1, field["path"])
 	var operation: OptionButton = OptionButton.new(); operation.name = "BalanceBulkOperation"; root.add_child(operation)
 	for value: String in [_t("倍率（例: 0.9 = 10%減）", "Multiply (0.9 = -10%)"), _t("加算", "Add"), _t("固定値にする", "Set")]: operation.add_item(value)
@@ -516,6 +567,10 @@ func _export() -> void:
 
 func _reset_selected() -> void:
 	draft.reset(_kind, _selected); _select(_kind, _selected)
+
+
+func _reset_grade() -> void:
+	if _kind == "card" and _selected != "": draft.reset_grade(_selected, _editor_grade); _select(_kind, _selected)
 
 
 func _confirm_reset() -> void:

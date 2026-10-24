@@ -91,10 +91,10 @@ func apply_step_entry(run_state: RunState, step_number: int) -> String:
 	if claimed.has(step_number):
 		return ""
 	var best_id: String = ""
-	var best_tier: int = CardUpgradeResolver.MAX_TIER + 1
+	var best_tier: int = CardUpgradeResolver.MAX_RUN_TIER + 1
 	for card_id: String in run_state.equipped_cards:
 		var tier: int = CardUpgradeResolver.get_tier(run_state, card_id)
-		if tier < best_tier and tier < CardUpgradeResolver.MAX_TIER:
+		if tier < best_tier and tier < CardUpgradeResolver.MAX_RUN_TIER:
 			best_id = card_id
 			best_tier = tier
 	if best_id == "":

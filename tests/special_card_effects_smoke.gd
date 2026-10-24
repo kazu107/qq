@@ -48,11 +48,11 @@ func _run() -> void:
 
 func _test_large_shield_balance() -> bool:
 	var expected_shield_by_card: Dictionary = {
-		"barrier_deploy": [18, 20, 22, 23],
-		"fortify": [34, 38, 40, 43],
-		"bastion_drive": [11, 14, 16, 18],
-		"entropy_armor": [13, 16, 19, 22],
-		"grave_protocol": [18, 22, 26, 30],
+		"barrier_deploy": [18, 20, 22, 23, 24, 25],
+		"fortify": [34, 38, 40, 43, 46, 49],
+		"bastion_drive": [11, 14, 16, 18, 20, 22],
+		"entropy_armor": [13, 16, 19, 22, 25, 28],
+		"grave_protocol": [18, 22, 26, 30, 34, 38],
 	}
 	for card_id: String in expected_shield_by_card:
 		var expected_values: Array = Array(expected_shield_by_card[card_id])
@@ -70,12 +70,12 @@ func _test_large_shield_balance() -> bool:
 
 func _test_delay_card_balance() -> bool:
 	var expected_delay_by_card: Dictionary = {
-		"delay_step": [6.6, 7.9, 9.2, 10.6],
-		"time_buy": [3.3, 4.3, 5.3, 6.3],
-		"time_flow_control": [6.6, 7.9, 9.2, 10.6],
-		"stasis_field": [5.3, 6.6, 7.9, 9.2],
-		"null_cascade": [5.0, 5.9, 6.9, 7.9],
-		"rift_volley": [3.3, 4.3, 5.3, 6.3],
+		"delay_step": [6.6, 7.9, 9.2, 10.6, 12.0, 13.4],
+		"time_buy": [3.3, 4.3, 5.3, 6.3, 7.3, 8.3],
+		"time_flow_control": [6.6, 7.9, 9.2, 10.6, 12.0, 13.4],
+		"stasis_field": [5.3, 6.6, 7.9, 9.2, 10.5, 11.8],
+		"null_cascade": [5.0, 5.9, 6.9, 7.9, 8.9, 9.9],
+		"rift_volley": [3.3, 4.3, 5.3, 6.3, 7.3, 8.3],
 	}
 	for card_id: String in expected_delay_by_card:
 		var expected_values: Array = Array(expected_delay_by_card[card_id])
@@ -85,7 +85,7 @@ func _test_delay_card_balance() -> bool:
 			if absf(actual_delay - float(expected_values[tier])) > 0.01:
 				_fail("Special card smoke failed: unexpected delay balance for %s tier %d" % [card_id, tier])
 				return false
-	var expected_haste: Array[float] = [6.0, 7.2, 8.4, 9.6]
+	var expected_haste: Array[float] = [6.0, 7.2, 8.4, 9.6, 10.8, 12.0]
 	for tier in range(CardUpgradeResolver.MAX_TIER + 1):
 		var flow_card: CardDef = CardUpgradeResolver.build_card_at_tier("time_flow_control", tier)
 		if absf(_effect_amount(flow_card, "haste_own_active_card") - expected_haste[tier]) > 0.01:

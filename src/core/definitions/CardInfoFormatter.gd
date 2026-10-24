@@ -111,6 +111,8 @@ static func _describe_effect(effect: Dictionary, compact: bool, comparison_effec
 			})
 		"empower_card":
 			var empower_stat: String = String(effect.get("stat", "damage"))
+			if empower_stat in ["grade", "tier"]:
+				return Localization.get_textf("effect.empower_grade", "Change {scope} Grade by {amount} for this battle (maximum +5).", {"scope": _empower_scope_label(effect), "amount": _format_compared_signed_int(effect, comparison_effect, "amount", true, rich)})
 			return Localization.get_textf("effect.empower_card", "Empower {scope}: {stat} {amount} for this run", {
 				"scope": _empower_scope_label(effect),
 				"stat": _modifier_stat_label(empower_stat),

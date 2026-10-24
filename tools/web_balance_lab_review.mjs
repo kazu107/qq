@@ -166,7 +166,7 @@ try {
   const path = resolve(output, 'exported-diff.json');
   await download.saveAs(path);
   const document = JSON.parse(await readFile(path, 'utf8'));
-  assert.equal(document.format, 'queuequest-balance-diff-v1');
+  assert.equal(document.format, 'queuequest-balance-diff-v2');
   assert(document.changes.some(item => item.id === 'reactive_barrier' && item.after === 42));
   await page.waitForTimeout(1500);
   await page.reload();

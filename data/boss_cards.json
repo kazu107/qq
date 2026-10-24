@@ -1,24 +1,106 @@
 [
   {
-    "id": "timekeeper_final_strike", "name": "Final Hour Strike", "boss_only": true, "timeline_scale_excluded": true,
+    "id": "timekeeper_final_strike",
+    "name": "Final Hour Strike",
+    "boss_only": true,
+    "timeline_scale_excluded": true,
     "description": "Timekeeper-only. A long, uninterruptible strike prepared before the supporting cards.",
-    "rarity": "legendary", "tags": ["attack", "finisher", "boss"], "loadout_cost": 0,
-    "cast_time": 40.0, "recast_time": 8.0, "active_slot_cost": 2, "interruptible": false,
-    "target_type": "enemy", "effects": [{"type": "deal_damage", "amount": 25, "target": "enemy"}],
-    "upgrade_profile": {"damage": [0, 3, 6, 9]}
+    "rarity": "legendary",
+    "tags": [
+      "attack",
+      "finisher",
+      "boss"
+    ],
+    "loadout_cost": 0,
+    "cast_time": 40,
+    "recast_time": 8,
+    "active_slot_cost": 2,
+    "interruptible": false,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 25,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "damage": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15
+      ]
+    }
   },
   {
-    "id": "timekeeper_amplify", "name": "Clockwork Amplifier", "boss_only": true,
+    "id": "timekeeper_amplify",
+    "name": "Clockwork Amplifier",
+    "boss_only": true,
     "description": "Timekeeper-only. Double the next resolved attack card, including one already casting. Repeated casts stack multiplicatively: x2, x4, x8.",
-    "rarity": "legendary", "tags": ["support", "boss"], "loadout_cost": 0,
-    "cast_time": 3.0, "recast_time": 8.0, "active_slot_cost": 1, "interruptible": true,
-    "target_type": "self", "effects": [{"type": "next_attack_multiplier", "multiplier": 2.0}]
+    "rarity": "legendary",
+    "tags": [
+      "support",
+      "boss"
+    ],
+    "loadout_cost": 0,
+    "cast_time": 3,
+    "recast_time": 8,
+    "active_slot_cost": 1,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "next_attack_multiplier",
+        "multiplier": 2
+      }
+    ],
+    "upgrade_profile": {
+      "recast_time": [
+        0,
+        0,
+        0,
+        0,
+        -0.8,
+        -1.6
+      ]
+    }
   },
   {
-    "id": "timekeeper_time_mark", "name": "Mark of Time", "boss_only": true,
+    "id": "timekeeper_time_mark",
+    "name": "Mark of Time",
+    "boss_only": true,
     "description": "Timekeeper-only. Apply Vulnerable just before the long strike resolves. Can be interrupted.",
-    "rarity": "legendary", "tags": ["control", "boss"], "loadout_cost": 0,
-    "cast_time": 2.0, "recast_time": 8.0, "active_slot_cost": 1, "interruptible": true,
-    "target_type": "enemy", "effects": [{"type": "apply_status", "status": "vulnerable", "duration": 12.0, "target": "enemy"}]
+    "rarity": "legendary",
+    "tags": [
+      "control",
+      "boss"
+    ],
+    "loadout_cost": 0,
+    "cast_time": 2,
+    "recast_time": 8,
+    "active_slot_cost": 1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "vulnerable",
+        "duration": 12,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "duration": [
+        0,
+        0,
+        0,
+        0,
+        3,
+        6
+      ]
+    }
   }
 ]

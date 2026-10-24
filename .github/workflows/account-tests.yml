@@ -46,6 +46,10 @@ jobs:
           export PATH="$PWD/server/ranking/vendor:$PATH"
           godot --version
           godot --headless --path . --editor --quit > build/import.log 2>&1
+          godot --headless --path . res://tests/GradeFiveSmoke.tscn --quit-after 600 > build/grade-five.log 2>&1
+          cat build/grade-five.log
+          grep -q GRADE_FIVE_SMOKE_OK build/grade-five.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/grade-five.log; then exit 1; fi
           godot --headless --path . res://tests/BalanceLabSmoke.tscn --quit-after 600 > build/balance-lab.log 2>&1
           cat build/balance-lab.log
           grep -q BALANCE_LAB_SMOKE_OK build/balance-lab.log

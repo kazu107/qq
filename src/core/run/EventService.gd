@@ -208,7 +208,7 @@ func _resolve_upgrade_target(run_state: RunState, scope: String) -> Dictionary:
 
 	var valid_candidates: Array[String] = []
 	for card_id in candidates:
-		if CardUpgradeResolver.get_tier(run_state, card_id) >= CardUpgradeResolver.MAX_TIER:
+		if CardUpgradeResolver.get_tier(run_state, card_id) >= CardUpgradeResolver.MAX_RUN_TIER:
 			continue
 		valid_candidates.append(card_id)
 

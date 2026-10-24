@@ -27,7 +27,7 @@ func get_upgradable_cards(run_state: RunState) -> Array[String]:
 		if seen.has(card_id):
 			continue
 		seen[card_id] = true
-		if int(run_state.card_upgrades.get(card_id, 0)) >= 3:
+		if int(run_state.card_upgrades.get(card_id, 0)) >= CardUpgradeResolver.MAX_RUN_TIER:
 			continue
 		candidates.append(card_id)
 	return candidates
@@ -35,7 +35,7 @@ func get_upgradable_cards(run_state: RunState) -> Array[String]:
 
 func upgrade_card(run_state: RunState, card_id: String) -> int:
 	var current_tier := int(run_state.card_upgrades.get(card_id, 0))
-	if current_tier >= 3:
+	if current_tier >= CardUpgradeResolver.MAX_RUN_TIER:
 		return current_tier
 	current_tier += 1
 	run_state.card_upgrades[card_id] = current_tier

@@ -1,4 +1,5 @@
 {
+  "effect.empower_grade": "この戦闘中、{scope}のグレードを{amount}（上限+5）する。",
   "account.open": "ログイン / 新規登録",
   "account.signed_in": "アカウント：ログイン中",
   "account.register_name": "ユーザー名を設定",

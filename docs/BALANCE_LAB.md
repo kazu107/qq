@@ -7,7 +7,14 @@ from multiplayer. Production Web access retains the account developer allowlist.
 
 - Cards include collectible and boss cards. Relics include all 86 definitions.
 - Search by localized name, ID or tag; filter rarity/type or changed entries.
-- Edit base costs/timing/effect numbers and the four grade-profile entries.
+- The editor has Base/+1/+2/+3/+4/+5 tabs. Base edits feed the shared starting
+  definition; upper tabs edit the resolved numbers for that grade only. Unedited
+  upper values inherit base/profile changes. Explicit grade values are serialized
+  under `grade_overrides.<grade>.*` and applied after the profile calculation.
+- Numeric typing updates previews immediately, including decimal input; Enter
+  is not required. Incomplete/invalid intermediate text retains the prior value.
+- The per-grade reset clears that grade's overrides (and migrated profile edits)
+  without erasing other grades or the shared base.
 - Compare the original/current card at the selected grade and inspect every
   grade's effect summary with the chosen attack/speed.
 - Legacy relic constants are represented under `parameters.*`. Modern relics
@@ -32,6 +39,9 @@ downloads it in Web browsers. Attach that file to request publication. It holds
 stable IDs/paths, before/after values, source hash and game version. Importing an
 incompatible or tampered document is rejected atomically by the draft model.
 The editor does not rewrite `res://data`, source code or live save files.
+The v2 diff format supports grade-specific overrides. Legacy v1 drafts can migrate
+only when every original field value still matches; the original file is backed
+up before migration. Other incompatible drafts remain preserved without applying.
 
 ## Sandbox
 
@@ -57,7 +67,12 @@ ranked replay and ordinary engine setup do not enable them. The Game completion
 handler ignores sandbox-tagged results as an additional isolation barrier.
 Permission revocation closes the lab/cancels tests.
 
-This feature does **not** start a ranked season because published gameplay stays
-unchanged. When applying an exported gameplay change, follow `AGENTS.md`: review
+The initial lab feature did not start a season because gameplay stayed unchanged.
+The Grade 5 extension adds six-entry profiles for every card and a battle-only
+`empower_card` stat `grade`/`tier`, capped at 5 and discarded after battle. Forge,
+normal reward/event upgrades, automatic enemy scaling and network starting
+profiles retain the persistent cap of 3. Grades 4/5 are available for lab/debug
+tests and runtime effects, not new forge purchases. This gameplay revision starts
+the next ranked season. When applying an exported gameplay change, follow `AGENTS.md`: review
 the diff/source hash, update data/code and descriptions, run affected tests, bump
 the internal RankedSession revision, publish once and start the next season.

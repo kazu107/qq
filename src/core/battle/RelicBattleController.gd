@@ -22,7 +22,7 @@ func _loadout_cost(side: String, run: RunState) -> int:
 	var total: int = 0
 	var base_cards: int = 0
 	for id: String in run.equipped_cards:
-		total += _engine.balance_sandbox.card(id).loadout_cost
+		total += _engine.balance_sandbox.card(id, CardUpgradeResolver.get_battle_tier(run, _state.get_unit(side), id)).loadout_cost
 		if CardUpgradeResolver.get_tier(run, id) == 0: base_cards += 1
 	if has_relic(side, "unpolished_motherboard"): total -= mini(3, maxi(0, base_cards - 1))
 	return maxi(0, total)
@@ -484,7 +484,7 @@ func _handle_manual_sequences(side: String, instance: ActiveCardInstance, card_d
 		_set_value(side, "distinct_manual_ids", ids)
 	if has_relic(side, "grade_staircase") and not _flag(side, "grade_staircase_used"):
 		var expected: int = _integer(side, "grade_staircase_next")
-		var grade: int = CardUpgradeResolver.get_tier(_run(side), card_def.id)
+		var grade: int = CardUpgradeResolver.get_battle_tier(_run(side), _state.get_unit(side), card_def.id)
 		if grade == expected:
 			expected += 1
 			if expected >= 4:
@@ -499,7 +499,7 @@ func _handle_manual_sequences(side: String, instance: ActiveCardInstance, card_d
 	if has_relic(side, "grade_differential_wheel"):
 		var previous_grade: int = _integer(side, "previous_grade")
 		var previous_time: float = _number(side, "previous_grade_time")
-		var current_grade: int = CardUpgradeResolver.get_tier(_run(side), card_def.id)
+		var current_grade: int = CardUpgradeResolver.get_battle_tier(_run(side), _state.get_unit(side), card_def.id)
 		if previous_time > 0.0 and _state.battle_time - previous_time <= _p(side, "grade_differential_wheel", "window", 8.0) and previous_grade > current_grade:
 			var reduction: float = minf(_p(side, "grade_differential_wheel", "max_amount", 4.5), float(previous_grade - current_grade) * _p(side, "grade_differential_wheel", "amount_per_grade", 1.5))
 			var runtime_state: CardRuntimeState = _state.get_unit(side).get_runtime_state(instance.runtime_id)
