@@ -11,8 +11,8 @@ static func get_tier(run_state: RunState, card_id: String) -> int:
 	return clampi(int(run_state.card_upgrades.get(card_id, 0)), 0, MAX_TIER)
 
 
-static func build_effective_card(card_id: String, run_state: RunState) -> CardDef:
-	var card_def: CardDef = build_card_at_tier(card_id, get_tier(run_state, card_id))
+static func build_effective_card(card_id: String, run_state: RunState, source: CardDef = null) -> CardDef:
+	var card_def: CardDef = build_card_at_tier(card_id, get_tier(run_state, card_id), source)
 	if card_def == null or run_state == null:
 		return card_def
 	var modifier_totals: Dictionary = Dictionary(run_state.temporary_card_modifiers.get(card_id, {}))
@@ -21,16 +21,16 @@ static func build_effective_card(card_id: String, run_state: RunState) -> CardDe
 	return card_def
 
 
-static func build_card_with_modifiers(card_id: String, modifier_totals: Dictionary, tier: int = 0) -> CardDef:
-	var card_def: CardDef = build_card_at_tier(card_id, tier)
+static func build_card_with_modifiers(card_id: String, modifier_totals: Dictionary, tier: int = 0, source: CardDef = null) -> CardDef:
+	var card_def: CardDef = build_card_at_tier(card_id, tier, source)
 	if card_def == null:
 		return null
 	apply_modifier_totals(card_def, modifier_totals)
 	return card_def
 
 
-static func build_card_at_tier(card_id: String, tier: int) -> CardDef:
-	var base_card: CardDef = Database.get_card(card_id)
+static func build_card_at_tier(card_id: String, tier: int, source: CardDef = null) -> CardDef:
+	var base_card: CardDef = source if source != null else Database.get_card(card_id)
 	if base_card == null:
 		return null
 

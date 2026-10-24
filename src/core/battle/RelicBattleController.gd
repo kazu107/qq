@@ -9,6 +9,25 @@ var _state: BattleState
 var _runs: Dictionary = {}
 
 
+func _p(side: String, id: String, key: String, fallback: float) -> float:
+	return _engine.sandbox_relic_value(side, id, key, fallback) if _engine != null else fallback
+
+
+func _pi(side: String, id: String, key: String, fallback: int) -> int:
+	return roundi(_p(side, id, key, float(fallback)))
+
+
+func _loadout_cost(side: String, run: RunState) -> int:
+	if _engine.balance_sandbox == null: return RelicService.get_effective_loadout_cost(run)
+	var total: int = 0
+	var base_cards: int = 0
+	for id: String in run.equipped_cards:
+		total += _engine.balance_sandbox.card(id).loadout_cost
+		if CardUpgradeResolver.get_tier(run, id) == 0: base_cards += 1
+	if has_relic(side, "unpolished_motherboard"): total -= mini(3, maxi(0, base_cards - 1))
+	return maxi(0, total)
+
+
 func setup(engine: RealtimeBattleEngine, state: BattleState, player_run: RunState, enemy_run: RunState) -> void:
 	_engine = engine
 	_state = state
@@ -31,25 +50,27 @@ func apply_unit_setup(side: String, unit: UnitState) -> void:
 	if unit == null or run == null:
 		return
 	if has_relic(side, "fourth_reserve_rack"):
-		unit.active_slot_max += 1
+		unit.active_slot_max += _pi(side, "fourth_reserve_rack", "amount", 1)
 	if has_relic(side, "empty_rack_bus"):
-		var unused: int = maxi(0, run.loadout_limit - RelicService.get_effective_loadout_cost(run))
-		unit.active_slot_max += mini(2, unused / 3)
+		var unused: int = maxi(0, run.loadout_limit - _loadout_cost(side, run))
+		unit.active_slot_max += mini(_pi(side, "empty_rack_bus", "max_slots", 2), unused / maxi(1, _pi(side, "empty_rack_bus", "unused_capacity_per_slot", 3)))
 	if has_relic(side, "overload_seal"):
-		var overage: int = maxi(0, RelicService.get_effective_loadout_cost(run) - run.loadout_limit)
+		var overage: int = maxi(0, _loadout_cost(side, run) - run.loadout_limit)
 		if overage > 0:
-			unit.add_status("vulnerable", float(mini(2, overage)) * 12.0)
+			unit.add_status("vulnerable", float(mini(2, overage)) * _p(side, "overload_seal", "status_duration_per_overflow", 12.0))
 	if has_relic(side, "defeat_wiring") and run.arena_mode and bool(run.relic_state.get("arena_lost_last_battle", false)):
 		var base_slots: int = unit.active_slot_max
-		unit.active_slot_max = maxi(base_slots, 4)
+		unit.active_slot_max = maxi(base_slots, _pi(side, "defeat_wiring", "active_slots", 4))
 		if unit.active_slot_max > base_slots:
 			_set_value(side, "defeat_wiring_base_slots", base_slots)
-			_set_value(side, "defeat_wiring_until", 15.0)
+			_set_value(side, "defeat_wiring_until", _p(side, "defeat_wiring", "duration", 15.0))
 	if has_relic(side, "depth_pressure_gauge"):
 		var wave: int = _hazard_wave(run)
-		if wave >= 2:
+		if wave >= _pi(side, "depth_pressure_gauge", "minimum_wave", 2):
 			unit.active_slot_max += wave - 1
-			unit.cast_time_modifier *= 1.0 + float(wave - 1) * 0.05
+			var wave_penalty: float = 0.05
+			if not is_equal_approx(_p(side, "depth_pressure_gauge", "cast_multiplier_per_wave", 1.05), 1.05): wave_penalty = _p(side, "depth_pressure_gauge", "cast_multiplier_per_wave", 1.05) - 1.0
+			unit.cast_time_modifier *= 1.0 + float(wave - 1) * wave_penalty
 	_update_compression_caliper(side)
 
 
@@ -63,16 +84,18 @@ func update(delta: float) -> void:
 		_update_compression_caliper(side)
 		if has_relic(side, "fourth_reserve_rack") and unit.active_slots_used >= 4:
 			for instance: ActiveCardInstance in _state.get_active_instances_for_side(side):
-				_engine.shift_instance_schedule(instance, delta * 0.25, side, true)
+				_engine.shift_instance_schedule(instance, delta * (1.0 - _p(side, "fourth_reserve_rack", "fourth_slot_cast_progress_multiplier", 0.75)), side, true)
 		if has_relic(side, "vacancy_interest_meter"):
 			var empty_slots: int = maxi(0, unit.active_slot_max - unit.active_slots_used)
 			var accumulator: float = _number(side, "empty_slot_seconds") + delta * float(empty_slots)
 			var charges: int = _integer(side, "empty_slot_charges")
-			while accumulator >= 3.0 and charges < 3:
-				accumulator -= 3.0
+			var charge_seconds: float = maxf(0.01, _p(side, "vacancy_interest_meter", "seconds_per_charge", 3.0))
+			var charge_limit: int = _pi(side, "vacancy_interest_meter", "max_charges", 3)
+			while accumulator >= charge_seconds and charges < charge_limit:
+				accumulator -= charge_seconds
 				charges += 1
-			if charges >= 3:
-				accumulator = minf(accumulator, 2.999)
+			if charges >= charge_limit:
+				accumulator = minf(accumulator, charge_seconds - 0.001)
 			_set_value(side, "empty_slot_seconds", accumulator)
 			_set_value(side, "empty_slot_charges", charges)
 		if has_relic(side, "silent_three_second_timer"):
@@ -80,11 +103,12 @@ func update(delta: float) -> void:
 				_set_value(side, "empty_timeline_seconds", _number(side, "empty_timeline_seconds") + delta)
 			else:
 				_set_value(side, "empty_timeline_seconds", 0.0)
-		for threshold: float in THRESHOLDS:
+		for threshold_index: int in THRESHOLDS.size():
+			var threshold: float = _p(side, "zero_hour_clapper", "thresholds.%d" % threshold_index, THRESHOLDS[threshold_index])
 			var key: String = "zero_hour_%d" % int(threshold)
 			if has_relic(side, "zero_hour_clapper") and _state.battle_time >= threshold and not _flag(side, key):
 				_set_value(side, key, true)
-				_engine.haste_active_cards(side, 1.0, "single")
+				_engine.haste_active_cards(side, _p(side, "zero_hour_clapper", "amount", 1.0), "single")
 				_play_relic_proc(side, "zero_hour_clapper")
 		if has_relic(side, "defeat_wiring") and _state.battle_time >= _number(side, "defeat_wiring_until") and _number(side, "defeat_wiring_until") > 0.0:
 			unit.active_slot_max = maxi(3, _integer(side, "defeat_wiring_base_slots"))
@@ -93,19 +117,19 @@ func update(delta: float) -> void:
 
 func get_cooldown_delta(side: String, delta: float) -> float:
 	if has_relic(side, "fourth_reserve_rack") and _state.get_unit(side).active_slots_used >= 4:
-		return delta * 0.8
+		return delta * _p(side, "fourth_reserve_rack", "fourth_slot_cooldown_progress_multiplier", 0.8)
 	return delta
 
 
 func prevent_lethal(side: String) -> bool:
 	var run: RunState = _run(side)
 	var unit: UnitState = _state.get_unit(side)
-	if run == null or unit == null or unit.hp > 0 or not has_relic(side, "emergency_recovery_line") or _hazard_wave(run) < 2:
+	if run == null or unit == null or unit.hp > 0 or not has_relic(side, "emergency_recovery_line") or _hazard_wave(run) < _pi(side, "emergency_recovery_line", "minimum_wave", 2):
 		return false
 	var relic_data: Dictionary = Dictionary(run.relic_state.get("emergency_recovery_line", {}))
 	if bool(relic_data.get("used", false)):
 		return false
-	unit.heal(1)
+	unit.heal(_pi(side, "emergency_recovery_line", "survive_hp", 1))
 	relic_data["used"] = true
 	run.relic_state["emergency_recovery_line"] = relic_data
 	_mark_current_hazard_reward_lost(run)
@@ -133,38 +157,40 @@ func build_commit_profile(side: String, card_def: CardDef) -> Dictionary:
 	if has_relic(side, "vacancy_interest_meter"):
 		var charges: int = _integer(side, "empty_slot_charges")
 		if charges > 0:
-			profile["cast_time"] = maxf(0.45, float(profile["cast_time"]) - float(charges) * 0.8)
+			profile["cast_time"] = maxf(0.45, float(profile["cast_time"]) - float(charges) * _p(side, "vacancy_interest_meter", "haste_per_charge", 0.8))
 			flags["spent_empty_slot_charges"] = charges
-	if has_relic(side, "silent_three_second_timer") and _number(side, "empty_timeline_seconds") >= 3.0:
-		profile["cast_time"] = maxf(0.45, float(profile["cast_time"]) * 0.7)
-		profile["recast_multiplier"] = 1.25
+	if has_relic(side, "silent_three_second_timer") and _number(side, "empty_timeline_seconds") >= _p(side, "silent_three_second_timer", "required_empty_timeline_seconds", 3.0):
+		profile["cast_time"] = maxf(0.45, float(profile["cast_time"]) * _p(side, "silent_three_second_timer", "cast_multiplier", 0.7))
+		profile["recast_multiplier"] = _p(side, "silent_three_second_timer", "recast_multiplier", 1.25)
 		flags["silent_clock"] = true
-	if has_relic(side, "single_seat_duel_sheath") and unit.active_slots_used == 0 and card_def.active_slot_cost >= 2:
-		profile["cast_time"] = maxf(1.0, float(profile["cast_time"]) * 0.85)
+	if has_relic(side, "single_seat_duel_sheath") and unit.active_slots_used == 0 and card_def.active_slot_cost >= _pi(side, "single_seat_duel_sheath", "minimum_slot_cost", 2):
+		profile["cast_time"] = maxf(_p(side, "single_seat_duel_sheath", "minimum_cast", 1.0), float(profile["cast_time"]) * _p(side, "single_seat_duel_sheath", "cast_multiplier", 0.85))
 		flags["single_seat"] = true
-	if has_relic(side, "reserved_seat_tag") and is_relic_enabled(side, "reserved_seat_tag") and unit.active_slot_max - unit.active_slots_used == 1 and _enemy_has_interruptible(side) and card_def.tags.has("interrupt"):
-		profile["cast_time"] = maxf(0.45, float(profile["cast_time"]) * 0.8)
-	if has_relic(side, "full_load_latch") and not _flag(side, "full_load_used") and RelicService.get_effective_loadout_cost(run) == run.loadout_limit and card_def.active_slot_cost >= 2:
-		profile["slot_cost"] = maxi(1, card_def.active_slot_cost - 1)
+	if has_relic(side, "reserved_seat_tag") and is_relic_enabled(side, "reserved_seat_tag") and unit.active_slot_max - unit.active_slots_used == _pi(side, "reserved_seat_tag", "reserved_slots", 1) and _enemy_has_interruptible(side) and card_def.tags.has("interrupt"):
+		profile["cast_time"] = maxf(0.45, float(profile["cast_time"]) * _p(side, "reserved_seat_tag", "interrupt_cast_multiplier", 0.8))
+	if has_relic(side, "full_load_latch") and not _flag(side, "full_load_used") and _loadout_cost(side, run) == run.loadout_limit and card_def.active_slot_cost >= _pi(side, "full_load_latch", "minimum_slot_cost", 2):
+		profile["slot_cost"] = maxi(1, card_def.active_slot_cost - _pi(side, "full_load_latch", "amount", 1))
 		flags["full_load_latch"] = true
 	if has_relic(side, "twilight_pacemaker"):
 		var hp_ratio: float = float(unit.hp) / maxf(1.0, float(unit.max_hp))
-		if hp_ratio <= 0.43 and (card_def.tags.has("attack") or card_def.tags.has("control")):
-			profile["cast_time"] = maxf(0.45, float(profile["cast_time"]) * 0.91)
-		elif hp_ratio >= 0.49 and (card_def.tags.has("shield") or card_def.tags.has("heal")):
-			profile["effect_bonus"] = int(profile["effect_bonus"]) + maxi(1, _primary_effect_amount(card_def) * 8 / 100)
+		if hp_ratio <= _p(side, "twilight_pacemaker", "low_hp_ratio", 0.43) and (card_def.tags.has("attack") or card_def.tags.has("control")):
+			profile["cast_time"] = maxf(0.45, float(profile["cast_time"]) * _p(side, "twilight_pacemaker", "low_hp_cast_multiplier", 0.91))
+		elif hp_ratio >= _p(side, "twilight_pacemaker", "reset_hp_ratio", 0.49) and (card_def.tags.has("shield") or card_def.tags.has("heal")):
+			var bonus: int = _primary_effect_amount(card_def) * 8 / 100
+			if _engine.balance_sandbox != null: bonus = floori(_primary_effect_amount(card_def) * (_p(side, "twilight_pacemaker", "high_hp_effect_multiplier", 1.08) - 1.0))
+			profile["effect_bonus"] = int(profile["effect_bonus"]) + maxi(1, bonus)
 	if has_relic(side, "slow_charge_accumulator") and unit.has_status("slow"):
 		var added_cast: float = card_def.cast_time * unit.cast_time_modifier * 0.1
-		profile["effect_bonus"] = int(profile["effect_bonus"]) + mini(3, floori(added_cast / 0.5))
-	if has_relic(side, "compression_caliper") and unit.shield >= 12 and int(profile["shield_cost"]) > 0:
-		profile["shield_cost"] = int(profile["shield_cost"]) + 2
+		profile["effect_bonus"] = int(profile["effect_bonus"]) + mini(_pi(side, "slow_charge_accumulator", "max_amount", 3), floori(added_cast / maxf(0.01, _p(side, "slow_charge_accumulator", "added_cast_per_bonus", 0.5))) * _pi(side, "slow_charge_accumulator", "amount_per_step", 1))
+	if has_relic(side, "compression_caliper") and unit.shield >= _pi(side, "compression_caliper", "minimum_shield", 12) and int(profile["shield_cost"]) > 0:
+		profile["shield_cost"] = int(profile["shield_cost"]) + _pi(side, "compression_caliper", "shield_cost_bonus", 2)
 	if has_relic(side, "evaporation_recovery_valve") and int(profile["shield_cost"]) > 0:
 		var tokens: int = _integer(side, "shield_discount_tokens")
 		var used: int = mini(tokens, int(profile["shield_cost"]))
 		profile["shield_cost"] = maxi(0, int(profile["shield_cost"]) - used)
 		flags["shield_discount_used"] = used
 	if has_relic(side, "unpolished_motherboard") and CardUpgradeResolver.get_tier(run, card_def.id) == 0 and _is_discounted_base_card(run, card_def.id):
-		profile["cast_time"] = float(profile["cast_time"]) * 1.12
+		profile["cast_time"] = float(profile["cast_time"]) * _p(side, "unpolished_motherboard", "cast_multiplier", 1.12)
 	_apply_engraving_profile(side, card_def, profile)
 	return profile
 
@@ -175,7 +201,7 @@ func can_commit(side: String, card_def: CardDef, profile: Dictionary) -> bool:
 		return false
 	if _flag(side, "single_seat_locked"):
 		return false
-	if has_relic(side, "reserved_seat_tag") and is_relic_enabled(side, "reserved_seat_tag") and unit.active_slot_max - unit.active_slots_used == 1 and _enemy_has_interruptible(side) and not card_def.tags.has("interrupt"):
+	if has_relic(side, "reserved_seat_tag") and is_relic_enabled(side, "reserved_seat_tag") and unit.active_slot_max - unit.active_slots_used == _pi(side, "reserved_seat_tag", "reserved_slots", 1) and _enemy_has_interruptible(side) and not card_def.tags.has("interrupt"):
 		return false
 	return unit.active_slots_used + int(profile.get("slot_cost", card_def.active_slot_cost)) <= unit.active_slot_max and unit.shield >= int(profile.get("shield_cost", 0))
 
@@ -206,15 +232,16 @@ func after_commit(side: String, instance: ActiveCardInstance, card_def: CardDef,
 		var enemy_front: ActiveCardInstance = _front_instance(_opponent(side))
 		if enemy_front != null:
 			var difference: float = instance.scheduled_time - enemy_front.scheduled_time
-			if difference >= 0.0 and difference <= 0.2 and _cooldown_ready(side, "dead_heat_needle", 5.0):
+			if difference >= _p(side, "dead_heat_needle", "window_min", 0.0) and difference <= _p(side, "dead_heat_needle", "window_max", 0.2) and _cooldown_ready(side, "dead_heat_needle", _p(side, "dead_heat_needle", "internal_cooldown", 5.0)):
 				instance.scheduled_time = enemy_front.scheduled_time
-				instance.priority_modifier += 0.01
+				instance.priority_modifier += _p(side, "dead_heat_needle", "priority_bonus", 0.01)
 				instance.sort_key = instance.scheduled_time - instance.priority_modifier
-	if has_relic(side, "residual_pressure_detonator") and shield_before > 0 and _state.get_unit(side).shield == 0 and _cooldown_ready(side, "residual_pressure_detonator", 6.0):
-		var haste: float = minf(3.0, card_def.cast_time * 0.2)
+	if has_relic(side, "residual_pressure_detonator") and shield_before > 0 and _state.get_unit(side).shield == 0 and _cooldown_ready(side, "residual_pressure_detonator", _p(side, "residual_pressure_detonator", "internal_cooldown", 6.0)):
+		var haste: float = minf(_p(side, "residual_pressure_detonator", "max_amount", 3.0), card_def.cast_time * _p(side, "residual_pressure_detonator", "base_cast_ratio", 0.2))
 		instance.shift_schedule(-haste, _state.battle_time)
 	if instance.shield_cost_paid > 0 and has_relic(side, "memorial_fund_coil"):
-		_set_value(side, "memorial_shield_spent", mini(24, _integer(side, "memorial_shield_spent") + instance.shield_cost_paid))
+		var cap: int = _pi(side, "memorial_fund_coil", "max_gold_per_battle", 12) * _pi(side, "memorial_fund_coil", "shield_per_gold", 2)
+		_set_value(side, "memorial_shield_spent", mini(cap, _integer(side, "memorial_shield_spent") + instance.shield_cost_paid))
 
 
 func was_forced_hazard_withdraw(side: String) -> bool:
@@ -229,13 +256,13 @@ func prepare_resolution_card(side: String, instance: ActiveCardInstance, card_de
 		_add_primary_effect(result, _integer(side, "next_attack_bonus"))
 		instance.relic_flags["consumed_next_attack_bonus"] = true
 	if has_relic(side, "reversal_turbine"):
-		_add_primary_effect(result, mini(4, floori(float(instance.relic_flags.get("reverse_seconds", 0.0)))))
+		_add_primary_effect(result, mini(_pi(side, "reversal_turbine", "max_amount", 4), floori(float(instance.relic_flags.get("reverse_seconds", 0.0)) * _p(side, "reversal_turbine", "amount_per_second", 1.0))))
 	if bool(instance.relic_flags.get("overcharge_first", false)):
-		_scale_numeric_effects(result, 1.4)
+		_scale_numeric_effects(result, _p(side, "overcharge_confection_furnace", "effect_multiplier", 1.4))
 	if has_relic(side, "polarization_converter") and _relic_card(side, "polarization_converter") == card_def.id:
-		_convert_attack_shield(result)
+		_convert_attack_shield(result, side)
 	if has_relic(side, "balanced_three_phase_unit") and _relic_card(side, "balanced_three_phase_unit") == card_def.id:
-		_cap_primary_effects(result, 8)
+		_cap_primary_effects(result, _pi(side, "balanced_three_phase_unit", "main_effect_cap", 8))
 	return result
 
 
@@ -247,24 +274,24 @@ func after_resolve(side: String, instance: ActiveCardInstance, card_def: CardDef
 		_set_value(side, "manual_resolves", _integer(side, "manual_resolves") + 1)
 		_handle_manual_sequences(side, instance, card_def)
 	if has_relic(side, "full_slot_bell") and int(result.get("slots_before", 0)) >= 3 and unit.active_slots_used < 3 and _cooldown_ready(side, "full_slot_bell", 4.0):
-		unit.add_shield(4)
+		unit.add_shield(_pi(side, "full_slot_bell", "amount", 4))
 	if has_relic(side, "terminal_echo_ring") and not instance.is_auto_queued and _state.get_active_instances_for_side(side).is_empty() and _cooldown_ready(side, "terminal_echo_ring", 4.0):
-		_engine.reduce_cooldowns(side, 2.0, "last_used", instance.runtime_id)
+		_engine.reduce_cooldowns(side, _p(side, "terminal_echo_ring", "amount", 2.0), "last_used", instance.runtime_id)
 	if instance.is_auto_queued:
 		_handle_auto_resolution(side, instance)
 	var defender_side: String = _opponent(side)
-	if has_relic(defender_side, "full_absorption_gauge") and bool(result.get("fully_blocked", false)) and _integer(defender_side, "full_absorption_count") < 5 and _cooldown_ready(defender_side, "full_absorption_gauge", 4.0):
-		_engine.reduce_cooldowns(defender_side, 1.5, "highest_cooldown")
+	if has_relic(defender_side, "full_absorption_gauge") and bool(result.get("fully_blocked", false)) and _integer(defender_side, "full_absorption_count") < _pi(defender_side, "full_absorption_gauge", "max_per_battle", 5) and _cooldown_ready(defender_side, "full_absorption_gauge", 4.0):
+		_engine.reduce_cooldowns(defender_side, _p(defender_side, "full_absorption_gauge", "amount", 1.5), "highest_cooldown")
 		_set_value(defender_side, "full_absorption_count", _integer(defender_side, "full_absorption_count") + 1)
-	if has_relic(side, "weight_ticket_punch") and card_def.loadout_cost == 5 and _integer(side, "heavyweight_count") < 3:
-		_reduce_cooldowns_by_cost(side, 2.5, 1, 2)
+	if has_relic(side, "weight_ticket_punch") and card_def.loadout_cost == _pi(side, "weight_ticket_punch", "source_cost", 5) and _integer(side, "heavyweight_count") < _pi(side, "weight_ticket_punch", "max_per_battle", 3):
+		_reduce_cooldowns_by_cost(side, _p(side, "weight_ticket_punch", "amount", 2.5), _pi(side, "weight_ticket_punch", "target_cost_min", 1), _pi(side, "weight_ticket_punch", "target_cost_max", 2))
 		_set_value(side, "heavyweight_count", _integer(side, "heavyweight_count") + 1)
 		_play_relic_proc(side, "weight_ticket_punch")
 	if bool(instance.relic_flags.get("consumed_next_attack_bonus", false)):
 		_set_value(side, "next_attack_bonus", 0)
 	if has_relic(side, "overtake_signal") and bool(instance.relic_flags.get("overtook_enemy", false)) and _cooldown_ready(side, "overtake_signal", 5.0):
-		unit.add_shield(3)
-		_set_value(side, "next_attack_bonus", 2)
+		unit.add_shield(_pi(side, "overtake_signal", "shield", 3))
+		_set_value(side, "next_attack_bonus", _pi(side, "overtake_signal", "next_attack_damage", 2))
 	for engraving_id: String in ["solar_pinion", "overcharge_confection_furnace", "polarization_converter", "balanced_three_phase_unit"]:
 		if _relic_card(side, engraving_id) == card_def.id:
 			_set_value(side, "engraved_used_%s" % engraving_id, true)
@@ -274,10 +301,10 @@ func after_interrupt(side: String, instance: ActiveCardInstance, card_def: CardD
 	if bool(instance.relic_flags.get("single_seat", false)):
 		_set_value(side, "single_seat_locked", false)
 	if has_relic(side, "full_slot_bell") and slots_before >= 3 and _state.get_unit(side).active_slots_used < 3 and _cooldown_ready(side, "full_slot_bell", 4.0):
-		_state.get_unit(side).add_shield(2)
+		_state.get_unit(side).add_shield(_pi(side, "full_slot_bell", "interrupted_amount", 2))
 	if runtime_state != null and has_relic(side, "rupture_insurance_film") and instance.shield_cost_paid > 0 and not _flag(side, "rupture_insurance_used"):
-		_state.get_unit(side).add_shield(ceili(float(instance.shield_cost_paid) * 0.5))
-		runtime_state.begin_cooldown(maxf(4.0, card_def.recast_time * 0.7))
+		_state.get_unit(side).add_shield(ceili(float(instance.shield_cost_paid) * _p(side, "rupture_insurance_film", "refund_ratio", 0.5)))
+		runtime_state.begin_cooldown(maxf(4.0, card_def.recast_time * _p(side, "rupture_insurance_film", "recast_multiplier", 0.7)))
 		_set_value(side, "rupture_insurance_used", true)
 		_play_relic_proc(side, "rupture_insurance_film")
 
@@ -287,8 +314,9 @@ func on_shield_decay(side: String, amount: int) -> void:
 		var total: int = _integer(side, "natural_shield_decay") + amount
 		var tokens: int = _integer(side, "shield_discount_tokens")
 		var tokens_before: int = tokens
-		while total >= 3 and tokens < 3:
-			total -= 3
+		var decay_cost: int = maxi(1, _pi(side, "evaporation_recovery_valve", "decay_per_token", 3))
+		while total >= decay_cost and tokens < _pi(side, "evaporation_recovery_valve", "max_tokens", 3):
+			total -= decay_cost
 			tokens += 1
 		_set_value(side, "natural_shield_decay", total)
 		_set_value(side, "shield_discount_tokens", tokens)
@@ -299,38 +327,38 @@ func on_shield_decay(side: String, amount: int) -> void:
 func on_status_event(side: String, event_data: Dictionary) -> void:
 	var event_type: String = String(event_data.get("type", ""))
 	var status_id: String = String(event_data.get("status", ""))
-	if event_type == "status_damage" and status_id == "bleed" and has_relic(side, "bleed_pulsator") and _integer(side, "bleeding_pulses") < 6:
-		if _engine.haste_active_cards(side, 0.8, "single") == 0:
-			_engine.reduce_cooldowns(side, 0.8, "highest_cooldown")
+	if event_type == "status_damage" and status_id == "bleed" and has_relic(side, "bleed_pulsator") and _integer(side, "bleeding_pulses") < _pi(side, "bleed_pulsator", "max_per_battle", 6):
+		if _engine.haste_active_cards(side, _p(side, "bleed_pulsator", "haste_amount", 0.8), "single") == 0:
+			_engine.reduce_cooldowns(side, _p(side, "bleed_pulsator", "fallback_recast_reduction", 0.8), "highest_cooldown")
 		_set_value(side, "bleeding_pulses", _integer(side, "bleeding_pulses") + 1)
 		_play_relic_proc(side, "bleed_pulsator")
 	elif event_type == "status_expired" and NEGATIVE_STATUSES.has(status_id) and has_relic(_opponent(side), "critical_pathology_meter") and _cooldown_ready(_opponent(side), "critical_pathology_meter", 4.0):
 		if status_id == "bleed":
 			var unit: UnitState = _state.get_unit(side)
 			var before: int = unit.hp
-			unit.hp = maxi(0, unit.hp - 1)
+			unit.hp = maxi(0, unit.hp - _pi(_opponent(side), "critical_pathology_meter", "bleed_final_ticks", 1))
 			unit.combat_totals["damage_taken"] = int(unit.combat_totals["damage_taken"]) + maxi(0, before - unit.hp)
 			var source: UnitState = _state.get_opponent(side)
 			source.combat_totals["damage"] = int(source.combat_totals["damage"]) + maxi(0, before - unit.hp)
 			_engine.prevent_lethal(side)
 		else:
-			_engine.delay_active_cards(side, 1.2, "single", _opponent(side))
+			_engine.delay_active_cards(side, _p(_opponent(side), "critical_pathology_meter", "other_status_delay", 1.2), "single", _opponent(side))
 
 
 func apply_status(source_side: String, target_side: String, status_id: String, duration: float) -> bool:
 	if NEGATIVE_STATUSES.has(status_id) and has_relic(target_side, "quarantine_buffer") and not _flag(target_side, "quarantine_used"):
 		_set_value(target_side, "quarantine_used", true)
 		var unit: UnitState = _state.get_unit(target_side)
-		unit.statuses[status_id] = {"duration": duration, "max_duration": duration, "tick_accumulator": 0.0, "suspended": 6.0, "source_side": source_side}
+		unit.statuses[status_id] = {"duration": duration, "max_duration": duration, "tick_accumulator": 0.0, "suspended": _p(target_side, "quarantine_buffer", "defer_duration", 6.0), "source_side": source_side}
 		_play_relic_proc(target_side, "quarantine_buffer")
 		return true
 	_state.get_unit(target_side).add_status(status_id, duration)
 	_state.get_unit(target_side).statuses[status_id]["source_side"] = source_side
 	if has_relic(source_side, "four_symptom_seal") and not _flag(source_side, "four_symptom_used") and _has_four_symptoms(_state.get_unit(target_side)):
-		_engine.apply_timeline_flow(source_side, {"target_side": "enemy", "mode": "stop", "duration": 2.0})
+		_engine.apply_timeline_flow(source_side, {"target_side": "enemy", "mode": "stop", "duration": _p(source_side, "four_symptom_seal", "stop_duration", 2.0)})
 		for key: String in NEGATIVE_STATUSES:
 			var data: Dictionary = Dictionary(_state.get_unit(target_side).statuses.get(key, {}))
-			data["duration"] = maxf(0.0, float(data.get("duration", 0.0)) - 6.0)
+			data["duration"] = maxf(0.0, float(data.get("duration", 0.0)) - _p(source_side, "four_symptom_seal", "status_duration_reduction", 6.0))
 			_state.get_unit(target_side).statuses[key] = data
 		_set_value(source_side, "four_symptom_used", true)
 		_play_relic_proc(source_side, "four_symptom_seal")
@@ -342,8 +370,8 @@ func remove_status(source_side: String, target_side: String, status_id: String) 
 	var data: Dictionary = Dictionary(unit.statuses.get(status_id, {}))
 	var remaining: float = float(data.get("duration", 0.0))
 	unit.remove_status(status_id)
-	if source_side == target_side and NEGATIVE_STATUSES.has(status_id) and remaining > 0.0 and has_relic(source_side, "symptom_transfer_paper") and _integer(source_side, "symptom_transfers") < 2:
-		_state.get_opponent(source_side).add_status(status_id, remaining * 0.4)
+	if source_side == target_side and NEGATIVE_STATUSES.has(status_id) and remaining > 0.0 and has_relic(source_side, "symptom_transfer_paper") and _integer(source_side, "symptom_transfers") < _pi(source_side, "symptom_transfer_paper", "max_statuses_per_battle", 2):
+		_state.get_opponent(source_side).add_status(status_id, remaining * _p(source_side, "symptom_transfer_paper", "remaining_duration_ratio", 0.4))
 		_state.get_opponent(source_side).statuses[status_id]["source_side"] = source_side
 		_set_value(source_side, "symptom_transfers", _integer(source_side, "symptom_transfers") + 1)
 		_play_relic_proc(source_side, "symptom_transfer_paper")
@@ -353,17 +381,19 @@ func modify_timeline_flow(side: String, effect: Dictionary) -> Dictionary:
 	var result: Dictionary = effect.duplicate(true)
 	if has_relic(side, "paradox_mortgage"):
 		var original: float = float(result.get("duration", 0.0))
-		var extension: float = minf(2.0, original * 0.3)
+		var ratio: float = 0.3
+		if not is_equal_approx(_p(side, "paradox_mortgage", "duration_multiplier", 1.3), 1.3): ratio = _p(side, "paradox_mortgage", "duration_multiplier", 1.3) - 1.0
+		var extension: float = minf(_p(side, "paradox_mortgage", "max_extension", 2.0), original * ratio)
 		result["duration"] = original + extension
-		_set_value(side, "paradox_recast_debt", _number(side, "paradox_recast_debt") + 6.0)
+		_set_value(side, "paradox_recast_debt", _number(side, "paradox_recast_debt") + _p(side, "paradox_mortgage", "source_recast_penalty", 6.0))
 		_play_relic_proc(side, "paradox_mortgage")
 	return result
 
 
 func before_auto_queue(side: String) -> bool:
-	if has_relic(side, "waste_heat_printer") and _integer(side, "auto_heat") >= 3:
+	if has_relic(side, "waste_heat_printer") and _integer(side, "auto_heat") >= _pi(side, "waste_heat_printer", "required_heat", 3):
 		_set_value(side, "auto_heat", 0)
-		_engine.reduce_cooldowns(side, 6.0, "highest_cooldown")
+		_engine.reduce_cooldowns(side, _p(side, "waste_heat_printer", "recast_reduction", 6.0), "highest_cooldown")
 		_play_relic_proc(side, "waste_heat_printer")
 		return false
 	if has_relic(side, "isolation_chamber") and _flag(side, "isolation_occupied"):
@@ -374,7 +404,7 @@ func before_auto_queue(side: String) -> bool:
 func configure_auto_instance(side: String, source: ActiveCardInstance, instance: ActiveCardInstance) -> void:
 	instance.source_card_id = source.source_card_id if source.source_card_id != "" else source.card_id
 	if has_relic(side, "isolation_chamber"):
-		instance.scheduled_time = _state.battle_time + maxf(0.0, instance.scheduled_time - _state.battle_time) * 0.8
+		instance.scheduled_time = _state.battle_time + maxf(0.0, instance.scheduled_time - _state.battle_time) * _p(side, "isolation_chamber", "cast_multiplier", 0.8)
 		instance.slot_cost = 0
 		instance.relic_flags["isolation"] = true
 		_set_value(side, "isolation_occupied", true)
@@ -385,21 +415,21 @@ func on_timeline_shift(target_side: String, source_side: String, instance: Activ
 	if actual_delta > 0.0:
 		instance.relic_delay_hits += 1
 		if has_relic(target_side, "delay_return_gear"):
-			instance.relic_delay_bank = minf(4.0, instance.relic_delay_bank + actual_delta * 0.5)
+			instance.relic_delay_bank = minf(_p(target_side, "delay_return_gear", "max_per_instance", 4.0), instance.relic_delay_bank + actual_delta * _p(target_side, "delay_return_gear", "effective_ratio", 0.5))
 			_play_relic_proc(target_side, "delay_return_gear")
 		if source_side != "" and source_side != target_side and has_relic(source_side, "borrowed_second_hand") and _cooldown_ready(source_side, "borrowed_second_hand", 6.0):
-			_engine.haste_active_cards(source_side, minf(2.0, actual_delta * 0.35), "single")
-		if source_side != "" and source_side != target_side and has_relic(source_side, "terminal_bell") and instance.relic_delay_hits >= 3:
+			_engine.haste_active_cards(source_side, minf(_p(source_side, "borrowed_second_hand", "max_amount", 2.0), actual_delta * _p(source_side, "borrowed_second_hand", "effective_ratio", 0.35)), "single")
+		if source_side != "" and source_side != target_side and has_relic(source_side, "terminal_bell") and instance.relic_delay_hits >= _pi(source_side, "terminal_bell", "required_count", 3):
 			if _state.battle_time + 0.0001 >= _number(source_side, "cd_terminal_bell"):
 				var triggered: bool = false
 				if instance.interruptible:
 					triggered = _engine.interrupt_instance(instance)
 				else:
-					_engine.shift_instance_schedule(instance, 3.0, source_side)
+					_engine.shift_instance_schedule(instance, _p(source_side, "terminal_bell", "fallback_delay", 3.0), source_side)
 					triggered = true
 				if triggered:
 					instance.relic_delay_hits = 0
-					_set_value(source_side, "cd_terminal_bell", _state.battle_time + 12.0)
+					_set_value(source_side, "cd_terminal_bell", _state.battle_time + _p(source_side, "terminal_bell", "internal_cooldown", 12.0))
 	elif actual_delta < 0.0 and has_relic(target_side, "overtake_signal"):
 		var enemy_front: ActiveCardInstance = _front_instance(_opponent(target_side))
 		var before_shift: float = instance.scheduled_time - actual_delta
@@ -409,13 +439,13 @@ func on_timeline_shift(target_side: String, source_side: String, instance: Activ
 
 func on_reverse_shift(side: String, instance: ActiveCardInstance, seconds: float) -> void:
 	if has_relic(side, "reversal_turbine") and not instance.is_auto_queued:
-		instance.relic_flags["reverse_seconds"] = minf(4.0, float(instance.relic_flags.get("reverse_seconds", 0.0)) + seconds)
+		instance.relic_flags["reverse_seconds"] = minf(_p(side, "reversal_turbine", "max_amount", 4.0), float(instance.relic_flags.get("reverse_seconds", 0.0)) + seconds)
 
 
 func victory_gold_bonus(side: String) -> int:
 	if not has_relic(side, "memorial_fund_coil"):
 		return 0
-	return mini(12, _integer(side, "memorial_shield_spent") / 2)
+	return mini(_pi(side, "memorial_fund_coil", "max_gold_per_battle", 12), _integer(side, "memorial_shield_spent") / maxi(1, _pi(side, "memorial_fund_coil", "shield_per_gold", 2)))
 
 
 func has_relic(side: String, relic_id: String) -> bool:
@@ -436,8 +466,8 @@ func set_relic_enabled(side: String, relic_id: String, enabled: bool) -> bool:
 
 func _handle_manual_sequences(side: String, instance: ActiveCardInstance, card_def: CardDef) -> void:
 	var manual_count: int = _integer(side, "manual_resolves")
-	if has_relic(side, "triplet_relay") and manual_count % 3 == 0 and _integer(side, "triple_meter_count") < 4:
-		_engine.reduce_cooldowns(side, 4.0, "highest_cooldown", instance.runtime_id)
+	if has_relic(side, "triplet_relay") and manual_count % maxi(1, _pi(side, "triplet_relay", "every", 3)) == 0 and _integer(side, "triple_meter_count") < _pi(side, "triplet_relay", "max_per_battle", 4):
+		_engine.reduce_cooldowns(side, _p(side, "triplet_relay", "amount", 4.0), "highest_cooldown", instance.runtime_id)
 		_set_value(side, "triple_meter_count", _integer(side, "triple_meter_count") + 1)
 		_play_relic_proc(side, "triplet_relay")
 	if has_relic(side, "four_name_quartet"):
@@ -446,8 +476,8 @@ func _handle_manual_sequences(side: String, instance: ActiveCardInstance, card_d
 			ids = [card_def.id]
 		else:
 			ids.append(card_def.id)
-		if ids.size() >= 4 and _integer(side, "four_name_count") < 3:
-			_engine.reduce_cooldowns(side, 2.5, "all")
+		if ids.size() >= _pi(side, "four_name_quartet", "required_count", 4) and _integer(side, "four_name_count") < _pi(side, "four_name_quartet", "max_per_battle", 3):
+			_engine.reduce_cooldowns(side, _p(side, "four_name_quartet", "amount", 2.5), "all")
 			_set_value(side, "four_name_count", _integer(side, "four_name_count") + 1)
 			ids.clear()
 			_play_relic_proc(side, "four_name_quartet")
@@ -458,8 +488,8 @@ func _handle_manual_sequences(side: String, instance: ActiveCardInstance, card_d
 		if grade == expected:
 			expected += 1
 			if expected >= 4:
-				_state.get_unit(side).add_shield(10)
-				_engine.reduce_cooldowns(side, 3.0, "all")
+				_state.get_unit(side).add_shield(_pi(side, "grade_staircase", "shield", 10))
+				_engine.reduce_cooldowns(side, _p(side, "grade_staircase", "recast_reduction", 3.0), "all")
 				_set_value(side, "grade_staircase_used", true)
 				expected = 0
 				_play_relic_proc(side, "grade_staircase")
@@ -470,8 +500,8 @@ func _handle_manual_sequences(side: String, instance: ActiveCardInstance, card_d
 		var previous_grade: int = _integer(side, "previous_grade")
 		var previous_time: float = _number(side, "previous_grade_time")
 		var current_grade: int = CardUpgradeResolver.get_tier(_run(side), card_def.id)
-		if previous_time > 0.0 and _state.battle_time - previous_time <= 8.0 and previous_grade > current_grade:
-			var reduction: float = minf(4.5, float(previous_grade - current_grade) * 1.5)
+		if previous_time > 0.0 and _state.battle_time - previous_time <= _p(side, "grade_differential_wheel", "window", 8.0) and previous_grade > current_grade:
+			var reduction: float = minf(_p(side, "grade_differential_wheel", "max_amount", 4.5), float(previous_grade - current_grade) * _p(side, "grade_differential_wheel", "amount_per_grade", 1.5))
 			var runtime_state: CardRuntimeState = _state.get_unit(side).get_runtime_state(instance.runtime_id)
 			if runtime_state != null:
 				runtime_state.set_cooldown_remaining(runtime_state.cooldown_remaining - reduction)
@@ -484,8 +514,8 @@ func _handle_auto_resolution(side: String, instance: ActiveCardInstance) -> void
 	if has_relic(side, "echo_rectifier") and instance.source_card_id != "":
 		var counts: Dictionary = Dictionary(_value(side, "echo_source_counts", {}))
 		var count: int = int(counts.get(instance.source_card_id, 0))
-		if count < 3:
-			_reduce_card_cooldown(side, instance.source_card_id, 1.5)
+		if count < _pi(side, "echo_rectifier", "max_per_source", 3):
+			_reduce_card_cooldown(side, instance.source_card_id, _p(side, "echo_rectifier", "amount", 1.5))
 			counts[instance.source_card_id] = count + 1
 			_set_value(side, "echo_source_counts", counts)
 			_play_relic_proc(side, "echo_rectifier")
@@ -494,13 +524,13 @@ func _handle_auto_resolution(side: String, instance: ActiveCardInstance) -> void
 	if has_relic(side, "resin_memory_block") and instance.source_card_id != "":
 		var counts: Dictionary = Dictionary(_value(side, "resin_counts", {}))
 		var previous_count: int = int(counts.get(instance.source_card_id, 0))
-		if previous_count < 5:
+		if previous_count < _pi(side, "resin_memory_block", "max_per_card", 5):
 			counts[instance.source_card_id] = previous_count + 1
 			_set_value(side, "resin_counts", counts)
 			var source_card: CardDef = Database.get_card(instance.source_card_id)
 			var modifier_stat: String = _primary_modifier_stat(source_card)
 			if modifier_stat != "":
-				_engine.add_battle_card_modifier(side, instance.source_card_id, modifier_stat, 1.0)
+				_engine.add_battle_card_modifier(side, instance.source_card_id, modifier_stat, _p(side, "resin_memory_block", "amount", 1.0))
 				_play_relic_proc(side, "resin_memory_block")
 	if bool(instance.relic_flags.get("isolation", false)):
 		_set_value(side, "isolation_occupied", false)
@@ -508,25 +538,26 @@ func _handle_auto_resolution(side: String, instance: ActiveCardInstance) -> void
 
 func _apply_engraving_profile(side: String, card_def: CardDef, profile: Dictionary) -> void:
 	if has_relic(side, "solar_pinion") and _relic_card(side, "solar_pinion") == card_def.id:
-		profile["cast_time"] = maxf(0.6, float(profile["cast_time"]) - 1.0)
-		profile["recast_multiplier"] = float(profile["recast_multiplier"]) * 1.15
+		profile["cast_time"] = maxf(_p(side, "solar_pinion", "minimum_cast", 0.6), float(profile["cast_time"]) - _p(side, "solar_pinion", "cast_reduction", 1.0))
+		profile["recast_multiplier"] = float(profile["recast_multiplier"]) * _p(side, "solar_pinion", "recast_multiplier", 1.15)
 	if has_relic(side, "overcharge_confection_furnace") and _relic_card(side, "overcharge_confection_furnace") == card_def.id and not _flag(side, "engraved_used_overcharge_confection_furnace"):
 		Dictionary(profile["flags"])["overcharge_first"] = true
-		profile["recast_delta"] = maxf(float(profile["recast_delta"]), 60.0 - card_def.recast_time)
+		profile["recast_delta"] = maxf(float(profile["recast_delta"]), _p(side, "overcharge_confection_furnace", "minimum_post_resolve_cooldown", 60.0) - card_def.recast_time)
 	if has_relic(side, "polarization_converter") and _relic_card(side, "polarization_converter") == card_def.id:
-		profile["cast_time"] = float(profile["cast_time"]) + 0.6
+		profile["cast_time"] = float(profile["cast_time"]) + _p(side, "polarization_converter", "cast_penalty", 0.6)
 	if has_relic(side, "balanced_three_phase_unit") and _relic_card(side, "balanced_three_phase_unit") == card_def.id:
-		profile["slot_cost"] = 1
-		profile["cast_time"] = 4.0
-		profile["recast_delta"] = 30.0 - card_def.recast_time
+		profile["slot_cost"] = _pi(side, "balanced_three_phase_unit", "slot_cost", 1)
+		profile["cast_time"] = _p(side, "balanced_three_phase_unit", "cast_time", 4.0)
+		profile["recast_delta"] = _p(side, "balanced_three_phase_unit", "recast_time", 30.0) - card_def.recast_time
 
 
 func _update_compression_caliper(side: String) -> void:
 	var unit: UnitState = _state.get_unit(side)
-	unit.shield_decay_interval = 2.0 if has_relic(side, "compression_caliper") and unit.shield >= 12 else 1.0
+	unit.shield_decay_interval = _p(side, "compression_caliper", "decay_interval", 2.0) if has_relic(side, "compression_caliper") and unit.shield >= _pi(side, "compression_caliper", "minimum_shield", 12) else 1.0
 
 
 func _cooldown_ready(side: String, key: String, duration: float) -> bool:
+	duration = _p(side, key, "internal_cooldown", duration)
 	var ready_at: float = _number(side, "cd_%s" % key)
 	if _state.battle_time + 0.0001 < ready_at:
 		return false
@@ -547,7 +578,7 @@ func _reduce_card_cooldown(side: String, card_id: String, amount: float) -> void
 
 func _reduce_cooldowns_by_cost(side: String, amount: float, min_cost: int, max_cost: int) -> void:
 	for runtime_state: CardRuntimeState in _state.get_unit(side).card_runtime_states:
-		var card: CardDef = Database.get_card(runtime_state.card_id)
+		var card: CardDef = _engine._get_card_def(side, runtime_state.card_id) if _engine.balance_sandbox != null else Database.get_card(runtime_state.card_id)
 		if card != null and card.loadout_cost >= min_cost and card.loadout_cost <= max_cost and runtime_state.state == CardRuntimeState.CardState.COOLDOWN:
 			runtime_state.set_cooldown_remaining(runtime_state.cooldown_remaining - amount)
 
@@ -616,18 +647,18 @@ func _scale_numeric_effects(card_def: CardDef, multiplier: float) -> void:
 		card_def.effects[index] = effect
 
 
-func _convert_attack_shield(card_def: CardDef) -> void:
+func _convert_attack_shield(card_def: CardDef, side: String = "player") -> void:
 	for index: int in card_def.effects.size():
 		var effect: Dictionary = Dictionary(card_def.effects[index])
 		var effect_type: String = String(effect.get("type", ""))
 		if effect_type == "gain_shield":
 			effect["type"] = "deal_damage"
 			effect["target"] = "enemy"
-			effect["amount"] = floori(float(effect.get("amount", 0)) * 0.65)
+			effect["amount"] = floori(float(effect.get("amount", 0)) * _p(side, "polarization_converter", "shield_to_damage_ratio", 0.65))
 		elif effect_type == "deal_damage":
 			effect["type"] = "gain_shield"
 			effect["target"] = "self"
-			effect["amount"] = floori(float(effect.get("amount", 0)) * 0.8)
+			effect["amount"] = floori(float(effect.get("amount", 0)) * _p(side, "polarization_converter", "damage_to_shield_ratio", 0.8))
 		card_def.effects[index] = effect
 
 

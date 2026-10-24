@@ -1,0 +1,219 @@
+{
+  "fourth_reserve_rack": [
+    "amount",
+    "fourth_slot_cast_progress_multiplier",
+    "fourth_slot_cooldown_progress_multiplier"
+  ],
+  "empty_rack_bus": [
+    "max_slots",
+    "unused_capacity_per_slot"
+  ],
+  "overload_seal": [
+    "status_duration_per_overflow"
+  ],
+  "defeat_wiring": [
+    "active_slots",
+    "duration"
+  ],
+  "depth_pressure_gauge": [
+    "cast_multiplier_per_wave",
+    "minimum_wave"
+  ],
+  "vacancy_interest_meter": [
+    "haste_per_charge",
+    "max_charges",
+    "seconds_per_charge"
+  ],
+  "zero_hour_clapper": [
+    "amount",
+    "thresholds"
+  ],
+  "emergency_recovery_line": [
+    "minimum_wave",
+    "survive_hp"
+  ],
+  "silent_three_second_timer": [
+    "cast_multiplier",
+    "recast_multiplier",
+    "required_empty_timeline_seconds"
+  ],
+  "single_seat_duel_sheath": [
+    "cast_multiplier",
+    "minimum_cast",
+    "minimum_slot_cost"
+  ],
+  "reserved_seat_tag": [
+    "interrupt_cast_multiplier",
+    "reserved_slots"
+  ],
+  "full_load_latch": [
+    "amount",
+    "minimum_slot_cost"
+  ],
+  "twilight_pacemaker": [
+    "high_hp_effect_multiplier",
+    "low_hp_cast_multiplier",
+    "low_hp_ratio",
+    "reset_hp_ratio"
+  ],
+  "slow_charge_accumulator": [
+    "added_cast_per_bonus",
+    "amount_per_step",
+    "max_amount"
+  ],
+  "compression_caliper": [
+    "decay_interval",
+    "minimum_shield",
+    "shield_cost_bonus"
+  ],
+  "unpolished_motherboard": [
+    "cast_multiplier"
+  ],
+  "dead_heat_needle": [
+    "internal_cooldown",
+    "priority_bonus",
+    "window_max",
+    "window_min"
+  ],
+  "residual_pressure_detonator": [
+    "base_cast_ratio",
+    "internal_cooldown",
+    "max_amount"
+  ],
+  "memorial_fund_coil": [
+    "max_gold_per_battle",
+    "shield_per_gold"
+  ],
+  "reversal_turbine": [
+    "amount_per_second",
+    "max_amount"
+  ],
+  "overcharge_confection_furnace": [
+    "effect_multiplier",
+    "minimum_post_resolve_cooldown"
+  ],
+  "balanced_three_phase_unit": [
+    "cast_time",
+    "main_effect_cap",
+    "recast_time",
+    "slot_cost"
+  ],
+  "full_slot_bell": [
+    "amount",
+    "internal_cooldown",
+    "interrupted_amount"
+  ],
+  "terminal_echo_ring": [
+    "amount",
+    "internal_cooldown"
+  ],
+  "full_absorption_gauge": [
+    "amount",
+    "internal_cooldown",
+    "max_per_battle"
+  ],
+  "weight_ticket_punch": [
+    "amount",
+    "max_per_battle",
+    "source_cost",
+    "target_cost_max",
+    "target_cost_min"
+  ],
+  "overtake_signal": [
+    "internal_cooldown",
+    "next_attack_damage",
+    "shield"
+  ],
+  "rupture_insurance_film": [
+    "recast_multiplier",
+    "refund_ratio"
+  ],
+  "evaporation_recovery_valve": [
+    "decay_per_token",
+    "max_tokens"
+  ],
+  "bleed_pulsator": [
+    "fallback_recast_reduction",
+    "haste_amount",
+    "max_per_battle"
+  ],
+  "critical_pathology_meter": [
+    "bleed_final_ticks",
+    "internal_cooldown",
+    "other_status_delay"
+  ],
+  "quarantine_buffer": [
+    "defer_duration"
+  ],
+  "four_symptom_seal": [
+    "status_duration_reduction",
+    "stop_duration"
+  ],
+  "symptom_transfer_paper": [
+    "max_statuses_per_battle",
+    "remaining_duration_ratio"
+  ],
+  "paradox_mortgage": [
+    "duration_multiplier",
+    "max_extension",
+    "source_recast_penalty"
+  ],
+  "waste_heat_printer": [
+    "recast_reduction",
+    "required_heat"
+  ],
+  "isolation_chamber": [
+    "cast_multiplier"
+  ],
+  "delay_return_gear": [
+    "effective_ratio",
+    "max_per_instance"
+  ],
+  "borrowed_second_hand": [
+    "effective_ratio",
+    "internal_cooldown",
+    "max_amount"
+  ],
+  "terminal_bell": [
+    "fallback_delay",
+    "internal_cooldown",
+    "required_count"
+  ],
+  "triplet_relay": [
+    "amount",
+    "every",
+    "max_per_battle"
+  ],
+  "four_name_quartet": [
+    "amount",
+    "max_per_battle",
+    "required_count"
+  ],
+  "grade_staircase": [
+    "recast_reduction",
+    "shield"
+  ],
+  "grade_differential_wheel": [
+    "amount_per_grade",
+    "max_amount",
+    "window"
+  ],
+  "echo_rectifier": [
+    "amount",
+    "max_per_source"
+  ],
+  "resin_memory_block": [
+    "amount",
+    "max_per_card"
+  ],
+  "solar_pinion": [
+    "cast_reduction",
+    "minimum_cast",
+    "recast_multiplier"
+  ],
+  "polarization_converter": [
+    "cast_penalty",
+    "damage_to_shield_ratio",
+    "shield_to_damage_ratio"
+  ]
+}

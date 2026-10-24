@@ -1,6 +1,8 @@
 extends VBoxContainer
 class_name TimelinePanel
 
+var balance_engine: RealtimeBattleEngine
+
 const TIMELINE_TILE_SIZE: Vector2 = Vector2(168.0, 168.0)
 const TIMELINE_PANEL_MIN_HEIGHT: float = 322.0
 const TIMELINE_SCROLL_MIN_HEIGHT: float = 258.0
@@ -505,6 +507,11 @@ func _resolve_card_context(
 	local_unit: UnitState,
 	opponent_unit: UnitState
 ) -> Dictionary:
+	if balance_engine != null and balance_engine.balance_sandbox != null and entry.owner_side != FatigueRules.SIDE:
+		var current: CardDef = balance_engine._get_card_def(entry.owner_side, entry.card_id)
+		var unit: UnitState = balance_engine.battle_state.get_unit(entry.owner_side)
+		CardTooltipResolver._apply_attack_to_damage(current, unit.get_attack_value())
+		return {"card": current, "comparison": null}
 	if entry.owner_side == FatigueRules.SIDE:
 		return {"card": FatigueRules.get_card(entry.fatigue_damage), "comparison": null}
 	if entry.owner_side == local_side and run_state != null:

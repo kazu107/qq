@@ -57,6 +57,8 @@ New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 Write-Host "Exporting Web build with $GodotExecutable"
 & node (Join-Path $PSScriptRoot "generate_ranking_catalog.mjs")
 if ($LASTEXITCODE -ne 0) { throw "Ranking catalog generation failed." }
+& node (Join-Path $PSScriptRoot "generate_balance_catalog.mjs")
+if ($LASTEXITCODE -ne 0) { throw "Balance catalog generation failed." }
 & $GodotExecutable --headless --path $ProjectRoot --export-release "Web" $OutputFile
 if ($LASTEXITCODE -ne 0) {
     throw "Web export failed. Review the Godot errors above and run this script again after correcting the project or preset configuration."

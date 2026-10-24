@@ -131,6 +131,7 @@ static func warm_all_async(progress_callback: Callable = Callable()) -> Dictiona
 
 
 static func _collect_warmup_data() -> WarmupData:
+	BalanceDraft.warm_catalog()
 	CardButton.warm_texture_cache([FatigueRules.CARD_ID])
 	FatigueRules.get_card(FatigueRules.DAMAGE_STEP)
 	var data: WarmupData = WarmupData.new()

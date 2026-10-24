@@ -58,6 +58,13 @@ func _command(arguments: Array) -> void:
 		if bool(payload.get("sync", false)): CloudSession.sync_now()
 	elif String(payload.get("action", "")) == "screen":
 		_open_screen(String(payload.get("screen", "hub")))
+	elif String(payload.get("action", "")) == "balance_open":
+		Game.settings["developer_mode"] = true
+		SceneRouter.go_to_balance_lab()
+	elif String(payload.get("action", "")) == "balance_focus":
+		var lab: Control = get_tree().current_scene as Control
+		var field: Control = lab.find_child("BalanceValue_" + String(payload["path"]).replace(".", "_"), true, false) as Control
+		if field != null: (lab.find_child("BalanceEditorScroll", true, false) as ScrollContainer).ensure_control_visible(field)
 	elif String(payload.get("action", "")) == "permission_fixture":
 		AccountSession.enforce_web_permissions = true
 		Game.settings["developer_mode"] = bool(payload.get("enabled", false))
@@ -300,6 +307,10 @@ func _open_screen(screen: String) -> void:
 		"art_lab":
 			Game.settings["developer_mode"] = true
 			SceneRouter.go_to_art_lab()
+		"balance":
+			Game.start_new_run("balanced", 4242)
+			Game.settings["developer_mode"] = true
+			SceneRouter.go_to_balance_lab()
 		"hub_infinite": SceneRouter.go_to_hub()
 		"settings": SceneRouter.go_to_settings()
 		"setup": SceneRouter.go_to_run_setup()
@@ -506,6 +517,32 @@ func _inspect() -> Dictionary:
 				var menu: PopupMenu = option.get_popup()
 				if menu.visible:
 					result["library"]["option_menu"] = {"name": String(option.name), "focus": menu.get_focused_item(), "count": menu.item_count}
+		if screen.scene_file_path.get_file().get_basename() == "BalanceLab":
+			var draft: BalanceDraft = screen.get("draft") as BalanceDraft
+			var fields: Dictionary = {}
+			for path: String in Dictionary(screen.get("_field_widgets")):
+				var spin: SpinBox = Dictionary(screen.get("_field_widgets"))[path] as SpinBox
+				fields[path] = {"value": spin.value, "rect": _rect_values(spin.get_global_rect()), "edit_rect": _rect_values(spin.get_line_edit().get_global_rect()), "text": spin.get_line_edit().text}
+			var entries: Array[Dictionary] = []
+			for widget: Dictionary in Dictionary(screen.get("_catalog_widgets")).values():
+				var button: Button = widget["button"] as Button
+				if button.visible: entries.append({"kind": widget["kind"], "id": widget["id"], "rect": _rect_values(button.get_global_rect())})
+			var run: RunState = Game.current_run
+			var trial: BalanceTrialRunner = screen.get("runner") as BalanceTrialRunner
+			result["balance"] = {"ready": screen.call("is_content_ready"), "kind": screen.get("_kind"), "selected": screen.get("_selected"), "fields": fields, "entries": entries,
+				"config": screen.call("_config"),
+				"document": draft.document(), "reports": trial.reports, "running": trial.running, "progress": trial.progress(),
+				"game_hash": JSON.stringify({"run": run.to_dict() if run != null else {}, "meta": Game.meta_progress}).sha256_text(),
+				"published_damage": Database.get_card("quick_slash").effects[0]["amount"], "relics": screen.get("_test_relics")}
+			var manual: BalanceBattlePreview = screen.get("_manual") as BalanceBattlePreview
+			var bulk: OptionButton = screen.find_child("BalanceBulkField", true, false) as OptionButton
+			if bulk != null:
+				var focused: int = bulk.get_popup().get_focused_item()
+				result["balance"]["bulk"] = {"path": bulk.get_selected_metadata(), "amount": (screen.find_child("BalanceBulkAmount", true, false) as SpinBox).value,
+					"focused_path": bulk.get_item_metadata(focused) if focused >= 0 else ""}
+			if manual != null and manual.engine != null:
+				result["balance"]["manual"] = {"time": manual.engine.battle_state.battle_time, "shield": manual.engine.battle_state.player.shield,
+					"damage": manual.engine._get_card_def("player", "quick_slash").effects[0]["amount"], "sandbox": manual.engine.build_summary(false).get("balance_sandbox", false)}
 		if screen.scene_file_path.get_file().get_basename() == "MetaProgress":
 			var upgrades: Array[Dictionary] = []
 			for entry: Dictionary in Game.get_meta_stat_upgrade_entries():

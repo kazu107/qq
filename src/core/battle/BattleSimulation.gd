@@ -8,7 +8,7 @@ var limit: float = 300.0
 var finished: bool = false
 
 
-func setup(run: RunState, enemy_id: String, time_limit: float = 300.0, phase: float = 0.0, record: bool = true) -> void:
+func setup(run: RunState, enemy_id: String, time_limit: float = 300.0, phase: float = 0.0, record: bool = true, draft: BalanceDraft = null) -> void:
 	dispose()
 	limit = clampf(time_limit, 1.0, 3600.0)
 	finished = false
@@ -18,7 +18,11 @@ func setup(run: RunState, enemy_id: String, time_limit: float = 300.0, phase: fl
 	engine = RealtimeBattleEngine.new()
 	engine.set_audio_enabled(false)
 	engine.record_visuals = record
-	engine.setup(RunState.from_dict(run.to_dict()), enemy_id)
+	if draft != null:
+		if not engine.setup_sandbox(run, enemy_id, draft):
+			finished = true
+			return
+	else: engine.setup(RunState.from_dict(run.to_dict()), enemy_id)
 	engine.start_battle()
 
 
@@ -28,7 +32,7 @@ func advance(steps: int = 100) -> void:
 	for _step in range(steps):
 		bot.update(engine, STEP)
 		engine.update(STEP)
-		if engine.battle_state.winner != "" or engine.battle_state.battle_time >= limit:
+		if engine.battle_state.winner != "" or engine.battle_state.battle_time >= limit or engine.balance_limit_reached:
 			finished = true
 			break
 
@@ -38,7 +42,7 @@ func result() -> Dictionary:
 		return {}
 	var summary: Dictionary = engine.build_summary()
 	summary["simulation"] = true
-	summary["unresolved"] = engine.battle_state.winner == ""
+	summary["unresolved"] = engine.battle_state.winner == "" or engine.balance_limit_reached
 	summary["simulation_limit"] = limit
 	return summary
 

@@ -23,6 +23,8 @@ var analysis: BattleAnalysis = BattleAnalysis.new()
 var recording: BattleRecording = BattleRecording.new()
 var resolution_metrics: Dictionary = {}
 var record_visuals: bool = true
+var balance_sandbox: BalanceDraft
+var balance_limit_reached: bool = false
 
 
 func set_audio_enabled(enabled: bool) -> void:
@@ -40,6 +42,8 @@ func dispose() -> void:
 	_enemy_run = null
 	_timeline_flows.clear()
 	recording.frames.clear()
+	balance_sandbox = null
+	balance_limit_reached = false
 
 
 func _play_sfx(sfx_id: String, pitch_scale: float = 1.0, volume_db: float = 0.0) -> void:
@@ -53,6 +57,19 @@ func _play_card_resolution(card_def: CardDef, fully_blocked: bool) -> void:
 
 
 func setup(player_run: RunState, enemy_id: String) -> void:
+	balance_sandbox = null
+	_setup_internal(player_run, enemy_id)
+
+
+func setup_sandbox(player_run: RunState, enemy_id: String, draft: BalanceDraft) -> bool:
+	if not Game.is_developer_mode_enabled() or NetworkManager.is_session_connected() or draft == null: return false
+	balance_sandbox = draft.frozen()
+	_setup_internal(RunState.from_dict(player_run.to_dict()), enemy_id)
+	return true
+
+
+func _setup_internal(player_run: RunState, enemy_id: String) -> void:
+	balance_limit_reached = false
 	var enemy_def := Database.get_enemy(enemy_id)
 	if enemy_def == null:
 		push_error("Enemy not found: %s" % enemy_id)
@@ -81,7 +98,7 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 	_boss_passive_timer = float(enemy_def.passive.get("interval", 0.0))
 	_timeline_flows.clear()
 	analysis.capture_state(battle_state, true)
-	RankedSession.attach(self, player_run, enemy_id)
+	if balance_sandbox == null: RankedSession.attach(self, player_run, enemy_id)
 
 
 func setup_pvp(
@@ -90,6 +107,7 @@ func setup_pvp(
 	player_name: String = "Player 1",
 	opponent_name: String = "Player 2"
 ) -> void:
+	balance_sandbox = null
 	if player_run == null or opponent_run == null:
 		push_error("PvP battle requires two valid run states")
 		return
@@ -436,6 +454,10 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 		cast_duration = card_def.cast_time * unit.get_cast_time_multiplier()
 
 	var queue_count: int = _resolve_auto_queue_count(unit, effect)
+	if balance_sandbox != null:
+		var remaining: int = maxi(0, 256 - battle_state.active_instances.size())
+		if queue_count > remaining: balance_limit_reached = true
+		queue_count = mini(queue_count, remaining)
 	if queue_count <= 0:
 		return 0
 	var queue_spacing: float = maxf(0.0, float(effect.get("queue_spacing", 0.0)))
@@ -547,6 +569,10 @@ func build_summary(include_battle_events: bool = true) -> Dictionary:
 		"player_relic_bonus_gold": _relic_controller.victory_gold_bonus("player") if battle_state.winner == "player" else 0,
 		"enemy_relic_bonus_gold": _relic_controller.victory_gold_bonus("enemy") if battle_state.winner == "enemy" else 0,
 	}
+	if balance_sandbox != null:
+		summary["simulation"] = true
+		summary["balance_sandbox"] = true
+		summary["balance_limit_reached"] = balance_limit_reached
 	if not _infinite_score_context.is_empty():
 		summary["infinite_score_context"] = _infinite_score_context.duplicate(true)
 	if include_battle_events:
@@ -580,7 +606,7 @@ func _build_run_unit(run_state: RunState, side: String, display_name: String) ->
 	unit.active_slot_max = 3
 	unit.temporary_card_modifiers = run_state.temporary_card_modifiers
 	unit.set_runtime_states(_create_runtime_states(side, run_state.equipped_cards))
-	_relic_service.apply_battle_modifiers(unit, run_state)
+	_relic_service.apply_battle_modifiers(unit, run_state, balance_sandbox)
 	return unit
 
 
@@ -787,10 +813,16 @@ func _tick_timeline_flows(delta: float) -> void:
 
 func _resolve_due_entries() -> void:
 	_timeline_resolver.rebuild_timeline(battle_state)
+	var sandbox_resolutions: int = 0
 	while not battle_state.timeline.is_empty():
 		var next_entry := battle_state.timeline[0]
 		if next_entry.scheduled_time > battle_state.battle_time:
 			return
+		if balance_sandbox != null:
+			if balance_limit_reached or sandbox_resolutions >= 256:
+				balance_limit_reached = true
+				return
+			sandbox_resolutions += 1
 
 		var instance := battle_state.get_active_instance_by_id(next_entry.instance_id)
 		if instance == null:
@@ -1223,19 +1255,24 @@ static func build_enemy_preview(run: RunState, enemy_id: String, node: Dictionar
 func _get_card_def(side: String, card_id: String) -> CardDef:
 	var unit: UnitState = battle_state.get_unit(side) if battle_state != null else null
 	var card_def: CardDef = null
+	var source: CardDef = balance_sandbox.card(card_id) if balance_sandbox != null else null
 	if _pvp_mode:
-		card_def = CardUpgradeResolver.build_effective_card(card_id, get_run_for_side(side))
+		card_def = CardUpgradeResolver.build_effective_card(card_id, get_run_for_side(side), source)
 	elif side == "player":
-		card_def = CardUpgradeResolver.build_effective_card(card_id, _player_run)
+		card_def = CardUpgradeResolver.build_effective_card(card_id, _player_run, source)
 	elif unit != null:
 		var modifier_totals: Dictionary = Dictionary(unit.temporary_card_modifiers.get(card_id, {}))
 		var tier: int = clampi(int(modifier_totals.get("tier", 0)), 0, CardUpgradeResolver.MAX_TIER)
-		card_def = CardUpgradeResolver.build_card_with_modifiers(card_id, modifier_totals, tier)
+		card_def = CardUpgradeResolver.build_card_with_modifiers(card_id, modifier_totals, tier, source)
 	else:
 		card_def = Database.get_card(card_id)
 	if card_def != null and unit != null:
 		CardUpgradeResolver.apply_modifier_totals(card_def, Dictionary(unit.battle_card_modifiers.get(card_id, {})))
 	return card_def
+
+
+func sandbox_relic_value(side: String, id: String, key: String, fallback: float) -> float:
+	return balance_sandbox.relic_value(id, key, fallback) if balance_sandbox != null and side == "player" else fallback
 
 
 func _record_event(record: BattleEventRecord) -> void:

@@ -311,6 +311,10 @@ if ($godotExe) {
         "--no-header", "--headless", "--path", $root,
         "--scene", "res://tests/EncounterGrowthSmoke.tscn"
     )
+    Invoke-GodotCheck "[15-balance-lab/31] Running isolated balance lab smoke" $godotExe @(
+        "--no-header", "--headless", "--path", $root,
+        "--scene", "res://tests/BalanceLabSmoke.tscn"
+    )
     Invoke-GodotCheck "[15-catalog/31] Running card and relic library smoke" $godotExe @(
         "--no-header",
         "--headless",

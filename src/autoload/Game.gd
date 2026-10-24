@@ -336,6 +336,7 @@ func prepare_next_battle() -> String:
 
 
 func complete_battle(summary: Dictionary) -> void:
+	if bool(summary.get("balance_sandbox", false)): return
 	if RankedSession.should_record():
 		RankedSession.complete()
 		return

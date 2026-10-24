@@ -242,6 +242,12 @@ func bind_preview(
 	)
 
 
+func bind_balance_preview(card_def: CardDef, comparison: CardDef) -> void:
+	bind_preview(card_def, card_def.id, false, "", comparison)
+	# A draft must never fall back to the published grade table on right click.
+	_set_tooltip_variants(_simple_tooltip_text, _simple_tooltip_bbcode, _simple_tooltip_text, _simple_tooltip_bbcode)
+
+
 func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: float, comparison_card_def: CardDef = null) -> void:
 	_ensure_visuals()
 	_comparison_card_override = comparison_card_def

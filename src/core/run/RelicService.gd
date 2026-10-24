@@ -15,11 +15,20 @@ func roll_random_relic(excluded_ids: Array[String], allowed_ids: Variant = null)
 	return candidates[_rng.randi_range(0, candidates.size() - 1)]
 
 
-func grant_relic(run_state: RunState, relic_id: String) -> bool:
+func grant_relic(run_state: RunState, relic_id: String, draft: BalanceDraft = null) -> bool:
 	if run_state == null or relic_id == "" or run_state.relics.has(relic_id):
 		return false
 
 	run_state.relics.append(relic_id)
+	if draft != null and BalanceDraft.LEGACY.has(relic_id):
+		var hp: int = int(draft.relic_value(relic_id, "pickup_hp", float(BalanceDraft.LEGACY[relic_id].get("pickup_hp", 0))))
+		run_state.max_hp += hp
+		run_state.player_hp = mini(run_state.max_hp, run_state.player_hp + hp)
+		run_state.attack += int(draft.relic_value(relic_id, "pickup_attack", float(BalanceDraft.LEGACY[relic_id].get("pickup_attack", 0))))
+		run_state.speed += int(draft.relic_value(relic_id, "pickup_speed", float(BalanceDraft.LEGACY[relic_id].get("pickup_speed", 0))))
+		run_state.loadout_limit += int(draft.relic_value(relic_id, "pickup_loadout", float(BalanceDraft.LEGACY[relic_id].get("pickup_loadout", 0))))
+		run_state.gold += int(draft.relic_value(relic_id, "pickup_gold", float(BalanceDraft.LEGACY[relic_id].get("pickup_gold", 0))))
+		return true
 	match relic_id:
 		"iron_plating":
 			run_state.max_hp += 10
@@ -47,7 +56,7 @@ func grant_relic(run_state: RunState, relic_id: String) -> bool:
 				run_state.arena_max_losses += 1
 				run_state.arena_target_wins += 1
 		"solar_pinion", "overcharge_confection_furnace", "polarization_converter", "balanced_three_phase_unit":
-			_assign_engraved_card(run_state, relic_id)
+			_assign_engraved_card(run_state, relic_id, draft)
 	return true
 
 
@@ -126,11 +135,11 @@ func apply_infinite_cycle(run_state: RunState, cycle_number: int) -> String:
 	return selected
 
 
-func _assign_engraved_card(run_state: RunState, relic_id: String) -> void:
+func _assign_engraved_card(run_state: RunState, relic_id: String, draft: BalanceDraft = null) -> void:
 	var selected: String = ""
 	var longest_cast: float = -1.0
 	for card_id: String in run_state.equipped_cards:
-		var card: CardDef = Database.get_card(card_id)
+		var card: CardDef = draft.card(card_id) if draft != null else Database.get_card(card_id)
 		if card == null:
 			continue
 		var eligible: bool = true
@@ -151,8 +160,17 @@ func _assign_engraved_card(run_state: RunState, relic_id: String) -> void:
 	run_state.relic_state[relic_id] = {"card_id": selected}
 
 
-func apply_battle_modifiers(unit: UnitState, run_state: RunState) -> void:
+func apply_battle_modifiers(unit: UnitState, run_state: RunState, draft: BalanceDraft = null) -> void:
 	if unit == null or run_state == null:
+		return
+	if draft != null:
+		for id: String in run_state.relics:
+			if not BalanceDraft.LEGACY.has(id): continue
+			var defaults: Dictionary = Dictionary(BalanceDraft.LEGACY.get(id, {}))
+			unit.add_shield(int(draft.relic_value(id, "starting_shield", float(defaults.get("starting_shield", 0)))))
+			unit.attack += int(draft.relic_value(id, "starting_attack", float(defaults.get("starting_attack", 0))))
+			unit.speed += int(draft.relic_value(id, "starting_speed", float(defaults.get("starting_speed", 0))))
+			unit.cast_time_modifier *= draft.relic_value(id, "cast_multiplier", float(defaults.get("cast_multiplier", 1.0)))
 		return
 	if run_state.relics.has("reactive_barrier"):
 		unit.add_shield(6)
