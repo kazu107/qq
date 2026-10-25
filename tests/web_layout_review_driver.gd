@@ -554,6 +554,14 @@ func _inspect() -> Dictionary:
 				var focused: int = bulk.get_popup().get_focused_item()
 				result["balance"]["bulk"] = {"path": bulk.get_selected_metadata(), "amount": (screen.find_child("BalanceBulkAmount", true, false) as SpinBox).value,
 					"focused_path": bulk.get_item_metadata(focused) if focused >= 0 else ""}
+				var targets: Array[Dictionary] = []
+				for target: Node in screen.find_children("BalanceBulkTarget_*", "CheckBox", true, false):
+					var checkbox: CheckBox = target as CheckBox
+					targets.append({"id": checkbox.get_meta("target_id"), "selected": checkbox.button_pressed, "disabled": checkbox.disabled, "visible": checkbox.is_visible_in_tree(), "rect": _rect_values(checkbox.get_global_rect())})
+				var count: Label = screen.find_child("BalanceBulkTargetCount", true, false) as Label
+				result["balance"]["bulk"].merge({"targets": targets, "selected": count.get_meta("selected_count"), "eligible": count.get_meta("eligible_count"),
+					"preview": (screen.find_child("BalanceBulkPreview", true, false) as TextEdit).text,
+					"apply_disabled": (screen.find_child("BalanceBulkApply", true, false) as Button).disabled})
 			if manual != null and manual.engine != null:
 				result["balance"]["manual"] = {"time": manual.engine.battle_state.battle_time, "shield": manual.engine.battle_state.player.shield,
 					"damage": manual.engine._get_card_def("player", "quick_slash").effects[0]["amount"], "sandbox": manual.engine.build_summary(false).get("balance_sandbox", false)}

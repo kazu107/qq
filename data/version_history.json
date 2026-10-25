@@ -1,9 +1,22 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.50.2",
+  "current_version": "QQ-0.50.3",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.50.3", "date": "2026-10-25",
+      "title_ja": "一括編集でカードを個別に除外",
+      "title_en": "Select individual bulk-edit targets",
+      "changes_ja": [
+        "バランス調整ラボの一括編集に、アイコン付きの対象チェック一覧・検索・すべて対象／すべて除外を追加しました。外したカードや遺物には今回の一括変更を適用しません。",
+        "今回変更する数値だけを適用前にプレビューします。検索は表示だけを絞り、除外状態はラボを開いている間、カードと遺物で別々に保持します。選んだGrade以外や既存の下書きは維持し、ゲーム本体のバランス・出血・シーズンは変更しません。"
+      ],
+      "changes_en": [
+        "Add icon checkboxes, search and include/exclude-all controls to Balance Lab bulk editing. Excluded cards and relics do not receive the current batch operation.",
+        "Preview only the current operation; search does not alter selection. Keep exclusions per category while the lab is open, preserve other grades and existing edits, and leave live balance, bleed and the ranked season unchanged."
+      ]
+    },
     {
       "version": "QQ-0.50.2", "date": "2026-10-25",
       "title_ja": "ラボで調整した基本カードのバランスを反映",

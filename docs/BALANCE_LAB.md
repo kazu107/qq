@@ -27,6 +27,13 @@ from multiplayer. Production Web access retains the account developer allowlist.
   not generalized into new mechanics by this initial editor release.
 - Bulk editing affects visible filtered entries only. It previews multiply/add/
   set operations, rounds integer fields and skips missing/out-of-range fields.
+- The bulk dialog freezes that initial filtered scope. Uncheck individual icon
+  rows to exclude them; include/exclude-all applies to the entire dialog scope.
+  Its name/ID search only filters the displayed rows, never their selection.
+  Incompatible fields are disabled. The preview shows only this operation's
+  actual changes; existing edits on excluded items are preserved, not removed.
+  Exclusions remain separate for cards/relics while the lab is open, including
+  after Cancel, and are not numeric draft changes or part of exported JSON.
 
 ## Drafts And Export
 

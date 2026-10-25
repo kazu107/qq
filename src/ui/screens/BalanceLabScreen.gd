@@ -42,6 +42,7 @@ var _progress: ProgressBar
 var _modal: PanelContainer
 var _manual: BalanceBattlePreview
 var _manual_count: int = 0
+var _bulk_excluded: Dictionary = {"card": {}, "relic": {}}
 
 
 func _t(ja: String, en: String) -> String:
@@ -514,33 +515,100 @@ func _describe_changes(candidate: BalanceDraft) -> String:
 func _open_bulk() -> void:
 	if _selected == "": return
 	_close_modal(); _modal = _modal_frame()
+	var kind: String = _kind
+	var scope: Array[String] = []
+	var field_maps: Dictionary = {}
+	for widget: Dictionary in _catalog_widgets.values():
+		if widget["kind"] != kind or not (widget["button"] as Button).visible: continue
+		var id: String = widget["id"]
+		scope.append(id)
+		var available: Dictionary = {}
+		for field: Dictionary in BalanceDraft.fields_for_grade(kind, id, _editor_grade): available[field["path"]] = field["label"]
+		field_maps[id] = available
+	var excluded: Dictionary = _bulk_excluded[kind]
 	var root: VBoxContainer = VBoxContainer.new(); _modal.add_child(root)
 	root.tooltip_text = _t("現在の絞り込み対象だけを変更します。整数は四捨五入、小数は0.001単位。範囲外・項目なしは除外します。", "Edit visible filtered entries only. Round integers; decimals use 0.001 units. Invalid/missing fields are skipped.")
 	var field_option: OptionButton = OptionButton.new(); field_option.name = "BalanceBulkField"; root.add_child(field_option)
-	for field: Dictionary in BalanceDraft.fields_for_grade(_kind, _selected, _editor_grade):
+	for field: Dictionary in BalanceDraft.fields_for_grade(kind, _selected, _editor_grade):
 		field_option.add_item(field["label"]); field_option.set_item_metadata(field_option.item_count - 1, field["path"])
 	var operation: OptionButton = OptionButton.new(); operation.name = "BalanceBulkOperation"; root.add_child(operation)
 	for value: String in [_t("倍率（例: 0.9 = 10%減）", "Multiply (0.9 = -10%)"), _t("加算", "Add"), _t("固定値にする", "Set")]: operation.add_item(value)
 	var amount: SpinBox = _spin(root, "BalanceBulkAmount", _t("値", "Value"), -10000, 10000, 0.9, 0.01)
-	var details: TextEdit = TextEdit.new(); details.editable = false; details.size_flags_vertical = Control.SIZE_EXPAND_FILL; root.add_child(details)
+	var columns: BoxContainer = BoxContainer.new(); columns.name = "BalanceBulkColumns"; columns.vertical = size.x < size.y * 1.15; columns.add_theme_constant_override("separation", 16); columns.size_flags_vertical = Control.SIZE_EXPAND_FILL; root.add_child(columns)
+	var selection: VBoxContainer = VBoxContainer.new(); selection.size_flags_horizontal = Control.SIZE_EXPAND_FILL; selection.size_flags_vertical = Control.SIZE_EXPAND_FILL; selection.size_flags_stretch_ratio = 0.9; columns.add_child(selection)
+	var summary: Label = Label.new(); summary.name = "BalanceBulkTargetCount"; selection.add_child(summary)
+	var search: LineEdit = LineEdit.new(); search.name = "BalanceBulkSearch"; search.placeholder_text = _t("名前・IDで検索", "Search name / ID"); selection.add_child(search)
+	var actions: HBoxContainer = HBoxContainer.new(); selection.add_child(actions)
+	var include_all: Button = Button.new(); include_all.name = "BalanceBulkIncludeAll"; include_all.text = _t("すべて対象", "Include all"); actions.add_child(include_all)
+	var exclude_all: Button = Button.new(); exclude_all.name = "BalanceBulkExcludeAll"; exclude_all.text = _t("すべて除外", "Exclude all"); actions.add_child(exclude_all)
+	for button: Button in [include_all, exclude_all]:
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.tooltip_text = _t("一覧内の検索に関係なく、今回の対象すべてに適用します。", "Applies to this entire batch scope, regardless of the list search.")
+	var scroll: ScrollContainer = ScrollContainer.new(); scroll.name = "BalanceBulkTargetScroll"; scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; scroll.custom_minimum_size.y = 120; scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL; selection.add_child(scroll)
+	var list: VBoxContainer = VBoxContainer.new(); list.size_flags_horizontal = Control.SIZE_EXPAND_FILL; scroll.add_child(list)
+	var toggles: Dictionary = {}
+	for id: String in scope:
+		var toggle: CheckBox = CheckBox.new(); toggle.name = "BalanceBulkTarget_" + id; toggle.set_meta("target_id", id)
+		toggle.text = _name(kind, id); toggle.icon = _texture(kind, id); toggle.expand_icon = true; toggle.add_theme_constant_override("icon_max_width", 32); toggle.custom_minimum_size.y = 44
+		toggle.button_pressed = not excluded.has(id); toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL; toggle.clip_text = true
+		list.add_child(toggle); toggles[id] = toggle
+	var details: TextEdit = TextEdit.new(); details.name = "BalanceBulkPreview"; details.editable = false; details.size_flags_horizontal = Control.SIZE_EXPAND_FILL; details.size_flags_vertical = Control.SIZE_EXPAND_FILL; details.size_flags_stretch_ratio = 1.3; details.custom_minimum_size.y = 120; columns.add_child(details)
+	details.add_theme_color_override("font_readonly_color", UiTheme.TEXT_MAIN)
 	var candidate: Dictionary = {}
 	var original_hash: String = JSON.stringify(draft.document()).sha256_text()
-	var rebuild: Callable = func() -> void:
-		var ids: Array[String] = []
-		for widget: Dictionary in _catalog_widgets.values():
-			if widget["kind"] == _kind and (widget["button"] as Button).visible: ids.append(widget["id"])
-		var result: BalanceDraft = draft.batch_candidate(_kind, ids, String(field_option.get_selected_metadata()), operation.selected, amount.value)
-		candidate["draft"] = result
-		details.text = _describe_changes(result)
-	field_option.item_selected.connect(func(_i: int) -> void: rebuild.call())
-	operation.item_selected.connect(func(_i: int) -> void: rebuild.call())
-	amount.value_changed.connect(func(_v: float) -> void: rebuild.call())
-	_button(root, "BalanceBulkApply", _t("このプレビューを適用", "Apply this preview"), func() -> void:
-		if JSON.stringify(draft.document()).sha256_text() != original_hash: _status.text = _t("下書きが変わったため中止しました。", "Draft changed; bulk edit cancelled."); return
+	var apply: Button = _button(root, "BalanceBulkApply", _t("このプレビューを適用", "Apply this preview"), func() -> void:
+		if JSON.stringify(draft.document()).sha256_text() != original_hash:
+			_status.text = _t("下書きが変わったため中止しました。", "Draft changed; bulk edit cancelled.")
+			details.text = _status.text
+			return
 		var result: BalanceDraft = candidate["draft"]
 		draft.import_document(result.document())
 		_close_modal(); _select(_kind, _selected)
 	)
+	var rebuild: Callable = func() -> void:
+		var path: String = field_option.get_selected_metadata()
+		var ids: Array[String] = []
+		var eligible: int = 0
+		for id: String in scope:
+			var toggle: CheckBox = toggles[id]
+			toggle.disabled = not field_maps[id].has(path)
+			toggle.tooltip_text = id if not toggle.disabled else _t("この数値項目はありません。", "This numeric field is unavailable.")
+			toggle.set_pressed_no_signal(not excluded.has(id))
+			if toggle.disabled: continue
+			eligible += 1
+			if not excluded.has(id): ids.append(id)
+		var result: BalanceDraft = draft.batch_candidate(kind, ids, path, operation.selected, amount.value)
+		candidate["draft"] = result
+		var lines: Array[String] = []
+		for id: String in ids:
+			var before: float = draft.value(kind, id, path)
+			var after: float = result.value(kind, id, path)
+			if not is_equal_approx(before, after): lines.append("%s / %s\n    %s > %s" % [_name(kind, id), field_maps[id][path], String.num(before, 3), String.num(after, 3)])
+		details.text = "\n\n".join(lines) if not lines.is_empty() else _t("変更はありません。", "No changes.")
+		summary.text = _t("対象 %d / %d", "Targets %d / %d") % [ids.size(), eligible]
+		summary.set_meta("selected_count", ids.size()); summary.set_meta("eligible_count", eligible)
+		apply.disabled = lines.is_empty()
+	for id: String in scope:
+		(toggles[id] as CheckBox).toggled.connect(func(enabled: bool) -> void:
+			if enabled: excluded.erase(id)
+			else: excluded[id] = true
+			rebuild.call()
+		)
+	include_all.pressed.connect(func() -> void:
+		for id: String in scope: excluded.erase(id)
+		rebuild.call()
+	)
+	exclude_all.pressed.connect(func() -> void:
+		for id: String in scope: excluded[id] = true
+		rebuild.call()
+	)
+	search.text_changed.connect(func(text: String) -> void:
+		for id: String in scope: (toggles[id] as CheckBox).visible = text.is_empty() or (_name(kind, id) + " " + id).to_lower().contains(text.to_lower())
+	)
+	columns.resized.connect(func() -> void: columns.vertical = size.x < size.y * 1.15)
+	field_option.item_selected.connect(func(_i: int) -> void: rebuild.call())
+	operation.item_selected.connect(func(_i: int) -> void: rebuild.call())
+	amount.value_changed.connect(func(_v: float) -> void: rebuild.call())
 	_button(root, "BalanceBulkCancel", _t("キャンセル", "Cancel"), _close_modal)
 	rebuild.call()
 
