@@ -76,3 +76,11 @@ tests and runtime effects, not new forge purchases. This gameplay revision start
 the next ranked season. When applying an exported gameplay change, follow `AGENTS.md`: review
 the diff/source hash, update data/code and descriptions, run affected tests, bump
 the internal RankedSession revision, publish once and start the next season.
+
+The first published v2 submission is recorded in
+[`balance/QQ-0.50.2.md`](balance/QQ-0.50.2.md). Its original source hash and all
+91 requested edits are retained in `tests/fixtures/published_balance.json`.
+`PublishedBalanceSmoke` checks every published value and all six grades on both
+combatants against the lab baseline. Its `--validate-import` user argument is a
+read-only, pre-publication check against the submitted source hash/original values;
+it deliberately rejects that old-source submission once it has been published.

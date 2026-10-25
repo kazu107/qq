@@ -1,0 +1,644 @@
+{
+	"changes": [
+		{
+			"after": 22.0,
+			"before": 24.0,
+			"id": "delay_step",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 20.0,
+			"before": 24.0,
+			"id": "delay_step",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 2.9,
+			"before": 3.0,
+			"id": "delay_step",
+			"kind": "card",
+			"path": "grade_overrides.2.cast_time"
+		},
+		{
+			"after": 18.0,
+			"before": 24.0,
+			"id": "delay_step",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 2.9,
+			"before": 3.0,
+			"id": "delay_step",
+			"kind": "card",
+			"path": "grade_overrides.3.cast_time"
+		},
+		{
+			"after": 16.0,
+			"before": 24.0,
+			"id": "delay_step",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 2.8,
+			"before": 3.0,
+			"id": "delay_step",
+			"kind": "card",
+			"path": "grade_overrides.4.cast_time"
+		},
+		{
+			"after": 14.0,
+			"before": 24.0,
+			"id": "delay_step",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 2.8,
+			"before": 3.0,
+			"id": "delay_step",
+			"kind": "card",
+			"path": "grade_overrides.5.cast_time"
+		},
+		{
+			"after": 13.0,
+			"before": 24.0,
+			"id": "delay_step",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 11.0,
+			"before": 12.0,
+			"id": "guard",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 12,
+			"before": 10.0,
+			"id": "guard",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 10.0,
+			"before": 12.0,
+			"id": "guard",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 16,
+			"before": 12.0,
+			"id": "guard",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 9.0,
+			"before": 12.0,
+			"id": "guard",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 20,
+			"before": 14.0,
+			"id": "guard",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 8.0,
+			"before": 12.0,
+			"id": "guard",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 24,
+			"before": 16.0,
+			"id": "guard",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 7.0,
+			"before": 12.0,
+			"id": "guard",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 28,
+			"before": 18.0,
+			"id": "guard",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 16.0,
+			"before": 20.0,
+			"id": "haste_focus",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 14.0,
+			"before": 20.0,
+			"id": "haste_focus",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 12.0,
+			"before": 20.0,
+			"id": "haste_focus",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 11.0,
+			"before": 20.0,
+			"id": "haste_focus",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 10.0,
+			"before": 20.0,
+			"id": "haste_focus",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 9.0,
+			"before": 20.0,
+			"id": "haste_focus",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 26.0,
+			"before": 28.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 13.0,
+			"before": 13.2,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.1.cast_time"
+		},
+		{
+			"after": 25.0,
+			"before": 28.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 19,
+			"before": 17.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 12.8,
+			"before": 13.2,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.2.cast_time"
+		},
+		{
+			"after": 24.0,
+			"before": 28.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 25,
+			"before": 19.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 12.6,
+			"before": 13.2,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.3.cast_time"
+		},
+		{
+			"after": 23.0,
+			"before": 28.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 32,
+			"before": 21.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 12.4,
+			"before": 13.2,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.4.cast_time"
+		},
+		{
+			"after": 22.0,
+			"before": 28.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 40,
+			"before": 23.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 12.2,
+			"before": 13.2,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.5.cast_time"
+		},
+		{
+			"after": 21.0,
+			"before": 28.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 49,
+			"before": 25.0,
+			"id": "heavy_swing",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 0.5,
+			"before": 0.6,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.1.cast_time"
+		},
+		{
+			"after": 15.0,
+			"before": 16.0,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 7,
+			"before": 6.0,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 0.4,
+			"before": 0.6,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.2.cast_time"
+		},
+		{
+			"after": 14.0,
+			"before": 16.0,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 9,
+			"before": 7.0,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 0.3,
+			"before": 0.6,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.3.cast_time"
+		},
+		{
+			"after": 13.0,
+			"before": 16.0,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 11,
+			"before": 8.0,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 0.2,
+			"before": 0.6,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.4.cast_time"
+		},
+		{
+			"after": 12.0,
+			"before": 16.0,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 13,
+			"before": 9.0,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 0.1,
+			"before": 0.6,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.5.cast_time"
+		},
+		{
+			"after": 11.0,
+			"before": 16.0,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 15,
+			"before": 10.0,
+			"id": "quick_guard",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 1.7,
+			"before": 1.8,
+			"id": "quick_slash",
+			"kind": "card",
+			"path": "grade_overrides.1.cast_time"
+		},
+		{
+			"after": 7.5,
+			"before": 8.0,
+			"id": "quick_slash",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 1.6,
+			"before": 1.8,
+			"id": "quick_slash",
+			"kind": "card",
+			"path": "grade_overrides.2.cast_time"
+		},
+		{
+			"after": 7.0,
+			"before": 8.0,
+			"id": "quick_slash",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 1.5,
+			"before": 1.8,
+			"id": "quick_slash",
+			"kind": "card",
+			"path": "grade_overrides.3.cast_time"
+		},
+		{
+			"after": 6.5,
+			"before": 8.0,
+			"id": "quick_slash",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 1.4,
+			"before": 1.8,
+			"id": "quick_slash",
+			"kind": "card",
+			"path": "grade_overrides.4.cast_time"
+		},
+		{
+			"after": 6.0,
+			"before": 8.0,
+			"id": "quick_slash",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 1.3,
+			"before": 1.8,
+			"id": "quick_slash",
+			"kind": "card",
+			"path": "grade_overrides.5.cast_time"
+		},
+		{
+			"after": 5.5,
+			"before": 8.0,
+			"id": "quick_slash",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 3.4,
+			"before": 3.6,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.1.cast_time"
+		},
+		{
+			"after": 11.5,
+			"before": 12.0,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 3.2,
+			"before": 3.6,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.2.cast_time"
+		},
+		{
+			"after": 11.0,
+			"before": 12.0,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 10,
+			"before": 9.0,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 3.0,
+			"before": 3.6,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.3.cast_time"
+		},
+		{
+			"after": 10.5,
+			"before": 12.0,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 12,
+			"before": 10.0,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 2.8,
+			"before": 3.6,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.4.cast_time"
+		},
+		{
+			"after": 10.0,
+			"before": 12.0,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 14,
+			"before": 11.0,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 2.5,
+			"before": 3.6,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.5.cast_time"
+		},
+		{
+			"after": 9.0,
+			"before": 12.0,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 17,
+			"before": 12.0,
+			"id": "strike",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 18.0,
+			"before": 20.0,
+			"id": "weak_shot",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 17.0,
+			"before": 20.0,
+			"id": "weak_shot",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 3.4,
+			"before": 3.6,
+			"id": "weak_shot",
+			"kind": "card",
+			"path": "grade_overrides.2.cast_time"
+		},
+		{
+			"after": 17.0,
+			"before": 20.0,
+			"id": "weak_shot",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 3.4,
+			"before": 3.6,
+			"id": "weak_shot",
+			"kind": "card",
+			"path": "grade_overrides.3.cast_time"
+		},
+		{
+			"after": 16.0,
+			"before": 20.0,
+			"id": "weak_shot",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 3.2,
+			"before": 3.6,
+			"id": "weak_shot",
+			"kind": "card",
+			"path": "grade_overrides.4.cast_time"
+		},
+		{
+			"after": 16.0,
+			"before": 20.0,
+			"id": "weak_shot",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 3.2,
+			"before": 3.6,
+			"id": "weak_shot",
+			"kind": "card",
+			"path": "grade_overrides.5.cast_time"
+		},
+		{
+			"after": 14.0,
+			"before": 20.0,
+			"id": "weak_shot",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		}
+	],
+	"format": "queuequest-balance-diff-v2",
+	"game_version": "QQ-0.50.1",
+	"source_hash": "4404004284f2a27b7e36c27a3c56f86a5a2ee96d5b1feaff22c9b446969b4416"
+}

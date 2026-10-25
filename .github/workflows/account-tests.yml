@@ -46,6 +46,10 @@ jobs:
           export PATH="$PWD/server/ranking/vendor:$PATH"
           godot --version
           godot --headless --path . --editor --quit > build/import.log 2>&1
+          godot --headless --path . res://tests/PublishedBalanceSmoke.tscn --quit-after 600 > build/published-balance.log 2>&1
+          cat build/published-balance.log
+          grep -q PUBLISHED_BALANCE_SMOKE_OK build/published-balance.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/published-balance.log; then exit 1; fi
           godot --headless --path . res://tests/UiCopySmoke.tscn --quit-after 600 > build/ui-copy.log 2>&1
           cat build/ui-copy.log
           grep -q UI_COPY_SMOKE_OK build/ui-copy.log

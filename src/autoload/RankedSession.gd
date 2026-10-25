@@ -2,7 +2,7 @@ extends Node
 
 signal changed
 
-const RULESET := "infinite-5"
+const RULESET := "infinite-6"
 const STEP := 1.0 / 60.0
 const METHODS := ["select_map_node", "start_active_encounter", "prepare_next_battle", "choose_reward", "skip_reward", "reroll_rewards_for_gold", "equip_card", "unequip_card", "sell_loadout_card", "buy_shop_offer", "use_shop_service_choice", "upgrade_forge_card", "use_forge_service_choice", "use_heal_node_choice", "resolve_event_choice", "continue_hazard", "withdraw_hazard", "leave_facility"]
 var verifying: bool = false
