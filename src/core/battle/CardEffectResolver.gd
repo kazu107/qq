@@ -77,7 +77,8 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 				var status_id := String(effect.get("status", ""))
 				var duration := float(effect.get("duration", 0.0))
 				var target_side: String = instance.owner_side if target_unit == actor else _opponent_side(instance.owner_side)
-				engine.apply_status_from_card(instance.owner_side, target_side, status_id, duration)
+				var power: int = BleedRules.resolve_power(effect, actor.get_attack_value()) if status_id == "bleed" else 1
+				engine.apply_status_from_card(instance.owner_side, target_side, status_id, duration, power)
 				messages.append(Localization.get_textf("battle.log.card_apply_status", "{card_name} applied {status_name} to {target_name}", {
 					"card_name": card_def.name,
 					"status_name": Localization.get_status_name(status_id),

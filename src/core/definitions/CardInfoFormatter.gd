@@ -70,6 +70,11 @@ static func _describe_effect(effect: Dictionary, compact: bool, comparison_effec
 				"amount": _format_compared_int(effect, comparison_effect, "amount", true, rich),
 			})
 		"apply_status":
+			if effect.get("status", "") == "bleed":
+				return Localization.get_textf("effect.apply_bleed", "Apply {status} to {target}: {duration}s, {power} HP damage per layer every 6s (max 3 layers)", {
+					"status": Localization.get_status_name("bleed"), "target": _target_label(effect),
+					"duration": _format_compared_float(effect, comparison_effect, "duration", 1, true, rich),
+					"power": _format_compared_int(effect, comparison_effect, "bleed_power", true, rich, 1)})
 			return Localization.get_textf("effect.apply_status", "Apply {status} for {duration}s to {target}", {
 				"status": Localization.get_status_name(String(effect.get("status", ""))),
 				"duration": _format_compared_float(effect, comparison_effect, "duration", 1, true, rich),

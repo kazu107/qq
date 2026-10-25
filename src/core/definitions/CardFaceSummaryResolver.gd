@@ -55,6 +55,9 @@ static func _build_summary(effect: Dictionary, comparison_effect: Dictionary, so
 			return _numeric_summary(effect, comparison_effect, "amount", "hp", "", 0, 1.0, true, 112, source_index)
 		"apply_status":
 			var status_id: String = String(effect.get("status", ""))
+			if status_id == "bleed":
+				var bleed: Dictionary = effect.duplicate(); bleed["bleed_power"] = int(effect.get("bleed_power", 1))
+				return _numeric_summary(bleed, comparison_effect, "bleed_power", "status:bleed", "/6s", 0, 1.0, true, 110, source_index)
 			return _numeric_summary(effect, comparison_effect, "duration", "status:%s" % status_id, "s", 1, 1.0, true, 110, source_index)
 		"delay_enemy_active_card":
 			return _numeric_summary(effect, comparison_effect, "amount", "delay", "s", 1, 1.0, true, 108, source_index)

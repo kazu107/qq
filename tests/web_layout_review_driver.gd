@@ -220,6 +220,20 @@ func _command(arguments: Array) -> void:
 		for id: String in ["bleed", "weak", "slow", "vulnerable"]:
 			engine.battle_state.player.add_status(id, 30.0)
 		battle.call("_refresh_ui", 1.0)
+	elif String(payload.get("action", "")) == "bleed_fixture":
+		Game.set_language(String(payload.get("language", "ja")))
+		Game.settings["developer_mode"] = true
+		Game.start_new_run("balanced", 4242)
+		Game.developer_open_battle("scout")
+		SceneRouter.go_to_battle()
+	elif String(payload.get("action", "")) == "bleed_advance":
+		var battle: Control = get_tree().current_scene as Control
+		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+		battle.set_process(false)
+		if bool(payload.get("keep_alive", false)): engine.battle_state.enemy.max_hp = 500; engine.battle_state.enemy.hp = 500
+		engine.start_battle()
+		engine.update(float(payload.get("seconds", 6.0)))
+		battle.call("_refresh_ui", 1.0)
 	elif String(payload.get("action", "")) == "tutorial_start":
 		_tutorial_samples.clear()
 		SceneRouter.start_battle_tutorial(String(payload.get("tutorial", "battle_basics")))
@@ -481,6 +495,21 @@ func _inspect() -> Dictionary:
 	if not _feedback_samples.is_empty():
 		result["feedback"] = {"samples": _feedback_samples, "immediate_audio": _feedback_initial_audio, "audio": AudioManager.get_play_history()}
 	if screen != null:
+		if screen.scene_file_path.get_file().get_basename() == "Battle":
+			var bleed_engine: RealtimeBattleEngine = screen.get("_engine") as RealtimeBattleEngine
+			if bleed_engine != null and bleed_engine.battle_state != null:
+				var enemy: UnitState = bleed_engine.battle_state.enemy
+				var stage: BattleStage3D = screen.get("_battle_stage") as BattleStage3D
+				var regions: Array[Dictionary] = []
+				for region: Dictionary in stage.get_enemy_status_model().get_status_regions():
+					if region["id"] != "bleed": continue
+					var points: Array[Array] = []
+					for point: Vector3 in region["corners"]: points.append(_point_values(stage.global_position + stage.project_world_position(point)))
+					regions.append({"points": points, "tooltip": region["tooltip"]})
+				var stack: Label3D = stage.get_enemy_status_model().find_child("StatusStacks3D_bleed", true, false) as Label3D
+				var tip: Label = screen.find_child("WorldStatusTooltipText", true, false) as Label
+				result["bleed"] = {"enemy_hp": enemy.hp, "state": enemy.get_display_statuses().get("bleed", {}), "regions": regions,
+					"badge": stack.text if stack != null and stack.visible else "", "tooltip": tip.text if tip != null and tip.is_visible_in_tree() else ""}
 		if screen.scene_file_path.get_file().get_basename() == "Hub":
 			var history: RichTextLabel = screen.find_child("VersionHistoryContent", true, false) as RichTextLabel
 			result["history"] = {"open": (screen.find_child("VersionHistoryOverlay", true, false) as Control).visible,

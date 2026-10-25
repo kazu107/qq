@@ -105,6 +105,7 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 	for cell: Dictionary in _status_cells.values():
 		(cell["icon"] as Sprite3D).visible = false
 		(cell["time"] as Label3D).visible = false
+		(cell["stack"] as Label3D).visible = false
 	var ids: Array = statuses.keys()
 	ids.sort()
 	var active: Array[String] = []
@@ -126,7 +127,8 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 			var label: Label3D = _create_label("StatusTime3D_" + id, 18, STATUS_COLOR)
 			label.pixel_size = 0.005
 			add_child(label)
-			_status_cells[id] = {"icon": icon, "time": label}
+			var stack: Label3D = _create_label("StatusStacks3D_" + id, 18, Color.WHITE); stack.pixel_size = 0.005; add_child(stack)
+			_status_cells[id] = {"icon": icon, "time": label, "stack": stack}
 		var cell: Dictionary = _status_cells[id]
 		var spacing: float = minf(0.62, 2.56 / maxf(1.0, count))
 		var x: float = (float(index) - float(count - 1) * 0.5) * spacing
@@ -142,11 +144,15 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		label.text = "x%s" % String.num(multiplier, 0) if id == "attack_charge" else "%.1fs" % remaining
 		label.pixel_size = 0.0044 if count > 4 else 0.005
 		label.visible = true
+		var stack: Label3D = cell["stack"]
+		stack.position = icon.position + Vector3(0.055, -0.07, 0.02)
+		stack.text = "x%d" % int(Dictionary(statuses[id]).get("stacks", 1))
+		stack.visible = id == "bleed" and int(Dictionary(statuses[id]).get("stacks", 1)) > 1
 		var corners: Array[Vector3] = []
 		for dx: float in [-spacing * 0.48, spacing * 0.48]:
 			for dy: float in [-0.13, 0.13]:
 				corners.append(to_global(Vector3(x + dx, -0.64 + dy, 0.08)))
-		_status_regions.append({"id": id, "corners": corners, "tooltip": StatusInfoFormatter.tooltip(id, remaining, multiplier)})
+		_status_regions.append({"id": id, "corners": corners, "tooltip": StatusInfoFormatter.tooltip(id, remaining, multiplier, Dictionary(statuses[id]))})
 
 
 func is_player_status() -> bool:

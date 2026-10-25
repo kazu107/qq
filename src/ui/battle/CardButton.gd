@@ -1154,7 +1154,7 @@ func _append_status_detail_lines(lines: Array[String], card_def: CardDef, rich: 
 		var status_name: String = Localization.get_status_name(status_id)
 		if rich:
 			status_name = "[color=%s]%s[/color]" % [TOOLTIP_STATUS_COLOR, status_name]
-		lines.append("%s: %s" % [status_name, _get_status_detail_text(status_id)])
+		lines.append("%s: %s" % [status_name, _get_status_detail_text(status_id, card_def)])
 
 
 func _get_applied_status_ids(card_def: CardDef) -> Array[String]:
@@ -1168,13 +1168,14 @@ func _get_applied_status_ids(card_def: CardDef) -> Array[String]:
 	return status_ids
 
 
-func _get_status_detail_text(status_id: String) -> String:
+func _get_status_detail_text(status_id: String, card_def: CardDef = null) -> String:
 	match status_id:
 		"bleed":
-			return Localization.get_textf("status.detail.bleed", "Takes {amount} damage every {interval}s.", {
-				"amount": 1,
-				"interval": "%.1f" % UnitState.BLEED_TICK_INTERVAL,
-			})
+			var power: int = 1
+			if card_def != null:
+				for effect: Dictionary in card_def.effects:
+					if effect.get("type", "") == "apply_status" and effect.get("status", "") == "bleed": power = int(effect.get("bleed_power", 1))
+			return StatusInfoFormatter.bleed_detail(power)
 		"weak":
 			return Localization.get_textf("status.detail.weak", "Attack -{amount} while active.", {"amount": 2})
 		"slow":

@@ -363,13 +363,16 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		var icon: TextureRect = _get_or_create_status_icon(status_id)
 		var time_label: Label = _status_time_labels[status_id] as Label
 		var multiplier: float = float(status_data.get("multiplier", 1.0))
-		var tooltip_text: String = StatusInfoFormatter.tooltip(status_id, remaining, multiplier)
+		var tooltip_text: String = StatusInfoFormatter.tooltip(status_id, remaining, multiplier, status_data)
 		icon.visible = true
 		icon.texture = _get_status_icon_texture(status_id)
 		icon.self_modulate = Color.WHITE
 		icon.tooltip_text = ""
 		_status_tooltip_texts[status_id] = tooltip_text
 		time_label.text = "x%s" % String.num(multiplier, 0) if status_id == "attack_charge" else _format_status_remaining(remaining)
+		var stack: Label = icon.find_child("StatusStacks", true, false) as Label
+		stack.text = "x%d" % int(status_data.get("stacks", 1))
+		stack.visible = status_id == "bleed" and int(status_data.get("stacks", 1)) > 1
 		time_label.self_modulate = STATUS_TIME_COLOR
 		if _status_hovered_id == status_id:
 			_status_hovered_icon = icon
@@ -406,6 +409,9 @@ func _get_or_create_status_icon(status_id: String) -> TextureRect:
 	icon.tooltip_text = ""
 	icon.mouse_entered.connect(_on_status_icon_mouse_entered.bind(status_id, icon))
 	icon.mouse_exited.connect(_on_status_icon_mouse_exited.bind(status_id))
+	var stack: Label = Label.new(); stack.name = "StatusStacks"; stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	stack.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; stack.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM; stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.add_theme_font_size_override("font_size", 12); stack.add_theme_color_override("font_outline_color", Color.BLACK); stack.add_theme_constant_override("outline_size", 4); icon.add_child(stack)
 
 	var time_label: Label = Label.new()
 	time_label.name = "StatusTime_%s" % status_id

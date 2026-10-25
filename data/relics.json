@@ -525,7 +525,7 @@
   {
     "id": "critical_pathology_meter",
     "name": "Critical Pathology Meter",
-    "description": "When an enemy status expires naturally, bleed deals one final tick; other statuses delay the enemy's frontmost card by 1.2 seconds. Cooldown: 4 seconds.",
+    "description": "When the enemy's last bleed layer expires naturally, deal one extra tick using its final total power. Other naturally expiring statuses delay the enemy's frontmost card by 1.2 seconds. Cooldown: 4 seconds.",
     "rarity": "epic",
     "tags": ["status", "bleed", "delay", "control"],
     "effects": [

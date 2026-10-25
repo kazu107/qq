@@ -3,7 +3,7 @@ class_name LanProtocol
 
 const PROTOCOL_VERSION: int = 13
 const SNAPSHOT_VERSION: int = 4
-const RELIC_RESOLVER_VERSION: int = 1
+const RELIC_RESOLVER_VERSION: int = 2
 const DEFAULT_PORT: int = 32475
 const DISCOVERY_PORT: int = 32476
 const ONLINE_AUTH_CONTEXT: String = "qq-online-room-v1"

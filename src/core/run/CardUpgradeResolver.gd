@@ -98,6 +98,7 @@ static func _apply_upgrades(card_def: CardDef, tier: int) -> void:
 	var attack_mod_bonus: int = int(_get_profile_value(card_def.upgrade_profile, "attack_mod", tier))
 	var speed_mod_bonus: int = int(_get_profile_value(card_def.upgrade_profile, "speed_mod", tier))
 	var empower_bonus: float = float(_get_profile_value(card_def.upgrade_profile, "empower", tier))
+	var bleed_bonus: int = int(_get_profile_value(card_def.upgrade_profile, "bleed_power", tier))
 
 	if recast_reduction > 0.0:
 		card_def.recast_time = max(0.0, card_def.recast_time - recast_reduction)
@@ -121,6 +122,7 @@ static func _apply_upgrades(card_def: CardDef, tier: int) -> void:
 				if heal_bonus != 0:
 					effect_data["amount"] = int(effect_data.get("amount", 0)) + heal_bonus
 			"apply_status":
+				if effect_data.get("status", "") == "bleed": effect_data["bleed_power"] = maxi(1, int(effect_data.get("bleed_power", 1)) + bleed_bonus)
 				if not is_zero_approx(duration_bonus):
 					effect_data["duration"] = float(effect_data.get("duration", 0.0)) + duration_bonus
 			"delay_enemy_active_card":
@@ -186,6 +188,8 @@ static func apply_modifier_totals(card_def: CardDef, modifier_totals: Dictionary
 				_add_int_delta(effect_data, "amount", heal_bonus, 0)
 			"apply_status":
 				_add_float_delta(effect_data, "duration", duration_bonus, 0.0)
+				if effect_data.get("status", "") == "bleed" and damage_bonus != 0:
+					effect_data["_bleed_damage_bonus"] = int(effect_data.get("_bleed_damage_bonus", 0)) + damage_bonus
 			"delay_enemy_active_card":
 				_add_float_delta(effect_data, "amount", delay_bonus, 0.0)
 			"haste_own_active_card":

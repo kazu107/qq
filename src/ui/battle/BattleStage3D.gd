@@ -1417,6 +1417,10 @@ func _has_added_status(before_data: Dictionary, after_data: Dictionary) -> bool:
 	for status_id in after_statuses.keys():
 		if not before_statuses.has(status_id):
 			return true
+		if status_id == "bleed":
+			var before: Dictionary = BleedRules.normalize(Dictionary(before_statuses[status_id]))
+			var after: Dictionary = BleedRules.normalize(Dictionary(after_statuses[status_id]))
+			if int(after["stacks"]) > int(before["stacks"]) or int(after["damage"]) > int(before["damage"]): return true
 	return false
 
 

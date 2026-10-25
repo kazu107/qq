@@ -336,7 +336,8 @@ func on_status_event(side: String, event_data: Dictionary) -> void:
 		if status_id == "bleed":
 			var unit: UnitState = _state.get_unit(side)
 			var before: int = unit.hp
-			unit.hp = maxi(0, unit.hp - _pi(_opponent(side), "critical_pathology_meter", "bleed_final_ticks", 1))
+			var final_damage: int = maxi(1, int(event_data.get("last_tick_power", 1))) * _pi(_opponent(side), "critical_pathology_meter", "bleed_final_ticks", 1)
+			unit.hp = maxi(0, unit.hp - final_damage)
 			unit.combat_totals["damage_taken"] = int(unit.combat_totals["damage_taken"]) + maxi(0, before - unit.hp)
 			var source: UnitState = _state.get_opponent(side)
 			source.combat_totals["damage"] = int(source.combat_totals["damage"]) + maxi(0, before - unit.hp)
@@ -345,21 +346,21 @@ func on_status_event(side: String, event_data: Dictionary) -> void:
 			_engine.delay_active_cards(side, _p(_opponent(side), "critical_pathology_meter", "other_status_delay", 1.2), "single", _opponent(side))
 
 
-func apply_status(source_side: String, target_side: String, status_id: String, duration: float) -> bool:
+func apply_status(source_side: String, target_side: String, status_id: String, duration: float, bleed_power: int = 1) -> bool:
+	if duration <= 0: return false
+	var unit: UnitState = _state.get_unit(target_side)
 	if NEGATIVE_STATUSES.has(status_id) and has_relic(target_side, "quarantine_buffer") and not _flag(target_side, "quarantine_used"):
 		_set_value(target_side, "quarantine_used", true)
-		var unit: UnitState = _state.get_unit(target_side)
-		unit.statuses[status_id] = {"duration": duration, "max_duration": duration, "tick_accumulator": 0.0, "suspended": _p(target_side, "quarantine_buffer", "defer_duration", 6.0), "source_side": source_side}
+		if status_id == "bleed": unit.add_status(status_id, duration, bleed_power, source_side)
+		else: unit.statuses[status_id] = {"duration": duration, "max_duration": duration, "tick_accumulator": 0.0, "source_side": source_side}
+		unit.statuses[status_id]["suspended"] = _p(target_side, "quarantine_buffer", "defer_duration", 6.0)
 		_play_relic_proc(target_side, "quarantine_buffer")
 		return true
-	_state.get_unit(target_side).add_status(status_id, duration)
-	_state.get_unit(target_side).statuses[status_id]["source_side"] = source_side
+	unit.add_status(status_id, duration, bleed_power, source_side)
 	if has_relic(source_side, "four_symptom_seal") and not _flag(source_side, "four_symptom_used") and _has_four_symptoms(_state.get_unit(target_side)):
 		_engine.apply_timeline_flow(source_side, {"target_side": "enemy", "mode": "stop", "duration": _p(source_side, "four_symptom_seal", "stop_duration", 2.0)})
 		for key: String in NEGATIVE_STATUSES:
-			var data: Dictionary = Dictionary(_state.get_unit(target_side).statuses.get(key, {}))
-			data["duration"] = maxf(0.0, float(data.get("duration", 0.0)) - _p(source_side, "four_symptom_seal", "status_duration_reduction", 6.0))
-			_state.get_unit(target_side).statuses[key] = data
+			unit.adjust_status_duration(key, -_p(source_side, "four_symptom_seal", "status_duration_reduction", 6.0))
 		_set_value(source_side, "four_symptom_used", true)
 		_play_relic_proc(source_side, "four_symptom_seal")
 	return true
@@ -371,8 +372,12 @@ func remove_status(source_side: String, target_side: String, status_id: String) 
 	var remaining: float = float(data.get("duration", 0.0))
 	unit.remove_status(status_id)
 	if source_side == target_side and NEGATIVE_STATUSES.has(status_id) and remaining > 0.0 and has_relic(source_side, "symptom_transfer_paper") and _integer(source_side, "symptom_transfers") < _pi(source_side, "symptom_transfer_paper", "max_statuses_per_battle", 2):
-		_state.get_opponent(source_side).add_status(status_id, remaining * _p(source_side, "symptom_transfer_paper", "remaining_duration_ratio", 0.4))
-		_state.get_opponent(source_side).statuses[status_id]["source_side"] = source_side
+		var ratio: float = _p(source_side, "symptom_transfer_paper", "remaining_duration_ratio", 0.4)
+		var recipient: UnitState = _state.get_opponent(source_side)
+		if status_id == "bleed":
+			for layer: Dictionary in BleedRules.normalize(data)["layers"]:
+				recipient.add_status(status_id, float(layer["duration"]) * ratio, int(layer["power"]), source_side)
+		else: recipient.add_status(status_id, remaining * ratio, 1, source_side)
 		_set_value(source_side, "symptom_transfers", _integer(source_side, "symptom_transfers") + 1)
 		_play_relic_proc(source_side, "symptom_transfer_paper")
 
@@ -631,12 +636,18 @@ func _add_primary_effect(card_def: CardDef, bonus: int) -> void:
 	if bonus == 0:
 		return
 	var changed: bool = false
+	var damage_added: bool = false
 	for index: int in card_def.effects.size():
 		var effect: Dictionary = Dictionary(card_def.effects[index])
 		if not changed and ["deal_damage", "gain_shield", "heal"].has(String(effect.get("type", ""))):
+			damage_added = effect.get("type", "") == "deal_damage"
 			effect["amount"] = maxi(0, int(effect.get("amount", 0)) + bonus)
 			card_def.effects[index] = effect
 			changed = true
+	if damage_added:
+		for effect: Dictionary in card_def.effects:
+			if effect.get("type", "") == "apply_status" and effect.get("status", "") == "bleed":
+				effect["_bleed_damage_bonus"] = int(effect.get("_bleed_damage_bonus", 0)) + bonus
 
 
 func _scale_numeric_effects(card_def: CardDef, multiplier: float) -> void:

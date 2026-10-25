@@ -479,7 +479,8 @@
         "type": "apply_status",
         "status": "bleed",
         "duration": 36,
-        "target": "enemy"
+        "target": "enemy",
+        "bleed_power": 1
       }
     ],
     "upgrade_profile": {
@@ -490,6 +491,14 @@
         3,
         4,
         5
+      ],
+      "bleed_power": [
+        0,
+        0,
+        1,
+        1,
+        2,
+        3
       ]
     }
   },
@@ -2859,7 +2868,8 @@
         "type": "apply_status",
         "status": "bleed",
         "duration": 30,
-        "target": "enemy"
+        "target": "enemy",
+        "bleed_power": 1
       },
       {
         "type": "apply_status",
@@ -2884,6 +2894,14 @@
         15,
         20,
         25
+      ],
+      "bleed_power": [
+        0,
+        0,
+        1,
+        1,
+        2,
+        3
       ]
     }
   },
@@ -3310,7 +3328,8 @@
         "type": "apply_status",
         "status": "bleed",
         "duration": 42,
-        "target": "enemy"
+        "target": "enemy",
+        "bleed_power": 1
       },
       {
         "type": "apply_status",
@@ -3342,6 +3361,14 @@
         18,
         24,
         30
+      ],
+      "bleed_power": [
+        0,
+        0,
+        1,
+        1,
+        2,
+        3
       ]
     }
   },
@@ -4249,7 +4276,8 @@
         "type": "apply_status",
         "status": "bleed",
         "duration": 18,
-        "target": "enemy"
+        "target": "enemy",
+        "bleed_power": 1
       }
     ],
     "upgrade_profile": {
@@ -4284,6 +4312,14 @@
         -6,
         -8,
         -10
+      ],
+      "bleed_power": [
+        0,
+        0,
+        1,
+        1,
+        2,
+        3
       ]
     }
   },

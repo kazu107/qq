@@ -1,7 +1,7 @@
 extends RefCounted
 class_name UnitState
 
-const BLEED_TICK_INTERVAL := 6.0
+const BLEED_TICK_INTERVAL := BleedRules.TICK_INTERVAL
 
 var unit_id: String = ""
 var display_name: String = ""
@@ -52,6 +52,7 @@ func consume_next_attack_multiplier() -> float:
 
 func get_display_statuses() -> Dictionary:
 	var display: Dictionary = statuses.duplicate(true)
+	if display.has("bleed"): display["bleed"] = BleedRules.normalize(display["bleed"])
 	if next_attack_multiplier > 1.0:
 		display["attack_charge"] = {"duration": 0.0, "charges": 1, "multiplier": next_attack_multiplier}
 	return display
@@ -100,7 +101,11 @@ func heal(amount: int) -> void:
 	combat_totals["heal"] = int(combat_totals["heal"]) + maxi(0, hp - before)
 
 
-func add_status(status_id: String, duration: float) -> void:
+func add_status(status_id: String, duration: float, bleed_power: int = 1, source_side: String = "") -> void:
+	if status_id == "bleed":
+		var bleed: Dictionary = BleedRules.add(Dictionary(statuses.get(status_id, {})), duration, bleed_power, source_side)
+		if float(bleed["duration"]) > 0: statuses[status_id] = bleed
+		return
 	var data: Dictionary = Dictionary(statuses.get(status_id, {"duration": 0.0, "tick_accumulator": 0.0}))
 	var current_duration: float = float(data.get("duration", 0.0))
 	var current_max_duration: float = float(data.get("max_duration", current_duration))
@@ -108,6 +113,15 @@ func add_status(status_id: String, duration: float) -> void:
 	data["duration"] = next_duration
 	data["max_duration"] = maxf(maxf(current_max_duration, next_duration), duration)
 	statuses[status_id] = data
+	if source_side != "": statuses[status_id]["source_side"] = source_side
+
+
+func adjust_status_duration(status_id: String, amount: float) -> void:
+	if not statuses.has(status_id): return
+	if status_id == "bleed":
+		statuses[status_id] = BleedRules.adjust_duration(statuses[status_id], amount)
+		if float(statuses[status_id]["duration"]) <= 0: statuses.erase(status_id)
+	else: statuses[status_id]["duration"] = maxf(0, float(statuses[status_id].get("duration", 0)) + amount)
 
 
 func remove_status(status_id: String) -> void:
@@ -123,6 +137,12 @@ func tick_statuses(delta: float) -> Array[Dictionary]:
 	var expired: Array[String] = []
 	for status_id in statuses.keys():
 		var data: Dictionary = Dictionary(statuses[status_id])
+		if status_id == "bleed":
+			var bleed_tick: Dictionary = BleedRules.tick(data, delta)
+			events.append_array(bleed_tick["events"])
+			if float(bleed_tick["data"]["duration"]) <= 0: statuses.erase(status_id)
+			else: statuses[status_id] = bleed_tick["data"]
+			continue
 		var suspended: float = float(data.get("suspended", 0.0))
 		if suspended > 0.0:
 			data["suspended"] = maxf(0.0, suspended - delta)
@@ -130,17 +150,6 @@ func tick_statuses(delta: float) -> Array[Dictionary]:
 			continue
 		var remaining: float = max(0.0, float(data.get("duration", 0.0)) - delta)
 		data["duration"] = remaining
-		if status_id == "bleed":
-			var tick_accumulator: float = float(data.get("tick_accumulator", 0.0)) + delta
-			while tick_accumulator >= BLEED_TICK_INTERVAL and remaining > 0.0:
-				tick_accumulator -= BLEED_TICK_INTERVAL
-				events.append({
-					"type": "status_damage",
-					"status": status_id,
-					"amount": 1,
-					"source_side": String(data.get("source_side", "")),
-				})
-			data["tick_accumulator"] = tick_accumulator
 		statuses[status_id] = data
 		if remaining <= 0.0:
 			expired.append(String(status_id))

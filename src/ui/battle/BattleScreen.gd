@@ -1524,6 +1524,8 @@ func _refresh_developer_panel() -> void:
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
 			{"id": "DevBattleDetails", "label": Localization.get_text("battle.analysis.details", "Battle details"), "callback": Callable(self, "_on_dev_battle_details"), "disabled": _lan_mode},
+			{"id": "DevBleedEnemy", "label": Localization.get_text("bleed.dev.apply", "Enemy bleed x3"), "callback": Callable(self, "_on_dev_bleed").bind(false), "disabled": _lan_mode or RankedSession.active()},
+			{"id": "DevBleedClear", "label": Localization.get_text("bleed.dev.clear", "Clear enemy bleed"), "callback": Callable(self, "_on_dev_bleed").bind(true), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevBossCharge", "label": Localization.get_text("boss.timekeeper.dev_charge", "Stack boss charge x2"), "callback": func() -> void: _on_dev_boss_charge(true), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
 			{"id": "DevBossClearCharge", "label": Localization.get_text("boss.timekeeper.dev_clear", "Clear boss charge"), "callback": func() -> void: _on_dev_boss_charge(false), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
 			{"id": "DevTimelineDelay", "label": Localization.get_text("developer.timeline_delay", "Delay enemy cards +10s"), "callback": Callable(self, "_on_dev_timeline_delay"), "disabled": _lan_mode},
@@ -1540,6 +1542,15 @@ func _refresh_developer_panel() -> void:
 func _on_dev_battle_details() -> void:
 	if Game.is_developer_mode_enabled() and not _lan_mode and _engine.battle_state != null:
 		_analysis_panel.show_details(_engine.build_summary(false), _local_side)
+
+
+func _on_dev_bleed(clear: bool) -> void:
+	if not Game.is_developer_mode_enabled() or _lan_mode or RankedSession.active() or _engine.battle_state == null or _handled_finish: return
+	if clear: _engine.remove_status_from_card("player", "enemy", "bleed")
+	else:
+		_engine.battle_state.enemy.remove_status("bleed")
+		for index: int in 3: _engine.apply_status_from_card("player", "enemy", "bleed", 12.0 + index * 6.0, 2 + index * 2)
+	_refresh_ui(1.0)
 
 
 func _on_dev_boss_charge(enabled: bool) -> void:

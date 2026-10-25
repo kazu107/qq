@@ -714,10 +714,19 @@ func _tick_statuses(delta: float) -> void:
 				var hp_before: int = unit.hp
 				unit.hp = max(0, unit.hp - amount)
 				unit.combat_totals["damage_taken"] = int(unit.combat_totals["damage_taken"]) + maxi(0, hp_before - unit.hp)
-				var source_side: String = String(event_data.get("source_side", ""))
-				if source_side in ["player", "enemy"] and source_side != status_side:
-					var source_unit: UnitState = battle_state.get_unit(source_side)
-					source_unit.combat_totals["damage"] = int(source_unit.combat_totals["damage"]) + maxi(0, hp_before - unit.hp)
+				var sources: Dictionary = Dictionary(event_data.get("source_amounts", {String(event_data.get("source_side", "")): amount}))
+				var credit_left: int = maxi(0, hp_before - unit.hp)
+				var source_ids: Array = sources.keys(); source_ids.sort()
+				var credits: Dictionary = {}
+				for source_side: String in source_ids:
+					credits[source_side] = floori(float(maxi(0, hp_before - unit.hp)) * int(sources[source_side]) / maxi(1, amount))
+					credit_left -= int(credits[source_side])
+				for source_side: String in source_ids:
+					if credit_left > 0: credits[source_side] = int(credits[source_side]) + 1; credit_left -= 1
+				for source_side: String in source_ids:
+					if source_side in ["player", "enemy"] and source_side != status_side:
+						var source_unit: UnitState = battle_state.get_unit(source_side)
+						source_unit.combat_totals["damage"] = int(source_unit.combat_totals["damage"]) + int(credits[source_side])
 				_relic_controller.prevent_lethal(status_side)
 				battle_state.add_log(Localization.get_textf("battle.log.status_damage", "{unit_name} took {amount} bleed damage", {
 					"unit_name": unit.display_name,
@@ -1084,8 +1093,8 @@ func set_relic_enabled(side: String, relic_id: String, enabled: bool) -> bool:
 	return _relic_controller.set_relic_enabled(side, relic_id, enabled)
 
 
-func apply_status_from_card(source_side: String, target_side: String, status_id: String, duration: float) -> void:
-	_relic_controller.apply_status(source_side, target_side, status_id, duration)
+func apply_status_from_card(source_side: String, target_side: String, status_id: String, duration: float, bleed_power: int = 1) -> void:
+	_relic_controller.apply_status(source_side, target_side, status_id, duration, bleed_power)
 
 
 func remove_status_from_card(source_side: String, target_side: String, status_id: String) -> void:

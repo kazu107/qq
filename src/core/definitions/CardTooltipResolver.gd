@@ -68,12 +68,14 @@ static func _has_runtime_stat_adjustment(unit: UnitState, baseline_attack: int) 
 
 
 static func _apply_attack_to_damage(card_def: CardDef, attack_value: int) -> void:
-	if card_def == null or attack_value == 0:
+	if card_def == null:
 		return
 	var resolved_effects: Array[Dictionary] = []
 	for raw_effect in card_def.effects:
 		var effect: Dictionary = Dictionary(raw_effect).duplicate(true)
 		if String(effect.get("type", "")) == "deal_damage":
 			effect["amount"] = maxi(0, int(effect.get("amount", 0)) + attack_value)
+		elif effect.get("type", "") == "apply_status" and effect.get("status", "") == "bleed":
+			effect["bleed_power"] = BleedRules.resolve_power(effect, attack_value)
 		resolved_effects.append(effect)
 	card_def.effects = resolved_effects
