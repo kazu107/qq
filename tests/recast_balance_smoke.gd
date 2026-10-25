@@ -1,6 +1,7 @@
 extends Node
 
 const FIXTURE := "res://tests/fixtures/recast_balance_0_52_1.json"
+const FOLLOW_UP := "res://tests/fixtures/grade_balance_0_52_2.json"
 const EXCLUDED: Dictionary = {
 	"quick_slash": 8, "strike": 12, "guard": 12, "heavy_swing": 26,
 	"delay_step": 22, "haste_focus": 16, "weak_shot": 18, "bleed_cut": 20,
@@ -41,8 +42,12 @@ func _run() -> void:
 		_check(is_equal_approx(Database.get_card(id).recast_time, change["after"]), "published value differs: " + id)
 		_check(is_equal_approx(draft.value("card", id, "recast_time"), change["after"]), "lab baseline differs: " + id)
 	_check(not draft.import_document(document), "old-source diff was applied twice")
+	# Later explicit requests supersede only these published fields.
+	var follow_up: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(FOLLOW_UP))
+	var replacements: Dictionary = {}
+	for change: Dictionary in follow_up["changes"]: replacements[change["id"] + ":" + change["path"]] = change["after"]
 	for id: String in EXCLUDED:
-		_check(not ids.has(id) and Database.get_card(id).recast_time == EXCLUDED[id], "excluded card changed: " + id)
+		_check(not ids.has(id) and Database.get_card(id).recast_time == float(replacements.get(id + ":recast_time", EXCLUDED[id])), "excluded card changed without a later request: " + id)
 	_check(ids.size() + EXCLUDED.size() == Database.get_all_card_ids().size() + Database.get_boss_card_ids().size(), "catalog coverage differs")
 	for tier: int in range(6):
 		var run: RunState = RunState.from_starter(Database.get_starter("balanced"), 4242)
@@ -56,7 +61,8 @@ func _run() -> void:
 			var previous: CardDef = CardDef.from_dict(base.to_dict()); previous.recast_time = change["before"]
 			var old_grade: CardDef = CardUpgradeResolver.build_card_at_tier(id, tier, previous)
 			var expected: CardDef = CardUpgradeResolver.build_card_at_tier(id, tier)
-			_check(is_equal_approx(expected.recast_time, maxf(0, old_grade.recast_time + float(change["after"]) - float(change["before"]))), "grade reduction changed: %s / %d" % [id, tier])
+			var recast: float = float(replacements.get("%s:grade_overrides.%d.recast_time" % [id, tier], maxf(0, old_grade.recast_time + float(change["after"]) - float(change["before"]))))
+			_check(is_equal_approx(expected.recast_time, recast), "grade reduction changed: %s / %d" % [id, tier])
 			_check(expected.cast_time == old_grade.cast_time and expected.effects == old_grade.effects, "cast/effects changed: " + id)
 			_check(is_equal_approx(draft.card(id, tier).recast_time, expected.recast_time), "lab grade differs: " + id)
 			for side: String in ["player", "enemy"]:

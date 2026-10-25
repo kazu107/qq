@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.52.1",
+  "current_version": "QQ-0.52.2",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.52.2", "date": "2026-10-25",
+      "title_ja": "5枚のカードをグレード別に調整",
+      "title_en": "Grade-specific balance for five cards",
+      "changes_ja": [
+        "提出されたJSONの46項目を反映しました。アサルトは上位Gradeのダメージと再使用、バリア展開は詠唱・再使用・シールド量を調整しています。",
+        "ブリードカットの基本出血威力をGrade 0〜5で1・2・3・4・5・6に変更しました。リロードは基本再使用28秒、上位Gradeは26・24・22・20・18秒となり、短縮量は9・12・15・18・21秒になります。タイムバイも上位Gradeの再使用を短縮しました。",
+        "指定外の数値・カード・遺物と、鍛冶屋のGrade 3上限は維持します。プレイヤーと敵に共通で反映し、過去の記録を保持してランキングをシーズン7へ切り替えます。"
+      ],
+      "changes_en": [
+        "Publish all 46 fields from the submitted JSON. Adjust upper-grade Assault damage/recast and Barrier Deploy cast/recast/shield values.",
+        "Set Bleed Cut base bleed power to 1/2/3/4/5/6 at Grade 0-5. Reload now has 28s base recast, 26/24/22/20/18s upper-grade recasts and 9/12/15/18/21s cooldown reductions. Reduce upper-grade Time Buy recasts too.",
+        "Preserve unspecified fields, other cards/relics and Forge's Grade 3 cap. Apply shared definitions to both combatants; retain past records and start ranked Season 7."
+      ]
+    },
     {
       "version": "QQ-0.52.1", "date": "2026-10-25",
       "title_ja": "指定87カードの再使用時間を短縮",

@@ -97,3 +97,10 @@ Its 87 base-recast changes are retained separately in
 `tests/fixtures/recast_balance_0_52_1.json`. `RecastBalanceSmoke --validate-import`
 validates the source before publication; the normal smoke checks every new value,
 the ten excluded cards, all grades on both combatants and resolved cooldowns.
+
+The third submission is recorded in [`balance/QQ-0.52.2.md`](balance/QQ-0.52.2.md).
+`tests/fixtures/grade_balance_0_52_2.json` retains its 46 fields for five cards.
+`GradeBalanceSmoke --validate-import` checks the original source before publication;
+the normal test verifies every field and Grade 0-5 values, including actual damage,
+shield, bleed ticks, cooldown reduction and delay on both sides. Historical recast
+tests retain their original fixture and honor only explicitly superseding fields.

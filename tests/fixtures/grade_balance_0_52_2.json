@@ -1,0 +1,329 @@
+{
+	"changes": [
+		{
+			"after": 16.4,
+			"before": 16.8,
+			"id": "assault",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 14,
+			"before": 12.0,
+			"id": "assault",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 16.0,
+			"before": 16.8,
+			"id": "assault",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 18,
+			"before": 14.0,
+			"id": "assault",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 15.6,
+			"before": 16.8,
+			"id": "assault",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 22,
+			"before": 16.0,
+			"id": "assault",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 15.2,
+			"before": 16.8,
+			"id": "assault",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 26,
+			"before": 18.0,
+			"id": "assault",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 14.8,
+			"before": 16.8,
+			"id": "assault",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 40,
+			"before": 20.0,
+			"id": "assault",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 8.9,
+			"before": 9.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.1.cast_time"
+		},
+		{
+			"after": 24.8,
+			"before": 25.2,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 24,
+			"before": 20.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 8.8,
+			"before": 9.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.2.cast_time"
+		},
+		{
+			"after": 22.0,
+			"before": 25.2,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 26,
+			"before": 22.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 6.8,
+			"before": 9.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.3.cast_time"
+		},
+		{
+			"after": 21.6,
+			"before": 25.2,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 28,
+			"before": 23.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 6.25,
+			"before": 9.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.4.cast_time"
+		},
+		{
+			"after": 20.2,
+			"before": 25.2,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 31,
+			"before": 24.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 5.85,
+			"before": 9.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.5.cast_time"
+		},
+		{
+			"after": 18.9,
+			"before": 25.2,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 34,
+			"before": 25.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 2,
+			"before": 1.0,
+			"id": "bleed_cut",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.1.bleed_power"
+		},
+		{
+			"after": 3,
+			"before": 2.0,
+			"id": "bleed_cut",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.1.bleed_power"
+		},
+		{
+			"after": 4,
+			"before": 2.0,
+			"id": "bleed_cut",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.1.bleed_power"
+		},
+		{
+			"after": 5,
+			"before": 3.0,
+			"id": "bleed_cut",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.1.bleed_power"
+		},
+		{
+			"after": 6,
+			"before": 4.0,
+			"id": "bleed_cut",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.1.bleed_power"
+		},
+		{
+			"after": 28.0,
+			"before": 32.0,
+			"id": "reload",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 26.0,
+			"before": 30.8,
+			"id": "reload",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 9.0,
+			"before": 6.0,
+			"id": "reload",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 24.0,
+			"before": 29.6,
+			"id": "reload",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 12.0,
+			"before": 6.0,
+			"id": "reload",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 22.0,
+			"before": 28.4,
+			"id": "reload",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 15.0,
+			"before": 6.0,
+			"id": "reload",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 20.0,
+			"before": 27.2,
+			"id": "reload",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 18.0,
+			"before": 6.0,
+			"id": "reload",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 18.0,
+			"before": 26.0,
+			"id": "reload",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 21.0,
+			"before": 6.0,
+			"id": "reload",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 21.4,
+			"before": 22.4,
+			"id": "time_buy",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 20.4,
+			"before": 22.4,
+			"id": "time_buy",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 19.4,
+			"before": 22.4,
+			"id": "time_buy",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 18.4,
+			"before": 22.4,
+			"id": "time_buy",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 17.4,
+			"before": 22.4,
+			"id": "time_buy",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		}
+	],
+	"format": "queuequest-balance-diff-v2",
+	"game_version": "QQ-0.52.1",
+	"source_hash": "3710a019a6ca4813f89d28cab03e1e9a395c643a0b1dd22362294c4fff4cfd75"
+}

@@ -7,8 +7,9 @@ all earlier seasons and their recorded results.
 
 - A unit shares one six-second bleed clock. Applying another layer does not reset it.
 - Each card application snapshots `max(1, bleed_power + floor((attack + card_damage_bonus) * 0.25))`.
-- Base grade 0-5 power is `1 / 1 / 2 / 2 / 3 / 4` for Bleed Cut, Rupture Mark,
-  Blood Moon Protocol and Crown of Thorns. Existing durations/direct effects stay intact.
+- Grade 0-5 power is `1 / 2 / 3 / 4 / 5 / 6` for Bleed Cut after QQ-0.52.2
+  (originally `1 / 1 / 2 / 2 / 3 / 4`). Rupture Mark, Blood Moon Protocol and
+  Crown of Thorns retain `1 / 1 / 2 / 2 / 3 / 4`. Durations/direct effects stay intact.
 - Grade power comes from `effects[].bleed_power` plus `upgrade_profile.bleed_power`;
   grade overrides work as usual. The Balance Lab exposes the resulting numeric fields.
 - Additive card damage modifiers count once; grade's separate direct damage growth,

@@ -500,6 +500,43 @@
         2,
         3
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "1": {
+            "bleed_power": 2
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "1": {
+            "bleed_power": 3
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "1": {
+            "bleed_power": 4
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "1": {
+            "bleed_power": 5
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "1": {
+            "bleed_power": 6
+          }
+        }
+      }
     }
   },
   {
@@ -593,7 +630,7 @@
       "cooldown"
     ],
     "loadout_cost": 2,
-    "recast_time": 32,
+    "recast_time": 28,
     "cast_time": 3,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -615,6 +652,48 @@
         4.8,
         6
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 26,
+        "effects": {
+          "0": {
+            "amount": 9
+          }
+        }
+      },
+      "2": {
+        "recast_time": 24,
+        "effects": {
+          "0": {
+            "amount": 12
+          }
+        }
+      },
+      "3": {
+        "recast_time": 22,
+        "effects": {
+          "0": {
+            "amount": 15
+          }
+        }
+      },
+      "4": {
+        "recast_time": 20,
+        "effects": {
+          "0": {
+            "amount": 18
+          }
+        }
+      },
+      "5": {
+        "recast_time": 18,
+        "effects": {
+          "0": {
+            "amount": 21
+          }
+        }
+      }
     }
   },
   {
@@ -648,6 +727,48 @@
         8,
         10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 16.4,
+        "effects": {
+          "0": {
+            "amount": 14
+          }
+        }
+      },
+      "2": {
+        "recast_time": 16,
+        "effects": {
+          "0": {
+            "amount": 18
+          }
+        }
+      },
+      "3": {
+        "recast_time": 15.6,
+        "effects": {
+          "0": {
+            "amount": 22
+          }
+        }
+      },
+      "4": {
+        "recast_time": 15.2,
+        "effects": {
+          "0": {
+            "amount": 26
+          }
+        }
+      },
+      "5": {
+        "recast_time": 14.8,
+        "effects": {
+          "0": {
+            "amount": 40
+          }
+        }
+      }
     }
   },
   {
@@ -682,6 +803,53 @@
         6,
         7
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 8.9,
+        "recast_time": 24.8,
+        "effects": {
+          "0": {
+            "amount": 24
+          }
+        }
+      },
+      "2": {
+        "cast_time": 8.8,
+        "recast_time": 22,
+        "effects": {
+          "0": {
+            "amount": 26
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.8,
+        "recast_time": 21.6,
+        "effects": {
+          "0": {
+            "amount": 28
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6.25,
+        "recast_time": 20.2,
+        "effects": {
+          "0": {
+            "amount": 31
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.85,
+        "recast_time": 18.9,
+        "effects": {
+          "0": {
+            "amount": 34
+          }
+        }
+      }
     }
   },
   {
@@ -749,6 +917,23 @@
         4,
         5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 21.4
+      },
+      "2": {
+        "recast_time": 20.4
+      },
+      "3": {
+        "recast_time": 19.4
+      },
+      "4": {
+        "recast_time": 18.4
+      },
+      "5": {
+        "recast_time": 17.4
+      }
     }
   },
   {

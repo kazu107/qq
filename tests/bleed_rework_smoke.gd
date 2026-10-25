@@ -98,24 +98,25 @@ func _test_cards() -> void:
 		for grade: int in 6:
 			var card: CardDef = CardUpgradeResolver.build_card_at_tier(id, grade)
 			var effect: Dictionary = card.effects.filter(func(row: Dictionary) -> bool: return row.get("type") == "apply_status" and row.get("status") == "bleed")[0]
-			_check(effect["bleed_power"] == [1, 1, 2, 2, 3, 4][grade], "grade power: " + id)
+			var powers: Array = [1, 2, 3, 4, 5, 6] if id == "bleed_cut" else [1, 1, 2, 2, 3, 4]
+			_check(effect["bleed_power"] == powers[grade], "grade power: " + id)
 	_check(BleedRules.resolve_power({"bleed_power": 2}, 12) == 5, "attack scaling example")
 	_check(BleedRules.resolve_power({"bleed_power": 2, "_bleed_damage_bonus": 8}, 12) == 7, "card additive damage scaling")
 	_check(BleedRules.resolve_power({"bleed_power": 2, "_bleed_damage_bonus": -99}, 0) == 1, "damage floor")
 	var run: RunState = RunState.from_starter(Database.get_starter("balanced"), 4242); run.card_upgrades["bleed_cut"] = 3; run.attack = 12
 	var unit: UnitState = UnitState.new(); unit.attack = 12
 	var context: Dictionary = CardTooltipResolver.build_context("bleed_cut", run, unit)
-	_check(context["card"].effects[1]["bleed_power"] == 5, "tooltip did not show scaled power")
+	_check(context["card"].effects[1]["bleed_power"] == 7, "tooltip did not show scaled power")
 	var rich: String = "\n".join(CardInfoFormatter.build_effect_lines(context["card"], context["comparison"], true))
-	_check(rich.contains("5[color=") and rich.contains("3 layers"), "tooltip power delta or layer cap missing")
+	_check(rich.contains("7[color=") and rich.contains("3 layers"), "tooltip power delta or layer cap missing")
 	var chips: Array = CardFaceSummaryResolver.build_summaries(context["card"], context["comparison"])
-	_check(chips.any(func(chip: Dictionary) -> bool: return chip.get("icon_id") == "status:bleed" and chip.get("value_text") == "5/6s"), "card chip did not show tick power")
+	_check(chips.any(func(chip: Dictionary) -> bool: return chip.get("icon_id") == "status:bleed" and chip.get("value_text") == "7/6s"), "card chip did not show tick power")
 	var legacy: CardDef = CardDef.from_dict(Database.get_card("bleed_cut").to_dict()); legacy.effects[1].erase("bleed_power")
 	_check(CardFaceSummaryResolver.build_summaries(legacy).any(func(chip: Dictionary) -> bool: return chip.get("value_text") == "1/6s"), "legacy card chip has the wrong default power")
 	unit.add_status("weak", 12)
 	context = CardTooltipResolver.build_context("bleed_cut", run, unit)
-	_check(context["card"].effects[1]["bleed_power"] == 4, "weak did not reduce new applications")
-	_check("\n".join(CardInfoFormatter.build_effect_lines(context["card"], context["comparison"], true)).contains("4[color=#ff6868](-1)"), "weakened bleed power lacks its red delta")
+	_check(context["card"].effects[1]["bleed_power"] == 6, "weak did not reduce new applications")
+	_check("\n".join(CardInfoFormatter.build_effect_lines(context["card"], context["comparison"], true)).contains("6[color=#ff6868](-1)"), "weakened bleed power lacks its red delta")
 	var draft: BalanceDraft = BalanceDraft.new()
 	_check(draft.set_value("card", "bleed_cut", "grade_overrides.3.effects.1.bleed_power", 9) and draft.card("bleed_cut", 3).effects[1]["bleed_power"] == 9, "lab cannot edit grade power")
 	_check(not draft.set_value("card", "bleed_cut", "effects.1.bleed_power", 0), "lab accepted a zero tick power")
@@ -139,12 +140,12 @@ func _test_combat() -> void:
 	_check(engine.request_use_card("player", runtime.runtime_id), "bleed card could not be queued")
 	engine.update(4.3)
 	var enemy: UnitState = engine.battle_state.enemy
-	_check(enemy.statuses["bleed"]["damage"] == 7 and engine.battle_state.player.next_attack_multiplier == 1, "snapshot power used attack charge or ignored modifiers")
+	_check(enemy.statuses["bleed"]["damage"] == 9 and engine.battle_state.player.next_attack_multiplier == 1, "snapshot power used attack charge or ignored modifiers")
 	engine.battle_state.player.attack = 0; engine.add_card_modifier("player", "bleed_cut", "damage", 100)
 	enemy.shield = 80
 	var hp: int = enemy.hp
 	engine.update(6)
-	_check(enemy.hp == hp - 7 and enemy.shield == 74 and enemy.statuses["bleed"]["damage"] == 7, "existing bleed changed power or consumed shield beyond normal decay")
+	_check(enemy.hp == hp - 9 and enemy.shield == 74 and enemy.statuses["bleed"]["damage"] == 9, "existing bleed changed power or consumed shield beyond normal decay")
 	engine.dispose()
 	engine = _engine(); engine.battle_state.enemy.hp = 5
 	engine.apply_status_from_card("player", "enemy", "bleed", 6, 10); engine.apply_status_from_card("enemy", "enemy", "bleed", 6, 5)
