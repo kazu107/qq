@@ -1,9 +1,16 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.51.0",
+  "current_version": "QQ-0.51.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.51.1", "date": "2026-10-25",
+      "title_ja": "出血関連遺物の調整項目名を明確化",
+      "title_en": "Clarify the bleed relic's tuning field",
+      "changes_ja": ["遺物「病の余波」のラボ項目を「出血終了時の追加回数」と表記し、固定ダメージ量と区別しました。出血の挙動とシーズンはQQ-0.51.0から変わりません。"],
+      "changes_en": ["Label Critical Pathology Meter's extra-tick field as a count rather than fixed damage. Bleed behavior and the season are unchanged from QQ-0.51.0."]
+    },
     {
       "version": "QQ-0.51.0", "date": "2026-10-25",
       "title_ja": "出血を威力付きの3層制に変更",

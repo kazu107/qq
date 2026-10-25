@@ -41,7 +41,7 @@ const LABELS: Dictionary = {
 	"low_hp_ratio": "低HP判定割合", "reset_hp_ratio": "高HP判定割合", "low_hp_cast_multiplier": "低HP時の詠唱倍率", "high_hp_effect_multiplier": "高HP時の効果倍率",
 	"haste_amount": "加速秒数", "fallback_recast_reduction": "代わりの再使用短縮", "added_cast_per_bonus": "強化に必要な遅延秒数", "amount_per_step": "段階ごとの強化量",
 	"stop_duration": "停止時間", "status_duration_reduction": "状態を消費する秒数", "defer_duration": "状態を保留する秒数", "remaining_duration_ratio": "残り時間の移植率", "max_statuses_per_battle": "移植数の上限",
-	"bleed_final_ticks": "出血の追加ダメージ", "other_status_delay": "他の状態の遅延秒数", "max_total_discount": "合計割引の上限", "discount_after_first": "2枚目以降の割引", "minimum_equipped": "必要装備枚数",
+	"bleed_final_ticks": "出血終了時の追加回数", "other_status_delay": "他の状態の遅延秒数", "max_total_discount": "合計割引の上限", "discount_after_first": "2枚目以降の割引", "minimum_equipped": "必要装備枚数",
 	"max_overflow": "超過コスト上限", "status_duration_per_overflow": "超過1あたりの状態時間", "unused_capacity_per_slot": "追加スロットに必要な空き", "max_slots": "追加スロット上限",
 	"source_cost": "発動カードのコスト", "target_cost_min": "対象コスト下限", "target_cost_max": "対象コスト上限", "window": "判定する時間幅", "amount_per_grade": "グレード差ごとの効果",
 	"cast_reduction": "詠唱の短縮秒数", "effect_multiplier": "効果倍率", "minimum_post_resolve_cooldown": "発動後の最低再使用時間", "shield_to_damage_ratio": "シールドからダメージへの変換率", "damage_to_shield_ratio": "ダメージからシールドへの変換率", "cast_penalty": "詠唱の追加秒数", "slot_cost": "使用スロット", "main_effect_cap": "主効果の上限",

@@ -154,6 +154,7 @@ func _test_combat() -> void:
 
 
 func _test_relics() -> void:
+	_check(String(BalanceDraft.LABELS["bleed_final_ticks"]).contains("回数"), "lab must distinguish extra tick count from fixed damage")
 	var engine: RealtimeBattleEngine = _engine([], ["quarantine_buffer"])
 	engine.apply_status_from_card("player", "enemy", "bleed", 12, 5); engine.apply_status_from_card("player", "enemy", "bleed", 18, 3)
 	engine.update(6)
