@@ -319,6 +319,10 @@ if ($godotExe) {
         "--no-header", "--headless", "--path", $root,
         "--scene", "res://tests/BleedReworkSmoke.tscn"
     )
+    Invoke-GodotCheck "[15-echo-repeat/31] Running Echo repeat smoke" $godotExe @(
+        "--no-header", "--headless", "--path", $root,
+        "--scene", "res://tests/EchoRepeatSmoke.tscn"
+    )
     Invoke-GodotCheck "[15-bulk-selection/31] Running bulk target selection smoke" $godotExe @(
         "--no-header", "--headless", "--path", $root,
         "--scene", "res://tests/BalanceBulkSelectionSmoke.tscn"

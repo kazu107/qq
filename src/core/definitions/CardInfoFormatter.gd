@@ -49,6 +49,8 @@ static func format_grade_label(tier: int) -> String:
 static func _describe_effect(effect: Dictionary, compact: bool, comparison_effect: Dictionary = {}, rich: bool = false) -> String:
 	var effect_type: String = String(effect.get("type", ""))
 	match effect_type:
+		"repeat_next_card":
+			return Localization.get_textf("effect.repeat_next_card", "Gain {charges} Echo charge(s), max 3. The next manually queued card to resolve repeats its effects twice, including already-casting cards. Costs and cooldown are paid once; auto cards and Echo cards are excluded.", {"charges": _format_compared_int(effect, comparison_effect, "charges", true, rich, 1)})
 		"next_attack_multiplier":
 			return Localization.get_text("effect.next_attack_multiplier", "Double the next resolved attack card (including attack bonuses). Already-casting cards qualify. Stacks multiplicatively: x2, x4, x8. Consumed once per card.")
 		"consume_shield":

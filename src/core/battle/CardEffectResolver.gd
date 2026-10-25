@@ -17,23 +17,29 @@ static func can_pay_shield_cost(unit: UnitState, card_def: CardDef) -> bool:
 	return unit != null and unit.shield >= get_shield_cost(card_def)
 
 
-static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, instance: ActiveCardInstance, card_def: CardDef) -> Array[String]:
+static func take_attack_multiplier(actor: UnitState, card_def: CardDef) -> float:
+	for effect: Dictionary in card_def.effects:
+		if effect.get("type", "") == "deal_damage": return actor.consume_next_attack_multiplier()
+	return 1.0
+
+
+static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, instance: ActiveCardInstance, card_def: CardDef, shared_attack_multiplier: float = -1.0, additional_repeat: bool = false) -> Array[String]:
 	var messages: Array[String] = []
 	var actor := battle_state.get_unit(instance.owner_side)
 	var target := battle_state.get_opponent(instance.owner_side)
-	var attack_multiplier: float = 1.0
-	for effect: Dictionary in card_def.effects:
-		if String(effect.get("type", "")) == "deal_damage":
-			attack_multiplier = actor.consume_next_attack_multiplier()
-			break
+	var attack_multiplier: float = shared_attack_multiplier if shared_attack_multiplier >= 0 else take_attack_multiplier(actor, card_def)
 	for raw_effect in card_def.effects:
 		var effect := Dictionary(raw_effect)
 		var effect_type := String(effect.get("type", ""))
 		match effect_type:
+			"repeat_next_card":
+				var added: int = actor.grant_repeat_charges(int(effect.get("charges", 1)))
+				messages.append(Localization.get_textf("battle.log.echo_ready", "Gained {amount} Echo charge(s); {charges}/3 ready.", {"amount": added, "charges": actor.repeat_charges}))
 			"next_attack_multiplier":
 				actor.charge_next_attack(float(effect.get("multiplier", 2.0)))
 				messages.append(Localization.get_textf("battle.log.attack_charge", "Next resolved attack is now {multiplier} times as strong.", {"multiplier": String.num(actor.next_attack_multiplier, 0)}))
 			"consume_shield":
+				if additional_repeat: continue
 				messages.append(Localization.get_textf("battle.log.card_consume_shield", "{card_name} consumed {amount} shield", {
 					"card_name": card_def.name,
 					"amount": int(effect.get("amount", 0)),

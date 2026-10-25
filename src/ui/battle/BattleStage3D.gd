@@ -1012,8 +1012,9 @@ func _emit_event_combat_text(event_data: Dictionary) -> void:
 				_spawn_floating_combat_text(prepare_actor, "-%d" % shield_cost, SHIELD_COLOR, 0)
 		"resolve_card", "fatigue_card":
 			var result: Dictionary = Dictionary(event_data.get("result", {}))
-			_emit_unit_delta_text(_player_actor, _unit_delta(result, _player_actor))
-			_emit_unit_delta_text(_enemy_actor, _unit_delta(result, _enemy_actor))
+			var lane: int = int(event_data.get("_repeat_text_lane", 0))
+			_emit_unit_delta_text(_player_actor, _unit_delta(result, _player_actor), lane)
+			_emit_unit_delta_text(_enemy_actor, _unit_delta(result, _enemy_actor), lane)
 		"status_damage":
 			var status_target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
 			var damage_amount: int = maxi(0, -int(event_data.get("hp_delta", 0)))
@@ -1024,18 +1025,18 @@ func _emit_event_combat_text(event_data: Dictionary) -> void:
 				_spawn_floating_combat_text(status_target, "-%d" % damage_amount, DAMAGE_COLOR, 0)
 
 
-func _emit_unit_delta_text(actor: BattleActor3D, delta_data: Dictionary) -> void:
+func _emit_unit_delta_text(actor: BattleActor3D, delta_data: Dictionary, lane_offset: int = 0) -> void:
 	if actor == null or delta_data.is_empty():
 		return
 	var hp_delta: int = int(delta_data.get("hp", 0))
 	var shield_delta: int = int(delta_data.get("shield", 0))
 	if hp_delta < 0:
-		_spawn_floating_combat_text(actor, "-%d" % absi(hp_delta), DAMAGE_COLOR, -1 if shield_delta != 0 else 0)
+		_spawn_floating_combat_text(actor, "-%d" % absi(hp_delta), DAMAGE_COLOR, (-1 if shield_delta != 0 else 0) + lane_offset)
 	elif hp_delta > 0:
-		_spawn_floating_combat_text(actor, "+%d" % hp_delta, HEAL_COLOR, -1 if shield_delta != 0 else 0)
+		_spawn_floating_combat_text(actor, "+%d" % hp_delta, HEAL_COLOR, (-1 if shield_delta != 0 else 0) + lane_offset)
 	if shield_delta != 0:
 		var shield_text: String = "+%d" % shield_delta if shield_delta > 0 else "-%d" % absi(shield_delta)
-		_spawn_floating_combat_text(actor, shield_text, SHIELD_COLOR, 1 if hp_delta != 0 else 0)
+		_spawn_floating_combat_text(actor, shield_text, SHIELD_COLOR, (1 if hp_delta != 0 else 0) + lane_offset)
 
 
 func _spawn_floating_combat_text(actor: BattleActor3D, value_text: String, color: Color, lane: int) -> void:
@@ -1074,6 +1075,7 @@ func _update_event_queue(delta: float) -> void:
 		_start_next_event()
 		return
 	_active_event_elapsed += delta
+	_advance_resolution_pulses()
 	if _active_event_elapsed < _active_event_duration:
 		return
 	if String(_active_event.get("event_type", "")) == "battle_end":
@@ -1195,6 +1197,9 @@ func _begin_resolution(event_data: Dictionary) -> float:
 		"offensive": offensive,
 		"projectile_spawned": false,
 		"resolved": false,
+		"pulses": Array(result.get("effect_resolutions", [])).slice(0, RepeatRules.EFFECT_REPEATS),
+		"pulse_index": 0,
+		"next_pulse_at": 0.0,
 	}
 	if actor == null:
 		_apply_pending_resolution_visuals()
@@ -1282,23 +1287,44 @@ func _apply_pending_resolution_visuals() -> void:
 	if _pending_resolution_visual.is_empty() \
 	or bool(_pending_resolution_visual.get("resolved", false)):
 		return
+	_pending_resolution_visual["resolved"] = true
+	_pending_resolution_visual["next_pulse_at"] = _active_event_elapsed
+	_advance_resolution_pulses()
+
+
+func _advance_resolution_pulses(force: bool = false) -> void:
+	if _pending_resolution_visual.is_empty() or not bool(_pending_resolution_visual.get("resolved", false)): return
+	var pulses: Array = _pending_resolution_visual.get("pulses", [])
+	if pulses.is_empty(): pulses = [Dictionary(_active_event.get("result", {}))]
+	var index: int = int(_pending_resolution_visual.get("pulse_index", 0))
+	while index < pulses.size() and (force or _active_event_elapsed >= float(_pending_resolution_visual["next_pulse_at"])):
+		var event: Dictionary = _active_event.duplicate()
+		event["result"] = pulses[index]
+		if pulses.size() > 1: event["_repeat_text_lane"] = -1 if index == 0 else 1
+		_apply_resolution_pulse(event)
+		index += 1
+		_pending_resolution_visual["pulse_index"] = index
+		_pending_resolution_visual["next_pulse_at"] = float(_pending_resolution_visual["next_pulse_at"]) + 0.16
+
+
+func _apply_resolution_pulse(event: Dictionary) -> void:
 	var actor: BattleActor3D = _pending_resolution_visual.get("actor") as BattleActor3D
 	var target: BattleActor3D = _pending_resolution_visual.get("target") as BattleActor3D
 	var profile: Dictionary = Dictionary(_pending_resolution_visual.get("profile", {}))
-	var actor_delta: Dictionary = Dictionary(_pending_resolution_visual.get("actor_delta", {}))
-	var target_delta: Dictionary = Dictionary(_pending_resolution_visual.get("target_delta", {}))
+	var actor_delta: Dictionary = _unit_delta(Dictionary(event.get("result", {})), actor)
+	var target_delta: Dictionary = _unit_delta(Dictionary(event.get("result", {})), target)
 	var offensive: bool = bool(_pending_resolution_visual.get("offensive", false))
 	if offensive:
 		_spawn_pending_resolution_projectile()
 	_apply_unit_delta(actor, actor_delta, profile, false)
 	if target != actor:
 		_apply_unit_delta(target, target_delta, profile, true)
-	if bool(profile.get("status", false)) and target != null:
-		_spawn_impact(_actor_effect_position(target), STATUS_COLOR, 0.62, 1.68)
+	var status_actor: BattleActor3D = actor if bool(profile.get("self_status", false)) else target
+	if bool(profile.get("status", false)) and status_actor != null:
+		_spawn_impact(_actor_effect_position(status_actor), STATUS_COLOR, 0.62, 1.68)
 	if offensive:
 		_add_camera_shake(0.13 if int(target_delta.get("hp", 0)) < 0 else 0.08)
-	_emit_event_combat_text(_active_event)
-	_pending_resolution_visual["resolved"] = true
+	_emit_event_combat_text(event)
 
 
 func _spawn_pending_interrupt_projectile() -> void:
@@ -1329,6 +1355,7 @@ func _apply_pending_interrupt_visuals() -> void:
 
 func _flush_pending_animation_cues() -> void:
 	_apply_pending_resolution_visuals()
+	_advance_resolution_pulses(true)
 	_apply_pending_interrupt_visuals()
 
 
@@ -1369,7 +1396,7 @@ func _apply_unit_delta(actor: BattleActor3D, delta_data: Dictionary, profile: Di
 		if allow_reaction:
 			actor.play_action(BattleActor3D.ACTION_SHIELD)
 		_spawn_impact(position_3d, SHIELD_COLOR, 0.68, 1.92)
-	elif bool(profile.get("status", false)) and allow_reaction and hp_delta == 0:
+	elif bool(profile.get("status", false)) and not bool(profile.get("self_status", false)) and allow_reaction and hp_delta == 0:
 		actor.play_action(BattleActor3D.ACTION_STATUS)
 
 
@@ -1391,6 +1418,8 @@ func _build_card_profile(card_def: CardDef) -> Dictionary:
 				profile["heal"] = true
 			"gain_shield":
 				profile["shield"] = true
+			"repeat_next_card":
+				profile["status"] = true; profile["self_status"] = true
 			"apply_status", "remove_status", "modify_attack", "modify_speed", "timeline_flow", "next_attack_multiplier":
 				profile["status"] = true
 	return profile

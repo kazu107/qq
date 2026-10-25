@@ -25,6 +25,7 @@ const LEGACY: Dictionary = {
 	"archive_compass": {"pickup_loadout": 1, "victory_gold": 8, "victory_heal": 2}
 }
 const LABELS: Dictionary = {
+	"charges": "反響の獲得枚数",
 	"bleed_power": "出血威力（1層・6秒ごと）",
 	"loadout_cost": "ロードアウトコスト", "active_slot_cost": "使用スロット", "cast_time": "詠唱時間", "recast_time": "再使用時間", "priority_modifier": "優先度",
 	"amount": "効果量", "damage": "ダメージ補正", "shield": "シールド", "heal": "回復", "duration": "持続時間", "delay": "遅延秒数", "haste": "加速秒数", "cooldown": "再使用短縮",
@@ -168,6 +169,7 @@ static func _walk(value: Variant, path: String, result: Array[Dictionary], sourc
 		if path.begins_with("upgrade_profile.") or key in ["priority_modifier", "amount"]: minimum = -10000.0 if path.begins_with("upgrade_profile.") or key == "priority_modifier" or source.get("id", "") != "" and relative.begins_with("effects.") and String(source["effects"][int(parts[1])].get("type", "")) in ["modify_attack", "modify_speed", "empower_card"] else 0.0
 		if key in ["every", "required_count", "seconds_per_charge", "added_cast_per_bonus", "unused_capacity_per_slot", "decay_per_token", "shield_per_gold"]: minimum = 0.01 if floating else 1.0
 		var maximum: float = 1.0 if key.ends_with("ratio") else 10000.0
+		if key == "charges" and relative.begins_with("effects.") and source["effects"][int(parts[1])].get("type", "") == "repeat_next_card": minimum = 1; maximum = RepeatRules.MAX_CHARGES
 		if key == "bleed_power" and relative.begins_with("effects."): minimum = 1.0
 		minimum = minf(minimum, float(value))
 		maximum = maxf(maximum, float(value))

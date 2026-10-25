@@ -17,7 +17,7 @@
     },
     {
       "xp": 8,
-      "cards": ["bastion_drive", "adrenaline_link", "purge_pulse", "execution", "fortify", "time_flow_control", "blood_chain"],
+      "cards": ["bastion_drive", "adrenaline_link", "purge_pulse", "execution", "fortify", "time_flow_control", "blood_chain", "echo_cast"],
       "relics": ["surge_gimbal", "phase_capacitor", "echo_coil", "paradox_prism", "rift_compass", "entropy_battery", "omega_crown", "eternity_engine"]
     },
     {

@@ -14,6 +14,7 @@ var priority_modifier: float = 0.0
 var actor_speed: int = 0
 var slot_cost: int = 1
 var interruptible: bool = false
+var is_auto_queued: bool = false
 var continuous_shift_battle_time: float = -1.0
 var continuous_shift_amount: float = 0.0
 
@@ -33,6 +34,7 @@ static func from_instance(instance: ActiveCardInstance) -> TimelineEntry:
 	entry.actor_speed = instance.actor_speed
 	entry.slot_cost = instance.slot_cost
 	entry.interruptible = instance.interruptible
+	entry.is_auto_queued = instance.is_auto_queued
 	entry.continuous_shift_battle_time = instance.continuous_shift_battle_time
 	entry.continuous_shift_amount = instance.continuous_shift_amount
 	return entry

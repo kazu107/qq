@@ -103,7 +103,7 @@ static func _encode_network_events(events: Array[Dictionary]) -> Array[Dictionar
 	return result
 
 
-static func _encode_network_result(result: Dictionary) -> Dictionary:
+static func _encode_network_result(result: Dictionary, include_pulses: bool = true) -> Dictionary:
 	var compact_result: Dictionary = {}
 	for key: String in NETWORK_RESULT_UNIT_KEYS:
 		var unit_data: Dictionary = Dictionary(result.get(key, {}))
@@ -116,6 +116,11 @@ static func _encode_network_result(result: Dictionary) -> Dictionary:
 	for key: String in NETWORK_RESULT_SCALAR_KEYS:
 		if result.has(key):
 			compact_result[key] = int(result[key])
+	if result.has("effect_repeats"): compact_result["effect_repeats"] = clampi(int(result["effect_repeats"]), 1, 2)
+	if include_pulses and not Array(result.get("effect_resolutions", [])).is_empty():
+		var pulses: Array[Dictionary] = []
+		for pulse: Dictionary in Array(result["effect_resolutions"]).slice(0, RepeatRules.EFFECT_REPEATS): pulses.append(_encode_network_result(pulse, false))
+		compact_result["effect_resolutions"] = pulses
 	if result.has("fully_blocked"):
 		compact_result["fully_blocked"] = bool(result["fully_blocked"])
 	return compact_result
@@ -164,6 +169,7 @@ static func _encode_unit(unit: UnitState) -> Dictionary:
 		"shield": unit.shield,
 		"attack": unit.attack,
 		"next_attack_multiplier": unit.next_attack_multiplier,
+		"repeat_charges": unit.repeat_charges,
 		"speed": unit.speed,
 		"statuses": unit.statuses.duplicate(true),
 		"active_slots_used": unit.active_slots_used,
@@ -189,6 +195,7 @@ static func _decode_unit(payload: Dictionary) -> UnitState:
 	unit.shield = maxi(0, int(payload.get("shield", 0)))
 	unit.attack = int(payload.get("attack", 0))
 	unit.next_attack_multiplier = maxf(float(payload.get("next_attack_multiplier", 1.0)), 1.0)
+	unit.repeat_charges = clampi(int(payload.get("repeat_charges", 0)), 0, RepeatRules.MAX_CHARGES)
 	unit.speed = int(payload.get("speed", 0))
 	unit.statuses = Dictionary(payload.get("statuses", {})).duplicate(true)
 	if unit.statuses.get("bleed") is Dictionary and unit.statuses["bleed"].get("layers") is Array:
@@ -246,6 +253,7 @@ static func _encode_active_instance(instance: ActiveCardInstance) -> Dictionary:
 		"relic_delay_bank": instance.relic_delay_bank,
 		"relic_delay_hits": instance.relic_delay_hits,
 		"relic_flags": instance.relic_flags.duplicate(true),
+		"effect_repeats": instance.effect_repeats,
 		"continuous_shift_battle_time": instance.continuous_shift_battle_time,
 		"continuous_shift_amount": instance.continuous_shift_amount,
 	}
@@ -278,6 +286,7 @@ static func _decode_active_instance(payload: Dictionary) -> ActiveCardInstance:
 	instance.relic_delay_bank = maxf(0.0, float(payload.get("relic_delay_bank", 0.0)))
 	instance.relic_delay_hits = maxi(0, int(payload.get("relic_delay_hits", 0)))
 	instance.relic_flags = Dictionary(payload.get("relic_flags", {})).duplicate(true)
+	instance.effect_repeats = clampi(int(payload.get("effect_repeats", 1)), 1, 2)
 	instance.continuous_shift_battle_time = float(payload.get("continuous_shift_battle_time", -1.0))
 	instance.continuous_shift_amount = float(payload.get("continuous_shift_amount", 0.0))
 	return instance
@@ -298,6 +307,7 @@ static func _encode_timeline_entry(entry: TimelineEntry) -> Dictionary:
 		"actor_speed": entry.actor_speed,
 		"slot_cost": entry.slot_cost,
 		"interruptible": entry.interruptible,
+		"is_auto_queued": entry.is_auto_queued,
 		"continuous_shift_battle_time": entry.continuous_shift_battle_time,
 		"continuous_shift_amount": entry.continuous_shift_amount,
 	}
@@ -318,6 +328,7 @@ static func _decode_timeline_entry(payload: Dictionary) -> TimelineEntry:
 	entry.actor_speed = int(payload.get("actor_speed", 0))
 	entry.slot_cost = maxi(0, int(payload.get("slot_cost", 1)))
 	entry.interruptible = bool(payload.get("interruptible", false))
+	entry.is_auto_queued = bool(payload.get("is_auto_queued", entry.runtime_id.begins_with("__auto_")))
 	entry.continuous_shift_battle_time = float(payload.get("continuous_shift_battle_time", -1.0))
 	entry.continuous_shift_amount = float(payload.get("continuous_shift_amount", 0.0))
 	return entry

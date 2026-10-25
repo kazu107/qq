@@ -73,6 +73,8 @@ var _meta_badge: ColorRect
 var _meta_label: Label
 var _timeline_next_badge: ColorRect
 var _timeline_next_label: Label
+var _repeat_badge: Panel
+var _repeat_label: Label
 var _timing_badge: ColorRect
 var _timing_icon: TextureRect
 var _timing_label: Label
@@ -625,6 +627,13 @@ func _ensure_visuals() -> void:
 	_timeline_next_label.add_theme_color_override("font_color", Color(0.06, 0.04, 0.02, 1.0))
 	_configure_overlay(_timeline_next_label)
 	_timeline_next_badge.add_child(_timeline_next_label)
+	_repeat_badge = Panel.new(); _repeat_badge.name = "RepeatBadge"; _repeat_badge.visible = false
+	_repeat_badge.add_theme_stylebox_override("panel", _make_effect_chip_style(Color(0.035, 0.12, 0.18, 0.96), Color("f6cf68")))
+	_configure_overlay(_repeat_badge); add_child(_repeat_badge)
+	_repeat_label = Label.new(); _repeat_label.name = "RepeatCount"; _repeat_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_repeat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; _repeat_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_repeat_label.add_theme_color_override("font_color", Color("f6cf68")); _repeat_label.add_theme_font_size_override("font_size", 15)
+	_configure_overlay(_repeat_label); _repeat_badge.add_child(_repeat_label)
 
 	_apply_frame(COMMON_BORDER)
 	_update_cooldown_mask()
@@ -633,6 +642,12 @@ func _ensure_visuals() -> void:
 
 func _configure_overlay(control: Control) -> void:
 	control.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func set_effect_repeats(count: int) -> void:
+	_ensure_visuals()
+	_repeat_badge.visible = count > 1
+	_repeat_label.text = "x%d" % maxi(1, count)
 
 
 func _create_effect_chip(chip_index: int) -> void:
@@ -708,6 +723,7 @@ func _refresh_card_face() -> void:
 	_place_rect(_bleach_overlay, art)
 	_place_rect(_name_bar, Rect2(Vector2(art.position.x, art.end.y + 3.0), Vector2(resolved_width, name_height - 3.0)))
 	_place_rect(_effect_strip, Rect2(Vector2(art.position.x, 0.0), Vector2(resolved_width, art.position.y)))
+	_place_rect(_repeat_badge, Rect2(art.end - Vector2(40, 27), Vector2(36, 23)))
 
 	var has_summary: bool = not _face_summaries.is_empty()
 	_name_label.offset_left = 4.0
@@ -910,6 +926,7 @@ func _set_recovery_ratio(value: float) -> void:
 
 
 func _set_timeline_indicators(show_timeline: bool, is_next: bool) -> void:
+	if not show_timeline and _repeat_badge != null: _repeat_badge.visible = false
 	if _timeline_next_badge != null:
 		_timeline_next_badge.visible = show_timeline and is_next
 

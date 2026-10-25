@@ -46,6 +46,10 @@ jobs:
           export PATH="$PWD/server/ranking/vendor:$PATH"
           godot --version
           godot --headless --path . --editor --quit > build/import.log 2>&1
+          godot --headless --path . res://tests/EchoRepeatSmoke.tscn --quit-after 600 > build/echo-repeat.log 2>&1
+          cat build/echo-repeat.log
+          grep -q ECHO_REPEAT_SMOKE_OK build/echo-repeat.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/echo-repeat.log; then exit 1; fi
           godot --headless --path . res://tests/BleedReworkSmoke.tscn --quit-after 600 > build/bleed-rework.log 2>&1
           cat build/bleed-rework.log
           grep -q BLEED_REWORK_SMOKE_OK build/bleed-rework.log

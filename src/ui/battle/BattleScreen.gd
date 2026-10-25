@@ -1524,6 +1524,8 @@ func _refresh_developer_panel() -> void:
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
 			{"id": "DevBattleDetails", "label": Localization.get_text("battle.analysis.details", "Battle details"), "callback": Callable(self, "_on_dev_battle_details"), "disabled": _lan_mode},
+			{"id": "DevEchoReady", "label": Localization.get_text("echo.dev.ready", "Add one Echo charge"), "callback": Callable(self, "_on_dev_echo").bind(false), "disabled": _lan_mode or RankedSession.active()},
+			{"id": "DevEchoClear", "label": Localization.get_text("echo.dev.clear", "Clear Echo charges"), "callback": Callable(self, "_on_dev_echo").bind(true), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevBleedEnemy", "label": Localization.get_text("bleed.dev.apply", "Enemy bleed x3"), "callback": Callable(self, "_on_dev_bleed").bind(false), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevBleedClear", "label": Localization.get_text("bleed.dev.clear", "Clear enemy bleed"), "callback": Callable(self, "_on_dev_bleed").bind(true), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevBossCharge", "label": Localization.get_text("boss.timekeeper.dev_charge", "Stack boss charge x2"), "callback": func() -> void: _on_dev_boss_charge(true), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
@@ -1550,6 +1552,13 @@ func _on_dev_bleed(clear: bool) -> void:
 	else:
 		_engine.battle_state.enemy.remove_status("bleed")
 		for index: int in 3: _engine.apply_status_from_card("player", "enemy", "bleed", 12.0 + index * 6.0, 2 + index * 2)
+	_refresh_ui(1.0)
+
+
+func _on_dev_echo(clear: bool) -> void:
+	if not Game.is_developer_mode_enabled() or _lan_mode or RankedSession.active() or _engine.battle_state == null or _handled_finish: return
+	if clear: _engine.battle_state.player.repeat_charges = 0
+	else: _engine.battle_state.player.grant_repeat_charges(1)
 	_refresh_ui(1.0)
 
 

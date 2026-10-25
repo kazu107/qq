@@ -172,6 +172,8 @@ func refresh_timeline(
 	_ensure_card_count(sorted_entries.size())
 	_card_layouts.clear()
 	var active_instance_ids: Array[int] = []
+	var repeats_left: Dictionary = {local_side: local_unit.repeat_charges if local_unit != null else 0,
+		"enemy" if local_side == "player" else "player": opponent_unit.repeat_charges if opponent_unit != null else 0}
 	for sorted_entry in sorted_entries:
 		active_instance_ids.append(sorted_entry.instance_id)
 	_cleanup_entry_state(active_instance_ids)
@@ -205,6 +207,10 @@ func refresh_timeline(
 			local_side,
 			tooltip_context.get("comparison") as CardDef
 		)
+		var repeat: bool = int(repeats_left.get(entry.owner_side, 0)) > 0 and RepeatRules.is_eligible(card_def, entry.is_auto_queued, entry.owner_side)
+		button.set_effect_repeats(2 if repeat else 1)
+		if repeat: button.append_tooltip_line(Localization.get_text("timeline.echo_preview", "Echo: effects repeat twice. The candidate changes if timeline order changes; cast, costs and cooldown occur once."))
+		if repeat: repeats_left[entry.owner_side] = int(repeats_left[entry.owner_side]) - 1
 		_card_layouts.append({
 			"button": button,
 			"remaining": _get_display_remaining(entry, battle_time),
@@ -306,6 +312,7 @@ func _refresh_preview(
 	)
 	_apply_preview_alpha()
 	_preview_button.set_bleach_enabled(false)
+	_preview_button.set_effect_repeats(1)
 	_preview_button.z_index = PREVIEW_Z_INDEX
 	_preview_remaining = maxf(0.0, preview_entry.scheduled_time - battle_time)
 
@@ -494,6 +501,7 @@ func _ceil_to_multiple(value: float, multiple: int) -> float:
 func _compare_entries(a: TimelineEntry, b: TimelineEntry) -> bool:
 	if not is_equal_approx(a.scheduled_time, b.scheduled_time):
 		return a.scheduled_time < b.scheduled_time
+	if not is_equal_approx(a.priority_modifier, b.priority_modifier): return a.priority_modifier > b.priority_modifier
 	if a.actor_speed != b.actor_speed:
 		return a.actor_speed > b.actor_speed
 	return a.instance_id < b.instance_id

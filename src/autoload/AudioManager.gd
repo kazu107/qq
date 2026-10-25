@@ -9,6 +9,7 @@ const BOSS_CARD_SOUNDS: Dictionary = {
 	"timekeeper_amplify": "card_time_flow_control",
 	"timekeeper_time_mark": "card_weak_shot",
 }
+const CARD_SOUND_ALIASES: Dictionary = {"echo_cast": "card_sequence_loader"}
 const SFX_VOLUME_OFFSETS_DB: Dictionary = {
 	"run_start": -3.0,
 	"run_resume": -3.0,
@@ -147,7 +148,7 @@ func play_card_resolution(card_def: CardDef, fully_blocked_by_shield: bool = fal
 	if fully_blocked_by_shield:
 		return play_sfx("battle_full_block", 0.92)
 	var card_sfx_id: String = "card_%s" % card_def.id
-	card_sfx_id = String(BOSS_CARD_SOUNDS.get(card_def.id, card_sfx_id))
+	card_sfx_id = String(BOSS_CARD_SOUNDS.get(card_def.id, CARD_SOUND_ALIASES.get(card_def.id, card_sfx_id)))
 	if has_sfx(card_sfx_id):
 		return play_sfx(card_sfx_id)
 	return play_sfx(_resolve_card_resolution_sfx(card_def))
@@ -269,7 +270,7 @@ func _build_sfx_catalog() -> Array[Dictionary]:
 		if card_def == null:
 			continue
 		var card_sfx_id: String = "card_%s" % card_id
-		var playback_id: String = String(BOSS_CARD_SOUNDS.get(card_id, card_sfx_id))
+		var playback_id: String = String(BOSS_CARD_SOUNDS.get(card_id, CARD_SOUND_ALIASES.get(card_id, card_sfx_id)))
 		result.append({
 			"id": card_sfx_id,
 			"sfx_id": playback_id,

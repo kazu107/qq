@@ -370,6 +370,7 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		icon.tooltip_text = ""
 		_status_tooltip_texts[status_id] = tooltip_text
 		time_label.text = "x%s" % String.num(multiplier, 0) if status_id == "attack_charge" else _format_status_remaining(remaining)
+		if status_id == "echo_ready": time_label.text = str(int(status_data.get("charges", 1)))
 		var stack: Label = icon.find_child("StatusStacks", true, false) as Label
 		stack.text = "x%d" % int(status_data.get("stacks", 1))
 		stack.visible = status_id == "bleed" and int(status_data.get("stacks", 1)) > 1

@@ -10,6 +10,7 @@ var max_hp: int = 1
 var shield: int = 0
 var attack: int = 0
 var next_attack_multiplier: float = 1.0
+var repeat_charges: int = 0
 var speed: int = 0
 var statuses: Dictionary = {}
 var active_slots_used: int = 0
@@ -55,7 +56,15 @@ func get_display_statuses() -> Dictionary:
 	if display.has("bleed"): display["bleed"] = BleedRules.normalize(display["bleed"])
 	if next_attack_multiplier > 1.0:
 		display["attack_charge"] = {"duration": 0.0, "charges": 1, "multiplier": next_attack_multiplier}
+	if repeat_charges > 0:
+		display["echo_ready"] = {"duration": 0.0, "charges": repeat_charges}
 	return display
+
+
+func grant_repeat_charges(amount: int) -> int:
+	var before: int = repeat_charges
+	repeat_charges = clampi(repeat_charges + maxi(0, amount), 0, RepeatRules.MAX_CHARGES)
+	return repeat_charges - before
 
 
 func get_cast_time_multiplier() -> float:
@@ -168,6 +177,9 @@ func get_status_summary() -> String:
 		return Localization.get_text("status.none", "None")
 	var parts: Array[String] = []
 	for status_id in display.keys():
+		if String(status_id) == "echo_ready":
+			parts.append(Localization.get_status_name("echo_ready") + " %d" % repeat_charges)
+			continue
 		if String(status_id) == "attack_charge":
 			parts.append(Localization.get_status_name("attack_charge") + " " + get_attack_charge_label())
 			continue

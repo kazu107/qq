@@ -90,6 +90,8 @@ func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, 
 	for effect in card_def.effects:
 		var effect_type := String(effect.get("type", ""))
 		match effect_type:
+			"repeat_next_card":
+				score += 7.0 if enemy.repeat_charges < RepeatRules.MAX_CHARGES else -30.0
 			"consume_shield":
 				score -= float(effect.get("amount", 0)) * 0.25
 			"deal_damage":

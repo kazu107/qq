@@ -43,6 +43,8 @@ static func build_summaries(card_def: CardDef, comparison_card_def: CardDef = nu
 static func _build_summary(effect: Dictionary, comparison_effect: Dictionary, source_index: int) -> Dictionary:
 	var effect_type: String = String(effect.get("type", ""))
 	match effect_type:
+		"repeat_next_card":
+			return _plain_summary("status:echo_ready", "x2", 126, source_index, effect_type)
 		"next_attack_multiplier":
 			return _plain_summary("status:attack_charge", "x2", 126, source_index, effect_type)
 		"consume_shield":

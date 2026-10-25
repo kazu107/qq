@@ -1,0 +1,20 @@
+{
+  "tool": "Blender 5.2.2 LTS",
+  "generator": "tools/blender/build_echo_card.py",
+  "source_path": "art_src/blender/cards/echo_cast.blend",
+  "source_sha256": "e29612bbd7dce422114b6d430b624d1ca29b003b7dc1cdbfdcd143ab39528735",
+  "assets": [
+    {
+      "asset_id": "echo_cast",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/echo_cast.png",
+      "size": 512
+    },
+    {
+      "asset_id": "echo_ready",
+      "category": "status",
+      "runtime_path": "assets/icons/status/echo_ready.png",
+      "size": 96
+    }
+  ]
+}

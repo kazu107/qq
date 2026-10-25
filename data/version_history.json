@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.51.1",
+  "current_version": "QQ-0.52.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.52.0", "date": "2026-10-25",
+      "title_ja": "次のカードを二重発動する「反響」を追加",
+      "title_en": "Echo repeats the next manual card's effects",
+      "changes_ja": [
+        "レア支援カード「反響」を追加しました。次に発動する自分の手動登録カードの効果を2回解決し、既に詠唱中のカードにも適用します。ストックは最大3枚分で、自動投入と反響付与カードは対象外、中断では消費しません。",
+        "コスト・スロット・詠唱・再使用・カード使用時の遺物判定は1回分です。条件や自己強化は各回で再判定し、次攻撃倍化は1回だけ消費して両方に適用します。タイムラインの対象には×2を表示し、3D演出は2回の数値とエフェクトを表示します。",
+        "Grade 0〜5の時間調整、図鑑・ラボ・対戦同期・リプレイ・SEに対応しました。通常モードでは累計8勝の段階で解放、アリーナでは常に候補になります。専用のBlender画像と状態アイコン、オフライン開発者向けのストック追加・解除を用意しました。過去記録を残してランキングをシーズン5へ切り替えます。"
+      ],
+      "changes_en": [
+        "Add rare support card Echo: the next manually queued card to resolve repeats its effects twice, including already-casting cards. Bank up to three targets; auto cards and Echo setup cards are excluded, and interruption preserves charges.",
+        "Pay costs, slots, cast, cooldown and card-use relic hooks once. Re-evaluate conditions and empowerment per pulse; consume an attack multiplier once for both pulses. Show dynamic x2 timeline candidates and two 3D effect/number pulses.",
+        "Support all six grades, library/lab, networking, replays and audio. Unlock at eight cumulative victories in Normal; always available in Arena pools. Include dedicated Blender art/status icon and offline developer charge/clear controls. Preserve records and start ranked Season 5."
+      ]
+    },
     {
       "version": "QQ-0.51.1", "date": "2026-10-25",
       "title_ja": "出血関連遺物の調整項目名を明確化",

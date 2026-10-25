@@ -226,6 +226,19 @@ func _command(arguments: Array) -> void:
 		Game.start_new_run("balanced", 4242)
 		Game.developer_open_battle("scout")
 		SceneRouter.go_to_battle()
+	elif String(payload.get("action", "")) == "echo_fixture":
+		Game.set_language(String(payload.get("language", "ja"))); Game.settings["developer_mode"] = true
+		var cards: Array[String] = ["heavy_swing", "echo_cast", "quick_slash", "guard"]
+		Game.developer_open_custom_battle("guardian", "balanced", cards)
+		SceneRouter.go_to_battle()
+	elif String(payload.get("action", "")) == "echo_control":
+		var battle: Control = get_tree().current_scene as Control
+		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+		battle.set_process(false); engine.set_enemy_ai_enabled(false)
+		if bool(payload.get("setup", false)): engine.battle_state.enemy.hp = 500; engine.battle_state.enemy.max_hp = 500
+		if payload.has("delay"): engine.delay_active_cards("player", float(payload["delay"]), "single")
+		if payload.has("seconds"): engine.update(float(payload["seconds"]))
+		battle.call("_refresh_ui", 1.0)
 	elif String(payload.get("action", "")) == "bleed_advance":
 		var battle: Control = get_tree().current_scene as Control
 		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
@@ -510,6 +523,24 @@ func _inspect() -> Dictionary:
 				var tip: Label = screen.find_child("WorldStatusTooltipText", true, false) as Label
 				result["bleed"] = {"enemy_hp": enemy.hp, "state": enemy.get_display_statuses().get("bleed", {}), "regions": regions,
 					"badge": stack.text if stack != null and stack.visible else "", "tooltip": tip.text if tip != null and tip.is_visible_in_tree() else ""}
+				var hand: CardHandPanel = screen.get("_card_hand_panel") as CardHandPanel
+				var hand_cards: Array[Dictionary] = []
+				for runtime: CardRuntimeState in bleed_engine.battle_state.player.card_runtime_states:
+					var button: CardButton = hand.get_button_for_runtime_id(runtime.runtime_id)
+					if button != null: hand_cards.append({"id": runtime.card_id, "runtime": runtime.runtime_id, "rect": _rect_values(button.get_global_rect())})
+				var timeline: TimelinePanel = screen.get("_timeline_panel") as TimelinePanel
+				var timeline_cards: Array[Dictionary] = []
+				for button: CardButton in timeline._cards:
+					if button.visible: timeline_cards.append({"runtime": button.runtime_id, "repeat": button._repeat_badge.visible, "rect": _rect_values(button.get_global_rect())})
+				var echo_regions: Array[Dictionary] = []
+				for region: Dictionary in stage.get_player_status_model().get_status_regions():
+					if region["id"] != "echo_ready": continue
+					var points: Array[Array] = []
+					for point: Vector3 in region["corners"]: points.append(_point_values(stage.global_position + stage.project_world_position(point)))
+					echo_regions.append({"points": points, "tooltip": region["tooltip"]})
+				result["echo"] = {"charges": bleed_engine.battle_state.player.repeat_charges, "hand": hand_cards, "timeline": timeline_cards,
+					"enemy_hp": enemy.hp, "status_regions": echo_regions, "tooltip": tip.text if tip != null and tip.is_visible_in_tree() else "",
+					"numbers": stage.get_floating_combat_text_values()}
 		if screen.scene_file_path.get_file().get_basename() == "Hub":
 			var history: RichTextLabel = screen.find_child("VersionHistoryContent", true, false) as RichTextLabel
 			result["history"] = {"open": (screen.find_child("VersionHistoryOverlay", true, false) as Control).visible,

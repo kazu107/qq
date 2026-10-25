@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "updated_at": "2026-10-17",
+  "updated_at": "2026-10-25",
   "batch_id": "blender_vertical_slice_01",
   "author": "QQ project",
   "tool": "Blender (per-batch version recorded in manifests)",
@@ -7883,6 +7883,50 @@
       "tool": "Blender 5.2.2 LTS",
       "third_party_inputs": [],
       "license": "project-original"
+    },
+    {
+      "asset_id": "echo_cast",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/echo_cast.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/echo_cast.blend",
+      "generator": "tools/blender/build_echo_card.py",
+      "export_sha256": "6063700a57ce375ed1a05ce7213bbc9b2a2a5cc31be2c5c213052a104cb16f10",
+      "source_sha256": "e29612bbd7dce422114b6d430b624d1ca29b003b7dc1cdbfdcd143ab39528735",
+      "generator_sha256": {
+        "tools/blender/build_echo_card.py": "7b396fa6e91817a2d907bf4cecd97810a0ccc24d0644f32eada666c0fb412eef",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/echo_cast.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_echo_card_09",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "echo_ready",
+      "category": "status",
+      "runtime_path": "assets/icons/status/echo_ready.png",
+      "size": 96,
+      "source_path": "art_src/blender/cards/echo_cast.blend",
+      "generator": "tools/blender/build_echo_card.py",
+      "export_sha256": "7282568aa3e33c317b02316c1e278ca9072c9fb9bd1c6fbb66683413eeeb26e0",
+      "source_sha256": "e29612bbd7dce422114b6d430b624d1ca29b003b7dc1cdbfdcd143ab39528735",
+      "generator_sha256": {
+        "tools/blender/build_echo_card.py": "7b396fa6e91817a2d907bf4cecd97810a0ccc24d0644f32eada666c0fb412eef",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/echo_cast.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_echo_card_09",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
     }
   ],
   "batch_ids": [
@@ -7896,6 +7940,7 @@
     "blender_cards_C01_C13_completion",
     "blender_action_icons_07",
     "timekeeper_boss_rework",
-    "blender_achievement_icons_08"
+    "blender_achievement_icons_08",
+    "blender_echo_card_09"
   ]
 }

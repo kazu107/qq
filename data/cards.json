@@ -4978,5 +4978,47 @@
         -10
       ]
     }
+  },
+  {
+    "id": "echo_cast",
+    "name": "Echo",
+    "description": "Repeat the next manually queued card's effects without another cast or cost. Already-casting cards qualify.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "combo",
+      "echo"
+    ],
+    "loadout_cost": 3,
+    "recast_time": 32,
+    "cast_time": 2.4,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": false,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "repeat_next_card",
+        "charges": 1
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.1,
+        -0.2,
+        -0.3,
+        -0.4,
+        -0.5
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    }
   }
 ]

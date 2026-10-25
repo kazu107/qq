@@ -867,7 +867,27 @@ func _resolve_due_entries() -> void:
 		var target_shield_before: int = target_unit.shield
 		var resolved_card_def: CardDef = _relic_controller.prepare_resolution_card(instance.owner_side, instance, card_def)
 		resolution_metrics = {"damage": 0, "absorbed": 0, "shield": 0, "heal": 0}
-		var messages := CardEffectResolver.resolve(self, battle_state, instance, resolved_card_def)
+		var messages: Array[String] = []
+		var effect_resolutions: Array[Dictionary] = []
+		if unit.repeat_charges > 0 and RepeatRules.is_eligible(card_def, instance.is_auto_queued, instance.owner_side):
+			unit.repeat_charges -= 1
+			instance.effect_repeats = RepeatRules.EFFECT_REPEATS
+			var multiplier: float = CardEffectResolver.take_attack_multiplier(unit, resolved_card_def)
+			for repeat_index: int in instance.effect_repeats:
+				var repeat_card: CardDef = resolved_card_def if repeat_index == 0 else _relic_controller.prepare_resolution_card(instance.owner_side, instance, _get_card_def(instance.owner_side, instance.card_id))
+				var before_player: Dictionary = _snapshot_unit(battle_state.player)
+				var before_enemy: Dictionary = _snapshot_unit(battle_state.enemy)
+				var before_metrics: Dictionary = resolution_metrics.duplicate()
+				var before_hp: int = target_unit.hp
+				var before_shield: int = target_unit.shield
+				messages.append_array(CardEffectResolver.resolve(self, battle_state, instance, repeat_card, multiplier, repeat_index > 0))
+				var metrics: Dictionary = {}
+				for key: String in resolution_metrics: metrics[key] = int(resolution_metrics[key]) - int(before_metrics[key])
+				effect_resolutions.append({"player_before": before_player, "player_after": _snapshot_unit(battle_state.player),
+					"enemy_before": before_enemy, "enemy_after": _snapshot_unit(battle_state.enemy), "metrics": metrics,
+					"fully_blocked": _is_fully_blocked_by_shield(repeat_card, before_hp, target_unit.hp, before_shield, target_unit.shield)})
+				if not unit.is_alive() or not target_unit.is_alive(): break
+		else: messages = CardEffectResolver.resolve(self, battle_state, instance, resolved_card_def)
 		var resolved_instance := battle_state.remove_active_instance(instance.instance_id)
 		if resolved_instance != null:
 			unit.active_slots_used = max(0, unit.active_slots_used - resolved_instance.slot_cost)
@@ -912,6 +932,8 @@ func _resolve_due_entries() -> void:
 				"target_shield_before": target_shield_before,
 				"target_shield_after": target_unit.shield,
 				"fully_blocked": fully_blocked,
+				"effect_resolutions": effect_resolutions,
+				"effect_repeats": maxi(1, effect_resolutions.size()),
 			},
 			target_unit.hp - target_hp_before,
 			target_unit.shield - target_shield_before,
@@ -1339,6 +1361,7 @@ func _snapshot_unit(unit: UnitState) -> Dictionary:
 		"shield": unit.shield,
 		"attack": unit.attack,
 		"next_attack_multiplier": unit.next_attack_multiplier,
+		"repeat_charges": unit.repeat_charges,
 		"speed": unit.speed,
 		"statuses": unit.statuses.duplicate(true),
 		"active_slots_used": unit.active_slots_used,
