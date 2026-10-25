@@ -626,7 +626,7 @@
       "attack"
     ],
     "loadout_cost": 3,
-    "recast_time": 24,
+    "recast_time": 16.8,
     "cast_time": 4.8,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -660,7 +660,7 @@
       "buff"
     ],
     "loadout_cost": 3,
-    "recast_time": 36,
+    "recast_time": 25.2,
     "cast_time": 9,
     "active_slot_cost": 2,
     "priority_modifier": 0,
@@ -694,7 +694,7 @@
       "interrupt"
     ],
     "loadout_cost": 3,
-    "recast_time": 36,
+    "recast_time": 25.2,
     "cast_time": 2.4,
     "active_slot_cost": 1,
     "priority_modifier": 0.1,
@@ -727,7 +727,7 @@
       "delay"
     ],
     "loadout_cost": 3,
-    "recast_time": 32,
+    "recast_time": 22.4,
     "cast_time": 4.2,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -761,7 +761,7 @@
       "cooldown"
     ],
     "loadout_cost": 3,
-    "recast_time": 40,
+    "recast_time": 28,
     "cast_time": 4.8,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -795,7 +795,7 @@
       "finisher"
     ],
     "loadout_cost": 5,
-    "recast_time": 56,
+    "recast_time": 39.2,
     "cast_time": 15,
     "active_slot_cost": 3,
     "priority_modifier": -0.2,
@@ -831,7 +831,7 @@
       "buff"
     ],
     "loadout_cost": 5,
-    "recast_time": 56,
+    "recast_time": 39.2,
     "cast_time": 16.8,
     "active_slot_cost": 3,
     "priority_modifier": -0.1,
@@ -866,7 +866,7 @@
       "delay"
     ],
     "loadout_cost": 5,
-    "recast_time": 60,
+    "recast_time": 42,
     "cast_time": 6,
     "active_slot_cost": 2,
     "priority_modifier": 0,
@@ -913,7 +913,7 @@
       "bleed"
     ],
     "loadout_cost": 4,
-    "recast_time": 48,
+    "recast_time": 33.6,
     "cast_time": 10.8,
     "active_slot_cost": 2,
     "priority_modifier": 0,
@@ -949,7 +949,7 @@
       "cooldown"
     ],
     "loadout_cost": 4,
-    "recast_time": 64,
+    "recast_time": 44.8,
     "cast_time": 7.2,
     "active_slot_cost": 2,
     "priority_modifier": 0,
@@ -983,7 +983,7 @@
       "heal"
     ],
     "loadout_cost": 2,
-    "recast_time": 20,
+    "recast_time": 14,
     "cast_time": 3,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -1030,7 +1030,7 @@
       "control"
     ],
     "loadout_cost": 2,
-    "recast_time": 16,
+    "recast_time": 11.2,
     "cast_time": 2.4,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -1079,7 +1079,7 @@
       "delay"
     ],
     "loadout_cost": 3,
-    "recast_time": 28,
+    "recast_time": 19.6,
     "cast_time": 4.8,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -1127,7 +1127,7 @@
       "bleed"
     ],
     "loadout_cost": 3,
-    "recast_time": 22,
+    "recast_time": 15.4,
     "cast_time": 4.2,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -1163,7 +1163,7 @@
       "buff"
     ],
     "loadout_cost": 3,
-    "recast_time": 24,
+    "recast_time": 16.8,
     "cast_time": 3.6,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -1198,7 +1198,7 @@
       "cooldown"
     ],
     "loadout_cost": 3,
-    "recast_time": 30,
+    "recast_time": 21,
     "cast_time": 4.8,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -1246,7 +1246,7 @@
       "heal"
     ],
     "loadout_cost": 2,
-    "recast_time": 20,
+    "recast_time": 14,
     "cast_time": 2.4,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -1304,7 +1304,7 @@
       "interrupt"
     ],
     "loadout_cost": 4,
-    "recast_time": 36,
+    "recast_time": 25.2,
     "cast_time": 15,
     "active_slot_cost": 2,
     "priority_modifier": -0.15,
@@ -1357,7 +1357,7 @@
       "special"
     ],
     "loadout_cost": 3,
-    "recast_time": 18,
+    "recast_time": 12.6,
     "cast_time": 3.6,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -1406,7 +1406,7 @@
       "special"
     ],
     "loadout_cost": 3,
-    "recast_time": 30,
+    "recast_time": 21,
     "cast_time": 4.2,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -1453,7 +1453,7 @@
       "special"
     ],
     "loadout_cost": 3,
-    "recast_time": 24,
+    "recast_time": 16.8,
     "cast_time": 4.8,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -1509,7 +1509,7 @@
       "special"
     ],
     "loadout_cost": 4,
-    "recast_time": 36,
+    "recast_time": 25.2,
     "cast_time": 5.4,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -1564,7 +1564,7 @@
       "special"
     ],
     "loadout_cost": 4,
-    "recast_time": 40,
+    "recast_time": 28,
     "cast_time": 4.2,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -1601,7 +1601,7 @@
       "special"
     ],
     "loadout_cost": 4,
-    "recast_time": 44,
+    "recast_time": 30.8,
     "cast_time": 5.4,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -1639,7 +1639,7 @@
       "special"
     ],
     "loadout_cost": 3,
-    "recast_time": 26,
+    "recast_time": 18.2,
     "cast_time": 3,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -1680,7 +1680,7 @@
       "special"
     ],
     "loadout_cost": 4,
-    "recast_time": 34,
+    "recast_time": 23.8,
     "cast_time": 4.2,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -1725,7 +1725,7 @@
       "phase"
     ],
     "loadout_cost": 3,
-    "recast_time": 26,
+    "recast_time": 18.2,
     "cast_time": 5.4,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -1774,7 +1774,7 @@
       "phase"
     ],
     "loadout_cost": 3,
-    "recast_time": 28,
+    "recast_time": 19.6,
     "cast_time": 4.2,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -1815,7 +1815,7 @@
       "phase"
     ],
     "loadout_cost": 4,
-    "recast_time": 38,
+    "recast_time": 26.6,
     "cast_time": 7.2,
     "active_slot_cost": 2,
     "priority_modifier": -0.05,
@@ -1864,7 +1864,7 @@
       "phase"
     ],
     "loadout_cost": 4,
-    "recast_time": 42,
+    "recast_time": 29.4,
     "cast_time": 6,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -1919,7 +1919,7 @@
       "rift"
     ],
     "loadout_cost": 3,
-    "recast_time": 28,
+    "recast_time": 19.6,
     "cast_time": 4.8,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -1967,7 +1967,7 @@
       "rift"
     ],
     "loadout_cost": 3,
-    "recast_time": 34,
+    "recast_time": 23.8,
     "cast_time": 6,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -2016,7 +2016,7 @@
       "rift"
     ],
     "loadout_cost": 4,
-    "recast_time": 46,
+    "recast_time": 32.2,
     "cast_time": 10.2,
     "active_slot_cost": 2,
     "priority_modifier": -0.1,
@@ -2063,7 +2063,7 @@
       "omega"
     ],
     "loadout_cost": 4,
-    "recast_time": 42,
+    "recast_time": 29.4,
     "cast_time": 8.4,
     "active_slot_cost": 2,
     "priority_modifier": -0.05,
@@ -2113,7 +2113,7 @@
       "omega"
     ],
     "loadout_cost": 4,
-    "recast_time": 44,
+    "recast_time": 30.8,
     "cast_time": 7.2,
     "active_slot_cost": 2,
     "priority_modifier": 0,
@@ -2168,7 +2168,7 @@
       "omega"
     ],
     "loadout_cost": 4,
-    "recast_time": 52,
+    "recast_time": 36.4,
     "cast_time": 9,
     "active_slot_cost": 2,
     "priority_modifier": -0.05,
@@ -2217,7 +2217,7 @@
       "shield_spend"
     ],
     "loadout_cost": 2,
-    "recast_time": 16,
+    "recast_time": 11.2,
     "cast_time": 2.4,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -2265,7 +2265,7 @@
       "cooldown"
     ],
     "loadout_cost": 3,
-    "recast_time": 30,
+    "recast_time": 21,
     "cast_time": 3.6,
     "active_slot_cost": 1,
     "priority_modifier": 0.1,
@@ -2319,7 +2319,7 @@
       "finisher"
     ],
     "loadout_cost": 4,
-    "recast_time": 40,
+    "recast_time": 28,
     "cast_time": 7.2,
     "active_slot_cost": 2,
     "priority_modifier": -0.05,
@@ -2370,7 +2370,7 @@
       "cooldown"
     ],
     "loadout_cost": 2,
-    "recast_time": 10,
+    "recast_time": 7,
     "cast_time": 1.5,
     "active_slot_cost": 1,
     "priority_modifier": 0.12,
@@ -2418,7 +2418,7 @@
       "fast"
     ],
     "loadout_cost": 2,
-    "recast_time": 14,
+    "recast_time": 9.8,
     "cast_time": 2.1,
     "active_slot_cost": 1,
     "priority_modifier": 0.08,
@@ -2466,7 +2466,7 @@
       "fast"
     ],
     "loadout_cost": 2,
-    "recast_time": 16,
+    "recast_time": 11.2,
     "cast_time": 2.7,
     "active_slot_cost": 1,
     "priority_modifier": 0.06,
@@ -2515,7 +2515,7 @@
       "haste"
     ],
     "loadout_cost": 2,
-    "recast_time": 22,
+    "recast_time": 15.4,
     "cast_time": 3,
     "active_slot_cost": 1,
     "priority_modifier": 0.02,
@@ -2563,7 +2563,7 @@
       "bleed"
     ],
     "loadout_cost": 2,
-    "recast_time": 18,
+    "recast_time": 12.6,
     "cast_time": 3.3,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -2613,7 +2613,7 @@
       "support"
     ],
     "loadout_cost": 2,
-    "recast_time": 18,
+    "recast_time": 12.6,
     "cast_time": 2.4,
     "active_slot_cost": 1,
     "priority_modifier": 0.08,
@@ -2661,7 +2661,7 @@
       "support"
     ],
     "loadout_cost": 2,
-    "recast_time": 20,
+    "recast_time": 14,
     "cast_time": 3,
     "active_slot_cost": 1,
     "priority_modifier": 0.03,
@@ -2709,7 +2709,7 @@
       "control"
     ],
     "loadout_cost": 2,
-    "recast_time": 24,
+    "recast_time": 16.8,
     "cast_time": 4.2,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -2751,7 +2751,7 @@
       "delay"
     ],
     "loadout_cost": 3,
-    "recast_time": 28,
+    "recast_time": 19.6,
     "cast_time": 4.8,
     "active_slot_cost": 1,
     "priority_modifier": 0.02,
@@ -2799,7 +2799,7 @@
       "support"
     ],
     "loadout_cost": 3,
-    "recast_time": 26,
+    "recast_time": 18.2,
     "cast_time": 3.6,
     "active_slot_cost": 1,
     "priority_modifier": 0.08,
@@ -2852,7 +2852,7 @@
       "attack"
     ],
     "loadout_cost": 3,
-    "recast_time": 28,
+    "recast_time": 19.6,
     "cast_time": 4.2,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -2916,7 +2916,7 @@
       "time"
     ],
     "loadout_cost": 3,
-    "recast_time": 30,
+    "recast_time": 21,
     "cast_time": 3,
     "active_slot_cost": 1,
     "priority_modifier": 0.12,
@@ -2963,7 +2963,7 @@
       "cooldown"
     ],
     "loadout_cost": 3,
-    "recast_time": 24,
+    "recast_time": 16.8,
     "cast_time": 4.5,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -3011,7 +3011,7 @@
       "heal"
     ],
     "loadout_cost": 3,
-    "recast_time": 26,
+    "recast_time": 18.2,
     "cast_time": 3.6,
     "active_slot_cost": 1,
     "priority_modifier": 0.05,
@@ -3063,7 +3063,7 @@
       "shield"
     ],
     "loadout_cost": 3,
-    "recast_time": 32,
+    "recast_time": 22.4,
     "cast_time": 5.4,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -3116,7 +3116,7 @@
       "cooldown"
     ],
     "loadout_cost": 3,
-    "recast_time": 34,
+    "recast_time": 23.8,
     "cast_time": 4.2,
     "active_slot_cost": 1,
     "priority_modifier": 0.02,
@@ -3166,7 +3166,7 @@
       "delay"
     ],
     "loadout_cost": 3,
-    "recast_time": 36,
+    "recast_time": 25.2,
     "cast_time": 5.1,
     "active_slot_cost": 1,
     "priority_modifier": 0,
@@ -3215,7 +3215,7 @@
       "support"
     ],
     "loadout_cost": 3,
-    "recast_time": 30,
+    "recast_time": 21,
     "cast_time": 4.2,
     "active_slot_cost": 1,
     "priority_modifier": 0.04,
@@ -3268,7 +3268,7 @@
       "control"
     ],
     "loadout_cost": 4,
-    "recast_time": 44,
+    "recast_time": 30.8,
     "cast_time": 7.2,
     "active_slot_cost": 2,
     "priority_modifier": -0.02,
@@ -3317,7 +3317,7 @@
       "debuff"
     ],
     "loadout_cost": 4,
-    "recast_time": 40,
+    "recast_time": 28,
     "cast_time": 6.6,
     "active_slot_cost": 2,
     "priority_modifier": -0.03,
@@ -3383,7 +3383,7 @@
       "special"
     ],
     "loadout_cost": 4,
-    "recast_time": 50,
+    "recast_time": 35,
     "cast_time": 8.4,
     "active_slot_cost": 2,
     "priority_modifier": -0.04,
@@ -3433,7 +3433,7 @@
       "special"
     ],
     "loadout_cost": 4,
-    "recast_time": 42,
+    "recast_time": 29.4,
     "cast_time": 5.4,
     "active_slot_cost": 1,
     "priority_modifier": 0.02,
@@ -3483,7 +3483,7 @@
       "interrupt"
     ],
     "loadout_cost": 4,
-    "recast_time": 44,
+    "recast_time": 30.8,
     "cast_time": 7.8,
     "active_slot_cost": 2,
     "priority_modifier": -0.08,
@@ -3533,7 +3533,7 @@
       "shield"
     ],
     "loadout_cost": 4,
-    "recast_time": 48,
+    "recast_time": 33.6,
     "cast_time": 7.2,
     "active_slot_cost": 2,
     "priority_modifier": 0,
@@ -3581,7 +3581,7 @@
       "debuff"
     ],
     "loadout_cost": 5,
-    "recast_time": 56,
+    "recast_time": 39.2,
     "cast_time": 9,
     "active_slot_cost": 3,
     "priority_modifier": -0.15,
@@ -3640,7 +3640,7 @@
       "cleanse"
     ],
     "loadout_cost": 5,
-    "recast_time": 52,
+    "recast_time": 36.4,
     "cast_time": 7.2,
     "active_slot_cost": 2,
     "priority_modifier": 0.08,
@@ -3707,7 +3707,7 @@
       "interrupt"
     ],
     "loadout_cost": 5,
-    "recast_time": 58,
+    "recast_time": 40.6,
     "cast_time": 8.4,
     "active_slot_cost": 3,
     "priority_modifier": -0.12,
@@ -3768,7 +3768,7 @@
       "support"
     ],
     "loadout_cost": 5,
-    "recast_time": 54,
+    "recast_time": 37.8,
     "cast_time": 7.5,
     "active_slot_cost": 2,
     "priority_modifier": 0.05,
@@ -3836,7 +3836,7 @@
       "cooldown"
     ],
     "loadout_cost": 5,
-    "recast_time": 60,
+    "recast_time": 42,
     "cast_time": 7.8,
     "active_slot_cost": 2,
     "priority_modifier": 0.02,
@@ -3914,7 +3914,7 @@
       "delay"
     ],
     "loadout_cost": 5,
-    "recast_time": 62,
+    "recast_time": 43.4,
     "cast_time": 9.3,
     "active_slot_cost": 3,
     "priority_modifier": -0.1,
@@ -3985,7 +3985,7 @@
       "support"
     ],
     "loadout_cost": 5,
-    "recast_time": 50,
+    "recast_time": 35,
     "cast_time": 6.3,
     "active_slot_cost": 2,
     "priority_modifier": 0.12,
@@ -4051,7 +4051,7 @@
       "finisher"
     ],
     "loadout_cost": 5,
-    "recast_time": 64,
+    "recast_time": 44.8,
     "cast_time": 9.6,
     "active_slot_cost": 3,
     "priority_modifier": -0.18,
@@ -4117,7 +4117,7 @@
       "delay"
     ],
     "loadout_cost": 5,
-    "recast_time": 60,
+    "recast_time": 42,
     "cast_time": 8.1,
     "active_slot_cost": 2,
     "priority_modifier": -0.06,
@@ -4181,7 +4181,7 @@
       "cooldown"
     ],
     "loadout_cost": 5,
-    "recast_time": 48,
+    "recast_time": 33.6,
     "cast_time": 6.6,
     "active_slot_cost": 2,
     "priority_modifier": 0.04,
@@ -4255,7 +4255,7 @@
       "status"
     ],
     "loadout_cost": 5,
-    "recast_time": 52,
+    "recast_time": 36.4,
     "cast_time": 7.2,
     "active_slot_cost": 2,
     "priority_modifier": 0.06,
@@ -4335,7 +4335,7 @@
       "growth"
     ],
     "loadout_cost": 5,
-    "recast_time": 58,
+    "recast_time": 40.6,
     "cast_time": 7.8,
     "active_slot_cost": 2,
     "priority_modifier": 0,
@@ -4406,7 +4406,7 @@
       "stop"
     ],
     "loadout_cost": 5,
-    "recast_time": 56,
+    "recast_time": 39.2,
     "cast_time": 6.9,
     "active_slot_cost": 2,
     "priority_modifier": 0.1,
@@ -4482,7 +4482,7 @@
       "debuff"
     ],
     "loadout_cost": 5,
-    "recast_time": 58,
+    "recast_time": 40.6,
     "cast_time": 8.7,
     "active_slot_cost": 3,
     "priority_modifier": -0.08,
@@ -4553,7 +4553,7 @@
       "chain"
     ],
     "loadout_cost": 5,
-    "recast_time": 60,
+    "recast_time": 42,
     "cast_time": 8.1,
     "active_slot_cost": 2,
     "priority_modifier": 0.1,
@@ -4638,7 +4638,7 @@
       "special"
     ],
     "loadout_cost": 5,
-    "recast_time": 44,
+    "recast_time": 30.8,
     "cast_time": 5.4,
     "active_slot_cost": 1,
     "priority_modifier": 0.2,
@@ -4708,7 +4708,7 @@
       "haste"
     ],
     "loadout_cost": 5,
-    "recast_time": 50,
+    "recast_time": 35,
     "cast_time": 6,
     "active_slot_cost": 2,
     "priority_modifier": 0.14,
@@ -4775,7 +4775,7 @@
       "interrupt"
     ],
     "loadout_cost": 5,
-    "recast_time": 58,
+    "recast_time": 40.6,
     "cast_time": 8.1,
     "active_slot_cost": 3,
     "priority_modifier": -0.04,
@@ -4840,7 +4840,7 @@
       "shield"
     ],
     "loadout_cost": 5,
-    "recast_time": 62,
+    "recast_time": 43.4,
     "cast_time": 9,
     "active_slot_cost": 2,
     "priority_modifier": -0.02,
@@ -4913,7 +4913,7 @@
       "support"
     ],
     "loadout_cost": 5,
-    "recast_time": 66,
+    "recast_time": 46.2,
     "cast_time": 9.9,
     "active_slot_cost": 3,
     "priority_modifier": -0.2,
@@ -4990,7 +4990,7 @@
       "echo"
     ],
     "loadout_cost": 3,
-    "recast_time": 32,
+    "recast_time": 22.4,
     "cast_time": 2.4,
     "active_slot_cost": 1,
     "priority_modifier": 0.1,

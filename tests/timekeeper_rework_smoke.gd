@@ -15,8 +15,8 @@ func _check(value: bool, message: String) -> void:
 
 func _engine() -> RealtimeBattleEngine:
 	var run: RunState = RunState.from_starter(Database.get_starter("balanced"), 4242)
-	run.max_hp = 500
-	run.player_hp = 500
+	run.max_hp = 1000
+	run.player_hp = 1000
 	var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
 	engine.set_audio_enabled(false)
 	engine.setup(run, "boss_timekeeper")
@@ -72,7 +72,7 @@ func _run() -> void:
 	_advance(engine, 39.8)
 	_check(engine.battle_state.player.has_status("vulnerable"), "Mark did not prepare the target")
 	_advance(engine, 40.2)
-	_check(engine.battle_state.player.hp == 249, "Expected (25 + 6) * 8 + 3 = 251 damage")
+	_check(engine.battle_state.player.hp == 501, "Expected four amplifiers: (25 + 6) * 16 + 3 = 499 damage")
 	_check(engine.battle_state.enemy.next_attack_multiplier == 1.0, "Charge did not consume exactly once")
 	_check(BattleStateCodec._decode_unit(Dictionary(engine.recording.frames.back()["enemy"])).next_attack_multiplier == 1.0, "Visual replay retained a consumed charge")
 	_advance(engine, 48.3)
@@ -88,7 +88,7 @@ func _run() -> void:
 	_advance(engine, 8.0)
 	_check(_active(engine, "timekeeper_amplify") == null, "Interrupted amplifier retried without its cooldown")
 	_advance(engine, 40.2)
-	_check(engine.battle_state.player.hp == 373, "Interrupting one amplifier should leave x4, not x8")
+	_check(engine.battle_state.player.hp == 749, "Interrupting one amplifier should leave x8, not x16")
 	engine.dispose()
 	engine = _engine()
 	engine.start_battle()
@@ -96,16 +96,19 @@ func _run() -> void:
 	_advance(engine, 42.5)
 	_check(engine.battle_state.enemy.next_attack_multiplier == 16.0, "Delayed strike did not allow a fourth amplifier")
 	_check(BattleStateCodec.decode(BattleStateCodec.encode(engine.battle_state, true)).enemy.next_attack_multiplier == 16.0, "Snapshot lost x16")
+	_advance(engine, 48.5)
+	_check(engine.battle_state.enemy.next_attack_multiplier == 32.0, "Shorter recast did not allow a fifth amplifier before the delayed strike")
 	_advance(engine, 52.3)
-	_check(engine.battle_state.player.hp == 1, "Delayed x16 strike should deal 499 damage")
+	_check(engine.battle_state.player.hp == 5, "Delayed x32 strike should deal 995 damage")
 	_check(engine.battle_state.enemy.next_attack_multiplier == 1.0, "Delayed strike retained its charge")
 	engine.dispose()
 	engine = _engine()
 	engine.start_battle()
-	_advance(engine, 33.0)
+	_advance(engine, 36.0)
+	_check(_active(engine, "timekeeper_time_mark") != null, "Expected a mark, not an amplifier, before interruption")
 	_check(engine.interrupt_active_card("enemy", "single_interruptible") == 1, "Mark could not be interrupted")
 	_advance(engine, 40.2)
-	_check(engine.battle_state.player.hp == 252, "Interrupted mark was retried or late amplification changed x8")
+	_check(engine.battle_state.player.hp == 504, "Interrupted mark was retried or late amplification changed x16")
 	engine.dispose()
 	engine = _engine()
 	engine.start_battle()

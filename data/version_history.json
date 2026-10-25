@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.52.0",
+  "current_version": "QQ-0.52.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.52.1", "date": "2026-10-25",
+      "title_ja": "指定87カードの再使用時間を短縮",
+      "title_en": "Reduce recast times for 87 selected cards",
+      "changes_ja": [
+        "提出されたバランス調整JSONを反映し、指定87枚の基本再使用時間を30%短縮しました。ボス専用カード3枚を含み、反響は32秒から22.4秒になります。",
+        "除外されたクイックスラッシュ、ストライク、ガード、ヘビースイング、ディレイステップ、ヘイストフォーカス、ウィークショット、ブリードカット、クイックガード、リロードは変更していません。詠唱時間・効果量・遺物・各Gradeの既存補正と戦闘中の最低再使用4秒も維持します。",
+        "プレイヤー・敵・図鑑・ラボ・Web版に共通で適用し、過去の記録を保持してランキングをシーズン6へ切り替えます。"
+      ],
+      "changes_en": [
+        "Publish the submitted balance JSON: reduce base recast times by 30% for 87 selected cards, including all three boss cards. Echo changes from 32 to 22.4 seconds.",
+        "Leave the ten excluded cards unchanged: Quick Slash, Strike, Guard, Heavy Swing, Delay Step, Haste Focus, Weak Shot, Bleed Cut, Quick Guard and Reload. Preserve casts, effects, relics, existing grade offsets and the four-second combat recast floor.",
+        "Apply the shared definitions to players, enemies, library, lab and Web play. Preserve past records and start ranked Season 6."
+      ]
+    },
     {
       "version": "QQ-0.52.0", "date": "2026-10-25",
       "title_ja": "次のカードを二重発動する「反響」を追加",

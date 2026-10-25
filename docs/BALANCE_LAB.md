@@ -91,3 +91,9 @@ The first published v2 submission is recorded in
 combatants against the lab baseline. Its `--validate-import` user argument is a
 read-only, pre-publication check against the submitted source hash/original values;
 it deliberately rejects that old-source submission once it has been published.
+
+The second submission is recorded in [`balance/QQ-0.52.1.md`](balance/QQ-0.52.1.md).
+Its 87 base-recast changes are retained separately in
+`tests/fixtures/recast_balance_0_52_1.json`. `RecastBalanceSmoke --validate-import`
+validates the source before publication; the normal smoke checks every new value,
+the ten excluded cards, all grades on both combatants and resolved cooldowns.

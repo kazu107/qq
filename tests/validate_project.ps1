@@ -335,6 +335,10 @@ if ($godotExe) {
         "--no-header", "--headless", "--path", $root,
         "--scene", "res://tests/PublishedBalanceSmoke.tscn"
     )
+    Invoke-GodotCheck "[15-recast-balance/31] Running recast balance smoke" $godotExe @(
+        "--no-header", "--headless", "--path", $root,
+        "--scene", "res://tests/RecastBalanceSmoke.tscn"
+    )
     Invoke-GodotCheck "[15-catalog/31] Running card and relic library smoke" $godotExe @(
         "--no-header",
         "--headless",

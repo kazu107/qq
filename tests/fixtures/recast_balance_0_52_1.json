@@ -1,0 +1,616 @@
+{
+	"changes": [
+		{
+			"after": 42.0,
+			"before": 60.0,
+			"id": "absolute_zero",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 21.0,
+			"before": 30.0,
+			"id": "adrenaline_link",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 11.2,
+			"before": 16.0,
+			"id": "aegis_ram",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 16.8,
+			"before": 24.0,
+			"id": "assault",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 42.0,
+			"before": 60.0,
+			"id": "atlas_protocol",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 18.2,
+			"before": 26.0,
+			"id": "auto_turret",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 32.2,
+			"before": 46.0,
+			"id": "axiom_sever",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 25.2,
+			"before": 36.0,
+			"id": "barrier_deploy",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 21.0,
+			"before": 30.0,
+			"id": "barrier_overdrive",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 16.8,
+			"before": 24.0,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 33.6,
+			"before": 48.0,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 28.0,
+			"before": 40.0,
+			"id": "blood_moon_protocol",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 12.6,
+			"before": 18.0,
+			"id": "blood_siphon",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 9.8,
+			"before": 14.0,
+			"id": "brace_patch",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 28.0,
+			"before": 40.0,
+			"id": "bulwark_cannon",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 12.6,
+			"before": 18.0,
+			"id": "capacitor_step",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 46.2,
+			"before": 66.0,
+			"id": "chronicle_sovereign",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 35.0,
+			"before": 50.0,
+			"id": "chrono_blackout",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 28.0,
+			"before": 40.0,
+			"id": "chronostasis",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 36.4,
+			"before": 52.0,
+			"id": "citadel_prime",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 23.8,
+			"before": 34.0,
+			"id": "crisis_drone_swarm",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 36.4,
+			"before": 52.0,
+			"id": "crown_of_thorns",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 42.0,
+			"before": 60.0,
+			"id": "deus_ex_machina",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 43.4,
+			"before": 62.0,
+			"id": "dominion_pulse",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 22.4,
+			"before": 32.0,
+			"id": "drone_foundry",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 22.4,
+			"before": 32.0,
+			"id": "echo_cast",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 23.8,
+			"before": 34.0,
+			"id": "entropy_armor",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 30.8,
+			"before": 44.0,
+			"id": "entropy_reversal",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 40.6,
+			"before": 58.0,
+			"id": "epoch_breaker",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 40.6,
+			"before": 58.0,
+			"id": "event_horizon",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 39.2,
+			"before": 56.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 30.8,
+			"before": 44.0,
+			"id": "execution_matrix",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 21.0,
+			"before": 30.0,
+			"id": "field_medic",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 33.6,
+			"before": 48.0,
+			"id": "final_archive",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 39.2,
+			"before": 56.0,
+			"id": "fortify",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 30.8,
+			"before": 44.0,
+			"id": "golden_ratio",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 30.8,
+			"before": 44.0,
+			"id": "grave_protocol",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 25.2,
+			"before": 36.0,
+			"id": "gravity_snare",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 14.0,
+			"before": 20.0,
+			"id": "grit_reload",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 19.6,
+			"before": 28.0,
+			"id": "hammer_feint",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 40.6,
+			"before": 58.0,
+			"id": "infinity_arsenal",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 25.2,
+			"before": 36.0,
+			"id": "interrupt_shot",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 40.6,
+			"before": 58.0,
+			"id": "last_bastion",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 11.2,
+			"before": 16.0,
+			"id": "marking_dart",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 25.2,
+			"before": 36.0,
+			"id": "meteor_crash",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 19.6,
+			"before": 28.0,
+			"id": "mirror_aegis",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 26.6,
+			"before": 38.0,
+			"id": "null_cascade",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 29.4,
+			"before": 42.0,
+			"id": "omega_ray",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 39.2,
+			"before": 56.0,
+			"id": "omega_sanctuary",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 44.8,
+			"before": 64.0,
+			"id": "over_reload",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 21.0,
+			"before": 30.0,
+			"id": "overclock_routine",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 29.4,
+			"before": 42.0,
+			"id": "paradox_loop",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 18.2,
+			"before": 26.0,
+			"id": "phase_lance",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 21.0,
+			"before": 30.0,
+			"id": "phase_zip",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 37.8,
+			"before": 54.0,
+			"id": "phoenix_circuit",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 18.2,
+			"before": 26.0,
+			"id": "prism_guard",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 14.0,
+			"before": 20.0,
+			"id": "purge_pulse",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 33.6,
+			"before": 48.0,
+			"id": "quantum_exchange",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 44.8,
+			"before": 64.0,
+			"id": "ragnarok_engine",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 18.2,
+			"before": 26.0,
+			"id": "reactor_leech",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 28.0,
+			"before": 40.0,
+			"id": "recirculate",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 29.4,
+			"before": 42.0,
+			"id": "recursive_battery",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 25.2,
+			"before": 36.0,
+			"id": "recursive_protocol",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 16.8,
+			"before": 24.0,
+			"id": "recycler_claw",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 14.0,
+			"before": 20.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 19.6,
+			"before": 28.0,
+			"id": "rift_volley",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 19.6,
+			"before": 28.0,
+			"id": "rupture_mark",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 15.4,
+			"before": 22.0,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 16.8,
+			"before": 24.0,
+			"id": "rust_cloud",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 12.6,
+			"before": 18.0,
+			"id": "self_tuning_edge",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 16.8,
+			"before": 24.0,
+			"id": "sequence_loader",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 35.0,
+			"before": 50.0,
+			"id": "seraph_array",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 30.8,
+			"before": 44.0,
+			"id": "singularity_guard",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 39.2,
+			"before": 56.0,
+			"id": "solar_verdict",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 7.0,
+			"before": 10.0,
+			"id": "spark_jab",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 19.6,
+			"before": 28.0,
+			"id": "stasis_field",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 23.8,
+			"before": 34.0,
+			"id": "tactical_mirror",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 35.0,
+			"before": 50.0,
+			"id": "tempest_choir",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 22.4,
+			"before": 32.0,
+			"id": "time_buy",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 42.0,
+			"before": 60.0,
+			"id": "time_flow_control",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 5.6,
+			"before": 8.0,
+			"id": "timekeeper_amplify",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 5.6,
+			"before": 8.0,
+			"id": "timekeeper_final_strike",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 5.6,
+			"before": 8.0,
+			"id": "timekeeper_time_mark",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 15.4,
+			"before": 22.0,
+			"id": "timer_hook",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 11.2,
+			"before": 16.0,
+			"id": "tripwire",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 43.4,
+			"before": 62.0,
+			"id": "worldline_collapse",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 36.4,
+			"before": 52.0,
+			"id": "zero_hour",
+			"kind": "card",
+			"path": "recast_time"
+		}
+	],
+	"format": "queuequest-balance-diff-v2",
+	"game_version": "QQ-0.52.0",
+	"source_hash": "a2f7118476ca4b284ce01fd4b646a8be9314589a2539bdd635e32cf976577680"
+}

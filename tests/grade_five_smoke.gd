@@ -33,7 +33,7 @@ func _run() -> void:
 			_check(card.name == base.name if tier == 0 else card.name.ends_with("+%d" % tier), "grade label mismatch: " + id)
 	_check(CardUpgradeResolver.build_card_at_tier("quick_slash", 5).effects[0]["amount"] == 9, "quick slash grade 5 value")
 	_check(CardUpgradeResolver.build_card_at_tier("guard", 5).effects[0]["amount"] == 28, "guard grade 5 value")
-	_check(is_equal_approx(CardUpgradeResolver.build_card_at_tier("timekeeper_amplify", 5).recast_time, 6.4), "boss grade 5 value")
+	_check(is_equal_approx(CardUpgradeResolver.build_card_at_tier("timekeeper_amplify", 5).recast_time, 4.0), "boss grade 5 value")
 	var run: RunState = RunState.from_starter(Database.get_starter("balanced"), 4242)
 	run.card_upgrades["quick_slash"] = 3
 	var forge: ForgeService = ForgeService.new()

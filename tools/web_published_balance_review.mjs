@@ -7,8 +7,9 @@ const require = createRequire(import.meta.url);
 const { createQqServer } = require('../server/server');
 const { chromium } = process.env.QQ_NODE_MODULES
   ? createRequire(resolve(process.env.QQ_NODE_MODULES, '../package.json'))('playwright') : require('playwright');
-const document = JSON.parse(await readFile('tests/fixtures/published_balance.json', 'utf8'));
-const output = resolve('tools/.local/published-balance/browser');
+const document = JSON.parse(await readFile(process.env.QQ_BALANCE_FIXTURE || 'tests/fixtures/published_balance.json', 'utf8'));
+const expectedIds = new Set(document.changes.map(change => change.id));
+const output = resolve(process.env.QQ_BALANCE_REVIEW_OUTPUT || 'tools/.local/published-balance/browser');
 await mkdir(output, { recursive: true });
 const app = createQqServer({ env: {}, publicDir: resolve('build/web-layout-review') });
 await new Promise(done => app.server.listen(0, '127.0.0.1', done));
@@ -44,7 +45,7 @@ try {
   await command('screen', { screen: 'balance' });
   let state = await inspectUntil(state => state.balance?.ready);
   assert.equal(state.balance.document.changes.length, 0);
-  for (const id of new Set(document.changes.map(change => change.id))) {
+  for (const id of expectedIds) {
     const search = state.controls.find(control => control.name === 'BalanceSearch');
     assert(search);
     await click(state, search.rect);
@@ -69,10 +70,13 @@ try {
       assert(state.balance.grade_previews['5'].includes(id === 'guard' ? '28' : '52'));
       await page.screenshot({ path: resolve(output, `${id}-grade5.png`) });
     }
+    if (id === 'echo_cast' || id === 'timekeeper_amplify') {
+      await page.screenshot({ path: resolve(output, `${id}-grade5.png`) });
+    }
   }
-  assert.equal(cards.length, 8);
+  assert.equal(cards.length, expectedIds.size);
   assert.deepEqual(errors, []);
-  console.log('WEB_PUBLISHED_BALANCE_REVIEW_OK 91 fields, 8 cards, 48 grade tabs, no draft edits or browser errors');
+  console.log(`WEB_PUBLISHED_BALANCE_REVIEW_OK ${document.changes.length} fields, ${cards.length} cards, ${cards.length * 6} grade tabs, no draft edits or browser errors`);
 } finally {
   await writeFile(resolve(output, 'report.json'), JSON.stringify({ cards, errors }, null, 2));
   await browser.close();

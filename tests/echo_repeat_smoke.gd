@@ -62,7 +62,7 @@ func _run() -> void:
 func _test_card_and_long_cast() -> void:
 	for grade: int in range(6):
 		var card: CardDef = CardUpgradeResolver.build_card_at_tier("echo_cast", grade)
-		_check(card.effects[0]["charges"] == 1 and is_equal_approx(card.cast_time, 2.4 - grade * 0.1) and card.recast_time == 32 - grade, "grade profile")
+		_check(card.effects[0]["charges"] == 1 and is_equal_approx(card.cast_time, 2.4 - grade * 0.1) and is_equal_approx(card.recast_time, 22.4 - grade), "grade profile")
 	var engine: RealtimeBattleEngine = _engine(["heavy_swing", "echo_cast"])
 	_use(engine, "heavy_swing"); _use(engine, "echo_cast"); _resolve(engine, "echo_cast")
 	_check(engine.battle_state.player.repeat_charges == 1 and engine.battle_state.player.active_slots_used == 2, "Echo did not arm an already-casting card")

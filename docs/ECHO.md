@@ -3,7 +3,8 @@
 QQ-0.52.0 adds `echo_cast`, a rare support card unlocked at 8 cumulative victories.
 Arena, ranked shared pools and developer tools include it independently of meta unlocks.
 Loadout cost 3, active slot 1. Grade 0-5 cast: 2.4/2.3/2.2/2.1/2.0/1.9 seconds;
-recast: 32/31/30/29/28/27 seconds. The charge count stays 1 at every grade.
+recast: 22.4/21.4/20.4/19.4/18.4/17.4 seconds after the QQ-0.52.1 balance update
+(originally 32/31/30/29/28/27). The charge count stays 1 at every grade.
 
 ## Resolution
 
