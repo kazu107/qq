@@ -70,6 +70,10 @@ jobs:
           cat build/damage-conversion.log
           grep -q DAMAGE_CONVERSION_SMOKE_OK build/damage-conversion.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/damage-conversion.log; then exit 1; fi
+          godot --headless --path . res://tests/BalancePublicationSmoke.tscn --quit-after 600 > build/balance-publication.log 2>&1
+          cat build/balance-publication.log
+          grep -q BALANCE_PUBLICATION_SMOKE_OK build/balance-publication.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/balance-publication.log; then exit 1; fi
           godot --headless --path . res://tests/TimekeeperReworkSmoke.tscn --quit-after 600 > build/timekeeper-rework.log 2>&1
           cat build/timekeeper-rework.log
           grep -q TIMEKEEPER_REWORK_SMOKE_OK build/timekeeper-rework.log

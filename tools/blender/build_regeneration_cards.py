@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).parent))
 import build_art_vertical_slice as kit
 import card_action_scenes
+import recent_card_environments
 from build_reservation_cards import primitive
 
 LOCAL = ROOT / "tools/.local/regeneration/art"
@@ -85,8 +86,7 @@ def main():
     collections=[]; assets=[]
     for index,id in enumerate(IDS):
         col=kit.make_collection(id); build(col,id,green,fluid,red)
-        backgrounds=[((.008,.035,.025),(.05,.18,.14)),((.015,.025,.05),(.07,.12,.19)),((.04,.015,.02),(.18,.06,.08))]
-        bg,edge=backgrounds[index%3]; card_action_scenes.backdrop(kit,col,"Backdrop",bg,edge)
+        recent_card_environments.add_environment(kit,col,id)
         col.hide_render=True; collections.append(col)
         assets.append({"asset_id":id,"category":"card","runtime_path":"assets/icons/cards/"+id+".png","size":512})
     col=kit.make_collection("regen_status")
@@ -96,6 +96,7 @@ def main():
     col.hide_render=True; collections.append(col); assets.append({"asset_id":"regen","category":"status","runtime_path":"assets/icons/status/regen.png","size":96})
     collections[0].hide_render=False; bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE))
     for index,(col,asset) in enumerate(zip(collections,assets)):
+        if asset["category"] != "card" and "--cards-only" in sys.argv: continue
         for other in collections: other.hide_render=other!=col
         kit.CAMERA.location=(2.2+(index%3)*.35,-8,3.2+(index%2)*.7); kit.look_at(kit.CAMERA,Vector((0,0,1.2)))
         scene.render.film_transparent=asset["category"]=="status"; scene.render.resolution_x=1024; scene.render.resolution_y=1024

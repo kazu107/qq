@@ -7935,12 +7935,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "cca67be0075e1e88a0c0929eddaf0b4d10bac3ba47e02446fdc4224dd89695dc",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "87ce877db5ad01b5a2d874995c118658b6c3dedd448aa976dea55c50c6ce077b",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -7957,12 +7958,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "c1e67639cd8079a051b1dbfe0e78fb229a9cb69b5c630d529be6c72e2138ed95",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "30b6ef6bfb1320c4dfdd1cd38a634ea9924eceb2fdf27295e2920c5cc9f6ee59",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -7979,12 +7981,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "b5988a91e2bcc5e363eb1f794258f3a7fe054aaf83e7b87f4ec8a31df8d3394b",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "4086525da534b017a2306b876a57effe4a9a745f87496752a9a5292a1aff198f",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8001,12 +8004,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "22187595c3ff8b5cac02559694e2af7b46fa6a01a4578a7ff1df61c659c5ae8e",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "59e73bb241844d58e644e683b915ac9769f0b0afce35933aa61fc987cedf53fe",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8023,12 +8027,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "53ef9dcb6dbdfbfaa0b9b15554ef0c8e1eaa753d6770febf0166905bb5073275",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "5a13ada746b31ab64057189595b078fcd1fb5d1b25a0b31c08f00cfb38d98b85",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8045,12 +8050,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "5c38643cae20a15434efb35b77cb5433e9c5ce13e00dd74da718bb7a638cefa3",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "90059cdfa584d2d632a64d03180706df617276d3d8ff19a240e3fb0ac649e8db",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8067,12 +8073,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "e355fd1131bfec954cf3ee59c0117c9335eec6fb6cd1dbeade2a0cb3d6468957",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "e2e650b72ad944420881ff41af2db811f791ce7ce074afb51c8e551bcc909639",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8089,12 +8096,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "d4c815d4114a51f9d137d0ccd04b59fc716a3c5a2c17a3af22dc17fe6e85fae6",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "8df4ec9a1c45374617c914c0f47a14874383f3254ddc5b9b6b43d2b07d6c044b",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8111,12 +8119,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "f4204724e6828e737579acd5d2a572c09bf70fab0dc036f92694e7c15677501d",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "eadc31d9275ecd9a83c9b32a20fe35b1e18a430fd34edd4eea4176fe284bed24",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8133,12 +8142,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "68d6a9e458ca3d16cd9c8546dee3cb7fe674863a6ac3797babe631c259e649ed",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "a0b06c7807702d918fc7ee0656e3f2076b4ea7f0d777ccd7a832ccbf74eff97a",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8155,12 +8165,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "9cb5867574c48a042f51ee3e714d5ab4a86806ae579671c4ac019798373e0ca8",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "d1e580d94d475167847e39518df36e3649e16a9c3c760a3551a415b4136e90e1",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8177,12 +8188,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "8cffc13660dc59858d35851f5cdf89c24661772f31d8389e8ddb63d06d0410f1",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "2b218f327007897d084044e095a16f073066aa973cf2edf5a674fc0bbe54102f",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8199,12 +8211,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "69de209d72efefaa7f50abaecad0ee1f8e80ba70c7d2c0d74a665c65c6d713b5",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "bfacb87e8accb2144a1a8f8b59bc57b0f97f87c2b96b47cbd880484ec4004495",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8221,12 +8234,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "9ba74e5b448870e8247330611c2c9001f13c31c2bb83c6c8040b3acdf98b7e8c",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "8a939b95a9a7c9ca92f95fa4e986e43875a3b154551d162c6ebdbed7f0235dec",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8243,12 +8257,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "c9ce8806049df13a59331c348dbd6b37091465b710a4fc1f341241fe3953f956",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "74cc20cf248fafb6477482c9eeccea53ebb0b84f1e8cf5624e50926cc6014d10",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8265,12 +8280,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "fa33b079e37322cf39721cd52fc4baf17889f4253d86ca6f8f1f1c5448487ad5",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "58e7307cac31082d60888780432dfe3c039e8c39eb642de31fd41df10b8882df",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8287,12 +8303,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "3b809f1118ce47f27571b7fdff9b2097d6a740be2d404e10db463495ec251dbd",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "053cde8d9f8e1d4fc3c9066fc08c48a32d9ac5f05c6ffde7755e985763384d4d",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8309,12 +8326,13 @@
       "size": 512,
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
-      "export_sha256": "373c7eec777675a70fd876a0caad8fdb2aadad2852eeafeb8027cab0a5f64d94",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "export_sha256": "29634170e9d12a1c37f75589176ddf9ac1076f622ef6722004e824cf87dd44e5",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8332,11 +8350,12 @@
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
       "export_sha256": "f15a36209e943567b11b2a12f56bc82244f69894fb3d5884780659103a2238cd",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8354,11 +8373,12 @@
       "source_path": "art_src/blender/cards/reservation_cards.blend",
       "generator": "tools/blender/build_reservation_cards.py",
       "export_sha256": "70fed1dc042a4db0128d74bd170de1935dfa2fa537a8370b341fd81b3da9938b",
-      "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+      "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
       "generator_sha256": {
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/reservation_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8375,13 +8395,14 @@
       "size": 512,
       "source_path": "art_src/blender/cards/regeneration_cards.blend",
       "generator": "tools/blender/build_regeneration_cards.py",
-      "export_sha256": "af5d03304316c4e30c8fa818c491a6b6d184de2a24226752e2d3117a8578fd3c",
-      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "export_sha256": "32243b536111a3779a2338a6f37fa2e79645720f87b18c17c70502d2e8933c9f",
+      "source_sha256": "4d3ead0900316bc689027ce0581beef0e2efc075769e7ad48eece20338a6cb97",
       "generator_sha256": {
-        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_regeneration_cards.py": "82178ed1cb5e2677225d5f077622404ecbec93e2409eb92cfa1bd8e47f850f88",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8398,13 +8419,14 @@
       "size": 512,
       "source_path": "art_src/blender/cards/regeneration_cards.blend",
       "generator": "tools/blender/build_regeneration_cards.py",
-      "export_sha256": "ce28a81541ed5a7cdb219c44bfed9410450fb9ceb81d20b34e7876b1fd6819a9",
-      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "export_sha256": "ca9e8dc4929edb375ff767534a4e5826387fad5fc247082175e06dc952779bd7",
+      "source_sha256": "4d3ead0900316bc689027ce0581beef0e2efc075769e7ad48eece20338a6cb97",
       "generator_sha256": {
-        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_regeneration_cards.py": "82178ed1cb5e2677225d5f077622404ecbec93e2409eb92cfa1bd8e47f850f88",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8421,13 +8443,14 @@
       "size": 512,
       "source_path": "art_src/blender/cards/regeneration_cards.blend",
       "generator": "tools/blender/build_regeneration_cards.py",
-      "export_sha256": "afdb141d0250ae04c2795b363726cced36816a22704aa4dfb529057f4d6005b0",
-      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "export_sha256": "19989296d78548dbf630f642fbbdaab8d809efdb8e0d31127a6a6be3e041407d",
+      "source_sha256": "4d3ead0900316bc689027ce0581beef0e2efc075769e7ad48eece20338a6cb97",
       "generator_sha256": {
-        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_regeneration_cards.py": "82178ed1cb5e2677225d5f077622404ecbec93e2409eb92cfa1bd8e47f850f88",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8444,13 +8467,14 @@
       "size": 512,
       "source_path": "art_src/blender/cards/regeneration_cards.blend",
       "generator": "tools/blender/build_regeneration_cards.py",
-      "export_sha256": "45b674818a1fc7475c70e1fd302d0ae3d8bd1c73506b498b0269fc4d7b8270b3",
-      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "export_sha256": "8ed69ea3c4e6d69306a18df082a67e2a5df62324599b614d7a04a7519afb29fa",
+      "source_sha256": "4d3ead0900316bc689027ce0581beef0e2efc075769e7ad48eece20338a6cb97",
       "generator_sha256": {
-        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_regeneration_cards.py": "82178ed1cb5e2677225d5f077622404ecbec93e2409eb92cfa1bd8e47f850f88",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8467,13 +8491,14 @@
       "size": 512,
       "source_path": "art_src/blender/cards/regeneration_cards.blend",
       "generator": "tools/blender/build_regeneration_cards.py",
-      "export_sha256": "05d5ac91bc75317eceb8b3ba0d3281d097eadca4c6e53afdd0a9dbba4177d7f0",
-      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "export_sha256": "458a6ee0dfda3ae3d3695ec436355da40aefaea5e081a6a657b504507551fe20",
+      "source_sha256": "4d3ead0900316bc689027ce0581beef0e2efc075769e7ad48eece20338a6cb97",
       "generator_sha256": {
-        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_regeneration_cards.py": "82178ed1cb5e2677225d5f077622404ecbec93e2409eb92cfa1bd8e47f850f88",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8490,13 +8515,14 @@
       "size": 512,
       "source_path": "art_src/blender/cards/regeneration_cards.blend",
       "generator": "tools/blender/build_regeneration_cards.py",
-      "export_sha256": "b3f35da29d077c5d9fb196bcf289423941ffa2711ab1c21054e191007a4461f3",
-      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "export_sha256": "072b89feae52d5b4788fb89ee33ed08229cb00d716b5c3288ce361da452a54a6",
+      "source_sha256": "4d3ead0900316bc689027ce0581beef0e2efc075769e7ad48eece20338a6cb97",
       "generator_sha256": {
-        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_regeneration_cards.py": "82178ed1cb5e2677225d5f077622404ecbec93e2409eb92cfa1bd8e47f850f88",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8513,13 +8539,14 @@
       "size": 512,
       "source_path": "art_src/blender/cards/regeneration_cards.blend",
       "generator": "tools/blender/build_regeneration_cards.py",
-      "export_sha256": "8f955021272093b7b15397c8958411791bd0ef7aa739e6c3dde43e38e39ca6e0",
-      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "export_sha256": "6f63469d97e6260cafc3cb2844724c9ab8b8a6b2ad75cc7c904211a76090f233",
+      "source_sha256": "4d3ead0900316bc689027ce0581beef0e2efc075769e7ad48eece20338a6cb97",
       "generator_sha256": {
-        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_regeneration_cards.py": "82178ed1cb5e2677225d5f077622404ecbec93e2409eb92cfa1bd8e47f850f88",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8536,13 +8563,14 @@
       "size": 512,
       "source_path": "art_src/blender/cards/regeneration_cards.blend",
       "generator": "tools/blender/build_regeneration_cards.py",
-      "export_sha256": "401f7241e4e4106fbf2a8ad411023a2a76fa7f4b4401d457665aabbb60dc20c6",
-      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "export_sha256": "c8305ff3bb64525d1b48bd48e14e55f85f21aec0f05f548413bf235e4b05d33b",
+      "source_sha256": "4d3ead0900316bc689027ce0581beef0e2efc075769e7ad48eece20338a6cb97",
       "generator_sha256": {
-        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_regeneration_cards.py": "82178ed1cb5e2677225d5f077622404ecbec93e2409eb92cfa1bd8e47f850f88",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8560,12 +8588,13 @@
       "source_path": "art_src/blender/cards/regeneration_cards.blend",
       "generator": "tools/blender/build_regeneration_cards.py",
       "export_sha256": "10694dac616753c5a0fbe0e74b065ea648737b6f0b4724dd0af20a3c42bd274f",
-      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "source_sha256": "4d3ead0900316bc689027ce0581beef0e2efc075769e7ad48eece20338a6cb97",
       "generator_sha256": {
-        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_regeneration_cards.py": "82178ed1cb5e2677225d5f077622404ecbec93e2409eb92cfa1bd8e47f850f88",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8582,13 +8611,14 @@
       "size": 512,
       "source_path": "art_src/blender/cards/damage_conversion.blend",
       "generator": "tools/blender/build_conversion_cards.py",
-      "export_sha256": "a3a02f4165bc0b4e6c68c6240f2f04c6507fb026cad2e1f08666a39ff108be2c",
-      "source_sha256": "97978ecfeb6ffb876ea4b156b3ba001124c2c6e038732a835ab5bd6e85b74c4f",
+      "export_sha256": "3137fa6d1ec980b0df03d4afe8190f438cf51deb5fc44924d5d859e785388cf3",
+      "source_sha256": "9e7b1f66e868aa95eac9ff8c416ef669f60e025717dd1b5f8e9357a9cbade57b",
       "generator_sha256": {
-        "tools/blender/build_conversion_cards.py": "d1c571237ebfb6552ca63ed2f6ffcb7d9d261c334e3bcf94b509bcddfde1ca7c",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_conversion_cards.py": "bb8d0f2501875e35d927eb0147fd2996021df190e460e485c16d8a2a54eb4516",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/damage_conversion.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8605,13 +8635,14 @@
       "size": 512,
       "source_path": "art_src/blender/cards/damage_conversion.blend",
       "generator": "tools/blender/build_conversion_cards.py",
-      "export_sha256": "9129dea28b241ee36607c04e64c78155cf9ab71a8c5280f9ffaa68104d2e5410",
-      "source_sha256": "97978ecfeb6ffb876ea4b156b3ba001124c2c6e038732a835ab5bd6e85b74c4f",
+      "export_sha256": "9964aa3a455a59f694d6c28dec481c9ca4b9fbd9887fd64a00d51dc3d4d01d15",
+      "source_sha256": "9e7b1f66e868aa95eac9ff8c416ef669f60e025717dd1b5f8e9357a9cbade57b",
       "generator_sha256": {
-        "tools/blender/build_conversion_cards.py": "d1c571237ebfb6552ca63ed2f6ffcb7d9d261c334e3bcf94b509bcddfde1ca7c",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_conversion_cards.py": "bb8d0f2501875e35d927eb0147fd2996021df190e460e485c16d8a2a54eb4516",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/damage_conversion.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8629,12 +8660,13 @@
       "source_path": "art_src/blender/cards/damage_conversion.blend",
       "generator": "tools/blender/build_conversion_cards.py",
       "export_sha256": "0de22ecfd751e06eca12b153735e70d0f7e588cbec00d39c7b030beb6a13ea09",
-      "source_sha256": "97978ecfeb6ffb876ea4b156b3ba001124c2c6e038732a835ab5bd6e85b74c4f",
+      "source_sha256": "9e7b1f66e868aa95eac9ff8c416ef669f60e025717dd1b5f8e9357a9cbade57b",
       "generator_sha256": {
-        "tools/blender/build_conversion_cards.py": "d1c571237ebfb6552ca63ed2f6ffcb7d9d261c334e3bcf94b509bcddfde1ca7c",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_conversion_cards.py": "bb8d0f2501875e35d927eb0147fd2996021df190e460e485c16d8a2a54eb4516",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/damage_conversion.manifest.json",
       "tool": "Blender 5.2.2 LTS",
@@ -8652,12 +8684,13 @@
       "source_path": "art_src/blender/cards/damage_conversion.blend",
       "generator": "tools/blender/build_conversion_cards.py",
       "export_sha256": "cbbb7a151da84ffa0a7e5feaaa2f83fc3e21902f9024d4f312f58cf4bea6e9fe",
-      "source_sha256": "97978ecfeb6ffb876ea4b156b3ba001124c2c6e038732a835ab5bd6e85b74c4f",
+      "source_sha256": "9e7b1f66e868aa95eac9ff8c416ef669f60e025717dd1b5f8e9357a9cbade57b",
       "generator_sha256": {
-        "tools/blender/build_conversion_cards.py": "d1c571237ebfb6552ca63ed2f6ffcb7d9d261c334e3bcf94b509bcddfde1ca7c",
-        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_conversion_cards.py": "bb8d0f2501875e35d927eb0147fd2996021df190e460e485c16d8a2a54eb4516",
+        "tools/blender/build_reservation_cards.py": "e373b5999634fcfec3d87fe14fa760e9010a5102caa9e6bf6d7ff73ec978fe20",
         "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
-        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7",
+        "tools/blender/recent_card_environments.py": "6b9b530dffbedfb538915c673fa62e402041de5d7f24dc37d45dc008389e5073"
       },
       "manifest_path": "art_src/blender/cards/damage_conversion.manifest.json",
       "tool": "Blender 5.2.2 LTS",

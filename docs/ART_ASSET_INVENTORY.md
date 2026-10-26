@@ -1,6 +1,6 @@
 # 画像・アイコン資産台帳と自前化計画
 
-最終監査日: 2026-10-26 / QQ-0.55.0
+最終監査日: 2026-10-26 / QQ-0.55.1
 
 第一弾・スターター・敵とボス・カード・遺物・小型UI・環境のバッチを展開しました。現在の機械判定は`data/art_coverage.json`、個別の原本・出力ハッシュは`data/art_provenance.json`を参照してください。検証と画面確認は`docs/BLENDER_FULL_ROLLOUT.md`へ記録します。
 
@@ -28,6 +28,7 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | 開発・文書専用画像 | バッチごと | PNG | コンタクトシート、実寸比較、ネイティブ/Web確認 | 本番ランタイム対象外 |
 
 - 制作台帳は387成果物を対象にします。共有アニメーション、SVGワードマーク、確認画像はこの成果物数へ含めません。
+- QQ-0.55.1で最近の28カードに場面別の背景を追加しました。共通背景部品は `tools/blender/recent_card_environments.py`、状態アイコンの透過PNGは従来のままです。背景の3D形状は静止画へ描画し、ゲームの3Dフィールドには追加しません。
 - 転換2枚と状態2枚の原本は `art_src/blender/cards/damage_conversion.blend`、生成は `tools/blender/build_conversion_cards.py`、登録は `tools/finalize_conversion_art.py` です。
 - リジェネ8枚と状態1枚の原本は `art_src/blender/cards/regeneration_cards.blend`、生成は `tools/blender/build_regeneration_cards.py`、登録は `tools/finalize_regeneration_art.py` です。以前の予約18枚もBlender製であり、画像は変更していません。
 - 予約18枚と状態2枚の原本は `art_src/blender/cards/reservation_cards.blend`、生成は `tools/blender/build_reservation_cards.py`、登録は `tools/finalize_reservation_art.py` です。全て独立したバックグラウンドBlenderで作成します。

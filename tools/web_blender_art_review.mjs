@@ -7,14 +7,16 @@ const require = createRequire(import.meta.url);
 const { createQqServer } = require('../server/server.js');
 const { chromium } = process.env.QQ_NODE_MODULES
   ? createRequire(resolve(process.env.QQ_NODE_MODULES, '../package.json'))('playwright') : require('playwright');
-const output = resolve('tools/.local/blender-web-review');
+const output = resolve(process.env.QQ_ART_REVIEW_OUTPUT || 'tools/.local/blender-web-review');
 await mkdir(output, { recursive: true });
-const app = createQqServer({ publicDir: resolve('build/web-layout-review') });
+const app = createQqServer({ env: {}, publicDir: resolve('build/web-layout-review') });
 await new Promise(done => app.server.listen(0, '127.0.0.1', done));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const errors = [];
 const expectedAssets = JSON.parse(await readFile(resolve('data/art_coverage.json'), 'utf8')).registered_assets;
 const cases = [];
+const selectedAssets = process.env.QQ_ART_REVIEW_ASSETS?.split(',').filter(Boolean) || ['timekeeper_final_strike', 'timekeeper_amplify', 'timekeeper_time_mark', 'attack_charge', 'action_sell', 'action_ready', 'environment_fatigue', 'boss_eternity_zero', 'environment_field'];
+const selectedScreens = process.env.QQ_ART_REVIEW_SCREENS === undefined ? ['setup', 'map', 'arena', 'battle', 'result'] : process.env.QQ_ART_REVIEW_SCREENS.split(',').filter(Boolean);
 let sequence = 0;
 
 try {
@@ -72,7 +74,7 @@ try {
     await click('ArtPreviewClose');
     state = await command('inspect');
     assert.equal(state.art.preview, false);
-    for (const asset_id of ['timekeeper_final_strike', 'timekeeper_amplify', 'timekeeper_time_mark', 'attack_charge', 'action_sell', 'action_ready', 'environment_fatigue', 'boss_eternity_zero', 'environment_field']) {
+    for (const asset_id of selectedAssets) {
       state = await command('art_preview', undefined, { asset_id });
       validateBounds(state);
       assert.equal(state.art.preview, true, `Preview failed: ${asset_id}`);
@@ -83,7 +85,7 @@ try {
   }
 
   await page.setViewportSize({ width: 1440, height: 900 });
-  for (const screen of ['setup', 'map', 'arena', 'battle', 'result']) {
+  for (const screen of selectedScreens) {
     let state = await command('screen', screen);
     await page.waitForTimeout(600);
     state = await command('inspect');

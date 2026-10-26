@@ -9,6 +9,7 @@ from mathutils import Vector
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(Path(__file__).parent))
 import build_art_vertical_slice as kit
 import card_action_scenes
+import recent_card_environments
 from build_reservation_cards import primitive
 LOCAL=ROOT/"tools/.local/conversion/art";SOURCE=ROOT/"art_src/blender/cards/damage_conversion.blend"
 
@@ -38,7 +39,7 @@ def main():
     collections=[];assets=[]
     for id,mode in [("life_conversion","heal"),("barrier_conversion","shield")]:
         col=kit.make_collection(id);build(col,mode)
-        card_action_scenes.backdrop(kit,col,"Backdrop",(.02,.035,.045) if mode=="shield" else (.035,.025,.015),(.07,.16,.23) if mode=="shield" else (.2,.13,.05))
+        recent_card_environments.add_environment(kit,col,id)
         col.hide_render=True;collections.append(col);assets.append({"asset_id":id,"category":"card","runtime_path":"assets/icons/cards/"+id+".png","size":512})
     for id in ["damage_conversion","conversion_lockout"]:
         col=kit.make_collection(id);build(col,"shield")
@@ -46,6 +47,7 @@ def main():
         col.hide_render=True;collections.append(col);assets.append({"asset_id":id,"category":"status","runtime_path":"assets/icons/status/"+id+".png","size":96})
     collections[0].hide_render=False;bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE))
     for i,(col,a) in enumerate(zip(collections,assets)):
+        if a["category"] != "card" and "--cards-only" in sys.argv: continue
         for other in collections:other.hide_render=other!=col
         kit.CAMERA.location=(2.4 if i%2==0 else -2.2,-8,3.4);kit.look_at(kit.CAMERA,Vector((0,0,1.2)))
         scene.render.film_transparent=a["category"]=="status";scene.render.resolution_x=1024;scene.render.resolution_y=1024

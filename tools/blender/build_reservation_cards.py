@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).parent))
 import build_art_vertical_slice as kit
 import card_action_scenes
+import recent_card_environments
 
 LOCAL = ROOT / "tools/.local/reservations/art"
 SOURCE = ROOT / "art_src/blender/cards/reservation_cards.blend"
@@ -109,10 +110,7 @@ def build(collection, kind, index, hostile):
         part("cone",0,0,.9,.36,.36,.45,m["cyan"],(math.pi,0,0))
         for s in [-1,1]:
             for i in range(3): part("box",s*(.65+i*.22),0,1.4+i*.1,.5,.08,.1,metal,(0,s*.45,0))
-    # Deliberately vary backgrounds and camera angles, with no display plinths.
-    palette = [((.012,.025,.05),(.07,.16,.24)),((.04,.015,.009),(.22,.11,.03)),((.012,.035,.025),(.05,.18,.11))]
-    bg, edge = palette[index%3]
-    card_action_scenes.backdrop(kit,collection,"Backdrop",bg,edge)
+    recent_card_environments.add_environment(kit, collection, "reserve_" + kind)
 
 
 def main():
@@ -135,6 +133,7 @@ def main():
     collections[0].hide_render=False
     bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE))
     for index,(col,asset) in enumerate(zip(collections,assets)):
+        if asset["category"] != "card" and "--cards-only" in sys.argv: continue
         for other in collections: other.hide_render=other!=col
         kit.CAMERA.location=(2.2+(index%3)*.5,-8,3.1+(index%2)*.7); kit.look_at(kit.CAMERA,Vector((0,0,1.2)))
         scene.render.film_transparent=asset["category"]=="status"

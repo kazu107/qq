@@ -70,7 +70,7 @@ try {
       assert(state.balance.grade_previews['5'].includes(id === 'guard' ? '28' : '52'));
       await page.screenshot({ path: resolve(output, `${id}-grade5.png`) });
     }
-    if (id === 'echo_cast' || id === 'timekeeper_amplify' || expectedIds.size <= 8) {
+    if (id === 'echo_cast' || id === 'timekeeper_amplify' || expectedIds.size <= 12) {
       await page.screenshot({ path: resolve(output, `${id}-grade5.png`) });
     }
   }

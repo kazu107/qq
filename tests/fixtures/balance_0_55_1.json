@@ -1,0 +1,665 @@
+{
+	"changes": [
+		{
+			"after": 16.4,
+			"before": 16.8,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 16,
+			"before": 14.0,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 16.0,
+			"before": 16.8,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 21,
+			"before": 16.0,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 15.6,
+			"before": 16.8,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 26,
+			"before": 18.0,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 15.2,
+			"before": 16.8,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 31,
+			"before": 20.0,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 14.8,
+			"before": 16.8,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 36,
+			"before": 22.0,
+			"id": "bastion_drive",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 29.6,
+			"before": 33.6,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 29.0,
+			"before": 33.6,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 15,
+			"before": 12.0,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.bonus_amount"
+		},
+		{
+			"after": 28.4,
+			"before": 33.6,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 18,
+			"before": 12.0,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.bonus_amount"
+		},
+		{
+			"after": 27.8,
+			"before": 33.6,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 21,
+			"before": 12.0,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.bonus_amount"
+		},
+		{
+			"after": 27.2,
+			"before": 33.6,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 24,
+			"before": 12.0,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.bonus_amount"
+		},
+		{
+			"after": 26.6,
+			"before": 33.6,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 27,
+			"before": 12.0,
+			"id": "blood_chain",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.bonus_amount"
+		},
+		{
+			"after": 36.2,
+			"before": 39.2,
+			"id": "execution",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 35.4,
+			"before": 39.2,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 31,
+			"before": 28.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 13,
+			"before": 10.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.bonus_amount"
+		},
+		{
+			"after": 34.6,
+			"before": 39.2,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 38,
+			"before": 31.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 16,
+			"before": 10.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.bonus_amount"
+		},
+		{
+			"after": 33.8,
+			"before": 39.2,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 45,
+			"before": 34.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 19,
+			"before": 10.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.bonus_amount"
+		},
+		{
+			"after": 33.0,
+			"before": 39.2,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 52,
+			"before": 37.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 22,
+			"before": 10.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.bonus_amount"
+		},
+		{
+			"after": 32.2,
+			"before": 39.2,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 59,
+			"before": 40.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 25,
+			"before": 10.0,
+			"id": "execution",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.bonus_amount"
+		},
+		{
+			"after": 36.2,
+			"before": 39.2,
+			"id": "fortify",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 35.8,
+			"before": 39.2,
+			"id": "fortify",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 43,
+			"before": 38.0,
+			"id": "fortify",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 35.4,
+			"before": 39.2,
+			"id": "fortify",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 52,
+			"before": 40.0,
+			"id": "fortify",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 35.0,
+			"before": 39.2,
+			"id": "fortify",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 61,
+			"before": 43.0,
+			"id": "fortify",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 34.6,
+			"before": 39.2,
+			"id": "fortify",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 70,
+			"before": 46.0,
+			"id": "fortify",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 34.2,
+			"before": 39.2,
+			"id": "fortify",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 79,
+			"before": 49.0,
+			"id": "fortify",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 6.8,
+			"before": 6.0,
+			"id": "over_reload",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 7.6,
+			"before": 6.0,
+			"id": "over_reload",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 8.4,
+			"before": 6.0,
+			"id": "over_reload",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 9.2,
+			"before": 6.0,
+			"id": "over_reload",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 10.0,
+			"before": 6.0,
+			"id": "over_reload",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 13.7,
+			"before": 14.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 6,
+			"before": 5.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 6,
+			"before": 5.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.1.amount"
+		},
+		{
+			"after": 13.4,
+			"before": 14.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 8,
+			"before": 6.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 8,
+			"before": 6.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.1.amount"
+		},
+		{
+			"after": 13.1,
+			"before": 14.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 10,
+			"before": 7.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 10,
+			"before": 7.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.1.amount"
+		},
+		{
+			"after": 12.8,
+			"before": 14.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 12,
+			"before": 8.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 12,
+			"before": 8.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.1.amount"
+		},
+		{
+			"after": 12.5,
+			"before": 14.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 14,
+			"before": 9.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		},
+		{
+			"after": 14,
+			"before": 9.0,
+			"id": "repair_burst",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.1.amount"
+		},
+		{
+			"after": 15.0,
+			"before": 15.4,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 6,
+			"before": 4.0,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.bonus_amount"
+		},
+		{
+			"after": 14.6,
+			"before": 15.4,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 8,
+			"before": 4.0,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.bonus_amount"
+		},
+		{
+			"after": 14.2,
+			"before": 15.4,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 10,
+			"before": 4.0,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.bonus_amount"
+		},
+		{
+			"after": 13.8,
+			"before": 15.4,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 12,
+			"before": 4.0,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.bonus_amount"
+		},
+		{
+			"after": 13.4,
+			"before": 15.4,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 14,
+			"before": 4.0,
+			"id": "rupture_strike",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.bonus_amount"
+		},
+		{
+			"after": 19.0,
+			"before": 19.6,
+			"id": "stasis_field",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 18.4,
+			"before": 19.6,
+			"id": "stasis_field",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 17.8,
+			"before": 19.6,
+			"id": "stasis_field",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 17.2,
+			"before": 19.6,
+			"id": "stasis_field",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 16.6,
+			"before": 19.6,
+			"id": "stasis_field",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 38.0,
+			"before": 42.0,
+			"id": "time_flow_control",
+			"kind": "card",
+			"path": "recast_time"
+		},
+		{
+			"after": 37.0,
+			"before": 42.0,
+			"id": "time_flow_control",
+			"kind": "card",
+			"path": "grade_overrides.1.recast_time"
+		},
+		{
+			"after": 36.0,
+			"before": 42.0,
+			"id": "time_flow_control",
+			"kind": "card",
+			"path": "grade_overrides.2.recast_time"
+		},
+		{
+			"after": 35.0,
+			"before": 42.0,
+			"id": "time_flow_control",
+			"kind": "card",
+			"path": "grade_overrides.3.recast_time"
+		},
+		{
+			"after": 34.0,
+			"before": 42.0,
+			"id": "time_flow_control",
+			"kind": "card",
+			"path": "grade_overrides.4.recast_time"
+		},
+		{
+			"after": 33.0,
+			"before": 42.0,
+			"id": "time_flow_control",
+			"kind": "card",
+			"path": "grade_overrides.5.recast_time"
+		},
+		{
+			"after": 5,
+			"before": 4.0,
+			"id": "tripwire",
+			"kind": "card",
+			"path": "grade_overrides.1.effects.0.amount"
+		},
+		{
+			"after": 7,
+			"before": 5.0,
+			"id": "tripwire",
+			"kind": "card",
+			"path": "grade_overrides.2.effects.0.amount"
+		},
+		{
+			"after": 9,
+			"before": 6.0,
+			"id": "tripwire",
+			"kind": "card",
+			"path": "grade_overrides.3.effects.0.amount"
+		},
+		{
+			"after": 11,
+			"before": 7.0,
+			"id": "tripwire",
+			"kind": "card",
+			"path": "grade_overrides.4.effects.0.amount"
+		},
+		{
+			"after": 13,
+			"before": 8.0,
+			"id": "tripwire",
+			"kind": "card",
+			"path": "grade_overrides.5.effects.0.amount"
+		}
+	],
+	"format": "queuequest-balance-diff-v2",
+	"game_version": "QQ-0.55.0",
+	"source_hash": "d145cace740ed73c810b7f88574f9c90e32ed99d70c68064d9ec1958117f2863"
+}

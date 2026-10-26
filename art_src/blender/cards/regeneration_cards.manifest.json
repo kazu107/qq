@@ -2,7 +2,7 @@
   "tool": "Blender 5.2.2 LTS",
   "generator": "tools/blender/build_regeneration_cards.py",
   "source_path": "art_src/blender/cards/regeneration_cards.blend",
-  "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+  "source_sha256": "4d3ead0900316bc689027ce0581beef0e2efc075769e7ad48eece20338a6cb97",
   "assets": [
     {
       "asset_id": "regen_patch",

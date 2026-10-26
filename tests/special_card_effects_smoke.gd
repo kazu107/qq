@@ -49,8 +49,8 @@ func _run() -> void:
 func _test_large_shield_balance() -> bool:
 	var expected_shield_by_card: Dictionary = {
 		"barrier_deploy": [18, 24, 26, 28, 31, 34],
-		"fortify": [34, 38, 40, 43, 46, 49],
-		"bastion_drive": [11, 14, 16, 18, 20, 22],
+		"fortify": [34, 43, 52, 61, 70, 79],
+		"bastion_drive": [11, 16, 21, 26, 31, 36],
 		"entropy_armor": [13, 16, 19, 22, 25, 28],
 		"grave_protocol": [18, 22, 26, 30, 34, 38],
 	}

@@ -2,16 +2,20 @@
 from pathlib import Path
 import hashlib
 import json
+import sys
 from PIL import Image, ImageDraw
+from asset_image_io import save_png_atomic
 ROOT=Path(__file__).resolve().parents[1];mp="art_src/blender/cards/damage_conversion.manifest.json"
 m=json.loads((ROOT/mp).read_text(encoding="utf-8"))
 def sha(path):return hashlib.sha256((ROOT/path).read_bytes()).hexdigest()
 assert sha(m["source_path"])==m["source_sha256"]
-deps={p:sha(p) for p in [m["generator"],"tools/blender/build_reservation_cards.py","tools/blender/build_art_vertical_slice.py","tools/blender/card_action_scenes.py"]}
+deps={p:sha(p) for p in [m["generator"],"tools/blender/build_reservation_cards.py","tools/blender/build_art_vertical_slice.py","tools/blender/card_action_scenes.py","tools/blender/recent_card_environments.py"]}
 path=ROOT/"data/art_provenance.json";data=json.loads(path.read_text(encoding="utf-8"));sheet=Image.new("RGB",(880,242),"#10232b");draw=ImageDraw.Draw(sheet)
 for i,a in enumerate(m["assets"]):
-    image=Image.open(ROOT/"tools/.local/conversion/art"/(a["asset_id"]+".png")).convert("RGBA")
-    image.resize((a["size"],a["size"]),Image.Resampling.LANCZOS).save(ROOT/a["runtime_path"])
+    if a["category"]=="card" or "--cards-only" not in sys.argv:
+        image=Image.open(ROOT/"tools/.local/conversion/art"/(a["asset_id"]+".png")).convert("RGBA")
+        save_png_atomic(image.resize((a["size"],a["size"]),Image.Resampling.LANCZOS),ROOT/a["runtime_path"])
+    else:image=Image.open(ROOT/a["runtime_path"]).convert("RGBA")
     entry=dict(a,source_path=m["source_path"],generator=m["generator"],export_sha256=sha(a["runtime_path"]),source_sha256=m["source_sha256"],generator_sha256=deps,manifest_path=mp,tool=m["tool"],replacement_status="implemented",batch_id="blender_conversion_12",author="QQ project",license="project-original",third_party_inputs=[])
     old=next((x for x in data["assets"] if x["runtime_path"]==a["runtime_path"]),None)
     if old:

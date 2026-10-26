@@ -2,7 +2,7 @@
   "tool": "Blender 5.2.2 LTS",
   "generator": "tools/blender/build_reservation_cards.py",
   "source_path": "art_src/blender/cards/reservation_cards.blend",
-  "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+  "source_sha256": "400e8904abbe03691ac4428c67e75565db7a09f4440788cfc42f9e42a817a2df",
   "assets": [
     {
       "asset_id": "reserve_focus",

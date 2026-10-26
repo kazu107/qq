@@ -104,3 +104,9 @@ The third submission is recorded in [`balance/QQ-0.52.2.md`](balance/QQ-0.52.2.m
 the normal test verifies every field and Grade 0-5 values, including actual damage,
 shield, bleed ticks, cooldown reduction and delay on both sides. Historical recast
 tests retain their original fixture and honor only explicitly superseding fields.
+
+The fourth submission is recorded in [`balance/QQ-0.55.1.md`](balance/QQ-0.55.1.md).
+`tests/fixtures/balance_0_55_1.json` preserves all 94 fields for ten cards.
+`BalancePublicationSmoke --validate-import` verifies the submitted source hash and
+original values before publication. Normal checks cover all fields, six grades,
+both units, conditional attack bonuses, healing/shields and actual cooldowns.

@@ -2,7 +2,7 @@
   "tool": "Blender 5.2.2 LTS",
   "generator": "tools/blender/build_conversion_cards.py",
   "source_path": "art_src/blender/cards/damage_conversion.blend",
-  "source_sha256": "97978ecfeb6ffb876ea4b156b3ba001124c2c6e038732a835ab5bd6e85b74c4f",
+  "source_sha256": "9e7b1f66e868aa95eac9ff8c416ef669f60e025717dd1b5f8e9357a9cbade57b",
   "assets": [
     {
       "asset_id": "life_conversion",

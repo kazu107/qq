@@ -980,7 +980,7 @@
       "finisher"
     ],
     "loadout_cost": 5,
-    "recast_time": 39.2,
+    "recast_time": 36.2,
     "cast_time": 15,
     "active_slot_cost": 3,
     "priority_modifier": -0.2,
@@ -1004,6 +1004,53 @@
         13,
         16
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 35.4,
+        "effects": {
+          "0": {
+            "amount": 31,
+            "bonus_amount": 13
+          }
+        }
+      },
+      "2": {
+        "recast_time": 34.6,
+        "effects": {
+          "0": {
+            "amount": 38,
+            "bonus_amount": 16
+          }
+        }
+      },
+      "3": {
+        "recast_time": 33.8,
+        "effects": {
+          "0": {
+            "amount": 45,
+            "bonus_amount": 19
+          }
+        }
+      },
+      "4": {
+        "recast_time": 33,
+        "effects": {
+          "0": {
+            "amount": 52,
+            "bonus_amount": 22
+          }
+        }
+      },
+      "5": {
+        "recast_time": 32.2,
+        "effects": {
+          "0": {
+            "amount": 59,
+            "bonus_amount": 25
+          }
+        }
+      }
     }
   },
   {
@@ -1016,7 +1063,7 @@
       "buff"
     ],
     "loadout_cost": 5,
-    "recast_time": 39.2,
+    "recast_time": 36.2,
     "cast_time": 16.8,
     "active_slot_cost": 3,
     "priority_modifier": -0.1,
@@ -1038,6 +1085,48 @@
         12,
         15
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 35.8,
+        "effects": {
+          "0": {
+            "amount": 43
+          }
+        }
+      },
+      "2": {
+        "recast_time": 35.4,
+        "effects": {
+          "0": {
+            "amount": 52
+          }
+        }
+      },
+      "3": {
+        "recast_time": 35,
+        "effects": {
+          "0": {
+            "amount": 61
+          }
+        }
+      },
+      "4": {
+        "recast_time": 34.6,
+        "effects": {
+          "0": {
+            "amount": 70
+          }
+        }
+      },
+      "5": {
+        "recast_time": 34.2,
+        "effects": {
+          "0": {
+            "amount": 79
+          }
+        }
+      }
     }
   },
   {
@@ -1051,7 +1140,7 @@
       "delay"
     ],
     "loadout_cost": 5,
-    "recast_time": 42,
+    "recast_time": 38,
     "cast_time": 6,
     "active_slot_cost": 2,
     "priority_modifier": 0,
@@ -1086,6 +1175,23 @@
         0.6,
         0.8
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 37
+      },
+      "2": {
+        "recast_time": 36
+      },
+      "3": {
+        "recast_time": 35
+      },
+      "4": {
+        "recast_time": 34
+      },
+      "5": {
+        "recast_time": 33
+      }
     }
   },
   {
@@ -1098,7 +1204,7 @@
       "bleed"
     ],
     "loadout_cost": 4,
-    "recast_time": 33.6,
+    "recast_time": 29.6,
     "cast_time": 10.8,
     "active_slot_cost": 2,
     "priority_modifier": 0,
@@ -1122,6 +1228,48 @@
         11,
         14
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 29,
+        "effects": {
+          "0": {
+            "bonus_amount": 15
+          }
+        }
+      },
+      "2": {
+        "recast_time": 28.4,
+        "effects": {
+          "0": {
+            "bonus_amount": 18
+          }
+        }
+      },
+      "3": {
+        "recast_time": 27.8,
+        "effects": {
+          "0": {
+            "bonus_amount": 21
+          }
+        }
+      },
+      "4": {
+        "recast_time": 27.2,
+        "effects": {
+          "0": {
+            "bonus_amount": 24
+          }
+        }
+      },
+      "5": {
+        "recast_time": 26.6,
+        "effects": {
+          "0": {
+            "bonus_amount": 27
+          }
+        }
+      }
     }
   },
   {
@@ -1156,6 +1304,43 @@
         6,
         7.5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 6.8
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 7.6
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 8.4
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 9.2
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 10
+          }
+        }
+      }
     }
   },
   {
@@ -1203,6 +1388,63 @@
         4,
         5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 13.7,
+        "effects": {
+          "0": {
+            "amount": 6
+          },
+          "1": {
+            "amount": 6
+          }
+        }
+      },
+      "2": {
+        "recast_time": 13.4,
+        "effects": {
+          "0": {
+            "amount": 8
+          },
+          "1": {
+            "amount": 8
+          }
+        }
+      },
+      "3": {
+        "recast_time": 13.1,
+        "effects": {
+          "0": {
+            "amount": 10
+          },
+          "1": {
+            "amount": 10
+          }
+        }
+      },
+      "4": {
+        "recast_time": 12.8,
+        "effects": {
+          "0": {
+            "amount": 12
+          },
+          "1": {
+            "amount": 12
+          }
+        }
+      },
+      "5": {
+        "recast_time": 12.5,
+        "effects": {
+          "0": {
+            "amount": 14
+          },
+          "1": {
+            "amount": 14
+          }
+        }
+      }
     }
   },
   {
@@ -1251,6 +1493,43 @@
         24,
         30
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 5
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 7
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 9
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 11
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 13
+          }
+        }
+      }
     }
   },
   {
@@ -1300,6 +1579,23 @@
         5.2,
         6.5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 19
+      },
+      "2": {
+        "recast_time": 18.4
+      },
+      "3": {
+        "recast_time": 17.8
+      },
+      "4": {
+        "recast_time": 17.2
+      },
+      "5": {
+        "recast_time": 16.6
+      }
     }
   },
   {
@@ -1336,6 +1632,48 @@
         8,
         10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 15,
+        "effects": {
+          "0": {
+            "bonus_amount": 6
+          }
+        }
+      },
+      "2": {
+        "recast_time": 14.6,
+        "effects": {
+          "0": {
+            "bonus_amount": 8
+          }
+        }
+      },
+      "3": {
+        "recast_time": 14.2,
+        "effects": {
+          "0": {
+            "bonus_amount": 10
+          }
+        }
+      },
+      "4": {
+        "recast_time": 13.8,
+        "effects": {
+          "0": {
+            "bonus_amount": 12
+          }
+        }
+      },
+      "5": {
+        "recast_time": 13.4,
+        "effects": {
+          "0": {
+            "bonus_amount": 14
+          }
+        }
+      }
     }
   },
   {
@@ -1370,6 +1708,48 @@
         9,
         11
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "recast_time": 16.4,
+        "effects": {
+          "0": {
+            "amount": 16
+          }
+        }
+      },
+      "2": {
+        "recast_time": 16,
+        "effects": {
+          "0": {
+            "amount": 21
+          }
+        }
+      },
+      "3": {
+        "recast_time": 15.6,
+        "effects": {
+          "0": {
+            "amount": 26
+          }
+        }
+      },
+      "4": {
+        "recast_time": 15.2,
+        "effects": {
+          "0": {
+            "amount": 31
+          }
+        }
+      },
+      "5": {
+        "recast_time": 14.8,
+        "effects": {
+          "0": {
+            "amount": 36
+          }
+        }
+      }
     }
   },
   {

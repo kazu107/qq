@@ -2,21 +2,26 @@
 from pathlib import Path
 import hashlib
 import json
+import sys
 from PIL import Image, ImageDraw
+from asset_image_io import save_png_atomic
 
 ROOT = Path(__file__).resolve().parents[1]
 manifest_path = "art_src/blender/cards/reservation_cards.manifest.json"
 manifest = json.loads((ROOT / manifest_path).read_text(encoding="utf-8"))
 def sha(path): return hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
 assert sha(manifest["source_path"]) == manifest["source_sha256"]
-deps = {path: sha(path) for path in [manifest["generator"], "tools/blender/build_art_vertical_slice.py", "tools/blender/card_action_scenes.py"]}
+deps = {path: sha(path) for path in [manifest["generator"], "tools/blender/build_art_vertical_slice.py", "tools/blender/card_action_scenes.py", "tools/blender/recent_card_environments.py"]}
 provenance_path = ROOT / "data/art_provenance.json"
 provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
 sheet = Image.new("RGB", (6 * 192, 4 * 214), "#101a24")
 draw = ImageDraw.Draw(sheet)
 for index, asset in enumerate(manifest["assets"]):
-    image = Image.open(ROOT / "tools/.local/reservations/art" / (asset["asset_id"] + ".png")).convert("RGBA")
-    image.resize((asset["size"], asset["size"]), Image.Resampling.LANCZOS).save(ROOT / asset["runtime_path"])
+    if asset["category"] == "card" or "--cards-only" not in sys.argv:
+        image = Image.open(ROOT / "tools/.local/reservations/art" / (asset["asset_id"] + ".png")).convert("RGBA")
+        save_png_atomic(image.resize((asset["size"], asset["size"]), Image.Resampling.LANCZOS), ROOT / asset["runtime_path"])
+    else:
+        image = Image.open(ROOT / asset["runtime_path"]).convert("RGBA")
     entry = dict(asset, source_path=manifest["source_path"], generator=manifest["generator"], export_sha256=sha(asset["runtime_path"]), source_sha256=manifest["source_sha256"], generator_sha256=deps, manifest_path=manifest_path, tool=manifest["tool"], replacement_status="implemented", batch_id="blender_reservations_10", author="QQ project", license="project-original", third_party_inputs=[])
     old = next((a for a in provenance["assets"] if a["runtime_path"] == entry["runtime_path"]), None)
     if old:

@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.55.0",
+  "current_version": "QQ-0.55.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.55.1", "date": "2026-10-26",
+      "title_ja": "10枚のバランス調整と最近のカード背景",
+      "title_en": "Ten-card balance update and recent card environments",
+      "changes_ja": [
+        "提出されたJSONの10枚・94項目を反映し、基本再使用時間と上位Gradeの再使用・ダメージ・シールド・回復・条件付き追加効果を調整しました。指定外のカード数値や遺物は変更していません。",
+        "最近追加した予約18枚・リジェネ8枚・転換2枚の背景を、訓練場・砦・工房・医療区画・温室・時計の保管庫・研究室のBlender製3D環境に変更しました。主役の形を維持し、状態アイコンは透過のまま変更していません。",
+        "ラボ・両者の戦闘・全Gradeで確認し、過去の記録を保持してランキングをシーズン11へ切り替えます。"
+      ],
+      "changes_en": [
+        "Publish all 94 requested fields for ten cards, including base/upper-grade recasts, damage, shields, healing and conditional bonuses. Preserve unspecified numbers and relics.",
+        "Replace flat backdrops on 18 reservation, eight regeneration and two conversion cards with original Blender courtyards, fortresses, workshops, infirmaries, greenhouses, clock archives and laboratories. Preserve subject geometry and transparent status icons.",
+        "Verify the lab, both combatants and every grade. Retain prior records and start ranked Season 11."
+      ]
+    },
     {
       "version": "QQ-0.55.0", "date": "2026-10-26",
       "title_ja": "被ダメージを無効化・変換する2枚のカード",
