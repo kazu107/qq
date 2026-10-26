@@ -1,0 +1,62 @@
+{
+  "tool": "Blender 5.2.2 LTS",
+  "generator": "tools/blender/build_regeneration_cards.py",
+  "source_path": "art_src/blender/cards/regeneration_cards.blend",
+  "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+  "assets": [
+    {
+      "asset_id": "regen_patch",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_patch.png",
+      "size": 512
+    },
+    {
+      "asset_id": "regen_salve",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_salve.png",
+      "size": 512
+    },
+    {
+      "asset_id": "regen_barrier",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_barrier.png",
+      "size": 512
+    },
+    {
+      "asset_id": "regen_emergency",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_emergency.png",
+      "size": 512
+    },
+    {
+      "asset_id": "regen_bloodwrap",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_bloodwrap.png",
+      "size": 512
+    },
+    {
+      "asset_id": "regen_burst",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_burst.png",
+      "size": 512
+    },
+    {
+      "asset_id": "regen_spring",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_spring.png",
+      "size": 512
+    },
+    {
+      "asset_id": "regen_tank",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_tank.png",
+      "size": 512
+    },
+    {
+      "asset_id": "regen",
+      "category": "status",
+      "runtime_path": "assets/icons/status/regen.png",
+      "size": 96
+    }
+  ]
+}

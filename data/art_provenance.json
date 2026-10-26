@@ -8367,6 +8367,213 @@
       "author": "QQ project",
       "license": "project-original",
       "third_party_inputs": []
+    },
+    {
+      "asset_id": "regen_patch",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_patch.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/regeneration_cards.blend",
+      "generator": "tools/blender/build_regeneration_cards.py",
+      "export_sha256": "af5d03304316c4e30c8fa818c491a6b6d184de2a24226752e2d3117a8578fd3c",
+      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "generator_sha256": {
+        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_regeneration_11",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "regen_salve",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_salve.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/regeneration_cards.blend",
+      "generator": "tools/blender/build_regeneration_cards.py",
+      "export_sha256": "ce28a81541ed5a7cdb219c44bfed9410450fb9ceb81d20b34e7876b1fd6819a9",
+      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "generator_sha256": {
+        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_regeneration_11",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "regen_barrier",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_barrier.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/regeneration_cards.blend",
+      "generator": "tools/blender/build_regeneration_cards.py",
+      "export_sha256": "afdb141d0250ae04c2795b363726cced36816a22704aa4dfb529057f4d6005b0",
+      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "generator_sha256": {
+        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_regeneration_11",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "regen_emergency",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_emergency.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/regeneration_cards.blend",
+      "generator": "tools/blender/build_regeneration_cards.py",
+      "export_sha256": "45b674818a1fc7475c70e1fd302d0ae3d8bd1c73506b498b0269fc4d7b8270b3",
+      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "generator_sha256": {
+        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_regeneration_11",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "regen_bloodwrap",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_bloodwrap.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/regeneration_cards.blend",
+      "generator": "tools/blender/build_regeneration_cards.py",
+      "export_sha256": "05d5ac91bc75317eceb8b3ba0d3281d097eadca4c6e53afdd0a9dbba4177d7f0",
+      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "generator_sha256": {
+        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_regeneration_11",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "regen_burst",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_burst.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/regeneration_cards.blend",
+      "generator": "tools/blender/build_regeneration_cards.py",
+      "export_sha256": "b3f35da29d077c5d9fb196bcf289423941ffa2711ab1c21054e191007a4461f3",
+      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "generator_sha256": {
+        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_regeneration_11",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "regen_spring",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_spring.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/regeneration_cards.blend",
+      "generator": "tools/blender/build_regeneration_cards.py",
+      "export_sha256": "8f955021272093b7b15397c8958411791bd0ef7aa739e6c3dde43e38e39ca6e0",
+      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "generator_sha256": {
+        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_regeneration_11",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "regen_tank",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/regen_tank.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/regeneration_cards.blend",
+      "generator": "tools/blender/build_regeneration_cards.py",
+      "export_sha256": "401f7241e4e4106fbf2a8ad411023a2a76fa7f4b4401d457665aabbb60dc20c6",
+      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "generator_sha256": {
+        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_regeneration_11",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "regen",
+      "category": "status",
+      "runtime_path": "assets/icons/status/regen.png",
+      "size": 96,
+      "source_path": "art_src/blender/cards/regeneration_cards.blend",
+      "generator": "tools/blender/build_regeneration_cards.py",
+      "export_sha256": "10694dac616753c5a0fbe0e74b065ea648737b6f0b4724dd0af20a3c42bd274f",
+      "source_sha256": "5891ca0820e900e41e0df29edd719597cf78d994b322163a84eb534fd9264a9b",
+      "generator_sha256": {
+        "tools/blender/build_regeneration_cards.py": "c5432e2524c94ea999da6de8f9d5f6641625376ce0cf896c99c3e3f4f22b18bf",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/regeneration_cards.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_regeneration_11",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
     }
   ],
   "batch_ids": [
@@ -8382,6 +8589,7 @@
     "timekeeper_boss_rework",
     "blender_achievement_icons_08",
     "blender_echo_card_09",
-    "blender_reservations_10"
+    "blender_reservations_10",
+    "blender_regeneration_11"
   ]
 }

@@ -17,6 +17,9 @@ const CARD_SOUND_ALIASES: Dictionary = {
 	"reserve_shield_jam": "card_weak_shot", "reserve_heal_jam": "card_weak_shot", "reserve_recast_jam": "card_delay_step",
 	"reserve_recoil": "card_weak_shot", "reserve_time_mine": "card_time_buy", "reserve_wear": "card_weak_shot",
 	"reserve_mirror": "card_tactical_mirror", "reserve_swift_commit": "card_haste_focus", "reserve_heavy_commit": "card_delay_step",
+	"regen_patch": "card_repair_burst", "regen_salve": "card_field_medic", "regen_barrier": "card_guard",
+	"regen_emergency": "card_repair_burst", "regen_bloodwrap": "card_blood_siphon", "regen_burst": "card_repair_burst",
+	"regen_spring": "card_purge_pulse", "regen_tank": "card_repair_burst",
 }
 const SFX_VOLUME_OFFSETS_DB: Dictionary = {
 	"run_start": -3.0,

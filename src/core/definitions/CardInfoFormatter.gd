@@ -79,6 +79,15 @@ static func _describe_effect(effect: Dictionary, compact: bool, comparison_effec
 				"amount": _format_compared_int(effect, comparison_effect, "amount", true, rich),
 			})
 		"apply_status":
+			if effect.get("status", "") == "regen":
+				var regen_text: String = Localization.get_textf("effect.apply_regen", "Apply regeneration to {target} for {duration}s: heal {power} HP every 3s (max 3 layers)", {"target": _target_label(effect), "duration": _format_compared_float(effect, comparison_effect, "duration", 1, true, rich), "power": _format_compared_int(effect, comparison_effect, "regen_power", true, rich, 1)})
+				if float(effect.get("bonus_if_hp_below_ratio", 0)) > 0:
+					regen_text += "\n" + Localization.get_textf("effect.regen.low", "At or below {percent}% HP: power +{bonus}, fixed on application", {"percent": String.num(float(effect["bonus_if_hp_below_ratio"]) * 100, 0), "bonus": _format_compared_int(effect, comparison_effect, "bonus_power", true, rich)})
+					if bool(effect.get("_regen_bonus_applied", false)): regen_text += " " + Localization.get_text("effect.regen.included", "(included above)")
+				if float(effect.get("regen_max_hp_ratio", 0)) > 0:
+					regen_text += "\n" + Localization.get_textf("effect.regen.max_hp", "Add {percent}% of target max HP, rounded down and fixed on application", {"percent": String.num(float(effect["regen_max_hp_ratio"]) * 100, 2)})
+					if bool(effect.get("_regen_max_hp_applied", false)): regen_text += " " + Localization.get_text("effect.regen.included", "(included above)")
+				return regen_text
 			if effect.get("status", "") == "bleed":
 				return Localization.get_textf("effect.apply_bleed", "Apply {status} to {target}: {duration}s, {power} HP damage per layer every 6s (max 3 layers)", {
 					"status": Localization.get_status_name("bleed"), "target": _target_label(effect),

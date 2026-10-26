@@ -373,7 +373,7 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		if status_id in ["echo_ready", "reservation_boost", "reservation_hex"]: time_label.text = str(int(status_data.get("charges", 1)))
 		var stack: Label = icon.find_child("StatusStacks", true, false) as Label
 		stack.text = "x%d" % int(status_data.get("stacks", 1))
-		stack.visible = status_id == "bleed" and int(status_data.get("stacks", 1)) > 1
+		stack.visible = status_id in ["bleed", "regen"] and int(status_data.get("stacks", 1)) > 1
 		time_label.self_modulate = STATUS_TIME_COLOR
 		if _status_hovered_id == status_id:
 			_status_hovered_icon = icon

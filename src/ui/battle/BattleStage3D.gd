@@ -211,7 +211,7 @@ func play_battle_event(event_data: Dictionary) -> void:
 		# Keep the final impact, not a long backlog of stale casting animations.
 		var final_impact: Array[Dictionary] = []
 		for index: int in range(_queued_events.size() - 1, -1, -1):
-			if String(_queued_events[index].get("event_type", "")) in ["resolve_card", "fatigue_card", "status_damage"]:
+			if String(_queued_events[index].get("event_type", "")) in ["resolve_card", "fatigue_card", "status_damage", "status_heal"]:
 				final_impact.append(_queued_events[index])
 				break
 		_queued_events = final_impact
@@ -249,6 +249,8 @@ func _play_event_audio(event_data: Dictionary) -> void:
 		for actor: BattleActor3D in [_player_actor, _enemy_actor]:
 			blocked = blocked and int(_unit_delta(result, actor).get("hp", 0)) >= 0
 		AudioManager.play_sfx("battle_full_block" if blocked else "status_bleed_tick", 0.85)
+	elif type == "status_heal":
+		AudioManager.play_sfx("card_repair_burst", 1.12, -10.0)
 
 
 func ensure_battle_end_presentation(winner: String) -> void:
@@ -1023,6 +1025,10 @@ func _emit_event_combat_text(event_data: Dictionary) -> void:
 				damage_amount = maxi(0, int(status_result.get("amount", 0)))
 			if damage_amount > 0:
 				_spawn_floating_combat_text(status_target, "-%d" % damage_amount, DAMAGE_COLOR, 0)
+		"status_heal":
+			var status_target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
+			var amount: int = maxi(0, int(event_data.get("hp_delta", 0)))
+			if amount > 0: _spawn_floating_combat_text(status_target, "+%d" % amount, HEAL_COLOR, 0)
 
 
 func _emit_unit_delta_text(actor: BattleActor3D, delta_data: Dictionary, lane_offset: int = 0) -> void:
@@ -1124,6 +1130,10 @@ func _begin_event(event_data: Dictionary) -> float:
 				_spawn_impact(_actor_effect_position(actor), FatigueRules.BORDER_COLOR if hp_loss else SHIELD_COLOR, 0.55, 1.6)
 			_add_camera_shake(0.08)
 			return 0.55
+		"status_heal":
+			var target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
+			if target != null: _spawn_impact(_actor_effect_position(target), HEAL_COLOR, 0.38, 1.25)
+			return 0.3
 		"status_damage":
 			var status_target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
 			if status_target != null:
@@ -1321,7 +1331,7 @@ func _apply_resolution_pulse(event: Dictionary) -> void:
 		_apply_unit_delta(target, target_delta, profile, true)
 	var status_actor: BattleActor3D = actor if bool(profile.get("self_status", false)) else target
 	if bool(profile.get("status", false)) and status_actor != null:
-		_spawn_impact(_actor_effect_position(status_actor), STATUS_COLOR, 0.62, 1.68)
+		_spawn_impact(_actor_effect_position(status_actor), HEAL_COLOR if bool(profile.get("regen", false)) else STATUS_COLOR, 0.62, 1.68)
 	if offensive:
 		_add_camera_shake(0.13 if int(target_delta.get("hp", 0)) < 0 else 0.08)
 	_emit_event_combat_text(event)
@@ -1422,7 +1432,11 @@ func _build_card_profile(card_def: CardDef) -> Dictionary:
 				profile["status"] = true; profile["self_status"] = true
 			"reserve_next_card":
 				profile["status"] = true; profile["self_status"] = effect.get("target", "self") != "enemy"
-			"apply_status", "remove_status", "modify_attack", "modify_speed", "timeline_flow", "next_attack_multiplier":
+			"apply_status":
+				profile["status"] = true
+				if effect.get("status") == "regen":
+					profile["regen"] = true; profile["heal"] = true; profile["self_status"] = effect.get("target", "self") != "enemy"
+			"remove_status", "modify_attack", "modify_speed", "timeline_flow", "next_attack_multiplier":
 				profile["status"] = true
 	return profile
 

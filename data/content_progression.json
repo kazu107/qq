@@ -17,17 +17,17 @@
     },
     {
       "xp": 8,
-      "cards": ["bastion_drive", "adrenaline_link", "purge_pulse", "execution", "fortify", "time_flow_control", "blood_chain", "echo_cast", "reserve_shield", "reserve_reload", "reserve_status", "reserve_swift_commit"],
+      "cards": ["bastion_drive", "adrenaline_link", "purge_pulse", "execution", "fortify", "time_flow_control", "blood_chain", "echo_cast", "reserve_shield", "reserve_reload", "reserve_status", "reserve_swift_commit", "regen_barrier", "regen_emergency"],
       "relics": ["surge_gimbal", "phase_capacitor", "echo_coil", "paradox_prism", "rift_compass", "entropy_battery", "omega_crown", "eternity_engine"]
     },
     {
       "xp": 15,
-      "cards": ["over_reload", "meteor_crash", "self_tuning_edge", "overclock_routine", "sequence_loader", "auto_turret", "phase_lance", "reserve_recast_jam", "reserve_tempo", "reserve_heavy_commit"],
+      "cards": ["over_reload", "meteor_crash", "self_tuning_edge", "overclock_routine", "sequence_loader", "auto_turret", "phase_lance", "reserve_recast_jam", "reserve_tempo", "reserve_heavy_commit", "regen_bloodwrap", "regen_spring"],
       "relics": ["titanium_rib", "loadout_harness", "war_cache", "signal_lens", "pulse_injector", "barrier_seed", "stasis_clock", "blood_pump"]
     },
     {
       "xp": 24,
-      "cards": ["recursive_protocol", "chronostasis", "entropy_reversal", "crisis_drone_swarm", "mirror_aegis", "rift_volley", "entropy_armor", "reserve_siphon", "reserve_chain", "reserve_heal_jam", "reserve_time_mine"],
+      "cards": ["recursive_protocol", "chronostasis", "entropy_reversal", "crisis_drone_swarm", "mirror_aegis", "rift_volley", "entropy_armor", "reserve_siphon", "reserve_chain", "reserve_heal_jam", "reserve_time_mine", "regen_burst", "regen_tank"],
       "relics": ["scavenger_contract", "emergency_foam", "overclock_key", "chrono_metronome", "armor_garden", "bounty_drone", "prism_furnace", "archive_compass"]
     },
     {

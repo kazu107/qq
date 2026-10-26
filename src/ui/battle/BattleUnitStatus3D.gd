@@ -113,7 +113,7 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		var id: String = String(raw)
 		if float(Dictionary(statuses[id]).get("duration", 0.0)) > 0.0 or int(Dictionary(statuses[id]).get("charges", 0)) > 0:
 			active.append(id)
-	var count: int = mini(8, active.size())
+	var count: int = mini(9, active.size())
 	for index: int in count:
 		var id: String = active[index]
 		if not _status_cells.has(id):
@@ -140,6 +140,7 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		icon.modulate = Color.WHITE
 		icon.pixel_size = 0.0018 if count > 5 else (0.0021 if count > 4 else 0.0025)
 		if count > 6: icon.pixel_size = 0.0014
+		if count > 8: icon.pixel_size = 0.00125
 		var label: Label3D = cell["time"]
 		label.position = Vector3(x + (0.11 if count > 5 else 0.14), -0.64, 0.08)
 		if count > 6: label.position.x = x + 0.08
@@ -148,11 +149,12 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		if id in ["echo_ready", "reservation_boost", "reservation_hex"]: label.text = str(int(Dictionary(statuses[id]).get("charges", 1)))
 		label.pixel_size = 0.0036 if count > 5 else (0.0044 if count > 4 else 0.005)
 		if count > 6: label.pixel_size = 0.0025
+		if count > 8: label.pixel_size = 0.0021
 		label.visible = true
 		var stack: Label3D = cell["stack"]
 		stack.position = icon.position + Vector3(0.055, -0.07, 0.02)
 		stack.text = "x%d" % int(Dictionary(statuses[id]).get("stacks", 1))
-		stack.visible = id == "bleed" and int(Dictionary(statuses[id]).get("stacks", 1)) > 1
+		stack.visible = id in ["bleed", "regen"] and int(Dictionary(statuses[id]).get("stacks", 1)) > 1
 		var corners: Array[Vector3] = []
 		for dx: float in [-spacing * 0.48, spacing * 0.48]:
 			for dy: float in [-0.13, 0.13]:

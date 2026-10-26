@@ -25,6 +25,7 @@ const LEGACY: Dictionary = {
 	"archive_compass": {"pickup_loadout": 1, "victory_gold": 8, "victory_heal": 2}
 }
 const LABELS: Dictionary = {
+	"regen_power": "リジェネ回復量（3秒ごと）", "regen_max_hp_ratio": "最大HPからの回復割合", "bonus_power": "低HP時の追加回復量", "bonus_if_hp_below_ratio": "低HPの判定割合",
 	"secondary": "追加効果量",
 	"charges": "反響の獲得枚数",
 	"bleed_power": "出血威力（1層・6秒ごと）",
@@ -180,6 +181,7 @@ static func _walk(value: Variant, path: String, result: Array[Dictionary], sourc
 			if reservation_kind == "chain": minimum = 1; maximum = 1
 		if key == "charges" and relative.begins_with("effects.") and source["effects"][int(parts[1])].get("type", "") == "repeat_next_card": minimum = 1; maximum = RepeatRules.MAX_CHARGES
 		if key == "bleed_power" and relative.begins_with("effects."): minimum = 1.0
+		if key == "regen_power" and relative.begins_with("effects."): minimum = 1.0
 		minimum = minf(minimum, float(value))
 		maximum = maxf(maximum, float(value))
 		var label: String = String(LABELS.get(key, key.replace("_", " ")))

@@ -231,11 +231,16 @@ func _command(arguments: Array) -> void:
 		var cards: Array[String] = ["heavy_swing", "echo_cast", "quick_slash", "guard"]
 		Game.developer_open_custom_battle("guardian", "balanced", cards)
 		SceneRouter.go_to_battle()
+	elif String(payload.get("action", "")) == "regen_fixture":
+		Game.set_language(String(payload.get("language", "ja"))); Game.settings["developer_mode"] = true
+		Game.developer_open_custom_battle("guardian", "balanced", RegenerationRules.CARD_IDS.duplicate())
+		SceneRouter.go_to_battle()
 	elif String(payload.get("action", "")) == "echo_control":
 		var battle: Control = get_tree().current_scene as Control
 		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
 		battle.set_process(false); engine.set_enemy_ai_enabled(false)
 		if bool(payload.get("setup", false)): engine.battle_state.enemy.hp = 500; engine.battle_state.enemy.max_hp = 500
+		if payload.has("player_hp"): engine.battle_state.player.hp = int(payload["player_hp"])
 		if payload.has("delay"): engine.delay_active_cards("player", float(payload["delay"]), "single")
 		if payload.has("seconds"): engine.update(float(payload["seconds"]))
 		battle.call("_refresh_ui", 1.0)
@@ -543,11 +548,12 @@ func _inspect() -> Dictionary:
 					if button.visible: timeline_cards.append({"runtime": button.runtime_id, "repeat": button._repeat_badge.visible, "reserved": button._reservation_badge.visible, "rect": _rect_values(button.get_global_rect())})
 				var echo_regions: Array[Dictionary] = []
 				for region: Dictionary in stage.get_player_status_model().get_status_regions():
-					if region["id"] not in ["echo_ready", "reservation_boost", "reservation_hex"]: continue
+					if region["id"] not in ["echo_ready", "reservation_boost", "reservation_hex", "regen"]: continue
 					var points: Array[Array] = []
 					for point: Vector3 in region["corners"]: points.append(_point_values(stage.global_position + stage.project_world_position(point)))
 					echo_regions.append({"id": region["id"], "points": points, "tooltip": region["tooltip"]})
 				result["echo"] = {"charges": bleed_engine.battle_state.player.repeat_charges, "hand": hand_cards, "timeline": timeline_cards,
+					"player_hp": bleed_engine.battle_state.player.hp, "regen": bleed_engine.battle_state.player.statuses.get("regen", {}),
 					"pending": bleed_engine.battle_state.player.card_reservations.size(), "enemy_pending": enemy.card_reservations.size(),
 					"enemy_hp": enemy.hp, "status_regions": echo_regions, "tooltip": tip.text if tip != null and tip.is_visible_in_tree() else "",
 					"numbers": stage.get_floating_combat_text_values()}

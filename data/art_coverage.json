@@ -1,11 +1,11 @@
 {
   "updated_at": "2026-10-26",
   "complete": true,
-  "registered_assets": 374,
+  "registered_assets": 383,
   "coverage": {
     "Cards": {
-      "done": 112,
-      "total": 112,
+      "done": 120,
+      "total": 120,
       "remaining": []
     },
     "Boss cards": {
@@ -34,8 +34,8 @@
       "remaining": []
     },
     "Status": {
-      "done": 8,
-      "total": 8,
+      "done": 9,
+      "total": 9,
       "remaining": []
     },
     "UI": {

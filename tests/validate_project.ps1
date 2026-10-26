@@ -347,6 +347,10 @@ if ($godotExe) {
         "--no-header", "--headless", "--path", $root,
         "--scene", "res://tests/ReservedCardsSmoke.tscn"
     )
+    Invoke-GodotCheck "[15-regeneration/31] Running regeneration smoke" $godotExe @(
+        "--no-header", "--headless", "--path", $root,
+        "--scene", "res://tests/RegenerationSmoke.tscn"
+    )
     Invoke-GodotCheck "[15-catalog/31] Running card and relic library smoke" $godotExe @(
         "--no-header",
         "--headless",

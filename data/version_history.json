@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.53.0",
+  "current_version": "QQ-0.54.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.54.0", "date": "2026-10-26",
+      "title_ja": "HPリジェネと8枚の回復カード",
+      "title_en": "HP regeneration and eight healing cards",
+      "changes_ja": [
+        "ナノ再生・応急ジェル・再生バリア・緊急ナノ修復・吸血包帯・集中再生・浄化の泉・再生タンクを追加しました。即時回復、シールド、低HP補正、攻撃、浄化、最大HPに応じた回復などを組み合わせ、全Grade 0〜5に対応します。",
+        "HPリジェネは3秒ごとに回復する最大3層の状態です。各層の威力・持続時間・付与元を個別に管理し、満HPの超過分や戦闘不能からの復活は発生しません。反響は2層を付与し、回復汚染・ミラー傍受・状態ブースターにも対応します。",
+        "3Dフィールドでの回復数値と控えめな効果音、リアルタイムの状態ツールチップ、回復統計、通信・リプレイ、開発者用の追加・解除を実装しました。開発者パネルのボタン上でホイールスクロールも可能になりました。8枚と状態アイコンは専用Blender原本から作成し、過去の記録を保持してランキングをシーズン9へ切り替えます。"
+      ],
+      "changes_en": [
+        "Add Nano Regeneration, First Aid Gel, Regenerative Barrier, Emergency Nanites, Blood Wrap, Focused Renewal, Cleansing Spring and Regeneration Tank. Combine regeneration with instant healing, shields, low-HP bonuses, attacks, cleansing or max-HP scaling at Grade 0-5.",
+        "Regeneration heals every three seconds with up to three independently timed, snapshotted layers. Ignore overheal and never revive. Echo applies two layers; Healing Corruption, Mirror Intercept and Status Booster support regeneration.",
+        "Include 3D healing numbers, quiet tick audio, live status tooltips, actual-healing attribution, network/replay state and offline developer controls. Enable wheel scrolling over developer buttons. Create eight cards and a status icon from dedicated Blender sources. Preserve previous results and start ranked Season 9."
+      ]
+    },
     {
       "version": "QQ-0.53.0", "date": "2026-10-26",
       "title_ja": "次のカードを変化させる18枚の予約カード",

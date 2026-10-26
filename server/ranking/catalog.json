@@ -447,6 +447,38 @@
     "reserve_heavy_commit": {
       "en": "Slot Jammer",
       "ja": "スロット妨害"
+    },
+    "regen_patch": {
+      "en": "Nano Regeneration",
+      "ja": "ナノ再生"
+    },
+    "regen_salve": {
+      "en": "First Aid Gel",
+      "ja": "応急ジェル"
+    },
+    "regen_barrier": {
+      "en": "Regenerative Barrier",
+      "ja": "再生バリア"
+    },
+    "regen_emergency": {
+      "en": "Emergency Nanites",
+      "ja": "緊急ナノ修復"
+    },
+    "regen_bloodwrap": {
+      "en": "Blood Wrap",
+      "ja": "吸血包帯"
+    },
+    "regen_burst": {
+      "en": "Focused Renewal",
+      "ja": "集中再生"
+    },
+    "regen_spring": {
+      "en": "Cleansing Spring",
+      "ja": "浄化の泉"
+    },
+    "regen_tank": {
+      "en": "Regeneration Tank",
+      "ja": "再生タンク"
     }
   },
   "relic": {

@@ -202,6 +202,7 @@ static func _decode_unit(payload: Dictionary) -> UnitState:
 	unit.statuses = Dictionary(payload.get("statuses", {})).duplicate(true)
 	if unit.statuses.get("bleed") is Dictionary and unit.statuses["bleed"].get("layers") is Array:
 		unit.statuses["bleed"] = BleedRules.normalize(unit.statuses["bleed"])
+	if unit.statuses.get("regen") is Dictionary: unit.statuses["regen"] = RegenerationRules.normalize(unit.statuses["regen"])
 	unit.active_slots_used = maxi(0, int(payload.get("active_slots_used", 0)))
 	unit.active_slot_max = maxi(1, int(payload.get("active_slot_max", 3)))
 	var runtime_states: Array[CardRuntimeState] = []

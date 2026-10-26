@@ -711,6 +711,24 @@ func _tick_statuses(delta: float) -> void:
 		var events: Array[Dictionary] = unit.tick_statuses(delta)
 		for event_data in events:
 			var status_side: String = "player" if unit == battle_state.player else "enemy"
+			if String(event_data.get("type", "")) == "status_heal":
+				if not unit.is_alive(): continue
+				var amount: int = int(event_data.get("amount", 0))
+				var healed: int = DamageResolver.heal(unit, amount)
+				if healed <= 0: continue
+				var sources: Array = event_data.get("sources", [])
+				var credits: Array[int] = []; var left: int = healed
+				for source: Dictionary in sources:
+					var credit: int = floori(float(healed) * int(source["amount"]) / maxi(1, amount))
+					credits.append(credit); left -= credit
+				for index: int in sources.size():
+					if left > 0: credits[index] += 1; left -= 1
+					var side: String = String(sources[index].get("side", status_side))
+					if side not in ["player", "enemy"]: side = status_side
+					analysis.record_heal_tick(side, String(sources[index].get("card_id", "")), credits[index])
+				_play_sfx("card_repair_burst", 1.12, -10.0)
+				_record_event(_build_basic_event("status_heal", unit.unit_id, "", unit.unit_id, {"status": "regen", "amount": healed, "player": _snapshot_unit(battle_state.player), "enemy": _snapshot_unit(battle_state.enemy)}, healed, 0))
+				continue
 			_relic_controller.on_status_event(status_side, event_data)
 			if String(event_data.get("type", "")) == "status_damage":
 				var amount := int(event_data.get("amount", 0))
@@ -1124,7 +1142,10 @@ func set_relic_enabled(side: String, relic_id: String, enabled: bool) -> bool:
 	return _relic_controller.set_relic_enabled(side, relic_id, enabled)
 
 
-func apply_status_from_card(source_side: String, target_side: String, status_id: String, duration: float, bleed_power: int = 1) -> void:
+func apply_status_from_card(source_side: String, target_side: String, status_id: String, duration: float, bleed_power: int = 1, card_id: String = "") -> void:
+	if status_id == "regen":
+		battle_state.get_unit(target_side).add_regeneration(duration, bleed_power, source_side, card_id)
+		return
 	_relic_controller.apply_status(source_side, target_side, status_id, duration, bleed_power)
 
 

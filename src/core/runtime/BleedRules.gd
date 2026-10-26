@@ -76,12 +76,13 @@ static func tick(value: Dictionary, delta: float) -> Dictionary:
 		if phase + EPSILON >= TICK_INTERVAL:
 			phase = 0
 			events.append({"type": "status_damage", "status": "bleed", "amount": total, "source_amounts": sources,
+				"time_offset": delta - pending,
 				"source_side": String(sources.keys()[0]) if sources.size() == 1 else ""})
 		var active: Array[Dictionary] = []
 		for layer: Dictionary in layers:
 			if float(layer["duration"]) > EPSILON: active.append(layer)
 		layers = active
-		if layers.is_empty(): events.append({"type": "status_expired", "status": "bleed", "last_tick_power": total})
+		if layers.is_empty(): events.append({"type": "status_expired", "status": "bleed", "last_tick_power": total, "time_offset": delta - pending})
 	result["tick_accumulator"] = phase
 	return {"data": _summarize(result, layers), "events": events}
 

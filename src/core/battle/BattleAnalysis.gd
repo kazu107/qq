@@ -111,6 +111,14 @@ func record_reservation_proc(side: String, kind: String, metrics: Dictionary) ->
 	rows[key] = row
 
 
+func record_heal_tick(side: String, card_id: String, amount: int) -> void:
+	if amount <= 0: return
+	var key: String = side + ":" + card_id
+	var row: Dictionary = rows.get(key, {"actor": side, "card_id": card_id, "casts": 0, "damage": 0, "absorbed": 0, "shield": 0, "heal": 0})
+	row["heal"] = int(row["heal"]) + amount
+	rows[key] = row
+
+
 func to_dict() -> Dictionary:
 	return {"cards": rows.values().duplicate(true), "fatigue_hits": fatigue_hits,
 		"fatigue_hp_damage": fatigue_hp_damage, "fatigue_shield_damage": fatigue_shield_damage,

@@ -22,7 +22,7 @@ func _check(value: bool, message: String) -> void:
 func _run() -> void:
 	var ids: Array[String] = Database.get_all_card_ids()
 	for id: String in Database.boss_cards: ids.append(id)
-	_check(ids.size() == 115, "card catalog incomplete")
+	_check(ids.size() == 123, "card catalog incomplete")
 	for id: String in ids:
 		var base: CardDef = Database.get_card(id)
 		_check(not base.upgrade_profile.is_empty(), "missing grade values: " + id)

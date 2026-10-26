@@ -6675,5 +6675,780 @@
         }
       }
     }
+  },
+  {
+    "id": "regen_patch",
+    "name": "Nano Regeneration",
+    "description": "Apply independently timed healing regeneration; up to three layers.",
+    "rarity": "common",
+    "tags": [
+      "support",
+      "heal",
+      "regen"
+    ],
+    "loadout_cost": 2,
+    "cast_time": 2.4,
+    "recast_time": 18,
+    "active_slot_cost": 1,
+    "priority_modifier": 0,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "regen",
+        "duration": 12,
+        "regen_power": 2,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "duration": 15,
+            "regen_power": 2
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "duration": 12,
+            "regen_power": 3
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "duration": 15,
+            "regen_power": 3
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "duration": 12,
+            "regen_power": 4
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "duration": 15,
+            "regen_power": 4
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "regen_salve",
+    "name": "First Aid Gel",
+    "description": "Apply independently timed healing regeneration; up to three layers.",
+    "rarity": "common",
+    "tags": [
+      "support",
+      "heal",
+      "regen"
+    ],
+    "loadout_cost": 2,
+    "cast_time": 2.4,
+    "recast_time": 18,
+    "active_slot_cost": 1,
+    "priority_modifier": 0,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "heal",
+        "amount": 4,
+        "target": "self"
+      },
+      {
+        "type": "apply_status",
+        "status": "regen",
+        "duration": 9,
+        "regen_power": 1,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 5
+          },
+          "1": {
+            "duration": 12,
+            "regen_power": 1
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 6
+          },
+          "1": {
+            "duration": 9,
+            "regen_power": 2
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "duration": 12,
+            "regen_power": 2
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 8
+          },
+          "1": {
+            "duration": 9,
+            "regen_power": 3
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 9
+          },
+          "1": {
+            "duration": 12,
+            "regen_power": 3
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "regen_barrier",
+    "name": "Regenerative Barrier",
+    "description": "Apply independently timed healing regeneration; up to three layers.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "heal",
+      "regen",
+      "shield"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 4.8,
+    "recast_time": 24,
+    "active_slot_cost": 2,
+    "priority_modifier": 0,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "gain_shield",
+        "amount": 6,
+        "target": "self"
+      },
+      {
+        "type": "apply_status",
+        "status": "regen",
+        "duration": 15,
+        "regen_power": 2,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "duration": 18,
+            "regen_power": 2
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 8
+          },
+          "1": {
+            "duration": 15,
+            "regen_power": 3
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 9
+          },
+          "1": {
+            "duration": 18,
+            "regen_power": 3
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 10
+          },
+          "1": {
+            "duration": 15,
+            "regen_power": 4
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 11
+          },
+          "1": {
+            "duration": 18,
+            "regen_power": 4
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "regen_emergency",
+    "name": "Emergency Nanites",
+    "description": "Apply independently timed healing regeneration; up to three layers.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "heal",
+      "regen"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 2.4,
+    "recast_time": 22,
+    "active_slot_cost": 1,
+    "priority_modifier": 0,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "regen",
+        "duration": 12,
+        "regen_power": 2,
+        "target": "self",
+        "bonus_if_hp_below_ratio": 0.4,
+        "bonus_power": 2
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "duration": 15,
+            "regen_power": 2,
+            "bonus_power": 2
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "duration": 12,
+            "regen_power": 3,
+            "bonus_power": 3
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "duration": 15,
+            "regen_power": 3,
+            "bonus_power": 3
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "duration": 12,
+            "regen_power": 4,
+            "bonus_power": 4
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "duration": 15,
+            "regen_power": 4,
+            "bonus_power": 4
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "regen_bloodwrap",
+    "name": "Blood Wrap",
+    "description": "Apply independently timed healing regeneration; up to three layers.",
+    "rarity": "rare",
+    "tags": [
+      "attack",
+      "heal",
+      "regen"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 4.2,
+    "recast_time": 22,
+    "active_slot_cost": 2,
+    "priority_modifier": 0,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "deal_damage",
+        "amount": 6,
+        "target": "enemy"
+      },
+      {
+        "type": "apply_status",
+        "status": "regen",
+        "duration": 12,
+        "regen_power": 1,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 8
+          },
+          "1": {
+            "duration": 15,
+            "regen_power": 1
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 10
+          },
+          "1": {
+            "duration": 12,
+            "regen_power": 2
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 12
+          },
+          "1": {
+            "duration": 15,
+            "regen_power": 2
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 14
+          },
+          "1": {
+            "duration": 12,
+            "regen_power": 3
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 16
+          },
+          "1": {
+            "duration": 15,
+            "regen_power": 3
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "regen_burst",
+    "name": "Focused Renewal",
+    "description": "Apply independently timed healing regeneration; up to three layers.",
+    "rarity": "epic",
+    "tags": [
+      "support",
+      "heal",
+      "regen"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 3,
+    "recast_time": 22,
+    "active_slot_cost": 1,
+    "priority_modifier": 0,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "regen",
+        "duration": 6,
+        "regen_power": 5,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "duration": 6,
+            "regen_power": 6
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "duration": 6,
+            "regen_power": 7
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "duration": 6,
+            "regen_power": 8
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "duration": 6,
+            "regen_power": 9
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "duration": 6,
+            "regen_power": 10
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "regen_spring",
+    "name": "Cleansing Spring",
+    "description": "Apply independently timed healing regeneration; up to three layers.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "heal",
+      "regen"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 3.6,
+    "recast_time": 24,
+    "active_slot_cost": 1,
+    "priority_modifier": 0,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "remove_status",
+        "status": "bleed",
+        "target": "self"
+      },
+      {
+        "type": "apply_status",
+        "status": "regen",
+        "duration": 12,
+        "regen_power": 2,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "1": {
+            "duration": 15,
+            "regen_power": 2
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "1": {
+            "duration": 12,
+            "regen_power": 3
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "1": {
+            "duration": 15,
+            "regen_power": 3
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "1": {
+            "duration": 12,
+            "regen_power": 4
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "1": {
+            "duration": 15,
+            "regen_power": 4
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "regen_tank",
+    "name": "Regeneration Tank",
+    "description": "Apply independently timed healing regeneration; up to three layers.",
+    "rarity": "epic",
+    "tags": [
+      "support",
+      "heal",
+      "regen"
+    ],
+    "loadout_cost": 4,
+    "cast_time": 6,
+    "recast_time": 32,
+    "active_slot_cost": 1,
+    "priority_modifier": 0,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "apply_status",
+        "status": "regen",
+        "duration": 24,
+        "regen_power": 1,
+        "target": "self",
+        "regen_max_hp_ratio": 0.01
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "duration": 27,
+            "regen_power": 1,
+            "regen_max_hp_ratio": 0.011
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "duration": 30,
+            "regen_power": 1,
+            "regen_max_hp_ratio": 0.012
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "duration": 24,
+            "regen_power": 2,
+            "regen_max_hp_ratio": 0.013
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "duration": 27,
+            "regen_power": 2,
+            "regen_max_hp_ratio": 0.014
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "duration": 30,
+            "regen_power": 2,
+            "regen_max_hp_ratio": 0.015
+          }
+        }
+      }
+    }
   }
 ]

@@ -25,6 +25,10 @@ meta unlocks as before. Existing frozen campaign pools are not rewritten.
 - Post-trigger copy amounts are frozen before post-effects, so copying/healing
   cannot feed itself. Healing never revives a dead unit. Guard chains stop after
   the card's one automatic guard, and do not fire after either unit has died.
+- From QQ-0.54.0, healing conditions include regeneration cards. Healing Corruption
+  scales regeneration power at application. Mirror Intercept copies newly applied
+  layers at its power ratio and the same duration; copied ticks do not retrigger
+  reservations. The status booster extends regen duration, not its power.
 - Recast is existing relic-adjusted duration times the reservation multiplier,
   then fixed reservation penalties, with the normal four-second floor. The
   formula is independent of application order. Growth/wear persist only for the

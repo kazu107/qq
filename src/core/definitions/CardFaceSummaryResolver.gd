@@ -60,6 +60,7 @@ static func _build_summary(effect: Dictionary, comparison_effect: Dictionary, so
 			return _numeric_summary(effect, comparison_effect, "amount", "hp", "", 0, 1.0, true, 112, source_index)
 		"apply_status":
 			var status_id: String = String(effect.get("status", ""))
+			if status_id == "regen": return _numeric_summary(effect, comparison_effect, "regen_power", "status:regen", "/3s", 0, 1.0, true, 112, source_index)
 			if status_id == "bleed":
 				var bleed: Dictionary = effect.duplicate(); bleed["bleed_power"] = int(effect.get("bleed_power", 1))
 				return _numeric_summary(bleed, comparison_effect, "bleed_power", "status:bleed", "/6s", 0, 1.0, true, 110, source_index)

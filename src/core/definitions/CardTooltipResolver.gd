@@ -19,6 +19,7 @@ static func build_context(card_id: String, run_state: RunState = null, unit: Uni
 			_apply_attack_to_damage(comparison_card, baseline_attack)
 
 	_apply_attack_to_damage(current_card, current_attack)
+	_apply_regen_context(current_card, run_state, unit)
 	if unit != null and unit.next_attack_multiplier > 1.0:
 		for effect: Dictionary in current_card.effects:
 			if String(effect.get("type", "")) == "deal_damage":
@@ -46,6 +47,20 @@ static func _build_current_card(card_id: String, run_state: RunState, unit: Unit
 			Dictionary(unit.battle_card_modifiers.get(card_id, {}))
 		)
 	return card_def
+
+
+static func _apply_regen_context(card: CardDef, run: RunState, unit: UnitState) -> void:
+	if unit == null and run == null: return
+	var hp: int = unit.hp if unit != null else run.player_hp
+	var maximum: int = unit.max_hp if unit != null else run.max_hp
+	for effect: Dictionary in card.effects:
+		if effect.get("type") != "apply_status" or effect.get("status") != "regen": continue
+		if float(effect.get("regen_max_hp_ratio", 0)) > 0:
+			effect["regen_power"] = int(effect.get("regen_power", 1)) + floori(maximum * float(effect["regen_max_hp_ratio"]))
+			effect["_regen_max_hp_applied"] = true
+		if float(hp) / maxf(1, maximum) <= float(effect.get("bonus_if_hp_below_ratio", -1)):
+			effect["regen_power"] = int(effect.get("regen_power", 1)) + int(effect.get("bonus_power", 0))
+			effect["_regen_bonus_applied"] = true
 
 
 static func _get_baseline_attack(run_state: RunState, unit: UnitState) -> int:

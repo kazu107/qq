@@ -20,11 +20,11 @@ const TEXT: Dictionary = {
 	"growth": "After the next attack/shield card: its damage and shield +{amount} for this battle.",
 	"tempo": "After the next card: delay all opposing cards by {amount}s.",
 	"weaken": "Next attack: damage x{amount}.", "shield_jam": "Next shield card: shield x{amount}.",
-	"heal_jam": "Next heal card: healing x{amount}; the opponent heals {secondary} HP.",
+	"heal_jam": "Next heal card: healing and regeneration power x{amount}; the opponent heals {secondary} HP.",
 	"recast_jam": "Next card: recast +{amount}s.", "recoil": "After the next card: take {amount} fixed damage (shield applies).",
 	"time_mine": "After the next card: delay its owner's other cards by {amount}s.",
 	"wear": "After the next card: its recast +{amount}s for this battle.",
-	"mirror": "Copy {percent}% of the next card's actual shield/healing to the opponent.",
+	"mirror": "Copy {percent}% of the next card's actual shield/healing to the opponent; regeneration copies its duration at {percent}% power.",
 	"swift_commit": "Next manual registration: cast x{amount}.",
 	"heavy_commit": "Next manual registration: slots +{amount} (up to the unit's slot capacity).",
 }
@@ -57,7 +57,9 @@ static func matches(entry: Dictionary, card: CardDef, trigger: String = "resolve
 	var kind: String = entry.get("reservation", "")
 	if COMMIT_KINDS.has(kind) != (trigger == "commit"): return false
 	var types: Array[String] = []
-	for effect: Dictionary in card.effects: types.append(String(effect.get("type", "")))
+	for effect: Dictionary in card.effects:
+		types.append(String(effect.get("type", "")))
+		if effect.get("type") == "apply_status" and effect.get("status") == "regen": types.append("heal")
 	match kind:
 		"focus", "siphon", "weaken": return types.has("deal_damage")
 		"shield", "shield_jam": return types.has("gain_shield")
@@ -139,6 +141,8 @@ static func after_effects(engine: RealtimeBattleEngine, instance: ActiveCardInst
 				if opponent.is_alive(): engine.analysis.record_reservation_proc(other, "heal_jam", {"heal": DamageResolver.heal(opponent, int(entry["secondary"]))})
 			"mirror":
 				if opponent.is_alive():
+					for regen: Dictionary in instance.regen_applications:
+						opponent.add_regeneration(float(regen["duration"]), maxi(1, floori(int(regen["power"]) * amount)), other, "reserve_mirror")
 					var copied_shield: int = DamageResolver.gain_shield(opponent, floori(shield * amount))
 					var copied_heal: int = DamageResolver.heal(opponent, floori(heal * amount))
 					engine.analysis.record_reservation_proc(other, "mirror", {"shield": copied_shield, "heal": copied_heal})
@@ -172,6 +176,7 @@ static func preview_card(card: CardDef, entries: Array[Dictionary], attack_multi
 			effect["amount"] = roundi(effect_value(scaled_entries, type, float(effect.get("amount", 0))) * (attack_scale(entries) if type == "deal_damage" else 1.0))
 		if type == "apply_status":
 			effect["duration"] = float(effect.get("duration", 0)) + status_bonus(entries)
+			if effect.get("status") == "regen": effect["regen_power"] = maxi(1, roundi(effect_value(entries, "heal", int(effect.get("regen_power", 1)))))
 			if effect.get("status") == "bleed": effect["bleed_power"] = int(effect.get("bleed_power", 1)) + int(status_bonus(entries, true))
 	return result
 

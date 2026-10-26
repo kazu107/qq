@@ -90,7 +90,13 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 				var target_side: String = instance.owner_side if target_unit == actor else _opponent_side(instance.owner_side)
 				var power: int = BleedRules.resolve_power(effect, actor.get_attack_value()) if status_id == "bleed" else 1
 				if status_id == "bleed": power += int(ReservedCardRules.status_bonus(instance.card_reservations, true))
-				engine.apply_status_from_card(instance.owner_side, target_side, status_id, duration, power)
+				if status_id == "regen":
+					power = maxi(1, int(effect.get("regen_power", 1)))
+					power += floori(float(target_unit.max_hp) * float(effect.get("regen_max_hp_ratio", 0)))
+					if float(actor.hp) / maxf(1, actor.max_hp) <= float(effect.get("bonus_if_hp_below_ratio", -1)): power += int(effect.get("bonus_power", 0))
+					power = maxi(1, roundi(ReservedCardRules.effect_value(instance.card_reservations, "heal", power)))
+					if target_unit == actor: instance.regen_applications.append({"power": power, "duration": duration})
+				engine.apply_status_from_card(instance.owner_side, target_side, status_id, duration, power, instance.card_id)
 				messages.append(Localization.get_textf("battle.log.card_apply_status", "{card_name} applied {status_name} to {target_name}", {
 					"card_name": card_def.name,
 					"status_name": Localization.get_status_name(status_id),

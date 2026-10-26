@@ -55,6 +55,7 @@ func consume_next_attack_multiplier() -> float:
 func get_display_statuses() -> Dictionary:
 	var display: Dictionary = statuses.duplicate(true)
 	if display.has("bleed"): display["bleed"] = BleedRules.normalize(display["bleed"])
+	if display.has("regen"): display["regen"] = RegenerationRules.normalize(display["regen"])
 	if next_attack_multiplier > 1.0:
 		display["attack_charge"] = {"duration": 0.0, "charges": 1, "multiplier": next_attack_multiplier}
 	if repeat_charges > 0:
@@ -113,6 +114,9 @@ func heal(amount: int) -> void:
 
 
 func add_status(status_id: String, duration: float, bleed_power: int = 1, source_side: String = "") -> void:
+	if status_id == "regen":
+		add_regeneration(duration, bleed_power, source_side, "")
+		return
 	if status_id == "bleed":
 		var bleed: Dictionary = BleedRules.add(Dictionary(statuses.get(status_id, {})), duration, bleed_power, source_side)
 		if float(bleed["duration"]) > 0: statuses[status_id] = bleed
@@ -129,6 +133,10 @@ func add_status(status_id: String, duration: float, bleed_power: int = 1, source
 
 func adjust_status_duration(status_id: String, amount: float) -> void:
 	if not statuses.has(status_id): return
+	if status_id == "regen":
+		statuses[status_id] = RegenerationRules.adjust_duration(statuses[status_id], amount)
+		if float(statuses[status_id]["duration"]) <= 0: statuses.erase(status_id)
+		return
 	if status_id == "bleed":
 		statuses[status_id] = BleedRules.adjust_duration(statuses[status_id], amount)
 		if float(statuses[status_id]["duration"]) <= 0: statuses.erase(status_id)
@@ -145,9 +153,16 @@ func has_status(status_id: String) -> bool:
 
 func tick_statuses(delta: float) -> Array[Dictionary]:
 	var events: Array[Dictionary] = []
+	var mixed_regen: bool = statuses.has("regen")
 	var expired: Array[String] = []
 	for status_id in statuses.keys():
 		var data: Dictionary = Dictionary(statuses[status_id])
+		if status_id == "regen":
+			var tick: Dictionary = RegenerationRules.tick(data, delta)
+			events.append_array(tick["events"])
+			if float(tick["data"]["duration"]) <= 0: statuses.erase(status_id)
+			else: statuses[status_id] = tick["data"]
+			continue
 		if status_id == "bleed":
 			var bleed_tick: Dictionary = BleedRules.tick(data, delta)
 			events.append_array(bleed_tick["events"])
@@ -170,7 +185,18 @@ func tick_statuses(delta: float) -> Array[Dictionary]:
 			"type": "status_expired",
 			"status": status_id,
 		})
+	if mixed_regen:
+		events.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			var x: float = float(a.get("time_offset", delta)); var y: float = float(b.get("time_offset", delta))
+			if not is_equal_approx(x, y): return x < y
+			var order: Dictionary = {"status_damage": 0, "status_heal": 1, "status_expired": 2}
+			return int(order.get(a.get("type"), 2)) < int(order.get(b.get("type"), 2)))
 	return events
+
+
+func add_regeneration(duration: float, power: int, source_side: String, card_id: String) -> void:
+	var data: Dictionary = RegenerationRules.add(Dictionary(statuses.get("regen", {})), duration, power, source_side, card_id)
+	if float(data["duration"]) > 0: statuses["regen"] = data
 
 
 func get_status_summary() -> String:

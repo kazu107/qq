@@ -122,6 +122,10 @@ func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, 
 			"haste_own_active_card":
 				score += float(engine.battle_state.get_active_instances_for_side(side, -1).size()) * 3.5
 			"apply_status":
+				if effect.get("status") == "regen":
+					score += 8.0 if float(enemy.hp) / maxf(1, enemy.max_hp) < 0.7 else -4.0
+					if int(Dictionary(enemy.statuses.get("regen", {})).get("stacks", 0)) >= RegenerationRules.MAX_LAYERS: score -= 5
+					continue
 				score += 4.0
 				var status_id: String = String(effect.get("status", ""))
 				if not player.has_status(status_id):

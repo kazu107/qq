@@ -20,6 +20,15 @@ static func tooltip(id: String, remaining: float, multiplier: float = 2.0, statu
 		return Localization.get_textf("status.detail.attack_charge", "Next attack x{multiplier} (one card)\nStacks multiplicatively: x2, x4, x8.\nIncludes attack bonuses and already-casting cards.\nConsumed by one attack card; bleed, fatigue and relic damage do not consume it.", {"multiplier": String.num(multiplier, 0)})
 	var detail: String
 	match id:
+		"regen":
+			var data: Dictionary = RegenerationRules.normalize(status_data)
+			detail = Localization.get_textf("status.regen.total", "Heal {power} HP every 3s. {stacks}/3 layers. Overheal is ignored; cannot revive.", {"power": data["power"], "stacks": data["stacks"]})
+			detail = detail.replace("。", "。\n").replace(". ", ".\n").strip_edges()
+			var next: float = RegenerationRules.next_tick_in(data)
+			if next >= 0: detail += "\n" + Localization.get_textf("status.regen.next", "Next heal in {seconds}s", {"seconds": "%.1f" % next})
+			for index: int in Array(data["layers"]).size():
+				var layer: Dictionary = data["layers"][index]
+				detail += "\n" + Localization.get_textf("status.regen.layer", "Layer {index}: heal {power} / {seconds}s left", {"index": index + 1, "power": layer["power"], "seconds": "%.1f" % float(layer["duration"])})
 		"bleed":
 			if status_data.is_empty(): detail = bleed_detail(1)
 			else:
