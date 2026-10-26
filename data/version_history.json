@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.52.2",
+  "current_version": "QQ-0.53.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.53.0", "date": "2026-10-26",
+      "title_ja": "次のカードを変化させる18枚の予約カード",
+      "title_en": "18 reservation cards modify the next card",
+      "changes_ja": [
+        "味方用8枚・敵用8枚の発動予約に、次の登録カードの詠唱短縮・スロット妨害を加えた18枚を追加しました。全Grade 0〜5の数値と図鑑・ラボ・報酬・ショップ・対戦に対応します。",
+        "同種は最大3枚分、合計8件。条件に合う次の手動カードで1件ずつ消費し、発動予約は詠唱中のカードにも適用、中断では保持します。自動投入・疲労・予約付与カードは対象外です。反響でも予約を重複消費せず、発動後の追加処理は1回だけ行います。",
+        "タイムラインの対象表示・数値プレビュー、強化と妨害の状態アイコン、Blender製カード画像と既存SE、開発者用の予約追加・解除を用意しました。スロット妨害は上限で止まり、再使用は最低4秒です。過去の記録を保持し、ランキングをシーズン8へ切り替えます。"
+      ],
+      "changes_en": [
+        "Add eight friendly and eight hostile next-resolution cards, plus next-registration cast and slot modifiers. All 18 support Grade 0-5, library/lab, rewards, shops and multiplayer.",
+        "Bank up to three targets of each kind and eight total. Consume one of each matching kind on a manual card. Existing casts qualify; interrupted resolutions preserve stock. Auto cards, fatigue and setup cards are excluded. Echo shares modifiers across both pulses while post-triggers occur once.",
+        "Include dynamic timeline targets/previews, boost/hex status icons, original Blender art, approved existing sounds and offline developer controls. Slot penalties stop at capacity; recast retains its four-second floor. Preserve records and start ranked Season 8."
+      ]
+    },
     {
       "version": "QQ-0.52.2", "date": "2026-10-25",
       "title_ja": "5枚のカードをグレード別に調整",

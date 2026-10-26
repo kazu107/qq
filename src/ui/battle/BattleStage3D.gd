@@ -1420,6 +1420,8 @@ func _build_card_profile(card_def: CardDef) -> Dictionary:
 				profile["shield"] = true
 			"repeat_next_card":
 				profile["status"] = true; profile["self_status"] = true
+			"reserve_next_card":
+				profile["status"] = true; profile["self_status"] = effect.get("target", "self") != "enemy"
 			"apply_status", "remove_status", "modify_attack", "modify_speed", "timeline_flow", "next_attack_multiplier":
 				profile["status"] = true
 	return profile

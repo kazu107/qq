@@ -39,7 +39,9 @@ func update(engine: RealtimeBattleEngine, delta: float) -> void:
 		var card_def := Database.get_card(runtime_state.card_id)
 		if card_def == null:
 			continue
-		if enemy.active_slots_used + card_def.active_slot_cost > enemy.active_slot_max:
+		var profile: Dictionary = {"cast_time": card_def.cast_time, "slot_cost": card_def.active_slot_cost}
+		ReservedCardRules.commit_profile(profile, ReservedCardRules.select(enemy.card_reservations, card_def, "commit"), enemy.active_slot_max)
+		if enemy.active_slots_used + int(profile["slot_cost"]) > enemy.active_slot_max:
 			continue
 		if not CardEffectResolver.can_pay_shield_cost(enemy, card_def):
 			continue
@@ -90,6 +92,7 @@ func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, 
 	for effect in card_def.effects:
 		var effect_type := String(effect.get("type", ""))
 		match effect_type:
+			"reserve_next_card": score += _score_reservation(engine, effect, player if effect.get("target") == "enemy" else enemy)
 			"repeat_next_card":
 				score += 7.0 if enemy.repeat_charges < RepeatRules.MAX_CHARGES else -30.0
 			"consume_shield":
@@ -158,3 +161,17 @@ func _role_bonus(enemy: UnitState, card_def: CardDef) -> float:
 			if card_def.tags.has("finisher"):
 				return 1.5
 	return 0.0
+
+
+func _score_reservation(engine: RealtimeBattleEngine, effect: Dictionary, recipient: UnitState) -> float:
+	if recipient.card_reservations.size() >= ReservedCardRules.MAX_PENDING: return -30
+	var kind: String = effect.get("reservation", "")
+	var count: int = 0
+	for entry: Dictionary in recipient.card_reservations:
+		if entry.get("reservation") == kind: count += 1
+	if count >= ReservedCardRules.MAX_PER_KIND: return -30
+	var trigger: String = "commit" if ReservedCardRules.COMMIT_KINDS.has(kind) else "resolve"
+	for runtime: CardRuntimeState in recipient.card_runtime_states:
+		if ReservedCardRules.matches(effect, Database.get_card(runtime.card_id), trigger):
+			return 7.0 / float(count + 1)
+	return -30

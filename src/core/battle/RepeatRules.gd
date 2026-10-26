@@ -8,7 +8,7 @@ const EFFECT_REPEATS: int = 2
 static func is_setup_card(card: CardDef) -> bool:
 	if card == null: return false
 	for effect: Dictionary in card.effects:
-		if effect.get("type", "") == "repeat_next_card": return true
+		if effect.get("type", "") in ["repeat_next_card", "reserve_next_card"]: return true
 	return false
 
 

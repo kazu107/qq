@@ -181,7 +181,7 @@ static func _collect_portrait_ids() -> Array[String]:
 
 
 static func _collect_status_ids() -> Array[String]:
-	var ids: Array[String] = ["attack_charge", "echo_ready"]
+	var ids: Array[String] = ["attack_charge", "echo_ready", "reservation_boost", "reservation_hex"]
 	for raw_status_id in UnitPanel.STATUS_FALLBACK_DURATIONS.keys():
 		_append_unique(ids, String(raw_status_id))
 	for raw_card_id in Database.cards.keys():

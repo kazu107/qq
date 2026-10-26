@@ -25,6 +25,7 @@ const LEGACY: Dictionary = {
 	"archive_compass": {"pickup_loadout": 1, "victory_gold": 8, "victory_heal": 2}
 }
 const LABELS: Dictionary = {
+	"secondary": "追加効果量",
 	"charges": "反響の獲得枚数",
 	"bleed_power": "出血威力（1層・6秒ごと）",
 	"loadout_cost": "ロードアウトコスト", "active_slot_cost": "使用スロット", "cast_time": "詠唱時間", "recast_time": "再使用時間", "priority_modifier": "優先度",
@@ -163,12 +164,20 @@ static func _walk(value: Variant, path: String, result: Array[Dictionary], sourc
 		if key == "amount" and relative.begins_with("effects."):
 			var effect: Dictionary = source["effects"][int(parts[1])]
 			floating = String(effect.get("type", "")) in ["delay_enemy_active_card", "haste_own_active_card", "reduce_recast", "empower_card", "reduce_source_recast", "haste_ally_when_enemy_delayed", "bank_delay_as_recast", "haste_at_thresholds"] or not is_equal_approx(float(value), roundf(float(value)))
+			if effect.get("type") == "reserve_next_card": floating = effect.get("reservation") not in ["focus", "growth", "recoil", "heavy_commit", "chain"]
 			if effect.get("type", "") == "empower_card" and effect.get("stat", "") in ["grade", "tier"]: floating = false
 		floating = floating or key.contains("second") or key in ["thresholds", "max_extension", "max_per_instance", "minimum_cast", "window_min", "window_max"] or not is_equal_approx(float(value), roundf(float(value)))
 		var minimum: float = 0.0
 		if path.begins_with("upgrade_profile.") or key in ["priority_modifier", "amount"]: minimum = -10000.0 if path.begins_with("upgrade_profile.") or key == "priority_modifier" or source.get("id", "") != "" and relative.begins_with("effects.") and String(source["effects"][int(parts[1])].get("type", "")) in ["modify_attack", "modify_speed", "empower_card"] else 0.0
 		if key in ["every", "required_count", "seconds_per_charge", "added_cast_per_bonus", "unused_capacity_per_slot", "decay_per_token", "shield_per_gold"]: minimum = 0.01 if floating else 1.0
 		var maximum: float = 1.0 if key.ends_with("ratio") else 10000.0
+		if key == "amount" and relative.begins_with("effects.") and source["effects"][int(parts[1])].get("type") == "reserve_next_card":
+			var reservation_kind: String = source["effects"][int(parts[1])].get("reservation", "")
+			if reservation_kind in ["reload", "weaken", "shield_jam", "heal_jam", "swift_commit"]: minimum = 0.1; maximum = 1
+			if reservation_kind in ["siphon", "mirror"]: maximum = 1
+			if reservation_kind == "shield": minimum = 1; maximum = 3
+			if reservation_kind == "heavy_commit": minimum = 1; maximum = 2
+			if reservation_kind == "chain": minimum = 1; maximum = 1
 		if key == "charges" and relative.begins_with("effects.") and source["effects"][int(parts[1])].get("type", "") == "repeat_next_card": minimum = 1; maximum = RepeatRules.MAX_CHARGES
 		if key == "bleed_power" and relative.begins_with("effects."): minimum = 1.0
 		minimum = minf(minimum, float(value))

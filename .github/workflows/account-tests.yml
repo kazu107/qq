@@ -58,6 +58,10 @@ jobs:
           cat build/grade-balance.log
           grep -q GRADE_BALANCE_SMOKE_OK build/grade-balance.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/grade-balance.log; then exit 1; fi
+          godot --headless --path . res://tests/ReservedCardsSmoke.tscn --quit-after 600 > build/reserved-cards.log 2>&1
+          cat build/reserved-cards.log
+          grep -q RESERVED_CARDS_SMOKE_OK build/reserved-cards.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/reserved-cards.log; then exit 1; fi
           godot --headless --path . res://tests/TimekeeperReworkSmoke.tscn --quit-after 600 > build/timekeeper-rework.log 2>&1
           cat build/timekeeper-rework.log
           grep -q TIMEKEEPER_REWORK_SMOKE_OK build/timekeeper-rework.log

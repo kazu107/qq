@@ -375,6 +375,78 @@
     "echo_cast": {
       "en": "Echo",
       "ja": "反響"
+    },
+    "reserve_focus": {
+      "en": "Focused Command",
+      "ja": "集中指令"
+    },
+    "reserve_shield": {
+      "en": "Barrier Booster",
+      "ja": "防壁ブースター"
+    },
+    "reserve_siphon": {
+      "en": "Siphon Load",
+      "ja": "吸収弾の装填"
+    },
+    "reserve_reload": {
+      "en": "Reload Reservation",
+      "ja": "再装填予約"
+    },
+    "reserve_status": {
+      "en": "Status Booster",
+      "ja": "状態ブースター"
+    },
+    "reserve_chain": {
+      "en": "Chain Command",
+      "ja": "連鎖指令"
+    },
+    "reserve_growth": {
+      "en": "Growth Mark",
+      "ja": "成長の刻印"
+    },
+    "reserve_tempo": {
+      "en": "Tempo Theft",
+      "ja": "テンポ奪取"
+    },
+    "reserve_weaken": {
+      "en": "Weakening Tag",
+      "ja": "脱力タグ"
+    },
+    "reserve_shield_jam": {
+      "en": "Shield Interference",
+      "ja": "シールド妨害"
+    },
+    "reserve_heal_jam": {
+      "en": "Healing Corruption",
+      "ja": "回復汚染"
+    },
+    "reserve_recast_jam": {
+      "en": "Recast Jammer",
+      "ja": "再使用ジャマー"
+    },
+    "reserve_recoil": {
+      "en": "Recoil Tag",
+      "ja": "反動タグ"
+    },
+    "reserve_time_mine": {
+      "en": "Time Mine",
+      "ja": "時間地雷"
+    },
+    "reserve_wear": {
+      "en": "Card Wear",
+      "ja": "カード摩耗"
+    },
+    "reserve_mirror": {
+      "en": "Mirror Intercept",
+      "ja": "ミラー傍受"
+    },
+    "reserve_swift_commit": {
+      "en": "Express Cast",
+      "ja": "速達詠唱"
+    },
+    "reserve_heavy_commit": {
+      "en": "Slot Jammer",
+      "ja": "スロット妨害"
     }
   },
   "relic": {

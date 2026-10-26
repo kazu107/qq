@@ -103,6 +103,14 @@ func record(event: Dictionary) -> void:
 	rows[key] = row
 
 
+func record_reservation_proc(side: String, kind: String, metrics: Dictionary) -> void:
+	var key: String = side + ":reserve_" + kind
+	var row: Dictionary = rows.get(key, {"actor": side, "card_id": "reserve_" + kind, "casts": 0, "damage": 0, "absorbed": 0, "shield": 0, "heal": 0})
+	for metric: String in ["damage", "absorbed", "shield", "heal"]:
+		row[metric] = int(row[metric]) + int(metrics.get(metric, 0))
+	rows[key] = row
+
+
 func to_dict() -> Dictionary:
 	return {"cards": rows.values().duplicate(true), "fatigue_hits": fatigue_hits,
 		"fatigue_hp_damage": fatigue_hp_damage, "fatigue_shield_damage": fatigue_shield_damage,

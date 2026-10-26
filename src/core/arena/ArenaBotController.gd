@@ -100,7 +100,7 @@ func _card_score(card: CardDef) -> float:
 		match String(effect.get("type", "")):
 			"deal_damage": score += float(effect.get("amount", 0))
 			"gain_shield", "heal": score += float(effect.get("amount", 0)) * 0.65
-			"apply_status", "interrupt_card", "auto_queue_card", "empower_card", "repeat_next_card": score += 7.0
+			"apply_status", "interrupt_card", "auto_queue_card", "empower_card", "repeat_next_card", "reserve_next_card": score += 7.0
 			"delay_enemy_active_card", "timeline_stop", "timeline_reverse": score += 5.0
 	return maxf(1.0, score) / maxf(1.0, float(card.loadout_cost)) / (1.0 + card.cast_time * 0.08 + card.recast_time * 0.04)
 

@@ -9,7 +9,15 @@ const BOSS_CARD_SOUNDS: Dictionary = {
 	"timekeeper_amplify": "card_time_flow_control",
 	"timekeeper_time_mark": "card_weak_shot",
 }
-const CARD_SOUND_ALIASES: Dictionary = {"echo_cast": "card_sequence_loader"}
+const CARD_SOUND_ALIASES: Dictionary = {
+	"echo_cast": "card_sequence_loader",
+	"reserve_focus": "card_haste_focus", "reserve_shield": "card_guard", "reserve_siphon": "card_reactor_leech",
+	"reserve_reload": "card_reload", "reserve_status": "card_haste_focus", "reserve_chain": "card_sequence_loader",
+	"reserve_growth": "card_self_tuning_edge", "reserve_tempo": "card_delay_step", "reserve_weaken": "card_weak_shot",
+	"reserve_shield_jam": "card_weak_shot", "reserve_heal_jam": "card_weak_shot", "reserve_recast_jam": "card_delay_step",
+	"reserve_recoil": "card_weak_shot", "reserve_time_mine": "card_time_buy", "reserve_wear": "card_weak_shot",
+	"reserve_mirror": "card_tactical_mirror", "reserve_swift_commit": "card_haste_focus", "reserve_heavy_commit": "card_delay_step",
+}
 const SFX_VOLUME_OFFSETS_DB: Dictionary = {
 	"run_start": -3.0,
 	"run_resume": -3.0,

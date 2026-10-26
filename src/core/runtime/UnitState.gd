@@ -11,6 +11,7 @@ var shield: int = 0
 var attack: int = 0
 var next_attack_multiplier: float = 1.0
 var repeat_charges: int = 0
+var card_reservations: Array[Dictionary] = []
 var speed: int = 0
 var statuses: Dictionary = {}
 var active_slots_used: int = 0
@@ -58,6 +59,7 @@ func get_display_statuses() -> Dictionary:
 		display["attack_charge"] = {"duration": 0.0, "charges": 1, "multiplier": next_attack_multiplier}
 	if repeat_charges > 0:
 		display["echo_ready"] = {"duration": 0.0, "charges": repeat_charges}
+	ReservedCardRules.display_statuses(self, display)
 	return display
 
 
@@ -177,6 +179,9 @@ func get_status_summary() -> String:
 		return Localization.get_text("status.none", "None")
 	var parts: Array[String] = []
 	for status_id in display.keys():
+		if String(status_id) in ["reservation_boost", "reservation_hex"]:
+			parts.append(Localization.get_status_name(status_id) + " %d" % int(display[status_id]["charges"]))
+			continue
 		if String(status_id) == "echo_ready":
 			parts.append(Localization.get_status_name("echo_ready") + " %d" % repeat_charges)
 			continue

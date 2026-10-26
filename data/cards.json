@@ -5205,5 +5205,1475 @@
         -5
       ]
     }
+  },
+  {
+    "id": "reserve_focus",
+    "name": "Focused Command",
+    "description": "Reserve Focused Command for one eligible manual card.",
+    "rarity": "common",
+    "tags": [
+      "support",
+      "reservation",
+      "combo"
+    ],
+    "loadout_cost": 2,
+    "cast_time": 1.8,
+    "recast_time": 16,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "focus",
+        "amount": 8,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 10
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 12
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 14
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 16
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 18
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_shield",
+    "name": "Barrier Booster",
+    "description": "Reserve Barrier Booster for one eligible manual card.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "reservation",
+      "combo"
+    ],
+    "loadout_cost": 2,
+    "cast_time": 2.4,
+    "recast_time": 20,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "shield",
+        "amount": 1.5,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 1.6
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 1.7
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 1.8
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 1.9
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 2
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_siphon",
+    "name": "Siphon Load",
+    "description": "Reserve Siphon Load for one eligible manual card.",
+    "rarity": "epic",
+    "tags": [
+      "support",
+      "reservation",
+      "combo"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 3,
+    "recast_time": 24,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "siphon",
+        "amount": 0.5,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 0.55
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 0.6
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 0.65
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 0.7
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 0.75
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_reload",
+    "name": "Reload Reservation",
+    "description": "Reserve Reload Reservation for one eligible manual card.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "reservation",
+      "combo"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 2.4,
+    "recast_time": 24,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "reload",
+        "amount": 0.5,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 0.47
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 0.44
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 0.41
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 0.38
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 0.35
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_status",
+    "name": "Status Booster",
+    "description": "Reserve Status Booster for one eligible manual card.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "reservation",
+      "combo"
+    ],
+    "loadout_cost": 2,
+    "cast_time": 2.4,
+    "recast_time": 20,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "status",
+        "amount": 6,
+        "target": "self",
+        "secondary": 2
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 7,
+            "secondary": 2
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 8,
+            "secondary": 3
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 9,
+            "secondary": 3
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 10,
+            "secondary": 4
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 11,
+            "secondary": 5
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_chain",
+    "name": "Chain Command",
+    "description": "Reserve Chain Command for one eligible manual card.",
+    "rarity": "epic",
+    "tags": [
+      "support",
+      "reservation",
+      "combo"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 3.6,
+    "recast_time": 26,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "chain",
+        "amount": 1,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 1
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 1
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 1
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 1
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 1
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_growth",
+    "name": "Growth Mark",
+    "description": "Reserve Growth Mark for one eligible manual card.",
+    "rarity": "epic",
+    "tags": [
+      "support",
+      "reservation",
+      "combo"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 3,
+    "recast_time": 26,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "growth",
+        "amount": 2,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 2
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 3
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 3
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 4
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 4
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_tempo",
+    "name": "Tempo Theft",
+    "description": "Reserve Tempo Theft for one eligible manual card.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "reservation",
+      "combo"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 2.4,
+    "recast_time": 22,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "tempo",
+        "amount": 1.5,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 1.7
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 1.9
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 2.1
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 2.3
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 2.5
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_weaken",
+    "name": "Weakening Tag",
+    "description": "Reserve Weakening Tag for one eligible manual card.",
+    "rarity": "common",
+    "tags": [
+      "support",
+      "reservation",
+      "control"
+    ],
+    "loadout_cost": 2,
+    "cast_time": 1.8,
+    "recast_time": 18,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "weaken",
+        "amount": 0.6,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 0.55
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 0.5
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 0.45
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 0.4
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 0.35
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_shield_jam",
+    "name": "Shield Interference",
+    "description": "Reserve Shield Interference for one eligible manual card.",
+    "rarity": "common",
+    "tags": [
+      "support",
+      "reservation",
+      "control"
+    ],
+    "loadout_cost": 2,
+    "cast_time": 1.8,
+    "recast_time": 18,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "shield_jam",
+        "amount": 0.5,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 0.45
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 0.4
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 0.35
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 0.3
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 0.25
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_heal_jam",
+    "name": "Healing Corruption",
+    "description": "Reserve Healing Corruption for one eligible manual card.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "reservation",
+      "control"
+    ],
+    "loadout_cost": 2,
+    "cast_time": 2.4,
+    "recast_time": 22,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "heal_jam",
+        "amount": 0.5,
+        "target": "enemy",
+        "secondary": 4
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 0.45,
+            "secondary": 5
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 0.4,
+            "secondary": 6
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 0.35,
+            "secondary": 7
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 0.3,
+            "secondary": 8
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 0.25,
+            "secondary": 9
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_recast_jam",
+    "name": "Recast Jammer",
+    "description": "Reserve Recast Jammer for one eligible manual card.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "reservation",
+      "control"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 2.4,
+    "recast_time": 22,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "recast_jam",
+        "amount": 6,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 7
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 8
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 9
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 10
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 11
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_recoil",
+    "name": "Recoil Tag",
+    "description": "Reserve Recoil Tag for one eligible manual card.",
+    "rarity": "common",
+    "tags": [
+      "support",
+      "reservation",
+      "control"
+    ],
+    "loadout_cost": 2,
+    "cast_time": 2.4,
+    "recast_time": 18,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "recoil",
+        "amount": 6,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 8
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 10
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 12
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 14
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 16
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_time_mine",
+    "name": "Time Mine",
+    "description": "Reserve Time Mine for one eligible manual card.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "reservation",
+      "control"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 3,
+    "recast_time": 24,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "time_mine",
+        "amount": 2,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 2.2
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 2.4
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 2.6
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 2.8
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 3
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_wear",
+    "name": "Card Wear",
+    "description": "Reserve Card Wear for one eligible manual card.",
+    "rarity": "epic",
+    "tags": [
+      "support",
+      "reservation",
+      "control"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 3.6,
+    "recast_time": 26,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "wear",
+        "amount": 1,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 1.2
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 1.4
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 1.6
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 1.8
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 2
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_mirror",
+    "name": "Mirror Intercept",
+    "description": "Reserve Mirror Intercept for one eligible manual card.",
+    "rarity": "epic",
+    "tags": [
+      "support",
+      "reservation",
+      "control"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 3,
+    "recast_time": 24,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "mirror",
+        "amount": 0.5,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 0.55
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 0.6
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 0.65
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 0.7
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 0.75
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_swift_commit",
+    "name": "Express Cast",
+    "description": "Reserve Express Cast for one eligible manual card.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "reservation",
+      "combo"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 2.4,
+    "recast_time": 24,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "swift_commit",
+        "amount": 0.5,
+        "target": "self"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 0.47
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 0.44
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 0.41
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 0.38
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 0.35
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "reserve_heavy_commit",
+    "name": "Slot Jammer",
+    "description": "Reserve Slot Jammer for one eligible manual card.",
+    "rarity": "rare",
+    "tags": [
+      "support",
+      "reservation",
+      "control"
+    ],
+    "loadout_cost": 3,
+    "cast_time": 2.4,
+    "recast_time": 22,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.1,
+    "interruptible": true,
+    "target_type": "enemy",
+    "effects": [
+      {
+        "type": "reserve_next_card",
+        "reservation": "heavy_commit",
+        "amount": 1,
+        "target": "enemy"
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        -0.06,
+        -0.12,
+        -0.18,
+        -0.24,
+        -0.3
+      ],
+      "recast_time": [
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "amount": 1
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "amount": 1
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "amount": 1
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "amount": 1
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "amount": 1
+          }
+        }
+      }
+    }
   }
 ]

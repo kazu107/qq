@@ -237,8 +237,11 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 	if card_def.boss_only and (side == "player" or _pvp_mode):
 		return false
 	var commit_profile: Dictionary = _relic_controller.build_commit_profile(side, card_def)
+	var commit_reservations: Array[Dictionary] = ReservedCardRules.select(unit.card_reservations, card_def, "commit")
+	ReservedCardRules.commit_profile(commit_profile, commit_reservations, unit.active_slot_max)
 	if not _relic_controller.can_commit(side, card_def, commit_profile):
 		return false
+	ReservedCardRules.select(unit.card_reservations, card_def, "commit", true)
 
 	if not _battle_started:
 		_start_battle()
@@ -866,6 +869,8 @@ func _resolve_due_entries() -> void:
 		var target_hp_before: int = target_unit.hp
 		var target_shield_before: int = target_unit.shield
 		var resolved_card_def: CardDef = _relic_controller.prepare_resolution_card(instance.owner_side, instance, card_def)
+		if not instance.is_auto_queued:
+			instance.card_reservations = ReservedCardRules.select(unit.card_reservations, card_def, "resolve", true)
 		resolution_metrics = {"damage": 0, "absorbed": 0, "shield": 0, "heal": 0}
 		var messages: Array[String] = []
 		var effect_resolutions: Array[Dictionary] = []
@@ -891,8 +896,12 @@ func _resolve_due_entries() -> void:
 		var resolved_instance := battle_state.remove_active_instance(instance.instance_id)
 		if resolved_instance != null:
 			unit.active_slots_used = max(0, unit.active_slots_used - resolved_instance.slot_cost)
+		ReservedCardRules.after_effects(self, instance)
+		if not effect_resolutions.is_empty():
+			effect_resolutions[-1]["player_after"] = _snapshot_unit(battle_state.player)
+			effect_resolutions[-1]["enemy_after"] = _snapshot_unit(battle_state.enemy)
 		if runtime_state != null:
-			var recast_duration: float = maxf(4.0, (card_def.recast_time + instance.relic_recast_delta - instance.relic_delay_bank) * instance.relic_recast_multiplier)
+			var recast_duration: float = maxf(4.0, ReservedCardRules.recast_duration((card_def.recast_time + instance.relic_recast_delta - instance.relic_delay_bank) * instance.relic_recast_multiplier, instance.card_reservations))
 			if _relic_controller.has_relic(instance.owner_side, "paradox_mortgage"):
 				recast_duration += float(battle_state.relic_runtime_state.get(instance.owner_side, {}).get("paradox_recast_debt", 0.0))
 				battle_state.relic_runtime_state[instance.owner_side]["paradox_recast_debt"] = 0.0
@@ -1362,6 +1371,7 @@ func _snapshot_unit(unit: UnitState) -> Dictionary:
 		"attack": unit.attack,
 		"next_attack_multiplier": unit.next_attack_multiplier,
 		"repeat_charges": unit.repeat_charges,
+		"card_reservations": unit.card_reservations.duplicate(true),
 		"speed": unit.speed,
 		"statuses": unit.statuses.duplicate(true),
 		"active_slots_used": unit.active_slots_used,

@@ -12,7 +12,7 @@ recast: 22.4/21.4/20.4/19.4/18.4/17.4 seconds after the QQ-0.52.1 balance update
   one eligible card twice; stacking grants more targets, not 4x/8x repetition.
 - Consume at successful resolution, not registration. Existing casts qualify;
   interruptions preserve charges. Fatigue, auto instances and cards containing
-  `repeat_next_card` are ineligible. Generated auto cards do not inherit repeats.
+  `repeat_next_card` or `reserve_next_card` are ineligible. Generated auto cards do not inherit repeats.
 - Resolve effects twice immediately, in order. Rebuild current card modifiers for
   the second pulse so self-empowerment and target conditions are re-evaluated.
 - Pay shield/other registration costs, slots, cast, cooldown and after-resolve

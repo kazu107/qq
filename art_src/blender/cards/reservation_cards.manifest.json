@@ -1,0 +1,128 @@
+{
+  "tool": "Blender 5.2.2 LTS",
+  "generator": "tools/blender/build_reservation_cards.py",
+  "source_path": "art_src/blender/cards/reservation_cards.blend",
+  "source_sha256": "87a26446015b919cf6a3206419f492c5d62fbed19e1a2a9d8b75a1b2ed901078",
+  "assets": [
+    {
+      "asset_id": "reserve_focus",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_focus.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_shield",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_shield.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_siphon",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_siphon.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_reload",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_reload.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_status",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_status.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_chain",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_chain.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_growth",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_growth.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_tempo",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_tempo.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_weaken",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_weaken.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_shield_jam",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_shield_jam.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_heal_jam",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_heal_jam.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_recast_jam",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_recast_jam.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_recoil",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_recoil.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_time_mine",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_time_mine.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_wear",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_wear.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_mirror",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_mirror.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_swift_commit",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_swift_commit.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reserve_heavy_commit",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/reserve_heavy_commit.png",
+      "size": 512
+    },
+    {
+      "asset_id": "reservation_boost",
+      "category": "status",
+      "runtime_path": "assets/icons/status/reservation_boost.png",
+      "size": 96
+    },
+    {
+      "asset_id": "reservation_hex",
+      "category": "status",
+      "runtime_path": "assets/icons/status/reservation_hex.png",
+      "size": 96
+    }
+  ]
+}

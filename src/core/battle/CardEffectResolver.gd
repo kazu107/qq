@@ -32,6 +32,10 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 		var effect := Dictionary(raw_effect)
 		var effect_type := String(effect.get("type", ""))
 		match effect_type:
+			"reserve_next_card":
+				var reserved_target: UnitState = _resolve_target_unit(actor, target, effect)
+				var added: bool = ReservedCardRules.grant(reserved_target, effect, instance.owner_side)
+				messages.append(ReservedCardRules.kind_name(effect.get("reservation", "")) + (": +1" if added else ": MAX"))
 			"repeat_next_card":
 				var added: int = actor.grant_repeat_charges(int(effect.get("charges", 1)))
 				messages.append(Localization.get_textf("battle.log.echo_ready", "Gained {amount} Echo charge(s); {charges}/3 ready.", {"amount": added, "charges": actor.repeat_charges}))
@@ -55,7 +59,8 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 					if target.has_status(required_status):
 						amount += int(effect.get("bonus_amount", 0))
 				var hp_before: int = target.hp
-				var result := DamageResolver.apply_damage(actor, target, amount, attack_multiplier)
+				amount = roundi(ReservedCardRules.effect_value(instance.card_reservations, effect_type, amount))
+				var result := DamageResolver.apply_damage(actor, target, amount, attack_multiplier * ReservedCardRules.attack_scale(instance.card_reservations))
 				engine.resolution_metrics["damage"] = int(engine.resolution_metrics.get("damage", 0)) + mini(hp_before, int(result["hp_damage"]))
 				engine.resolution_metrics["absorbed"] = int(engine.resolution_metrics.get("absorbed", 0)) + int(result["shield_absorb"])
 				engine.prevent_lethal(_opponent_side(instance.owner_side))
@@ -65,14 +70,14 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 					"target_name": target.display_name,
 				}))
 			"gain_shield":
-				var shield_amount := DamageResolver.gain_shield(_resolve_target_unit(actor, target, effect), int(effect.get("amount", 0)))
+				var shield_amount := DamageResolver.gain_shield(_resolve_target_unit(actor, target, effect), roundi(ReservedCardRules.effect_value(instance.card_reservations, effect_type, float(effect.get("amount", 0)))))
 				engine.resolution_metrics["shield"] = int(engine.resolution_metrics.get("shield", 0)) + shield_amount
 				messages.append(Localization.get_textf("battle.log.card_shield", "{card_name} gained {amount} shield", {
 					"card_name": card_def.name,
 					"amount": shield_amount,
 				}))
 			"heal":
-				var healed := DamageResolver.heal(_resolve_target_unit(actor, target, effect), int(effect.get("amount", 0)))
+				var healed := DamageResolver.heal(_resolve_target_unit(actor, target, effect), roundi(ReservedCardRules.effect_value(instance.card_reservations, effect_type, float(effect.get("amount", 0)))))
 				engine.resolution_metrics["heal"] = int(engine.resolution_metrics.get("heal", 0)) + healed
 				messages.append(Localization.get_textf("battle.log.card_heal", "{card_name} healed {amount} HP", {
 					"card_name": card_def.name,
@@ -81,9 +86,10 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 			"apply_status":
 				var target_unit := _resolve_target_unit(actor, target, effect)
 				var status_id := String(effect.get("status", ""))
-				var duration := float(effect.get("duration", 0.0))
+				var duration: float = float(effect.get("duration", 0.0)) + ReservedCardRules.status_bonus(instance.card_reservations)
 				var target_side: String = instance.owner_side if target_unit == actor else _opponent_side(instance.owner_side)
 				var power: int = BleedRules.resolve_power(effect, actor.get_attack_value()) if status_id == "bleed" else 1
+				if status_id == "bleed": power += int(ReservedCardRules.status_bonus(instance.card_reservations, true))
 				engine.apply_status_from_card(instance.owner_side, target_side, status_id, duration, power)
 				messages.append(Localization.get_textf("battle.log.card_apply_status", "{card_name} applied {status_name} to {target_name}", {
 					"card_name": card_def.name,

@@ -43,6 +43,9 @@ static func build_summaries(card_def: CardDef, comparison_card_def: CardDef = nu
 static func _build_summary(effect: Dictionary, comparison_effect: Dictionary, source_index: int) -> Dictionary:
 	var effect_type: String = String(effect.get("type", ""))
 	match effect_type:
+		"reserve_next_card":
+			var lower_better: bool = effect.get("reservation", "") in ["reload", "weaken", "shield_jam", "heal_jam", "swift_commit"]
+			return _numeric_summary(effect, comparison_effect, "amount", "status:reservation_hex" if effect.get("target") == "enemy" else "status:reservation_boost", "", 2, 1.0, not lower_better, 125, source_index)
 		"repeat_next_card":
 			return _plain_summary("status:echo_ready", "x2", 126, source_index, effect_type)
 		"next_attack_multiplier":

@@ -54,7 +54,7 @@ func _run() -> void:
 		_check(skeleton != null and skeleton.get_bone_count() == 18, "Incompatible rig " + id)
 		root.free()
 		await get_tree().process_frame
-	for id: String in ["bleed", "slow", "weak", "vulnerable", "attack_charge", "echo_ready"]:
+	for id: String in ["bleed", "slow", "weak", "vulnerable", "attack_charge", "echo_ready", "reservation_boost", "reservation_hex"]:
 		_require_image("assets/icons/status/%s.png" % id, 96)
 	for id: String in UI_IDS:
 		var path: String = "assets/icons/ui/%s.png" % id

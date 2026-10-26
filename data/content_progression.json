@@ -17,22 +17,22 @@
     },
     {
       "xp": 8,
-      "cards": ["bastion_drive", "adrenaline_link", "purge_pulse", "execution", "fortify", "time_flow_control", "blood_chain", "echo_cast"],
+      "cards": ["bastion_drive", "adrenaline_link", "purge_pulse", "execution", "fortify", "time_flow_control", "blood_chain", "echo_cast", "reserve_shield", "reserve_reload", "reserve_status", "reserve_swift_commit"],
       "relics": ["surge_gimbal", "phase_capacitor", "echo_coil", "paradox_prism", "rift_compass", "entropy_battery", "omega_crown", "eternity_engine"]
     },
     {
       "xp": 15,
-      "cards": ["over_reload", "meteor_crash", "self_tuning_edge", "overclock_routine", "sequence_loader", "auto_turret", "phase_lance"],
+      "cards": ["over_reload", "meteor_crash", "self_tuning_edge", "overclock_routine", "sequence_loader", "auto_turret", "phase_lance", "reserve_recast_jam", "reserve_tempo", "reserve_heavy_commit"],
       "relics": ["titanium_rib", "loadout_harness", "war_cache", "signal_lens", "pulse_injector", "barrier_seed", "stasis_clock", "blood_pump"]
     },
     {
       "xp": 24,
-      "cards": ["recursive_protocol", "chronostasis", "entropy_reversal", "crisis_drone_swarm", "mirror_aegis", "rift_volley", "entropy_armor"],
+      "cards": ["recursive_protocol", "chronostasis", "entropy_reversal", "crisis_drone_swarm", "mirror_aegis", "rift_volley", "entropy_armor", "reserve_siphon", "reserve_chain", "reserve_heal_jam", "reserve_time_mine"],
       "relics": ["scavenger_contract", "emergency_foam", "overclock_key", "chrono_metronome", "armor_garden", "bounty_drone", "prism_furnace", "archive_compass"]
     },
     {
       "xp": 35,
-      "cards": ["null_cascade", "paradox_loop", "axiom_sever", "omega_ray", "grave_protocol", "zero_hour", "barrier_overdrive"],
+      "cards": ["null_cascade", "paradox_loop", "axiom_sever", "omega_ray", "grave_protocol", "zero_hour", "barrier_overdrive", "reserve_growth", "reserve_wear", "reserve_mirror"],
       "relics": ["triplet_relay", "borrowed_second_hand", "terminal_echo_ring", "four_name_quartet", "dead_heat_needle", "silent_three_second_timer", "delay_return_gear", "zero_hour_clapper"]
     },
     {

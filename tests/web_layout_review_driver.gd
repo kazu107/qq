@@ -239,6 +239,15 @@ func _command(arguments: Array) -> void:
 		if payload.has("delay"): engine.delay_active_cards("player", float(payload["delay"]), "single")
 		if payload.has("seconds"): engine.update(float(payload["seconds"]))
 		battle.call("_refresh_ui", 1.0)
+	elif String(payload.get("action", "")) == "reservation_control":
+		var battle: Control = get_tree().current_scene as Control
+		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+		for side: String in ["player", "enemy"]:
+			var unit: UnitState = engine.battle_state.get_unit(side)
+			if bool(payload.get("clear", false)): unit.card_reservations.clear()
+			for kind: String in Array(payload.get(side, [])):
+				ReservedCardRules.grant(unit, Database.get_card("reserve_" + kind).effects[0], side)
+		battle.call("_refresh_ui", 1.0)
 	elif String(payload.get("action", "")) == "bleed_advance":
 		var battle: Control = get_tree().current_scene as Control
 		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
@@ -527,18 +536,19 @@ func _inspect() -> Dictionary:
 				var hand_cards: Array[Dictionary] = []
 				for runtime: CardRuntimeState in bleed_engine.battle_state.player.card_runtime_states:
 					var button: CardButton = hand.get_button_for_runtime_id(runtime.runtime_id)
-					if button != null: hand_cards.append({"id": runtime.card_id, "runtime": runtime.runtime_id, "rect": _rect_values(button.get_global_rect())})
+					if button != null: hand_cards.append({"id": runtime.card_id, "runtime": runtime.runtime_id, "cooldown": runtime.cooldown_remaining, "rect": _rect_values(button.get_global_rect())})
 				var timeline: TimelinePanel = screen.get("_timeline_panel") as TimelinePanel
 				var timeline_cards: Array[Dictionary] = []
 				for button: CardButton in timeline._cards:
-					if button.visible: timeline_cards.append({"runtime": button.runtime_id, "repeat": button._repeat_badge.visible, "rect": _rect_values(button.get_global_rect())})
+					if button.visible: timeline_cards.append({"runtime": button.runtime_id, "repeat": button._repeat_badge.visible, "reserved": button._reservation_badge.visible, "rect": _rect_values(button.get_global_rect())})
 				var echo_regions: Array[Dictionary] = []
 				for region: Dictionary in stage.get_player_status_model().get_status_regions():
-					if region["id"] != "echo_ready": continue
+					if region["id"] not in ["echo_ready", "reservation_boost", "reservation_hex"]: continue
 					var points: Array[Array] = []
 					for point: Vector3 in region["corners"]: points.append(_point_values(stage.global_position + stage.project_world_position(point)))
-					echo_regions.append({"points": points, "tooltip": region["tooltip"]})
+					echo_regions.append({"id": region["id"], "points": points, "tooltip": region["tooltip"]})
 				result["echo"] = {"charges": bleed_engine.battle_state.player.repeat_charges, "hand": hand_cards, "timeline": timeline_cards,
+					"pending": bleed_engine.battle_state.player.card_reservations.size(), "enemy_pending": enemy.card_reservations.size(),
 					"enemy_hp": enemy.hp, "status_regions": echo_regions, "tooltip": tip.text if tip != null and tip.is_visible_in_tree() else "",
 					"numbers": stage.get_floating_combat_text_values()}
 		if screen.scene_file_path.get_file().get_basename() == "Hub":

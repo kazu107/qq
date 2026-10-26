@@ -49,8 +49,15 @@ static func format_grade_label(tier: int) -> String:
 static func _describe_effect(effect: Dictionary, compact: bool, comparison_effect: Dictionary = {}, rich: bool = false) -> String:
 	var effect_type: String = String(effect.get("type", ""))
 	match effect_type:
+		"reserve_next_card":
+			var kind: String = effect.get("reservation", "")
+			var lower_better: bool = kind in ["reload", "weaken", "shield_jam", "heal_jam", "swift_commit"]
+			var template: String = Localization.get_text("reservation.effect." + kind, ReservedCardRules.TEXT.get(kind, kind))
+			var percent_effect: Dictionary = {"amount": float(effect.get("amount", 1)) * 100}
+			var percent_base: Dictionary = {"amount": float(comparison_effect.get("amount", effect.get("amount", 1))) * 100}
+			return template.format({"amount": _format_compared_float(effect, comparison_effect, "amount", 2, not lower_better, rich), "secondary": _format_compared_float(effect, comparison_effect, "secondary", 1, true, rich), "percent": _format_compared_float(percent_effect, percent_base, "amount", 0, true, rich)}) + "\n" + Localization.get_text("reservation.rules", "Same kind: 3 charges; total: 8. Manual cards only. Interrupted resolves preserve charges.")
 		"repeat_next_card":
-			return Localization.get_textf("effect.repeat_next_card", "Gain {charges} Echo charge(s), max 3. The next manually queued card to resolve repeats its effects twice, including already-casting cards. Costs and cooldown are paid once; auto cards and Echo cards are excluded.", {"charges": _format_compared_int(effect, comparison_effect, "charges", true, rich, 1)})
+			return Localization.get_textf("effect.repeat_next_card", "Gain {charges} Echo charge(s), max 3. The next manually queued card to resolve repeats its effects twice, including already-casting cards. Costs and cooldown are paid once; auto cards and reservation setup cards are excluded.", {"charges": _format_compared_int(effect, comparison_effect, "charges", true, rich, 1)})
 		"next_attack_multiplier":
 			return Localization.get_text("effect.next_attack_multiplier", "Double the next resolved attack card (including attack bonuses). Already-casting cards qualify. Stacks multiplicatively: x2, x4, x8. Consumed once per card.")
 		"consume_shield":

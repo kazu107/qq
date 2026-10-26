@@ -170,6 +170,7 @@ static func _encode_unit(unit: UnitState) -> Dictionary:
 		"attack": unit.attack,
 		"next_attack_multiplier": unit.next_attack_multiplier,
 		"repeat_charges": unit.repeat_charges,
+		"card_reservations": unit.card_reservations.duplicate(true),
 		"speed": unit.speed,
 		"statuses": unit.statuses.duplicate(true),
 		"active_slots_used": unit.active_slots_used,
@@ -196,6 +197,7 @@ static func _decode_unit(payload: Dictionary) -> UnitState:
 	unit.attack = int(payload.get("attack", 0))
 	unit.next_attack_multiplier = maxf(float(payload.get("next_attack_multiplier", 1.0)), 1.0)
 	unit.repeat_charges = clampi(int(payload.get("repeat_charges", 0)), 0, RepeatRules.MAX_CHARGES)
+	unit.card_reservations = _to_dictionary_array(Array(payload.get("card_reservations", [])).slice(0, ReservedCardRules.MAX_PENDING))
 	unit.speed = int(payload.get("speed", 0))
 	unit.statuses = Dictionary(payload.get("statuses", {})).duplicate(true)
 	if unit.statuses.get("bleed") is Dictionary and unit.statuses["bleed"].get("layers") is Array:
@@ -254,6 +256,7 @@ static func _encode_active_instance(instance: ActiveCardInstance) -> Dictionary:
 		"relic_delay_hits": instance.relic_delay_hits,
 		"relic_flags": instance.relic_flags.duplicate(true),
 		"effect_repeats": instance.effect_repeats,
+		"card_reservations": instance.card_reservations.duplicate(true),
 		"continuous_shift_battle_time": instance.continuous_shift_battle_time,
 		"continuous_shift_amount": instance.continuous_shift_amount,
 	}
@@ -287,6 +290,7 @@ static func _decode_active_instance(payload: Dictionary) -> ActiveCardInstance:
 	instance.relic_delay_hits = maxi(0, int(payload.get("relic_delay_hits", 0)))
 	instance.relic_flags = Dictionary(payload.get("relic_flags", {})).duplicate(true)
 	instance.effect_repeats = clampi(int(payload.get("effect_repeats", 1)), 1, 2)
+	instance.card_reservations = _to_dictionary_array(Array(payload.get("card_reservations", [])).slice(0, ReservedCardRules.MAX_PENDING))
 	instance.continuous_shift_battle_time = float(payload.get("continuous_shift_battle_time", -1.0))
 	instance.continuous_shift_amount = float(payload.get("continuous_shift_amount", 0.0))
 	return instance

@@ -174,6 +174,8 @@ func refresh_timeline(
 	var active_instance_ids: Array[int] = []
 	var repeats_left: Dictionary = {local_side: local_unit.repeat_charges if local_unit != null else 0,
 		"enemy" if local_side == "player" else "player": opponent_unit.repeat_charges if opponent_unit != null else 0}
+	var reserved_left: Dictionary = {local_side: local_unit.card_reservations.duplicate(true) if local_unit != null else [],
+		"enemy" if local_side == "player" else "player": opponent_unit.card_reservations.duplicate(true) if opponent_unit != null else []}
 	for sorted_entry in sorted_entries:
 		active_instance_ids.append(sorted_entry.instance_id)
 	_cleanup_entry_state(active_instance_ids)
@@ -197,6 +199,13 @@ func refresh_timeline(
 		if card_def == null:
 			button.visible = false
 			continue
+		var reservations: Array[Dictionary] = []
+		if not entry.is_auto_queued and entry.owner_side in ["player", "enemy"]:
+			var pending: Array[Dictionary] = []; pending.assign(reserved_left.get(entry.owner_side, []))
+			reservations = ReservedCardRules.select(pending, card_def, "resolve", true)
+			reserved_left[entry.owner_side] = pending
+		var reservation_unit: UnitState = local_unit if entry.owner_side == local_side else opponent_unit
+		card_def = ReservedCardRules.preview_card(card_def, reservations, reservation_unit.next_attack_multiplier if reservation_unit != null else 1.0)
 
 		button.visible = true
 		button.bind_timeline(
@@ -209,6 +218,7 @@ func refresh_timeline(
 		)
 		var repeat: bool = int(repeats_left.get(entry.owner_side, 0)) > 0 and RepeatRules.is_eligible(card_def, entry.is_auto_queued, entry.owner_side)
 		button.set_effect_repeats(2 if repeat else 1)
+		button.set_reservations(reservations)
 		if repeat: button.append_tooltip_line(Localization.get_text("timeline.echo_preview", "Echo: effects repeat twice. The candidate changes if timeline order changes; cast, costs and cooldown occur once."))
 		if repeat: repeats_left[entry.owner_side] = int(repeats_left[entry.owner_side]) - 1
 		_card_layouts.append({
@@ -313,6 +323,7 @@ func _refresh_preview(
 	_apply_preview_alpha()
 	_preview_button.set_bleach_enabled(false)
 	_preview_button.set_effect_repeats(1)
+	_preview_button.set_reservations([])
 	_preview_button.z_index = PREVIEW_Z_INDEX
 	_preview_remaining = maxf(0.0, preview_entry.scheduled_time - battle_time)
 

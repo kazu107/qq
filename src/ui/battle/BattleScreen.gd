@@ -1418,7 +1418,9 @@ func _get_hover_preview_slot_cost(runtime_state: CardRuntimeState, card_def: Car
 		return 0
 	if _engine.battle_state == null or not CardEffectResolver.can_pay_shield_cost(_engine.battle_state.get_unit(_local_side), card_def):
 		return 0
-	return card_def.active_slot_cost
+	var profile: Dictionary = {"cast_time": card_def.cast_time, "slot_cost": card_def.active_slot_cost}
+	ReservedCardRules.commit_profile(profile, ReservedCardRules.select(_engine.battle_state.get_unit(_local_side).card_reservations, card_def, "commit"), _engine.battle_state.get_unit(_local_side).active_slot_max)
+	return int(profile["slot_cost"])
 
 
 func _build_hover_preview_entry(
@@ -1431,7 +1433,9 @@ func _build_hover_preview_entry(
 	if not runtime_state.can_use():
 		return null
 	var local_unit: UnitState = battle_state.get_unit(_local_side)
-	if local_unit.active_slots_used + card_def.active_slot_cost > local_unit.active_slot_max:
+	var slot_profile: Dictionary = {"cast_time": card_def.cast_time, "slot_cost": card_def.active_slot_cost}
+	ReservedCardRules.commit_profile(slot_profile, ReservedCardRules.select(local_unit.card_reservations, card_def, "commit"), local_unit.active_slot_max)
+	if local_unit.active_slots_used + int(slot_profile["slot_cost"]) > local_unit.active_slot_max:
 		return null
 	if not CardEffectResolver.can_pay_shield_cost(local_unit, card_def):
 		return null
@@ -1443,11 +1447,11 @@ func _build_hover_preview_entry(
 	entry.card_id = runtime_state.card_id
 	entry.card_name = card_def.name
 	entry.created_at = battle_state.battle_time
-	entry.scheduled_time = battle_state.battle_time + card_def.cast_time * local_unit.get_cast_time_multiplier()
+	entry.scheduled_time = battle_state.battle_time + float(slot_profile["cast_time"]) * local_unit.get_cast_time_multiplier()
 	entry.sort_key = entry.scheduled_time - card_def.priority_modifier
 	entry.priority_modifier = card_def.priority_modifier
 	entry.actor_speed = local_unit.speed
-	entry.slot_cost = card_def.active_slot_cost
+	entry.slot_cost = int(slot_profile["slot_cost"])
 	entry.interruptible = card_def.interruptible
 	return entry
 
@@ -1526,6 +1530,9 @@ func _refresh_developer_panel() -> void:
 			{"id": "DevBattleDetails", "label": Localization.get_text("battle.analysis.details", "Battle details"), "callback": Callable(self, "_on_dev_battle_details"), "disabled": _lan_mode},
 			{"id": "DevEchoReady", "label": Localization.get_text("echo.dev.ready", "Add one Echo charge"), "callback": Callable(self, "_on_dev_echo").bind(false), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevEchoClear", "label": Localization.get_text("echo.dev.clear", "Clear Echo charges"), "callback": Callable(self, "_on_dev_echo").bind(true), "disabled": _lan_mode or RankedSession.active()},
+			{"id": "DevReserveSelf", "label": Localization.get_text("reservation.dev.self", "Add player reservation"), "callback": Callable(self, "_on_dev_reservation").bind(0), "disabled": _lan_mode or RankedSession.active()},
+			{"id": "DevReserveEnemy", "label": Localization.get_text("reservation.dev.enemy", "Add enemy reservation"), "callback": Callable(self, "_on_dev_reservation").bind(1), "disabled": _lan_mode or RankedSession.active()},
+			{"id": "DevReserveClear", "label": Localization.get_text("reservation.dev.clear", "Clear both reservations"), "callback": Callable(self, "_on_dev_reservation").bind(2), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevBleedEnemy", "label": Localization.get_text("bleed.dev.apply", "Enemy bleed x3"), "callback": Callable(self, "_on_dev_bleed").bind(false), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevBleedClear", "label": Localization.get_text("bleed.dev.clear", "Clear enemy bleed"), "callback": Callable(self, "_on_dev_bleed").bind(true), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevBossCharge", "label": Localization.get_text("boss.timekeeper.dev_charge", "Stack boss charge x2"), "callback": func() -> void: _on_dev_boss_charge(true), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
@@ -1559,6 +1566,23 @@ func _on_dev_echo(clear: bool) -> void:
 	if not Game.is_developer_mode_enabled() or _lan_mode or RankedSession.active() or _engine.battle_state == null or _handled_finish: return
 	if clear: _engine.battle_state.player.repeat_charges = 0
 	else: _engine.battle_state.player.grant_repeat_charges(1)
+	_refresh_ui(1.0)
+
+
+func _on_dev_reservation(mode: int) -> void:
+	if not Game.is_developer_mode_enabled() or _lan_mode or RankedSession.active() or _engine.battle_state == null or _handled_finish: return
+	var state: BattleState = _engine.battle_state
+	if mode == 2:
+		state.player.card_reservations.clear(); state.enemy.card_reservations.clear()
+	else:
+		var unit: UnitState = state.player if mode == 0 else state.enemy
+		var kinds: Array = ReservedCardRules.NAMES.keys()
+		var index: int = int(get_meta("reservation_dev_index", 0))
+		for offset: int in kinds.size():
+			var kind: String = kinds[(index + offset) % kinds.size()]
+			var card: CardDef = Database.get_card("reserve_" + kind)
+			if ReservedCardRules.grant(unit, card.effects[0], "player"):
+				set_meta("reservation_dev_index", index + offset + 1); break
 	_refresh_ui(1.0)
 
 

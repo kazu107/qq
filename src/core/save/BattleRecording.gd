@@ -35,6 +35,7 @@ func _unit_frame(unit: UnitState, initial: bool = false) -> Dictionary:
 	return {"unit_id": unit.unit_id, "display_name": unit.display_name, "hp": unit.hp, "max_hp": unit.max_hp,
 		"shield": unit.shield, "attack": unit.attack, "speed": unit.speed, "statuses": unit.statuses.duplicate(true), "next_attack_multiplier": unit.next_attack_multiplier,
 		"repeat_charges": unit.repeat_charges,
+		"card_reservations": unit.card_reservations.duplicate(true),
 		"active_slots_used": unit.active_slots_used, "active_slot_max": unit.active_slot_max,
 		"temporary_card_modifiers": unit.temporary_card_modifiers.duplicate(true), "battle_card_modifiers": unit.battle_card_modifiers.duplicate(true),
 		"cast_time_modifier": unit.cast_time_modifier}

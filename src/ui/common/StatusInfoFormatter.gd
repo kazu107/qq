@@ -7,8 +7,15 @@ static func bleed_detail(power: int) -> String:
 
 
 static func tooltip(id: String, remaining: float, multiplier: float = 2.0, status_data: Dictionary = {}) -> String:
+	if id in ["reservation_boost", "reservation_hex"]:
+		var lines: Array[String] = [Localization.get_status_name(id)]
+		for entry: Dictionary in Array(status_data.get("reservations", [])):
+			lines.append(ReservedCardRules.kind_name(entry.get("reservation", "")))
+			lines.append(ReservedCardRules.describe(entry))
+		lines.append(Localization.get_text("reservation.rules", "Same kind: 3 charges; total: 8.\nManual cards only. Interrupted resolves preserve charges.").replace("。", "。\n"))
+		return "\n".join(lines)
 	if id == "echo_ready":
-		return Localization.get_textf("status.detail.echo_ready", "Echo: {charges}/3 charges\nThe next manual card to resolve repeats twice.\nAlready-casting cards qualify.\nAuto cards and Echo setup cards are excluded.\nInterruption preserves charges.\nCosts, cooldown and card-use relic hooks occur once.", {"charges": int(status_data.get("charges", 1))})
+		return Localization.get_textf("status.detail.echo_ready", "Echo: {charges}/3 charges\nThe next manual card to resolve repeats twice.\nAlready-casting cards qualify.\nAuto cards and reservation setup cards are excluded.\nInterruption preserves charges.\nCosts, cooldown and card-use relic hooks occur once.", {"charges": int(status_data.get("charges", 1))})
 	if id == "attack_charge":
 		return Localization.get_textf("status.detail.attack_charge", "Next attack x{multiplier} (one card)\nStacks multiplicatively: x2, x4, x8.\nIncludes attack bonuses and already-casting cards.\nConsumed by one attack card; bleed, fatigue and relic damage do not consume it.", {"multiplier": String.num(multiplier, 0)})
 	var detail: String

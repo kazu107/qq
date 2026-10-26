@@ -113,7 +113,7 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		var id: String = String(raw)
 		if float(Dictionary(statuses[id]).get("duration", 0.0)) > 0.0 or int(Dictionary(statuses[id]).get("charges", 0)) > 0:
 			active.append(id)
-	var count: int = mini(6, active.size())
+	var count: int = mini(8, active.size())
 	for index: int in count:
 		var id: String = active[index]
 		if not _status_cells.has(id):
@@ -135,15 +135,19 @@ func _refresh_status_icons(statuses: Dictionary) -> void:
 		var remaining: float = float(Dictionary(statuses[id]).get("duration", 0.0))
 		var icon: Sprite3D = cell["icon"]
 		icon.position = Vector3(x - (0.10 if count > 5 else 0.14), -0.64, 0.07)
+		if count > 6: icon.position.x = x - 0.08
 		icon.visible = true
 		icon.modulate = Color.WHITE
 		icon.pixel_size = 0.0018 if count > 5 else (0.0021 if count > 4 else 0.0025)
+		if count > 6: icon.pixel_size = 0.0014
 		var label: Label3D = cell["time"]
 		label.position = Vector3(x + (0.11 if count > 5 else 0.14), -0.64, 0.08)
+		if count > 6: label.position.x = x + 0.08
 		var multiplier: float = float(Dictionary(statuses[id]).get("multiplier", 1.0))
 		label.text = "x%s" % String.num(multiplier, 0) if id == "attack_charge" else "%.1fs" % remaining
-		if id == "echo_ready": label.text = str(int(Dictionary(statuses[id]).get("charges", 1)))
+		if id in ["echo_ready", "reservation_boost", "reservation_hex"]: label.text = str(int(Dictionary(statuses[id]).get("charges", 1)))
 		label.pixel_size = 0.0036 if count > 5 else (0.0044 if count > 4 else 0.005)
+		if count > 6: label.pixel_size = 0.0025
 		label.visible = true
 		var stack: Label3D = cell["stack"]
 		stack.position = icon.position + Vector3(0.055, -0.07, 0.02)
@@ -278,7 +282,7 @@ func _build_status_text(statuses: Dictionary) -> String:
 		var status_id: String = String(raw_status_id)
 		var status_data: Dictionary = Dictionary(statuses.get(status_id, {}))
 		var remaining: float = float(status_data.get("duration", 0.0))
-		if status_id == "echo_ready":
+		if status_id in ["echo_ready", "reservation_boost", "reservation_hex"]:
 			parts.append(Localization.get_status_name(status_id) + " %d" % int(status_data.get("charges", 1)))
 			continue
 		if status_id == "attack_charge":

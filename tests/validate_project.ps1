@@ -343,6 +343,10 @@ if ($godotExe) {
         "--no-header", "--headless", "--path", $root,
         "--scene", "res://tests/GradeBalanceSmoke.tscn"
     )
+    Invoke-GodotCheck "[15-reserved-cards/31] Running reserved cards smoke" $godotExe @(
+        "--no-header", "--headless", "--path", $root,
+        "--scene", "res://tests/ReservedCardsSmoke.tscn"
+    )
     Invoke-GodotCheck "[15-catalog/31] Running card and relic library smoke" $godotExe @(
         "--no-header",
         "--headless",
