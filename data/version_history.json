@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.54.2",
+  "current_version": "QQ-0.55.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.55.0", "date": "2026-10-26",
+      "title_ja": "被ダメージを無効化・変換する2枚のカード",
+      "title_en": "Two damage-nullification conversion cards",
+      "changes_ja": [
+        "生命転換と防壁転換を追加しました。4秒間、疲労以外の戦闘ダメージをシールド消費前に無効化し、一部をHPまたはシールドへ変換します。変換率はGrade 0〜5で25・35・45・55・65・75%です。",
+        "出血・反動・遺物のダメージにも対応し、疲労とHPの支払いは対象外です。端数は効果中に蓄積し、HPの超過回復は発生しません。重ね掛けで効果時間は延びず、終了後は4秒間の再展開待ちになります。",
+        "状態アイコン、ブロック演出・効果音、変換量と無効化量の統計、通信・リプレイ、開発者用の展開・解除、全Gradeのラボ編集に対応しました。Blender製画像を用意し、過去の記録を保持してランキングをシーズン10へ切り替えます。"
+      ],
+      "changes_en": [
+        "Add Life Conversion and Barrier Conversion. For four seconds, prevent non-fatigue combat damage before shield and convert a portion to HP or shield. Grade 0-5 ratios are 25/35/45/55/65/75%.",
+        "Support bleed, recoil and relic damage, while excluding fatigue and HP payments. Accumulate fractions within the window, ignore overheal and never extend duration by reapplication. Rearming takes four seconds after expiry.",
+        "Include status icons, blocked-hit visuals/audio, conversion/prevention statistics, networking/replays, offline developer controls and grade-specific lab editing. Add original Blender art. Preserve prior records and start ranked Season 10."
+      ]
+    },
     {
       "version": "QQ-0.54.2", "date": "2026-10-26",
       "title_ja": "日本語フォントの不足文字を補完",

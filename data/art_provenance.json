@@ -8574,6 +8574,98 @@
       "author": "QQ project",
       "license": "project-original",
       "third_party_inputs": []
+    },
+    {
+      "asset_id": "life_conversion",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/life_conversion.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/damage_conversion.blend",
+      "generator": "tools/blender/build_conversion_cards.py",
+      "export_sha256": "a3a02f4165bc0b4e6c68c6240f2f04c6507fb026cad2e1f08666a39ff108be2c",
+      "source_sha256": "97978ecfeb6ffb876ea4b156b3ba001124c2c6e038732a835ab5bd6e85b74c4f",
+      "generator_sha256": {
+        "tools/blender/build_conversion_cards.py": "d1c571237ebfb6552ca63ed2f6ffcb7d9d261c334e3bcf94b509bcddfde1ca7c",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/damage_conversion.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_conversion_12",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "barrier_conversion",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/barrier_conversion.png",
+      "size": 512,
+      "source_path": "art_src/blender/cards/damage_conversion.blend",
+      "generator": "tools/blender/build_conversion_cards.py",
+      "export_sha256": "9129dea28b241ee36607c04e64c78155cf9ab71a8c5280f9ffaa68104d2e5410",
+      "source_sha256": "97978ecfeb6ffb876ea4b156b3ba001124c2c6e038732a835ab5bd6e85b74c4f",
+      "generator_sha256": {
+        "tools/blender/build_conversion_cards.py": "d1c571237ebfb6552ca63ed2f6ffcb7d9d261c334e3bcf94b509bcddfde1ca7c",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/damage_conversion.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_conversion_12",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "damage_conversion",
+      "category": "status",
+      "runtime_path": "assets/icons/status/damage_conversion.png",
+      "size": 96,
+      "source_path": "art_src/blender/cards/damage_conversion.blend",
+      "generator": "tools/blender/build_conversion_cards.py",
+      "export_sha256": "0de22ecfd751e06eca12b153735e70d0f7e588cbec00d39c7b030beb6a13ea09",
+      "source_sha256": "97978ecfeb6ffb876ea4b156b3ba001124c2c6e038732a835ab5bd6e85b74c4f",
+      "generator_sha256": {
+        "tools/blender/build_conversion_cards.py": "d1c571237ebfb6552ca63ed2f6ffcb7d9d261c334e3bcf94b509bcddfde1ca7c",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/damage_conversion.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_conversion_12",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
+    },
+    {
+      "asset_id": "conversion_lockout",
+      "category": "status",
+      "runtime_path": "assets/icons/status/conversion_lockout.png",
+      "size": 96,
+      "source_path": "art_src/blender/cards/damage_conversion.blend",
+      "generator": "tools/blender/build_conversion_cards.py",
+      "export_sha256": "cbbb7a151da84ffa0a7e5feaaa2f83fc3e21902f9024d4f312f58cf4bea6e9fe",
+      "source_sha256": "97978ecfeb6ffb876ea4b156b3ba001124c2c6e038732a835ab5bd6e85b74c4f",
+      "generator_sha256": {
+        "tools/blender/build_conversion_cards.py": "d1c571237ebfb6552ca63ed2f6ffcb7d9d261c334e3bcf94b509bcddfde1ca7c",
+        "tools/blender/build_reservation_cards.py": "9d70c4030b85de66e66940542c45456d8487c872e61edd05b6d768b075c0949f",
+        "tools/blender/build_art_vertical_slice.py": "b87f23d8edd50dbbbb1057f8d0aba83c0fe58806754b4b5da9756fcda09384cd",
+        "tools/blender/card_action_scenes.py": "d2ecc2a1f23032b3551df252257c61ae592b0961cf393dd3c2916fc8cb65cfe7"
+      },
+      "manifest_path": "art_src/blender/cards/damage_conversion.manifest.json",
+      "tool": "Blender 5.2.2 LTS",
+      "replacement_status": "implemented",
+      "batch_id": "blender_conversion_12",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": []
     }
   ],
   "batch_ids": [
@@ -8590,6 +8682,7 @@
     "blender_achievement_icons_08",
     "blender_echo_card_09",
     "blender_reservations_10",
-    "blender_regeneration_11"
+    "blender_regeneration_11",
+    "blender_conversion_12"
   ]
 }

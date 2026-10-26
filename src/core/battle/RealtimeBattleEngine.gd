@@ -157,6 +157,7 @@ func update(delta: float) -> void:
 	_tick_timeline_flows(delta)
 	_resolve_due_entries()
 	_check_victory()
+	_flush_conversion_metrics()
 	analysis.capture_state(battle_state, battle_state.winner != "")
 	if record_visuals:
 		recording.capture(battle_state, battle_state.winner != "")
@@ -194,8 +195,8 @@ func _resolve_fatigue(instance: ActiveCardInstance) -> void:
 	var player_before: Dictionary = _snapshot_unit(battle_state.player)
 	var enemy_before: Dictionary = _snapshot_unit(battle_state.enemy)
 	var timeline_before: Array[Dictionary] = _snapshot_timeline()
-	DamageResolver.apply_fixed_damage(battle_state.player, instance.fatigue_damage)
-	DamageResolver.apply_fixed_damage(battle_state.enemy, instance.fatigue_damage)
+	DamageResolver.apply_fixed_damage(battle_state.player, instance.fatigue_damage, false, true, false)
+	DamageResolver.apply_fixed_damage(battle_state.enemy, instance.fatigue_damage, false, true, false)
 	# Both damage applications precede lethal protection and the victory check.
 	prevent_lethal("player")
 	prevent_lethal("enemy")
@@ -707,6 +708,28 @@ func _tick_shields(delta: float) -> void:
 
 
 func _tick_statuses(delta: float) -> void:
+	if not battle_state.player.has_status("damage_conversion") and not battle_state.enemy.has_status("damage_conversion"):
+		_tick_statuses_step(delta); return
+	var pending: float = delta
+	while pending > 0.0000001:
+		var step: float = pending
+		for unit: UnitState in [battle_state.player, battle_state.enemy]:
+			for id: String in unit.statuses:
+				var data: Dictionary = unit.statuses[id]
+				var duration: float = float(data.get("duration", 0))
+				var suspended: float = maxf(0, float(data.get("suspended", 0)))
+				if duration > 0: step = minf(step, duration + suspended)
+				if suspended > 0: step = minf(step, suspended)
+				if id in ["bleed", "regen"]:
+					var next: float = BleedRules.next_tick_in(data) if id == "bleed" else RegenerationRules.next_tick_in(data)
+					if next > 0: step = minf(step, next)
+					for layer: Dictionary in Array(data.get("layers", [])):
+						if float(layer.get("duration", 0)) > 0: step = minf(step, float(layer["duration"]) + float(data.get("suspended", 0)))
+		step = maxf(0.0000001, step)
+		_tick_statuses_step(step); pending -= step
+
+
+func _tick_statuses_step(delta: float) -> void:
 	for unit in [battle_state.player, battle_state.enemy]:
 		var events: Array[Dictionary] = unit.tick_statuses(delta)
 		for event_data in events:
@@ -733,8 +756,7 @@ func _tick_statuses(delta: float) -> void:
 			if String(event_data.get("type", "")) == "status_damage":
 				var amount := int(event_data.get("amount", 0))
 				var hp_before: int = unit.hp
-				unit.hp = max(0, unit.hp - amount)
-				unit.combat_totals["damage_taken"] = int(unit.combat_totals["damage_taken"]) + maxi(0, hp_before - unit.hp)
+				var damage_result: Dictionary = DamageResolver.apply_fixed_damage(unit, amount, true, false)
 				var sources: Dictionary = Dictionary(event_data.get("source_amounts", {String(event_data.get("source_side", "")): amount}))
 				var credit_left: int = maxi(0, hp_before - unit.hp)
 				var source_ids: Array = sources.keys(); source_ids.sort()
@@ -749,11 +771,12 @@ func _tick_statuses(delta: float) -> void:
 						var source_unit: UnitState = battle_state.get_unit(source_side)
 						source_unit.combat_totals["damage"] = int(source_unit.combat_totals["damage"]) + int(credits[source_side])
 				_relic_controller.prevent_lethal(status_side)
-				battle_state.add_log(Localization.get_textf("battle.log.status_damage", "{unit_name} took {amount} bleed damage", {
+				var prevented: bool = int(damage_result.get("damage_prevented", 0)) > 0
+				battle_state.add_log(Localization.get_textf("conversion.log" if prevented else "battle.log.status_damage", "{unit_name} nullified {amount} damage" if prevented else "{unit_name} took {amount} bleed damage", {
 					"unit_name": unit.display_name,
 					"amount": amount,
 				}))
-				_play_sfx("status_bleed_tick", 0.95)
+				_play_sfx("battle_full_block" if int(damage_result.get("damage_prevented", 0)) > 0 else "status_bleed_tick", 0.95)
 				_record_event(_build_basic_event(
 					"status_damage",
 					unit.unit_id,
@@ -762,6 +785,9 @@ func _tick_statuses(delta: float) -> void:
 					{
 						"status": String(event_data.get("status", "")),
 						"amount": amount,
+						"damage_prevented": int(damage_result.get("damage_prevented", 0)),
+						"converted_heal": int(damage_result.get("converted_heal", 0)),
+						"converted_shield": int(damage_result.get("converted_shield", 0)),
 						"player": _snapshot_unit(battle_state.player),
 						"enemy": _snapshot_unit(battle_state.enemy),
 					},
@@ -903,12 +929,14 @@ func _resolve_due_entries() -> void:
 				var before_metrics: Dictionary = resolution_metrics.duplicate()
 				var before_hp: int = target_unit.hp
 				var before_shield: int = target_unit.shield
+				var prevented_before: int = instance.damage_prevented
 				messages.append_array(CardEffectResolver.resolve(self, battle_state, instance, repeat_card, multiplier, repeat_index > 0))
 				var metrics: Dictionary = {}
 				for key: String in resolution_metrics: metrics[key] = int(resolution_metrics[key]) - int(before_metrics[key])
 				effect_resolutions.append({"player_before": before_player, "player_after": _snapshot_unit(battle_state.player),
 					"enemy_before": before_enemy, "enemy_after": _snapshot_unit(battle_state.enemy), "metrics": metrics,
-					"fully_blocked": _is_fully_blocked_by_shield(repeat_card, before_hp, target_unit.hp, before_shield, target_unit.shield)})
+					"damage_prevented": instance.damage_prevented - prevented_before,
+					"fully_blocked": instance.damage_prevented > prevented_before or _is_fully_blocked_by_shield(repeat_card, before_hp, target_unit.hp, before_shield, target_unit.shield)})
 				if not unit.is_alive() or not target_unit.is_alive(): break
 		else: messages = CardEffectResolver.resolve(self, battle_state, instance, resolved_card_def)
 		var resolved_instance := battle_state.remove_active_instance(instance.instance_id)
@@ -928,7 +956,7 @@ func _resolve_due_entries() -> void:
 		var timeline_after := _snapshot_timeline()
 		for message in messages:
 			battle_state.add_log("%s" % message)
-		var fully_blocked: bool = _is_fully_blocked_by_shield(card_def, target_hp_before, target_unit.hp, target_shield_before, target_unit.shield)
+		var fully_blocked: bool = instance.damage_prevented > 0 or _is_fully_blocked_by_shield(card_def, target_hp_before, target_unit.hp, target_shield_before, target_unit.shield)
 		_play_card_resolution(card_def, fully_blocked)
 		if target_shield_before > 0 and target_unit.shield <= 0 and not fully_blocked:
 			_play_sfx("battle_shield_break", 1.0, -1.0)
@@ -961,6 +989,7 @@ func _resolve_due_entries() -> void:
 				"fully_blocked": fully_blocked,
 				"effect_resolutions": effect_resolutions,
 				"effect_repeats": maxi(1, effect_resolutions.size()),
+				"damage_prevented": instance.damage_prevented,
 			},
 			target_unit.hp - target_hp_before,
 			target_unit.shield - target_shield_before,
@@ -1351,10 +1380,19 @@ func sandbox_relic_value(side: String, id: String, key: String, fallback: float)
 func _record_event(record: BattleEventRecord) -> void:
 	if battle_state == null or record == null:
 		return
+	_flush_conversion_metrics()
 	battle_state.record_event(record.to_dict())
 	analysis.record(record.to_dict())
 	if record_visuals and record.event_type in ["prepare_card", "resolve_card", "fatigue_card"]:
 		recording.capture(battle_state, true)
+
+
+func _flush_conversion_metrics() -> void:
+	for side: String in ["player", "enemy"]:
+		var unit: UnitState = battle_state.get_unit(side)
+		for id: String in unit.conversion_credits:
+			analysis.record_card_contribution(side, id, unit.conversion_credits[id])
+		unit.conversion_credits.clear()
 
 
 func _build_basic_event(

@@ -1,0 +1,32 @@
+{
+  "tool": "Blender 5.2.2 LTS",
+  "generator": "tools/blender/build_conversion_cards.py",
+  "source_path": "art_src/blender/cards/damage_conversion.blend",
+  "source_sha256": "97978ecfeb6ffb876ea4b156b3ba001124c2c6e038732a835ab5bd6e85b74c4f",
+  "assets": [
+    {
+      "asset_id": "life_conversion",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/life_conversion.png",
+      "size": 512
+    },
+    {
+      "asset_id": "barrier_conversion",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/barrier_conversion.png",
+      "size": 512
+    },
+    {
+      "asset_id": "damage_conversion",
+      "category": "status",
+      "runtime_path": "assets/icons/status/damage_conversion.png",
+      "size": 96
+    },
+    {
+      "asset_id": "conversion_lockout",
+      "category": "status",
+      "runtime_path": "assets/icons/status/conversion_lockout.png",
+      "size": 96
+    }
+  ]
+}

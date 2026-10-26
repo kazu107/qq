@@ -25,6 +25,7 @@ const LEGACY: Dictionary = {
 	"archive_compass": {"pickup_loadout": 1, "victory_gold": 8, "victory_heal": 2}
 }
 const LABELS: Dictionary = {
+	"ratio": "ダメージ変換率", "lockout_duration": "再展開待ち時間",
 	"regen_power": "リジェネ回復量（3秒ごと）", "regen_max_hp_ratio": "最大HPからの回復割合", "bonus_power": "低HP時の追加回復量", "bonus_if_hp_below_ratio": "低HPの判定割合",
 	"secondary": "追加効果量",
 	"charges": "反響の獲得枚数",
@@ -172,6 +173,10 @@ static func _walk(value: Variant, path: String, result: Array[Dictionary], sourc
 		if path.begins_with("upgrade_profile.") or key in ["priority_modifier", "amount"]: minimum = -10000.0 if path.begins_with("upgrade_profile.") or key == "priority_modifier" or source.get("id", "") != "" and relative.begins_with("effects.") and String(source["effects"][int(parts[1])].get("type", "")) in ["modify_attack", "modify_speed", "empower_card"] else 0.0
 		if key in ["every", "required_count", "seconds_per_charge", "added_cast_per_bonus", "unused_capacity_per_slot", "decay_per_token", "shield_per_gold"]: minimum = 0.01 if floating else 1.0
 		var maximum: float = 1.0 if key.ends_with("ratio") else 10000.0
+		if relative.begins_with("effects.") and source["effects"][int(parts[1])].get("type") == "damage_conversion":
+			if key == "ratio": minimum = 0; maximum = 1
+			if key == "duration": maximum = DamageConversionRules.MAX_DURATION
+			if key == "lockout_duration": minimum = DamageConversionRules.MIN_LOCKOUT; maximum = 12
 		if key == "amount" and relative.begins_with("effects.") and source["effects"][int(parts[1])].get("type") == "reserve_next_card":
 			var reservation_kind: String = source["effects"][int(parts[1])].get("reservation", "")
 			if reservation_kind in ["reload", "weaken", "shield_jam", "heal_jam", "swift_commit"]: minimum = 0.1; maximum = 1

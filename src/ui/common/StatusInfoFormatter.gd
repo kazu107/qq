@@ -25,6 +25,10 @@ static func tooltip(id: String, remaining: float, multiplier: float = 2.0, statu
 		return Localization.get_textf("status.detail.attack_charge", "Next attack x{multiplier} (one card)\nStacks multiplicatively: x2, x4, x8.\nIncludes attack bonuses and already-casting cards.\nConsumed by one attack card; bleed, fatigue and relic damage do not consume it.", {"multiplier": String.num(multiplier, 0)})
 	var detail: String
 	match id:
+		"damage_conversion":
+			detail = Localization.get_textf("conversion.detail", "Prevent non-fatigue combat damage before shield. Convert {percent}% to {mode}. Fractions accumulate; reapplication does not extend it. HP costs are excluded.", {"percent": String.num(float(status_data.get("ratio", .25)) * 100, 0), "mode": Localization.get_text("conversion.mode." + String(status_data.get("mode", "heal")), "HP" if status_data.get("mode", "heal") == "heal" else "shield")})
+			detail = detail.replace("。", "。\n").replace(". ", ".\n").strip_edges()
+		"conversion_lockout": detail = Localization.get_text("conversion.lockout", "Damage conversion is rearming. Damage is received normally during this time.")
 		"regen":
 			var data: Dictionary = RegenerationRules.normalize(status_data)
 			detail = Localization.get_textf("status.regen.total", "Heal {power} HP every 3s. {stacks}/3 layers. Overheal is ignored; cannot revive.", {"power": data["power"], "stacks": data["stacks"]})

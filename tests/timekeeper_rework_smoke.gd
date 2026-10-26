@@ -36,7 +36,7 @@ func _active(engine: RealtimeBattleEngine, id: String) -> ActiveCardInstance:
 
 
 func _run() -> void:
-	_check(Database.get_all_card_ids().size() == 120 and Database.get_boss_card_ids().size() == 3, "Collectible catalog changed")
+	_check(Database.get_all_card_ids().size() == 122 and Database.get_boss_card_ids().size() == 3, "Collectible catalog changed")
 	for id: String in Database.get_boss_card_ids():
 		_check(not Database.get_card_ids_by_rarity("legendary").has(id), "Boss card leaked into rewards")
 		_check(not DeckPresetService.valid_cards([id]), "Player preset accepted a boss card")

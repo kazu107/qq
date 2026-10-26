@@ -40,7 +40,7 @@ func _run() -> void:
 	_check(panel.find_child("BattleDetailsButton", true, false) != null, "Details action missing")
 	panel.show_details()
 	_check(panel._details_modal.visible and not panel._result_modal.visible, "Details should be a separate view")
-	_check(panel._metrics.get_child_count() == 24, "Comparison table should have seven metrics and two players")
+	_check(panel._metrics.get_child_count() == 27, "Comparison table should have eight metrics and two players")
 	for metric: String in ["damage", "heal", "shield", "absorbed"]:
 		panel._select_metric(metric)
 		_check(panel._card_rows.get_child_count() >= 2, "Metric graph missing player sections: " + metric)

@@ -1,6 +1,6 @@
 # 画像・アイコン資産台帳と自前化計画
 
-最終監査日: 2026-10-26 / QQ-0.54.0
+最終監査日: 2026-10-26 / QQ-0.55.0
 
 第一弾・スターター・敵とボス・カード・遺物・小型UI・環境のバッチを展開しました。現在の機械判定は`data/art_coverage.json`、個別の原本・出力ハッシュは`data/art_provenance.json`を参照してください。検証と画面確認は`docs/BLENDER_FULL_ROLLOUT.md`へ記録します。
 
@@ -12,10 +12,10 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 
 | 区分 | 数 | 現在の形式 | 容量・仕様 | 主な用途 |
 | --- | ---: | --- | --- | --- |
-| カード画像 | 120 + 疲労1 + ボス専用3 | PNG RGBA | 全て512x512、編集可能なBlenderシーン | 戦闘、タイムライン、報酬、図鑑、ロードアウト、デバッグ。専用3枚はボスのみ |
+| カード画像 | 122 + 疲労1 + ボス専用3 | PNG RGBA | 全て512x512、編集可能なBlenderシーン | 戦闘、タイムライン、報酬、図鑑、ロードアウト、デバッグ。専用3枚はボスのみ |
 | 遺物画像 | 86 | PNG RGBA | 全て512x512、台座・背景なしの透過 | バナー、報酬、イベント、アリーナ、ツールチップ |
 | キャラクター・敵画像 | 25 | PNG | 全て1024x1024、同じ3Dモデルからレンダー | 戦闘、アリーナ、開発者ラボ |
-| 状態アイコン | 9 | PNG RGBA | 全て96x96 | 戦闘中の状態表示とツールチップ。次攻撃倍化・反響・予約・HPリジェネを含む |
+| 状態アイコン | 11 | PNG RGBA | 全て96x96 | 戦闘中の状態表示とツールチップ。次攻撃倍化・反響・予約・HPリジェネ・転換を含む |
 | 共通UI・効果アイコン | 49 + 12 | PNG RGBA | 全て64x64 | ステータス、カード効果、施設、バナー、操作・ナビゲーション |
 | マップ・操作部品 | 9 + 10 | PNG RGBA | マップ96x96、操作部品は従来のUI寸法 | マップ、設定のスイッチ・チェック・スライダー |
 | 実績アイコン | 30 | PNG RGBA | 全て128x128、1024pxのBlenderレンダーから縮小 | 実績の上段左、開発者用アートラボ。296段階を30テーマで表示 |
@@ -27,7 +27,8 @@ Blenderでの高精細3D制作順、共通部品、全カード・遺物・人�
 | Blender制作原本 | バッチ・カード・遺物単位 | Blend | `art_src/blender/`、PCK対象外 | モデル・静止画の再生成 |
 | 開発・文書専用画像 | バッチごと | PNG | コンタクトシート、実寸比較、ネイティブ/Web確認 | 本番ランタイム対象外 |
 
-- 制作台帳は383成果物を対象にします。共有アニメーション、SVGワードマーク、確認画像はこの成果物数へ含めません。
+- 制作台帳は387成果物を対象にします。共有アニメーション、SVGワードマーク、確認画像はこの成果物数へ含めません。
+- 転換2枚と状態2枚の原本は `art_src/blender/cards/damage_conversion.blend`、生成は `tools/blender/build_conversion_cards.py`、登録は `tools/finalize_conversion_art.py` です。
 - リジェネ8枚と状態1枚の原本は `art_src/blender/cards/regeneration_cards.blend`、生成は `tools/blender/build_regeneration_cards.py`、登録は `tools/finalize_regeneration_art.py` です。以前の予約18枚もBlender製であり、画像は変更していません。
 - 予約18枚と状態2枚の原本は `art_src/blender/cards/reservation_cards.blend`、生成は `tools/blender/build_reservation_cards.py`、登録は `tools/finalize_reservation_art.py` です。全て独立したバックグラウンドBlenderで作成します。
 - 反響は `assets/icons/cards/echo_cast.png` と `assets/icons/status/echo_ready.png` を追加しました。原本は `art_src/blender/cards/echo_cast.blend`、生成は `tools/blender/build_echo_card.py`、台帳登録は `tools/finalize_echo_art.mjs` です。独立したバックグラウンドBlenderを使い、ライブMCPには接続しません。

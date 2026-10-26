@@ -1198,6 +1198,9 @@ func _append_status_detail_lines(lines: Array[String], card_def: CardDef, rich: 
 func _get_applied_status_ids(card_def: CardDef) -> Array[String]:
 	var status_ids: Array[String] = []
 	for effect in card_def.effects:
+		if effect.get("type", "") == "damage_conversion":
+			if not status_ids.has("damage_conversion"): status_ids.append("damage_conversion")
+			continue
 		if String(effect.get("type", "")) != "apply_status":
 			continue
 		var status_id: String = String(effect.get("status", ""))
@@ -1208,6 +1211,8 @@ func _get_applied_status_ids(card_def: CardDef) -> Array[String]:
 
 func _get_status_detail_text(status_id: String, card_def: CardDef = null) -> String:
 	match status_id:
+		"damage_conversion":
+			return Localization.get_text("conversion.generic", "Prevents non-fatigue combat damage before shield, then converts a portion. Fractions accumulate. Reapplication does not extend the window; HP costs are not damage.")
 		"regen":
 			var power: int = 1
 			if card_def != null:

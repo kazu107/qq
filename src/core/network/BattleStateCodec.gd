@@ -10,6 +10,7 @@ const NETWORK_RESULT_UNIT_KEYS: Array[String] = [
 	"enemy_after",
 ]
 const NETWORK_RESULT_SCALAR_KEYS: Array[String] = [
+	"damage_prevented", "converted_heal", "converted_shield",
 	"shield_cost",
 	"amount",
 ]

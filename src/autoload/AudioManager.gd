@@ -20,6 +20,7 @@ const CARD_SOUND_ALIASES: Dictionary = {
 	"regen_patch": "card_repair_burst", "regen_salve": "card_field_medic", "regen_barrier": "card_guard",
 	"regen_emergency": "card_repair_burst", "regen_bloodwrap": "card_blood_siphon", "regen_burst": "card_repair_burst",
 	"regen_spring": "card_purge_pulse", "regen_tank": "card_repair_burst",
+	"life_conversion": "card_guard", "barrier_conversion": "card_guard",
 }
 const SFX_VOLUME_OFFSETS_DB: Dictionary = {
 	"run_start": -3.0,

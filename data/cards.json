@@ -7450,5 +7450,169 @@
         }
       }
     }
+  },
+  {
+    "id": "life_conversion",
+    "name": "Life Conversion",
+    "description": "Temporarily prevent combat damage and convert a portion. Fatigue and HP costs are excluded.",
+    "rarity": "epic",
+    "tags": [
+      "support",
+      "conversion",
+      "heal"
+    ],
+    "loadout_cost": 4,
+    "cast_time": 1.2,
+    "recast_time": 30,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.2,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "damage_conversion",
+        "mode": "heal",
+        "duration": 4,
+        "ratio": 0.25,
+        "lockout_duration": 4
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "recast_time": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "ratio": 0.35
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "ratio": 0.45
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "ratio": 0.55
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "ratio": 0.65
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "ratio": 0.75
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "barrier_conversion",
+    "name": "Barrier Conversion",
+    "description": "Temporarily prevent combat damage and convert a portion. Fatigue and HP costs are excluded.",
+    "rarity": "epic",
+    "tags": [
+      "support",
+      "conversion",
+      "shield"
+    ],
+    "loadout_cost": 4,
+    "cast_time": 1.2,
+    "recast_time": 30,
+    "active_slot_cost": 1,
+    "priority_modifier": 0.2,
+    "interruptible": true,
+    "target_type": "self",
+    "effects": [
+      {
+        "type": "damage_conversion",
+        "mode": "shield",
+        "duration": 4,
+        "ratio": 0.25,
+        "lockout_duration": 4
+      }
+    ],
+    "upgrade_profile": {
+      "cast_time": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "recast_time": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "grade_overrides": {
+      "1": {
+        "effects": {
+          "0": {
+            "ratio": 0.35
+          }
+        }
+      },
+      "2": {
+        "effects": {
+          "0": {
+            "ratio": 0.45
+          }
+        }
+      },
+      "3": {
+        "effects": {
+          "0": {
+            "ratio": 0.55
+          }
+        }
+      },
+      "4": {
+        "effects": {
+          "0": {
+            "ratio": 0.65
+          }
+        }
+      },
+      "5": {
+        "effects": {
+          "0": {
+            "ratio": 0.75
+          }
+        }
+      }
+    }
   }
 ]

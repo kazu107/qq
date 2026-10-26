@@ -92,6 +92,9 @@ func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, 
 	for effect in card_def.effects:
 		var effect_type := String(effect.get("type", ""))
 		match effect_type:
+			"damage_conversion":
+				var waiting: float = float(Dictionary(enemy.statuses.get("conversion_lockout", {})).get("duration", 0))
+				score += -30.0 if enemy.has_status("damage_conversion") or waiting > card_def.cast_time else (12.0 if engine.has_heavy_preparing_card(opponent_side) else 4.0)
 			"reserve_next_card": score += _score_reservation(engine, effect, player if effect.get("target") == "enemy" else enemy)
 			"repeat_next_card":
 				score += 7.0 if enemy.repeat_charges < RepeatRules.MAX_CHARGES else -30.0

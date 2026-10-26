@@ -1535,6 +1535,9 @@ func _refresh_developer_panel() -> void:
 			{"id": "DevReserveClear", "label": Localization.get_text("reservation.dev.clear", "Clear both reservations"), "callback": Callable(self, "_on_dev_reservation").bind(2), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevRegenApply", "label": Localization.get_text("regen.dev.apply", "Add three regeneration layers"), "callback": Callable(self, "_on_dev_regen").bind(false), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevRegenClear", "label": Localization.get_text("regen.dev.clear", "Clear regeneration"), "callback": Callable(self, "_on_dev_regen").bind(true), "disabled": _lan_mode or RankedSession.active()},
+			{"id": "DevConversionLife", "label": Localization.get_text("conversion.dev.life", "Deploy HP conversion (50%)"), "callback": Callable(self, "_on_dev_conversion").bind(0), "disabled": _lan_mode or RankedSession.active()},
+			{"id": "DevConversionShield", "label": Localization.get_text("conversion.dev.shield", "Deploy shield conversion (50%)"), "callback": Callable(self, "_on_dev_conversion").bind(1), "disabled": _lan_mode or RankedSession.active()},
+			{"id": "DevConversionClear", "label": Localization.get_text("conversion.dev.clear", "Clear conversion and rearm"), "callback": Callable(self, "_on_dev_conversion").bind(2), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevBleedEnemy", "label": Localization.get_text("bleed.dev.apply", "Enemy bleed x3"), "callback": Callable(self, "_on_dev_bleed").bind(false), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevBleedClear", "label": Localization.get_text("bleed.dev.clear", "Clear enemy bleed"), "callback": Callable(self, "_on_dev_bleed").bind(true), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevBossCharge", "label": Localization.get_text("boss.timekeeper.dev_charge", "Stack boss charge x2"), "callback": func() -> void: _on_dev_boss_charge(true), "disabled": _lan_mode or _engine.battle_state == null or _engine.battle_state.enemy.unit_id != "boss_timekeeper"},
@@ -1577,6 +1580,17 @@ func _on_dev_regen(clear: bool) -> void:
 		_engine.battle_state.player.remove_status("regen"); _engine.battle_state.enemy.remove_status("regen")
 	else:
 		for index: int in 3: _engine.apply_status_from_card("player", "player", "regen", 12 + index * 3, 2 + index, "regen_patch")
+	_refresh_ui(1.0)
+
+
+func _on_dev_conversion(mode: int) -> void:
+	if not Game.is_developer_mode_enabled() or _lan_mode or RankedSession.active() or _engine.battle_state == null or _handled_finish: return
+	if mode == 2:
+		DamageConversionRules.clear(_engine.battle_state.player); DamageConversionRules.clear(_engine.battle_state.enemy)
+	else:
+		var unit: UnitState = _engine.battle_state.player
+		DamageConversionRules.clear(unit)
+		DamageConversionRules.arm(unit, "heal" if mode == 0 else "shield", 4, .5, 4, "life_conversion" if mode == 0 else "barrier_conversion")
 	_refresh_ui(1.0)
 
 

@@ -168,7 +168,7 @@ func _build_ui() -> void:
 	_card_rows.name = "BattleCardContributions"
 	_card_rows.add_theme_constant_override("separation", 8)
 	content.add_child(_card_rows)
-	_card_rows.tooltip_text = _text("definition", "Damage is actual HP lost (excluding overkill); healing excludes overheal. Card bars show direct effects only. Status, relic, fatigue, and self-damage are not attributed to a card. Shield decay and shield costs are not blocked damage.")
+	_card_rows.tooltip_text = _text("definition", "Damage counts actual HP lost; healing excludes overheal. Nullification is separate from shield blocking. Regeneration and conversion credit their source cards. Fatigue and shield decay/costs are not card damage.")
 	_details_modal.hide()
 
 
@@ -217,7 +217,7 @@ func _refresh_details() -> void:
 	_cell(_text("metric", "Metric"), Color.WHITE)
 	_cell(_side_name(_local_side), LOCAL_COLOR)
 	_cell(_side_name(opponent), OPPONENT_COLOR)
-	for metric: String in ["damage", "absorbed", "damage_taken", "blocked", "shield", "heal", "casts"]:
+	for metric: String in ["damage", "absorbed", "damage_taken", "blocked", "prevented", "shield", "heal", "casts"]:
 		_cell(_metric_name(metric), UiTheme.TEXT_MUTED)
 		for side: String in [_local_side, opponent]:
 			var value: int = int(Dictionary(totals.get(side, {})).get(metric, 0))
@@ -318,7 +318,7 @@ func _side_name(side: String) -> String:
 
 
 func _metric_name(metric: String) -> String:
-	var fallback: Dictionary = {"damage": "HP damage dealt", "absorbed": "Shield damage dealt", "damage_taken": "HP damage taken", "blocked": "Damage blocked", "shield": "Shield gained", "heal": "HP restored", "casts": "Cards resolved"}
+	var fallback: Dictionary = {"damage": "HP damage dealt", "absorbed": "Shield damage dealt", "damage_taken": "HP damage taken", "blocked": "Damage blocked", "prevented": "Damage nullified", "shield": "Shield gained", "heal": "HP restored", "casts": "Cards resolved"}
 	return _text("stat_" + metric, String(fallback.get(metric, metric)))
 
 

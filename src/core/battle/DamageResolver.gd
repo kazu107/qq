@@ -11,10 +11,14 @@ static func apply_damage(attacker: UnitState, defender: UnitState, base_amount: 
 	return result
 
 
-static func apply_fixed_damage(defender: UnitState, raw: int) -> Dictionary:
+static func apply_fixed_damage(defender: UnitState, raw: int, bypass_shield: bool = false, incoming_bonus: bool = true, allow_conversion: bool = true) -> Dictionary:
 	var mitigated: int = max(1, raw)
-	mitigated += defender.get_incoming_damage_bonus()
-	var shield_absorb: int = min(defender.shield, mitigated)
+	if incoming_bonus: mitigated += defender.get_incoming_damage_bonus()
+	var converted: Dictionary = DamageConversionRules.absorb(defender, mitigated) if allow_conversion else {}
+	if not converted.is_empty():
+		converted.merge({"raw": raw, "mitigated": mitigated, "shield_absorb": 0, "hp_damage": 0, "total_damage": 0})
+		return converted
+	var shield_absorb: int = 0 if bypass_shield else min(defender.shield, mitigated)
 	defender.shield -= shield_absorb
 	var hp_damage: int = max(0, mitigated - shield_absorb)
 	var hp_before: int = defender.hp

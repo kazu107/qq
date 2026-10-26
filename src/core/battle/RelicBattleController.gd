@@ -337,8 +337,7 @@ func on_status_event(side: String, event_data: Dictionary) -> void:
 			var unit: UnitState = _state.get_unit(side)
 			var before: int = unit.hp
 			var final_damage: int = maxi(1, int(event_data.get("last_tick_power", 1))) * _pi(_opponent(side), "critical_pathology_meter", "bleed_final_ticks", 1)
-			unit.hp = maxi(0, unit.hp - final_damage)
-			unit.combat_totals["damage_taken"] = int(unit.combat_totals["damage_taken"]) + maxi(0, before - unit.hp)
+			DamageResolver.apply_fixed_damage(unit, final_damage, true, false)
 			var source: UnitState = _state.get_opponent(side)
 			source.combat_totals["damage"] = int(source.combat_totals["damage"]) + maxi(0, before - unit.hp)
 			_engine.prevent_lethal(side)

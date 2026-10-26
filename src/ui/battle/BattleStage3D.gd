@@ -251,6 +251,8 @@ func _play_event_audio(event_data: Dictionary) -> void:
 		AudioManager.play_sfx("battle_full_block" if blocked else "status_bleed_tick", 0.85)
 	elif type == "status_heal":
 		AudioManager.play_sfx("card_repair_burst", 1.12, -10.0)
+	elif type == "status_damage":
+		AudioManager.play_sfx("battle_full_block" if int(result.get("damage_prevented", 0)) > 0 else "status_bleed_tick", 0.95)
 
 
 func ensure_battle_end_presentation(winner: String) -> void:
@@ -1019,6 +1021,11 @@ func _emit_event_combat_text(event_data: Dictionary) -> void:
 			_emit_unit_delta_text(_enemy_actor, _unit_delta(result, _enemy_actor), lane)
 		"status_damage":
 			var status_target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
+			var prevention: Dictionary = Dictionary(event_data.get("result", {}))
+			if int(prevention.get("damage_prevented", 0)) > 0:
+				if int(prevention.get("converted_heal", 0)) > 0: _spawn_floating_combat_text(status_target, "+%d" % int(prevention["converted_heal"]), HEAL_COLOR, 0)
+				if int(prevention.get("converted_shield", 0)) > 0: _spawn_floating_combat_text(status_target, "+%d" % int(prevention["converted_shield"]), SHIELD_COLOR, 0)
+				return
 			var damage_amount: int = maxi(0, -int(event_data.get("hp_delta", 0)))
 			if damage_amount <= 0:
 				var status_result: Dictionary = Dictionary(event_data.get("result", {}))
@@ -1136,6 +1143,10 @@ func _begin_event(event_data: Dictionary) -> float:
 			return 0.3
 		"status_damage":
 			var status_target: BattleActor3D = _actor_for_unit_id(String(event_data.get("target_id", "")))
+			if int(Dictionary(event_data.get("result", {})).get("damage_prevented", 0)) > 0:
+				if status_target != null:
+					status_target.play_action(BattleActor3D.ACTION_BLOCK); _spawn_impact(_actor_effect_position(status_target), SHIELD_COLOR, 0.45, 1.4)
+				return 0.3
 			if status_target != null:
 				status_target.play_action(BattleActor3D.ACTION_HIT)
 				_spawn_impact(_actor_effect_position(status_target), DAMAGE_COLOR, 0.42, 1.4)
@@ -1329,6 +1340,8 @@ func _apply_resolution_pulse(event: Dictionary) -> void:
 	_apply_unit_delta(actor, actor_delta, profile, false)
 	if target != actor:
 		_apply_unit_delta(target, target_delta, profile, true)
+	if target != null and int(Dictionary(event.get("result", {})).get("damage_prevented", 0)) > 0:
+		target.play_action(BattleActor3D.ACTION_BLOCK); _spawn_impact(_actor_effect_position(target), SHIELD_COLOR, 0.5, 1.7)
 	var status_actor: BattleActor3D = actor if bool(profile.get("self_status", false)) else target
 	if bool(profile.get("status", false)) and status_actor != null:
 		_spawn_impact(_actor_effect_position(status_actor), HEAL_COLOR if bool(profile.get("regen", false)) else STATUS_COLOR, 0.62, 1.68)
@@ -1432,6 +1445,8 @@ func _build_card_profile(card_def: CardDef) -> Dictionary:
 				profile["status"] = true; profile["self_status"] = true
 			"reserve_next_card":
 				profile["status"] = true; profile["self_status"] = effect.get("target", "self") != "enemy"
+			"damage_conversion":
+				profile["status"] = true; profile["self_status"] = true; profile["shield"] = true
 			"apply_status":
 				profile["status"] = true
 				if effect.get("status") == "regen":

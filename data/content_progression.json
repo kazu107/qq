@@ -27,7 +27,7 @@
     },
     {
       "xp": 24,
-      "cards": ["recursive_protocol", "chronostasis", "entropy_reversal", "crisis_drone_swarm", "mirror_aegis", "rift_volley", "entropy_armor", "reserve_siphon", "reserve_chain", "reserve_heal_jam", "reserve_time_mine", "regen_burst", "regen_tank"],
+      "cards": ["recursive_protocol", "chronostasis", "entropy_reversal", "crisis_drone_swarm", "mirror_aegis", "rift_volley", "entropy_armor", "reserve_siphon", "reserve_chain", "reserve_heal_jam", "reserve_time_mine", "regen_burst", "regen_tank", "life_conversion", "barrier_conversion"],
       "relics": ["scavenger_contract", "emergency_foam", "overclock_key", "chrono_metronome", "armor_garden", "bounty_drone", "prism_furnace", "archive_compass"]
     },
     {

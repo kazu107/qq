@@ -12,6 +12,7 @@ var attack: int = 0
 var next_attack_multiplier: float = 1.0
 var repeat_charges: int = 0
 var card_reservations: Array[Dictionary] = []
+var conversion_credits: Dictionary = {}
 var speed: int = 0
 var statuses: Dictionary = {}
 var active_slots_used: int = 0
@@ -24,7 +25,7 @@ var previous_used_runtime_id: String = ""
 var cast_time_modifier: float = 1.0
 var shield_decay_interval: float = 1.0
 var _shield_decay_accumulator: float = 0.0
-var combat_totals: Dictionary = {"damage": 0, "absorbed": 0, "damage_taken": 0, "blocked": 0, "shield": 0, "heal": 0}
+var combat_totals: Dictionary = {"damage": 0, "absorbed": 0, "damage_taken": 0, "blocked": 0, "shield": 0, "heal": 0, "prevented": 0}
 
 
 func is_alive() -> bool:
@@ -144,6 +145,8 @@ func adjust_status_duration(status_id: String, amount: float) -> void:
 
 
 func remove_status(status_id: String) -> void:
+	if status_id == "damage_conversion" and statuses.has(status_id):
+		DamageConversionRules.end(self); return
 	statuses.erase(status_id)
 
 
@@ -175,11 +178,15 @@ func tick_statuses(delta: float) -> Array[Dictionary]:
 			statuses[status_id] = data
 			continue
 		var remaining: float = max(0.0, float(data.get("duration", 0.0)) - delta)
+		if status_id == "damage_conversion": data["_duration_before_tick"] = float(data.get("duration", 0))
 		data["duration"] = remaining
 		statuses[status_id] = data
 		if remaining <= 0.0:
 			expired.append(String(status_id))
 	for status_id in expired:
+		if status_id == "damage_conversion":
+			DamageConversionRules.end(self, maxf(0, delta - float(statuses[status_id].get("_duration_before_tick", delta))))
+			continue
 		statuses.erase(status_id)
 		events.append({
 			"type": "status_expired",

@@ -49,6 +49,10 @@ static func format_grade_label(tier: int) -> String:
 static func _describe_effect(effect: Dictionary, compact: bool, comparison_effect: Dictionary = {}, rich: bool = false) -> String:
 	var effect_type: String = String(effect.get("type", ""))
 	match effect_type:
+		"damage_conversion":
+			var current_ratio: Dictionary = {"ratio": float(effect.get("ratio", .25)) * 100}
+			var original_ratio: Dictionary = {"ratio": float(comparison_effect.get("ratio", effect.get("ratio", .25))) * 100}
+			return Localization.get_textf("conversion.effect", "For {duration}s, prevent non-fatigue combat damage before shield and convert {percent}% into {mode}. Reapplication does not extend it; rearm takes {lockout}s. HP costs are excluded.", {"duration": _format_compared_float(effect, comparison_effect, "duration", 1, true, rich), "percent": _format_compared_float(current_ratio, original_ratio, "ratio", 0, true, rich), "mode": Localization.get_text("conversion.mode." + String(effect.get("mode", "heal")), "HP" if effect.get("mode", "heal") == "heal" else "shield"), "lockout": _format_compared_float(effect, comparison_effect, "lockout_duration", 1, false, rich)})
 		"reserve_next_card":
 			var kind: String = effect.get("reservation", "")
 			var lower_better: bool = kind in ["reload", "weaken", "shield_jam", "heal_jam", "swift_commit"]

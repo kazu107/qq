@@ -48,7 +48,7 @@ func _run() -> void:
 	for change: Dictionary in follow_up["changes"]: replacements[change["id"] + ":" + change["path"]] = change["after"]
 	for id: String in EXCLUDED:
 		_check(not ids.has(id) and Database.get_card(id).recast_time == float(replacements.get(id + ":recast_time", EXCLUDED[id])), "excluded card changed without a later request: " + id)
-	_check(ids.size() + EXCLUDED.size() + ReservedCardRules.NAMES.size() + RegenerationRules.CARD_IDS.size() == Database.get_all_card_ids().size() + Database.get_boss_card_ids().size(), "catalog coverage differs")
+	_check(ids.size() + EXCLUDED.size() + ReservedCardRules.NAMES.size() + RegenerationRules.CARD_IDS.size() + DamageConversionRules.CARD_IDS.size() == Database.get_all_card_ids().size() + Database.get_boss_card_ids().size(), "catalog coverage differs")
 	for tier: int in range(6):
 		var run: RunState = RunState.from_starter(Database.get_starter("balanced"), 4242)
 		run.equipped_cards = ids.duplicate()

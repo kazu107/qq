@@ -235,6 +235,30 @@ func _command(arguments: Array) -> void:
 		Game.set_language(String(payload.get("language", "ja"))); Game.settings["developer_mode"] = true
 		Game.developer_open_custom_battle("guardian", "balanced", RegenerationRules.CARD_IDS.duplicate())
 		SceneRouter.go_to_battle()
+	elif String(payload.get("action", "")) == "conversion_fixture":
+		Game.set_language(String(payload.get("language", "ja"))); Game.settings["developer_mode"] = true
+		Game.developer_open_custom_battle("scout", "balanced", ["life_conversion", "barrier_conversion", "strike", "guard"])
+		SceneRouter.go_to_battle()
+	elif String(payload.get("action", "")) == "conversion_attack":
+		var battle: Control = get_tree().current_scene as Control
+		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+		for runtime: CardRuntimeState in engine.battle_state.enemy.card_runtime_states:
+			if runtime.card_id == "quick_slash":
+				engine.request_use_card("enemy", runtime.runtime_id)
+				for instance: ActiveCardInstance in engine.battle_state.get_active_instances_for_side("enemy"):
+					if instance.runtime_id == runtime.runtime_id: engine.update(instance.get_remaining(engine.battle_state.battle_time) + .0001); break
+				break
+		battle.call("_refresh_ui", 1.0)
+	elif String(payload.get("action", "")) == "conversion_fatigue":
+		var battle: Control = get_tree().current_scene as Control
+		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+		engine.debug_schedule_fatigue(); engine.update(1)
+		for instance: ActiveCardInstance in engine.battle_state.active_instances:
+			if instance.owner_side == FatigueRules.SIDE:
+				# Resolve real fatigue damage inside the field, without waiting its full QA cast.
+				instance.shift_schedule(engine.battle_state.battle_time + .1 - instance.scheduled_time, engine.battle_state.battle_time)
+				engine.update(.1001); break
+		battle.call("_refresh_ui", 1.0)
 	elif String(payload.get("action", "")) == "echo_control":
 		var battle: Control = get_tree().current_scene as Control
 		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
@@ -548,11 +572,12 @@ func _inspect() -> Dictionary:
 					if button.visible: timeline_cards.append({"runtime": button.runtime_id, "repeat": button._repeat_badge.visible, "reserved": button._reservation_badge.visible, "rect": _rect_values(button.get_global_rect())})
 				var echo_regions: Array[Dictionary] = []
 				for region: Dictionary in stage.get_player_status_model().get_status_regions():
-					if region["id"] not in ["echo_ready", "reservation_boost", "reservation_hex", "regen"]: continue
+					if region["id"] not in ["echo_ready", "reservation_boost", "reservation_hex", "regen", "damage_conversion", "conversion_lockout"]: continue
 					var points: Array[Array] = []
 					for point: Vector3 in region["corners"]: points.append(_point_values(stage.global_position + stage.project_world_position(point)))
 					echo_regions.append({"id": region["id"], "points": points, "tooltip": region["tooltip"]})
 				result["echo"] = {"charges": bleed_engine.battle_state.player.repeat_charges, "hand": hand_cards, "timeline": timeline_cards,
+					"conversion": bleed_engine.battle_state.player.statuses.get("damage_conversion", {}), "conversion_lockout": bleed_engine.battle_state.player.statuses.get("conversion_lockout", {}), "shield": bleed_engine.battle_state.player.shield, "prevented": bleed_engine.battle_state.player.combat_totals.get("prevented", 0),
 					"player_hp": bleed_engine.battle_state.player.hp, "regen": bleed_engine.battle_state.player.statuses.get("regen", {}),
 					"pending": bleed_engine.battle_state.player.card_reservations.size(), "enemy_pending": enemy.card_reservations.size(),
 					"enemy_hp": enemy.hp, "status_regions": echo_regions, "tooltip": tip.text if tip != null and tip.is_visible_in_tree() else "",

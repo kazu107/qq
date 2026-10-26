@@ -479,6 +479,14 @@
     "regen_tank": {
       "en": "Regeneration Tank",
       "ja": "再生タンク"
+    },
+    "life_conversion": {
+      "en": "Life Conversion",
+      "ja": "生命転換"
+    },
+    "barrier_conversion": {
+      "en": "Barrier Conversion",
+      "ja": "防壁転換"
     }
   },
   "relic": {

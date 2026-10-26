@@ -32,6 +32,9 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 		var effect := Dictionary(raw_effect)
 		var effect_type := String(effect.get("type", ""))
 		match effect_type:
+			"damage_conversion":
+				var applied: bool = DamageConversionRules.arm(actor, String(effect.get("mode", "heal")), float(effect.get("duration", 4)), float(effect.get("ratio", .25)), float(effect.get("lockout_duration", 4)), instance.card_id)
+				messages.append(Localization.get_text("conversion.applied", "Damage conversion deployed") if applied else Localization.get_text("conversion.wait", "Damage conversion is rearming"))
 			"reserve_next_card":
 				var reserved_target: UnitState = _resolve_target_unit(actor, target, effect)
 				var added: bool = ReservedCardRules.grant(reserved_target, effect, instance.owner_side)
@@ -61,6 +64,7 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 				var hp_before: int = target.hp
 				amount = roundi(ReservedCardRules.effect_value(instance.card_reservations, effect_type, amount))
 				var result := DamageResolver.apply_damage(actor, target, amount, attack_multiplier * ReservedCardRules.attack_scale(instance.card_reservations))
+				instance.damage_prevented += int(result.get("damage_prevented", 0))
 				engine.resolution_metrics["damage"] = int(engine.resolution_metrics.get("damage", 0)) + mini(hp_before, int(result["hp_damage"]))
 				engine.resolution_metrics["absorbed"] = int(engine.resolution_metrics.get("absorbed", 0)) + int(result["shield_absorb"])
 				engine.prevent_lethal(_opponent_side(instance.owner_side))
