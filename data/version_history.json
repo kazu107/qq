@@ -1,9 +1,16 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.54.1",
+  "current_version": "QQ-0.54.2",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.54.2", "date": "2026-10-26",
+      "title_ja": "日本語フォントの不足文字を補完",
+      "title_en": "Complete Japanese font coverage",
+      "changes_ja": ["更新履歴で使う「汎」などの文字を埋め込みフォントに追加しました。リジェネの数値・挙動は変えず、ランキングはシーズン9を継続します。"],
+      "changes_en": ["Include the newly used Japanese history glyphs in the embedded font. Regeneration gameplay and ranked Season 9 are unchanged."]
+    },
     {
       "version": "QQ-0.54.1", "date": "2026-10-26",
       "title_ja": "カードのリジェネ補足説明を整備",
