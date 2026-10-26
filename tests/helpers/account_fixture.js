@@ -101,13 +101,14 @@ async function mockProviders() {
   return { state, oauth, origin, close: () => close(server) };
 }
 
-async function accountFixture({ reset = true, publicOrigin = "", publicDir, extraEnv = {} } = {}) {
+async function accountFixture({ reset = true, publicOrigin = "", publicDir, extraEnv = {}, rankingState = "active" } = {}) {
   const databaseEnv = testDatabaseEnv();
   if (!databaseEnv) throw new Error("QQ_AUTH_TEST_DATABASE_URL is required");
   const env = { ...databaseEnv, ...extraEnv };
   const store = new AccountStore(env);
   await store.migrate();
   if (reset) await store.pool.query("TRUNCATE qq_guest_transfers, qq_cloud_save_history, qq_cloud_saves, qq_ranked_commands, qq_ranked_runs, qq_ranked_seasons, qq_accounts_oauth_attempts, qq_accounts_sessions, qq_accounts_identities, qq_accounts_users");
+  if (reset) await store.pool.query("UPDATE qq_ranked_control SET state=$1,generation=md5(random()::text)::uuid,last_reset_hash=NULL WHERE singleton=true", [rankingState]);
   const mock = await mockProviders();
   let origin;
   const instance = createQqServer({ env, publicDir, account: { enabled: true, store, oauth: mock.oauth, getOrigin: () => publicOrigin || origin } });

@@ -28,7 +28,24 @@ function createRankingService(account, wakeVerifier = () => {}) {
     try {
       const database = await account.storage();
       if (!store) store = new RankingStore(database.pool);
+      if (req.method === "GET" && url.pathname === "/api/ranked/availability") {
+        const { status, next_season_number } = await store.availability();
+        respond(res, 200, { status, next_season_number }); return true;
+      }
       const season = await store.ensureSeason();
+      if (!season) {
+        const { status, next_season_number } = await store.availability();
+        const availability = { status, next_season_number };
+        if (req.method === "GET" && url.pathname === "/api/ranked/board") {
+          respond(res, 200, { ...availability, season: null, seasons: [], selection: { season_id: "" }, entries: [], self: null });
+          return true;
+        }
+        if (req.method === "GET" && url.pathname === "/api/ranked/history") {
+          await account.authorize(req); respond(res, 200, { ...availability, runs: [] }); return true;
+        }
+        if (req.method === "POST") await account.authorize(req, true);
+        fail("ranked_preparing", 409);
+      }
       if (req.method === "GET" && url.pathname === "/api/ranked/board") {
         let user = null; try { user = await account.authorize(req); } catch {}
         const seasons = await store.listSeasons();

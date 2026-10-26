@@ -14,7 +14,7 @@ async function main(env = process.env) {
     await store.migrate();
     console.log("ACCOUNT_SCHEMA_MIGRATION_OK: additive account, ranked-run, cloud-save and guest-transfer tables");
     const season = await new RankingStore(store.pool).ensureSeason();
-    console.log("RANKED_SEASON_READY", season.id);
+    console.log(season ? "RANKED_SEASON_READY" : "RANKED_PREPARING", season?.id || "no season created");
   } finally { await store.close(); }
 }
 

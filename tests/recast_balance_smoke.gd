@@ -39,6 +39,9 @@ func _run() -> void:
 		var follow_up: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(fixture))
 		for change: Dictionary in follow_up["changes"]: replacements[change["id"] + ":" + change["path"]] = change["after"]
 	var ids: Array[String] = []
+	var grade_tuning: Dictionary = {}
+	for entry: Dictionary in JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/remaining_grades_0_56_0.json"))["cards"]:
+		grade_tuning[entry["id"]] = entry["grades"]
 	for change: Dictionary in document["changes"]:
 		var id: String = change["id"]
 		_check(change["kind"] == "card" and change["path"] == "recast_time" and not ids.has(id), "unexpected/duplicate change")
@@ -66,6 +69,7 @@ func _run() -> void:
 			var expected: CardDef = CardUpgradeResolver.build_card_at_tier(id, tier)
 			var latest_base: float = float(replacements.get(id + ":recast_time", change["after"]))
 			var recast: float = float(replacements.get("%s:grade_overrides.%d.recast_time" % [id, tier], maxf(0, old_grade.recast_time + latest_base - float(change["before"]))))
+			if tier > 0 and grade_tuning.has(id): recast = float(grade_tuning[id][str(tier)]["recast_time"])
 			_check(is_equal_approx(expected.recast_time, recast), "grade reduction changed: %s / %d" % [id, tier])
 			_check(expected.cast_time == old_grade.cast_time and expected.effects == old_grade.effects, "cast/effects changed: " + id)
 			_check(is_equal_approx(draft.card(id, tier).recast_time, expected.recast_time), "lab grade differs: " + id)

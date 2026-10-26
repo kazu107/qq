@@ -7,7 +7,11 @@ const require = createRequire(import.meta.url);
 const { createQqServer } = require('../server/server');
 const { chromium } = process.env.QQ_NODE_MODULES
   ? createRequire(resolve(process.env.QQ_NODE_MODULES, '../package.json'))('playwright') : require('playwright');
-const document = JSON.parse(await readFile(process.env.QQ_BALANCE_FIXTURE || 'tests/fixtures/published_balance.json', 'utf8'));
+const sourceDocument = JSON.parse(await readFile(process.env.QQ_BALANCE_FIXTURE || 'tests/fixtures/published_balance.json', 'utf8'));
+function fields(value, prefix = '') {
+  return Object.entries(value).flatMap(([key, child]) => typeof child === 'object' ? fields(child, prefix + key + '.') : [{ path: prefix + key, after: child }]);
+}
+const document = sourceDocument.cards ? { changes: sourceDocument.cards.flatMap(card => fields(card.grades, 'grade_overrides.').map(field => ({ id: card.id, ...field }))) } : sourceDocument;
 const expectedIds = new Set(document.changes.map(change => change.id));
 const output = resolve(process.env.QQ_BALANCE_REVIEW_OUTPUT || 'tools/.local/published-balance/browser');
 await mkdir(output, { recursive: true });
@@ -60,7 +64,7 @@ try {
       for (const change of document.changes.filter(change => change.id === id)) {
         const match = /^grade_overrides\.(\d+)\./.exec(change.path);
         if ((match ? Number(match[1]) : 0) !== grade) continue;
-        assert.equal(state.balance.fields[change.path]?.value, change.after, `${id}:${change.path}`);
+        assert(Math.abs(state.balance.fields[change.path]?.value - change.after) < 1e-7, `${id}:${change.path}`);
       }
       values.push({ grade, preview: state.balance.grade_previews[String(grade)] });
     }
@@ -70,7 +74,7 @@ try {
       assert(state.balance.grade_previews['5'].includes(id === 'guard' ? '28' : '52'));
       await page.screenshot({ path: resolve(output, `${id}-grade5.png`) });
     }
-    if (id === 'echo_cast' || id === 'timekeeper_amplify' || expectedIds.size <= 12) {
+    if (['echo_cast','timekeeper_amplify','auto_turret','recirculate','chronostasis'].includes(id) || expectedIds.size <= 12) {
       await page.screenshot({ path: resolve(output, `${id}-grade5.png`) });
     }
   }

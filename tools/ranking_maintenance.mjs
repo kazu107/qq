@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { existsSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -21,6 +21,24 @@ async function remote(command, prefix) {
 }
 try {
   if (mode === 'inspect') console.log(await remote('inspect', 'QQ_RANKED_MAINTENANCE '));
+  else if (mode === 'pause') console.log(await remote('pause', 'QQ_RANKED_MAINTENANCE '));
+  else if (mode === 'reset-all-with-backup') {
+    if (id !== 'CONFIRM-RANKING-ONLY') throw new Error('explicit_ranking_reset_confirmation_required');
+    console.log(await remote('pause', 'QQ_RANKED_MAINTENANCE '));
+    const envelope = JSON.parse(Buffer.from(await remote('export-ranking', 'QQ_RANKED_BACKUP '), 'base64').toString('utf8'));
+    if (envelope.data.format !== 2 || envelope.data.scope !== 'ranking_only' || createHash('sha256').update(JSON.stringify(envelope.data)).digest('hex') !== envelope.sha256) throw new Error('invalid_backup');
+    const directory = resolve(root, 'tools/.local/ranking-reset');
+    await mkdir(directory, { recursive: true });
+    const path = join(directory, `${new Date().toISOString().replace(/[:.]/g, '-')}-all-seasons.json`);
+    await writeFile(path, JSON.stringify(envelope, null, 2), { flag: 'wx', mode: 0o600 });
+    const saved = JSON.parse(await readFile(path, 'utf8'));
+    if (createHash('sha256').update(JSON.stringify(saved.data)).digest('hex') !== envelope.sha256) throw new Error('backup_readback_failed');
+    console.log('RANKED_BACKUP_SAVED', path, envelope.sha256, JSON.stringify({ seasons: saved.data.seasons.length, runs: saved.data.runs.length, commands: saved.data.commands.length }));
+    console.log(await remote(`reset-all ${envelope.sha256}`, 'QQ_RANKED_MAINTENANCE '));
+  } else if (mode === 'start-season') {
+    if (!/^infinite-[1-9][0-9]*$/.test(id || '') || !/^[a-f0-9-]{36}$/i.test(rawScore || '')) throw new Error('explicit_ruleset_and_generation_required');
+    console.log(await remote(`start-season ${id} ${rawScore}`, 'QQ_RANKED_MAINTENANCE '));
+  }
   else if (mode === 'backup-and-delete') {
     if (!/^[a-f0-9-]{36}$/i.test(id || '') || !/^\d+$/.test(rawScore || '') || !Number.isSafeInteger(Number(rawScore))) throw new Error('explicit_run_id_and_score_required');
     const envelope = JSON.parse(Buffer.from(await remote(`export-test-run ${id} ${rawScore}`, 'QQ_RANKED_BACKUP '), 'base64').toString('utf8'));

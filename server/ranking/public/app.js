@@ -31,6 +31,18 @@
       const data = await response.json();
       if (current !== serial) return;
       if (!response.ok) throw new Error();
+      const preparing = data.status === 'preparing';
+      document.querySelector('.ranking-scroll').hidden = preparing;
+      document.querySelector('.ranking-history').hidden = preparing;
+      for (const id of ['season','starter','previous','next']) el(id).disabled = preparing;
+      for (const id of ['season','starter']) el(id).closest('label').style.display = preparing ? 'none' : '';
+      el('previous').parentElement.style.display = preparing ? 'none' : '';
+      if (preparing) {
+        el('notice').textContent=t('ランキングは準備中です。シーズン1はまだ開始していません。','Rankings are being prepared. Season 1 has not started.');
+        el('entries').replaceChildren(); el('season').replaceChildren();
+        el('history').replaceChildren(); el('self').textContent=''; el('page').textContent='';
+        selectedSeason=''; currentSeason=''; page=0; return;
+      }
       if (!selectedSeason && currentSeason && currentSeason !== data.season.id && page > 0) {
         page=0; currentSeason=data.season.id; refresh(); return;
       }

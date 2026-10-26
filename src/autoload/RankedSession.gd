@@ -2,13 +2,16 @@ extends Node
 
 signal changed
 
-const RULESET := "infinite-14"
+const RULESET := "infinite-15"
 const STEP := 1.0 / 60.0
 const METHODS := ["select_map_node", "start_active_encounter", "prepare_next_battle", "choose_reward", "skip_reward", "reroll_rewards_for_gold", "equip_card", "unequip_card", "sell_loadout_card", "buy_shop_offer", "use_shop_service_choice", "upgrade_forge_card", "use_forge_service_choice", "use_heal_node_choice", "resolve_event_choice", "continue_hazard", "withdraw_hazard", "leave_facility"]
 var verifying: bool = false
 var dispatching: bool = false
 var engine: Variant
 var status_text: String = ""
+var availability_status: String = "unknown"
+var _checking_availability: bool = false
+var _availability_elapsed: float = 0.0
 var _tracked: RunState
 var _bridge: JavaScriptObject
 var _elapsed: float = 0.0
@@ -27,6 +30,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if verifying: return
+	_availability_elapsed += delta
+	if _bridge != null and _availability_elapsed > 30.0:
+		_availability_elapsed = 0.0
+		refresh_availability()
 	_elapsed += delta
 	if _elapsed > 10.0:
 		_elapsed = 0.0
@@ -55,6 +62,18 @@ func is_supported() -> bool:
 	return _bridge != null
 
 
+func refresh_availability() -> void:
+	if _bridge == null or _checking_availability: return
+	_checking_availability = true
+	var response: Dictionary = await request("GET", "/api/ranked/availability")
+	_checking_availability = false
+	if response.has("error"): return
+	availability_status = "preparing" if response.get("status", "") == "preparing" else "active"
+	if availability_status == "preparing":
+		status_text = "ランキング準備中 / シーズン1は未開始" if Localization.get_language() == "ja" else "Rankings preparing / Season 1 has not started"
+	changed.emit()
+
+
 func request(method: String, path: String, body: Dictionary = {}) -> Dictionary:
 	if _bridge == null: return {"error": "web_only"}
 	var reply: Reply = Reply.new()
@@ -64,6 +83,10 @@ func request(method: String, path: String, body: Dictionary = {}) -> Dictionary:
 	)
 	_bridge.request(method, path, JSON.stringify(body), callback)
 	var result: Dictionary = await reply.completed
+	if result.get("error", "") == "ranked_preparing":
+		availability_status = "preparing"
+		status_text = "ランキング準備中 / シーズン1は未開始" if Localization.get_language() == "ja" else "Rankings preparing / Season 1 has not started"
+		changed.emit()
 	return result
 
 
@@ -72,7 +95,7 @@ func start(starter_id: String) -> bool:
 	var result: Dictionary = await request("POST", "/api/ranked/runs", {"starter_id": starter_id})
 	if not is_instance_valid(source_scene) or get_tree().current_scene != source_scene: return false
 	if result.has("error"):
-		status_text = "ランキング開始不可: " + String(result["error"])
+		status_text = "ランキングは準備中です" if result["error"] == "ranked_preparing" else "ランキング開始不可: " + String(result["error"])
 		changed.emit()
 		return false
 	if String(result.get("ticket", {}).get("ruleset", "")) != RULESET:
@@ -157,7 +180,7 @@ func resume_saved() -> bool:
 		var response: Dictionary = await request("GET", "/api/ranked/runs/%s/journal?from=%d" % [ranking["ticket"]["id"], cursor])
 		if Game.current_run != previous_run: return false
 		if response.has("error") or response.get("status", "active") != "active":
-			status_text = "所有者のログインと接続を確認してください。記録は保持しています。"
+			status_text = "ランキングは準備中です" if response.get("error", "") == "ranked_preparing" else "所有者のログインと接続を確認してください。記録は保持しています。"
 			changed.emit()
 			return false
 		next = int(response["next_sequence"])
@@ -293,6 +316,7 @@ func _upload_run() -> RunState:
 
 func flush() -> void:
 	if _sending or verifying or _bridge == null: return
+	if availability_status == "preparing": return
 	var run: RunState = _upload_run()
 	if run == null: return
 	var ranking: Dictionary = run.ranking

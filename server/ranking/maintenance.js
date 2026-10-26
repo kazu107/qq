@@ -1,14 +1,59 @@
 "use strict";
-const { createHash } = require("node:crypto");
+const { createHash, randomUUID } = require("node:crypto");
 const { AccountStore } = require("../accounts/store");
 const { fail } = require("./store");
+const { controlled, pause, startSeason } = require("./lifecycle");
 
 function snapshotHash(data) { return createHash("sha256").update(JSON.stringify(data)).digest("hex"); }
 async function inspect(pool) {
   const seasons = await pool.query("SELECT id,ruleset,starts_at,ends_at FROM qq_ranked_seasons ORDER BY starts_at,id");
   const counts = await pool.query("SELECT status,count(*) FROM qq_ranked_runs GROUP BY status ORDER BY status");
   const verified = await pool.query("SELECT id,season_id,result->>'total_score' AS score FROM qq_ranked_runs WHERE status='verified' ORDER BY created_at");
-  return { seasons: seasons.rows, counts: counts.rows, verified: verified.rows };
+  const control = (await pool.query("SELECT state,generation FROM qq_ranked_control WHERE singleton=true")).rows[0];
+  return { control, seasons: seasons.rows, counts: counts.rows, verified: verified.rows };
+}
+async function allSnapshot(client, control) {
+  if (control.state !== "preparing") fail("pause_required");
+  const seasons = (await client.query("SELECT * FROM qq_ranked_seasons ORDER BY id")).rows;
+  const runs = (await client.query("SELECT * FROM qq_ranked_runs ORDER BY id")).rows;
+  const commands = (await client.query("SELECT * FROM qq_ranked_commands ORDER BY run_id,sequence")).rows;
+  return { format: 2, scope: "ranking_only", control, seasons, runs, commands };
+}
+async function exportRanking(pool) {
+  return controlled(pool, async (client, control) => {
+    await client.query("LOCK TABLE qq_ranked_seasons,qq_ranked_runs,qq_ranked_commands IN SHARE ROW EXCLUSIVE MODE");
+    const data = await allSnapshot(client, control);
+    return { sha256: snapshotHash(data), data };
+  });
+}
+const PROTECTED = ["qq_accounts_users", "qq_accounts_identities", "qq_accounts_sessions", "qq_cloud_saves", "qq_cloud_save_history", "qq_guest_transfers"];
+async function protectedDigest(client) {
+  const output = {};
+  for (const table of PROTECTED) {
+    // Fixed identifiers only. No account/save payload is returned or backed up here.
+    output[table] = (await client.query(`SELECT count(*)::integer AS count,md5(coalesce(string_agg(row_to_json(t)::text,'' ORDER BY row_to_json(t)::text),'')) AS hash FROM ${table} t`)).rows[0];
+  }
+  return output;
+}
+async function resetAll(pool, backupHash) {
+  if (!/^[a-f0-9]{64}$/.test(backupHash || "")) fail("backup_required");
+  return controlled(pool, async (client, control) => {
+    if (control.state !== "preparing") fail("pause_required");
+    if (control.last_reset_hash === backupHash) return { status: "preparing", next_season_number: 1, already_reset: true };
+    await client.query("LOCK TABLE qq_ranked_seasons,qq_ranked_runs,qq_ranked_commands IN SHARE ROW EXCLUSIVE MODE");
+    const data = await allSnapshot(client, control);
+    if (snapshotHash(data) !== backupHash) fail("backup_mismatch");
+    await client.query(`LOCK TABLE ${PROTECTED.join(",")} IN SHARE MODE`);
+    const before = await protectedDigest(client);
+    const commands = await client.query("DELETE FROM qq_ranked_commands");
+    const runs = await client.query("DELETE FROM qq_ranked_runs");
+    const seasons = await client.query("DELETE FROM qq_ranked_seasons");
+    const generation = randomUUID();
+    await client.query("UPDATE qq_ranked_control SET state='preparing',generation=$1,last_reset_hash=$2 WHERE singleton=true", [generation, backupHash]);
+    const after = await protectedDigest(client);
+    if (snapshotHash(before) !== snapshotHash(after)) fail("protected_data_changed");
+    return { status: "preparing", next_season_number: 1, generation, deleted_seasons: seasons.rowCount, deleted_runs: runs.rowCount, deleted_commands: commands.rowCount, accounts_and_saves_unchanged: true, protected_counts: Object.fromEntries(Object.entries(after).map(([key,value]) => [key,value.count])) };
+  });
 }
 async function snapshot(client, id, score) {
   if (!/^[0-9a-f-]{36}$/i.test(id) || !Number.isSafeInteger(score) || score < 0) fail("invalid_target");
@@ -47,10 +92,14 @@ async function main() {
   const store = new AccountStore(process.env);
   try {
     if (mode === "inspect") console.log("QQ_RANKED_MAINTENANCE " + JSON.stringify(await inspect(store.pool)));
+    else if (mode === "pause") console.log("QQ_RANKED_MAINTENANCE " + JSON.stringify(await pause(store.pool)));
+    else if (mode === "export-ranking") console.log("QQ_RANKED_BACKUP " + Buffer.from(JSON.stringify(await exportRanking(store.pool))).toString("base64"));
+    else if (mode === "reset-all") console.log("QQ_RANKED_MAINTENANCE " + JSON.stringify(await resetAll(store.pool, id)));
+    else if (mode === "start-season") console.log("QQ_RANKED_MAINTENANCE " + JSON.stringify(await startSeason(store.pool, id, rawScore)));
     else if (mode === "export-test-run") console.log("QQ_RANKED_BACKUP " + Buffer.from(JSON.stringify(await exportTestRun(store.pool, id, Number(rawScore)))).toString("base64"));
     else if (mode === "delete-test-run") console.log("QQ_RANKED_MAINTENANCE " + JSON.stringify(await deleteTestRun(store.pool, id, Number(rawScore), backupHash)));
     else fail("invalid_mode");
   } finally { await store.close(); }
 }
 if (require.main === module) main().catch(error => { console.error("RANKED_MAINTENANCE_FAILED", error.code || error.name); process.exitCode = 1; });
-module.exports = { inspect, exportTestRun, deleteTestRun, snapshotHash };
+module.exports = { inspect, exportTestRun, deleteTestRun, snapshotHash, exportRanking, resetAll };

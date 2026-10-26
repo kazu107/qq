@@ -214,6 +214,9 @@ func _build_ranking_actions(parent: Control) -> void:
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(status)
 	RankedSession.changed.connect(_refresh_ranking_status)
+	RankedSession.changed.connect(_refresh_ranking_access)
+	RankedSession.refresh_availability.call_deferred()
+	_refresh_ranking_access()
 	_cloud_status_label = Label.new()
 	_cloud_status_label.name = "CloudSaveStatus"
 	_cloud_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -239,7 +242,11 @@ func _refresh_cloud_status() -> void:
 
 func _refresh_ranking_access() -> void:
 	if is_instance_valid(_ranked_start_button):
-		_ranked_start_button.disabled = not RankedSession.is_supported() or not AccountSession.is_supported() or not bool(AccountSession.snapshot.get("authenticated", false)) or bool(AccountSession.snapshot.get("needsUsername", false))
+		_ranked_start_button.disabled = RankedSession.availability_status != "active" or not RankedSession.is_supported() or not AccountSession.is_supported() or not bool(AccountSession.snapshot.get("authenticated", false)) or bool(AccountSession.snapshot.get("needsUsername", false))
+		_ranked_start_button.text = ("ランキング準備中" if Localization.get_language() == "ja" else "Rankings Preparing") if RankedSession.availability_status == "preparing" else ("ランキングに挑戦" if Localization.get_language() == "ja" else "Ranked Infinite")
+	for name_text: String in ["HubRankedResumeButton", "HubRankedRetireButton"]:
+		var button: Button = find_child(name_text, true, false) as Button
+		if button != null: button.disabled = RankedSession.availability_status != "active"
 
 
 func _refresh_ranking_status() -> void:

@@ -918,6 +918,7 @@ func _collect_controls(node: Node, controls: Array[Dictionary], in_scroll: bool)
 	if control != null and (control is Container or control is BaseButton or control is LineEdit or control is SpinBox or control is ProgressBar):
 		controls.append({
 			"name": String(control.name), "class": control.get_class(), "icon": control.get_meta("semantic_icon", ""),
+			"text": (control as Button).text if control is Button else "", "disabled": (control as BaseButton).disabled if control is BaseButton else false,
 			"rect": _rect_values(control.get_global_rect()), "scroll": scrolling,
 		})
 	for child: Node in node.get_children():

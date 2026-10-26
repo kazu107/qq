@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.55.1",
+  "current_version": "QQ-0.56.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.56.0", "date": "2026-10-26",
+      "title_ja": "未調整カードのGrade調整とランキング準備中",
+      "title_en": "Remaining card grade balance and ranking preparation",
+      "changes_ja": [
+        "個別調整がまだない70枚のGrade 1〜5を見直しました。攻撃・シールド・回復量を段階的に増やし、詠唱・再使用は緩やかに短縮。停止・逆流・永続強化は伸びを抑え、出血は威力も上昇します。基本値と個別調整済み52枚・ボス専用カードは維持します。",
+        "ランキングを準備中にしました。準備中は閲覧・更新・再デプロイ・ゲーム内容の変更でもシーズンを作成せず、挑戦の受付と記録検証も停止します。明示的な管理操作でのみ再開します。",
+        "ランキング全体をローカル退避・ハッシュ照合してから削除する管理操作を追加しました。シーズン番号を1に戻しても開催は始めず、アカウント・クラウド保存・通常の進行は変更しません。"
+      ],
+      "changes_en": [
+        "Tune Grades 1–5 for 70 cards not previously individually balanced. Scale damage, shielding and healing; gently shorten casts and cooldowns; limit control and permanent-growth scaling; increase bleed potency. Preserve base values, 52 individually balanced cards and boss-only cards.",
+        "Put rankings into preparation. Visits, restarts, deployments and gameplay revisions do not open or transition seasons while preparing. New entries and verification are paused; only an explicit maintenance operation enables a season.",
+        "Add a ranking-only reset guarded by a locally saved and hash-verified backup. Reset the upcoming season to 1 without starting it; preserve accounts, cloud saves and ordinary progression."
+      ]
+    },
     {
       "version": "QQ-0.55.1", "date": "2026-10-26",
       "title_ja": "10枚のバランス調整と最近のカード背景",

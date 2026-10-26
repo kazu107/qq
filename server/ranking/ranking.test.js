@@ -96,16 +96,16 @@ test("ranked ownership, CSRF, idempotence, numbered seasons and gameplay rollove
       assert.deepEqual(seasons[0].startsAt, seasons[1].endsAt, "transition must have one exact shared cutoff");
       assert.equal((await nextStores[0].board("season-2")).entries.length, 0);
       assert.equal((await nextStores[0].board("season-1")).entries.length, 2);
-      await assert.rejects(rankStore.append(run.user_id, active.id, 0, commands), { code: "season_closed" });
-      assert.equal((await rankStore.finish(run.user_id, active.id, 0, false)).status, "rejected");
-      await assert.rejects(rankStore.start(run.user_id, "balanced"), { code: "season_closed" });
+      await assert.rejects(rankStore.append(run.user_id, active.id, 0, commands), { code: "season_update_required" });
+      assert.equal((await nextStores[0].finish(run.user_id, active.id, 0, false)).status, "rejected");
+      await assert.rejects(rankStore.start(run.user_id, "balanced"), { code: "season_update_required" });
       await assert.rejects(new RankingStore(store.pool).ensureSeason(), { code: "season_update_required" });
       const fresh = await nextStores[0].start(run.user_id, "balanced");
       assert.equal(fresh.season_id, "season-2");
       await nextStores[0].append(run.user_id, fresh.id, 0, commands);
       const old = await nextStores[0].start(run.user_id, "balanced");
       await store.pool.query("UPDATE qq_ranked_seasons SET ends_at=now()-interval '1 second' WHERE id=$1", [old.season_id]);
-      assert.equal((await nextStores[0].finish(run.user_id, old.id, 0, false)).status, "rejected");
+      await assert.rejects(nextStores[0].finish(run.user_id, old.id, 0, false), { code: "season_closed" });
     });
   } finally { await fixture.close(); }
 });

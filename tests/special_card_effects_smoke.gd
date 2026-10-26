@@ -51,8 +51,8 @@ func _test_large_shield_balance() -> bool:
 		"barrier_deploy": [18, 24, 26, 28, 31, 34],
 		"fortify": [34, 43, 52, 61, 70, 79],
 		"bastion_drive": [11, 16, 21, 26, 31, 36],
-		"entropy_armor": [13, 16, 19, 22, 25, 28],
-		"grave_protocol": [18, 22, 26, 30, 34, 38],
+		"entropy_armor": [13, 17, 21, 25, 29, 33],
+		"grave_protocol": [18, 23, 28, 33, 38, 43],
 	}
 	for card_id: String in expected_shield_by_card:
 		var expected_values: Array = Array(expected_shield_by_card[card_id])
@@ -74,8 +74,8 @@ func _test_delay_card_balance() -> bool:
 		"time_buy": [3.3, 4.3, 5.3, 6.3, 7.3, 8.3],
 		"time_flow_control": [6.6, 7.9, 9.2, 10.6, 12.0, 13.4],
 		"stasis_field": [5.3, 6.6, 7.9, 9.2, 10.5, 11.8],
-		"null_cascade": [5.0, 5.9, 6.9, 7.9, 8.9, 9.9],
-		"rift_volley": [3.3, 4.3, 5.3, 6.3, 7.3, 8.3],
+		"null_cascade": [5.0, 5.4, 5.8, 6.2, 6.6, 7.0],
+		"rift_volley": [3.3, 4.0, 4.7, 5.4, 6.1, 6.8],
 	}
 	for card_id: String in expected_delay_by_card:
 		var expected_values: Array = Array(expected_delay_by_card[card_id])

@@ -5,6 +5,7 @@ const os = require("node:os");
 const { createHash, randomUUID } = require("node:crypto");
 const { spawn } = require("node:child_process");
 const { rules, ticket } = require("./store");
+const { whileActive } = require("./lifecycle");
 
 class VerifierWorker {
   constructor(account, env = process.env) { this.account = account; this.env = env; this.busy = false; this.stopped = false; this.pack = null; this.enabled = env.AUTH_ENABLED === "true" && env.RANKED_VERIFIER_ENABLED === "true"; }
@@ -50,6 +51,9 @@ class VerifierWorker {
     this.again = false;
     let pool, job, lease, nextWake = null;
     try {
+      pool = (await this.account.storage()).pool;
+      const active = await whileActive(pool, async () => true);
+      if (!active) { nextWake = 30000; return; }
       const runtime = await this.runtime();
       if (!this.tested) {
         const check = await this.verify(runtime, { ticket: { id: "selftest", user_id: "selftest", ruleset: rules.ruleset, starter_id: "balanced", seed: 426042 }, commands: [] });
@@ -57,12 +61,14 @@ class VerifierWorker {
         this.tested = true;
         console.log("RANKED_VERIFIER_READY", rules.ruleset, require("./build.json").game_version);
       }
-      pool = (await this.account.storage()).pool;
-      await pool.query("UPDATE qq_ranked_runs SET status='unverified',reason='verification_retry_limit' WHERE status='verifying' AND lease_until<now() AND attempts>=3");
       lease = randomUUID();
-      const result = await pool.query(`UPDATE qq_ranked_runs SET status='verifying',lease_until=now()+interval '3 minutes',locked_by=$1,attempts=attempts+1
+      const result = await whileActive(pool, async client => {
+        await client.query("UPDATE qq_ranked_runs SET status='unverified',reason='verification_retry_limit' WHERE status='verifying' AND lease_until<now() AND attempts>=3");
+        return client.query(`UPDATE qq_ranked_runs SET status='verifying',lease_until=now()+interval '3 minutes',locked_by=$1,attempts=attempts+1
         WHERE id=(SELECT id FROM qq_ranked_runs WHERE (status='pending' OR status='verifying' AND lease_until<now()) AND attempts<3
           ORDER BY finished_at FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING *`, [lease]);
+      });
+      if (!result) { nextWake = 30000; return; }
       job = result.rows[0];
       if (!job) {
         const waiting = await pool.query("SELECT min(lease_until) AS until FROM qq_ranked_runs WHERE status='verifying' AND attempts<3");
@@ -91,7 +97,7 @@ class VerifierWorker {
     }
   }
   async complete(pool, id, lease, status, result, reason) {
-    await pool.query("UPDATE qq_ranked_runs SET status=$3,result=$4,reason=$5,locked_by=null,lease_until=null,updated_at=now() WHERE id=$1 AND locked_by=$2", [id, lease, status, result, reason]);
+    await whileActive(pool, client => client.query("UPDATE qq_ranked_runs SET status=$3,result=$4,reason=$5,locked_by=null,lease_until=null,updated_at=now() WHERE id=$1 AND locked_by=$2", [id, lease, status, result, reason]));
   }
   async verify(runtime, payload) {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "qq-ranked-job-"));

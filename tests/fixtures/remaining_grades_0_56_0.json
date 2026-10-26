@@ -1,0 +1,8503 @@
+{
+  "version": "QQ-0.56.0",
+  "references": [
+    "published_balance.json",
+    "grade_balance_0_52_2.json",
+    "balance_0_55_1.json"
+  ],
+  "protected_cards": {
+    "quick_slash": "9bb16795a0537d56acaa5d8933b08cf2c4f8b1ef75b14c36f31b32b3d214cc13",
+    "strike": "10f7bc372f676d2b574680aad233b36ec8887aab717d4102c64e5e57713d91d9",
+    "guard": "ae5bf1fbe6d56b88d8b80f8c99ebababdd8b5f96085fb3b6c6e35b09521c9a97",
+    "heavy_swing": "d30d395f078df65f3aef778a5650fa3204d775cfbe36c49fe88443ceebbeaeef",
+    "delay_step": "c9568b0178b570f33161752a659cc7ef94467de77038c91677416706ffd62072",
+    "haste_focus": "5180509e27883fac9a5900dcbb6d8f37080833d73864f4da6f658c0dc37d669e",
+    "weak_shot": "6bf100326fd1d0a65e4e799a65a14a25f48add55bd920390d33ffc195b15cf4d",
+    "bleed_cut": "f9d30cb3346bab66e2e118cc3b5db5629a4d1bf5e38eea03c7b1094998932fb0",
+    "quick_guard": "605053018fa214c41b9982222b64385ea656625020875590e56508e9c6f52c8c",
+    "reload": "2c3f53fc5ffc1315d0545095733e31c5f8bc5446a5bde32c20e721f7a6829a07",
+    "assault": "980a6bfe6d764bde823d4b9bd86d8b769e0641992d6e6ab3aae337ee856b134e",
+    "barrier_deploy": "7ebdc6fa6c1a6942dadad6435158d71078f5a87fc643f3f0e5aec8cb0984646a",
+    "time_buy": "a036f82f86e20d34b17201d75dfc01dd8517318e95a0da510fc20f6c05546405",
+    "execution": "add81bc7653e8be0c87b4d88f9ee1d286bb640162969f88ae017a77408d8f76d",
+    "fortify": "08071b9e1b79f9fa7c203abd7c7bee42c0287f6c40750a548c0e5808dac59234",
+    "time_flow_control": "22a2f3ab411c37bac7c0296d44e4e0c2f0e542ca9a904a6267de95fcfdd0e267",
+    "blood_chain": "fb3ed2ae258cd42a38c732781b1beddafe6fcf57d5f01536d6c8bdc46f2c09ea",
+    "over_reload": "4db9d3de47a6ded958717239002f5951e0ffc9fc2cb0e7942ccc2d48d0ddb1fd",
+    "repair_burst": "ad7cc9c49cafc011ce85d885673bbaeda9ff666a40d4ca45a6ad238a7f8910db",
+    "tripwire": "87ba953408cd8080ad8c21b5a8a6bbbec654b49aaa5ccc9709b6408da551c2a8",
+    "stasis_field": "2600bc7702e75da92beb2cdd9406097879d3f8d91a6fdd52209a0f5114fc300f",
+    "rupture_strike": "4a11263f796f9a7fa5697ced6d3445618df4dcb18f60cdc15cc553484c04bb24",
+    "bastion_drive": "fd3a6d26b4a5af910f1b46ea87f151dd12753819289c91f1a4c4de148800e477",
+    "echo_cast": "68ba0526cfa3eb8baae12bed315797a869c4c2fcc836fec740275ca6158f496d",
+    "reserve_focus": "40bb9784146366d382635a385c840a7c6c3651d822c4afdd1dd19e6b2a3b1292",
+    "reserve_shield": "e26882fd290c74b50ab5e949a40e43708ef265532130a676236d9f2b49f7eb8b",
+    "reserve_siphon": "5875e4073526ebbc29b7b4df6bf59e69889e418366eee0f4c59de56ab5719287",
+    "reserve_reload": "3ebc8912114c556654c1ea1c8e69e456f1b23d84d9294adf273b0d3882f1719c",
+    "reserve_status": "9094ed2300ac78d80e4c59a50f225f59e920889b7effaf58245c50fe03724875",
+    "reserve_chain": "e1a1c961dac9a860e9b45f2873a4bcb09335ed3cc26e1d919b8a79e47874c5b3",
+    "reserve_growth": "b7195cf649132d0926547877f35a7affb28b55e082631414fc3c85d1aeb5e431",
+    "reserve_tempo": "2444085de925e2be2c2159db3c147a370aff11fcb512114fd423f888b35cbbf9",
+    "reserve_weaken": "76910adbaa6262e04395456bb7d62372229eae386e119a9d660b66b933bd1f38",
+    "reserve_shield_jam": "0e4f6e8af1eea6240b247498fe5b3e2220b34c53431cf9ffd8fb0b45606669fb",
+    "reserve_heal_jam": "79f7f162957ce8d0bf5c2c29d88cb856ccb5ad9e0f42f0864c7cc73fd79cfba1",
+    "reserve_recast_jam": "4fb22b45112a3313014b60e7b89ff8b14f3aeabdc462c7658f3d638f33a31c92",
+    "reserve_recoil": "9e899dba1f395107240dc3eb404eab145a98950eeeb1440e82acdf8eb6360ef5",
+    "reserve_time_mine": "b5fce2d0f4463a5428e92671f754b6bbf75d9b4d1ebed2a2750acdadeacb84ee",
+    "reserve_wear": "3a05489fcd045affdb64ed584d761cf7b65afe612be7df0d8c7627e0acd71183",
+    "reserve_mirror": "e0e1424417a936a34050798fd27315da117fa2f29dd92da3f2b8c5b861788bec",
+    "reserve_swift_commit": "5ba1a4a3fe02a4156a385cac66cde9f16a3083a34e6faf469df413a432682777",
+    "reserve_heavy_commit": "e46ac6b36f2ebb8e21b0fb9e6ca8d249f076de261828628e66fc06cef91f9d1d",
+    "regen_patch": "9649cf90d28769474fea6e92efd410cd7c7076661ed5afbd2e0215d1473b8763",
+    "regen_salve": "5c770307d4c1cd8bf792a7ed9aff5a8ccad45ecbac1532d9ea4fd69cb7a11ec2",
+    "regen_barrier": "5fec7fbb49712658639223abf673f8c8b2442d6a01933dbb8e25f1c3eff117cf",
+    "regen_emergency": "7eda1dffaa2faba0bc83a322343fd35fc6b947d569f86ff41fee05c1e3fb35ee",
+    "regen_bloodwrap": "c8faa24e35bc9bdd578d3627e818aafaad4361aa611429b60da970cf403ddbda",
+    "regen_burst": "d23fa50f0cb48512a7991e37c9a7770ccf6121b087812f62774074c3ba814328",
+    "regen_spring": "7c7cd31a68a646e0ac07c12acacb2d26402a305ee6489364f840fbb21649f795",
+    "regen_tank": "dded4a57157d3dbf2b8ab6a7a4a5e75de867394697fbf6c9afe2fc2605c95227",
+    "life_conversion": "425e644cb722d62331602dfce3600accb2094283a043a2fcf9118011d41f08dc",
+    "barrier_conversion": "43d476010e7970386eb5a301005d362222a06bb53bb503232d99d497cc3b15f7"
+  },
+  "cards": [
+    {
+      "id": "interrupt_shot",
+      "before": {
+        "id": "interrupt_shot",
+        "name": "Interrupt Shot",
+        "description": "Interrupt one enemy heavy cast.",
+        "rarity": "rare",
+        "tags": [
+          "control",
+          "interrupt"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 25.2,
+        "cast_time": 2.4,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.1,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "interrupt_card",
+            "scope": "single_interruptible"
+          }
+        ],
+        "upgrade_profile": {
+          "recast_time": [
+            0,
+            -2.4,
+            -4.8,
+            -7.2,
+            -9.6,
+            -12
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 2.3,
+          "recast_time": 24.6,
+          "effects": {}
+        },
+        "2": {
+          "cast_time": 2.2,
+          "recast_time": 24,
+          "effects": {}
+        },
+        "3": {
+          "cast_time": 2.1,
+          "recast_time": 23.4,
+          "effects": {}
+        },
+        "4": {
+          "cast_time": 2,
+          "recast_time": 22.8,
+          "effects": {}
+        },
+        "5": {
+          "cast_time": 1.9,
+          "recast_time": 22.2,
+          "effects": {}
+        }
+      }
+    },
+    {
+      "id": "recirculate",
+      "before": {
+        "id": "recirculate",
+        "name": "Recirculate",
+        "description": "Reduce the last used card's cooldown.",
+        "rarity": "rare",
+        "tags": [
+          "support",
+          "cooldown"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 28,
+        "cast_time": 4.8,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "reduce_recast",
+            "amount": 12,
+            "scope": "last_used"
+          }
+        ],
+        "upgrade_profile": {
+          "recast_reduction": [
+            0,
+            1.8,
+            3.6,
+            6,
+            8.4,
+            10.8
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4.6,
+          "recast_time": 27.4,
+          "effects": {
+            "0": {
+              "amount": 13.8
+            }
+          }
+        },
+        "2": {
+          "cast_time": 4.4,
+          "recast_time": 26.8,
+          "effects": {
+            "0": {
+              "amount": 15.6
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.2,
+          "recast_time": 26.2,
+          "effects": {
+            "0": {
+              "amount": 17.4
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4,
+          "recast_time": 25.6,
+          "effects": {
+            "0": {
+              "amount": 19.2
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.8,
+          "recast_time": 25,
+          "effects": {
+            "0": {
+              "amount": 21
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "adrenaline_link",
+      "before": {
+        "id": "adrenaline_link",
+        "name": "Adrenaline Link",
+        "description": "Accelerate your board and trim a key cooldown.",
+        "rarity": "rare",
+        "tags": [
+          "support",
+          "haste",
+          "cooldown"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 21,
+        "cast_time": 4.8,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.05,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "haste_own_active_card",
+            "amount": 2.4,
+            "scope": "all"
+          },
+          {
+            "type": "reduce_recast",
+            "amount": 6,
+            "scope": "highest_cooldown"
+          }
+        ],
+        "upgrade_profile": {
+          "haste": [
+            0,
+            0.6,
+            1.2,
+            1.8,
+            2.4,
+            3
+          ],
+          "cooldown": [
+            0,
+            1.2,
+            2.4,
+            3.6,
+            4.8,
+            6
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4.6,
+          "recast_time": 20.4,
+          "effects": {
+            "0": {
+              "amount": 2.7
+            },
+            "1": {
+              "amount": 6.9
+            }
+          }
+        },
+        "2": {
+          "cast_time": 4.4,
+          "recast_time": 19.8,
+          "effects": {
+            "0": {
+              "amount": 3
+            },
+            "1": {
+              "amount": 7.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.2,
+          "recast_time": 19.2,
+          "effects": {
+            "0": {
+              "amount": 3.3
+            },
+            "1": {
+              "amount": 8.7
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4,
+          "recast_time": 18.6,
+          "effects": {
+            "0": {
+              "amount": 3.6
+            },
+            "1": {
+              "amount": 9.6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.8,
+          "recast_time": 18,
+          "effects": {
+            "0": {
+              "amount": 3.9
+            },
+            "1": {
+              "amount": 10.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "purge_pulse",
+      "before": {
+        "id": "purge_pulse",
+        "name": "Purge Pulse",
+        "description": "Clear control effects and recover some stability.",
+        "rarity": "rare",
+        "tags": [
+          "support",
+          "cleanse",
+          "heal"
+        ],
+        "loadout_cost": 2,
+        "recast_time": 14,
+        "cast_time": 2.4,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.05,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "remove_status",
+            "status": "weak",
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "slow",
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 5,
+            "target": "self"
+          },
+          {
+            "type": "gain_shield",
+            "amount": 3,
+            "target": "self"
+          }
+        ],
+        "upgrade_profile": {
+          "heal": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "shield": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 2.3,
+          "recast_time": 13.6,
+          "effects": {
+            "2": {
+              "amount": 7
+            },
+            "3": {
+              "amount": 5
+            }
+          }
+        },
+        "2": {
+          "cast_time": 2.2,
+          "recast_time": 13.2,
+          "effects": {
+            "2": {
+              "amount": 9
+            },
+            "3": {
+              "amount": 7
+            }
+          }
+        },
+        "3": {
+          "cast_time": 2.1,
+          "recast_time": 12.8,
+          "effects": {
+            "2": {
+              "amount": 11
+            },
+            "3": {
+              "amount": 9
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2,
+          "recast_time": 12.4,
+          "effects": {
+            "2": {
+              "amount": 13
+            },
+            "3": {
+              "amount": 11
+            }
+          }
+        },
+        "5": {
+          "cast_time": 1.9,
+          "recast_time": 12,
+          "effects": {
+            "2": {
+              "amount": 15
+            },
+            "3": {
+              "amount": 13
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "meteor_crash",
+      "before": {
+        "id": "meteor_crash",
+        "name": "Meteor Crash",
+        "description": "A crushing finisher that leaves the target exposed.",
+        "rarity": "epic",
+        "tags": [
+          "attack",
+          "finisher",
+          "interrupt"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 25.2,
+        "cast_time": 15,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.15,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 12,
+            "target": "enemy"
+          },
+          {
+            "type": "apply_status",
+            "status": "vulnerable",
+            "duration": 30,
+            "target": "enemy"
+          },
+          {
+            "type": "interrupt_card",
+            "scope": "all_interruptible"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            3,
+            5,
+            7,
+            9,
+            11
+          ],
+          "duration": [
+            0,
+            6,
+            12,
+            18,
+            24,
+            30
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 14.4,
+          "recast_time": 24.6,
+          "effects": {
+            "0": {
+              "amount": 16
+            },
+            "1": {
+              "duration": 33
+            }
+          }
+        },
+        "2": {
+          "cast_time": 13.8,
+          "recast_time": 24,
+          "effects": {
+            "0": {
+              "amount": 20
+            },
+            "1": {
+              "duration": 36
+            }
+          }
+        },
+        "3": {
+          "cast_time": 13.2,
+          "recast_time": 23.4,
+          "effects": {
+            "0": {
+              "amount": 24
+            },
+            "1": {
+              "duration": 39
+            }
+          }
+        },
+        "4": {
+          "cast_time": 12.6,
+          "recast_time": 22.8,
+          "effects": {
+            "0": {
+              "amount": 28
+            },
+            "1": {
+              "duration": 42
+            }
+          }
+        },
+        "5": {
+          "cast_time": 12,
+          "recast_time": 22.2,
+          "effects": {
+            "0": {
+              "amount": 32
+            },
+            "1": {
+              "duration": 45
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "self_tuning_edge",
+      "before": {
+        "id": "self_tuning_edge",
+        "name": "Self Tuning Edge",
+        "description": "A blade that permanently tunes its own output during this run.",
+        "rarity": "rare",
+        "tags": [
+          "attack",
+          "buff",
+          "special"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 12.6,
+        "cast_time": 3.6,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.05,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 5,
+            "target": "enemy"
+          },
+          {
+            "type": "empower_card",
+            "scope": "self",
+            "stat": "damage",
+            "amount": 1
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "empower": [
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            2.5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 3.4,
+          "recast_time": 12.2,
+          "effects": {
+            "0": {
+              "amount": 7
+            },
+            "1": {
+              "amount": 1.2
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.2,
+          "recast_time": 11.8,
+          "effects": {
+            "0": {
+              "amount": 9
+            },
+            "1": {
+              "amount": 1.4
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3,
+          "recast_time": 11.4,
+          "effects": {
+            "0": {
+              "amount": 11
+            },
+            "1": {
+              "amount": 1.6
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2.8,
+          "recast_time": 11,
+          "effects": {
+            "0": {
+              "amount": 13
+            },
+            "1": {
+              "amount": 1.8
+            }
+          }
+        },
+        "5": {
+          "cast_time": 2.6,
+          "recast_time": 10.6,
+          "effects": {
+            "0": {
+              "amount": 15
+            },
+            "1": {
+              "amount": 2
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "overclock_routine",
+      "before": {
+        "id": "overclock_routine",
+        "name": "Overclock Routine",
+        "description": "Harden up while permanently shortening your loadout's cast and recast for this run.",
+        "rarity": "rare",
+        "tags": [
+          "support",
+          "buff",
+          "special"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 21,
+        "cast_time": 4.2,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 5,
+            "target": "self"
+          },
+          {
+            "type": "empower_card",
+            "scope": "all_own",
+            "stat": "cast_time",
+            "amount": -0.3
+          },
+          {
+            "type": "empower_card",
+            "scope": "all_own",
+            "stat": "recast_time",
+            "amount": -0.6
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4,
+          "recast_time": 20.4,
+          "effects": {
+            "0": {
+              "amount": 7
+            },
+            "1": {
+              "amount": -0.33
+            },
+            "2": {
+              "amount": -0.66
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.8,
+          "recast_time": 19.8,
+          "effects": {
+            "0": {
+              "amount": 9
+            },
+            "1": {
+              "amount": -0.36
+            },
+            "2": {
+              "amount": -0.72
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3.6,
+          "recast_time": 19.2,
+          "effects": {
+            "0": {
+              "amount": 11
+            },
+            "1": {
+              "amount": -0.39
+            },
+            "2": {
+              "amount": -0.78
+            }
+          }
+        },
+        "4": {
+          "cast_time": 3.4,
+          "recast_time": 18.6,
+          "effects": {
+            "0": {
+              "amount": 13
+            },
+            "1": {
+              "amount": -0.42
+            },
+            "2": {
+              "amount": -0.84
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.2,
+          "recast_time": 18,
+          "effects": {
+            "0": {
+              "amount": 15
+            },
+            "1": {
+              "amount": -0.45
+            },
+            "2": {
+              "amount": -0.9
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "sequence_loader",
+      "before": {
+        "id": "sequence_loader",
+        "name": "Sequence Loader",
+        "description": "Loads a quick attack into the timeline and improves that attack for the rest of the run.",
+        "rarity": "rare",
+        "tags": [
+          "attack",
+          "chain",
+          "special"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 16.8,
+        "cast_time": 4.8,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 3,
+            "target": "enemy"
+          },
+          {
+            "type": "empower_card",
+            "scope": "card_id",
+            "card_id": "quick_slash",
+            "stat": "damage",
+            "amount": 1
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "quick_slash",
+            "delay": 0.3,
+            "max_depth": 1
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "empower": [
+            0,
+            1,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4.6,
+          "recast_time": 16.2,
+          "effects": {
+            "0": {
+              "amount": 4
+            },
+            "1": {
+              "amount": 1.2
+            }
+          }
+        },
+        "2": {
+          "cast_time": 4.4,
+          "recast_time": 15.6,
+          "effects": {
+            "0": {
+              "amount": 5
+            },
+            "1": {
+              "amount": 1.4
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.2,
+          "recast_time": 15,
+          "effects": {
+            "0": {
+              "amount": 6
+            },
+            "1": {
+              "amount": 1.6
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4,
+          "recast_time": 14.4,
+          "effects": {
+            "0": {
+              "amount": 7
+            },
+            "1": {
+              "amount": 1.8
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.8,
+          "recast_time": 13.8,
+          "effects": {
+            "0": {
+              "amount": 8
+            },
+            "1": {
+              "amount": 2
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "recursive_protocol",
+      "before": {
+        "id": "recursive_protocol",
+        "name": "Recursive Protocol",
+        "description": "Fires once, improves its own recast, then queues one temporary copy of itself.",
+        "rarity": "epic",
+        "tags": [
+          "attack",
+          "chain",
+          "special"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 25.2,
+        "cast_time": 5.4,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 4,
+            "target": "enemy"
+          },
+          {
+            "type": "empower_card",
+            "scope": "self",
+            "stat": "recast_time",
+            "amount": -1.2
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "self",
+            "delay": 0.6,
+            "max_depth": 1
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 5.2,
+          "recast_time": 24.6,
+          "effects": {
+            "0": {
+              "amount": 5
+            },
+            "1": {
+              "amount": -1.44
+            }
+          }
+        },
+        "2": {
+          "cast_time": 5,
+          "recast_time": 24,
+          "effects": {
+            "0": {
+              "amount": 6
+            },
+            "1": {
+              "amount": -1.68
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.8,
+          "recast_time": 23.4,
+          "effects": {
+            "0": {
+              "amount": 7
+            },
+            "1": {
+              "amount": -1.92
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4.6,
+          "recast_time": 22.8,
+          "effects": {
+            "0": {
+              "amount": 8
+            },
+            "1": {
+              "amount": -2.16
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.4,
+          "recast_time": 22.2,
+          "effects": {
+            "0": {
+              "amount": 9
+            },
+            "1": {
+              "amount": -2.4
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "chronostasis",
+      "before": {
+        "id": "chronostasis",
+        "name": "Chronostasis",
+        "description": "Freezes the opponent timeline for a short window.",
+        "rarity": "epic",
+        "tags": [
+          "control",
+          "time",
+          "special"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 28,
+        "cast_time": 4.2,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.05,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "timeline_flow",
+            "mode": "stop",
+            "target_side": "enemy",
+            "duration": 3,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "duration": [
+            0,
+            0.6,
+            1.2,
+            1.8,
+            2.4,
+            3
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4,
+          "recast_time": 27.4,
+          "effects": {
+            "0": {
+              "duration": 3.3
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.8,
+          "recast_time": 26.8,
+          "effects": {
+            "0": {
+              "duration": 3.6
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3.6,
+          "recast_time": 26.2,
+          "effects": {
+            "0": {
+              "duration": 3.9
+            }
+          }
+        },
+        "4": {
+          "cast_time": 3.4,
+          "recast_time": 25.6,
+          "effects": {
+            "0": {
+              "duration": 4.2
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.2,
+          "recast_time": 25,
+          "effects": {
+            "0": {
+              "duration": 4.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "entropy_reversal",
+      "before": {
+        "id": "entropy_reversal",
+        "name": "Entropy Reversal",
+        "description": "Pushes the opponent timeline backward so cast time grows for a moment.",
+        "rarity": "epic",
+        "tags": [
+          "control",
+          "time",
+          "special"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 30.8,
+        "cast_time": 5.4,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "timeline_flow",
+            "mode": "reverse",
+            "target_side": "enemy",
+            "duration": 2.4,
+            "speed": 1,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "duration": [
+            0,
+            0.6,
+            1.2,
+            1.8,
+            2.4,
+            3
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 5.2,
+          "recast_time": 29.8,
+          "effects": {
+            "0": {
+              "duration": 2.64
+            }
+          }
+        },
+        "2": {
+          "cast_time": 5,
+          "recast_time": 28.8,
+          "effects": {
+            "0": {
+              "duration": 2.88
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.8,
+          "recast_time": 27.8,
+          "effects": {
+            "0": {
+              "duration": 3.12
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4.6,
+          "recast_time": 26.8,
+          "effects": {
+            "0": {
+              "duration": 3.36
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.4,
+          "recast_time": 25.8,
+          "effects": {
+            "0": {
+              "duration": 3.6
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "auto_turret",
+      "before": {
+        "id": "auto_turret",
+        "name": "Auto Turret",
+        "description": "Deploys a turret routine that keeps reloading itself into the timeline without a chain limit.",
+        "rarity": "rare",
+        "tags": [
+          "attack",
+          "chain",
+          "special"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 18.2,
+        "cast_time": 3,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 2,
+            "target": "enemy"
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "self",
+            "delay": 0.8,
+            "max_depth": -1
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 2.8,
+          "recast_time": 17.6,
+          "effects": {
+            "0": {
+              "amount": 3
+            }
+          }
+        },
+        "2": {
+          "cast_time": 2.6,
+          "recast_time": 17,
+          "effects": {
+            "0": {
+              "amount": 4
+            }
+          }
+        },
+        "3": {
+          "cast_time": 2.4,
+          "recast_time": 16.4,
+          "effects": {
+            "0": {
+              "amount": 5
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2.2,
+          "recast_time": 15.8,
+          "effects": {
+            "0": {
+              "amount": 6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 2,
+          "recast_time": 15.2,
+          "effects": {
+            "0": {
+              "amount": 7
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "crisis_drone_swarm",
+      "before": {
+        "id": "crisis_drone_swarm",
+        "name": "Crisis Drone Swarm",
+        "description": "Launches more shield drones as HP drops, automatically queueing Quick Guard copies.",
+        "rarity": "epic",
+        "tags": [
+          "shield",
+          "chain",
+          "special"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 23.8,
+        "cast_time": 4.2,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 4,
+            "target": "self"
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "quick_guard",
+            "delay": 0.2,
+            "count": 1,
+            "missing_hp_ratio_per_extra": 0.25,
+            "max_count": 4,
+            "queue_spacing": 0.15,
+            "max_depth": 1
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4,
+          "recast_time": 23.2,
+          "effects": {
+            "0": {
+              "amount": 6
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.8,
+          "recast_time": 22.6,
+          "effects": {
+            "0": {
+              "amount": 8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3.6,
+          "recast_time": 22,
+          "effects": {
+            "0": {
+              "amount": 10
+            }
+          }
+        },
+        "4": {
+          "cast_time": 3.4,
+          "recast_time": 21.4,
+          "effects": {
+            "0": {
+              "amount": 12
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.2,
+          "recast_time": 20.8,
+          "effects": {
+            "0": {
+              "amount": 14
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "phase_lance",
+      "before": {
+        "id": "phase_lance",
+        "name": "Phase Lance",
+        "description": "Pierce the target and expose it to follow-up attacks.",
+        "rarity": "rare",
+        "tags": [
+          "attack",
+          "debuff",
+          "phase"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 18.2,
+        "cast_time": 5.4,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.05,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 9,
+            "target": "enemy"
+          },
+          {
+            "type": "apply_status",
+            "status": "vulnerable",
+            "duration": 24,
+            "target": "enemy"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "duration": [
+            0,
+            6,
+            12,
+            18,
+            24,
+            30
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 5.2,
+          "recast_time": 17.6,
+          "effects": {
+            "0": {
+              "amount": 12
+            },
+            "1": {
+              "duration": 26.4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 5,
+          "recast_time": 17,
+          "effects": {
+            "0": {
+              "amount": 15
+            },
+            "1": {
+              "duration": 28.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.8,
+          "recast_time": 16.4,
+          "effects": {
+            "0": {
+              "amount": 18
+            },
+            "1": {
+              "duration": 31.2
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4.6,
+          "recast_time": 15.8,
+          "effects": {
+            "0": {
+              "amount": 21
+            },
+            "1": {
+              "duration": 33.6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.4,
+          "recast_time": 15.2,
+          "effects": {
+            "0": {
+              "amount": 24
+            },
+            "1": {
+              "duration": 36
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "mirror_aegis",
+      "before": {
+        "id": "mirror_aegis",
+        "name": "Mirror Aegis",
+        "description": "Raise a reflective barrier and answer with an automatic slash.",
+        "rarity": "rare",
+        "tags": [
+          "shield",
+          "chain",
+          "phase"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 19.6,
+        "cast_time": 4.2,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.05,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 12,
+            "target": "self"
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "quick_slash",
+            "delay": 0.8,
+            "max_depth": 1
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4,
+          "recast_time": 19,
+          "effects": {
+            "0": {
+              "amount": 15
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.8,
+          "recast_time": 18.4,
+          "effects": {
+            "0": {
+              "amount": 18
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3.6,
+          "recast_time": 17.8,
+          "effects": {
+            "0": {
+              "amount": 21
+            }
+          }
+        },
+        "4": {
+          "cast_time": 3.4,
+          "recast_time": 17.2,
+          "effects": {
+            "0": {
+              "amount": 24
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.2,
+          "recast_time": 16.6,
+          "effects": {
+            "0": {
+              "amount": 27
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "null_cascade",
+      "before": {
+        "id": "null_cascade",
+        "name": "Null Cascade",
+        "description": "Detonate a null pulse that damages and delays the entire enemy timeline.",
+        "rarity": "epic",
+        "tags": [
+          "attack",
+          "control",
+          "phase"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 26.6,
+        "cast_time": 7.2,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.05,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 10,
+            "target": "enemy"
+          },
+          {
+            "type": "delay_enemy_active_card",
+            "amount": 5,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "delay": [
+            0,
+            0.9,
+            1.9,
+            2.9,
+            3.9,
+            4.9
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6.9,
+          "recast_time": 26,
+          "effects": {
+            "0": {
+              "amount": 13
+            },
+            "1": {
+              "amount": 5.4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6.6,
+          "recast_time": 25.4,
+          "effects": {
+            "0": {
+              "amount": 16
+            },
+            "1": {
+              "amount": 5.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.3,
+          "recast_time": 24.8,
+          "effects": {
+            "0": {
+              "amount": 19
+            },
+            "1": {
+              "amount": 6.2
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6,
+          "recast_time": 24.2,
+          "effects": {
+            "0": {
+              "amount": 22
+            },
+            "1": {
+              "amount": 6.6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 5.7,
+          "recast_time": 23.6,
+          "effects": {
+            "0": {
+              "amount": 25
+            },
+            "1": {
+              "amount": 7
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "paradox_loop",
+      "before": {
+        "id": "paradox_loop",
+        "name": "Paradox Loop",
+        "description": "Improve itself and recursively queue two temporary echoes.",
+        "rarity": "epic",
+        "tags": [
+          "attack",
+          "chain",
+          "special",
+          "phase"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 29.4,
+        "cast_time": 6,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 6,
+            "target": "enemy"
+          },
+          {
+            "type": "empower_card",
+            "scope": "self",
+            "stat": "damage",
+            "amount": 1
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "self",
+            "delay": 1.2,
+            "max_depth": 2
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "empower": [
+            0,
+            1,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 5.7,
+          "recast_time": 28.4,
+          "effects": {
+            "0": {
+              "amount": 8
+            },
+            "1": {
+              "amount": 1.2
+            }
+          }
+        },
+        "2": {
+          "cast_time": 5.4,
+          "recast_time": 27.4,
+          "effects": {
+            "0": {
+              "amount": 10
+            },
+            "1": {
+              "amount": 1.4
+            }
+          }
+        },
+        "3": {
+          "cast_time": 5.1,
+          "recast_time": 26.4,
+          "effects": {
+            "0": {
+              "amount": 12
+            },
+            "1": {
+              "amount": 1.6
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4.8,
+          "recast_time": 25.4,
+          "effects": {
+            "0": {
+              "amount": 14
+            },
+            "1": {
+              "amount": 1.8
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.5,
+          "recast_time": 24.4,
+          "effects": {
+            "0": {
+              "amount": 16
+            },
+            "1": {
+              "amount": 2
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "rift_volley",
+      "before": {
+        "id": "rift_volley",
+        "name": "Rift Volley",
+        "description": "Fire through a spatial tear, damaging and delaying one enemy cast.",
+        "rarity": "rare",
+        "tags": [
+          "attack",
+          "control",
+          "rift"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 19.6,
+        "cast_time": 4.8,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.05,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 11,
+            "target": "enemy"
+          },
+          {
+            "type": "delay_enemy_active_card",
+            "amount": 3.3,
+            "scope": "single"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "delay": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4.6,
+          "recast_time": 19,
+          "effects": {
+            "0": {
+              "amount": 14
+            },
+            "1": {
+              "amount": 4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 4.4,
+          "recast_time": 18.4,
+          "effects": {
+            "0": {
+              "amount": 17
+            },
+            "1": {
+              "amount": 4.7
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.2,
+          "recast_time": 17.8,
+          "effects": {
+            "0": {
+              "amount": 20
+            },
+            "1": {
+              "amount": 5.4
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4,
+          "recast_time": 17.2,
+          "effects": {
+            "0": {
+              "amount": 23
+            },
+            "1": {
+              "amount": 6.1
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.8,
+          "recast_time": 16.6,
+          "effects": {
+            "0": {
+              "amount": 26
+            },
+            "1": {
+              "amount": 6.8
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "entropy_armor",
+      "before": {
+        "id": "entropy_armor",
+        "name": "Entropy Armor",
+        "description": "Build an adaptive shield that permanently improves its own shielding for this run.",
+        "rarity": "rare",
+        "tags": [
+          "shield",
+          "empower",
+          "rift"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 23.8,
+        "cast_time": 6,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 13,
+            "target": "self"
+          },
+          {
+            "type": "empower_card",
+            "scope": "self",
+            "stat": "shield",
+            "amount": 2
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "empower": [
+            0,
+            1,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 5.7,
+          "recast_time": 23.2,
+          "effects": {
+            "0": {
+              "amount": 17
+            },
+            "1": {
+              "amount": 2.4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 5.4,
+          "recast_time": 22.6,
+          "effects": {
+            "0": {
+              "amount": 21
+            },
+            "1": {
+              "amount": 2.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 5.1,
+          "recast_time": 22,
+          "effects": {
+            "0": {
+              "amount": 25
+            },
+            "1": {
+              "amount": 3.2
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4.8,
+          "recast_time": 21.4,
+          "effects": {
+            "0": {
+              "amount": 29
+            },
+            "1": {
+              "amount": 3.6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.5,
+          "recast_time": 20.8,
+          "effects": {
+            "0": {
+              "amount": 33
+            },
+            "1": {
+              "amount": 4
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "axiom_sever",
+      "before": {
+        "id": "axiom_sever",
+        "name": "Axiom Sever",
+        "description": "Cut through a combat axiom with heavy damage and interrupt every vulnerable cast.",
+        "rarity": "epic",
+        "tags": [
+          "attack",
+          "interrupt",
+          "rift"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 32.2,
+        "cast_time": 10.2,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.1,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 18,
+            "target": "enemy"
+          },
+          {
+            "type": "interrupt_card",
+            "scope": "all_interruptible"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            4,
+            8,
+            12,
+            16,
+            20
+          ],
+          "recast_time": [
+            0,
+            -2.4,
+            -4.8,
+            -7.2,
+            -9.6,
+            -12
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 9.9,
+          "recast_time": 31.2,
+          "effects": {
+            "0": {
+              "amount": 23
+            }
+          }
+        },
+        "2": {
+          "cast_time": 9.6,
+          "recast_time": 30.2,
+          "effects": {
+            "0": {
+              "amount": 28
+            }
+          }
+        },
+        "3": {
+          "cast_time": 9.3,
+          "recast_time": 29.2,
+          "effects": {
+            "0": {
+              "amount": 33
+            }
+          }
+        },
+        "4": {
+          "cast_time": 9,
+          "recast_time": 28.2,
+          "effects": {
+            "0": {
+              "amount": 38
+            }
+          }
+        },
+        "5": {
+          "cast_time": 8.7,
+          "recast_time": 27.2,
+          "effects": {
+            "0": {
+              "amount": 43
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "omega_ray",
+      "before": {
+        "id": "omega_ray",
+        "name": "Omega Ray",
+        "description": "Focus an end-state beam that deals severe damage and exposes the target.",
+        "rarity": "epic",
+        "tags": [
+          "attack",
+          "debuff",
+          "omega"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 29.4,
+        "cast_time": 8.4,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.05,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 22,
+            "target": "enemy"
+          },
+          {
+            "type": "apply_status",
+            "status": "vulnerable",
+            "duration": 30,
+            "target": "enemy"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            5,
+            10,
+            15,
+            20,
+            25
+          ],
+          "duration": [
+            0,
+            6,
+            12,
+            18,
+            24,
+            30
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 8.1,
+          "recast_time": 28.4,
+          "effects": {
+            "0": {
+              "amount": 29
+            },
+            "1": {
+              "duration": 33
+            }
+          }
+        },
+        "2": {
+          "cast_time": 7.8,
+          "recast_time": 27.4,
+          "effects": {
+            "0": {
+              "amount": 36
+            },
+            "1": {
+              "duration": 36
+            }
+          }
+        },
+        "3": {
+          "cast_time": 7.5,
+          "recast_time": 26.4,
+          "effects": {
+            "0": {
+              "amount": 43
+            },
+            "1": {
+              "duration": 39
+            }
+          }
+        },
+        "4": {
+          "cast_time": 7.2,
+          "recast_time": 25.4,
+          "effects": {
+            "0": {
+              "amount": 50
+            },
+            "1": {
+              "duration": 42
+            }
+          }
+        },
+        "5": {
+          "cast_time": 6.9,
+          "recast_time": 24.4,
+          "effects": {
+            "0": {
+              "amount": 57
+            },
+            "1": {
+              "duration": 45
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "grave_protocol",
+      "before": {
+        "id": "grave_protocol",
+        "name": "Grave Protocol",
+        "description": "Restore the frame, raise a dense shield, and automatically queue Guard.",
+        "rarity": "epic",
+        "tags": [
+          "shield",
+          "heal",
+          "chain",
+          "omega"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 30.8,
+        "cast_time": 7.2,
+        "active_slot_cost": 2,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 18,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 6,
+            "target": "self"
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "guard",
+            "delay": 0.8,
+            "max_depth": 1
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            4,
+            8,
+            12,
+            16,
+            20
+          ],
+          "heal": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6.9,
+          "recast_time": 29.8,
+          "effects": {
+            "0": {
+              "amount": 23
+            },
+            "1": {
+              "amount": 8
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6.6,
+          "recast_time": 28.8,
+          "effects": {
+            "0": {
+              "amount": 28
+            },
+            "1": {
+              "amount": 10
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.3,
+          "recast_time": 27.8,
+          "effects": {
+            "0": {
+              "amount": 33
+            },
+            "1": {
+              "amount": 12
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6,
+          "recast_time": 26.8,
+          "effects": {
+            "0": {
+              "amount": 38
+            },
+            "1": {
+              "amount": 14
+            }
+          }
+        },
+        "5": {
+          "cast_time": 5.7,
+          "recast_time": 25.8,
+          "effects": {
+            "0": {
+              "amount": 43
+            },
+            "1": {
+              "amount": 16
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "zero_hour",
+      "before": {
+        "id": "zero_hour",
+        "name": "Zero Hour",
+        "description": "Strike once, then reverse the enemy timeline for a short interval.",
+        "rarity": "epic",
+        "tags": [
+          "attack",
+          "control",
+          "timeline",
+          "omega"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 36.4,
+        "cast_time": 9,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.05,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 8,
+            "target": "enemy"
+          },
+          {
+            "type": "timeline_flow",
+            "mode": "reverse",
+            "target_side": "enemy",
+            "duration": 9
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "duration": [
+            0,
+            1.5,
+            3,
+            4.5,
+            6,
+            7.5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 8.7,
+          "recast_time": 35.4,
+          "effects": {
+            "0": {
+              "amount": 10
+            },
+            "1": {
+              "duration": 9.5
+            }
+          }
+        },
+        "2": {
+          "cast_time": 8.4,
+          "recast_time": 34.4,
+          "effects": {
+            "0": {
+              "amount": 12
+            },
+            "1": {
+              "duration": 10
+            }
+          }
+        },
+        "3": {
+          "cast_time": 8.1,
+          "recast_time": 33.4,
+          "effects": {
+            "0": {
+              "amount": 14
+            },
+            "1": {
+              "duration": 10.5
+            }
+          }
+        },
+        "4": {
+          "cast_time": 7.8,
+          "recast_time": 32.4,
+          "effects": {
+            "0": {
+              "amount": 16
+            },
+            "1": {
+              "duration": 11
+            }
+          }
+        },
+        "5": {
+          "cast_time": 7.5,
+          "recast_time": 31.4,
+          "effects": {
+            "0": {
+              "amount": 18
+            },
+            "1": {
+              "duration": 11.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "aegis_ram",
+      "before": {
+        "id": "aegis_ram",
+        "name": "Aegis Ram",
+        "description": "Convert a small portion of shield into a fast kinetic impact.",
+        "rarity": "common",
+        "tags": [
+          "attack",
+          "shield",
+          "shield_spend"
+        ],
+        "loadout_cost": 2,
+        "recast_time": 11.2,
+        "cast_time": 2.4,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.05,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "consume_shield",
+            "amount": 4
+          },
+          {
+            "type": "deal_damage",
+            "amount": 8,
+            "target": "enemy"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "cast_time": [
+            0,
+            -0.2,
+            -0.4,
+            -0.6,
+            -0.8,
+            -1
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 2.3,
+          "recast_time": 10.8,
+          "effects": {
+            "1": {
+              "amount": 10
+            }
+          }
+        },
+        "2": {
+          "cast_time": 2.2,
+          "recast_time": 10.4,
+          "effects": {
+            "1": {
+              "amount": 12
+            }
+          }
+        },
+        "3": {
+          "cast_time": 2.1,
+          "recast_time": 10,
+          "effects": {
+            "1": {
+              "amount": 14
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2,
+          "recast_time": 9.6,
+          "effects": {
+            "1": {
+              "amount": 16
+            }
+          }
+        },
+        "5": {
+          "cast_time": 1.9,
+          "recast_time": 9.2,
+          "effects": {
+            "1": {
+              "amount": 18
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "barrier_overdrive",
+      "before": {
+        "id": "barrier_overdrive",
+        "name": "Barrier Overdrive",
+        "description": "Drain shield power to accelerate every active card and cooldown.",
+        "rarity": "rare",
+        "tags": [
+          "shield",
+          "shield_spend",
+          "haste",
+          "cooldown"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 21,
+        "cast_time": 3.6,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.1,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "consume_shield",
+            "amount": 7
+          },
+          {
+            "type": "haste_own_active_card",
+            "amount": 2.4,
+            "scope": "all"
+          },
+          {
+            "type": "reduce_recast",
+            "amount": 2.4,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "haste": [
+            0,
+            0.6,
+            1.2,
+            1.8,
+            2.4,
+            3
+          ],
+          "cooldown": [
+            0,
+            1.2,
+            2.4,
+            3.6,
+            4.8,
+            6
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 3.4,
+          "recast_time": 20.4,
+          "effects": {
+            "1": {
+              "amount": 2.7
+            },
+            "2": {
+              "amount": 2.8
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.2,
+          "recast_time": 19.8,
+          "effects": {
+            "1": {
+              "amount": 3
+            },
+            "2": {
+              "amount": 3.2
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3,
+          "recast_time": 19.2,
+          "effects": {
+            "1": {
+              "amount": 3.3
+            },
+            "2": {
+              "amount": 3.6
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2.8,
+          "recast_time": 18.6,
+          "effects": {
+            "1": {
+              "amount": 3.6
+            },
+            "2": {
+              "amount": 4
+            }
+          }
+        },
+        "5": {
+          "cast_time": 2.6,
+          "recast_time": 18,
+          "effects": {
+            "1": {
+              "amount": 3.9
+            },
+            "2": {
+              "amount": 4.4
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "bulwark_cannon",
+      "before": {
+        "id": "bulwark_cannon",
+        "name": "Bulwark Cannon",
+        "description": "Collapse a massive shield reserve into a cannon blast that interrupts the target.",
+        "rarity": "epic",
+        "tags": [
+          "attack",
+          "shield",
+          "shield_spend",
+          "interrupt",
+          "finisher"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 28,
+        "cast_time": 7.2,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.05,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "consume_shield",
+            "amount": 12
+          },
+          {
+            "type": "deal_damage",
+            "amount": 16,
+            "target": "enemy"
+          },
+          {
+            "type": "interrupt_card",
+            "scope": "single_interruptible"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            4,
+            8,
+            12,
+            16,
+            20
+          ],
+          "recast_reduction": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6.9,
+          "recast_time": 27.4,
+          "effects": {
+            "1": {
+              "amount": 21
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6.6,
+          "recast_time": 26.8,
+          "effects": {
+            "1": {
+              "amount": 26
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.3,
+          "recast_time": 26.2,
+          "effects": {
+            "1": {
+              "amount": 31
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6,
+          "recast_time": 25.6,
+          "effects": {
+            "1": {
+              "amount": 36
+            }
+          }
+        },
+        "5": {
+          "cast_time": 5.7,
+          "recast_time": 25,
+          "effects": {
+            "1": {
+              "amount": 41
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "spark_jab",
+      "before": {
+        "id": "spark_jab",
+        "name": "Spark Jab",
+        "description": "A tiny shock that cycles your last used card faster.",
+        "rarity": "common",
+        "tags": [
+          "attack",
+          "fast",
+          "cooldown"
+        ],
+        "loadout_cost": 2,
+        "recast_time": 7,
+        "cast_time": 1.5,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.12,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 3,
+            "target": "enemy"
+          },
+          {
+            "type": "reduce_recast",
+            "amount": 2,
+            "scope": "last_used"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "cooldown": [
+            0,
+            0.8,
+            1.6,
+            2.4,
+            3.2,
+            4
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 1.4,
+          "recast_time": 6.6,
+          "effects": {
+            "0": {
+              "amount": 4
+            },
+            "1": {
+              "amount": 2.6
+            }
+          }
+        },
+        "2": {
+          "cast_time": 1.3,
+          "recast_time": 6.2,
+          "effects": {
+            "0": {
+              "amount": 5
+            },
+            "1": {
+              "amount": 3.2
+            }
+          }
+        },
+        "3": {
+          "cast_time": 1.2,
+          "recast_time": 5.8,
+          "effects": {
+            "0": {
+              "amount": 6
+            },
+            "1": {
+              "amount": 3.8
+            }
+          }
+        },
+        "4": {
+          "cast_time": 1.1,
+          "recast_time": 5.4,
+          "effects": {
+            "0": {
+              "amount": 7
+            },
+            "1": {
+              "amount": 4.4
+            }
+          }
+        },
+        "5": {
+          "cast_time": 1,
+          "recast_time": 5,
+          "effects": {
+            "0": {
+              "amount": 8
+            },
+            "1": {
+              "amount": 5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "brace_patch",
+      "before": {
+        "id": "brace_patch",
+        "name": "Brace Patch",
+        "description": "A quick patch that reinforces shield and restores a little HP.",
+        "rarity": "common",
+        "tags": [
+          "shield",
+          "heal",
+          "fast"
+        ],
+        "loadout_cost": 2,
+        "recast_time": 9.8,
+        "cast_time": 2.1,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.08,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 5,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 2,
+            "target": "self"
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "heal": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 2,
+          "recast_time": 9.4,
+          "effects": {
+            "0": {
+              "amount": 7
+            },
+            "1": {
+              "amount": 3
+            }
+          }
+        },
+        "2": {
+          "cast_time": 1.9,
+          "recast_time": 9,
+          "effects": {
+            "0": {
+              "amount": 9
+            },
+            "1": {
+              "amount": 4
+            }
+          }
+        },
+        "3": {
+          "cast_time": 1.8,
+          "recast_time": 8.6,
+          "effects": {
+            "0": {
+              "amount": 11
+            },
+            "1": {
+              "amount": 5
+            }
+          }
+        },
+        "4": {
+          "cast_time": 1.7,
+          "recast_time": 8.2,
+          "effects": {
+            "0": {
+              "amount": 13
+            },
+            "1": {
+              "amount": 6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 1.6,
+          "recast_time": 7.8,
+          "effects": {
+            "0": {
+              "amount": 15
+            },
+            "1": {
+              "amount": 7
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "marking_dart",
+      "before": {
+        "id": "marking_dart",
+        "name": "Marking Dart",
+        "description": "Mark the target for follow-up damage while dealing chip damage.",
+        "rarity": "common",
+        "tags": [
+          "attack",
+          "debuff",
+          "fast"
+        ],
+        "loadout_cost": 2,
+        "recast_time": 11.2,
+        "cast_time": 2.7,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.06,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 2,
+            "target": "enemy"
+          },
+          {
+            "type": "apply_status",
+            "status": "vulnerable",
+            "duration": 18,
+            "target": "enemy"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "duration": [
+            0,
+            4,
+            8,
+            12,
+            16,
+            20
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 2.6,
+          "recast_time": 10.8,
+          "effects": {
+            "0": {
+              "amount": 3
+            },
+            "1": {
+              "duration": 19.8
+            }
+          }
+        },
+        "2": {
+          "cast_time": 2.5,
+          "recast_time": 10.4,
+          "effects": {
+            "0": {
+              "amount": 4
+            },
+            "1": {
+              "duration": 21.6
+            }
+          }
+        },
+        "3": {
+          "cast_time": 2.4,
+          "recast_time": 10,
+          "effects": {
+            "0": {
+              "amount": 5
+            },
+            "1": {
+              "duration": 23.4
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2.3,
+          "recast_time": 9.6,
+          "effects": {
+            "0": {
+              "amount": 6
+            },
+            "1": {
+              "duration": 25.2
+            }
+          }
+        },
+        "5": {
+          "cast_time": 2.2,
+          "recast_time": 9.2,
+          "effects": {
+            "0": {
+              "amount": 7
+            },
+            "1": {
+              "duration": 27
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "timer_hook",
+      "before": {
+        "id": "timer_hook",
+        "name": "Timer Hook",
+        "description": "Hook one enemy cast backward while nudging your own cast forward.",
+        "rarity": "common",
+        "tags": [
+          "control",
+          "delay",
+          "haste"
+        ],
+        "loadout_cost": 2,
+        "recast_time": 15.4,
+        "cast_time": 3,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.02,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "delay_enemy_active_card",
+            "amount": 4.2,
+            "scope": "single"
+          },
+          {
+            "type": "haste_own_active_card",
+            "amount": 1.2,
+            "scope": "single"
+          }
+        ],
+        "upgrade_profile": {
+          "delay": [
+            0,
+            0.9,
+            1.8,
+            2.7,
+            3.6,
+            4.5
+          ],
+          "haste": [
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            2.5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 2.8,
+          "recast_time": 15,
+          "effects": {
+            "0": {
+              "amount": 4.9
+            },
+            "1": {
+              "amount": 1.7
+            }
+          }
+        },
+        "2": {
+          "cast_time": 2.6,
+          "recast_time": 14.6,
+          "effects": {
+            "0": {
+              "amount": 5.6
+            },
+            "1": {
+              "amount": 2.2
+            }
+          }
+        },
+        "3": {
+          "cast_time": 2.4,
+          "recast_time": 14.2,
+          "effects": {
+            "0": {
+              "amount": 6.3
+            },
+            "1": {
+              "amount": 2.7
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2.2,
+          "recast_time": 13.8,
+          "effects": {
+            "0": {
+              "amount": 7
+            },
+            "1": {
+              "amount": 3.2
+            }
+          }
+        },
+        "5": {
+          "cast_time": 2,
+          "recast_time": 13.4,
+          "effects": {
+            "0": {
+              "amount": 7.7
+            },
+            "1": {
+              "amount": 3.7
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "blood_siphon",
+      "before": {
+        "id": "blood_siphon",
+        "name": "Blood Siphon",
+        "description": "A small strike that restores HP and bites harder into bleeding targets.",
+        "rarity": "common",
+        "tags": [
+          "attack",
+          "heal",
+          "bleed"
+        ],
+        "loadout_cost": 2,
+        "recast_time": 12.6,
+        "cast_time": 3.3,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 3,
+            "target": "enemy",
+            "bonus_if_target_has_status": "bleed",
+            "bonus_amount": 4
+          },
+          {
+            "type": "heal",
+            "amount": 2,
+            "target": "self"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "heal": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 3.1,
+          "recast_time": 12.2,
+          "effects": {
+            "0": {
+              "amount": 4,
+              "bonus_amount": 5
+            },
+            "1": {
+              "amount": 3
+            }
+          }
+        },
+        "2": {
+          "cast_time": 2.9,
+          "recast_time": 11.8,
+          "effects": {
+            "0": {
+              "amount": 5,
+              "bonus_amount": 6
+            },
+            "1": {
+              "amount": 4
+            }
+          }
+        },
+        "3": {
+          "cast_time": 2.7,
+          "recast_time": 11.4,
+          "effects": {
+            "0": {
+              "amount": 6,
+              "bonus_amount": 7
+            },
+            "1": {
+              "amount": 5
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2.5,
+          "recast_time": 11,
+          "effects": {
+            "0": {
+              "amount": 7,
+              "bonus_amount": 8
+            },
+            "1": {
+              "amount": 6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 2.3,
+          "recast_time": 10.6,
+          "effects": {
+            "0": {
+              "amount": 8,
+              "bonus_amount": 9
+            },
+            "1": {
+              "amount": 7
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "capacitor_step",
+      "before": {
+        "id": "capacitor_step",
+        "name": "Capacitor Step",
+        "description": "Store charge as shield, then accelerate one allied action.",
+        "rarity": "common",
+        "tags": [
+          "shield",
+          "haste",
+          "support"
+        ],
+        "loadout_cost": 2,
+        "recast_time": 12.6,
+        "cast_time": 2.4,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.08,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 4,
+            "target": "self"
+          },
+          {
+            "type": "haste_own_active_card",
+            "amount": 2,
+            "scope": "single"
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "haste": [
+            0,
+            0.6,
+            1.2,
+            1.8,
+            2.4,
+            3
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 2.3,
+          "recast_time": 12.2,
+          "effects": {
+            "0": {
+              "amount": 6
+            },
+            "1": {
+              "amount": 2.5
+            }
+          }
+        },
+        "2": {
+          "cast_time": 2.2,
+          "recast_time": 11.8,
+          "effects": {
+            "0": {
+              "amount": 8
+            },
+            "1": {
+              "amount": 3
+            }
+          }
+        },
+        "3": {
+          "cast_time": 2.1,
+          "recast_time": 11.4,
+          "effects": {
+            "0": {
+              "amount": 10
+            },
+            "1": {
+              "amount": 3.5
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2,
+          "recast_time": 11,
+          "effects": {
+            "0": {
+              "amount": 12
+            },
+            "1": {
+              "amount": 4
+            }
+          }
+        },
+        "5": {
+          "cast_time": 1.9,
+          "recast_time": 10.6,
+          "effects": {
+            "0": {
+              "amount": 14
+            },
+            "1": {
+              "amount": 4.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "grit_reload",
+      "before": {
+        "id": "grit_reload",
+        "name": "Grit Reload",
+        "description": "Reload under pressure while adding a small shield buffer.",
+        "rarity": "common",
+        "tags": [
+          "cooldown",
+          "shield",
+          "support"
+        ],
+        "loadout_cost": 2,
+        "recast_time": 14,
+        "cast_time": 3,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.03,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "reduce_recast",
+            "amount": 3,
+            "scope": "highest_cooldown"
+          },
+          {
+            "type": "gain_shield",
+            "amount": 3,
+            "target": "self"
+          }
+        ],
+        "upgrade_profile": {
+          "cooldown": [
+            0,
+            0.9,
+            1.8,
+            2.7,
+            3.6,
+            4.5
+          ],
+          "shield": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 2.8,
+          "recast_time": 13.6,
+          "effects": {
+            "0": {
+              "amount": 3.6
+            },
+            "1": {
+              "amount": 5
+            }
+          }
+        },
+        "2": {
+          "cast_time": 2.6,
+          "recast_time": 13.2,
+          "effects": {
+            "0": {
+              "amount": 4.2
+            },
+            "1": {
+              "amount": 7
+            }
+          }
+        },
+        "3": {
+          "cast_time": 2.4,
+          "recast_time": 12.8,
+          "effects": {
+            "0": {
+              "amount": 4.8
+            },
+            "1": {
+              "amount": 9
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2.2,
+          "recast_time": 12.4,
+          "effects": {
+            "0": {
+              "amount": 5.4
+            },
+            "1": {
+              "amount": 11
+            }
+          }
+        },
+        "5": {
+          "cast_time": 2,
+          "recast_time": 12,
+          "effects": {
+            "0": {
+              "amount": 6
+            },
+            "1": {
+              "amount": 13
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "rust_cloud",
+      "before": {
+        "id": "rust_cloud",
+        "name": "Rust Cloud",
+        "description": "Release a corrosive cloud that weakens and slows the enemy.",
+        "rarity": "common",
+        "tags": [
+          "debuff",
+          "slow",
+          "control"
+        ],
+        "loadout_cost": 2,
+        "recast_time": 16.8,
+        "cast_time": 4.2,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "apply_status",
+            "status": "weak",
+            "duration": 24,
+            "target": "enemy"
+          },
+          {
+            "type": "apply_status",
+            "status": "slow",
+            "duration": 18,
+            "target": "enemy"
+          }
+        ],
+        "upgrade_profile": {
+          "duration": [
+            0,
+            5,
+            10,
+            15,
+            20,
+            25
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4,
+          "recast_time": 16.2,
+          "effects": {
+            "0": {
+              "duration": 26.4
+            },
+            "1": {
+              "duration": 19.8
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.8,
+          "recast_time": 15.6,
+          "effects": {
+            "0": {
+              "duration": 28.8
+            },
+            "1": {
+              "duration": 21.6
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3.6,
+          "recast_time": 15,
+          "effects": {
+            "0": {
+              "duration": 31.2
+            },
+            "1": {
+              "duration": 23.4
+            }
+          }
+        },
+        "4": {
+          "cast_time": 3.4,
+          "recast_time": 14.4,
+          "effects": {
+            "0": {
+              "duration": 33.6
+            },
+            "1": {
+              "duration": 25.2
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.2,
+          "recast_time": 13.8,
+          "effects": {
+            "0": {
+              "duration": 36
+            },
+            "1": {
+              "duration": 27
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "hammer_feint",
+      "before": {
+        "id": "hammer_feint",
+        "name": "Hammer Feint",
+        "description": "Threaten a heavy swing, then shove the enemy timeline back.",
+        "rarity": "rare",
+        "tags": [
+          "attack",
+          "control",
+          "delay"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 19.6,
+        "cast_time": 4.8,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.02,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 8,
+            "target": "enemy"
+          },
+          {
+            "type": "delay_enemy_active_card",
+            "amount": 2.4,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "delay": [
+            0,
+            0.8,
+            1.6,
+            2.4,
+            3.2,
+            4
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4.6,
+          "recast_time": 19,
+          "effects": {
+            "0": {
+              "amount": 10
+            },
+            "1": {
+              "amount": 2.8
+            }
+          }
+        },
+        "2": {
+          "cast_time": 4.4,
+          "recast_time": 18.4,
+          "effects": {
+            "0": {
+              "amount": 12
+            },
+            "1": {
+              "amount": 3.2
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.2,
+          "recast_time": 17.8,
+          "effects": {
+            "0": {
+              "amount": 14
+            },
+            "1": {
+              "amount": 3.6
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4,
+          "recast_time": 17.2,
+          "effects": {
+            "0": {
+              "amount": 16
+            },
+            "1": {
+              "amount": 4
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.8,
+          "recast_time": 16.6,
+          "effects": {
+            "0": {
+              "amount": 18
+            },
+            "1": {
+              "amount": 4.4
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "prism_guard",
+      "before": {
+        "id": "prism_guard",
+        "name": "Prism Guard",
+        "description": "Raise a prism shield and cleanse weak and slow effects.",
+        "rarity": "rare",
+        "tags": [
+          "shield",
+          "cleanse",
+          "support"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 18.2,
+        "cast_time": 3.6,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.08,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 10,
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "weak",
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "slow",
+            "target": "self"
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "recast_time": [
+            0,
+            -1,
+            -2,
+            -3,
+            -4,
+            -5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 3.4,
+          "recast_time": 17.6,
+          "effects": {
+            "0": {
+              "amount": 13
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.2,
+          "recast_time": 17,
+          "effects": {
+            "0": {
+              "amount": 16
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3,
+          "recast_time": 16.4,
+          "effects": {
+            "0": {
+              "amount": 19
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2.8,
+          "recast_time": 15.8,
+          "effects": {
+            "0": {
+              "amount": 22
+            }
+          }
+        },
+        "5": {
+          "cast_time": 2.6,
+          "recast_time": 15.2,
+          "effects": {
+            "0": {
+              "amount": 25
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "rupture_mark",
+      "before": {
+        "id": "rupture_mark",
+        "name": "Rupture Mark",
+        "description": "Open a wound and mark the target for amplified damage.",
+        "rarity": "rare",
+        "tags": [
+          "debuff",
+          "bleed",
+          "attack"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 19.6,
+        "cast_time": 4.2,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 5,
+            "target": "enemy"
+          },
+          {
+            "type": "apply_status",
+            "status": "bleed",
+            "duration": 30,
+            "target": "enemy",
+            "bleed_power": 1
+          },
+          {
+            "type": "apply_status",
+            "status": "vulnerable",
+            "duration": 18,
+            "target": "enemy"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "duration": [
+            0,
+            5,
+            10,
+            15,
+            20,
+            25
+          ],
+          "bleed_power": [
+            0,
+            0,
+            1,
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4,
+          "recast_time": 19,
+          "effects": {
+            "0": {
+              "amount": 7
+            },
+            "1": {
+              "duration": 31.5,
+              "bleed_power": 1
+            },
+            "2": {
+              "duration": 19.8
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.8,
+          "recast_time": 18.4,
+          "effects": {
+            "0": {
+              "amount": 9
+            },
+            "1": {
+              "duration": 33,
+              "bleed_power": 2
+            },
+            "2": {
+              "duration": 21.6
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3.6,
+          "recast_time": 17.8,
+          "effects": {
+            "0": {
+              "amount": 11
+            },
+            "1": {
+              "duration": 34.5,
+              "bleed_power": 2
+            },
+            "2": {
+              "duration": 23.4
+            }
+          }
+        },
+        "4": {
+          "cast_time": 3.4,
+          "recast_time": 17.2,
+          "effects": {
+            "0": {
+              "amount": 13
+            },
+            "1": {
+              "duration": 36,
+              "bleed_power": 3
+            },
+            "2": {
+              "duration": 25.2
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.2,
+          "recast_time": 16.6,
+          "effects": {
+            "0": {
+              "amount": 15
+            },
+            "1": {
+              "duration": 37.5,
+              "bleed_power": 4
+            },
+            "2": {
+              "duration": 27
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "phase_zip",
+      "before": {
+        "id": "phase_zip",
+        "name": "Phase Zip",
+        "description": "Slip your whole timeline forward and shave cooldowns.",
+        "rarity": "rare",
+        "tags": [
+          "haste",
+          "cooldown",
+          "time"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 21,
+        "cast_time": 3,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.12,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "haste_own_active_card",
+            "amount": 2,
+            "scope": "all"
+          },
+          {
+            "type": "reduce_recast",
+            "amount": 1.8,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "haste": [
+            0,
+            0.6,
+            1.2,
+            1.8,
+            2.4,
+            3
+          ],
+          "cooldown": [
+            0,
+            0.8,
+            1.6,
+            2.4,
+            3.2,
+            4
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 2.8,
+          "recast_time": 20.4,
+          "effects": {
+            "0": {
+              "amount": 2.3
+            },
+            "1": {
+              "amount": 2.2
+            }
+          }
+        },
+        "2": {
+          "cast_time": 2.6,
+          "recast_time": 19.8,
+          "effects": {
+            "0": {
+              "amount": 2.6
+            },
+            "1": {
+              "amount": 2.6
+            }
+          }
+        },
+        "3": {
+          "cast_time": 2.4,
+          "recast_time": 19.2,
+          "effects": {
+            "0": {
+              "amount": 2.9
+            },
+            "1": {
+              "amount": 3
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2.2,
+          "recast_time": 18.6,
+          "effects": {
+            "0": {
+              "amount": 3.2
+            },
+            "1": {
+              "amount": 3.4
+            }
+          }
+        },
+        "5": {
+          "cast_time": 2,
+          "recast_time": 18,
+          "effects": {
+            "0": {
+              "amount": 3.5
+            },
+            "1": {
+              "amount": 3.8
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "recycler_claw",
+      "before": {
+        "id": "recycler_claw",
+        "name": "Recycler Claw",
+        "description": "Tear into the enemy and recycle the last action's cooldown.",
+        "rarity": "rare",
+        "tags": [
+          "attack",
+          "cooldown"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 16.8,
+        "cast_time": 4.5,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 7,
+            "target": "enemy"
+          },
+          {
+            "type": "reduce_recast",
+            "amount": 4,
+            "scope": "last_used"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "cooldown": [
+            0,
+            1.2,
+            2.4,
+            3.6,
+            4.8,
+            6
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4.3,
+          "recast_time": 16.2,
+          "effects": {
+            "0": {
+              "amount": 9
+            },
+            "1": {
+              "amount": 4.6
+            }
+          }
+        },
+        "2": {
+          "cast_time": 4.1,
+          "recast_time": 15.6,
+          "effects": {
+            "0": {
+              "amount": 11
+            },
+            "1": {
+              "amount": 5.2
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3.9,
+          "recast_time": 15,
+          "effects": {
+            "0": {
+              "amount": 13
+            },
+            "1": {
+              "amount": 5.8
+            }
+          }
+        },
+        "4": {
+          "cast_time": 3.7,
+          "recast_time": 14.4,
+          "effects": {
+            "0": {
+              "amount": 15
+            },
+            "1": {
+              "amount": 6.4
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.5,
+          "recast_time": 13.8,
+          "effects": {
+            "0": {
+              "amount": 17
+            },
+            "1": {
+              "amount": 7
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "reactor_leech",
+      "before": {
+        "id": "reactor_leech",
+        "name": "Reactor Leech",
+        "description": "Spend shield to siphon reactor heat into damage and repair.",
+        "rarity": "rare",
+        "tags": [
+          "shield_spend",
+          "attack",
+          "heal"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 18.2,
+        "cast_time": 3.6,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.05,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "consume_shield",
+            "amount": 5
+          },
+          {
+            "type": "deal_damage",
+            "amount": 9,
+            "target": "enemy"
+          },
+          {
+            "type": "heal",
+            "amount": 3,
+            "target": "self"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "heal": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 3.4,
+          "recast_time": 17.6,
+          "effects": {
+            "1": {
+              "amount": 12
+            },
+            "2": {
+              "amount": 4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.2,
+          "recast_time": 17,
+          "effects": {
+            "1": {
+              "amount": 15
+            },
+            "2": {
+              "amount": 5
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3,
+          "recast_time": 16.4,
+          "effects": {
+            "1": {
+              "amount": 18
+            },
+            "2": {
+              "amount": 6
+            }
+          }
+        },
+        "4": {
+          "cast_time": 2.8,
+          "recast_time": 15.8,
+          "effects": {
+            "1": {
+              "amount": 21
+            },
+            "2": {
+              "amount": 7
+            }
+          }
+        },
+        "5": {
+          "cast_time": 2.6,
+          "recast_time": 15.2,
+          "effects": {
+            "1": {
+              "amount": 24
+            },
+            "2": {
+              "amount": 8
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "drone_foundry",
+      "before": {
+        "id": "drone_foundry",
+        "name": "Drone Foundry",
+        "description": "Fabricate a quick strike drone and improve Guard for the run.",
+        "rarity": "rare",
+        "tags": [
+          "chain",
+          "support",
+          "shield"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 22.4,
+        "cast_time": 5.4,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "auto_queue_card",
+            "card_id": "quick_slash",
+            "delay": 0.7,
+            "count": 2,
+            "max_depth": 1,
+            "queue_spacing": 0.6
+          },
+          {
+            "type": "empower_card",
+            "scope": "card_id",
+            "card_id": "guard",
+            "stat": "shield",
+            "amount": 1
+          }
+        ],
+        "upgrade_profile": {
+          "empower": [
+            0,
+            1,
+            1,
+            2,
+            3,
+            4
+          ],
+          "recast_time": [
+            0,
+            -1.2,
+            -2.4,
+            -3.6,
+            -4.8,
+            -6
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 5.2,
+          "recast_time": 21.8,
+          "effects": {
+            "1": {
+              "amount": 1.2
+            }
+          }
+        },
+        "2": {
+          "cast_time": 5,
+          "recast_time": 21.2,
+          "effects": {
+            "1": {
+              "amount": 1.4
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.8,
+          "recast_time": 20.6,
+          "effects": {
+            "1": {
+              "amount": 1.6
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4.6,
+          "recast_time": 20,
+          "effects": {
+            "1": {
+              "amount": 1.8
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.4,
+          "recast_time": 19.4,
+          "effects": {
+            "1": {
+              "amount": 2
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tactical_mirror",
+      "before": {
+        "id": "tactical_mirror",
+        "name": "Tactical Mirror",
+        "description": "Mirror this tactic once and permanently make other own cards slightly faster to recast.",
+        "rarity": "rare",
+        "tags": [
+          "chain",
+          "special",
+          "cooldown"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 23.8,
+        "cast_time": 4.2,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.02,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "empower_card",
+            "scope": "other_own",
+            "stat": "recast_time",
+            "amount": -0.6
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "self",
+            "delay": 0.9,
+            "max_depth": 1
+          }
+        ],
+        "upgrade_profile": {
+          "empower": [
+            0,
+            -0.2,
+            -0.4,
+            -0.6,
+            -0.8,
+            -1
+          ],
+          "recast_time": [
+            0,
+            -1,
+            -2,
+            -3,
+            -4,
+            -5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4,
+          "recast_time": 23.2,
+          "effects": {
+            "0": {
+              "amount": -0.66
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.8,
+          "recast_time": 22.6,
+          "effects": {
+            "0": {
+              "amount": -0.72
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3.6,
+          "recast_time": 22,
+          "effects": {
+            "0": {
+              "amount": -0.78
+            }
+          }
+        },
+        "4": {
+          "cast_time": 3.4,
+          "recast_time": 21.4,
+          "effects": {
+            "0": {
+              "amount": -0.84
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.2,
+          "recast_time": 20.8,
+          "effects": {
+            "0": {
+              "amount": -0.9
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "gravity_snare",
+      "before": {
+        "id": "gravity_snare",
+        "name": "Gravity Snare",
+        "description": "Pin the enemy timeline in place and pull active casts backward.",
+        "rarity": "rare",
+        "tags": [
+          "control",
+          "time",
+          "delay"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 25.2,
+        "cast_time": 5.1,
+        "active_slot_cost": 1,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "timeline_flow",
+            "mode": "stop",
+            "target_side": "enemy",
+            "duration": 4
+          },
+          {
+            "type": "delay_enemy_active_card",
+            "amount": 2,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "duration": [
+            0,
+            0.8,
+            1.6,
+            2.4,
+            3.2,
+            4
+          ],
+          "delay": [
+            0,
+            0.7,
+            1.4,
+            2.1,
+            2.8,
+            3.5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4.9,
+          "recast_time": 24.6,
+          "effects": {
+            "0": {
+              "duration": 4.4
+            },
+            "1": {
+              "amount": 2.4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 4.7,
+          "recast_time": 24,
+          "effects": {
+            "0": {
+              "duration": 4.8
+            },
+            "1": {
+              "amount": 2.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.5,
+          "recast_time": 23.4,
+          "effects": {
+            "0": {
+              "duration": 5.2
+            },
+            "1": {
+              "amount": 3.2
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4.3,
+          "recast_time": 22.8,
+          "effects": {
+            "0": {
+              "duration": 5.6
+            },
+            "1": {
+              "amount": 3.6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.1,
+          "recast_time": 22.2,
+          "effects": {
+            "0": {
+              "duration": 6
+            },
+            "1": {
+              "amount": 4
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "field_medic",
+      "before": {
+        "id": "field_medic",
+        "name": "Field Medic",
+        "description": "Patch HP and clear bleeding and weakness.",
+        "rarity": "rare",
+        "tags": [
+          "heal",
+          "cleanse",
+          "support"
+        ],
+        "loadout_cost": 3,
+        "recast_time": 21,
+        "cast_time": 4.2,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.04,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "heal",
+            "amount": 8,
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "bleed",
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "weak",
+            "target": "self"
+          }
+        ],
+        "upgrade_profile": {
+          "heal": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "recast_time": [
+            0,
+            -1,
+            -2,
+            -3,
+            -4,
+            -5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 4,
+          "recast_time": 20.4,
+          "effects": {
+            "0": {
+              "amount": 10
+            }
+          }
+        },
+        "2": {
+          "cast_time": 3.8,
+          "recast_time": 19.8,
+          "effects": {
+            "0": {
+              "amount": 12
+            }
+          }
+        },
+        "3": {
+          "cast_time": 3.6,
+          "recast_time": 19.2,
+          "effects": {
+            "0": {
+              "amount": 14
+            }
+          }
+        },
+        "4": {
+          "cast_time": 3.4,
+          "recast_time": 18.6,
+          "effects": {
+            "0": {
+              "amount": 16
+            }
+          }
+        },
+        "5": {
+          "cast_time": 3.2,
+          "recast_time": 18,
+          "effects": {
+            "0": {
+              "amount": 18
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "singularity_guard",
+      "before": {
+        "id": "singularity_guard",
+        "name": "Singularity Guard",
+        "description": "Fold incoming pressure into a dense shield and pause every timeline briefly.",
+        "rarity": "epic",
+        "tags": [
+          "shield",
+          "time",
+          "control"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 30.8,
+        "cast_time": 7.2,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.02,
+        "interruptible": true,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 20,
+            "target": "self"
+          },
+          {
+            "type": "timeline_flow",
+            "mode": "stop",
+            "target_side": "all",
+            "duration": 3
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            5,
+            10,
+            15,
+            20,
+            25
+          ],
+          "duration": [
+            0,
+            0.8,
+            1.6,
+            2.4,
+            3.2,
+            4
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6.9,
+          "recast_time": 29.8,
+          "effects": {
+            "0": {
+              "amount": 26
+            },
+            "1": {
+              "duration": 3.3
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6.6,
+          "recast_time": 28.8,
+          "effects": {
+            "0": {
+              "amount": 32
+            },
+            "1": {
+              "duration": 3.6
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.3,
+          "recast_time": 27.8,
+          "effects": {
+            "0": {
+              "amount": 38
+            },
+            "1": {
+              "duration": 3.9
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6,
+          "recast_time": 26.8,
+          "effects": {
+            "0": {
+              "amount": 44
+            },
+            "1": {
+              "duration": 4.2
+            }
+          }
+        },
+        "5": {
+          "cast_time": 5.7,
+          "recast_time": 25.8,
+          "effects": {
+            "0": {
+              "amount": 50
+            },
+            "1": {
+              "duration": 4.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "blood_moon_protocol",
+      "before": {
+        "id": "blood_moon_protocol",
+        "name": "Blood Moon Protocol",
+        "description": "Inflict a long bleed, expose the target, then strike harder into the wound.",
+        "rarity": "epic",
+        "tags": [
+          "attack",
+          "bleed",
+          "debuff"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 28,
+        "cast_time": 6.6,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.03,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "apply_status",
+            "status": "bleed",
+            "duration": 42,
+            "target": "enemy",
+            "bleed_power": 1
+          },
+          {
+            "type": "apply_status",
+            "status": "vulnerable",
+            "duration": 24,
+            "target": "enemy"
+          },
+          {
+            "type": "deal_damage",
+            "amount": 10,
+            "target": "enemy",
+            "bonus_if_target_has_status": "bleed",
+            "bonus_amount": 6
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            4,
+            8,
+            12,
+            16,
+            20
+          ],
+          "duration": [
+            0,
+            6,
+            12,
+            18,
+            24,
+            30
+          ],
+          "bleed_power": [
+            0,
+            0,
+            1,
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6.3,
+          "recast_time": 27.4,
+          "effects": {
+            "0": {
+              "duration": 44,
+              "bleed_power": 1
+            },
+            "1": {
+              "duration": 26.4
+            },
+            "2": {
+              "amount": 13,
+              "bonus_amount": 8
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6,
+          "recast_time": 26.8,
+          "effects": {
+            "0": {
+              "duration": 46,
+              "bleed_power": 2
+            },
+            "1": {
+              "duration": 28.8
+            },
+            "2": {
+              "amount": 16,
+              "bonus_amount": 10
+            }
+          }
+        },
+        "3": {
+          "cast_time": 5.7,
+          "recast_time": 26.2,
+          "effects": {
+            "0": {
+              "duration": 48,
+              "bleed_power": 2
+            },
+            "1": {
+              "duration": 31.2
+            },
+            "2": {
+              "amount": 19,
+              "bonus_amount": 12
+            }
+          }
+        },
+        "4": {
+          "cast_time": 5.4,
+          "recast_time": 25.6,
+          "effects": {
+            "0": {
+              "duration": 50,
+              "bleed_power": 3
+            },
+            "1": {
+              "duration": 33.6
+            },
+            "2": {
+              "amount": 22,
+              "bonus_amount": 14
+            }
+          }
+        },
+        "5": {
+          "cast_time": 5.1,
+          "recast_time": 25,
+          "effects": {
+            "0": {
+              "duration": 52,
+              "bleed_power": 4
+            },
+            "1": {
+              "duration": 36
+            },
+            "2": {
+              "amount": 25,
+              "bonus_amount": 16
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "chrono_blackout",
+      "before": {
+        "id": "chrono_blackout",
+        "name": "Chrono Blackout",
+        "description": "Invert the whole field's timeline for a short, violent blackout.",
+        "rarity": "epic",
+        "tags": [
+          "time",
+          "control",
+          "special"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 35,
+        "cast_time": 8.4,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.04,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "timeline_flow",
+            "mode": "reverse",
+            "target_side": "all",
+            "duration": 5
+          },
+          {
+            "type": "apply_status",
+            "status": "slow",
+            "duration": 18,
+            "target": "enemy"
+          }
+        ],
+        "upgrade_profile": {
+          "duration": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "recast_time": [
+            0,
+            -1.5,
+            -3,
+            -4.5,
+            -6,
+            -7.5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 8.1,
+          "recast_time": 34,
+          "effects": {
+            "0": {
+              "duration": 5.5
+            },
+            "1": {
+              "duration": 19.8
+            }
+          }
+        },
+        "2": {
+          "cast_time": 7.8,
+          "recast_time": 33,
+          "effects": {
+            "0": {
+              "duration": 6
+            },
+            "1": {
+              "duration": 21.6
+            }
+          }
+        },
+        "3": {
+          "cast_time": 7.5,
+          "recast_time": 32,
+          "effects": {
+            "0": {
+              "duration": 6.5
+            },
+            "1": {
+              "duration": 23.4
+            }
+          }
+        },
+        "4": {
+          "cast_time": 7.2,
+          "recast_time": 31,
+          "effects": {
+            "0": {
+              "duration": 7
+            },
+            "1": {
+              "duration": 25.2
+            }
+          }
+        },
+        "5": {
+          "cast_time": 6.9,
+          "recast_time": 30,
+          "effects": {
+            "0": {
+              "duration": 7.5
+            },
+            "1": {
+              "duration": 27
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "recursive_battery",
+      "before": {
+        "id": "recursive_battery",
+        "name": "Recursive Battery",
+        "description": "Build shield, then queue more batteries in a limited recursive chain.",
+        "rarity": "epic",
+        "tags": [
+          "shield",
+          "chain",
+          "special"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 29.4,
+        "cast_time": 5.4,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.02,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 9,
+            "target": "self"
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "self",
+            "delay": 0.8,
+            "max_depth": 3,
+            "queue_spacing": 0.4
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "recast_time": [
+            0,
+            -1.5,
+            -3,
+            -4.5,
+            -6,
+            -7.5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 5.2,
+          "recast_time": 28.4,
+          "effects": {
+            "0": {
+              "amount": 12
+            }
+          }
+        },
+        "2": {
+          "cast_time": 5,
+          "recast_time": 27.4,
+          "effects": {
+            "0": {
+              "amount": 15
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.8,
+          "recast_time": 26.4,
+          "effects": {
+            "0": {
+              "amount": 18
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4.6,
+          "recast_time": 25.4,
+          "effects": {
+            "0": {
+              "amount": 21
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.4,
+          "recast_time": 24.4,
+          "effects": {
+            "0": {
+              "amount": 24
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "execution_matrix",
+      "before": {
+        "id": "execution_matrix",
+        "name": "Execution Matrix",
+        "description": "Calculate a finishing strike and interrupt all vulnerable enemy casts.",
+        "rarity": "epic",
+        "tags": [
+          "attack",
+          "finisher",
+          "interrupt"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 30.8,
+        "cast_time": 7.8,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.08,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 14,
+            "target": "enemy",
+            "bonus_if_target_hp_below_ratio": 0.35,
+            "bonus_amount": 10
+          },
+          {
+            "type": "interrupt_card",
+            "scope": "all_interruptible"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            4,
+            8,
+            12,
+            16,
+            20
+          ],
+          "recast_time": [
+            0,
+            -1.5,
+            -3,
+            -4.5,
+            -6,
+            -7.5
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 7.5,
+          "recast_time": 29.8,
+          "effects": {
+            "0": {
+              "amount": 18,
+              "bonus_amount": 13
+            }
+          }
+        },
+        "2": {
+          "cast_time": 7.2,
+          "recast_time": 28.8,
+          "effects": {
+            "0": {
+              "amount": 22,
+              "bonus_amount": 16
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.9,
+          "recast_time": 27.8,
+          "effects": {
+            "0": {
+              "amount": 26,
+              "bonus_amount": 19
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6.6,
+          "recast_time": 26.8,
+          "effects": {
+            "0": {
+              "amount": 30,
+              "bonus_amount": 22
+            }
+          }
+        },
+        "5": {
+          "cast_time": 6.3,
+          "recast_time": 25.8,
+          "effects": {
+            "0": {
+              "amount": 34,
+              "bonus_amount": 25
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "final_archive",
+      "before": {
+        "id": "final_archive",
+        "name": "Final Archive",
+        "description": "Compress combat records into permanent deck-wide gains and queue a guard response.",
+        "rarity": "epic",
+        "tags": [
+          "special",
+          "buff",
+          "chain",
+          "shield"
+        ],
+        "loadout_cost": 4,
+        "recast_time": 33.6,
+        "cast_time": 7.2,
+        "active_slot_cost": 2,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "empower_card",
+            "scope": "all_own",
+            "stat": "damage",
+            "amount": 1
+          },
+          {
+            "type": "empower_card",
+            "scope": "all_own",
+            "stat": "recast_time",
+            "amount": -0.4
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "guard",
+            "delay": 0.5,
+            "max_depth": 1
+          }
+        ],
+        "upgrade_profile": {
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6.9,
+          "recast_time": 32.6,
+          "effects": {
+            "0": {
+              "amount": 1.1
+            },
+            "1": {
+              "amount": -0.44
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6.6,
+          "recast_time": 31.6,
+          "effects": {
+            "0": {
+              "amount": 1.2
+            },
+            "1": {
+              "amount": -0.48
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.3,
+          "recast_time": 30.6,
+          "effects": {
+            "0": {
+              "amount": 1.3
+            },
+            "1": {
+              "amount": -0.52
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6,
+          "recast_time": 29.6,
+          "effects": {
+            "0": {
+              "amount": 1.4
+            },
+            "1": {
+              "amount": -0.56
+            }
+          }
+        },
+        "5": {
+          "cast_time": 5.7,
+          "recast_time": 28.6,
+          "effects": {
+            "0": {
+              "amount": 1.5
+            },
+            "1": {
+              "amount": -0.6
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "solar_verdict",
+      "before": {
+        "id": "solar_verdict",
+        "name": "Solar Verdict",
+        "description": "Focus a final judgment beam that crushes weakened targets and leaves them exposed.",
+        "rarity": "legendary",
+        "tags": [
+          "attack",
+          "finisher",
+          "debuff"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 39.2,
+        "cast_time": 9,
+        "active_slot_cost": 3,
+        "priority_modifier": -0.15,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 26,
+            "target": "enemy",
+            "bonus_if_target_hp_below_ratio": 0.35,
+            "bonus_amount": 14
+          },
+          {
+            "type": "apply_status",
+            "status": "vulnerable",
+            "duration": 14,
+            "target": "enemy"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            4,
+            8,
+            12,
+            16,
+            20
+          ],
+          "duration": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 8.7,
+          "recast_time": 38.2,
+          "effects": {
+            "0": {
+              "amount": 31,
+              "bonus_amount": 18
+            },
+            "1": {
+              "duration": 15.4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 8.4,
+          "recast_time": 37.2,
+          "effects": {
+            "0": {
+              "amount": 36,
+              "bonus_amount": 22
+            },
+            "1": {
+              "duration": 16.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 8.1,
+          "recast_time": 36.2,
+          "effects": {
+            "0": {
+              "amount": 41,
+              "bonus_amount": 26
+            },
+            "1": {
+              "duration": 18.2
+            }
+          }
+        },
+        "4": {
+          "cast_time": 7.8,
+          "recast_time": 35.2,
+          "effects": {
+            "0": {
+              "amount": 46,
+              "bonus_amount": 30
+            },
+            "1": {
+              "duration": 19.6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 7.5,
+          "recast_time": 34.2,
+          "effects": {
+            "0": {
+              "amount": 51,
+              "bonus_amount": 34
+            },
+            "1": {
+              "duration": 21
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "citadel_prime",
+      "before": {
+        "id": "citadel_prime",
+        "name": "Citadel Prime",
+        "description": "Deploy a sovereign fortress shell that restores its operator and removes exposed weak points.",
+        "rarity": "legendary",
+        "tags": [
+          "shield",
+          "heal",
+          "cleanse"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 36.4,
+        "cast_time": 7.2,
+        "active_slot_cost": 2,
+        "priority_modifier": 0.08,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 28,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 10,
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "weak",
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "vulnerable",
+            "target": "self"
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            4,
+            8,
+            12,
+            16,
+            20
+          ],
+          "heal": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6.9,
+          "recast_time": 35.4,
+          "effects": {
+            "0": {
+              "amount": 33
+            },
+            "1": {
+              "amount": 12
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6.6,
+          "recast_time": 34.4,
+          "effects": {
+            "0": {
+              "amount": 38
+            },
+            "1": {
+              "amount": 14
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.3,
+          "recast_time": 33.4,
+          "effects": {
+            "0": {
+              "amount": 43
+            },
+            "1": {
+              "amount": 16
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6,
+          "recast_time": 32.4,
+          "effects": {
+            "0": {
+              "amount": 48
+            },
+            "1": {
+              "amount": 18
+            }
+          }
+        },
+        "5": {
+          "cast_time": 5.7,
+          "recast_time": 31.4,
+          "effects": {
+            "0": {
+              "amount": 53
+            },
+            "1": {
+              "amount": 20
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "epoch_breaker",
+      "before": {
+        "id": "epoch_breaker",
+        "name": "Epoch Breaker",
+        "description": "Shatter the enemy schedule, interrupt every vulnerable cast, and drive the timeline backward.",
+        "rarity": "legendary",
+        "tags": [
+          "attack",
+          "control",
+          "delay",
+          "interrupt"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 40.6,
+        "cast_time": 8.4,
+        "active_slot_cost": 3,
+        "priority_modifier": -0.12,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 16,
+            "target": "enemy"
+          },
+          {
+            "type": "delay_enemy_active_card",
+            "amount": 3.6,
+            "scope": "all"
+          },
+          {
+            "type": "interrupt_card",
+            "scope": "all_interruptible"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "delay": [
+            0,
+            0.6,
+            1.2,
+            1.8,
+            2.4,
+            3
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 8.1,
+          "recast_time": 39.4,
+          "effects": {
+            "0": {
+              "amount": 19
+            },
+            "1": {
+              "amount": 4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 7.8,
+          "recast_time": 38.2,
+          "effects": {
+            "0": {
+              "amount": 22
+            },
+            "1": {
+              "amount": 4.4
+            }
+          }
+        },
+        "3": {
+          "cast_time": 7.5,
+          "recast_time": 37,
+          "effects": {
+            "0": {
+              "amount": 25
+            },
+            "1": {
+              "amount": 4.8
+            }
+          }
+        },
+        "4": {
+          "cast_time": 7.2,
+          "recast_time": 35.8,
+          "effects": {
+            "0": {
+              "amount": 28
+            },
+            "1": {
+              "amount": 5.2
+            }
+          }
+        },
+        "5": {
+          "cast_time": 6.9,
+          "recast_time": 34.6,
+          "effects": {
+            "0": {
+              "amount": 31
+            },
+            "1": {
+              "amount": 5.6
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "phoenix_circuit",
+      "before": {
+        "id": "phoenix_circuit",
+        "name": "Phoenix Circuit",
+        "description": "Rebuild a failing frame and permanently improve every healing circuit for the battle.",
+        "rarity": "legendary",
+        "tags": [
+          "heal",
+          "cleanse",
+          "growth",
+          "support"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 37.8,
+        "cast_time": 7.5,
+        "active_slot_cost": 2,
+        "priority_modifier": 0.05,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "heal",
+            "amount": 20,
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "bleed",
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "weak",
+            "target": "self"
+          },
+          {
+            "type": "empower_card",
+            "scope": "all_own",
+            "stat": "heal",
+            "amount": 1
+          }
+        ],
+        "upgrade_profile": {
+          "heal": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "empower": [
+            0,
+            0.3,
+            0.6,
+            0.9,
+            1.2,
+            1.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 7.2,
+          "recast_time": 36.8,
+          "effects": {
+            "0": {
+              "amount": 24
+            },
+            "3": {
+              "amount": 1.1
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6.9,
+          "recast_time": 35.8,
+          "effects": {
+            "0": {
+              "amount": 28
+            },
+            "3": {
+              "amount": 1.2
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.6,
+          "recast_time": 34.8,
+          "effects": {
+            "0": {
+              "amount": 32
+            },
+            "3": {
+              "amount": 1.3
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6.3,
+          "recast_time": 33.8,
+          "effects": {
+            "0": {
+              "amount": 36
+            },
+            "3": {
+              "amount": 1.4
+            }
+          }
+        },
+        "5": {
+          "cast_time": 6,
+          "recast_time": 32.8,
+          "effects": {
+            "0": {
+              "amount": 40
+            },
+            "3": {
+              "amount": 1.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "atlas_protocol",
+      "before": {
+        "id": "atlas_protocol",
+        "name": "Atlas Protocol",
+        "description": "Raise a strategic command frame that reinforces and accelerates the entire loadout.",
+        "rarity": "legendary",
+        "tags": [
+          "support",
+          "growth",
+          "shield",
+          "cooldown"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 42,
+        "cast_time": 7.8,
+        "active_slot_cost": 2,
+        "priority_modifier": 0.02,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 16,
+            "target": "self"
+          },
+          {
+            "type": "reduce_recast",
+            "amount": 3,
+            "scope": "all"
+          },
+          {
+            "type": "empower_card",
+            "scope": "all_own",
+            "stat": "damage",
+            "amount": 1
+          },
+          {
+            "type": "empower_card",
+            "scope": "all_own",
+            "stat": "shield",
+            "amount": 1
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "cooldown": [
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            2.5
+          ],
+          "empower": [
+            0,
+            0.2,
+            0.4,
+            0.6,
+            0.8,
+            1
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 7.5,
+          "recast_time": 40.8,
+          "effects": {
+            "0": {
+              "amount": 19
+            },
+            "1": {
+              "amount": 3.4
+            },
+            "2": {
+              "amount": 1.1
+            },
+            "3": {
+              "amount": 1.1
+            }
+          }
+        },
+        "2": {
+          "cast_time": 7.2,
+          "recast_time": 39.6,
+          "effects": {
+            "0": {
+              "amount": 22
+            },
+            "1": {
+              "amount": 3.8
+            },
+            "2": {
+              "amount": 1.2
+            },
+            "3": {
+              "amount": 1.2
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.9,
+          "recast_time": 38.4,
+          "effects": {
+            "0": {
+              "amount": 25
+            },
+            "1": {
+              "amount": 4.2
+            },
+            "2": {
+              "amount": 1.3
+            },
+            "3": {
+              "amount": 1.3
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6.6,
+          "recast_time": 37.2,
+          "effects": {
+            "0": {
+              "amount": 28
+            },
+            "1": {
+              "amount": 4.6
+            },
+            "2": {
+              "amount": 1.4
+            },
+            "3": {
+              "amount": 1.4
+            }
+          }
+        },
+        "5": {
+          "cast_time": 6.3,
+          "recast_time": 36,
+          "effects": {
+            "0": {
+              "amount": 31
+            },
+            "1": {
+              "amount": 5
+            },
+            "2": {
+              "amount": 1.5
+            },
+            "3": {
+              "amount": 1.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "worldline_collapse",
+      "before": {
+        "id": "worldline_collapse",
+        "name": "Worldline Collapse",
+        "description": "Fold both timelines into reverse while the enemy schedule is forced even farther away.",
+        "rarity": "legendary",
+        "tags": [
+          "special",
+          "control",
+          "reverse",
+          "attack",
+          "delay"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 43.4,
+        "cast_time": 9.3,
+        "active_slot_cost": 3,
+        "priority_modifier": -0.1,
+        "interruptible": true,
+        "target_type": "all",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 12,
+            "target": "enemy"
+          },
+          {
+            "type": "timeline_flow",
+            "mode": "reverse",
+            "target_side": "all",
+            "duration": 4.5
+          },
+          {
+            "type": "delay_enemy_active_card",
+            "amount": 2,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "duration": [
+            0,
+            0.6,
+            1.2,
+            1.8,
+            2.4,
+            3
+          ],
+          "delay": [
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            2.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 9,
+          "recast_time": 42.2,
+          "effects": {
+            "0": {
+              "amount": 14
+            },
+            "1": {
+              "duration": 4.95
+            },
+            "2": {
+              "amount": 2.4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 8.7,
+          "recast_time": 41,
+          "effects": {
+            "0": {
+              "amount": 16
+            },
+            "1": {
+              "duration": 5.4
+            },
+            "2": {
+              "amount": 2.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 8.4,
+          "recast_time": 39.8,
+          "effects": {
+            "0": {
+              "amount": 18
+            },
+            "1": {
+              "duration": 5.85
+            },
+            "2": {
+              "amount": 3.2
+            }
+          }
+        },
+        "4": {
+          "cast_time": 8.1,
+          "recast_time": 38.6,
+          "effects": {
+            "0": {
+              "amount": 20
+            },
+            "1": {
+              "duration": 6.3
+            },
+            "2": {
+              "amount": 3.6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 7.8,
+          "recast_time": 37.4,
+          "effects": {
+            "0": {
+              "amount": 22
+            },
+            "1": {
+              "duration": 6.75
+            },
+            "2": {
+              "amount": 4
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "seraph_array",
+      "before": {
+        "id": "seraph_array",
+        "name": "Seraph Array",
+        "description": "Launch a wing of guard drones that fortifies the user and advances every allied cast.",
+        "rarity": "legendary",
+        "tags": [
+          "shield",
+          "chain",
+          "haste",
+          "support"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 35,
+        "cast_time": 6.3,
+        "active_slot_cost": 2,
+        "priority_modifier": 0.12,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 18,
+            "target": "self"
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "quick_guard",
+            "count": 3,
+            "delay": 0.3,
+            "queue_spacing": 0.4,
+            "max_depth": 1,
+            "use_cast_time": false
+          },
+          {
+            "type": "haste_own_active_card",
+            "amount": 1.5,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "haste": [
+            0,
+            0.4,
+            0.8,
+            1.2,
+            1.6,
+            2
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6,
+          "recast_time": 34,
+          "effects": {
+            "0": {
+              "amount": 21
+            },
+            "2": {
+              "amount": 1.8
+            }
+          }
+        },
+        "2": {
+          "cast_time": 5.7,
+          "recast_time": 33,
+          "effects": {
+            "0": {
+              "amount": 24
+            },
+            "2": {
+              "amount": 2.1
+            }
+          }
+        },
+        "3": {
+          "cast_time": 5.4,
+          "recast_time": 32,
+          "effects": {
+            "0": {
+              "amount": 27
+            },
+            "2": {
+              "amount": 2.4
+            }
+          }
+        },
+        "4": {
+          "cast_time": 5.1,
+          "recast_time": 31,
+          "effects": {
+            "0": {
+              "amount": 30
+            },
+            "2": {
+              "amount": 2.7
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.8,
+          "recast_time": 30,
+          "effects": {
+            "0": {
+              "amount": 33
+            },
+            "2": {
+              "amount": 3
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "ragnarok_engine",
+      "before": {
+        "id": "ragnarok_engine",
+        "name": "Ragnarok Engine",
+        "description": "A recursive siege engine repeats its own strike and becomes stronger after every resolution.",
+        "rarity": "legendary",
+        "tags": [
+          "attack",
+          "chain",
+          "growth",
+          "finisher"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 44.8,
+        "cast_time": 9.6,
+        "active_slot_cost": 3,
+        "priority_modifier": -0.18,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 18,
+            "target": "enemy"
+          },
+          {
+            "type": "empower_card",
+            "scope": "self",
+            "stat": "damage",
+            "amount": 1
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "self",
+            "count": 1,
+            "delay": 0.8,
+            "max_depth": 2,
+            "use_cast_time": false
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "empower": [
+            0,
+            0.3,
+            0.6,
+            0.9,
+            1.2,
+            1.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 9.3,
+          "recast_time": 43.6,
+          "effects": {
+            "0": {
+              "amount": 21
+            },
+            "1": {
+              "amount": 1.2
+            }
+          }
+        },
+        "2": {
+          "cast_time": 9,
+          "recast_time": 42.4,
+          "effects": {
+            "0": {
+              "amount": 24
+            },
+            "1": {
+              "amount": 1.4
+            }
+          }
+        },
+        "3": {
+          "cast_time": 8.7,
+          "recast_time": 41.2,
+          "effects": {
+            "0": {
+              "amount": 27
+            },
+            "1": {
+              "amount": 1.6
+            }
+          }
+        },
+        "4": {
+          "cast_time": 8.4,
+          "recast_time": 40,
+          "effects": {
+            "0": {
+              "amount": 30
+            },
+            "1": {
+              "amount": 1.8
+            }
+          }
+        },
+        "5": {
+          "cast_time": 8.1,
+          "recast_time": 38.8,
+          "effects": {
+            "0": {
+              "amount": 33
+            },
+            "1": {
+              "amount": 2
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "absolute_zero",
+      "before": {
+        "id": "absolute_zero",
+        "name": "Absolute Zero",
+        "description": "Lock the enemy timeline in perfect stasis and leave every hostile system slowed.",
+        "rarity": "legendary",
+        "tags": [
+          "control",
+          "stop",
+          "debuff",
+          "delay"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 42,
+        "cast_time": 8.1,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.06,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "timeline_flow",
+            "mode": "stop",
+            "target_side": "enemy",
+            "duration": 5
+          },
+          {
+            "type": "apply_status",
+            "status": "slow",
+            "duration": 16,
+            "target": "enemy"
+          },
+          {
+            "type": "delay_enemy_active_card",
+            "amount": 1.5,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "duration": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "delay": [
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            2.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 7.8,
+          "recast_time": 40.8,
+          "effects": {
+            "0": {
+              "duration": 5.5
+            },
+            "1": {
+              "duration": 17.6
+            },
+            "2": {
+              "amount": 1.9
+            }
+          }
+        },
+        "2": {
+          "cast_time": 7.5,
+          "recast_time": 39.6,
+          "effects": {
+            "0": {
+              "duration": 6
+            },
+            "1": {
+              "duration": 19.2
+            },
+            "2": {
+              "amount": 2.3
+            }
+          }
+        },
+        "3": {
+          "cast_time": 7.2,
+          "recast_time": 38.4,
+          "effects": {
+            "0": {
+              "duration": 6.5
+            },
+            "1": {
+              "duration": 20.8
+            },
+            "2": {
+              "amount": 2.7
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6.9,
+          "recast_time": 37.2,
+          "effects": {
+            "0": {
+              "duration": 7
+            },
+            "1": {
+              "duration": 22.4
+            },
+            "2": {
+              "amount": 3.1
+            }
+          }
+        },
+        "5": {
+          "cast_time": 6.6,
+          "recast_time": 36,
+          "effects": {
+            "0": {
+              "duration": 7.5
+            },
+            "1": {
+              "duration": 24
+            },
+            "2": {
+              "amount": 3.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "quantum_exchange",
+      "before": {
+        "id": "quantum_exchange",
+        "name": "Quantum Exchange",
+        "description": "Convert stored shield into damage, repairs, and a deck-wide cooldown surge.",
+        "rarity": "legendary",
+        "tags": [
+          "shield_spend",
+          "attack",
+          "heal",
+          "cooldown"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 33.6,
+        "cast_time": 6.6,
+        "active_slot_cost": 2,
+        "priority_modifier": 0.04,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "consume_shield",
+            "amount": 14
+          },
+          {
+            "type": "deal_damage",
+            "amount": 24,
+            "target": "enemy"
+          },
+          {
+            "type": "heal",
+            "amount": 14,
+            "target": "self"
+          },
+          {
+            "type": "reduce_recast",
+            "amount": 2.5,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "heal": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "cooldown": [
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            2.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6.3,
+          "recast_time": 32.6,
+          "effects": {
+            "1": {
+              "amount": 28
+            },
+            "2": {
+              "amount": 17
+            },
+            "3": {
+              "amount": 2.9
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6,
+          "recast_time": 31.6,
+          "effects": {
+            "1": {
+              "amount": 32
+            },
+            "2": {
+              "amount": 20
+            },
+            "3": {
+              "amount": 3.3
+            }
+          }
+        },
+        "3": {
+          "cast_time": 5.7,
+          "recast_time": 30.6,
+          "effects": {
+            "1": {
+              "amount": 36
+            },
+            "2": {
+              "amount": 23
+            },
+            "3": {
+              "amount": 3.7
+            }
+          }
+        },
+        "4": {
+          "cast_time": 5.4,
+          "recast_time": 29.6,
+          "effects": {
+            "1": {
+              "amount": 40
+            },
+            "2": {
+              "amount": 26
+            },
+            "3": {
+              "amount": 4.1
+            }
+          }
+        },
+        "5": {
+          "cast_time": 5.1,
+          "recast_time": 28.6,
+          "effects": {
+            "1": {
+              "amount": 44
+            },
+            "2": {
+              "amount": 29
+            },
+            "3": {
+              "amount": 4.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "crown_of_thorns",
+      "before": {
+        "id": "crown_of_thorns",
+        "name": "Crown of Thorns",
+        "description": "Raise a barbed barrier that protects the user while inflicting a persistent counter-wound.",
+        "rarity": "legendary",
+        "tags": [
+          "shield",
+          "attack",
+          "bleed",
+          "status"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 36.4,
+        "cast_time": 7.2,
+        "active_slot_cost": 2,
+        "priority_modifier": 0.06,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "gain_shield",
+            "amount": 22,
+            "target": "self"
+          },
+          {
+            "type": "deal_damage",
+            "amount": 8,
+            "target": "enemy"
+          },
+          {
+            "type": "apply_status",
+            "status": "bleed",
+            "duration": 18,
+            "target": "enemy",
+            "bleed_power": 1
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "damage": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "duration": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ],
+          "bleed_power": [
+            0,
+            0,
+            1,
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6.9,
+          "recast_time": 35.4,
+          "effects": {
+            "0": {
+              "amount": 26
+            },
+            "1": {
+              "amount": 9
+            },
+            "2": {
+              "duration": 18.9,
+              "bleed_power": 1
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6.6,
+          "recast_time": 34.4,
+          "effects": {
+            "0": {
+              "amount": 30
+            },
+            "1": {
+              "amount": 10
+            },
+            "2": {
+              "duration": 19.8,
+              "bleed_power": 2
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.3,
+          "recast_time": 33.4,
+          "effects": {
+            "0": {
+              "amount": 34
+            },
+            "1": {
+              "amount": 11
+            },
+            "2": {
+              "duration": 20.7,
+              "bleed_power": 2
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6,
+          "recast_time": 32.4,
+          "effects": {
+            "0": {
+              "amount": 38
+            },
+            "1": {
+              "amount": 12
+            },
+            "2": {
+              "duration": 21.6,
+              "bleed_power": 3
+            }
+          }
+        },
+        "5": {
+          "cast_time": 5.7,
+          "recast_time": 31.4,
+          "effects": {
+            "0": {
+              "amount": 42
+            },
+            "1": {
+              "amount": 13
+            },
+            "2": {
+              "duration": 22.5,
+              "bleed_power": 4
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "infinity_arsenal",
+      "before": {
+        "id": "infinity_arsenal",
+        "name": "Infinity Arsenal",
+        "description": "Open a self-feeding armory that queues twin strikes and twin guards while tuning allied weapons.",
+        "rarity": "legendary",
+        "tags": [
+          "chain",
+          "attack",
+          "shield",
+          "growth"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 40.6,
+        "cast_time": 7.8,
+        "active_slot_cost": 2,
+        "priority_modifier": 0,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "auto_queue_card",
+            "card_id": "strike",
+            "count": 2,
+            "delay": 0.3,
+            "queue_spacing": 0.4,
+            "max_depth": 1,
+            "use_cast_time": false
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "guard",
+            "count": 2,
+            "delay": 0.6,
+            "queue_spacing": 0.4,
+            "max_depth": 1,
+            "use_cast_time": false
+          },
+          {
+            "type": "empower_card",
+            "scope": "other_own",
+            "stat": "damage",
+            "amount": 0.5
+          }
+        ],
+        "upgrade_profile": {
+          "empower": [
+            0,
+            0.2,
+            0.4,
+            0.6,
+            0.8,
+            1
+          ],
+          "cast_time": [
+            0,
+            -0.3,
+            -0.6,
+            -0.9,
+            -1.2,
+            -1.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 7.5,
+          "recast_time": 39.4,
+          "effects": {
+            "2": {
+              "amount": 0.55
+            }
+          }
+        },
+        "2": {
+          "cast_time": 7.2,
+          "recast_time": 38.2,
+          "effects": {
+            "2": {
+              "amount": 0.6
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6.9,
+          "recast_time": 37,
+          "effects": {
+            "2": {
+              "amount": 0.65
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6.6,
+          "recast_time": 35.8,
+          "effects": {
+            "2": {
+              "amount": 0.7
+            }
+          }
+        },
+        "5": {
+          "cast_time": 6.3,
+          "recast_time": 34.6,
+          "effects": {
+            "2": {
+              "amount": 0.75
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "omega_sanctuary",
+      "before": {
+        "id": "omega_sanctuary",
+        "name": "Omega Sanctuary",
+        "description": "Create a complete recovery chamber that restores, shields, cleanses, and pauses the enemy.",
+        "rarity": "legendary",
+        "tags": [
+          "heal",
+          "shield",
+          "cleanse",
+          "stop"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 39.2,
+        "cast_time": 6.9,
+        "active_slot_cost": 2,
+        "priority_modifier": 0.1,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "heal",
+            "amount": 16,
+            "target": "self"
+          },
+          {
+            "type": "gain_shield",
+            "amount": 20,
+            "target": "self"
+          },
+          {
+            "type": "timeline_flow",
+            "mode": "stop",
+            "target_side": "enemy",
+            "duration": 2.5
+          },
+          {
+            "type": "remove_status",
+            "status": "vulnerable",
+            "target": "self"
+          }
+        ],
+        "upgrade_profile": {
+          "heal": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "shield": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "duration": [
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            2.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 6.6,
+          "recast_time": 38.2,
+          "effects": {
+            "0": {
+              "amount": 19
+            },
+            "1": {
+              "amount": 24
+            },
+            "2": {
+              "duration": 2.75
+            }
+          }
+        },
+        "2": {
+          "cast_time": 6.3,
+          "recast_time": 37.2,
+          "effects": {
+            "0": {
+              "amount": 22
+            },
+            "1": {
+              "amount": 28
+            },
+            "2": {
+              "duration": 3
+            }
+          }
+        },
+        "3": {
+          "cast_time": 6,
+          "recast_time": 36.2,
+          "effects": {
+            "0": {
+              "amount": 25
+            },
+            "1": {
+              "amount": 32
+            },
+            "2": {
+              "duration": 3.25
+            }
+          }
+        },
+        "4": {
+          "cast_time": 5.7,
+          "recast_time": 35.2,
+          "effects": {
+            "0": {
+              "amount": 28
+            },
+            "1": {
+              "amount": 36
+            },
+            "2": {
+              "duration": 3.5
+            }
+          }
+        },
+        "5": {
+          "cast_time": 5.4,
+          "recast_time": 34.2,
+          "effects": {
+            "0": {
+              "amount": 31
+            },
+            "1": {
+              "amount": 40
+            },
+            "2": {
+              "duration": 3.75
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "event_horizon",
+      "before": {
+        "id": "event_horizon",
+        "name": "Event Horizon",
+        "description": "Compress hostile actions into a gravity well that damages, delays, and slows the enemy.",
+        "rarity": "legendary",
+        "tags": [
+          "attack",
+          "control",
+          "delay",
+          "debuff"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 40.6,
+        "cast_time": 8.7,
+        "active_slot_cost": 3,
+        "priority_modifier": -0.08,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 14,
+            "target": "enemy"
+          },
+          {
+            "type": "delay_enemy_active_card",
+            "amount": 4,
+            "scope": "all"
+          },
+          {
+            "type": "apply_status",
+            "status": "slow",
+            "duration": 14,
+            "target": "enemy"
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "delay": [
+            0,
+            0.6,
+            1.2,
+            1.8,
+            2.4,
+            3
+          ],
+          "duration": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 8.4,
+          "recast_time": 39.4,
+          "effects": {
+            "0": {
+              "amount": 17
+            },
+            "1": {
+              "amount": 4.4
+            },
+            "2": {
+              "duration": 15.4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 8.1,
+          "recast_time": 38.2,
+          "effects": {
+            "0": {
+              "amount": 20
+            },
+            "1": {
+              "amount": 4.8
+            },
+            "2": {
+              "duration": 16.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 7.8,
+          "recast_time": 37,
+          "effects": {
+            "0": {
+              "amount": 23
+            },
+            "1": {
+              "amount": 5.2
+            },
+            "2": {
+              "duration": 18.2
+            }
+          }
+        },
+        "4": {
+          "cast_time": 7.5,
+          "recast_time": 35.8,
+          "effects": {
+            "0": {
+              "amount": 26
+            },
+            "1": {
+              "amount": 5.6
+            },
+            "2": {
+              "duration": 19.6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 7.2,
+          "recast_time": 34.6,
+          "effects": {
+            "0": {
+              "amount": 29
+            },
+            "1": {
+              "amount": 6
+            },
+            "2": {
+              "duration": 21
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "deus_ex_machina",
+      "before": {
+        "id": "deus_ex_machina",
+        "name": "Deus Ex Machina",
+        "description": "Deploy an emergency machine that repairs every fault, readies the deck, and queues a guard.",
+        "rarity": "legendary",
+        "tags": [
+          "heal",
+          "cleanse",
+          "cooldown",
+          "chain"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 42,
+        "cast_time": 8.1,
+        "active_slot_cost": 2,
+        "priority_modifier": 0.1,
+        "interruptible": false,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "heal",
+            "amount": 12,
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "bleed",
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "weak",
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "slow",
+            "target": "self"
+          },
+          {
+            "type": "remove_status",
+            "status": "vulnerable",
+            "target": "self"
+          },
+          {
+            "type": "reduce_recast",
+            "amount": 2,
+            "scope": "all"
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "guard",
+            "count": 1,
+            "delay": 0.2,
+            "max_depth": 1,
+            "use_cast_time": false
+          }
+        ],
+        "upgrade_profile": {
+          "heal": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "cooldown": [
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            2.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 7.8,
+          "recast_time": 40.8,
+          "effects": {
+            "0": {
+              "amount": 14
+            },
+            "5": {
+              "amount": 2.4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 7.5,
+          "recast_time": 39.6,
+          "effects": {
+            "0": {
+              "amount": 16
+            },
+            "5": {
+              "amount": 2.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 7.2,
+          "recast_time": 38.4,
+          "effects": {
+            "0": {
+              "amount": 18
+            },
+            "5": {
+              "amount": 3.2
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6.9,
+          "recast_time": 37.2,
+          "effects": {
+            "0": {
+              "amount": 20
+            },
+            "5": {
+              "amount": 3.6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 6.6,
+          "recast_time": 36,
+          "effects": {
+            "0": {
+              "amount": 22
+            },
+            "5": {
+              "amount": 4
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "golden_ratio",
+      "before": {
+        "id": "golden_ratio",
+        "name": "Golden Ratio",
+        "description": "A perfect strike algorithm refines its own damage, cast, and recast every time it resolves.",
+        "rarity": "legendary",
+        "tags": [
+          "attack",
+          "growth",
+          "fast",
+          "special"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 30.8,
+        "cast_time": 5.4,
+        "active_slot_cost": 1,
+        "priority_modifier": 0.2,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "deal_damage",
+            "amount": 12,
+            "target": "enemy"
+          },
+          {
+            "type": "empower_card",
+            "scope": "self",
+            "stat": "damage",
+            "amount": 2
+          },
+          {
+            "type": "empower_card",
+            "scope": "self",
+            "stat": "cast_time",
+            "amount": -0.2
+          },
+          {
+            "type": "empower_card",
+            "scope": "self",
+            "stat": "recast_time",
+            "amount": -0.8
+          }
+        ],
+        "upgrade_profile": {
+          "damage": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "cast_time": [
+            0,
+            -0.3,
+            -0.6,
+            -0.9,
+            -1.2,
+            -1.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 5.2,
+          "recast_time": 29.8,
+          "effects": {
+            "0": {
+              "amount": 14
+            },
+            "1": {
+              "amount": 2.4
+            },
+            "2": {
+              "amount": -0.24
+            },
+            "3": {
+              "amount": -0.96
+            }
+          }
+        },
+        "2": {
+          "cast_time": 5,
+          "recast_time": 28.8,
+          "effects": {
+            "0": {
+              "amount": 16
+            },
+            "1": {
+              "amount": 2.8
+            },
+            "2": {
+              "amount": -0.28
+            },
+            "3": {
+              "amount": -1.12
+            }
+          }
+        },
+        "3": {
+          "cast_time": 4.8,
+          "recast_time": 27.8,
+          "effects": {
+            "0": {
+              "amount": 18
+            },
+            "1": {
+              "amount": 3.2
+            },
+            "2": {
+              "amount": -0.32
+            },
+            "3": {
+              "amount": -1.28
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4.6,
+          "recast_time": 26.8,
+          "effects": {
+            "0": {
+              "amount": 20
+            },
+            "1": {
+              "amount": 3.6
+            },
+            "2": {
+              "amount": -0.36
+            },
+            "3": {
+              "amount": -1.44
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.4,
+          "recast_time": 25.8,
+          "effects": {
+            "0": {
+              "amount": 22
+            },
+            "1": {
+              "amount": 4
+            },
+            "2": {
+              "amount": -0.4
+            },
+            "3": {
+              "amount": -1.6
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tempest_choir",
+      "before": {
+        "id": "tempest_choir",
+        "name": "Tempest Choir",
+        "description": "Conduct a formation of rapid probes that weakens the enemy and accelerates allied casts.",
+        "rarity": "legendary",
+        "tags": [
+          "chain",
+          "attack",
+          "debuff",
+          "haste"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 35,
+        "cast_time": 6,
+        "active_slot_cost": 2,
+        "priority_modifier": 0.14,
+        "interruptible": false,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "auto_queue_card",
+            "card_id": "spark_jab",
+            "count": 4,
+            "delay": 0.2,
+            "queue_spacing": 0.35,
+            "max_depth": 1,
+            "use_cast_time": false
+          },
+          {
+            "type": "apply_status",
+            "status": "weak",
+            "duration": 12,
+            "target": "enemy"
+          },
+          {
+            "type": "haste_own_active_card",
+            "amount": 1.2,
+            "scope": "all"
+          }
+        ],
+        "upgrade_profile": {
+          "duration": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "haste": [
+            0,
+            0.4,
+            0.8,
+            1.2,
+            1.6,
+            2
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 5.7,
+          "recast_time": 34,
+          "effects": {
+            "1": {
+              "duration": 13.2
+            },
+            "2": {
+              "amount": 1.5
+            }
+          }
+        },
+        "2": {
+          "cast_time": 5.4,
+          "recast_time": 33,
+          "effects": {
+            "1": {
+              "duration": 14.4
+            },
+            "2": {
+              "amount": 1.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 5.1,
+          "recast_time": 32,
+          "effects": {
+            "1": {
+              "duration": 15.6
+            },
+            "2": {
+              "amount": 2.1
+            }
+          }
+        },
+        "4": {
+          "cast_time": 4.8,
+          "recast_time": 31,
+          "effects": {
+            "1": {
+              "duration": 16.8
+            },
+            "2": {
+              "amount": 2.4
+            }
+          }
+        },
+        "5": {
+          "cast_time": 4.5,
+          "recast_time": 30,
+          "effects": {
+            "1": {
+              "duration": 18
+            },
+            "2": {
+              "amount": 2.7
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "last_bastion",
+      "before": {
+        "id": "last_bastion",
+        "name": "Last Bastion",
+        "description": "Collapse stored shielding into a retaliatory fortress that interrupts every vulnerable cast.",
+        "rarity": "legendary",
+        "tags": [
+          "shield_spend",
+          "shield",
+          "attack",
+          "interrupt"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 40.6,
+        "cast_time": 8.1,
+        "active_slot_cost": 3,
+        "priority_modifier": -0.04,
+        "interruptible": true,
+        "target_type": "enemy",
+        "effects": [
+          {
+            "type": "consume_shield",
+            "amount": 18
+          },
+          {
+            "type": "gain_shield",
+            "amount": 30,
+            "target": "self"
+          },
+          {
+            "type": "deal_damage",
+            "amount": 20,
+            "target": "enemy"
+          },
+          {
+            "type": "interrupt_card",
+            "scope": "all_interruptible"
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            4,
+            8,
+            12,
+            16,
+            20
+          ],
+          "damage": [
+            0,
+            3,
+            6,
+            9,
+            12,
+            15
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 7.8,
+          "recast_time": 39.4,
+          "effects": {
+            "1": {
+              "amount": 35
+            },
+            "2": {
+              "amount": 24
+            }
+          }
+        },
+        "2": {
+          "cast_time": 7.5,
+          "recast_time": 38.2,
+          "effects": {
+            "1": {
+              "amount": 40
+            },
+            "2": {
+              "amount": 28
+            }
+          }
+        },
+        "3": {
+          "cast_time": 7.2,
+          "recast_time": 37,
+          "effects": {
+            "1": {
+              "amount": 45
+            },
+            "2": {
+              "amount": 32
+            }
+          }
+        },
+        "4": {
+          "cast_time": 6.9,
+          "recast_time": 35.8,
+          "effects": {
+            "1": {
+              "amount": 50
+            },
+            "2": {
+              "amount": 36
+            }
+          }
+        },
+        "5": {
+          "cast_time": 6.6,
+          "recast_time": 34.6,
+          "effects": {
+            "1": {
+              "amount": 55
+            },
+            "2": {
+              "amount": 40
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "dominion_pulse",
+      "before": {
+        "id": "dominion_pulse",
+        "name": "Dominion Pulse",
+        "description": "Issue a battlefield command that strengthens the user while suppressing every enemy parameter.",
+        "rarity": "legendary",
+        "tags": [
+          "buff",
+          "debuff",
+          "support",
+          "shield"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 43.4,
+        "cast_time": 9,
+        "active_slot_cost": 2,
+        "priority_modifier": -0.02,
+        "interruptible": true,
+        "target_type": "all",
+        "effects": [
+          {
+            "type": "modify_attack",
+            "amount": 2,
+            "target": "self"
+          },
+          {
+            "type": "modify_speed",
+            "amount": 2,
+            "target": "self"
+          },
+          {
+            "type": "modify_attack",
+            "amount": -2,
+            "target": "enemy"
+          },
+          {
+            "type": "modify_speed",
+            "amount": -2,
+            "target": "enemy"
+          },
+          {
+            "type": "gain_shield",
+            "amount": 8,
+            "target": "self"
+          }
+        ],
+        "upgrade_profile": {
+          "shield": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10
+          ],
+          "cast_time": [
+            0,
+            -0.3,
+            -0.6,
+            -0.9,
+            -1.2,
+            -1.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 8.7,
+          "recast_time": 42.2,
+          "effects": {
+            "0": {
+              "amount": 3
+            },
+            "1": {
+              "amount": 3
+            },
+            "2": {
+              "amount": -3
+            },
+            "3": {
+              "amount": -3
+            },
+            "4": {
+              "amount": 10
+            }
+          }
+        },
+        "2": {
+          "cast_time": 8.4,
+          "recast_time": 41,
+          "effects": {
+            "0": {
+              "amount": 3
+            },
+            "1": {
+              "amount": 3
+            },
+            "2": {
+              "amount": -3
+            },
+            "3": {
+              "amount": -3
+            },
+            "4": {
+              "amount": 12
+            }
+          }
+        },
+        "3": {
+          "cast_time": 8.1,
+          "recast_time": 39.8,
+          "effects": {
+            "0": {
+              "amount": 4
+            },
+            "1": {
+              "amount": 4
+            },
+            "2": {
+              "amount": -4
+            },
+            "3": {
+              "amount": -4
+            },
+            "4": {
+              "amount": 14
+            }
+          }
+        },
+        "4": {
+          "cast_time": 7.8,
+          "recast_time": 38.6,
+          "effects": {
+            "0": {
+              "amount": 4
+            },
+            "1": {
+              "amount": 4
+            },
+            "2": {
+              "amount": -4
+            },
+            "3": {
+              "amount": -4
+            },
+            "4": {
+              "amount": 16
+            }
+          }
+        },
+        "5": {
+          "cast_time": 7.5,
+          "recast_time": 37.4,
+          "effects": {
+            "0": {
+              "amount": 5
+            },
+            "1": {
+              "amount": 5
+            },
+            "2": {
+              "amount": -5
+            },
+            "3": {
+              "amount": -5
+            },
+            "4": {
+              "amount": 18
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "chronicle_sovereign",
+      "before": {
+        "id": "chronicle_sovereign",
+        "name": "Chronicle Sovereign",
+        "description": "Rewrite the battle record, improve the entire deck, refresh every cooldown, and dispatch a phase runner.",
+        "rarity": "legendary",
+        "tags": [
+          "special",
+          "growth",
+          "cooldown",
+          "chain",
+          "support"
+        ],
+        "loadout_cost": 5,
+        "recast_time": 46.2,
+        "cast_time": 9.9,
+        "active_slot_cost": 3,
+        "priority_modifier": -0.2,
+        "interruptible": true,
+        "target_type": "self",
+        "effects": [
+          {
+            "type": "empower_card",
+            "scope": "all_own",
+            "stat": "damage",
+            "amount": 1
+          },
+          {
+            "type": "empower_card",
+            "scope": "all_own",
+            "stat": "shield",
+            "amount": 1
+          },
+          {
+            "type": "empower_card",
+            "scope": "all_own",
+            "stat": "recast_time",
+            "amount": -0.5
+          },
+          {
+            "type": "reduce_recast",
+            "amount": 4,
+            "scope": "all"
+          },
+          {
+            "type": "auto_queue_card",
+            "card_id": "phase_zip",
+            "count": 1,
+            "delay": 0.4,
+            "max_depth": 1,
+            "use_cast_time": false
+          }
+        ],
+        "upgrade_profile": {
+          "cooldown": [
+            0,
+            0.6,
+            1.2,
+            1.8,
+            2.4,
+            3
+          ],
+          "cast_time": [
+            0,
+            -0.3,
+            -0.6,
+            -0.9,
+            -1.2,
+            -1.5
+          ],
+          "recast_time": [
+            0,
+            -2,
+            -4,
+            -6,
+            -8,
+            -10
+          ]
+        }
+      },
+      "grades": {
+        "1": {
+          "cast_time": 9.6,
+          "recast_time": 45,
+          "effects": {
+            "0": {
+              "amount": 1.1
+            },
+            "1": {
+              "amount": 1.1
+            },
+            "2": {
+              "amount": -0.55
+            },
+            "3": {
+              "amount": 4.4
+            }
+          }
+        },
+        "2": {
+          "cast_time": 9.3,
+          "recast_time": 43.8,
+          "effects": {
+            "0": {
+              "amount": 1.2
+            },
+            "1": {
+              "amount": 1.2
+            },
+            "2": {
+              "amount": -0.6
+            },
+            "3": {
+              "amount": 4.8
+            }
+          }
+        },
+        "3": {
+          "cast_time": 9,
+          "recast_time": 42.6,
+          "effects": {
+            "0": {
+              "amount": 1.3
+            },
+            "1": {
+              "amount": 1.3
+            },
+            "2": {
+              "amount": -0.65
+            },
+            "3": {
+              "amount": 5.2
+            }
+          }
+        },
+        "4": {
+          "cast_time": 8.7,
+          "recast_time": 41.4,
+          "effects": {
+            "0": {
+              "amount": 1.4
+            },
+            "1": {
+              "amount": 1.4
+            },
+            "2": {
+              "amount": -0.7
+            },
+            "3": {
+              "amount": 5.6
+            }
+          }
+        },
+        "5": {
+          "cast_time": 8.4,
+          "recast_time": 40.2,
+          "effects": {
+            "0": {
+              "amount": 1.5
+            },
+            "1": {
+              "amount": 1.5
+            },
+            "2": {
+              "amount": -0.75
+            },
+            "3": {
+              "amount": 6
+            }
+          }
+        }
+      }
+    }
+  ]
+}

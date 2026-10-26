@@ -45,41 +45,57 @@ function publicRun(row) { return { id: row.id, username: row.username, starter_i
   finished_at: row.finished_at, result: row.result, reason: row.reason, rank: row.rank ? Number(row.rank) : undefined }; }
 
 class RankingStore {
-  constructor(pool, definition = rules) { this.pool = pool; this.rules = definition; this.season = null; }
+  constructor(pool, definition = rules) { this.pool = pool; this.rules = definition; }
+  async requireActive(client) {
+    const control = (await client.query("SELECT state FROM qq_ranked_control WHERE singleton=true FOR SHARE")).rows[0];
+    if (control?.state !== "active") fail("ranked_preparing", 409);
+  }
+  async availability() {
+    const result = await this.pool.query("SELECT state,generation,(SELECT coalesce(max(substring(id FROM 8)::integer),0)+1 FROM qq_ranked_seasons WHERE id ~ '^season-[1-9][0-9]{0,8}$') AS next_number FROM qq_ranked_control WHERE singleton=true");
+    const row = result.rows[0];
+    return { status: row?.state || "preparing", generation: row?.generation, next_season_number: row?.next_number || 1 };
+  }
   async ensureSeason() {
-    if (this.season) return this.season;
     const client = await this.pool.connect();
     try {
       await client.query("BEGIN");
       await client.query("SELECT pg_advisory_xact_lock(hashtextextended('qq-ranked-seasons',0))");
-      const result = await client.query("SELECT * FROM qq_ranked_seasons WHERE id ~ '^season-[1-9][0-9]{0,8}$' ORDER BY substring(id FROM 8)::integer DESC LIMIT 1 FOR UPDATE");
-      const latest = result.rows[0];
-      let current;
-      if (latest?.ruleset === this.rules.ruleset) {
-        if (latest.ends_at !== null) fail("season_closed", 409);
-        current = latest;
-      } else {
-        // An old dyno must not roll a freshly deployed season back to older gameplay.
-        if (latest && ruleRevision(this.rules.ruleset) <= ruleRevision(latest.ruleset)) fail("season_update_required", 409);
-        const cutoff = (await client.query("SELECT clock_timestamp() AS cutoff")).rows[0].cutoff;
-        await client.query("UPDATE qq_ranked_seasons SET ends_at=$1 WHERE ends_at IS NULL OR ends_at>$1", [cutoff]);
-        const number = latest ? seasonNumber(latest.id) + 1 : 1;
-        current = (await client.query("INSERT INTO qq_ranked_seasons(id,ruleset,starts_at,ends_at) VALUES($1,$2,$3,NULL) RETURNING *", [`season-${number}`, this.rules.ruleset, cutoff])).rows[0];
-      }
+      const control = (await client.query("SELECT state FROM qq_ranked_control WHERE singleton=true FOR SHARE")).rows[0];
+      if (control?.state !== "active") { await client.query("COMMIT"); return null; }
+      const season = await this.seasonInTransaction(client);
       await client.query("COMMIT");
-      this.season = publicSeason(current);
-      return this.season;
+      return season;
     } catch (error) { await client.query("ROLLBACK"); throw error; }
     finally { client.release(); }
+  }
+  // Caller holds the season advisory lock and a control-row lock in one transaction.
+  async seasonInTransaction(client) {
+    const result = await client.query("SELECT * FROM qq_ranked_seasons WHERE id ~ '^season-[1-9][0-9]{0,8}$' ORDER BY substring(id FROM 8)::integer DESC LIMIT 1 FOR UPDATE");
+    const latest = result.rows[0];
+    let current;
+    if (latest?.ruleset === this.rules.ruleset) {
+      if (latest.ends_at !== null) fail("season_closed", 409);
+      current = latest;
+    } else {
+      // An old dyno must not roll a freshly deployed season back to older gameplay.
+      if (latest && ruleRevision(this.rules.ruleset) <= ruleRevision(latest.ruleset)) fail("season_update_required", 409);
+      const cutoff = (await client.query("SELECT clock_timestamp() AS cutoff")).rows[0].cutoff;
+      await client.query("UPDATE qq_ranked_seasons SET ends_at=$1 WHERE ends_at IS NULL OR ends_at>$1", [cutoff]);
+      const number = latest ? seasonNumber(latest.id) + 1 : 1;
+      current = (await client.query("INSERT INTO qq_ranked_seasons(id,ruleset,starts_at,ends_at) VALUES($1,$2,$3,NULL) RETURNING *", [`season-${number}`, this.rules.ruleset, cutoff])).rows[0];
+    }
+    return publicSeason(current);
   }
   async start(userId, starterId) {
     if (!this.rules.starters.includes(starterId)) fail("invalid_starter");
     const season = await this.ensureSeason();
+    if (!season) fail("ranked_preparing", 409);
     const client = await this.pool.connect();
     try {
       await client.query("BEGIN");
+      await this.requireActive(client);
       await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", ["rank-start:" + userId]);
-      const open = await client.query("SELECT id FROM qq_ranked_seasons WHERE id=$1 AND ends_at IS NULL FOR SHARE", [season.id]);
+      const open = await client.query("SELECT id FROM qq_ranked_seasons WHERE id=$1 AND ruleset=$2 AND ends_at IS NULL FOR SHARE", [season.id, this.rules.ruleset]);
       if (!open.rowCount) fail("season_closed", 409);
       const recent = await client.query("SELECT count(*) FROM qq_ranked_runs WHERE user_id=$1 AND created_at>now()-interval '1 hour'", [userId]);
       if (Number(recent.rows[0].count) >= 20) fail("start_rate_limited", 429);
@@ -100,9 +116,11 @@ class RankingStore {
     validateCommands(commands);
     if (!Number.isInteger(sequence) || sequence < 0 || sequence + commands.length > 200000) fail("record_limit");
     const season = await this.ensureSeason();
+    if (!season) fail("ranked_preparing", 409);
     const client = await this.pool.connect();
     try {
       await client.query("BEGIN");
+      await this.requireActive(client);
       const row = await this.owned(client, userId, id);
       if (row.status !== "active") fail("run_closed", 409);
       if (row.ruleset !== this.rules.ruleset || row.season_id !== season.id || row.ends_at !== null && new Date(row.ends_at) <= new Date()) fail("season_closed", 409);
@@ -122,9 +140,11 @@ class RankingStore {
   }
   async finish(userId, id, sequence, disqualified) {
     const season = await this.ensureSeason();
+    if (!season) fail("ranked_preparing", 409);
     const client = await this.pool.connect();
     try {
       await client.query("BEGIN");
+      await this.requireActive(client);
       const row = await this.owned(client, userId, id);
       if (row.status !== "active") { await client.query("COMMIT"); return { status: row.status }; }
       if (row.next_sequence !== sequence) fail("sequence_gap", 409);

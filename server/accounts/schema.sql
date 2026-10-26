@@ -30,6 +30,13 @@ CREATE TABLE IF NOT EXISTS qq_accounts_oauth_attempts (
 );
 CREATE INDEX IF NOT EXISTS qq_accounts_attempts_expiry ON qq_accounts_oauth_attempts(expires_at);
 
+CREATE TABLE IF NOT EXISTS qq_ranked_control (
+  singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton),
+  state text NOT NULL DEFAULT 'preparing' CHECK(state IN ('preparing','active')),
+  generation uuid NOT NULL DEFAULT md5(random()::text || clock_timestamp()::text)::uuid,
+  last_reset_hash text
+);
+INSERT INTO qq_ranked_control(singleton) VALUES(true) ON CONFLICT DO NOTHING;
 CREATE TABLE IF NOT EXISTS qq_ranked_seasons (
   id text PRIMARY KEY, ruleset text NOT NULL, starts_at timestamptz NOT NULL, ends_at timestamptz
 );

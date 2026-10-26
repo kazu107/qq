@@ -883,6 +883,33 @@
         -9.6,
         -12
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 2.3,
+        "recast_time": 24.6,
+        "effects": {}
+      },
+      "2": {
+        "cast_time": 2.2,
+        "recast_time": 24,
+        "effects": {}
+      },
+      "3": {
+        "cast_time": 2.1,
+        "recast_time": 23.4,
+        "effects": {}
+      },
+      "4": {
+        "cast_time": 2,
+        "recast_time": 22.8,
+        "effects": {}
+      },
+      "5": {
+        "cast_time": 1.9,
+        "recast_time": 22.2,
+        "effects": {}
+      }
     }
   },
   {
@@ -968,6 +995,53 @@
         8.4,
         10.8
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4.6,
+        "recast_time": 27.4,
+        "effects": {
+          "0": {
+            "amount": 13.8
+          }
+        }
+      },
+      "2": {
+        "cast_time": 4.4,
+        "recast_time": 26.8,
+        "effects": {
+          "0": {
+            "amount": 15.6
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.2,
+        "recast_time": 26.2,
+        "effects": {
+          "0": {
+            "amount": 17.4
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4,
+        "recast_time": 25.6,
+        "effects": {
+          "0": {
+            "amount": 19.2
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.8,
+        "recast_time": 25,
+        "effects": {
+          "0": {
+            "amount": 21
+          }
+        }
+      }
     }
   },
   {
@@ -1798,6 +1872,68 @@
         4.8,
         6
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4.6,
+        "recast_time": 20.4,
+        "effects": {
+          "0": {
+            "amount": 2.7
+          },
+          "1": {
+            "amount": 6.9
+          }
+        }
+      },
+      "2": {
+        "cast_time": 4.4,
+        "recast_time": 19.8,
+        "effects": {
+          "0": {
+            "amount": 3
+          },
+          "1": {
+            "amount": 7.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.2,
+        "recast_time": 19.2,
+        "effects": {
+          "0": {
+            "amount": 3.3
+          },
+          "1": {
+            "amount": 8.7
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4,
+        "recast_time": 18.6,
+        "effects": {
+          "0": {
+            "amount": 3.6
+          },
+          "1": {
+            "amount": 9.6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.8,
+        "recast_time": 18,
+        "effects": {
+          "0": {
+            "amount": 3.9
+          },
+          "1": {
+            "amount": 10.5
+          }
+        }
+      }
     }
   },
   {
@@ -1856,6 +1992,68 @@
         4,
         5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 2.3,
+        "recast_time": 13.6,
+        "effects": {
+          "2": {
+            "amount": 7
+          },
+          "3": {
+            "amount": 5
+          }
+        }
+      },
+      "2": {
+        "cast_time": 2.2,
+        "recast_time": 13.2,
+        "effects": {
+          "2": {
+            "amount": 9
+          },
+          "3": {
+            "amount": 7
+          }
+        }
+      },
+      "3": {
+        "cast_time": 2.1,
+        "recast_time": 12.8,
+        "effects": {
+          "2": {
+            "amount": 11
+          },
+          "3": {
+            "amount": 9
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2,
+        "recast_time": 12.4,
+        "effects": {
+          "2": {
+            "amount": 13
+          },
+          "3": {
+            "amount": 11
+          }
+        }
+      },
+      "5": {
+        "cast_time": 1.9,
+        "recast_time": 12,
+        "effects": {
+          "2": {
+            "amount": 15
+          },
+          "3": {
+            "amount": 13
+          }
+        }
+      }
     }
   },
   {
@@ -1909,6 +2107,68 @@
         24,
         30
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 14.4,
+        "recast_time": 24.6,
+        "effects": {
+          "0": {
+            "amount": 16
+          },
+          "1": {
+            "duration": 33
+          }
+        }
+      },
+      "2": {
+        "cast_time": 13.8,
+        "recast_time": 24,
+        "effects": {
+          "0": {
+            "amount": 20
+          },
+          "1": {
+            "duration": 36
+          }
+        }
+      },
+      "3": {
+        "cast_time": 13.2,
+        "recast_time": 23.4,
+        "effects": {
+          "0": {
+            "amount": 24
+          },
+          "1": {
+            "duration": 39
+          }
+        }
+      },
+      "4": {
+        "cast_time": 12.6,
+        "recast_time": 22.8,
+        "effects": {
+          "0": {
+            "amount": 28
+          },
+          "1": {
+            "duration": 42
+          }
+        }
+      },
+      "5": {
+        "cast_time": 12,
+        "recast_time": 22.2,
+        "effects": {
+          "0": {
+            "amount": 32
+          },
+          "1": {
+            "duration": 45
+          }
+        }
+      }
     }
   },
   {
@@ -1958,6 +2218,68 @@
         2,
         2.5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 3.4,
+        "recast_time": 12.2,
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "amount": 1.2
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.2,
+        "recast_time": 11.8,
+        "effects": {
+          "0": {
+            "amount": 9
+          },
+          "1": {
+            "amount": 1.4
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3,
+        "recast_time": 11.4,
+        "effects": {
+          "0": {
+            "amount": 11
+          },
+          "1": {
+            "amount": 1.6
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2.8,
+        "recast_time": 11,
+        "effects": {
+          "0": {
+            "amount": 13
+          },
+          "1": {
+            "amount": 1.8
+          }
+        }
+      },
+      "5": {
+        "cast_time": 2.6,
+        "recast_time": 10.6,
+        "effects": {
+          "0": {
+            "amount": 15
+          },
+          "1": {
+            "amount": 2
+          }
+        }
+      }
     }
   },
   {
@@ -2005,6 +2327,83 @@
         8,
         10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4,
+        "recast_time": 20.4,
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "amount": -0.33
+          },
+          "2": {
+            "amount": -0.66
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.8,
+        "recast_time": 19.8,
+        "effects": {
+          "0": {
+            "amount": 9
+          },
+          "1": {
+            "amount": -0.36
+          },
+          "2": {
+            "amount": -0.72
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3.6,
+        "recast_time": 19.2,
+        "effects": {
+          "0": {
+            "amount": 11
+          },
+          "1": {
+            "amount": -0.39
+          },
+          "2": {
+            "amount": -0.78
+          }
+        }
+      },
+      "4": {
+        "cast_time": 3.4,
+        "recast_time": 18.6,
+        "effects": {
+          "0": {
+            "amount": 13
+          },
+          "1": {
+            "amount": -0.42
+          },
+          "2": {
+            "amount": -0.84
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.2,
+        "recast_time": 18,
+        "effects": {
+          "0": {
+            "amount": 15
+          },
+          "1": {
+            "amount": -0.45
+          },
+          "2": {
+            "amount": -0.9
+          }
+        }
+      }
     }
   },
   {
@@ -2061,6 +2460,68 @@
         3,
         4
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4.6,
+        "recast_time": 16.2,
+        "effects": {
+          "0": {
+            "amount": 4
+          },
+          "1": {
+            "amount": 1.2
+          }
+        }
+      },
+      "2": {
+        "cast_time": 4.4,
+        "recast_time": 15.6,
+        "effects": {
+          "0": {
+            "amount": 5
+          },
+          "1": {
+            "amount": 1.4
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.2,
+        "recast_time": 15,
+        "effects": {
+          "0": {
+            "amount": 6
+          },
+          "1": {
+            "amount": 1.6
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4,
+        "recast_time": 14.4,
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "amount": 1.8
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.8,
+        "recast_time": 13.8,
+        "effects": {
+          "0": {
+            "amount": 8
+          },
+          "1": {
+            "amount": 2
+          }
+        }
+      }
     }
   },
   {
@@ -2116,6 +2577,68 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 5.2,
+        "recast_time": 24.6,
+        "effects": {
+          "0": {
+            "amount": 5
+          },
+          "1": {
+            "amount": -1.44
+          }
+        }
+      },
+      "2": {
+        "cast_time": 5,
+        "recast_time": 24,
+        "effects": {
+          "0": {
+            "amount": 6
+          },
+          "1": {
+            "amount": -1.68
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.8,
+        "recast_time": 23.4,
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "amount": -1.92
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4.6,
+        "recast_time": 22.8,
+        "effects": {
+          "0": {
+            "amount": 8
+          },
+          "1": {
+            "amount": -2.16
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.4,
+        "recast_time": 22.2,
+        "effects": {
+          "0": {
+            "amount": 9
+          },
+          "1": {
+            "amount": -2.4
+          }
+        }
+      }
     }
   },
   {
@@ -2153,6 +2676,53 @@
         2.4,
         3
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4,
+        "recast_time": 27.4,
+        "effects": {
+          "0": {
+            "duration": 3.3
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.8,
+        "recast_time": 26.8,
+        "effects": {
+          "0": {
+            "duration": 3.6
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3.6,
+        "recast_time": 26.2,
+        "effects": {
+          "0": {
+            "duration": 3.9
+          }
+        }
+      },
+      "4": {
+        "cast_time": 3.4,
+        "recast_time": 25.6,
+        "effects": {
+          "0": {
+            "duration": 4.2
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.2,
+        "recast_time": 25,
+        "effects": {
+          "0": {
+            "duration": 4.5
+          }
+        }
+      }
     }
   },
   {
@@ -2191,6 +2761,53 @@
         2.4,
         3
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 5.2,
+        "recast_time": 29.8,
+        "effects": {
+          "0": {
+            "duration": 2.64
+          }
+        }
+      },
+      "2": {
+        "cast_time": 5,
+        "recast_time": 28.8,
+        "effects": {
+          "0": {
+            "duration": 2.88
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.8,
+        "recast_time": 27.8,
+        "effects": {
+          "0": {
+            "duration": 3.12
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4.6,
+        "recast_time": 26.8,
+        "effects": {
+          "0": {
+            "duration": 3.36
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.4,
+        "recast_time": 25.8,
+        "effects": {
+          "0": {
+            "duration": 3.6
+          }
+        }
+      }
     }
   },
   {
@@ -2232,6 +2849,53 @@
         4,
         5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 2.8,
+        "recast_time": 17.6,
+        "effects": {
+          "0": {
+            "amount": 3
+          }
+        }
+      },
+      "2": {
+        "cast_time": 2.6,
+        "recast_time": 17,
+        "effects": {
+          "0": {
+            "amount": 4
+          }
+        }
+      },
+      "3": {
+        "cast_time": 2.4,
+        "recast_time": 16.4,
+        "effects": {
+          "0": {
+            "amount": 5
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2.2,
+        "recast_time": 15.8,
+        "effects": {
+          "0": {
+            "amount": 6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 2,
+        "recast_time": 15.2,
+        "effects": {
+          "0": {
+            "amount": 7
+          }
+        }
+      }
     }
   },
   {
@@ -2277,6 +2941,53 @@
         4,
         5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4,
+        "recast_time": 23.2,
+        "effects": {
+          "0": {
+            "amount": 6
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.8,
+        "recast_time": 22.6,
+        "effects": {
+          "0": {
+            "amount": 8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3.6,
+        "recast_time": 22,
+        "effects": {
+          "0": {
+            "amount": 10
+          }
+        }
+      },
+      "4": {
+        "cast_time": 3.4,
+        "recast_time": 21.4,
+        "effects": {
+          "0": {
+            "amount": 12
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.2,
+        "recast_time": 20.8,
+        "effects": {
+          "0": {
+            "amount": 14
+          }
+        }
+      }
     }
   },
   {
@@ -2326,6 +3037,68 @@
         24,
         30
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 5.2,
+        "recast_time": 17.6,
+        "effects": {
+          "0": {
+            "amount": 12
+          },
+          "1": {
+            "duration": 26.4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 5,
+        "recast_time": 17,
+        "effects": {
+          "0": {
+            "amount": 15
+          },
+          "1": {
+            "duration": 28.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.8,
+        "recast_time": 16.4,
+        "effects": {
+          "0": {
+            "amount": 18
+          },
+          "1": {
+            "duration": 31.2
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4.6,
+        "recast_time": 15.8,
+        "effects": {
+          "0": {
+            "amount": 21
+          },
+          "1": {
+            "duration": 33.6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.4,
+        "recast_time": 15.2,
+        "effects": {
+          "0": {
+            "amount": 24
+          },
+          "1": {
+            "duration": 36
+          }
+        }
+      }
     }
   },
   {
@@ -2367,6 +3140,53 @@
         12,
         15
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4,
+        "recast_time": 19,
+        "effects": {
+          "0": {
+            "amount": 15
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.8,
+        "recast_time": 18.4,
+        "effects": {
+          "0": {
+            "amount": 18
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3.6,
+        "recast_time": 17.8,
+        "effects": {
+          "0": {
+            "amount": 21
+          }
+        }
+      },
+      "4": {
+        "cast_time": 3.4,
+        "recast_time": 17.2,
+        "effects": {
+          "0": {
+            "amount": 24
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.2,
+        "recast_time": 16.6,
+        "effects": {
+          "0": {
+            "amount": 27
+          }
+        }
+      }
     }
   },
   {
@@ -2415,6 +3235,68 @@
         3.9,
         4.9
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6.9,
+        "recast_time": 26,
+        "effects": {
+          "0": {
+            "amount": 13
+          },
+          "1": {
+            "amount": 5.4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6.6,
+        "recast_time": 25.4,
+        "effects": {
+          "0": {
+            "amount": 16
+          },
+          "1": {
+            "amount": 5.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.3,
+        "recast_time": 24.8,
+        "effects": {
+          "0": {
+            "amount": 19
+          },
+          "1": {
+            "amount": 6.2
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6,
+        "recast_time": 24.2,
+        "effects": {
+          "0": {
+            "amount": 22
+          },
+          "1": {
+            "amount": 6.6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.7,
+        "recast_time": 23.6,
+        "effects": {
+          "0": {
+            "amount": 25
+          },
+          "1": {
+            "amount": 7
+          }
+        }
+      }
     }
   },
   {
@@ -2471,6 +3353,68 @@
         3,
         4
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 5.7,
+        "recast_time": 28.4,
+        "effects": {
+          "0": {
+            "amount": 8
+          },
+          "1": {
+            "amount": 1.2
+          }
+        }
+      },
+      "2": {
+        "cast_time": 5.4,
+        "recast_time": 27.4,
+        "effects": {
+          "0": {
+            "amount": 10
+          },
+          "1": {
+            "amount": 1.4
+          }
+        }
+      },
+      "3": {
+        "cast_time": 5.1,
+        "recast_time": 26.4,
+        "effects": {
+          "0": {
+            "amount": 12
+          },
+          "1": {
+            "amount": 1.6
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4.8,
+        "recast_time": 25.4,
+        "effects": {
+          "0": {
+            "amount": 14
+          },
+          "1": {
+            "amount": 1.8
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.5,
+        "recast_time": 24.4,
+        "effects": {
+          "0": {
+            "amount": 16
+          },
+          "1": {
+            "amount": 2
+          }
+        }
+      }
     }
   },
   {
@@ -2519,6 +3463,68 @@
         4,
         5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4.6,
+        "recast_time": 19,
+        "effects": {
+          "0": {
+            "amount": 14
+          },
+          "1": {
+            "amount": 4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 4.4,
+        "recast_time": 18.4,
+        "effects": {
+          "0": {
+            "amount": 17
+          },
+          "1": {
+            "amount": 4.7
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.2,
+        "recast_time": 17.8,
+        "effects": {
+          "0": {
+            "amount": 20
+          },
+          "1": {
+            "amount": 5.4
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4,
+        "recast_time": 17.2,
+        "effects": {
+          "0": {
+            "amount": 23
+          },
+          "1": {
+            "amount": 6.1
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.8,
+        "recast_time": 16.6,
+        "effects": {
+          "0": {
+            "amount": 26
+          },
+          "1": {
+            "amount": 6.8
+          }
+        }
+      }
     }
   },
   {
@@ -2568,6 +3574,68 @@
         3,
         4
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 5.7,
+        "recast_time": 23.2,
+        "effects": {
+          "0": {
+            "amount": 17
+          },
+          "1": {
+            "amount": 2.4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 5.4,
+        "recast_time": 22.6,
+        "effects": {
+          "0": {
+            "amount": 21
+          },
+          "1": {
+            "amount": 2.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 5.1,
+        "recast_time": 22,
+        "effects": {
+          "0": {
+            "amount": 25
+          },
+          "1": {
+            "amount": 3.2
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4.8,
+        "recast_time": 21.4,
+        "effects": {
+          "0": {
+            "amount": 29
+          },
+          "1": {
+            "amount": 3.6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.5,
+        "recast_time": 20.8,
+        "effects": {
+          "0": {
+            "amount": 33
+          },
+          "1": {
+            "amount": 4
+          }
+        }
+      }
     }
   },
   {
@@ -2615,6 +3683,53 @@
         -9.6,
         -12
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 9.9,
+        "recast_time": 31.2,
+        "effects": {
+          "0": {
+            "amount": 23
+          }
+        }
+      },
+      "2": {
+        "cast_time": 9.6,
+        "recast_time": 30.2,
+        "effects": {
+          "0": {
+            "amount": 28
+          }
+        }
+      },
+      "3": {
+        "cast_time": 9.3,
+        "recast_time": 29.2,
+        "effects": {
+          "0": {
+            "amount": 33
+          }
+        }
+      },
+      "4": {
+        "cast_time": 9,
+        "recast_time": 28.2,
+        "effects": {
+          "0": {
+            "amount": 38
+          }
+        }
+      },
+      "5": {
+        "cast_time": 8.7,
+        "recast_time": 27.2,
+        "effects": {
+          "0": {
+            "amount": 43
+          }
+        }
+      }
     }
   },
   {
@@ -2664,6 +3779,68 @@
         24,
         30
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 8.1,
+        "recast_time": 28.4,
+        "effects": {
+          "0": {
+            "amount": 29
+          },
+          "1": {
+            "duration": 33
+          }
+        }
+      },
+      "2": {
+        "cast_time": 7.8,
+        "recast_time": 27.4,
+        "effects": {
+          "0": {
+            "amount": 36
+          },
+          "1": {
+            "duration": 36
+          }
+        }
+      },
+      "3": {
+        "cast_time": 7.5,
+        "recast_time": 26.4,
+        "effects": {
+          "0": {
+            "amount": 43
+          },
+          "1": {
+            "duration": 39
+          }
+        }
+      },
+      "4": {
+        "cast_time": 7.2,
+        "recast_time": 25.4,
+        "effects": {
+          "0": {
+            "amount": 50
+          },
+          "1": {
+            "duration": 42
+          }
+        }
+      },
+      "5": {
+        "cast_time": 6.9,
+        "recast_time": 24.4,
+        "effects": {
+          "0": {
+            "amount": 57
+          },
+          "1": {
+            "duration": 45
+          }
+        }
+      }
     }
   },
   {
@@ -2719,6 +3896,68 @@
         8,
         10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6.9,
+        "recast_time": 29.8,
+        "effects": {
+          "0": {
+            "amount": 23
+          },
+          "1": {
+            "amount": 8
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6.6,
+        "recast_time": 28.8,
+        "effects": {
+          "0": {
+            "amount": 28
+          },
+          "1": {
+            "amount": 10
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.3,
+        "recast_time": 27.8,
+        "effects": {
+          "0": {
+            "amount": 33
+          },
+          "1": {
+            "amount": 12
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6,
+        "recast_time": 26.8,
+        "effects": {
+          "0": {
+            "amount": 38
+          },
+          "1": {
+            "amount": 14
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.7,
+        "recast_time": 25.8,
+        "effects": {
+          "0": {
+            "amount": 43
+          },
+          "1": {
+            "amount": 16
+          }
+        }
+      }
     }
   },
   {
@@ -2769,6 +4008,68 @@
         6,
         7.5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 8.7,
+        "recast_time": 35.4,
+        "effects": {
+          "0": {
+            "amount": 10
+          },
+          "1": {
+            "duration": 9.5
+          }
+        }
+      },
+      "2": {
+        "cast_time": 8.4,
+        "recast_time": 34.4,
+        "effects": {
+          "0": {
+            "amount": 12
+          },
+          "1": {
+            "duration": 10
+          }
+        }
+      },
+      "3": {
+        "cast_time": 8.1,
+        "recast_time": 33.4,
+        "effects": {
+          "0": {
+            "amount": 14
+          },
+          "1": {
+            "duration": 10.5
+          }
+        }
+      },
+      "4": {
+        "cast_time": 7.8,
+        "recast_time": 32.4,
+        "effects": {
+          "0": {
+            "amount": 16
+          },
+          "1": {
+            "duration": 11
+          }
+        }
+      },
+      "5": {
+        "cast_time": 7.5,
+        "recast_time": 31.4,
+        "effects": {
+          "0": {
+            "amount": 18
+          },
+          "1": {
+            "duration": 11.5
+          }
+        }
+      }
     }
   },
   {
@@ -2816,6 +4117,53 @@
         -0.8,
         -1
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 2.3,
+        "recast_time": 10.8,
+        "effects": {
+          "1": {
+            "amount": 10
+          }
+        }
+      },
+      "2": {
+        "cast_time": 2.2,
+        "recast_time": 10.4,
+        "effects": {
+          "1": {
+            "amount": 12
+          }
+        }
+      },
+      "3": {
+        "cast_time": 2.1,
+        "recast_time": 10,
+        "effects": {
+          "1": {
+            "amount": 14
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2,
+        "recast_time": 9.6,
+        "effects": {
+          "1": {
+            "amount": 16
+          }
+        }
+      },
+      "5": {
+        "cast_time": 1.9,
+        "recast_time": 9.2,
+        "effects": {
+          "1": {
+            "amount": 18
+          }
+        }
+      }
     }
   },
   {
@@ -2869,6 +4217,68 @@
         4.8,
         6
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 3.4,
+        "recast_time": 20.4,
+        "effects": {
+          "1": {
+            "amount": 2.7
+          },
+          "2": {
+            "amount": 2.8
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.2,
+        "recast_time": 19.8,
+        "effects": {
+          "1": {
+            "amount": 3
+          },
+          "2": {
+            "amount": 3.2
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3,
+        "recast_time": 19.2,
+        "effects": {
+          "1": {
+            "amount": 3.3
+          },
+          "2": {
+            "amount": 3.6
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2.8,
+        "recast_time": 18.6,
+        "effects": {
+          "1": {
+            "amount": 3.6
+          },
+          "2": {
+            "amount": 4
+          }
+        }
+      },
+      "5": {
+        "cast_time": 2.6,
+        "recast_time": 18,
+        "effects": {
+          "1": {
+            "amount": 3.9
+          },
+          "2": {
+            "amount": 4.4
+          }
+        }
+      }
     }
   },
   {
@@ -2922,6 +4332,53 @@
         8,
         10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6.9,
+        "recast_time": 27.4,
+        "effects": {
+          "1": {
+            "amount": 21
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6.6,
+        "recast_time": 26.8,
+        "effects": {
+          "1": {
+            "amount": 26
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.3,
+        "recast_time": 26.2,
+        "effects": {
+          "1": {
+            "amount": 31
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6,
+        "recast_time": 25.6,
+        "effects": {
+          "1": {
+            "amount": 36
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.7,
+        "recast_time": 25,
+        "effects": {
+          "1": {
+            "amount": 41
+          }
+        }
+      }
     }
   },
   {
@@ -2970,6 +4427,68 @@
         3.2,
         4
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 1.4,
+        "recast_time": 6.6,
+        "effects": {
+          "0": {
+            "amount": 4
+          },
+          "1": {
+            "amount": 2.6
+          }
+        }
+      },
+      "2": {
+        "cast_time": 1.3,
+        "recast_time": 6.2,
+        "effects": {
+          "0": {
+            "amount": 5
+          },
+          "1": {
+            "amount": 3.2
+          }
+        }
+      },
+      "3": {
+        "cast_time": 1.2,
+        "recast_time": 5.8,
+        "effects": {
+          "0": {
+            "amount": 6
+          },
+          "1": {
+            "amount": 3.8
+          }
+        }
+      },
+      "4": {
+        "cast_time": 1.1,
+        "recast_time": 5.4,
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "amount": 4.4
+          }
+        }
+      },
+      "5": {
+        "cast_time": 1,
+        "recast_time": 5,
+        "effects": {
+          "0": {
+            "amount": 8
+          },
+          "1": {
+            "amount": 5
+          }
+        }
+      }
     }
   },
   {
@@ -3018,6 +4537,68 @@
         4,
         5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 2,
+        "recast_time": 9.4,
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "amount": 3
+          }
+        }
+      },
+      "2": {
+        "cast_time": 1.9,
+        "recast_time": 9,
+        "effects": {
+          "0": {
+            "amount": 9
+          },
+          "1": {
+            "amount": 4
+          }
+        }
+      },
+      "3": {
+        "cast_time": 1.8,
+        "recast_time": 8.6,
+        "effects": {
+          "0": {
+            "amount": 11
+          },
+          "1": {
+            "amount": 5
+          }
+        }
+      },
+      "4": {
+        "cast_time": 1.7,
+        "recast_time": 8.2,
+        "effects": {
+          "0": {
+            "amount": 13
+          },
+          "1": {
+            "amount": 6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 1.6,
+        "recast_time": 7.8,
+        "effects": {
+          "0": {
+            "amount": 15
+          },
+          "1": {
+            "amount": 7
+          }
+        }
+      }
     }
   },
   {
@@ -3067,6 +4648,68 @@
         16,
         20
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 2.6,
+        "recast_time": 10.8,
+        "effects": {
+          "0": {
+            "amount": 3
+          },
+          "1": {
+            "duration": 19.8
+          }
+        }
+      },
+      "2": {
+        "cast_time": 2.5,
+        "recast_time": 10.4,
+        "effects": {
+          "0": {
+            "amount": 4
+          },
+          "1": {
+            "duration": 21.6
+          }
+        }
+      },
+      "3": {
+        "cast_time": 2.4,
+        "recast_time": 10,
+        "effects": {
+          "0": {
+            "amount": 5
+          },
+          "1": {
+            "duration": 23.4
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2.3,
+        "recast_time": 9.6,
+        "effects": {
+          "0": {
+            "amount": 6
+          },
+          "1": {
+            "duration": 25.2
+          }
+        }
+      },
+      "5": {
+        "cast_time": 2.2,
+        "recast_time": 9.2,
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "duration": 27
+          }
+        }
+      }
     }
   },
   {
@@ -3115,6 +4758,68 @@
         2,
         2.5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 2.8,
+        "recast_time": 15,
+        "effects": {
+          "0": {
+            "amount": 4.9
+          },
+          "1": {
+            "amount": 1.7
+          }
+        }
+      },
+      "2": {
+        "cast_time": 2.6,
+        "recast_time": 14.6,
+        "effects": {
+          "0": {
+            "amount": 5.6
+          },
+          "1": {
+            "amount": 2.2
+          }
+        }
+      },
+      "3": {
+        "cast_time": 2.4,
+        "recast_time": 14.2,
+        "effects": {
+          "0": {
+            "amount": 6.3
+          },
+          "1": {
+            "amount": 2.7
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2.2,
+        "recast_time": 13.8,
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "amount": 3.2
+          }
+        }
+      },
+      "5": {
+        "cast_time": 2,
+        "recast_time": 13.4,
+        "effects": {
+          "0": {
+            "amount": 7.7
+          },
+          "1": {
+            "amount": 3.7
+          }
+        }
+      }
     }
   },
   {
@@ -3165,6 +4870,73 @@
         4,
         5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 3.1,
+        "recast_time": 12.2,
+        "effects": {
+          "0": {
+            "amount": 4,
+            "bonus_amount": 5
+          },
+          "1": {
+            "amount": 3
+          }
+        }
+      },
+      "2": {
+        "cast_time": 2.9,
+        "recast_time": 11.8,
+        "effects": {
+          "0": {
+            "amount": 5,
+            "bonus_amount": 6
+          },
+          "1": {
+            "amount": 4
+          }
+        }
+      },
+      "3": {
+        "cast_time": 2.7,
+        "recast_time": 11.4,
+        "effects": {
+          "0": {
+            "amount": 6,
+            "bonus_amount": 7
+          },
+          "1": {
+            "amount": 5
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2.5,
+        "recast_time": 11,
+        "effects": {
+          "0": {
+            "amount": 7,
+            "bonus_amount": 8
+          },
+          "1": {
+            "amount": 6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 2.3,
+        "recast_time": 10.6,
+        "effects": {
+          "0": {
+            "amount": 8,
+            "bonus_amount": 9
+          },
+          "1": {
+            "amount": 7
+          }
+        }
+      }
     }
   },
   {
@@ -3213,6 +4985,68 @@
         2.4,
         3
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 2.3,
+        "recast_time": 12.2,
+        "effects": {
+          "0": {
+            "amount": 6
+          },
+          "1": {
+            "amount": 2.5
+          }
+        }
+      },
+      "2": {
+        "cast_time": 2.2,
+        "recast_time": 11.8,
+        "effects": {
+          "0": {
+            "amount": 8
+          },
+          "1": {
+            "amount": 3
+          }
+        }
+      },
+      "3": {
+        "cast_time": 2.1,
+        "recast_time": 11.4,
+        "effects": {
+          "0": {
+            "amount": 10
+          },
+          "1": {
+            "amount": 3.5
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2,
+        "recast_time": 11,
+        "effects": {
+          "0": {
+            "amount": 12
+          },
+          "1": {
+            "amount": 4
+          }
+        }
+      },
+      "5": {
+        "cast_time": 1.9,
+        "recast_time": 10.6,
+        "effects": {
+          "0": {
+            "amount": 14
+          },
+          "1": {
+            "amount": 4.5
+          }
+        }
+      }
     }
   },
   {
@@ -3261,6 +5095,68 @@
         4,
         5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 2.8,
+        "recast_time": 13.6,
+        "effects": {
+          "0": {
+            "amount": 3.6
+          },
+          "1": {
+            "amount": 5
+          }
+        }
+      },
+      "2": {
+        "cast_time": 2.6,
+        "recast_time": 13.2,
+        "effects": {
+          "0": {
+            "amount": 4.2
+          },
+          "1": {
+            "amount": 7
+          }
+        }
+      },
+      "3": {
+        "cast_time": 2.4,
+        "recast_time": 12.8,
+        "effects": {
+          "0": {
+            "amount": 4.8
+          },
+          "1": {
+            "amount": 9
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2.2,
+        "recast_time": 12.4,
+        "effects": {
+          "0": {
+            "amount": 5.4
+          },
+          "1": {
+            "amount": 11
+          }
+        }
+      },
+      "5": {
+        "cast_time": 2,
+        "recast_time": 12,
+        "effects": {
+          "0": {
+            "amount": 6
+          },
+          "1": {
+            "amount": 13
+          }
+        }
+      }
     }
   },
   {
@@ -3303,6 +5199,68 @@
         20,
         25
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4,
+        "recast_time": 16.2,
+        "effects": {
+          "0": {
+            "duration": 26.4
+          },
+          "1": {
+            "duration": 19.8
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.8,
+        "recast_time": 15.6,
+        "effects": {
+          "0": {
+            "duration": 28.8
+          },
+          "1": {
+            "duration": 21.6
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3.6,
+        "recast_time": 15,
+        "effects": {
+          "0": {
+            "duration": 31.2
+          },
+          "1": {
+            "duration": 23.4
+          }
+        }
+      },
+      "4": {
+        "cast_time": 3.4,
+        "recast_time": 14.4,
+        "effects": {
+          "0": {
+            "duration": 33.6
+          },
+          "1": {
+            "duration": 25.2
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.2,
+        "recast_time": 13.8,
+        "effects": {
+          "0": {
+            "duration": 36
+          },
+          "1": {
+            "duration": 27
+          }
+        }
+      }
     }
   },
   {
@@ -3351,6 +5309,68 @@
         3.2,
         4
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4.6,
+        "recast_time": 19,
+        "effects": {
+          "0": {
+            "amount": 10
+          },
+          "1": {
+            "amount": 2.8
+          }
+        }
+      },
+      "2": {
+        "cast_time": 4.4,
+        "recast_time": 18.4,
+        "effects": {
+          "0": {
+            "amount": 12
+          },
+          "1": {
+            "amount": 3.2
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.2,
+        "recast_time": 17.8,
+        "effects": {
+          "0": {
+            "amount": 14
+          },
+          "1": {
+            "amount": 3.6
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4,
+        "recast_time": 17.2,
+        "effects": {
+          "0": {
+            "amount": 16
+          },
+          "1": {
+            "amount": 4
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.8,
+        "recast_time": 16.6,
+        "effects": {
+          "0": {
+            "amount": 18
+          },
+          "1": {
+            "amount": 4.4
+          }
+        }
+      }
     }
   },
   {
@@ -3404,6 +5424,53 @@
         -4,
         -5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 3.4,
+        "recast_time": 17.6,
+        "effects": {
+          "0": {
+            "amount": 13
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.2,
+        "recast_time": 17,
+        "effects": {
+          "0": {
+            "amount": 16
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3,
+        "recast_time": 16.4,
+        "effects": {
+          "0": {
+            "amount": 19
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2.8,
+        "recast_time": 15.8,
+        "effects": {
+          "0": {
+            "amount": 22
+          }
+        }
+      },
+      "5": {
+        "cast_time": 2.6,
+        "recast_time": 15.2,
+        "effects": {
+          "0": {
+            "amount": 25
+          }
+        }
+      }
     }
   },
   {
@@ -3468,6 +5535,88 @@
         2,
         3
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4,
+        "recast_time": 19,
+        "effects": {
+          "0": {
+            "amount": 7
+          },
+          "1": {
+            "duration": 31.5,
+            "bleed_power": 1
+          },
+          "2": {
+            "duration": 19.8
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.8,
+        "recast_time": 18.4,
+        "effects": {
+          "0": {
+            "amount": 9
+          },
+          "1": {
+            "duration": 33,
+            "bleed_power": 2
+          },
+          "2": {
+            "duration": 21.6
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3.6,
+        "recast_time": 17.8,
+        "effects": {
+          "0": {
+            "amount": 11
+          },
+          "1": {
+            "duration": 34.5,
+            "bleed_power": 2
+          },
+          "2": {
+            "duration": 23.4
+          }
+        }
+      },
+      "4": {
+        "cast_time": 3.4,
+        "recast_time": 17.2,
+        "effects": {
+          "0": {
+            "amount": 13
+          },
+          "1": {
+            "duration": 36,
+            "bleed_power": 3
+          },
+          "2": {
+            "duration": 25.2
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.2,
+        "recast_time": 16.6,
+        "effects": {
+          "0": {
+            "amount": 15
+          },
+          "1": {
+            "duration": 37.5,
+            "bleed_power": 4
+          },
+          "2": {
+            "duration": 27
+          }
+        }
+      }
     }
   },
   {
@@ -3516,6 +5665,68 @@
         3.2,
         4
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 2.8,
+        "recast_time": 20.4,
+        "effects": {
+          "0": {
+            "amount": 2.3
+          },
+          "1": {
+            "amount": 2.2
+          }
+        }
+      },
+      "2": {
+        "cast_time": 2.6,
+        "recast_time": 19.8,
+        "effects": {
+          "0": {
+            "amount": 2.6
+          },
+          "1": {
+            "amount": 2.6
+          }
+        }
+      },
+      "3": {
+        "cast_time": 2.4,
+        "recast_time": 19.2,
+        "effects": {
+          "0": {
+            "amount": 2.9
+          },
+          "1": {
+            "amount": 3
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2.2,
+        "recast_time": 18.6,
+        "effects": {
+          "0": {
+            "amount": 3.2
+          },
+          "1": {
+            "amount": 3.4
+          }
+        }
+      },
+      "5": {
+        "cast_time": 2,
+        "recast_time": 18,
+        "effects": {
+          "0": {
+            "amount": 3.5
+          },
+          "1": {
+            "amount": 3.8
+          }
+        }
+      }
     }
   },
   {
@@ -3563,6 +5774,68 @@
         4.8,
         6
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4.3,
+        "recast_time": 16.2,
+        "effects": {
+          "0": {
+            "amount": 9
+          },
+          "1": {
+            "amount": 4.6
+          }
+        }
+      },
+      "2": {
+        "cast_time": 4.1,
+        "recast_time": 15.6,
+        "effects": {
+          "0": {
+            "amount": 11
+          },
+          "1": {
+            "amount": 5.2
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3.9,
+        "recast_time": 15,
+        "effects": {
+          "0": {
+            "amount": 13
+          },
+          "1": {
+            "amount": 5.8
+          }
+        }
+      },
+      "4": {
+        "cast_time": 3.7,
+        "recast_time": 14.4,
+        "effects": {
+          "0": {
+            "amount": 15
+          },
+          "1": {
+            "amount": 6.4
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.5,
+        "recast_time": 13.8,
+        "effects": {
+          "0": {
+            "amount": 17
+          },
+          "1": {
+            "amount": 7
+          }
+        }
+      }
     }
   },
   {
@@ -3615,6 +5888,68 @@
         4,
         5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 3.4,
+        "recast_time": 17.6,
+        "effects": {
+          "1": {
+            "amount": 12
+          },
+          "2": {
+            "amount": 4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.2,
+        "recast_time": 17,
+        "effects": {
+          "1": {
+            "amount": 15
+          },
+          "2": {
+            "amount": 5
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3,
+        "recast_time": 16.4,
+        "effects": {
+          "1": {
+            "amount": 18
+          },
+          "2": {
+            "amount": 6
+          }
+        }
+      },
+      "4": {
+        "cast_time": 2.8,
+        "recast_time": 15.8,
+        "effects": {
+          "1": {
+            "amount": 21
+          },
+          "2": {
+            "amount": 7
+          }
+        }
+      },
+      "5": {
+        "cast_time": 2.6,
+        "recast_time": 15.2,
+        "effects": {
+          "1": {
+            "amount": 24
+          },
+          "2": {
+            "amount": 8
+          }
+        }
+      }
     }
   },
   {
@@ -3668,6 +6003,53 @@
         -4.8,
         -6
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 5.2,
+        "recast_time": 21.8,
+        "effects": {
+          "1": {
+            "amount": 1.2
+          }
+        }
+      },
+      "2": {
+        "cast_time": 5,
+        "recast_time": 21.2,
+        "effects": {
+          "1": {
+            "amount": 1.4
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.8,
+        "recast_time": 20.6,
+        "effects": {
+          "1": {
+            "amount": 1.6
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4.6,
+        "recast_time": 20,
+        "effects": {
+          "1": {
+            "amount": 1.8
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.4,
+        "recast_time": 19.4,
+        "effects": {
+          "1": {
+            "amount": 2
+          }
+        }
+      }
     }
   },
   {
@@ -3718,6 +6100,53 @@
         -4,
         -5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4,
+        "recast_time": 23.2,
+        "effects": {
+          "0": {
+            "amount": -0.66
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.8,
+        "recast_time": 22.6,
+        "effects": {
+          "0": {
+            "amount": -0.72
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3.6,
+        "recast_time": 22,
+        "effects": {
+          "0": {
+            "amount": -0.78
+          }
+        }
+      },
+      "4": {
+        "cast_time": 3.4,
+        "recast_time": 21.4,
+        "effects": {
+          "0": {
+            "amount": -0.84
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.2,
+        "recast_time": 20.8,
+        "effects": {
+          "0": {
+            "amount": -0.9
+          }
+        }
+      }
     }
   },
   {
@@ -3767,6 +6196,68 @@
         2.8,
         3.5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4.9,
+        "recast_time": 24.6,
+        "effects": {
+          "0": {
+            "duration": 4.4
+          },
+          "1": {
+            "amount": 2.4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 4.7,
+        "recast_time": 24,
+        "effects": {
+          "0": {
+            "duration": 4.8
+          },
+          "1": {
+            "amount": 2.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.5,
+        "recast_time": 23.4,
+        "effects": {
+          "0": {
+            "duration": 5.2
+          },
+          "1": {
+            "amount": 3.2
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4.3,
+        "recast_time": 22.8,
+        "effects": {
+          "0": {
+            "duration": 5.6
+          },
+          "1": {
+            "amount": 3.6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.1,
+        "recast_time": 22.2,
+        "effects": {
+          "0": {
+            "duration": 6
+          },
+          "1": {
+            "amount": 4
+          }
+        }
+      }
     }
   },
   {
@@ -3820,6 +6311,53 @@
         -4,
         -5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 4,
+        "recast_time": 20.4,
+        "effects": {
+          "0": {
+            "amount": 10
+          }
+        }
+      },
+      "2": {
+        "cast_time": 3.8,
+        "recast_time": 19.8,
+        "effects": {
+          "0": {
+            "amount": 12
+          }
+        }
+      },
+      "3": {
+        "cast_time": 3.6,
+        "recast_time": 19.2,
+        "effects": {
+          "0": {
+            "amount": 14
+          }
+        }
+      },
+      "4": {
+        "cast_time": 3.4,
+        "recast_time": 18.6,
+        "effects": {
+          "0": {
+            "amount": 16
+          }
+        }
+      },
+      "5": {
+        "cast_time": 3.2,
+        "recast_time": 18,
+        "effects": {
+          "0": {
+            "amount": 18
+          }
+        }
+      }
     }
   },
   {
@@ -3869,6 +6407,68 @@
         3.2,
         4
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6.9,
+        "recast_time": 29.8,
+        "effects": {
+          "0": {
+            "amount": 26
+          },
+          "1": {
+            "duration": 3.3
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6.6,
+        "recast_time": 28.8,
+        "effects": {
+          "0": {
+            "amount": 32
+          },
+          "1": {
+            "duration": 3.6
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.3,
+        "recast_time": 27.8,
+        "effects": {
+          "0": {
+            "amount": 38
+          },
+          "1": {
+            "duration": 3.9
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6,
+        "recast_time": 26.8,
+        "effects": {
+          "0": {
+            "amount": 44
+          },
+          "1": {
+            "duration": 4.2
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.7,
+        "recast_time": 25.8,
+        "effects": {
+          "0": {
+            "amount": 50
+          },
+          "1": {
+            "duration": 4.5
+          }
+        }
+      }
     }
   },
   {
@@ -3935,6 +6535,93 @@
         2,
         3
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6.3,
+        "recast_time": 27.4,
+        "effects": {
+          "0": {
+            "duration": 44,
+            "bleed_power": 1
+          },
+          "1": {
+            "duration": 26.4
+          },
+          "2": {
+            "amount": 13,
+            "bonus_amount": 8
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6,
+        "recast_time": 26.8,
+        "effects": {
+          "0": {
+            "duration": 46,
+            "bleed_power": 2
+          },
+          "1": {
+            "duration": 28.8
+          },
+          "2": {
+            "amount": 16,
+            "bonus_amount": 10
+          }
+        }
+      },
+      "3": {
+        "cast_time": 5.7,
+        "recast_time": 26.2,
+        "effects": {
+          "0": {
+            "duration": 48,
+            "bleed_power": 2
+          },
+          "1": {
+            "duration": 31.2
+          },
+          "2": {
+            "amount": 19,
+            "bonus_amount": 12
+          }
+        }
+      },
+      "4": {
+        "cast_time": 5.4,
+        "recast_time": 25.6,
+        "effects": {
+          "0": {
+            "duration": 50,
+            "bleed_power": 3
+          },
+          "1": {
+            "duration": 33.6
+          },
+          "2": {
+            "amount": 22,
+            "bonus_amount": 14
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.1,
+        "recast_time": 25,
+        "effects": {
+          "0": {
+            "duration": 52,
+            "bleed_power": 4
+          },
+          "1": {
+            "duration": 36
+          },
+          "2": {
+            "amount": 25,
+            "bonus_amount": 16
+          }
+        }
+      }
     }
   },
   {
@@ -3985,6 +6672,68 @@
         -6,
         -7.5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 8.1,
+        "recast_time": 34,
+        "effects": {
+          "0": {
+            "duration": 5.5
+          },
+          "1": {
+            "duration": 19.8
+          }
+        }
+      },
+      "2": {
+        "cast_time": 7.8,
+        "recast_time": 33,
+        "effects": {
+          "0": {
+            "duration": 6
+          },
+          "1": {
+            "duration": 21.6
+          }
+        }
+      },
+      "3": {
+        "cast_time": 7.5,
+        "recast_time": 32,
+        "effects": {
+          "0": {
+            "duration": 6.5
+          },
+          "1": {
+            "duration": 23.4
+          }
+        }
+      },
+      "4": {
+        "cast_time": 7.2,
+        "recast_time": 31,
+        "effects": {
+          "0": {
+            "duration": 7
+          },
+          "1": {
+            "duration": 25.2
+          }
+        }
+      },
+      "5": {
+        "cast_time": 6.9,
+        "recast_time": 30,
+        "effects": {
+          "0": {
+            "duration": 7.5
+          },
+          "1": {
+            "duration": 27
+          }
+        }
+      }
     }
   },
   {
@@ -4035,6 +6784,53 @@
         -6,
         -7.5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 5.2,
+        "recast_time": 28.4,
+        "effects": {
+          "0": {
+            "amount": 12
+          }
+        }
+      },
+      "2": {
+        "cast_time": 5,
+        "recast_time": 27.4,
+        "effects": {
+          "0": {
+            "amount": 15
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.8,
+        "recast_time": 26.4,
+        "effects": {
+          "0": {
+            "amount": 18
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4.6,
+        "recast_time": 25.4,
+        "effects": {
+          "0": {
+            "amount": 21
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.4,
+        "recast_time": 24.4,
+        "effects": {
+          "0": {
+            "amount": 24
+          }
+        }
+      }
     }
   },
   {
@@ -4084,6 +6880,58 @@
         -6,
         -7.5
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 7.5,
+        "recast_time": 29.8,
+        "effects": {
+          "0": {
+            "amount": 18,
+            "bonus_amount": 13
+          }
+        }
+      },
+      "2": {
+        "cast_time": 7.2,
+        "recast_time": 28.8,
+        "effects": {
+          "0": {
+            "amount": 22,
+            "bonus_amount": 16
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.9,
+        "recast_time": 27.8,
+        "effects": {
+          "0": {
+            "amount": 26,
+            "bonus_amount": 19
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6.6,
+        "recast_time": 26.8,
+        "effects": {
+          "0": {
+            "amount": 30,
+            "bonus_amount": 22
+          }
+        }
+      },
+      "5": {
+        "cast_time": 6.3,
+        "recast_time": 25.8,
+        "effects": {
+          "0": {
+            "amount": 34,
+            "bonus_amount": 25
+          }
+        }
+      }
     }
   },
   {
@@ -4133,6 +6981,68 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6.9,
+        "recast_time": 32.6,
+        "effects": {
+          "0": {
+            "amount": 1.1
+          },
+          "1": {
+            "amount": -0.44
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6.6,
+        "recast_time": 31.6,
+        "effects": {
+          "0": {
+            "amount": 1.2
+          },
+          "1": {
+            "amount": -0.48
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.3,
+        "recast_time": 30.6,
+        "effects": {
+          "0": {
+            "amount": 1.3
+          },
+          "1": {
+            "amount": -0.52
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6,
+        "recast_time": 29.6,
+        "effects": {
+          "0": {
+            "amount": 1.4
+          },
+          "1": {
+            "amount": -0.56
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.7,
+        "recast_time": 28.6,
+        "effects": {
+          "0": {
+            "amount": 1.5
+          },
+          "1": {
+            "amount": -0.6
+          }
+        }
+      }
     }
   },
   {
@@ -4192,6 +7102,73 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 8.7,
+        "recast_time": 38.2,
+        "effects": {
+          "0": {
+            "amount": 31,
+            "bonus_amount": 18
+          },
+          "1": {
+            "duration": 15.4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 8.4,
+        "recast_time": 37.2,
+        "effects": {
+          "0": {
+            "amount": 36,
+            "bonus_amount": 22
+          },
+          "1": {
+            "duration": 16.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 8.1,
+        "recast_time": 36.2,
+        "effects": {
+          "0": {
+            "amount": 41,
+            "bonus_amount": 26
+          },
+          "1": {
+            "duration": 18.2
+          }
+        }
+      },
+      "4": {
+        "cast_time": 7.8,
+        "recast_time": 35.2,
+        "effects": {
+          "0": {
+            "amount": 46,
+            "bonus_amount": 30
+          },
+          "1": {
+            "duration": 19.6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 7.5,
+        "recast_time": 34.2,
+        "effects": {
+          "0": {
+            "amount": 51,
+            "bonus_amount": 34
+          },
+          "1": {
+            "duration": 21
+          }
+        }
+      }
     }
   },
   {
@@ -4258,6 +7235,68 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6.9,
+        "recast_time": 35.4,
+        "effects": {
+          "0": {
+            "amount": 33
+          },
+          "1": {
+            "amount": 12
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6.6,
+        "recast_time": 34.4,
+        "effects": {
+          "0": {
+            "amount": 38
+          },
+          "1": {
+            "amount": 14
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.3,
+        "recast_time": 33.4,
+        "effects": {
+          "0": {
+            "amount": 43
+          },
+          "1": {
+            "amount": 16
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6,
+        "recast_time": 32.4,
+        "effects": {
+          "0": {
+            "amount": 48
+          },
+          "1": {
+            "amount": 18
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.7,
+        "recast_time": 31.4,
+        "effects": {
+          "0": {
+            "amount": 53
+          },
+          "1": {
+            "amount": 20
+          }
+        }
+      }
     }
   },
   {
@@ -4319,6 +7358,68 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 8.1,
+        "recast_time": 39.4,
+        "effects": {
+          "0": {
+            "amount": 19
+          },
+          "1": {
+            "amount": 4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 7.8,
+        "recast_time": 38.2,
+        "effects": {
+          "0": {
+            "amount": 22
+          },
+          "1": {
+            "amount": 4.4
+          }
+        }
+      },
+      "3": {
+        "cast_time": 7.5,
+        "recast_time": 37,
+        "effects": {
+          "0": {
+            "amount": 25
+          },
+          "1": {
+            "amount": 4.8
+          }
+        }
+      },
+      "4": {
+        "cast_time": 7.2,
+        "recast_time": 35.8,
+        "effects": {
+          "0": {
+            "amount": 28
+          },
+          "1": {
+            "amount": 5.2
+          }
+        }
+      },
+      "5": {
+        "cast_time": 6.9,
+        "recast_time": 34.6,
+        "effects": {
+          "0": {
+            "amount": 31
+          },
+          "1": {
+            "amount": 5.6
+          }
+        }
+      }
     }
   },
   {
@@ -4387,6 +7488,68 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 7.2,
+        "recast_time": 36.8,
+        "effects": {
+          "0": {
+            "amount": 24
+          },
+          "3": {
+            "amount": 1.1
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6.9,
+        "recast_time": 35.8,
+        "effects": {
+          "0": {
+            "amount": 28
+          },
+          "3": {
+            "amount": 1.2
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.6,
+        "recast_time": 34.8,
+        "effects": {
+          "0": {
+            "amount": 32
+          },
+          "3": {
+            "amount": 1.3
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6.3,
+        "recast_time": 33.8,
+        "effects": {
+          "0": {
+            "amount": 36
+          },
+          "3": {
+            "amount": 1.4
+          }
+        }
+      },
+      "5": {
+        "cast_time": 6,
+        "recast_time": 32.8,
+        "effects": {
+          "0": {
+            "amount": 40
+          },
+          "3": {
+            "amount": 1.5
+          }
+        }
+      }
     }
   },
   {
@@ -4464,6 +7627,98 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 7.5,
+        "recast_time": 40.8,
+        "effects": {
+          "0": {
+            "amount": 19
+          },
+          "1": {
+            "amount": 3.4
+          },
+          "2": {
+            "amount": 1.1
+          },
+          "3": {
+            "amount": 1.1
+          }
+        }
+      },
+      "2": {
+        "cast_time": 7.2,
+        "recast_time": 39.6,
+        "effects": {
+          "0": {
+            "amount": 22
+          },
+          "1": {
+            "amount": 3.8
+          },
+          "2": {
+            "amount": 1.2
+          },
+          "3": {
+            "amount": 1.2
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.9,
+        "recast_time": 38.4,
+        "effects": {
+          "0": {
+            "amount": 25
+          },
+          "1": {
+            "amount": 4.2
+          },
+          "2": {
+            "amount": 1.3
+          },
+          "3": {
+            "amount": 1.3
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6.6,
+        "recast_time": 37.2,
+        "effects": {
+          "0": {
+            "amount": 28
+          },
+          "1": {
+            "amount": 4.6
+          },
+          "2": {
+            "amount": 1.4
+          },
+          "3": {
+            "amount": 1.4
+          }
+        }
+      },
+      "5": {
+        "cast_time": 6.3,
+        "recast_time": 36,
+        "effects": {
+          "0": {
+            "amount": 31
+          },
+          "1": {
+            "amount": 5
+          },
+          "2": {
+            "amount": 1.5
+          },
+          "3": {
+            "amount": 1.5
+          }
+        }
+      }
     }
   },
   {
@@ -4536,6 +7791,83 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 9,
+        "recast_time": 42.2,
+        "effects": {
+          "0": {
+            "amount": 14
+          },
+          "1": {
+            "duration": 4.95
+          },
+          "2": {
+            "amount": 2.4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 8.7,
+        "recast_time": 41,
+        "effects": {
+          "0": {
+            "amount": 16
+          },
+          "1": {
+            "duration": 5.4
+          },
+          "2": {
+            "amount": 2.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 8.4,
+        "recast_time": 39.8,
+        "effects": {
+          "0": {
+            "amount": 18
+          },
+          "1": {
+            "duration": 5.85
+          },
+          "2": {
+            "amount": 3.2
+          }
+        }
+      },
+      "4": {
+        "cast_time": 8.1,
+        "recast_time": 38.6,
+        "effects": {
+          "0": {
+            "amount": 20
+          },
+          "1": {
+            "duration": 6.3
+          },
+          "2": {
+            "amount": 3.6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 7.8,
+        "recast_time": 37.4,
+        "effects": {
+          "0": {
+            "amount": 22
+          },
+          "1": {
+            "duration": 6.75
+          },
+          "2": {
+            "amount": 4
+          }
+        }
+      }
     }
   },
   {
@@ -4602,6 +7934,68 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6,
+        "recast_time": 34,
+        "effects": {
+          "0": {
+            "amount": 21
+          },
+          "2": {
+            "amount": 1.8
+          }
+        }
+      },
+      "2": {
+        "cast_time": 5.7,
+        "recast_time": 33,
+        "effects": {
+          "0": {
+            "amount": 24
+          },
+          "2": {
+            "amount": 2.1
+          }
+        }
+      },
+      "3": {
+        "cast_time": 5.4,
+        "recast_time": 32,
+        "effects": {
+          "0": {
+            "amount": 27
+          },
+          "2": {
+            "amount": 2.4
+          }
+        }
+      },
+      "4": {
+        "cast_time": 5.1,
+        "recast_time": 31,
+        "effects": {
+          "0": {
+            "amount": 30
+          },
+          "2": {
+            "amount": 2.7
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.8,
+        "recast_time": 30,
+        "effects": {
+          "0": {
+            "amount": 33
+          },
+          "2": {
+            "amount": 3
+          }
+        }
+      }
     }
   },
   {
@@ -4668,6 +8062,68 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 9.3,
+        "recast_time": 43.6,
+        "effects": {
+          "0": {
+            "amount": 21
+          },
+          "1": {
+            "amount": 1.2
+          }
+        }
+      },
+      "2": {
+        "cast_time": 9,
+        "recast_time": 42.4,
+        "effects": {
+          "0": {
+            "amount": 24
+          },
+          "1": {
+            "amount": 1.4
+          }
+        }
+      },
+      "3": {
+        "cast_time": 8.7,
+        "recast_time": 41.2,
+        "effects": {
+          "0": {
+            "amount": 27
+          },
+          "1": {
+            "amount": 1.6
+          }
+        }
+      },
+      "4": {
+        "cast_time": 8.4,
+        "recast_time": 40,
+        "effects": {
+          "0": {
+            "amount": 30
+          },
+          "1": {
+            "amount": 1.8
+          }
+        }
+      },
+      "5": {
+        "cast_time": 8.1,
+        "recast_time": 38.8,
+        "effects": {
+          "0": {
+            "amount": 33
+          },
+          "1": {
+            "amount": 2
+          }
+        }
+      }
     }
   },
   {
@@ -4732,6 +8188,83 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 7.8,
+        "recast_time": 40.8,
+        "effects": {
+          "0": {
+            "duration": 5.5
+          },
+          "1": {
+            "duration": 17.6
+          },
+          "2": {
+            "amount": 1.9
+          }
+        }
+      },
+      "2": {
+        "cast_time": 7.5,
+        "recast_time": 39.6,
+        "effects": {
+          "0": {
+            "duration": 6
+          },
+          "1": {
+            "duration": 19.2
+          },
+          "2": {
+            "amount": 2.3
+          }
+        }
+      },
+      "3": {
+        "cast_time": 7.2,
+        "recast_time": 38.4,
+        "effects": {
+          "0": {
+            "duration": 6.5
+          },
+          "1": {
+            "duration": 20.8
+          },
+          "2": {
+            "amount": 2.7
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6.9,
+        "recast_time": 37.2,
+        "effects": {
+          "0": {
+            "duration": 7
+          },
+          "1": {
+            "duration": 22.4
+          },
+          "2": {
+            "amount": 3.1
+          }
+        }
+      },
+      "5": {
+        "cast_time": 6.6,
+        "recast_time": 36,
+        "effects": {
+          "0": {
+            "duration": 7.5
+          },
+          "1": {
+            "duration": 24
+          },
+          "2": {
+            "amount": 3.5
+          }
+        }
+      }
     }
   },
   {
@@ -4806,6 +8339,83 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6.3,
+        "recast_time": 32.6,
+        "effects": {
+          "1": {
+            "amount": 28
+          },
+          "2": {
+            "amount": 17
+          },
+          "3": {
+            "amount": 2.9
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6,
+        "recast_time": 31.6,
+        "effects": {
+          "1": {
+            "amount": 32
+          },
+          "2": {
+            "amount": 20
+          },
+          "3": {
+            "amount": 3.3
+          }
+        }
+      },
+      "3": {
+        "cast_time": 5.7,
+        "recast_time": 30.6,
+        "effects": {
+          "1": {
+            "amount": 36
+          },
+          "2": {
+            "amount": 23
+          },
+          "3": {
+            "amount": 3.7
+          }
+        }
+      },
+      "4": {
+        "cast_time": 5.4,
+        "recast_time": 29.6,
+        "effects": {
+          "1": {
+            "amount": 40
+          },
+          "2": {
+            "amount": 26
+          },
+          "3": {
+            "amount": 4.1
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.1,
+        "recast_time": 28.6,
+        "effects": {
+          "1": {
+            "amount": 44
+          },
+          "2": {
+            "amount": 29
+          },
+          "3": {
+            "amount": 4.5
+          }
+        }
+      }
     }
   },
   {
@@ -4886,6 +8496,88 @@
         2,
         3
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6.9,
+        "recast_time": 35.4,
+        "effects": {
+          "0": {
+            "amount": 26
+          },
+          "1": {
+            "amount": 9
+          },
+          "2": {
+            "duration": 18.9,
+            "bleed_power": 1
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6.6,
+        "recast_time": 34.4,
+        "effects": {
+          "0": {
+            "amount": 30
+          },
+          "1": {
+            "amount": 10
+          },
+          "2": {
+            "duration": 19.8,
+            "bleed_power": 2
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.3,
+        "recast_time": 33.4,
+        "effects": {
+          "0": {
+            "amount": 34
+          },
+          "1": {
+            "amount": 11
+          },
+          "2": {
+            "duration": 20.7,
+            "bleed_power": 2
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6,
+        "recast_time": 32.4,
+        "effects": {
+          "0": {
+            "amount": 38
+          },
+          "1": {
+            "amount": 12
+          },
+          "2": {
+            "duration": 21.6,
+            "bleed_power": 3
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.7,
+        "recast_time": 31.4,
+        "effects": {
+          "0": {
+            "amount": 42
+          },
+          "1": {
+            "amount": 13
+          },
+          "2": {
+            "duration": 22.5,
+            "bleed_power": 4
+          }
+        }
+      }
     }
   },
   {
@@ -4957,6 +8649,53 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 7.5,
+        "recast_time": 39.4,
+        "effects": {
+          "2": {
+            "amount": 0.55
+          }
+        }
+      },
+      "2": {
+        "cast_time": 7.2,
+        "recast_time": 38.2,
+        "effects": {
+          "2": {
+            "amount": 0.6
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6.9,
+        "recast_time": 37,
+        "effects": {
+          "2": {
+            "amount": 0.65
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6.6,
+        "recast_time": 35.8,
+        "effects": {
+          "2": {
+            "amount": 0.7
+          }
+        }
+      },
+      "5": {
+        "cast_time": 6.3,
+        "recast_time": 34.6,
+        "effects": {
+          "2": {
+            "amount": 0.75
+          }
+        }
+      }
     }
   },
   {
@@ -5033,6 +8772,83 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 6.6,
+        "recast_time": 38.2,
+        "effects": {
+          "0": {
+            "amount": 19
+          },
+          "1": {
+            "amount": 24
+          },
+          "2": {
+            "duration": 2.75
+          }
+        }
+      },
+      "2": {
+        "cast_time": 6.3,
+        "recast_time": 37.2,
+        "effects": {
+          "0": {
+            "amount": 22
+          },
+          "1": {
+            "amount": 28
+          },
+          "2": {
+            "duration": 3
+          }
+        }
+      },
+      "3": {
+        "cast_time": 6,
+        "recast_time": 36.2,
+        "effects": {
+          "0": {
+            "amount": 25
+          },
+          "1": {
+            "amount": 32
+          },
+          "2": {
+            "duration": 3.25
+          }
+        }
+      },
+      "4": {
+        "cast_time": 5.7,
+        "recast_time": 35.2,
+        "effects": {
+          "0": {
+            "amount": 28
+          },
+          "1": {
+            "amount": 36
+          },
+          "2": {
+            "duration": 3.5
+          }
+        }
+      },
+      "5": {
+        "cast_time": 5.4,
+        "recast_time": 34.2,
+        "effects": {
+          "0": {
+            "amount": 31
+          },
+          "1": {
+            "amount": 40
+          },
+          "2": {
+            "duration": 3.75
+          }
+        }
+      }
     }
   },
   {
@@ -5104,6 +8920,83 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 8.4,
+        "recast_time": 39.4,
+        "effects": {
+          "0": {
+            "amount": 17
+          },
+          "1": {
+            "amount": 4.4
+          },
+          "2": {
+            "duration": 15.4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 8.1,
+        "recast_time": 38.2,
+        "effects": {
+          "0": {
+            "amount": 20
+          },
+          "1": {
+            "amount": 4.8
+          },
+          "2": {
+            "duration": 16.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 7.8,
+        "recast_time": 37,
+        "effects": {
+          "0": {
+            "amount": 23
+          },
+          "1": {
+            "amount": 5.2
+          },
+          "2": {
+            "duration": 18.2
+          }
+        }
+      },
+      "4": {
+        "cast_time": 7.5,
+        "recast_time": 35.8,
+        "effects": {
+          "0": {
+            "amount": 26
+          },
+          "1": {
+            "amount": 5.6
+          },
+          "2": {
+            "duration": 19.6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 7.2,
+        "recast_time": 34.6,
+        "effects": {
+          "0": {
+            "amount": 29
+          },
+          "1": {
+            "amount": 6
+          },
+          "2": {
+            "duration": 21
+          }
+        }
+      }
     }
   },
   {
@@ -5189,6 +9082,68 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 7.8,
+        "recast_time": 40.8,
+        "effects": {
+          "0": {
+            "amount": 14
+          },
+          "5": {
+            "amount": 2.4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 7.5,
+        "recast_time": 39.6,
+        "effects": {
+          "0": {
+            "amount": 16
+          },
+          "5": {
+            "amount": 2.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 7.2,
+        "recast_time": 38.4,
+        "effects": {
+          "0": {
+            "amount": 18
+          },
+          "5": {
+            "amount": 3.2
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6.9,
+        "recast_time": 37.2,
+        "effects": {
+          "0": {
+            "amount": 20
+          },
+          "5": {
+            "amount": 3.6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 6.6,
+        "recast_time": 36,
+        "effects": {
+          "0": {
+            "amount": 22
+          },
+          "5": {
+            "amount": 4
+          }
+        }
+      }
     }
   },
   {
@@ -5259,6 +9214,98 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 5.2,
+        "recast_time": 29.8,
+        "effects": {
+          "0": {
+            "amount": 14
+          },
+          "1": {
+            "amount": 2.4
+          },
+          "2": {
+            "amount": -0.24
+          },
+          "3": {
+            "amount": -0.96
+          }
+        }
+      },
+      "2": {
+        "cast_time": 5,
+        "recast_time": 28.8,
+        "effects": {
+          "0": {
+            "amount": 16
+          },
+          "1": {
+            "amount": 2.8
+          },
+          "2": {
+            "amount": -0.28
+          },
+          "3": {
+            "amount": -1.12
+          }
+        }
+      },
+      "3": {
+        "cast_time": 4.8,
+        "recast_time": 27.8,
+        "effects": {
+          "0": {
+            "amount": 18
+          },
+          "1": {
+            "amount": 3.2
+          },
+          "2": {
+            "amount": -0.32
+          },
+          "3": {
+            "amount": -1.28
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4.6,
+        "recast_time": 26.8,
+        "effects": {
+          "0": {
+            "amount": 20
+          },
+          "1": {
+            "amount": 3.6
+          },
+          "2": {
+            "amount": -0.36
+          },
+          "3": {
+            "amount": -1.44
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.4,
+        "recast_time": 25.8,
+        "effects": {
+          "0": {
+            "amount": 22
+          },
+          "1": {
+            "amount": 4
+          },
+          "2": {
+            "amount": -0.4
+          },
+          "3": {
+            "amount": -1.6
+          }
+        }
+      }
     }
   },
   {
@@ -5326,6 +9373,68 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 5.7,
+        "recast_time": 34,
+        "effects": {
+          "1": {
+            "duration": 13.2
+          },
+          "2": {
+            "amount": 1.5
+          }
+        }
+      },
+      "2": {
+        "cast_time": 5.4,
+        "recast_time": 33,
+        "effects": {
+          "1": {
+            "duration": 14.4
+          },
+          "2": {
+            "amount": 1.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 5.1,
+        "recast_time": 32,
+        "effects": {
+          "1": {
+            "duration": 15.6
+          },
+          "2": {
+            "amount": 2.1
+          }
+        }
+      },
+      "4": {
+        "cast_time": 4.8,
+        "recast_time": 31,
+        "effects": {
+          "1": {
+            "duration": 16.8
+          },
+          "2": {
+            "amount": 2.4
+          }
+        }
+      },
+      "5": {
+        "cast_time": 4.5,
+        "recast_time": 30,
+        "effects": {
+          "1": {
+            "duration": 18
+          },
+          "2": {
+            "amount": 2.7
+          }
+        }
+      }
     }
   },
   {
@@ -5391,6 +9500,68 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 7.8,
+        "recast_time": 39.4,
+        "effects": {
+          "1": {
+            "amount": 35
+          },
+          "2": {
+            "amount": 24
+          }
+        }
+      },
+      "2": {
+        "cast_time": 7.5,
+        "recast_time": 38.2,
+        "effects": {
+          "1": {
+            "amount": 40
+          },
+          "2": {
+            "amount": 28
+          }
+        }
+      },
+      "3": {
+        "cast_time": 7.2,
+        "recast_time": 37,
+        "effects": {
+          "1": {
+            "amount": 45
+          },
+          "2": {
+            "amount": 32
+          }
+        }
+      },
+      "4": {
+        "cast_time": 6.9,
+        "recast_time": 35.8,
+        "effects": {
+          "1": {
+            "amount": 50
+          },
+          "2": {
+            "amount": 36
+          }
+        }
+      },
+      "5": {
+        "cast_time": 6.6,
+        "recast_time": 34.6,
+        "effects": {
+          "1": {
+            "amount": 55
+          },
+          "2": {
+            "amount": 40
+          }
+        }
+      }
     }
   },
   {
@@ -5463,6 +9634,113 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 8.7,
+        "recast_time": 42.2,
+        "effects": {
+          "0": {
+            "amount": 3
+          },
+          "1": {
+            "amount": 3
+          },
+          "2": {
+            "amount": -3
+          },
+          "3": {
+            "amount": -3
+          },
+          "4": {
+            "amount": 10
+          }
+        }
+      },
+      "2": {
+        "cast_time": 8.4,
+        "recast_time": 41,
+        "effects": {
+          "0": {
+            "amount": 3
+          },
+          "1": {
+            "amount": 3
+          },
+          "2": {
+            "amount": -3
+          },
+          "3": {
+            "amount": -3
+          },
+          "4": {
+            "amount": 12
+          }
+        }
+      },
+      "3": {
+        "cast_time": 8.1,
+        "recast_time": 39.8,
+        "effects": {
+          "0": {
+            "amount": 4
+          },
+          "1": {
+            "amount": 4
+          },
+          "2": {
+            "amount": -4
+          },
+          "3": {
+            "amount": -4
+          },
+          "4": {
+            "amount": 14
+          }
+        }
+      },
+      "4": {
+        "cast_time": 7.8,
+        "recast_time": 38.6,
+        "effects": {
+          "0": {
+            "amount": 4
+          },
+          "1": {
+            "amount": 4
+          },
+          "2": {
+            "amount": -4
+          },
+          "3": {
+            "amount": -4
+          },
+          "4": {
+            "amount": 16
+          }
+        }
+      },
+      "5": {
+        "cast_time": 7.5,
+        "recast_time": 37.4,
+        "effects": {
+          "0": {
+            "amount": 5
+          },
+          "1": {
+            "amount": 5
+          },
+          "2": {
+            "amount": -5
+          },
+          "3": {
+            "amount": -5
+          },
+          "4": {
+            "amount": 18
+          }
+        }
+      }
     }
   },
   {
@@ -5542,6 +9820,98 @@
         -8,
         -10
       ]
+    },
+    "grade_overrides": {
+      "1": {
+        "cast_time": 9.6,
+        "recast_time": 45,
+        "effects": {
+          "0": {
+            "amount": 1.1
+          },
+          "1": {
+            "amount": 1.1
+          },
+          "2": {
+            "amount": -0.55
+          },
+          "3": {
+            "amount": 4.4
+          }
+        }
+      },
+      "2": {
+        "cast_time": 9.3,
+        "recast_time": 43.8,
+        "effects": {
+          "0": {
+            "amount": 1.2
+          },
+          "1": {
+            "amount": 1.2
+          },
+          "2": {
+            "amount": -0.6
+          },
+          "3": {
+            "amount": 4.8
+          }
+        }
+      },
+      "3": {
+        "cast_time": 9,
+        "recast_time": 42.6,
+        "effects": {
+          "0": {
+            "amount": 1.3
+          },
+          "1": {
+            "amount": 1.3
+          },
+          "2": {
+            "amount": -0.65
+          },
+          "3": {
+            "amount": 5.2
+          }
+        }
+      },
+      "4": {
+        "cast_time": 8.7,
+        "recast_time": 41.4,
+        "effects": {
+          "0": {
+            "amount": 1.4
+          },
+          "1": {
+            "amount": 1.4
+          },
+          "2": {
+            "amount": -0.7
+          },
+          "3": {
+            "amount": 5.6
+          }
+        }
+      },
+      "5": {
+        "cast_time": 8.4,
+        "recast_time": 40.2,
+        "effects": {
+          "0": {
+            "amount": 1.5
+          },
+          "1": {
+            "amount": 1.5
+          },
+          "2": {
+            "amount": -0.75
+          },
+          "3": {
+            "amount": 6
+          }
+        }
+      }
     }
   },
   {

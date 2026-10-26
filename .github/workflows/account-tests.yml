@@ -37,6 +37,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - run: node tools/tune_remaining_grades.mjs --check
       - name: Native Godot replay and exported-pack verification
         shell: bash
         run: |
@@ -46,6 +47,10 @@ jobs:
           export PATH="$PWD/server/ranking/vendor:$PATH"
           godot --version
           godot --headless --path . --editor --quit > build/import.log 2>&1
+          godot --headless --path . res://tests/RemainingGradesSmoke.tscn --quit-after 1800 > build/remaining-grades.log 2>&1
+          cat build/remaining-grades.log
+          grep -q REMAINING_GRADES_SMOKE_OK build/remaining-grades.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/remaining-grades.log; then exit 1; fi
           godot --headless --path . res://tests/EchoRepeatSmoke.tscn --quit-after 600 > build/echo-repeat.log 2>&1
           cat build/echo-repeat.log
           grep -q ECHO_REPEAT_SMOKE_OK build/echo-repeat.log
