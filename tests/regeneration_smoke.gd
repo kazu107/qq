@@ -163,6 +163,9 @@ func _test_ui() -> void:
 	var unit: UnitState = UnitState.new(); unit.unit_id = "player"; unit.add_regeneration(12, 2, "player", "regen_patch"); unit.add_regeneration(15, 3, "player", "regen_tank")
 	var text: String = StatusInfoFormatter.tooltip("regen", 15, 1, unit.statuses["regen"])
 	_check(text.contains("5") and text.contains("2/3") and text.contains("3.0"), "regen tooltip")
+	var card_button: CardButton = CardButton.new()
+	_check(card_button._get_status_detail_text("regen", Database.get_card("regen_patch")).contains("Heals 2") and not StatusInfoFormatter.tooltip("regen", 0).contains("0/3"), "card status supplement/generic context")
+	card_button.free()
 	var stage: BattleStage3D = BattleStage3D.new(); add_child(stage); stage.configure_combatants("player", "enemy"); await get_tree().process_frame
 	stage.refresh_unit_status(unit, unit)
 	_check(stage._build_card_profile(Database.get_card("regen_patch")).get("self_status", false), "regen application effect targets the wrong actor")

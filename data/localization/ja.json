@@ -2055,6 +2055,7 @@
   "card.regen_tank.description": "HPリジェネを付与する。各層の回復量と残り時間は個別に管理する。",
   "tag.regen": "リジェネ",
   "status.regen": "HPリジェネ",
+  "status.detail.regen": "1層につき3秒ごとにHPを{amount}回復する。最大3層で、各層の威力と持続時間は個別に固定する。再付与しても回復周期はリセットしない。超過回復や戦闘不能からの復活は発生しない。",
   "effect.apply_regen": "{target}にHPリジェネを{duration}秒付与。3秒ごとにHPを{power}回復（最大3層）",
   "effect.regen.low": "HPが{percent}%以下なら回復量＋{bonus}（付与時に確定）",
   "effect.regen.applied": "低HP補正を適用済み",

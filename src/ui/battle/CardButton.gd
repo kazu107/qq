@@ -1208,6 +1208,12 @@ func _get_applied_status_ids(card_def: CardDef) -> Array[String]:
 
 func _get_status_detail_text(status_id: String, card_def: CardDef = null) -> String:
 	match status_id:
+		"regen":
+			var power: int = 1
+			if card_def != null:
+				for effect: Dictionary in card_def.effects:
+					if effect.get("type") == "apply_status" and effect.get("status") == "regen": power = int(effect.get("regen_power", 1))
+			return StatusInfoFormatter.regen_detail(power)
 		"bleed":
 			var power: int = 1
 			if card_def != null:

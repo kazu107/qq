@@ -6,7 +6,12 @@ static func bleed_detail(power: int) -> String:
 	return Localization.get_textf("status.detail.bleed", "Takes {amount} damage per layer every {interval}s, ignoring shield. Up to 3 layers with independent durations. Power adds 25% of attack and additive card damage (rounded down), fixed on application.", {"amount": power, "interval": "%.1f" % BleedRules.TICK_INTERVAL})
 
 
+static func regen_detail(power: int) -> String:
+	return Localization.get_textf("status.detail.regen", "Heals {amount} HP per layer every 3s. Up to 3 layers with independent durations and fixed power. Reapplication does not reset the shared clock. Cannot overheal or revive.", {"amount": power})
+
+
 static func tooltip(id: String, remaining: float, multiplier: float = 2.0, status_data: Dictionary = {}) -> String:
+	if id == "regen" and status_data.is_empty(): return Localization.get_status_name("regen") + "\n" + regen_detail(1)
 	if id in ["reservation_boost", "reservation_hex"]:
 		var lines: Array[String] = [Localization.get_status_name(id)]
 		for entry: Dictionary in Array(status_data.get("reservations", [])):
