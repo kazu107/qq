@@ -1,9 +1,22 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.56.0",
+  "current_version": "QQ-0.56.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.56.1", "date": "2026-10-27",
+      "title_ja": "設定をハブ上のウィンドウに変更",
+      "title_en": "Settings window over the Hub",
+      "changes_ja": [
+        "ハブ右上の設定を、画面遷移せずに現在のメニューへ重ねるウィンドウにしました。閉じるボタン・Esc・背景クリックで戻れ、繰り返し開くときは同じウィンドウを再利用します。",
+        "音量・表示・言語・開発者設定は引き続き即時保存します。言語や開発者モードの変更は閉じた後のハブにも反映し、中断データとメニューのスクロール位置を保持します。狭い画面では縦並びにして内容だけスクロールできます。"
+      ],
+      "changes_en": [
+        "Open settings over the current Hub instead of changing scenes. Close with the buttons, Escape or the backdrop; reuse the same window on subsequent opens.",
+        "Keep immediate persistence for audio, display, language and developer settings. Refresh localized Hub controls and developer tools after closing while preserving suspended runs and menu scroll. Narrow windows stack settings vertically with a scrollable body."
+      ]
+    },
     {
       "version": "QQ-0.56.0", "date": "2026-10-26",
       "title_ja": "未調整カードのGrade調整とランキング準備中",

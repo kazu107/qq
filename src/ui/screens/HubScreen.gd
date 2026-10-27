@@ -15,14 +15,24 @@ var _account_button: Button
 var _ranked_start_button: Button
 var _ranking_status_label: Label
 var _cloud_status_label: Label
+var _settings_dialog: SettingsDialog
+var _settings_language: String
+var _settings_developer: bool
 
 
 func _ready() -> void:
 	Game.stash_active_run_for_hub()
-	_build_top_right_actions()
 	AccountSession.changed.connect(_refresh_account_button)
-	_refresh_account_button()
+	AccountSession.changed.connect(_refresh_ranking_access)
+	RankedSession.changed.connect(_refresh_ranking_status)
+	RankedSession.changed.connect(_refresh_ranking_access)
+	CloudSession.changed.connect(_refresh_cloud_status)
+	_build_ui()
 	AccountSession.refresh()
+
+
+func _build_ui() -> void:
+	_build_top_right_actions()
 	var margin: MarginContainer = MarginContainer.new()
 	margin.anchor_right = 1.0
 	margin.anchor_bottom = 1.0
@@ -157,6 +167,7 @@ func _ready() -> void:
 		_build_debug_battle_lab(root)
 		_build_developer_panel()
 		call_deferred("_warm_debug_card_pickers")
+	_refresh_account_button()
 
 
 func _build_ranking_actions(parent: Control) -> void:
@@ -178,7 +189,6 @@ func _build_ranking_actions(parent: Control) -> void:
 	start.tooltip_text = "ログインが必要です。永続強化なし・全カードと遺物共通。"
 	start.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	start.disabled = not RankedSession.is_supported() or not AccountSession.is_supported() or not bool(AccountSession.snapshot.get("authenticated", false)) or bool(AccountSession.snapshot.get("needsUsername", false))
-	AccountSession.changed.connect(_refresh_ranking_access)
 	start.pressed.connect(func() -> void:
 		SceneRouter.go_to_run_setup(Game.RUN_SETUP_MODE_RANKED)
 	)
@@ -213,8 +223,6 @@ func _build_ranking_actions(parent: Control) -> void:
 	status.text = RankedSession.status_text
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(status)
-	RankedSession.changed.connect(_refresh_ranking_status)
-	RankedSession.changed.connect(_refresh_ranking_access)
 	RankedSession.refresh_availability.call_deferred()
 	_refresh_ranking_access()
 	_cloud_status_label = Label.new()
@@ -222,7 +230,6 @@ func _build_ranking_actions(parent: Control) -> void:
 	_cloud_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_cloud_status_label.add_theme_font_size_override("font_size", 16)
 	parent.add_child(_cloud_status_label)
-	CloudSession.changed.connect(_refresh_cloud_status)
 	_refresh_cloud_status()
 
 
@@ -343,6 +350,7 @@ func _refresh_account_button() -> void:
 	var data: Dictionary = AccountSession.snapshot
 	_account_button.text = Localization.get_text("account.register_name", "Set username") if data.get("needsUsername", false) else Localization.get_text("account.signed_in", "Account: signed in") if data.get("authenticated", false) else Localization.get_text("account.open", "Sign in / Register")
 	_account_button.disabled = not AccountSession.is_supported()
+	if is_instance_valid(_settings_dialog) and _settings_dialog.visible: return
 	var lab: Control = find_child("DebugBattleLab", true, false) as Control
 	if lab != null: lab.visible = Game.is_developer_mode_enabled()
 	elif Game.is_developer_mode_enabled():
@@ -497,8 +505,36 @@ func _close_version_history() -> void:
 
 
 func _open_settings() -> void:
-	Game.open_settings("hub")
-	SceneRouter.go_to_settings()
+	if is_instance_valid(_settings_dialog) and _settings_dialog.visible: return
+	if _version_history_overlay != null and _version_history_overlay.visible: _close_version_history()
+	if not is_instance_valid(_settings_dialog):
+		_settings_dialog = SettingsDialog.new()
+		add_child(_settings_dialog)
+		_settings_dialog.dismissed.connect(_on_settings_closed)
+	_settings_language = Game.get_language()
+	_settings_developer = Game.is_developer_mode_enabled()
+	_settings_dialog.open()
+
+
+func _on_settings_closed() -> void:
+	if Game.get_language() == _settings_language and Game.is_developer_mode_enabled() == _settings_developer: return
+	var old_scroll: ScrollContainer = find_child("HubContentScroll", true, false) as ScrollContainer
+	var scroll_position: int = old_scroll.scroll_vertical if old_scroll != null else 0
+	# Rebuild localized menu controls, not the scene or the saved run. Keep the cached dialog.
+	for child: Node in get_children():
+		if child == _settings_dialog or child.name == UiTheme.BACKGROUND_NODE_NAME: continue
+		remove_child(child)
+		child.queue_free()
+	_developer_panel = null
+	_debug_enemy_option = null
+	_debug_starter_option = null
+	_debug_card_options.clear()
+	_debug_card_grade_options.clear()
+	_build_ui()
+	var scroll: ScrollContainer = find_child("HubContentScroll", true, false) as ScrollContainer
+	if scroll != null: scroll.set_deferred("scroll_vertical", scroll_position)
+	var settings_button: Button = find_child("OpenSettingsButton", true, false) as Button
+	if settings_button != null: settings_button.call_deferred("grab_focus")
 
 
 func _unhandled_input(event: InputEvent) -> void:

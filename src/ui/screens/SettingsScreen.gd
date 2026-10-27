@@ -1,5 +1,13 @@
 extends Control
 
+signal close_requested
+
+var modal_mode: bool = false
+var _columns: GridContainer
+var _form_rows: Array[BoxContainer] = []
+var _footer: BoxContainer
+var _footer_spacer: Control
+var _close_button: Button
 var _master_volume_value: Label
 var _master_volume_slider: HSlider
 var _sfx_volume_value: Label
@@ -15,10 +23,13 @@ var _developer_panel: DeveloperPanel
 
 
 func _ready() -> void:
-	Game.current_screen_hint = "settings"
-	SaveManager.save_game("settings")
+	if not modal_mode:
+		Game.current_screen_hint = "settings"
+		SaveManager.save_game("settings")
 	if not Localization.language_changed.is_connected(_on_language_changed):
 		Localization.language_changed.connect(_on_language_changed)
+	AccountSession.changed.connect(_refresh_developer_access)
+	resized.connect(_update_modal_layout)
 	_rebuild_ui()
 
 
@@ -44,11 +55,13 @@ func _rebuild_ui() -> void:
 	_developer_toggle = null
 	_status_label = null
 	_developer_panel = null
+	_form_rows.clear()
 
 	_build_ui()
 	_refresh_ui()
-	if Game.is_developer_mode_enabled():
+	if Game.is_developer_mode_enabled() and not modal_mode:
 		_build_developer_panel()
+	if modal_mode: call_deferred("_update_modal_layout")
 
 
 func _build_ui() -> void:
@@ -59,23 +72,51 @@ func _build_ui() -> void:
 	margin.offset_top = 60.0
 	margin.offset_right = -80.0
 	margin.offset_bottom = -60.0
+	if modal_mode: margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(margin)
-	var center: CenterContainer = CenterContainer.new()
-	margin.add_child(center)
 
 	var root: VBoxContainer = VBoxContainer.new()
 	root.name = "SettingsPage"
-	root.custom_minimum_size = Vector2(1240.0, 0.0)
-	root.add_theme_constant_override("separation", 24)
-	center.add_child(root)
-	UiTheme.add_page_heading(root, Localization.get_text("settings.title", "Settings"))
-	var columns: HBoxContainer = HBoxContainer.new()
-	columns.add_theme_constant_override("separation", 20)
-	root.add_child(columns)
+	root.add_theme_constant_override("separation", 18 if modal_mode else 24)
+	if modal_mode:
+		margin.add_child(root)
+	else:
+		var center: CenterContainer = CenterContainer.new()
+		margin.add_child(center)
+		root.custom_minimum_size = Vector2(1240.0, 0.0)
+		center.add_child(root)
+	var header: HBoxContainer = UiTheme.add_page_heading(root, Localization.get_text("settings.title", "Settings"))
+	var content: VBoxContainer = root
+	if modal_mode:
+		_close_button = Button.new()
+		_close_button.name = "SettingsCloseButton"
+		UiIconHelper.decorate_square(_close_button, "close", 44, Localization.get_text("common.close", "Close"))
+		_close_button.pressed.connect(_on_back)
+		header.add_child(_close_button)
+		for state: String in ["normal", "hover", "pressed", "focus"]:
+			var style: StyleBox = _close_button.get_theme_stylebox(state).duplicate() as StyleBox
+			style.set_content_margin_all(6)
+			_close_button.add_theme_stylebox_override(state, style)
+		var scroll: ScrollContainer = ScrollContainer.new()
+		scroll.name = "SettingsContentScroll"
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		root.add_child(scroll)
+		content = VBoxContainer.new()
+		content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		content.add_theme_constant_override("separation", 18)
+		scroll.add_child(content)
+	var columns: GridContainer = GridContainer.new()
+	_columns = columns
+	columns.columns = 2
+	columns.add_theme_constant_override("h_separation", 20)
+	columns.add_theme_constant_override("v_separation", 18)
+	content.add_child(columns)
 	var audio: VBoxContainer = UiTheme.add_section(columns, Localization.get_text("settings.section.audio", "Audio"), "SettingsAudioSection")
 	var display: VBoxContainer = UiTheme.add_section(columns, Localization.get_text("settings.section.display", "Language & Display"), "SettingsDisplaySection")
 
-	var volume_row: HBoxContainer = HBoxContainer.new()
+	var volume_row: BoxContainer = BoxContainer.new()
+	_form_rows.append(volume_row)
 	volume_row.custom_minimum_size.y = 52.0
 	volume_row.add_theme_constant_override("separation", 12)
 	audio.add_child(volume_row)
@@ -101,7 +142,8 @@ func _build_ui() -> void:
 	_master_volume_value.custom_minimum_size = Vector2(56.0, 0.0)
 	volume_row.add_child(_master_volume_value)
 
-	var sfx_row: HBoxContainer = HBoxContainer.new()
+	var sfx_row: BoxContainer = BoxContainer.new()
+	_form_rows.append(sfx_row)
 	sfx_row.custom_minimum_size.y = 52.0
 	sfx_row.add_theme_constant_override("separation", 12)
 	audio.add_child(sfx_row)
@@ -127,7 +169,8 @@ func _build_ui() -> void:
 	_sfx_volume_value.custom_minimum_size = Vector2(56.0, 0.0)
 	sfx_row.add_child(_sfx_volume_value)
 
-	var language_row: HBoxContainer = HBoxContainer.new()
+	var language_row: BoxContainer = BoxContainer.new()
+	_form_rows.append(language_row)
 	language_row.add_theme_constant_override("separation", 12)
 	display.add_child(language_row)
 
@@ -148,7 +191,8 @@ func _build_ui() -> void:
 		_language_codes.append(language_code)
 		_language_option.add_item(label)
 
-	var resolution_row: HBoxContainer = HBoxContainer.new()
+	var resolution_row: BoxContainer = BoxContainer.new()
+	_form_rows.append(resolution_row)
 	resolution_row.add_theme_constant_override("separation", 12)
 	resolution_row.visible = not Game.is_web_build()
 	display.add_child(resolution_row)
@@ -180,20 +224,23 @@ func _build_ui() -> void:
 		_resolution_codes.append(resolution_code)
 		_resolution_option.add_item(resolution_label_text)
 
-	var advanced: VBoxContainer = UiTheme.add_section(root, Localization.get_text("settings.section.tools", "Replay & Developer Tools"), "SettingsToolsSection")
+	var advanced: VBoxContainer = UiTheme.add_section(content, Localization.get_text("settings.section.tools", "Replay & Developer Tools"), "SettingsToolsSection")
 	_replay_toggle = CheckButton.new()
 	_replay_toggle.name = "ReplayAutoExportToggle"
 	_replay_toggle.text = Localization.get_text("settings.replay_auto_export", "Auto-export replay JSON after each battle")
+	_replay_toggle.clip_text = modal_mode
+	_replay_toggle.tooltip_text = _replay_toggle.text
 	_replay_toggle.toggled.connect(_on_replay_toggle_changed)
 	advanced.add_child(_replay_toggle)
 
 	_developer_toggle = CheckButton.new()
 	_developer_toggle.name = "DeveloperModeToggle"
 	_developer_toggle.text = Localization.get_text("settings.developer_mode", "Enable developer mode")
+	_developer_toggle.clip_text = modal_mode
+	_developer_toggle.tooltip_text = _developer_toggle.text
 	_developer_toggle.toggled.connect(_on_developer_toggle_changed)
 	advanced.add_child(_developer_toggle)
 	_developer_toggle.visible = AccountSession.can_use_developer_mode()
-	AccountSession.changed.connect(_refresh_developer_access)
 
 	_status_label = Label.new()
 	_status_label.name = "SettingsStatusLabel"
@@ -201,13 +248,15 @@ func _build_ui() -> void:
 	_status_label.theme_type_variation = "MutedLabel"
 	advanced.add_child(_status_label)
 
-	var buttons: HBoxContainer = HBoxContainer.new()
+	var buttons: BoxContainer = BoxContainer.new()
+	_footer = buttons
 	buttons.add_theme_constant_override("separation", 12)
 	root.add_child(buttons)
 
 	var back_button: Button = Button.new()
 	back_button.name = "SettingsBackButton"
-	back_button.text = Localization.get_text("settings.back", "Back")
+	back_button.text = Localization.get_text("common.close", "Close") if modal_mode else Localization.get_text("settings.back", "Back")
+	if modal_mode: UiIconHelper.decorate(back_button, "close")
 	back_button.pressed.connect(_on_back)
 	back_button.theme_type_variation = "PrimaryButton"
 	back_button.custom_minimum_size = Vector2(180.0, 48.0)
@@ -218,9 +267,31 @@ func _build_ui() -> void:
 	reset_button.pressed.connect(_on_reset_settings)
 	buttons.add_child(reset_button)
 	var spacer: Control = Control.new()
+	_footer_spacer = spacer
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(spacer)
 	buttons.add_child(back_button)
+
+
+func _update_modal_layout() -> void:
+	if not modal_mode or not is_instance_valid(_columns): return
+	_columns.columns = 2 if size.x >= 960 else 1
+	var compact: bool = size.x < 560
+	for row: BoxContainer in _form_rows: row.vertical = compact
+	_footer.vertical = compact
+	_footer_spacer.visible = not compact
+
+
+func focus_modal() -> void:
+	if not modal_mode or not is_visible_in_tree(): return
+	var controls: Array[Control] = []
+	for node: Node in find_children("*", "Control", true, false):
+		var control: Control = node as Control
+		if control.focus_mode == Control.FOCUS_ALL and control.is_visible_in_tree() and not (control is BaseButton and (control as BaseButton).disabled): controls.append(control)
+	for index: int in controls.size():
+		controls[index].focus_next = controls[index].get_path_to(controls[(index + 1) % controls.size()])
+		controls[index].focus_previous = controls[index].get_path_to(controls[(index - 1 + controls.size()) % controls.size()])
+	_close_button.grab_focus()
 
 
 func _refresh_developer_access() -> void:
@@ -293,7 +364,7 @@ func _on_replay_toggle_changed(enabled: bool) -> void:
 func _on_developer_toggle_changed(enabled: bool) -> void:
 	Game.set_developer_mode_enabled(enabled)
 	AudioManager.play_sfx("ui_toggle")
-	if enabled and _developer_panel == null:
+	if enabled and _developer_panel == null and not modal_mode:
 		_build_developer_panel()
 	elif not enabled and _developer_panel != null:
 		_developer_panel.queue_free()
@@ -302,6 +373,9 @@ func _on_developer_toggle_changed(enabled: bool) -> void:
 
 
 func _on_back() -> void:
+	if modal_mode:
+		close_requested.emit()
+		return
 	match Game.get_settings_return_hint():
 		"hub":
 			Game.current_screen_hint = "hub"
@@ -346,3 +420,4 @@ func _on_dev_max_volume() -> void:
 
 func _on_language_changed(_language_code: String) -> void:
 	_rebuild_ui()
+	if modal_mode: call_deferred("focus_modal")

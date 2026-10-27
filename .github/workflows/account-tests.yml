@@ -99,6 +99,10 @@ jobs:
           cat build/ui-copy.log
           grep -q UI_COPY_SMOKE_OK build/ui-copy.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/ui-copy.log; then exit 1; fi
+          godot --headless --path . res://tests/SettingsModalSmoke.tscn --quit-after 1200 > build/settings-modal.log 2>&1
+          cat build/settings-modal.log
+          grep -q SETTINGS_MODAL_SMOKE_OK build/settings-modal.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/settings-modal.log; then exit 1; fi
           godot --headless --path . res://tests/GradeFiveSmoke.tscn --quit-after 600 > build/grade-five.log 2>&1
           cat build/grade-five.log
           grep -q GRADE_FIVE_SMOKE_OK build/grade-five.log

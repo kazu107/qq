@@ -758,6 +758,7 @@ func _inspect() -> Dictionary:
 			result["encounter_progress"] = {"step": Game.get_current_step_index(), "active": Game.current_run.map_state.get("active_node_id", ""),
 				"cleared": EncounterSeries.cleared(Game.get_active_map_node()), "hint": Game.current_screen_hint, "pending": Game.pending_enemy_id}
 	result.merge({
+		"screen_instance": screen.get_instance_id() if screen != null else 0,
 		"sequence": _sequence,
 		"screen": screen.scene_file_path.get_file().get_basename() if screen != null else "",
 		"viewport": [viewport_rect.size.x, viewport_rect.size.y],
@@ -775,6 +776,14 @@ func _inspect() -> Dictionary:
 		"ranked_score": int(InfiniteScoreResolver.new().calculate(Game.current_run).get("total_score", 0)) if RankedSession.active() else 0,
 	})
 	if screen != null:
+		var settings: SettingsDialog = screen.find_child("SettingsDialog", true, false) as SettingsDialog
+		if settings != null:
+			var scroll: ScrollContainer = settings.find_child("SettingsContentScroll", true, false) as ScrollContainer
+			var focused: Control = get_viewport().gui_get_focus_owner()
+			result["settings_modal"] = {"visible": settings.visible, "instance": settings.get_instance_id(), "rect": _rect_values((settings.get("_frame") as Control).get_global_rect()),
+				"horizontal_overflow": scroll.get_h_scroll_bar().max_value - scroll.get_h_scroll_bar().page,
+				"focus_inside": focused != null and settings.is_ancestor_of(focused), "focus": String(focused.name) if focused != null else "",
+				"master": Game.get_master_volume(), "sfx": Game.get_sfx_volume(), "language": Game.get_language(), "hint": Game.current_screen_hint}
 		if screen.has_method("is_tutorial_mode") and bool(screen.call("is_tutorial_mode")):
 			var director: BattleTutorialDirector = screen.get("_tutorial_director") as BattleTutorialDirector
 			var overlay: BattleTutorialOverlay = screen.get("_tutorial_overlay") as BattleTutorialOverlay
@@ -915,7 +924,7 @@ func _collect_controls(node: Node, controls: Array[Dictionary], in_scroll: bool)
 	if control != null and (not control.is_visible_in_tree() or control.get_viewport() != get_viewport()):
 		return
 	var scrolling: bool = in_scroll or node is ScrollContainer
-	if control != null and (control is Container or control is BaseButton or control is LineEdit or control is SpinBox or control is ProgressBar):
+	if control != null and (control is Container or control is BaseButton or control is LineEdit or control is SpinBox or control is ProgressBar or control is Slider):
 		controls.append({
 			"name": String(control.name), "class": control.get_class(), "icon": control.get_meta("semantic_icon", ""),
 			"text": (control as Button).text if control is Button else "", "disabled": (control as BaseButton).disabled if control is BaseButton else false,
