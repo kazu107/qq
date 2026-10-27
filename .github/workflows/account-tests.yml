@@ -111,6 +111,10 @@ jobs:
           cat build/hub-background.log
           grep -q HUB_BACKGROUND_SMOKE_OK build/hub-background.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/hub-background.log; then exit 1; fi
+          godot --headless --path . res://tests/SmoothWheelSmoke.tscn --quit-after 1200 > build/smooth-wheel.log 2>&1
+          cat build/smooth-wheel.log
+          grep -q SMOOTH_WHEEL_SMOKE_OK build/smooth-wheel.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/smooth-wheel.log; then exit 1; fi
           godot --headless --path . res://tests/GradeFiveSmoke.tscn --quit-after 600 > build/grade-five.log 2>&1
           cat build/grade-five.log
           grep -q GRADE_FIVE_SMOKE_OK build/grade-five.log

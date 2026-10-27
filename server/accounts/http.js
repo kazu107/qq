@@ -19,6 +19,7 @@ const FILES = new Map([
   ["/account/client.js", ["client.js", "text/javascript; charset=utf-8"]],
   ["/account/services.js", ["services.js", "text/javascript; charset=utf-8"]],
   ["/account/style.css", ["style.css", "text/css; charset=utf-8"]],
+  ["/account/smooth-scroll.js", ["smooth-scroll.js", "text/javascript; charset=utf-8"]],
   ["/account/google-g.png", ["google-g.png", "image/png"]],
   ["/account/GoogleSans-Medium.ttf", ["GoogleSans-Medium.ttf", "font/ttf"]],
   ["/account/GoogleSans-OFL.txt", ["GoogleSans-OFL.txt", "text/plain; charset=utf-8"]],

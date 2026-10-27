@@ -28,13 +28,19 @@ func _ready() -> void:
 	set_process(true)
 	call_deferred("_style_current_scene")
 	get_tree().node_added.connect(_on_control_added)
-	for node: Node in get_tree().root.find_children("*", "Button", true, false):
+	for node: Node in get_tree().root.find_children("*", "Control", true, false):
 		_on_control_added(node)
 
 
 func _on_control_added(node: Node) -> void:
 	if node is Button:
 		call_deferred("_decorate_action", node)
+	if node is ScrollContainer or node is RichTextLabel or node is TextEdit or node is ItemList or node is ScrollBar:
+		call_deferred("_prepare_smooth_scroll", node)
+
+
+func _prepare_smooth_scroll(control: Control) -> void:
+	if is_instance_valid(control) and control.is_inside_tree(): SmoothWheelScroll.install(control.get_viewport())
 
 
 func _decorate_action(button: Button) -> void:

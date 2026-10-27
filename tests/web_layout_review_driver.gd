@@ -8,6 +8,10 @@ var _tutorial_samples: Array[Dictionary] = []
 var _feedback_samples: Array[Dictionary] = []
 var _feedback_started_ms: int = -1
 var _feedback_initial_audio: Array[String] = []
+var _wheel_bar: ScrollBar
+var _wheel_owner: Control
+var _wheel_started: int = -1
+var _wheel_samples: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -60,6 +64,20 @@ func _command(arguments: Array) -> void:
 		Game.meta_progress["points"] = 100
 		Game.meta_progress["achievement_stats"]["gold_spent"] = 100
 		SaveManager.save_game("hub")
+	elif String(payload.get("action", "")) == "wheel_watch":
+		var scope: Node = get_tree().current_scene
+		if payload.get("scope", "") == "meta": scope = SceneRouter.get_meta_progress_dialog()
+		elif payload.get("scope", "") == "popup": scope = (scope.find_child("DebugCardSlot0", true, false) as CardIconPicker).get("_popup") as PopupPanel
+		if payload.get("scope", "") == "option_popup":
+			_wheel_owner = _find_wheel_scroll((scope.find_child(String(payload["name"]), true, false) as OptionButton).get_popup())
+		else: _wheel_owner = scope.get("_cards_scroll") as Control if payload.get("scope", "") == "library" else scope.find_child(String(payload["name"]), true, false) as Control
+		_wheel_bar = _wheel_owner.call("get_h_scroll_bar" if payload.get("horizontal", false) else "get_v_scroll_bar") as ScrollBar
+		_wheel_started = Time.get_ticks_msec()
+		_wheel_samples.clear()
+	elif String(payload.get("action", "")) == "wheel_fixture_focus":
+		var screen: Control = get_tree().current_scene as Control
+		var target: Control = screen.find_child(String(payload["name"]), true, false) as Control
+		(screen.find_child("HubContentScroll", true, false) as ScrollContainer).ensure_control_visible(target)
 	elif String(payload.get("action", "")) == "hub_background_flat_fixture":
 		var background: AtmosphereBackground = get_tree().current_scene.get_node(UiTheme.BACKGROUND_NODE_NAME) as AtmosphereBackground
 		var pixels: Image = Image.create(8, 8, false, Image.FORMAT_RGBA8)
@@ -522,7 +540,23 @@ func _open_later_event(mode: String) -> void:
 	SceneRouter.go_to_facility()
 
 
+func _find_wheel_scroll(node: Node) -> ScrollContainer:
+	if node is ScrollContainer: return node as ScrollContainer
+	for child: Node in node.get_children(true):
+		var found: ScrollContainer = _find_wheel_scroll(child)
+		if found != null: return found
+	return null
+
+
 func _process(_delta: float) -> void:
+	if is_instance_valid(_wheel_bar) and is_instance_valid(_wheel_owner) and _wheel_started >= 0 and Time.get_ticks_msec() - _wheel_started < 1200:
+		var controller: SmoothWheelScroll = _wheel_owner.get_viewport().get_node_or_null(SmoothWheelScroll.NODE_NAME) as SmoothWheelScroll
+		_wheel_samples.append({"time": Time.get_ticks_msec() - _wheel_started, "value": _wheel_bar.value})
+		var rect: Rect2 = _wheel_owner.get_global_rect()
+		if _wheel_owner.get_viewport() != get_viewport() and _wheel_owner.get_viewport() is Window:
+			rect.position += Vector2((_wheel_owner.get_viewport() as Window).position)
+		_window.qqWheelTrace = JSON.stringify({"rect": _rect_values(rect), "value": _wheel_bar.value, "page": _wheel_bar.page, "max": _wheel_bar.max_value,
+			"active": controller != null and controller.is_processing(), "samples": _wheel_samples})
 	var current: Node = get_tree().current_scene
 	if current != null and current.scene_file_path == SceneRouter.BATTLE_SCENE and not current.is_processing():
 		current.call("_refresh_ui", 1.0)

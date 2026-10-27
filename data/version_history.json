@@ -1,9 +1,22 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.56.3",
+  "current_version": "QQ-0.56.4",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.56.4", "date": "2026-10-28",
+      "title_ja": "ホイールスクロールを滑らかに変更",
+      "title_en": "Smooth mouse-wheel scrolling",
+      "changes_ja": [
+        "一覧・実績・更新履歴・戦闘ログ・開発者画面などのホイールスクロールを、約0.16秒で滑らかに移動するようにしました。連続入力や逆方向への切り返し、入れ子の領域にも対応します。",
+        "スクロールバーのドラッグ・キー操作・現在地への移動は即時のまま維持します。カード選択ポップアップと、ゲーム内のアカウント・ランキング画面にも適用しました。"
+      ],
+      "changes_en": [
+        "Animate mouse-wheel movement over roughly 160 ms across lists, achievements, history, combat logs and developer tools. Handle repeated input, direction changes and nested scroll regions.",
+        "Keep scrollbar dragging, keyboard navigation and programmatic focus jumps immediate. Include card-picker popups and the embedded account and ranking pages."
+      ]
+    },
     {
       "version": "QQ-0.56.3", "date": "2026-10-27",
       "title_ja": "メインメニュー両端の暗い帯を解消",

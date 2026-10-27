@@ -88,7 +88,6 @@ func _add_action_button(action_data: Dictionary) -> void:
 	button.disabled = bool(action_data.get("disabled", false))
 	button.tooltip_text = String(action_data.get("tooltip", ""))
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
-	button.gui_input.connect(_on_action_gui_input)
 
 	var callback_value: Variant = action_data.get("callback", Callable())
 	if callback_value is Callable:
@@ -97,13 +96,6 @@ func _add_action_button(action_data: Dictionary) -> void:
 			button.pressed.connect(_on_action_pressed.bind(callback))
 
 	_actions_box.add_child(button)
-
-
-func _on_action_gui_input(event: InputEvent) -> void:
-	if event is not InputEventMouseButton or not event.pressed or _scroll == null: return
-	if event.button_index not in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]: return
-	_scroll.scroll_vertical += -64 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 64
-	accept_event()
 
 
 func _contains_action(actions: Array, action_id: String) -> bool:
@@ -196,6 +188,9 @@ func _build_ui() -> void:
 	_content_root.add_child(_status_label)
 
 	_scroll = ScrollContainer.new()
+	_scroll.name = "DeveloperActionsScroll"
+	_scroll.set_meta("wheel_scroll_step", 64.0)
+	_scroll.set_meta("wheel_scroll_fixed_step", true)
 	_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
