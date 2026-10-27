@@ -56,6 +56,16 @@ func _command(arguments: Array) -> void:
 			Game.stash_active_run_for_hub()
 		SaveManager.save_game(Game.current_screen_hint)
 		if bool(payload.get("sync", false)): CloudSession.sync_now()
+	elif String(payload.get("action", "")) == "meta_modal_fixture":
+		Game.meta_progress["points"] = 100
+		Game.meta_progress["achievement_stats"]["gold_spent"] = 100
+		SaveManager.save_game("hub")
+	elif String(payload.get("action", "")) == "meta_modal_focus":
+		var dialog: MetaProgressDialog = SceneRouter.get("_meta_dialog") as MetaProgressDialog
+		if dialog != null and dialog.visible:
+			var content: Control = dialog.get("_content") as Control
+			var target: Control = content.find_child(String(payload["name"]), true, false) as Control
+			if target != null: (content.find_child("MetaWindowScroll", true, false) as ScrollContainer).ensure_control_visible(target)
 	elif String(payload.get("action", "")) == "screen":
 		_open_screen(String(payload.get("screen", "hub")))
 	elif String(payload.get("action", "")) == "balance_open":
@@ -776,6 +786,19 @@ func _inspect() -> Dictionary:
 		"ranked_score": int(InfiniteScoreResolver.new().calculate(Game.current_run).get("total_score", 0)) if RankedSession.active() else 0,
 	})
 	if screen != null:
+		var meta_dialog: MetaProgressDialog = SceneRouter.get("_meta_dialog") as MetaProgressDialog
+		if meta_dialog != null:
+			var content: Control = meta_dialog.get("_content") as Control
+			var scroll: ScrollContainer = content.find_child("MetaWindowScroll", true, false) as ScrollContainer
+			var rows: Array[Dictionary] = []
+			for row: Node in content.find_children("MetaAchievementFrame_*", "PanelContainer", true, false): rows.append({"name": row.name, "instance": row.get_instance_id()})
+			var focused: Control = get_viewport().gui_get_focus_owner()
+			result["meta_modal"] = {"visible": meta_dialog.visible, "instance": meta_dialog.get_instance_id(), "content_instance": content.get_instance_id(),
+				"ready": content.call("is_content_ready"), "rect": _rect_values((meta_dialog.get("_frame") as Control).get_global_rect()), "rows": rows,
+				"horizontal_overflow": scroll.get_h_scroll_bar().max_value - scroll.get_h_scroll_bar().page, "scroll": scroll.scroll_vertical,
+				"focus_inside": focused != null and meta_dialog.is_ancestor_of(focused), "hint": Game.current_screen_hint, "points": Game.get_meta_points(),
+				"claims": Game.meta_progress["achievement_claim_counts"], "levels": Game.meta_progress["permanent_upgrade_levels"], "columns": (content.find_child("MetaAchievementBox", true, false) as GridContainer).columns}
+			_collect_controls(meta_dialog, controls, false)
 		var settings: SettingsDialog = screen.find_child("SettingsDialog", true, false) as SettingsDialog
 		if settings != null:
 			var scroll: ScrollContainer = settings.find_child("SettingsContentScroll", true, false) as ScrollContainer

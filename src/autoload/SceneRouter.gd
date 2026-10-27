@@ -39,6 +39,7 @@ var _pending_battle_visuals: Array[Dictionary] = []
 var _warming_battle_visuals: bool = false
 var _warmed_battle_visual_pairs: Dictionary = {}
 var _debug_return_scene_path: String = HUB_SCENE
+var _meta_dialog: MetaProgressDialog
 
 
 func _ready() -> void:
@@ -90,6 +91,29 @@ func warm_ui_scene_cache_async(progress_callback: Callable = Callable()) -> int:
 
 func get_cached_ui_scene_count() -> int:
 	return _ui_scene_cache.size()
+
+
+func take_meta_progress_content() -> Control:
+	if _ui_scene_cache.has(META_SCENE):
+		var screen: Control = _ui_scene_cache[META_SCENE] as Control
+		_ui_scene_cache.erase(META_SCENE)
+		if is_instance_valid(screen):
+			if screen.get_parent() != null: screen.get_parent().remove_child(screen)
+			return screen
+	return load(META_SCENE).instantiate() as Control
+
+
+func get_meta_progress_dialog() -> MetaProgressDialog:
+	if not is_instance_valid(_meta_dialog):
+		_meta_dialog = MetaProgressDialog.new()
+		get_tree().root.add_child(_meta_dialog)
+	# Control input order follows tree order, not z_index. Keep the persistent overlay after the current scene.
+	get_tree().root.move_child(_meta_dialog, get_tree().root.get_child_count() - 1)
+	return _meta_dialog
+
+
+func is_meta_progress_dialog_open() -> bool:
+	return is_instance_valid(_meta_dialog) and _meta_dialog.visible
 
 
 func _process(_delta: float) -> void:
@@ -510,6 +534,7 @@ func show_gold_delta(amount: int) -> void:
 
 
 func _change_scene(scene_path: String) -> void:
+	if is_instance_valid(_meta_dialog): _meta_dialog.close()
 	var transition_started_us: int = Time.get_ticks_usec()
 	AudioManager.play_sfx("ui_page")
 	_show_transition_cover()
@@ -573,6 +598,10 @@ func _cache_current_ui_scene(current_scene: CanvasItem) -> void:
 
 
 func _on_language_changed(_language_code: String) -> void:
+	if is_instance_valid(_meta_dialog):
+		_meta_dialog.hide()
+		_meta_dialog.queue_free()
+		_meta_dialog = null
 	for cached_screen: Control in _ui_scene_cache.values():
 		if is_instance_valid(cached_screen):
 			cached_screen.queue_free()

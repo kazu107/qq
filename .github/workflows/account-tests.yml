@@ -103,6 +103,10 @@ jobs:
           cat build/settings-modal.log
           grep -q SETTINGS_MODAL_SMOKE_OK build/settings-modal.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/settings-modal.log; then exit 1; fi
+          godot --headless --path . res://tests/MetaModalSmoke.tscn --quit-after 1200 > build/meta-modal.log 2>&1
+          cat build/meta-modal.log
+          grep -q META_MODAL_SMOKE_OK build/meta-modal.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/meta-modal.log; then exit 1; fi
           godot --headless --path . res://tests/GradeFiveSmoke.tscn --quit-after 600 > build/grade-five.log 2>&1
           cat build/grade-five.log
           grep -q GRADE_FIVE_SMOKE_OK build/grade-five.log

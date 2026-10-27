@@ -1,9 +1,22 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.56.1",
+  "current_version": "QQ-0.56.2",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.56.2", "date": "2026-10-27",
+      "title_ja": "実績・メタ進行をハブ上のウィンドウに変更",
+      "title_en": "Achievements and meta progression in a Hub window",
+      "changes_ja": [
+        "実績・永続強化をハブの前面ウィンドウで開くようにしました。報酬受け取り・ステータス強化・デッキ解放をそのまま操作でき、閉じるボタン・Esc・背景クリックで戻れます。",
+        "起動時に用意したメタ進行の画面を再利用し、開き直しても一覧やスクロール位置を保持します。受け取り後はハブのポイント・解放状態を更新し、設定ウィンドウと開閉処理を共通化しました。"
+      ],
+      "changes_en": [
+        "Open achievements and meta progression over the Hub. Claim rewards, purchase permanent stats and unlock starters without leaving the menu. Close with the buttons, Escape or backdrop.",
+        "Reuse the prewarmed screen, keeping rows and scroll when reopened. Refresh Hub points and unlocks after closing; share window behavior with settings."
+      ]
+    },
     {
       "version": "QQ-0.56.1", "date": "2026-10-27",
       "title_ja": "設定をハブ上のウィンドウに変更",

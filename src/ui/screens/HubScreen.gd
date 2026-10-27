@@ -18,6 +18,7 @@ var _cloud_status_label: Label
 var _settings_dialog: SettingsDialog
 var _settings_language: String
 var _settings_developer: bool
+var _meta_snapshot: String
 
 
 func _ready() -> void:
@@ -505,6 +506,7 @@ func _close_version_history() -> void:
 
 
 func _open_settings() -> void:
+	if SceneRouter.is_meta_progress_dialog_open(): return
 	if is_instance_valid(_settings_dialog) and _settings_dialog.visible: return
 	if _version_history_overlay != null and _version_history_overlay.visible: _close_version_history()
 	if not is_instance_valid(_settings_dialog):
@@ -518,6 +520,10 @@ func _open_settings() -> void:
 
 func _on_settings_closed() -> void:
 	if Game.get_language() == _settings_language and Game.is_developer_mode_enabled() == _settings_developer: return
+	_rebuild_menu("OpenSettingsButton")
+
+
+func _rebuild_menu(focus_name: String) -> void:
 	var old_scroll: ScrollContainer = find_child("HubContentScroll", true, false) as ScrollContainer
 	var scroll_position: int = old_scroll.scroll_vertical if old_scroll != null else 0
 	# Rebuild localized menu controls, not the scene or the saved run. Keep the cached dialog.
@@ -533,8 +539,8 @@ func _on_settings_closed() -> void:
 	_build_ui()
 	var scroll: ScrollContainer = find_child("HubContentScroll", true, false) as ScrollContainer
 	if scroll != null: scroll.set_deferred("scroll_vertical", scroll_position)
-	var settings_button: Button = find_child("OpenSettingsButton", true, false) as Button
-	if settings_button != null: settings_button.call_deferred("grab_focus")
+	var focus_button: Button = find_child(focus_name, true, false) as Button
+	if focus_button != null: focus_button.call_deferred("grab_focus")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -877,8 +883,17 @@ func _on_dev_turn_off() -> void:
 
 
 func _on_open_meta_progress() -> void:
-	Game.current_screen_hint = "meta"
-	SceneRouter.go_to_meta_progress()
+	if is_instance_valid(_settings_dialog) and _settings_dialog.visible: return
+	if _version_history_overlay != null and _version_history_overlay.visible: _close_version_history()
+	var dialog: MetaProgressDialog = SceneRouter.get_meta_progress_dialog()
+	if dialog.visible: return
+	if not dialog.dismissed.is_connected(_on_meta_closed): dialog.dismissed.connect(_on_meta_closed)
+	_meta_snapshot = JSON.stringify(Game.meta_progress)
+	dialog.open()
+
+
+func _on_meta_closed() -> void:
+	if JSON.stringify(Game.meta_progress) != _meta_snapshot: _rebuild_menu("HubMetaProgressButton")
 
 
 func _on_open_card_library() -> void:

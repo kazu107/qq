@@ -1,5 +1,16 @@
 extends Control
 
+signal close_requested
+
+var modal_mode: bool = false
+var _margin: MarginContainer
+var _layout_root: BoxContainer
+var _window_scroll: ScrollContainer
+var _details_scroll: ScrollContainer
+var _summary_frame: PanelContainer
+var _summary_spacer: Control
+var _back_button: Button
+var _close_button: Button
 const BUILD_BATCH_SIZE := 10
 const ACHIEVEMENT_TWO_COLUMN_WIDTH: float = 1320.0
 const ACHIEVEMENT_ICON_SIZE: Vector2 = Vector2(88.0, 88.0)
@@ -20,7 +31,8 @@ var _upgrade_widgets: Dictionary = {}
 
 
 func _ready() -> void:
-	if not SceneRouter.is_warming_ui_scene():
+	theme = UiTheme.get_game_theme()
+	if not modal_mode and not SceneRouter.is_warming_ui_scene():
 		Game.current_screen_hint = "meta"
 		SaveManager.request_save("meta")
 
@@ -37,18 +49,59 @@ func is_content_ready() -> bool:
 
 
 func on_reenter() -> void:
-	Game.current_screen_hint = "meta"
-	SaveManager.request_save("meta")
+	if not modal_mode:
+		Game.current_screen_hint = "meta"
+		SaveManager.request_save("meta")
 	_refresh_ui()
 	if Game.is_developer_mode_enabled() and _developer_panel == null:
 		_build_developer_panel()
 	elif not Game.is_developer_mode_enabled() and _developer_panel != null:
 		_developer_panel.queue_free()
 		_developer_panel = null
+	if _developer_panel != null: _developer_panel.pin_top_right(80 if modal_mode else 14)
+
+
+func on_modal_open() -> void:
+	on_reenter()
+
+
+func set_modal_mode(enabled: bool) -> void:
+	modal_mode = enabled
+	if _margin == null: return
+	_margin.offset_left = 0 if modal_mode else 32
+	_margin.offset_top = 0 if modal_mode else 24
+	_margin.offset_right = 0 if modal_mode else -32
+	_margin.offset_bottom = 0 if modal_mode else -24
+	_close_button.visible = modal_mode
+	_back_button.text = Localization.get_text("common.close", "Close") if modal_mode else Localization.get_text("meta.return_hub", "Return to Hub")
+	UiIconHelper.decorate(_back_button, "close" if modal_mode else "home")
+	_window_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO if modal_mode else ScrollContainer.SCROLL_MODE_DISABLED
+	_details_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED if modal_mode else ScrollContainer.SCROLL_MODE_AUTO
+	_layout_root.size_flags_vertical = Control.SIZE_SHRINK_BEGIN if modal_mode else Control.SIZE_EXPAND_FILL
+	_details_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN if modal_mode else Control.SIZE_EXPAND_FILL
+	_summary_frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN if modal_mode else Control.SIZE_EXPAND_FILL
+	_summary_spacer.visible = not modal_mode
+	var background: Control = get_node_or_null(UiTheme.BACKGROUND_NODE_NAME) as Control
+	if background != null: background.visible = not modal_mode
+	if _developer_panel != null: _developer_panel.pin_top_right(80 if modal_mode else 14)
+	_update_achievement_columns()
+
+
+func focus_modal() -> void:
+	if not modal_mode or not is_visible_in_tree(): return
+	var controls: Array[Control] = []
+	for node: Node in find_children("*", "Control", true, false):
+		var control: Control = node as Control
+		if control.focus_mode == Control.FOCUS_ALL and control.is_visible_in_tree() and not (control is BaseButton and (control as BaseButton).disabled): controls.append(control)
+	for index: int in controls.size():
+		controls[index].focus_next = controls[index].get_path_to(controls[(index + 1) % controls.size()])
+		controls[index].focus_previous = controls[index].get_path_to(controls[(index - 1 + controls.size()) % controls.size()])
+	_close_button.grab_focus()
 
 
 func _build_ui() -> void:
 	var margin: MarginContainer = MarginContainer.new()
+	_margin = margin
 	margin.anchor_right = 1.0
 	margin.anchor_bottom = 1.0
 	margin.offset_left = 32.0
@@ -60,15 +113,32 @@ func _build_ui() -> void:
 	var page: VBoxContainer = VBoxContainer.new()
 	page.add_theme_constant_override("separation", 24)
 	margin.add_child(page)
-	UiTheme.add_page_heading(page, Localization.get_text("meta.title", "Meta Progress"))
-	var root: HBoxContainer = HBoxContainer.new()
+	var header: HBoxContainer = UiTheme.add_page_heading(page, Localization.get_text("meta.title", "Meta Progress"))
+	_close_button = Button.new()
+	_close_button.name = "MetaCloseButton"
+	UiIconHelper.decorate_square(_close_button, "close", 44, Localization.get_text("common.close", "Close"))
+	_close_button.pressed.connect(func() -> void: close_requested.emit())
+	header.add_child(_close_button)
+	for state: String in ["normal", "hover", "pressed", "focus"]:
+		var style: StyleBox = _close_button.get_theme_stylebox(state).duplicate() as StyleBox
+		style.set_content_margin_all(6)
+		_close_button.add_theme_stylebox_override(state, style)
+	var window_scroll: ScrollContainer = ScrollContainer.new()
+	_window_scroll = window_scroll
+	window_scroll.name = "MetaWindowScroll"
+	window_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	window_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	page.add_child(window_scroll)
+	var root: BoxContainer = BoxContainer.new()
+	_layout_root = root
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 18)
-	page.add_child(root)
+	window_scroll.add_child(root)
 
 	var summary_panel: VBoxContainer = _create_panel(root, Localization.get_text("meta.summary_heading", "Records & Unlocks"))
 	var summary_frame: PanelContainer = summary_panel.get_parent() as PanelContainer
+	_summary_frame = summary_frame
 	summary_frame.name = "MetaSummaryPanel"
 	summary_frame.custom_minimum_size.x = 360.0
 	summary_frame.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
@@ -78,13 +148,19 @@ func _build_ui() -> void:
 	_summary_label.fit_content = true
 	summary_panel.add_child(_summary_label)
 	var spacer: Control = Control.new()
+	_summary_spacer = spacer
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	summary_panel.add_child(spacer)
 
 	var back_button: Button = Button.new()
+	_back_button = back_button
+	back_button.name = "MetaBackButton"
 	back_button.text = Localization.get_text("meta.return_hub", "Return to Hub")
 	UiIconHelper.decorate(back_button, "home")
 	back_button.pressed.connect(func() -> void:
+		if modal_mode:
+			close_requested.emit()
+			return
 		Game.current_screen_hint = "hub"
 		SaveManager.request_save("hub")
 		SceneRouter.go_to_hub()
@@ -92,8 +168,13 @@ func _build_ui() -> void:
 	summary_panel.add_child(back_button)
 
 	var library_button: Button = Button.new()
+	library_button.name = "MetaOpenLibraryButton"
 	library_button.text = Localization.get_text("meta.open_library", "Open Card & Relic Library")
 	library_button.pressed.connect(func() -> void:
+		if modal_mode:
+			close_requested.emit()
+			var current: Node = get_tree().current_scene
+			if current != null and current.scene_file_path == SceneRouter.CARD_LIBRARY_SCENE: return
 		Game.current_screen_hint = "library"
 		SaveManager.request_save("library")
 		SceneRouter.go_to_card_library()
@@ -101,6 +182,7 @@ func _build_ui() -> void:
 	summary_panel.add_child(library_button)
 
 	var scroll: ScrollContainer = ScrollContainer.new()
+	_details_scroll = scroll
 	scroll.name = "MetaContentScroll"
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -150,6 +232,7 @@ func _build_ui() -> void:
 	_starter_box.name = "MetaStarterBox"
 	_starter_box.add_theme_constant_override("separation", 10)
 	starters_panel.add_child(_starter_box)
+	set_modal_mode(modal_mode)
 
 func _create_panel(parent: Control, title: String) -> VBoxContainer:
 	var panel: PanelContainer = PanelContainer.new()
@@ -172,6 +255,10 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 
 
 func _update_achievement_columns() -> void:
+	if modal_mode and _layout_root != null:
+		_layout_root.vertical = size.x < 1080
+		_summary_frame.custom_minimum_size.x = 0 if _layout_root.vertical else 300
+		_summary_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL if _layout_root.vertical else Control.SIZE_SHRINK_BEGIN
 	if _achievement_box != null:
 		_achievement_box.columns = 2 if size.x >= ACHIEVEMENT_TWO_COLUMN_WIDTH else 1
 	if _upgrade_box != null:
@@ -363,6 +450,7 @@ func _build_content_batched() -> void:
 	_content_building = false
 	_content_ready = true
 	_refresh_ui()
+	if modal_mode: call_deferred("focus_modal")
 
 
 func _count_bool_entries(entries: Array[Dictionary], key: String) -> int:
@@ -651,7 +739,7 @@ func _on_claim_achievement(achievement_id: String) -> void:
 func _build_developer_panel() -> void:
 	_developer_panel = DeveloperPanel.new()
 	add_child(_developer_panel)
-	_developer_panel.pin_top_right()
+	_developer_panel.pin_top_right(80 if modal_mode else 14)
 	_developer_panel.configure(
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
@@ -734,6 +822,7 @@ func _on_dev_reset_meta() -> void:
 
 
 func _on_dev_open_library() -> void:
+	if modal_mode: close_requested.emit()
 	Game.current_screen_hint = "library"
 	SaveManager.request_save("library")
 	SceneRouter.go_to_card_library()

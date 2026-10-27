@@ -103,15 +103,14 @@ func _build_ui() -> void:
 	header.add_child(action_row)
 
 	var meta_button: Button = Button.new()
+	meta_button.name = "LibraryOpenMetaButton"
 	meta_button.text = Localization.get_text("library.open_meta", "Open Meta Progress")
 	UiIconHelper.decorate(meta_button, "meta_points")
-	meta_button.pressed.connect(func() -> void:
-		Game.current_screen_hint = "meta"
-		SceneRouter.go_to_meta_progress()
-	)
+	meta_button.pressed.connect(_on_dev_open_meta)
 	action_row.add_child(meta_button)
 
 	var hub_button: Button = Button.new()
+	hub_button.name = "LibraryReturnHubButton"
 	hub_button.text = Localization.get_text("library.return_hub", "Return to Hub")
 	UiIconHelper.decorate(hub_button, "home")
 	hub_button.pressed.connect(func() -> void:
@@ -618,5 +617,10 @@ func _on_dev_reset_meta() -> void:
 
 
 func _on_dev_open_meta() -> void:
-	Game.current_screen_hint = "meta"
-	SceneRouter.go_to_meta_progress()
+	var dialog: MetaProgressDialog = SceneRouter.get_meta_progress_dialog()
+	if not dialog.dismissed.is_connected(_on_meta_closed): dialog.dismissed.connect(_on_meta_closed)
+	dialog.open()
+
+
+func _on_meta_closed() -> void:
+	if is_visible_in_tree(): _refresh_ui()
