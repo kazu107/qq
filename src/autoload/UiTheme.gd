@@ -136,6 +136,7 @@ func _ensure_background(scene_control: Control) -> void:
 	if background == null:
 		return
 	background.name = BACKGROUND_NODE_NAME
+	background.set("side_vignette_enabled", scene_control.scene_file_path != SceneRouter.HUB_SCENE)
 	scene_control.add_child(background)
 	scene_control.move_child(background, 0)
 

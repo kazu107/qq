@@ -10,6 +10,7 @@ const GRID_COLOR: Color = Color(0.55, 0.78, 0.95, 0.035)
 const PANEL_SHADOW: Color = Color(0.0, 0.0, 0.0, 0.22)
 static var _glow_texture: GradientTexture2D
 var _authored_texture: Texture2D
+var side_vignette_enabled: bool = true
 
 
 func _ready() -> void:
@@ -111,5 +112,6 @@ func _draw_vignette(draw_size: Vector2) -> void:
 	var edge_width: float = maxf(80.0, minf(draw_size.x, draw_size.y) * 0.12)
 	draw_rect(Rect2(0.0, 0.0, draw_size.x, edge_width), Color(0.0, 0.0, 0.0, 0.18))
 	draw_rect(Rect2(0.0, draw_size.y - edge_width, draw_size.x, edge_width), Color(0.0, 0.0, 0.0, 0.24))
+	if not side_vignette_enabled: return
 	draw_rect(Rect2(0.0, 0.0, edge_width, draw_size.y), Color(0.0, 0.0, 0.0, 0.16))
 	draw_rect(Rect2(draw_size.x - edge_width, 0.0, edge_width, draw_size.y), Color(0.0, 0.0, 0.0, 0.18))

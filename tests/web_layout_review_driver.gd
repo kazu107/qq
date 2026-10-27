@@ -60,6 +60,12 @@ func _command(arguments: Array) -> void:
 		Game.meta_progress["points"] = 100
 		Game.meta_progress["achievement_stats"]["gold_spent"] = 100
 		SaveManager.save_game("hub")
+	elif String(payload.get("action", "")) == "hub_background_flat_fixture":
+		var background: AtmosphereBackground = get_tree().current_scene.get_node(UiTheme.BACKGROUND_NODE_NAME) as AtmosphereBackground
+		var pixels: Image = Image.create(8, 8, false, Image.FORMAT_RGBA8)
+		pixels.fill(Color.WHITE)
+		background.set("_authored_texture", ImageTexture.create_from_image(pixels))
+		background.queue_redraw()
 	elif String(payload.get("action", "")) == "meta_modal_focus":
 		var dialog: MetaProgressDialog = SceneRouter.get("_meta_dialog") as MetaProgressDialog
 		if dialog != null and dialog.visible:

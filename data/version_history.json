@@ -1,9 +1,20 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.56.2",
+  "current_version": "QQ-0.56.3",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.56.3", "date": "2026-10-27",
+      "title_ja": "メインメニュー両端の暗い帯を解消",
+      "title_en": "Remove dark side bands from the main menu",
+      "changes_ja": [
+        "ハブの背景の左右に重なっていた帯状の暗幕を取り除きました。背景全体の明るさと上下の陰影、ほかの画面やウィンドウの暗幕は維持します。"
+      ],
+      "changes_en": [
+        "Remove the rectangular dark overlays at the left and right edges of the Hub background. Preserve overall brightness, top/bottom shading and the backdrops on other screens and windows."
+      ]
+    },
     {
       "version": "QQ-0.56.2", "date": "2026-10-27",
       "title_ja": "実績・メタ進行をハブ上のウィンドウに変更",
