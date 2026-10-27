@@ -179,6 +179,9 @@ func _test_ui() -> void:
 	panel.configure("Test", actions); panel.pin_top_right(); panel.set_collapsed(false, false)
 	await get_tree().process_frame; await get_tree().process_frame
 	var wheel: InputEventMouseButton = InputEventMouseButton.new(); wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN; wheel.pressed = true
-	panel._on_action_gui_input(wheel)
+	var controller: SmoothWheelScroll = SmoothWheelScroll.install(panel.get_viewport())
+	_check(controller.handle_wheel(panel._actions_box.get_child(0) as Control, wheel), "developer wheel was not routed")
+	_check(panel._scroll.scroll_vertical == 0, "developer wheel jumped instead of animating")
+	controller._process(SmoothWheelScroll.DURATION)
 	_check(panel._scroll.scroll_vertical > 0 and panel.mouse_filter == Control.MOUSE_FILTER_IGNORE, "developer wheel/click-through regression")
 	panel.queue_free(); await get_tree().process_frame
