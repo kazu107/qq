@@ -37,6 +37,14 @@ func _run() -> void:
 	hub.call("_open_settings")
 	_check(hub.find_child("SettingsDialog", true, false) == null, "settings opened behind the meta modal")
 	_check((content.find_child("MetaAchievementBox", true, false) as GridContainer).get_child_count() == 30, "achievement list incomplete")
+	_check(content.find_children("*", "SubViewport", true, false).is_empty(), "unlock icons must not create live 3D viewports")
+	for entry: Dictionary in Game.get_meta_starter_entries():
+		var id: String = String(entry["id"])
+		var icon: TextureRect = content.find_child("StarterIcon_" + id, true, false) as TextureRect
+		var icon_frame: PanelContainer = content.find_child("StarterIconFrame_" + id, true, false) as PanelContainer
+		_check(icon != null and icon.texture != null and icon.texture.resource_path == "res://assets/portraits/%s.png" % id, "starter model portrait missing: " + id)
+		_check(icon.texture == UnitPanel.get_portrait_texture(id), "starter portrait must reuse the shared cache: " + id)
+		_check(icon_frame.size.is_equal_approx(Vector2(96, 96)) and icon.expand_mode == TextureRect.EXPAND_IGNORE_SIZE, "starter icon must remain square and ignore source image dimensions: " + id)
 	var first: Node = (content.find_child("MetaAchievementBox", true, false) as GridContainer).get_child(0)
 	var widgets: Dictionary = content.get("_achievement_widgets")
 	var claim: Button = widgets["big_spender"]["button"] as Button
@@ -48,10 +56,21 @@ func _run() -> void:
 	_check(not buy.disabled, "stat upgrade is disabled")
 	buy.pressed.emit(); await get_tree().process_frame
 	_check(int(Game.meta_progress["permanent_upgrade_levels"].get("max_hp", 0)) == 1, "stat upgrade did not persist")
+	var tempo_icon: TextureRect = content.find_child("StarterIcon_tempo", true, false) as TextureRect
+	var tempo_frame: PanelContainer = content.find_child("StarterIconFrame_tempo", true, false) as PanelContainer
+	var tempo_texture: Texture2D = tempo_icon.texture
+	var starter_points: int = Game.get_meta_points()
+	(content.find_child("UnlockStarter_tempo", true, false) as Button).pressed.emit()
+	_check(Array(Game.meta_progress["unlocked_starters"]).has("tempo") and Game.get_meta_points() == starter_points - 2, "portrait row must preserve starter purchasing")
+	_check((tempo_frame.get_theme_stylebox("panel") as StyleBoxFlat).border_color == UiTheme.ACCENT_GOLD, "unlock must update the icon border")
+	var unlocked_style: StyleBox = tempo_frame.get_theme_stylebox("panel")
+	content.call("_refresh_ui")
+	_check(tempo_frame.get_theme_stylebox("panel") == unlocked_style and tempo_icon.texture == tempo_texture, "refresh must preserve unchanged icon controls, styles and textures")
 	_check(JSON.stringify(Game.suspended_runs) == suspended, "meta rewards changed suspended run")
 	SaveManager.flush_requested_save()
 	var saved: SaveData = SaveManager.load_save()
 	_check(int(saved.meta_progress["achievement_claim_counts"].get("big_spender", 0)) == 1, "claim was not saved")
+	_check(Array(saved.meta_progress["unlocked_starters"]).has("tempo"), "starter unlock was not saved")
 	(content.find_child("MetaCloseButton", true, false) as Button).pressed.emit()
 	await get_tree().process_frame; await get_tree().process_frame
 	_check(not dialog.visible and get_tree().current_scene == original_scene, "closing replaced scene")
@@ -87,6 +106,7 @@ func _run() -> void:
 	while not bool(fresh.call("is_content_ready")): await get_tree().process_frame
 	_check(fresh != localized and Game.get_meta_points() == 0, "profile change reused old progression")
 	_check((fresh.get("_achievement_widgets")["big_spender"]["button"] as Button).disabled, "old claimable state leaked into a new profile")
+	_check((fresh.find_child("StarterIconFrame_tempo", true, false).get_theme_stylebox("panel") as StyleBoxFlat).border_color == UiTheme.PANEL_STROKE, "old portrait unlock styling leaked into a new profile")
 	SceneRouter.get_meta_progress_dialog().close()
 	hub.queue_free(); await get_tree().process_frame
 	print("META_MODAL_SMOKE_OK checks=%d startup-cache/claim/stat-upgrade/save/hub-refresh/reopen/resize/Escape/backdrop/locale/resume" % _checks)

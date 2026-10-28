@@ -923,11 +923,18 @@ func _inspect() -> Dictionary:
 			var rows: Array[Dictionary] = []
 			for row: Node in content.find_children("MetaAchievementFrame_*", "PanelContainer", true, false): rows.append({"name": row.name, "instance": row.get_instance_id()})
 			var focused: Control = get_viewport().gui_get_focus_owner()
+			var starters: Array[Dictionary] = []
+			for id: String in content.get("_starter_widgets"):
+				var widgets: Dictionary = content.get("_starter_widgets")[id]
+				var icon: TextureRect = widgets["icon"] as TextureRect
+				var frame: PanelContainer = widgets["icon_frame"] as PanelContainer
+				starters.append({"id": id, "texture": icon.texture.resource_path if icon.texture != null else "", "icon_instance": icon.get_instance_id(),
+					"frame_size": _point_values(frame.size), "unlocked": widgets["icon_unlocked"], "button_disabled": (widgets["button"] as Button).disabled})
 			result["meta_modal"] = {"visible": meta_dialog.visible, "instance": meta_dialog.get_instance_id(), "content_instance": content.get_instance_id(),
 				"ready": content.call("is_content_ready"), "rect": _rect_values((meta_dialog.get("_frame") as Control).get_global_rect()), "rows": rows,
 				"horizontal_overflow": scroll.get_h_scroll_bar().max_value - scroll.get_h_scroll_bar().page, "scroll": scroll.scroll_vertical,
 				"focus_inside": focused != null and meta_dialog.is_ancestor_of(focused), "hint": Game.current_screen_hint, "points": Game.get_meta_points(),
-				"claims": Game.meta_progress["achievement_claim_counts"], "levels": Game.meta_progress["permanent_upgrade_levels"], "columns": (content.find_child("MetaAchievementBox", true, false) as GridContainer).columns}
+				"claims": Game.meta_progress["achievement_claim_counts"], "levels": Game.meta_progress["permanent_upgrade_levels"], "columns": (content.find_child("MetaAchievementBox", true, false) as GridContainer).columns, "starters": starters}
 			_collect_controls(meta_dialog, controls, false)
 		var settings: SettingsDialog = screen.find_child("SettingsDialog", true, false) as SettingsDialog
 		if settings != null:

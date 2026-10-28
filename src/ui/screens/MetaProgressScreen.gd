@@ -14,6 +14,7 @@ var _close_button: Button
 const BUILD_BATCH_SIZE := 10
 const ACHIEVEMENT_TWO_COLUMN_WIDTH: float = 1320.0
 const ACHIEVEMENT_ICON_SIZE: Vector2 = Vector2(88.0, 88.0)
+const STARTER_ICON_SIZE: Vector2 = Vector2(96.0, 96.0)
 
 var _summary_label: RichTextLabel
 var _content_progress_label: Label
@@ -596,12 +597,32 @@ func _rebuild_starters(entries: Array[Dictionary]) -> void:
 			"MetaStarterFrame_%s" % starter_id,
 			"MetaStarterRow_%s" % starter_id
 		)
+		var unlocked: bool = bool(entry.get("unlocked", false))
+		var icon_frame: PanelContainer = PanelContainer.new()
+		icon_frame.name = "StarterIconFrame_%s" % starter_id
+		icon_frame.custom_minimum_size = STARTER_ICON_SIZE
+		icon_frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon_frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon_frame.clip_contents = true
+		icon_frame.tooltip_text = String(entry.get("name", starter_id))
+		icon_frame.add_theme_stylebox_override("panel", _make_starter_icon_style(unlocked))
+		row.add_child(icon_frame)
+		var icon: TextureRect = TextureRect.new()
+		icon.name = "StarterIcon_%s" % starter_id
+		# Reuse the Blender bust render and the startup portrait cache, not a live 3D viewport.
+		icon.texture = UnitPanel.get_portrait_texture(starter_id)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon_frame.add_child(icon)
 
 		var info: VBoxContainer = VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
 
 		var name_label: Label = Label.new()
+		name_label.name = "MetaStarterName_%s" % starter_id
+		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		name_label.text = Localization.get_textf("meta.cost_line", "{name} | Cost {cost}", {
 			"name": String(entry.get("name", starter_id)),
 			"cost": int(entry.get("cost", 0)),
@@ -628,6 +649,9 @@ func _rebuild_starters(entries: Array[Dictionary]) -> void:
 		_starter_widgets[starter_id] = {
 			"status": status_label,
 			"button": unlock_button,
+			"icon_frame": icon_frame,
+			"icon": icon,
+			"icon_unlocked": unlocked,
 		}
 		built_count += 1
 		if built_count % BUILD_BATCH_SIZE == 0:
@@ -705,6 +729,16 @@ func _make_achievement_progress_fill_style() -> StyleBoxFlat:
 	return style
 
 
+func _make_starter_icon_style(unlocked: bool) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = UiTheme.PANEL_FILL_DEEP
+	style.border_color = UiTheme.ACCENT_GOLD if unlocked else UiTheme.PANEL_STROKE
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(10)
+	style.set_content_margin_all(3)
+	return style
+
+
 func _update_starter_rows(entries: Array[Dictionary]) -> void:
 	var meta_points: int = Game.get_meta_points()
 	for entry in entries:
@@ -715,6 +749,9 @@ func _update_starter_rows(entries: Array[Dictionary]) -> void:
 		var unlocked: bool = bool(entry.get("unlocked", false))
 		var status_label: Label = widgets.get("status") as Label
 		var unlock_button: Button = widgets.get("button") as Button
+		if bool(widgets.get("icon_unlocked", not unlocked)) != unlocked:
+			(widgets["icon_frame"] as PanelContainer).add_theme_stylebox_override("panel", _make_starter_icon_style(unlocked))
+			widgets["icon_unlocked"] = unlocked
 		status_label.text = Localization.get_text("meta.%s" % ("unlocked" if unlocked else "locked"), "Unlocked" if unlocked else "Locked")
 		unlock_button.disabled = unlocked or meta_points < int(entry.get("cost", 0))
 

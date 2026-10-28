@@ -54,6 +54,10 @@ static func get_cached_portrait_count() -> int:
 	return _portrait_cache.size()
 
 
+static func get_portrait_texture(portrait_key: String) -> Texture2D:
+	return _load_portrait_texture(portrait_key, "player")
+
+
 static func get_cached_status_icon_count() -> int:
 	return _status_icon_cache.size()
 

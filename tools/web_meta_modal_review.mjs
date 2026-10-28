@@ -46,6 +46,16 @@ try {
   assert.equal(state.screen_instance, hub); assert.equal(state.meta_modal.hint, 'hub'); assert.equal(state.meta_modal.rows.length, 30);
   const cached = state.meta_modal.content_instance, rows = state.meta_modal.rows;
   assert.equal(state.meta_modal.columns, 2);
+  assert.equal(state.meta_modal.starters.length, 7);
+  for (const starter of state.meta_modal.starters) {
+    assert.equal(starter.texture, `res://assets/portraits/${starter.id}.png`);
+    assert.deepEqual(starter.frame_size, [96, 96]);
+  }
+  state = await command('meta_modal_focus', { name: 'MetaStarterFrame_balanced' });
+  await page.screenshot({ path: resolve(out, 'starter-icons-ja.png') });
+  state = await command('meta_modal_focus', { name: 'MetaStarterFrame_turret' });
+  await page.screenshot({ path: resolve(out, 'starter-icons-later-ja.png') });
+  state = await command('meta_top');
   await page.screenshot({ path: resolve(out, 'ja-desktop.png') });
   state = await command('meta_modal_focus', { name: 'ClaimAchievement_big_spender' });
   await page.screenshot({ path: resolve(out, 'before-claim.png') });
@@ -93,6 +103,14 @@ try {
   assert.equal(state.screen_instance, reopenedHub); assert.equal(state.meta_modal.content_instance, libraryCache);
   state = await command('meta_modal_focus', { name: 'ClaimAchievement_big_spender' });
   state = await click(state, 'ClaimAchievement_big_spender'); assert.equal(state.meta_modal.claims.big_spender, 2);
+  state = await command('meta_modal_focus', { name: 'UnlockStarter_tempo' });
+  const tempoBefore = state.meta_modal.starters.find(item => item.id === 'tempo');
+  assert(!tempoBefore.unlocked && !tempoBefore.button_disabled);
+  state = await click(state, 'UnlockStarter_tempo');
+  const tempoAfter = state.meta_modal.starters.find(item => item.id === 'tempo');
+  assert(tempoAfter.unlocked && tempoAfter.button_disabled);
+  assert.equal(tempoAfter.icon_instance, tempoBefore.icon_instance);
+  await page.screenshot({ path: resolve(out, 'starter-unlocked-en.png') });
   assert.deepEqual(errors, []);
   console.log('WEB_META_MODAL_OK', JSON.stringify({ cases, checks: 'same-scene/claim/upgrade/hub-points/cache/tab/Escape/backdrop/locale/library', errors }));
 } finally {
