@@ -1,9 +1,20 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.56.5",
+  "current_version": "QQ-0.56.6",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.56.6", "date": "2026-10-28",
+      "title_ja": "ハブ復帰直後の状態表示も現在の言語へ更新",
+      "title_en": "Relocalize Hub status immediately on return",
+      "changes_ja": [
+        "言語変更後にハブを表示する際、ランキング準備中の状態表示も保存済みの旧言語の文章を使わず、その場で翻訳するようにしました。通信の更新を待つ間だけ前の言語になる表示を防ぎます。"
+      ],
+      "changes_en": [
+        "Translate the preparing-ranking status when the Hub is built, instead of showing cached text in the previous language until a network refresh arrives."
+      ]
+    },
     {
       "version": "QQ-0.56.5", "date": "2026-10-28",
       "title_ja": "言語切り替え後の旧言語の一瞬表示を修正",

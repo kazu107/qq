@@ -225,6 +225,7 @@ func _build_ranking_actions(parent: Control) -> void:
 	status.text = RankedSession.status_text
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(status)
+	_refresh_ranking_status()
 	RankedSession.refresh_availability.call_deferred()
 	_refresh_ranking_access()
 	_cloud_status_label = Label.new()
@@ -259,7 +260,11 @@ func _refresh_ranking_access() -> void:
 
 
 func _refresh_ranking_status() -> void:
-	if is_instance_valid(_ranking_status_label): _ranking_status_label.text = RankedSession.status_text
+	if not is_instance_valid(_ranking_status_label): return
+	if RankedSession.availability_status == "preparing":
+		_ranking_status_label.text = "ランキング準備中 / シーズン1は未開始" if Localization.get_language() == "ja" else "Rankings preparing / Season 1 has not started"
+	else:
+		_ranking_status_label.text = RankedSession.status_text
 
 
 func _build_mode_card(parent: GridContainer, icon_id: String, title_text: String, description: String, accent: Color) -> VBoxContainer:

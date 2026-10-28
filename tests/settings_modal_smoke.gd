@@ -7,6 +7,8 @@ func _ready() -> void:
 	Database.load_all(); Game.ensure_meta_initialized()
 	Game.set_language("ja"); Game.set_developer_mode_enabled(false)
 	Game.start_new_run("balanced", 4242)
+	RankedSession.availability_status = "preparing"
+	RankedSession.status_text = "ランキング準備中 / シーズン1は未開始"
 	call_deferred("_run")
 
 
@@ -70,6 +72,7 @@ func _run() -> void:
 	await get_tree().process_frame; await get_tree().process_frame
 	_check(get_tree().current_scene == original_scene, "language change replaced scene")
 	_check((hub.find_child("RunStartButton", true, false) as Button).text == "New Game", "hub language was not refreshed")
+	_check((hub.find_child("RankingSyncStatus", true, false) as Label).text == "Rankings preparing / Season 1 has not started", "cached status briefly retained previous language")
 	_check(hub.find_children("OpenSettingsButton", "Button", true, false).size() == 1, "localized rebuild duplicated controls")
 	_check(JSON.stringify(Game.suspended_runs) == suspended, "localized menu lost suspended run")
 	hub.call("_open_settings"); await get_tree().process_frame
