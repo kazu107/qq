@@ -8,12 +8,17 @@ var _layout_root: BoxContainer
 var _window_scroll: ScrollContainer
 var _details_scroll: ScrollContainer
 var _summary_frame: PanelContainer
-var _summary_spacer: Control
+var _summary_header: BoxContainer
+var _summary_actions: BoxContainer
+var _summary_body: BoxContainer
+var _summary_grid: GridContainer
+var _summary_metrics: Array[Label] = []
+var _permanent_bonus_label: Label
 var _back_button: Button
 var _close_button: Button
 const BUILD_BATCH_SIZE := 10
 const ACHIEVEMENT_TWO_COLUMN_WIDTH: float = 1320.0
-const ACHIEVEMENT_ICON_SIZE: Vector2 = Vector2(88.0, 88.0)
+const ACHIEVEMENT_ICON_SIZE: Vector2 = Vector2(104.0, 104.0)
 const STARTER_ICON_SIZE: Vector2 = Vector2(96.0, 96.0)
 
 var _summary_label: RichTextLabel
@@ -80,8 +85,7 @@ func set_modal_mode(enabled: bool) -> void:
 	_details_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED if modal_mode else ScrollContainer.SCROLL_MODE_AUTO
 	_layout_root.size_flags_vertical = Control.SIZE_SHRINK_BEGIN if modal_mode else Control.SIZE_EXPAND_FILL
 	_details_scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN if modal_mode else Control.SIZE_EXPAND_FILL
-	_summary_frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN if modal_mode else Control.SIZE_EXPAND_FILL
-	_summary_spacer.visible = not modal_mode
+	_summary_frame.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	var background: Control = get_node_or_null(UiTheme.BACKGROUND_NODE_NAME) as Control
 	if background != null: background.visible = not modal_mode
 	if _developer_panel != null: _developer_panel.pin_top_right(80 if modal_mode else 14)
@@ -124,63 +128,21 @@ func _build_ui() -> void:
 		var style: StyleBox = _close_button.get_theme_stylebox(state).duplicate() as StyleBox
 		style.set_content_margin_all(6)
 		_close_button.add_theme_stylebox_override(state, style)
+	_build_summary_panel(page)
 	var window_scroll: ScrollContainer = ScrollContainer.new()
 	_window_scroll = window_scroll
 	window_scroll.name = "MetaWindowScroll"
 	window_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	window_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	window_scroll.follow_focus = true
 	page.add_child(window_scroll)
 	var root: BoxContainer = BoxContainer.new()
 	_layout_root = root
+	root.vertical = true
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 18)
 	window_scroll.add_child(root)
-
-	var summary_panel: VBoxContainer = _create_panel(root, Localization.get_text("meta.summary_heading", "Records & Unlocks"))
-	var summary_frame: PanelContainer = summary_panel.get_parent() as PanelContainer
-	_summary_frame = summary_frame
-	summary_frame.name = "MetaSummaryPanel"
-	summary_frame.custom_minimum_size.x = 360.0
-	summary_frame.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	summary_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_summary_label = RichTextLabel.new()
-	_summary_label.bbcode_enabled = true
-	_summary_label.fit_content = true
-	summary_panel.add_child(_summary_label)
-	var spacer: Control = Control.new()
-	_summary_spacer = spacer
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	summary_panel.add_child(spacer)
-
-	var back_button: Button = Button.new()
-	_back_button = back_button
-	back_button.name = "MetaBackButton"
-	back_button.text = Localization.get_text("meta.return_hub", "Return to Hub")
-	UiIconHelper.decorate(back_button, "home")
-	back_button.pressed.connect(func() -> void:
-		if modal_mode:
-			close_requested.emit()
-			return
-		Game.current_screen_hint = "hub"
-		SaveManager.request_save("hub")
-		SceneRouter.go_to_hub()
-	)
-	summary_panel.add_child(back_button)
-
-	var library_button: Button = Button.new()
-	library_button.name = "MetaOpenLibraryButton"
-	library_button.text = Localization.get_text("meta.open_library", "Open Card & Relic Library")
-	library_button.pressed.connect(func() -> void:
-		if modal_mode:
-			close_requested.emit()
-			var current: Node = get_tree().current_scene
-			if current != null and current.scene_file_path == SceneRouter.CARD_LIBRARY_SCENE: return
-		Game.current_screen_hint = "library"
-		SaveManager.request_save("library")
-		SceneRouter.go_to_card_library()
-	)
-	summary_panel.add_child(library_button)
 
 	var scroll: ScrollContainer = ScrollContainer.new()
 	_details_scroll = scroll
@@ -188,6 +150,7 @@ func _build_ui() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.follow_focus = true
 	root.add_child(scroll)
 
 	var content: VBoxContainer = VBoxContainer.new()
@@ -235,6 +198,86 @@ func _build_ui() -> void:
 	starters_panel.add_child(_starter_box)
 	set_modal_mode(modal_mode)
 
+
+func _build_summary_panel(parent: VBoxContainer) -> void:
+	_summary_frame = PanelContainer.new()
+	_summary_frame.name = "MetaSummaryPanel"
+	_summary_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style: StyleBox = get_theme_stylebox("panel", "PanelContainer").duplicate() as StyleBox
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	_summary_frame.add_theme_stylebox_override("panel", style)
+	parent.add_child(_summary_frame)
+	var panel: VBoxContainer = VBoxContainer.new()
+	panel.add_theme_constant_override("separation", 10)
+	_summary_frame.add_child(panel)
+	_summary_header = BoxContainer.new()
+	_summary_header.add_theme_constant_override("separation", 12)
+	panel.add_child(_summary_header)
+	var title: Label = Label.new()
+	title.theme_type_variation = "SectionTitle"
+	title.text = Localization.get_text("meta.summary_heading", "Records & Unlocks")
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_summary_header.add_child(title)
+	_summary_actions = BoxContainer.new()
+	_summary_actions.add_theme_constant_override("separation", 10)
+	_summary_header.add_child(_summary_actions)
+	_back_button = Button.new()
+	_back_button.name = "MetaBackButton"
+	_back_button.custom_minimum_size = Vector2(140, 42)
+	_back_button.pressed.connect(func() -> void:
+		if modal_mode: close_requested.emit()
+		else:
+			Game.current_screen_hint = "hub"
+			SaveManager.request_save("hub")
+			SceneRouter.go_to_hub())
+	_summary_actions.add_child(_back_button)
+	var library: Button = Button.new()
+	library.name = "MetaOpenLibraryButton"
+	library.text = Localization.get_text("meta.open_library", "Open Card & Relic Library")
+	UiIconHelper.decorate(library, "card")
+	library.pressed.connect(func() -> void:
+		if modal_mode:
+			close_requested.emit()
+			var current: Node = get_tree().current_scene
+			if current != null and current.scene_file_path == SceneRouter.CARD_LIBRARY_SCENE: return
+		Game.current_screen_hint = "library"
+		SaveManager.request_save("library")
+		SceneRouter.go_to_card_library())
+	_summary_actions.add_child(library)
+	_summary_body = BoxContainer.new()
+	_summary_body.name = "MetaSummaryBody"
+	_summary_body.add_theme_constant_override("separation", 24)
+	panel.add_child(_summary_body)
+	_summary_label = RichTextLabel.new()
+	_summary_label.name = "MetaSummaryPoints"
+	_summary_label.bbcode_enabled = true
+	_summary_label.fit_content = true
+	_summary_label.scroll_active = false
+	_summary_label.custom_minimum_size.x = 160
+	_summary_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_summary_body.add_child(_summary_label)
+	_summary_grid = GridContainer.new()
+	_summary_grid.name = "MetaSummaryMetrics"
+	_summary_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_summary_grid.add_theme_constant_override("h_separation", 20)
+	_summary_grid.add_theme_constant_override("v_separation", 8)
+	_summary_body.add_child(_summary_grid)
+	for index: int in 8:
+		var metric: Label = Label.new()
+		metric.name = "MetaSummaryMetric_%d" % index
+		metric.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		metric.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_summary_grid.add_child(metric)
+		_summary_metrics.append(metric)
+	_permanent_bonus_label = Label.new()
+	_permanent_bonus_label.name = "MetaSummaryBonuses"
+	_permanent_bonus_label.theme_type_variation = "MutedLabel"
+	_permanent_bonus_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	panel.add_child(_permanent_bonus_label)
+
 func _create_panel(parent: Control, title: String) -> VBoxContainer:
 	var panel: PanelContainer = PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -256,10 +299,12 @@ func _create_panel(parent: Control, title: String) -> VBoxContainer:
 
 
 func _update_achievement_columns() -> void:
-	if modal_mode and _layout_root != null:
-		_layout_root.vertical = size.x < 1080
-		_summary_frame.custom_minimum_size.x = 0 if _layout_root.vertical else 300
-		_summary_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL if _layout_root.vertical else Control.SIZE_SHRINK_BEGIN
+	if _summary_grid != null:
+		_summary_header.vertical = size.x < 1000
+		_summary_actions.vertical = size.x < 560
+		_summary_body.vertical = size.x < 760
+		_summary_label.custom_minimum_size.x = 0 if _summary_body.vertical else 160
+		_summary_grid.columns = 1 if size.x < 500 else (2 if size.x < 1120 else 4)
 	if _achievement_box != null:
 		_achievement_box.columns = 2 if size.x >= ACHIEVEMENT_TWO_COLUMN_WIDTH else 1
 	if _upgrade_box != null:
@@ -271,6 +316,7 @@ func _build_stat_upgrades() -> void:
 		var id: String = String(entry["id"])
 		var frame: PanelContainer = _create_entry_frame(_upgrade_box, "MetaStatUpgradeFrame_" + id)
 		frame.custom_minimum_size.x = 380
+		frame.custom_minimum_size.y = 190
 		var body: VBoxContainer = VBoxContainer.new()
 		body.add_theme_constant_override("separation", 10)
 		frame.add_child(body)
@@ -281,7 +327,7 @@ func _build_stat_upgrades() -> void:
 		icon.texture = StatIconFactory.get_icon(String(entry["icon"]))
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.custom_minimum_size = Vector2(48, 48)
+		icon.custom_minimum_size = Vector2(64, 64)
 		icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		heading.add_child(icon)
 		var info: VBoxContainer = VBoxContainer.new()
@@ -291,7 +337,7 @@ func _build_stat_upgrades() -> void:
 		var title: Label = Label.new()
 		title.name = "MetaStatUpgradeName_" + id
 		title.text = String(entry["name"])
-		title.add_theme_font_size_override("font_size", 20)
+		title.add_theme_font_size_override("font_size", 22)
 		info.add_child(title)
 		var level: Label = Label.new()
 		level.name = "MetaStatUpgradeLevel_" + id
@@ -306,7 +352,7 @@ func _build_stat_upgrades() -> void:
 		body.add_child(footer)
 		var bar: ProgressBar = ProgressBar.new()
 		bar.name = "MetaStatUpgradeBar_" + id
-		bar.custom_minimum_size = Vector2(120, 18)
+		bar.custom_minimum_size = Vector2(120, 22)
 		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		bar.show_percentage = false
@@ -402,8 +448,8 @@ func _refresh_ui() -> void:
 	_seal_summary_label.tooltip_text = Localization.get_text("progress.seal_hint", "Seals apply to new normal/infinite runs only. Up to 25% of unlocked items; each card rarity keeps at least one candidate.")
 	var starter_entries: Array[Dictionary] = Game.get_meta_starter_entries()
 	var achievement_entries: Array[Dictionary] = Game.get_meta_achievement_entries()
-	_summary_label.text = "\n".join([
-		"[img=28x28]res://assets/icons/ui/meta_points.png[/img] [font_size=30][color=#f5c16b]%d[/color][/font_size]\n" % Game.get_meta_points(),
+	_summary_label.text = "[img=32x32]res://assets/icons/ui/meta_points.png[/img] [font_size=34][color=#f5c16b]%d[/color][/font_size]" % Game.get_meta_points()
+	var summary_lines: Array[String] = [
 		Localization.get_textf("meta.summary.best_clear", "Best Clear: {value}", {"value": Game.get_best_clear()}),
 		Localization.get_textf("meta.summary.steps", "Unlocked Steps: 1-{end}", {"end": Game.get_unlocked_step_tier() * 7}),
 		Localization.get_textf("meta.summary.infinite_mode", "Infinite Mode: {value}", {
@@ -428,10 +474,9 @@ func _refresh_ui() -> void:
 		Localization.get_textf("meta.summary.claimable", "Achievement Rewards Ready: {value}", {
 			"value": _count_bool_entries(achievement_entries, "claimable"),
 		}),
-		Localization.get_textf("meta.summary.permanent_bonuses", "Permanent Bonuses: {value}", {
-			"value": Game.get_permanent_bonus_summary(),
-		}),
-	])
+	]
+	for index: int in summary_lines.size(): _summary_metrics[index].text = summary_lines[index]
+	_permanent_bonus_label.text = Localization.get_textf("meta.summary.permanent_bonuses", "Permanent Bonuses: {value}", {"value": Game.get_permanent_bonus_summary()})
 	if not _content_ready:
 		if not _content_building:
 			_content_building = true
@@ -472,7 +517,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		if not is_inside_tree(): return
 
 		var frame: PanelContainer = _create_entry_frame(_achievement_box, "MetaAchievementFrame_%s" % achievement_id)
-		frame.custom_minimum_size = Vector2(380.0, 180.0)
+		frame.custom_minimum_size = Vector2(380.0, 216.0)
 		var card: VBoxContainer = VBoxContainer.new()
 		card.name = "MetaAchievementRow_%s" % achievement_id
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -482,7 +527,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		var heading: HBoxContainer = HBoxContainer.new()
 		heading.name = "AchievementHeading_%s" % achievement_id
 		heading.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		heading.add_theme_constant_override("separation", 16)
+		heading.add_theme_constant_override("separation", 20)
 		card.add_child(heading)
 		var icon: TextureRect = TextureRect.new()
 		icon.name = "AchievementIcon_%s" % achievement_id
@@ -503,7 +548,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		name_label.name = "AchievementName_%s" % achievement_id
 		name_label.text = String(entry.get("name", achievement_id))
 		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		name_label.add_theme_font_size_override("font_size", 20)
+		name_label.add_theme_font_size_override("font_size", 22)
 		info.add_child(name_label)
 
 		var desc_label: Label = Label.new()
@@ -511,12 +556,13 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		desc_label.text = String(entry.get("description", ""))
 		desc_label.theme_type_variation = "MutedLabel"
+		desc_label.add_theme_font_size_override("font_size", 17)
 		info.add_child(desc_label)
 
 		var reward_label: Label = Label.new()
 		reward_label.name = "AchievementReward_%s" % achievement_id
 		reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		reward_label.add_theme_font_size_override("font_size", 16)
+		reward_label.add_theme_font_size_override("font_size", 17)
 		reward_label.add_theme_color_override("font_color", UiTheme.ACCENT_GOLD)
 		reward_label.text = Localization.get_textf("meta.achievement_reward", "Reward: {value}", {
 			"value": String(entry.get("reward_text", "")),
@@ -552,7 +598,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 
 		var progress_bar: ProgressBar = ProgressBar.new()
 		progress_bar.name = "AchievementProgressBar_%s" % achievement_id
-		progress_bar.custom_minimum_size = Vector2(160.0, 18.0)
+		progress_bar.custom_minimum_size = Vector2(160.0, 22.0)
 		progress_bar.show_percentage = false
 		progress_bar.add_theme_stylebox_override("background", _make_achievement_progress_background_style())
 		progress_bar.add_theme_stylebox_override("fill", _make_achievement_progress_fill_style())
@@ -560,7 +606,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 
 		var claim_button: Button = Button.new()
 		claim_button.name = "ClaimAchievement_%s" % achievement_id
-		claim_button.custom_minimum_size = Vector2(116.0, 38.0)
+		claim_button.custom_minimum_size = Vector2(132.0, 44.0)
 		claim_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		claim_button.theme_type_variation = "PrimaryButton"
 		claim_button.text = Localization.get_text("meta.claim", "Claim")

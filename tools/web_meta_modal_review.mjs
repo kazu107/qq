@@ -46,6 +46,14 @@ try {
   assert.equal(state.screen_instance, hub); assert.equal(state.meta_modal.hint, 'hub'); assert.equal(state.meta_modal.rows.length, 30);
   const cached = state.meta_modal.content_instance, rows = state.meta_modal.rows;
   assert.equal(state.meta_modal.columns, 2);
+  assert.equal(state.meta_modal.summary_columns, 4);
+  assert.equal(state.meta_modal.summary_metrics.length, 8);
+  assert.equal(state.meta_modal.achievement_icon_size, 104);
+  const [sx,sy,sw,sh] = state.meta_modal.summary_rect;
+  const [dx,dy,dw] = state.meta_modal.details_rect;
+  assert(sy + sh <= dy && Math.abs(sx - dx) <= 1 && Math.abs(sw - dw) <= 1, 'Summary must span the full width above the details');
+  assert(state.meta_modal.grid_rect[2] >= dw - 64, 'Details did not reclaim the old sidebar width');
+  const pinnedSummary = state.meta_modal.summary_rect;
   assert.equal(state.meta_modal.starters.length, 7);
   for (const starter of state.meta_modal.starters) {
     assert.equal(starter.texture, `res://assets/portraits/${starter.id}.png`);
@@ -54,8 +62,10 @@ try {
   state = await command('meta_modal_focus', { name: 'MetaStarterFrame_balanced' });
   await page.screenshot({ path: resolve(out, 'starter-icons-ja.png') });
   state = await command('meta_modal_focus', { name: 'MetaStarterFrame_turret' });
+  assert.deepEqual(state.meta_modal.summary_rect, pinnedSummary, 'Summary scrolled away with the list');
   await page.screenshot({ path: resolve(out, 'starter-icons-later-ja.png') });
   state = await command('meta_top');
+  assert.equal(state.meta_modal.scroll, 0);
   await page.screenshot({ path: resolve(out, 'ja-desktop.png') });
   state = await command('meta_modal_focus', { name: 'ClaimAchievement_big_spender' });
   await page.screenshot({ path: resolve(out, 'before-claim.png') });

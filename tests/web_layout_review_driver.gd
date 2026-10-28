@@ -108,7 +108,8 @@ func _command(arguments: Array) -> void:
 		if dialog != null and dialog.visible:
 			var content: Control = dialog.get("_content") as Control
 			var target: Control = content.find_child(String(payload["name"]), true, false) as Control
-			if target != null: (content.find_child("MetaWindowScroll", true, false) as ScrollContainer).ensure_control_visible(target)
+			var scroll: ScrollContainer = content.find_child("MetaWindowScroll", true, false) as ScrollContainer
+			if target != null and scroll.is_ancestor_of(target): scroll.ensure_control_visible(target)
 	elif String(payload.get("action", "")) == "screen":
 		_open_screen(String(payload.get("screen", "hub")))
 	elif String(payload.get("action", "")) == "balance_open":
@@ -265,7 +266,10 @@ func _command(arguments: Array) -> void:
 			scroll.ensure_control_visible(row)
 	elif String(payload.get("action", "")) == "meta_top":
 		var screen: Control = get_tree().current_scene as Control
-		(screen.find_child("MetaContentScroll", true, false) as ScrollContainer).scroll_vertical = 0
+		var dialog: MetaProgressDialog = SceneRouter.get("_meta_dialog") as MetaProgressDialog
+		if dialog != null and dialog.visible: screen = dialog.get("_content") as Control
+		var scroll: ScrollContainer = screen.get("_window_scroll") as ScrollContainer if bool(screen.get("modal_mode")) else screen.get("_details_scroll") as ScrollContainer
+		scroll.scroll_vertical = 0
 	elif String(payload.get("action", "")) == "battle_simulate":
 		_simulate_battle_result()
 	elif String(payload.get("action", "")) == "battle_profile_capture":
@@ -1005,7 +1009,12 @@ func _inspect() -> Dictionary:
 				"ready": content.call("is_content_ready"), "rect": _rect_values((meta_dialog.get("_frame") as Control).get_global_rect()), "rows": rows,
 				"horizontal_overflow": scroll.get_h_scroll_bar().max_value - scroll.get_h_scroll_bar().page, "scroll": scroll.scroll_vertical,
 				"focus_inside": focused != null and meta_dialog.is_ancestor_of(focused), "hint": Game.current_screen_hint, "points": Game.get_meta_points(),
-				"claims": Game.meta_progress["achievement_claim_counts"], "levels": Game.meta_progress["permanent_upgrade_levels"], "columns": (content.find_child("MetaAchievementBox", true, false) as GridContainer).columns, "starters": starters}
+				"claims": Game.meta_progress["achievement_claim_counts"], "levels": Game.meta_progress["permanent_upgrade_levels"], "columns": (content.find_child("MetaAchievementBox", true, false) as GridContainer).columns, "starters": starters,
+				"summary_rect": _rect_values((content.find_child("MetaSummaryPanel", true, false) as Control).get_global_rect()),
+				"summary_columns": (content.find_child("MetaSummaryMetrics", true, false) as GridContainer).columns,
+				"summary_metrics": (content.get("_summary_metrics") as Array).map(func(label: Label) -> String: return label.text),
+				"details_rect": _rect_values(scroll.get_global_rect()), "grid_rect": _rect_values((content.find_child("MetaAchievementBox", true, false) as Control).get_global_rect()),
+				"achievement_icon_size": (content.get("_achievement_widgets").values()[0]["icon"] as TextureRect).custom_minimum_size.x if not content.get("_achievement_widgets").is_empty() else 0}
 			_collect_controls(meta_dialog, controls, false)
 		var settings: SettingsDialog = screen.find_child("SettingsDialog", true, false) as SettingsDialog
 		if settings != null:

@@ -34,6 +34,16 @@ func _run() -> void:
 	_check(dialog.visible and hub.visible, "modal did not open over hub")
 	_check(get_tree().current_scene == original_scene and Game.current_screen_hint == "hub", "opening replaced the scene or resume hint")
 	_check(content == cached and bool(content.call("is_content_ready")), "startup cache was not reused")
+	var summary: Control = content.find_child("MetaSummaryPanel", true, false) as Control
+	var window_scroll: ScrollContainer = content.find_child("MetaWindowScroll", true, false) as ScrollContainer
+	_check(not window_scroll.is_ancestor_of(summary) and summary.get_global_rect().end.y <= window_scroll.get_global_rect().position.y, "summary must be pinned above the list")
+	_check(is_equal_approx(summary.size.x, content.size.x) and (content.find_child("MetaSummaryMetrics", true, false) as GridContainer).columns == 4, "summary must use a full-width horizontal layout")
+	_check((content.find_child("MetaAchievementBox", true, false) as GridContainer).size.x >= window_scroll.size.x - 64, "details must reclaim the old sidebar width")
+	window_scroll.scroll_vertical = 180
+	var summary_position: Vector2 = summary.global_position
+	await get_tree().process_frame
+	_check(summary.global_position.is_equal_approx(summary_position) and window_scroll.scroll_vertical > 0, "summary must remain visible during scrolling")
+	window_scroll.scroll_vertical = 0
 	hub.call("_open_settings")
 	_check(hub.find_child("SettingsDialog", true, false) == null, "settings opened behind the meta modal")
 	_check((content.find_child("MetaAchievementBox", true, false) as GridContainer).get_child_count() == 30, "achievement list incomplete")
@@ -48,6 +58,7 @@ func _run() -> void:
 	var first: Node = (content.find_child("MetaAchievementBox", true, false) as GridContainer).get_child(0)
 	var widgets: Dictionary = content.get("_achievement_widgets")
 	var claim: Button = widgets["big_spender"]["button"] as Button
+	_check((widgets["big_spender"]["icon"] as TextureRect).custom_minimum_size == Vector2(104, 104), "achievement icons must be larger")
 	_check(not claim.disabled, "claimable reward is disabled")
 	var before_points: int = Game.get_meta_points()
 	claim.pressed.emit(); await get_tree().process_frame
@@ -56,6 +67,7 @@ func _run() -> void:
 	_check(not buy.disabled, "stat upgrade is disabled")
 	buy.pressed.emit(); await get_tree().process_frame
 	_check(int(Game.meta_progress["permanent_upgrade_levels"].get("max_hp", 0)) == 1, "stat upgrade did not persist")
+	_check((content.find_child("MetaSummaryBonuses", true, false) as Label).text.contains("5"), "pinned permanent bonus must refresh after purchase")
 	var tempo_icon: TextureRect = content.find_child("StarterIcon_tempo", true, false) as TextureRect
 	var tempo_frame: PanelContainer = content.find_child("StarterIconFrame_tempo", true, false) as PanelContainer
 	var tempo_texture: Texture2D = tempo_icon.texture

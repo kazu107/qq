@@ -1,9 +1,22 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.57.0",
+  "current_version": "QQ-0.57.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.57.1", "date": "2026-10-28",
+      "title_ja": "メタ進行の集計を上部へ移動し一覧を拡大",
+      "title_en": "Move Meta records above the list and enlarge progression cards",
+      "changes_ja": [
+        "記録・解放状況を上部の横長パネルにまとめ、一覧をスクロールしてもポイントや解放数を確認できるようにしました。狭い画面では集計欄と操作ボタンを折り返します。",
+        "左のサイドバーをなくして、実績・永続強化・キャラクター解放に画面の横幅を割り当てました。実績アイコンと見出し、強化カード、進捗バー、受け取りボタンも大きくしました。"
+      ],
+      "changes_en": [
+        "Place records and unlock counts in a full-width top panel that remains visible while the list scrolls. Wrap metrics and actions on narrow screens.",
+        "Reclaim the sidebar width for achievements, permanent upgrades and character unlocks. Enlarge achievement icons and headings, upgrade cards, progress bars and claim buttons."
+      ]
+    },
     {
       "version": "QQ-0.57.0", "date": "2026-10-28",
       "title_ja": "無限モード第2周以降の強化個体と敵専用カード",
