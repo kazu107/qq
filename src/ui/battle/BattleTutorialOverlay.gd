@@ -93,6 +93,7 @@ func _build_ui() -> void:
 	_callout.mouse_filter = Control.MOUSE_FILTER_STOP
 	_callout.add_theme_stylebox_override("panel", _make_callout_style())
 	add_child(_callout)
+	_callout.resized.connect(_layout_callout)
 
 	var margin := MarginContainer.new()
 	for edge: String in ["left", "right"]:
@@ -114,6 +115,7 @@ func _build_ui() -> void:
 	_title_label = Label.new()
 	_title_label.name = "TutorialCalloutTitle"
 	_title_label.add_theme_font_size_override("font_size", 24)
+	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_title_label.add_theme_color_override("font_color", Color(0.96, 0.99, 1.0, 1.0))
 	box.add_child(_title_label)
 
@@ -159,6 +161,10 @@ func _layout_callout() -> void:
 	if _callout == null or size.x <= 1.0 or size.y <= 1.0:
 		return
 	var callout_size: Vector2 = CALLOUT_SIZE
+	callout_size.x = minf(CALLOUT_SIZE.x, maxf(1.0, size.x - SCREEN_MARGIN * 2.0))
+	_callout.custom_minimum_size.x = callout_size.x
+	_callout.size.x = callout_size.x
+	callout_size.y = maxf(CALLOUT_SIZE.y, _callout.get_combined_minimum_size().y)
 	var focus_center: Vector2 = _target_rect.get_center() if _target_rect.size.length_squared() > 1.0 else size * 0.5
 	var x: float = clampf(focus_center.x - callout_size.x * 0.5, SCREEN_MARGIN, size.x - callout_size.x - SCREEN_MARGIN)
 	var y: float

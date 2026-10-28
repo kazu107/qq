@@ -19,7 +19,7 @@ func _run() -> void:
 	var tutorial_ids: Array[String] = []
 	for tutorial: Dictionary in BattleTutorialCatalog.get_all():
 		tutorial_ids.append(String(tutorial.get("id", "")))
-	_check(tutorial_ids.size() == 10, "Tutorial catalog should expose ten lessons")
+	_check(tutorial_ids.size() == 14, "Tutorial catalog should expose fourteen lessons")
 	_check(tutorial_ids == [
 		"battle_basics",
 		"slots_recast",
@@ -31,6 +31,7 @@ func _run() -> void:
 		"battle_growth",
 		"auto_queue",
 		"combat_exam",
+		"prepared_combos", "hostile_reservations", "regeneration", "damage_conversion",
 	], "Tutorial catalog order changed")
 	var catalog_scene: PackedScene = load("res://scenes/tutorial/BattleTutorial.tscn") as PackedScene
 	_check(catalog_scene != null, "Tutorial catalog scene is missing")
@@ -38,7 +39,7 @@ func _run() -> void:
 		var catalog: Node = catalog_scene.instantiate()
 		add_child(catalog)
 		await get_tree().process_frame
-		_check(int(catalog.call("get_tutorial_count")) == 10, "Tutorial catalog UI should expose ten lessons")
+		_check(int(catalog.call("get_tutorial_count")) == 14, "Tutorial catalog UI should expose fourteen lessons")
 		_check(catalog.find_child("TutorialList", true, false) != null, "Tutorial list is missing")
 		for tutorial_id: String in tutorial_ids:
 			_check(catalog.find_child("TutorialStart_%s" % tutorial_id, true, false) != null, "Tutorial start button is missing: %s" % tutorial_id)
@@ -50,7 +51,7 @@ func _run() -> void:
 
 	Game.clear_battle_tutorial()
 	if _failures.is_empty():
-		print("BATTLE_TUTORIAL_SMOKE_OK 10 lessons, regular battle stage, guided pause, real timeline")
+		print("BATTLE_TUTORIAL_SMOKE_OK 14 lessons, regular battle stage, guided pause, real timeline")
 		get_tree().quit(0)
 		return
 	for failure: String in _failures:

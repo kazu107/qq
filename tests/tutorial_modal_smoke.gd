@@ -45,8 +45,8 @@ func _run() -> void:
 	var list: GridContainer = content.find_child("TutorialList", true, false) as GridContainer
 	_check(dialog.visible and hub.visible and get_tree().current_scene == hub, "opening must keep the Hub scene")
 	_check(Game.current_screen_hint == "hub", "opening must preserve the resume hint")
-	_check(content.get("modal_mode") and int(content.call("get_tutorial_count")) == 10, "embedded catalog must show all ten lessons")
-	_check(list.get_child_count() == 10, "lesson controls missing")
+	_check(content.get("modal_mode") and int(content.call("get_tutorial_count")) == 14, "embedded catalog must show all fourteen lessons")
+	_check(list.get_child_count() == 14, "lesson controls missing")
 	_check(get_viewport().gui_get_focus_owner() == content.find_child("TutorialBackButton", true, false), "initial focus must be inside the window")
 	hub.call("_open_settings")
 	_check(hub.find_child("SettingsDialog", true, false) == null, "settings must not open behind the tutorial")

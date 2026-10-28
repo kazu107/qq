@@ -171,6 +171,15 @@ func _setup_tutorial_battle() -> void:
 	_local_run.loadout_limit = maxi(10, RunState.get_total_loadout_cost(card_ids))
 	var enemy_id: String = String(tutorial.get("enemy_id", "scout"))
 	_engine.setup(_local_run, enemy_id)
+	# Lesson fixtures stay on this private battle; never edit shared card/enemy data.
+	var training: Dictionary = Dictionary(tutorial.get("training", {}))
+	if training.has("player_hp"):
+		_engine.battle_state.player.hp = clampi(int(training["player_hp"]), 1, _engine.battle_state.player.max_hp)
+	if training.has("enemy_hp"):
+		_engine.battle_state.enemy.max_hp = maxi(1, int(training["enemy_hp"]))
+		_engine.battle_state.enemy.hp = _engine.battle_state.enemy.max_hp
+	if training.has("enemy_attack"):
+		_engine.battle_state.enemy.attack = maxi(0, int(training["enemy_attack"]))
 	_engine.set_enemy_ai_enabled(bool(tutorial.get("enemy_ai", false)))
 	_processed_vfx_event_count = 0
 	_configure_battle_stage()
@@ -227,6 +236,13 @@ func _get_tutorial_target_rect() -> Rect2:
 		return _world_target_rect(_player_panel.get_status_focus_global_position(), Vector2(230.0, 40.0))
 	if target_kind == "enemy_status" and _enemy_panel != null:
 		return _world_target_rect(_enemy_panel.global_position, Vector2(300.0, 150.0))
+	if target_kind == "enemy_status_row" and _enemy_panel != null:
+		return _world_target_rect(_enemy_panel.get_status_focus_global_position(), Vector2(230.0, 40.0))
+	if target_kind.begins_with("enemy_card:") and _enemy_cards_panel != null:
+		var card_id: String = target_kind.trim_prefix("enemy_card:")
+		for runtime: CardRuntimeState in _engine.battle_state.enemy.card_runtime_states:
+			if runtime.card_id == card_id and runtime.cooldown_remaining > 0.0:
+				return _control_target_rect(_enemy_cards_panel.get_button_for_runtime_id(runtime.runtime_id))
 	return Rect2()
 
 

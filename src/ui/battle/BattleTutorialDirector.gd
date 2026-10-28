@@ -40,6 +40,10 @@ func process(delta: float) -> void:
 	_step_elapsed += maxf(0.0, delta)
 	_scan_events()
 	_check_condition()
+	if AdvancedCardTutorials.IDS.has(_tutorial_id) and not _failed:
+		var step: Dictionary = _steps[_step_index]
+		if String(step.get("mode", "")) in ["wait_event", "wait_condition"] and _step_elapsed > float(step.get("timeout", 45.0)):
+			_show_failure(true)
 
 
 func is_time_paused() -> bool:
@@ -112,6 +116,7 @@ func _enter_step(index: int) -> void:
 	var mode: String = String(step.get("mode", "continue"))
 	_time_paused = mode in ["continue", "queue_card", "complete"]
 	_run_action(String(step.get("action", "")))
+	if _failed: return
 	_show_step(step)
 	presentation_changed.emit()
 
@@ -171,6 +176,16 @@ func _matches_event(event_data: Dictionary) -> bool:
 	var expected_card: String = String(step.get("event_card_id", ""))
 	if expected_card != "" and String(event_data.get("card_id", "")) != expected_card:
 		return false
+	var side: String = String(step.get("event_side", ""))
+	if side in ["player", "enemy"] and String(event_data.get("actor_id", "")) != _engine.battle_state.get_unit(side).unit_id:
+		return false
+	for field: String in Dictionary(step.get("result_minimums", {})):
+		var value: Variant = event_data.get("result", {})
+		for segment: String in field.split("."):
+			value = Dictionary(value).get(segment, 0) if value is Dictionary else 0
+		if float(value) < float(step["result_minimums"][field]): return false
+	for kind: String in ["hp", "shield"]:
+		if step.get(kind + "_direction", "") == "increase" and int(event_data.get(kind + "_delta", 0)) <= 0: return false
 	var result_flag: String = String(step.get("result_flag", ""))
 	if result_flag != "":
 		var result: Dictionary = Dictionary(event_data.get("result", {}))
@@ -239,6 +254,10 @@ func _condition_met(condition: String, step: Dictionary) -> bool:
 					return true
 		"wait_seconds":
 			return _step_elapsed >= float(step.get("seconds", 1.0))
+		"statuses_clear":
+			for status: String in Array(step.get("statuses", [])):
+				if state.player.has_status(status): return false
+			return true
 		"active_card_remaining":
 			var side: String = String(step.get("side", "player"))
 			var card_id: String = String(step.get("card_id", ""))
@@ -266,7 +285,8 @@ func _run_action(action: String) -> void:
 		_engine.start_battle()
 		return
 	if action.begins_with("queue_enemy:"):
-		_queue_card_for_side("enemy", action.trim_prefix("queue_enemy:"))
+		var queued: bool = _queue_card_for_side("enemy", action.trim_prefix("queue_enemy:"))
+		if not queued and AdvancedCardTutorials.IDS.has(_tutorial_id): _show_failure(true)
 
 
 func _queue_card_for_side(side: String, card_id: String) -> bool:
@@ -277,13 +297,13 @@ func _queue_card_for_side(side: String, card_id: String) -> bool:
 	return false
 
 
-func _show_failure() -> void:
+func _show_failure(script_failure: bool = false) -> void:
 	_failed = true
 	_time_paused = true
 	_overlay.show_step(
 		Localization.get_text("tutorial.exam.failed_progress", "PRACTICE"),
-		Localization.get_text("tutorial.exam.failed_title", "Exercise failed"),
-		Localization.get_text("tutorial.exam.failed_body", "Review the timeline and try the exercise again. Your normal run is not affected."),
+		Localization.get_text("tutorial.script.failed_title", "Restart this lesson") if script_failure else Localization.get_text("tutorial.exam.failed_title", "Exercise failed"),
+		Localization.get_text("tutorial.script.failed_body", "The expected effect could not be confirmed. Restart this isolated practice; your normal run is unchanged.") if script_failure else Localization.get_text("tutorial.exam.failed_body", "Review the timeline and try the exercise again. Your normal run is not affected."),
 		Rect2(),
 		Localization.get_text("tutorial.exam.retry", "Retry"),
 		"",
@@ -316,6 +336,7 @@ func _s(
 
 
 func _build_steps(tutorial_id: String) -> Array[Dictionary]:
+	if AdvancedCardTutorials.IDS.has(tutorial_id): return AdvancedCardTutorials.build_steps(tutorial_id)
 	match tutorial_id:
 		"battle_basics":
 			return _basic_steps()

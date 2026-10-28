@@ -166,11 +166,13 @@ const TUTORIALS: Array[Dictionary] = [
 
 
 static func get_all() -> Array[Dictionary]:
-	return TUTORIALS.duplicate(true)
+	var tutorials: Array[Dictionary] = TUTORIALS.duplicate(true)
+	tutorials.append_array(AdvancedCardTutorials.CATALOG.duplicate(true))
+	return tutorials
 
 
 static func get_tutorial(tutorial_id: String) -> Dictionary:
-	for tutorial: Dictionary in TUTORIALS:
+	for tutorial: Dictionary in get_all():
 		if String(tutorial.get("id", "")) == tutorial_id:
 			return tutorial.duplicate(true)
 	return {}

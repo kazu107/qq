@@ -38,7 +38,7 @@ try {
   let state = await command();
   const hub = state.screen_instance;
   state = await click(state, 'BattleTutorialButton');
-  assert(state.tutorial_modal.visible && state.tutorial_modal.count === 10);
+  assert(state.tutorial_modal.visible && state.tutorial_modal.count === 14);
   assert.equal(state.screen_instance, hub);
   assert.equal(state.tutorial_modal.hint, 'hub');
   const content = state.tutorial_modal.content_instance;

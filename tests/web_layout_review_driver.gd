@@ -414,6 +414,7 @@ func _command(arguments: Array) -> void:
 		battle.call("_refresh_ui", 1.0)
 	elif String(payload.get("action", "")) == "tutorial_start":
 		_tutorial_samples.clear()
+		if payload.has("language"): Game.set_language(String(payload["language"]))
 		SceneRouter.start_battle_tutorial(String(payload.get("tutorial", "battle_basics")))
 	elif String(payload.get("action", "")) == "tutorial_exit":
 		get_tree().current_scene.call("_exit_tutorial_to_list")
@@ -1055,6 +1056,29 @@ func _inspect() -> Dictionary:
 			result["tutorial"] = {"step": director.get_current_step_data(), "paused": director.is_time_paused(),
 				"focus": _rect_values(overlay.get("_target_rect") as Rect2), "dim": overlay.get("_dim_background"),
 				"sliding": timeline.has_pending_delay_animation(), "samples": _tutorial_samples.duplicate(true)}
+			var tutorial_engine: RealtimeBattleEngine = screen.get("_engine") as RealtimeBattleEngine
+			var tutorial_stage: BattleStage3D = screen.get("_battle_stage") as BattleStage3D
+			var tutorial_hand: CardHandPanel = screen.get("_card_hand_panel") as CardHandPanel
+			var lesson_cards: Array[Dictionary] = []
+			for runtime: CardRuntimeState in tutorial_engine.battle_state.player.card_runtime_states:
+				var button: CardButton = tutorial_hand.get_button_for_runtime_id(runtime.runtime_id)
+				if button != null and button.visible: lesson_cards.append({"id":runtime.card_id, "ready":runtime.can_use(), "rect":_rect_values(button.get_global_rect())})
+			result["tutorial"]["cards"] = lesson_cards
+			result["tutorial"]["state"] = BattleStateCodec.encode(tutorial_engine.battle_state, tutorial_engine.has_battle_started())
+			result["tutorial"]["failed"] = director.get("_failed")
+			var regions: Array[Dictionary] = []
+			for side: String in ["player", "enemy"]:
+				var plate: BattleUnitStatus3D = tutorial_stage.get_player_status_model() if side == "player" else tutorial_stage.get_enemy_status_model()
+				for region: Dictionary in plate.get_status_regions():
+					var min_point: Vector2 = Vector2(INF, INF)
+					var max_point: Vector2 = Vector2(-INF, -INF)
+					for point: Vector3 in region["corners"]:
+						var projected: Vector2 = tutorial_stage.global_position + tutorial_stage.project_world_position(point)
+						min_point = min_point.min(projected); max_point = max_point.max(projected)
+					regions.append({"side":side, "id":region["id"], "rect":_rect_values(Rect2(min_point,max_point-min_point))})
+			result["tutorial"]["status_regions"] = regions
+			var status_tip: Label = tutorial_stage.find_child("WorldStatusTooltipText", true, false) as Label
+			result["tutorial"]["status_tooltip"] = status_tip.text if status_tip != null and status_tip.is_visible_in_tree() else ""
 		var deck: CardHandPanel = screen.find_child("EquippedDeck", true, false) as CardHandPanel
 		if deck == null:
 			deck = screen.find_child("ArenaEquippedDeck", true, false) as CardHandPanel

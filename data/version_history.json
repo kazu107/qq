@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.58.0",
+  "current_version": "QQ-0.59.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.59.0", "date": "2026-10-29",
+      "title_ja": "新しいカードを体験する4つのチュートリアル",
+      "title_en": "Four hands-on tutorials for advanced cards",
+      "changes_ja": [
+        "予約と反響の連携、敵の次のカードへの妨害、リジェネの重ね掛け、ダメージの無効化と転換を学ぶ4レッスンを追加しました。チュートリアル一覧は全14件になりました。既存の戦闘画面で、操作待ち中は時間を止め、状態アイコンやタイムラインを吹き出しで案内します。",
+        "実際の効果が成立したことを確認してから進む構成です。攻撃を2回発動した実ダメージ、妨害あり／なしの同じ攻撃、リジェネ3層の定期回復と終了、転換が有効中に疲労でHPが減るところまで確認できます。練習用の体力や攻撃力は専用の戦闘内だけに設定し、通常の敵やセーブデータは変更しません。",
+        "長い説明でも吹き出しの高さを内容に合わせ、狭い画面では幅を調整します。必要な効果を確認できない場合は無限に待たず、やり直す案内を出します。カードの数値、通常モード・無限モードの戦闘ルール、ランキング準備中の状態は維持します。"
+      ],
+      "changes_en": [
+        "Add Prepared Card Combos, Disrupt the Next Card, Regeneration Layers and Damage Conversion, expanding the tutorial catalog to fourteen lessons. Reuse the regular battle screen, guided pauses and focused callouts.",
+        "Verify real effect outcomes before advancing: repeated damage, affected and unaffected enemy attacks, three regeneration layers and expiration, and fatigue damage during active conversion. Isolate training HP and attack values from normal enemies and saved progress.",
+        "Fit callouts to their content and narrow screens, and offer a retry instead of an endless wait if a required outcome cannot be confirmed. Preserve all card balance, Normal/Infinite gameplay rules and preparing ranking availability."
+      ]
+    },
     {
       "version": "QQ-0.58.0", "date": "2026-10-29",
       "title_ja": "地域とボスごとのBlender製フィールド",
