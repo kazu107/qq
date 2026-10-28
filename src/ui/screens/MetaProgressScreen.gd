@@ -441,6 +441,7 @@ func _refresh_ui() -> void:
 
 
 func _build_content_batched() -> void:
+	if not is_inside_tree(): return
 	await _rebuild_achievements(Game.get_meta_achievement_entries())
 	if not is_inside_tree():
 		return
@@ -467,6 +468,7 @@ func _rebuild_achievements(entries: Array[Dictionary]) -> void:
 	var built_count: int = 0
 	for entry in entries:
 		var achievement_id: String = String(entry.get("id", ""))
+		if not is_inside_tree(): return
 
 		var frame: PanelContainer = _create_entry_frame(_achievement_box, "MetaAchievementFrame_%s" % achievement_id)
 		frame.custom_minimum_size = Vector2(380.0, 180.0)
@@ -587,6 +589,7 @@ func _rebuild_starters(entries: Array[Dictionary]) -> void:
 	var built_count: int = 0
 	for entry in entries:
 		var starter_id: String = String(entry.get("id", ""))
+		if not is_inside_tree(): return
 
 		var row: HBoxContainer = _create_entry_row(
 			_starter_box,

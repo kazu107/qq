@@ -22,6 +22,8 @@ const BALANCE_LAB_SCENE := "res://scenes/debug/BalanceLab.tscn"
 const BATTLE_TUTORIAL_SCENE := "res://scenes/tutorial/BattleTutorial.tscn"
 const TRANSITION_COVER_NAME := "SceneTransitionCover"
 const GOLD_DELTA_POPUP_NAME := "GoldDeltaPopup"
+const UI_LANGUAGE_META := &"ui_language"
+const UI_EPOCH_META := &"ui_cache_epoch"
 
 var _transition_layer: CanvasLayer
 var _transition_cover: ColorRect
@@ -40,11 +42,40 @@ var _warming_battle_visuals: bool = false
 var _warmed_battle_visual_pairs: Dictionary = {}
 var _debug_return_scene_path: String = HUB_SCENE
 var _meta_dialog: MetaProgressDialog
+var _ui_cache_epoch: int = 0
+var _transition_revision: int = 0
 
 
 func _ready() -> void:
 	set_process(false)
 	Localization.language_changed.connect(_on_language_changed)
+	get_tree().node_added.connect(_tag_added_screen)
+
+
+func _tag_added_screen(node: Node) -> void:
+	if node is Control and node.get_parent() == get_tree().root and node.scene_file_path.begins_with("res://scenes/") and not node.has_meta(UI_LANGUAGE_META):
+		_tag_screen(node)
+
+
+func _tag_screen(screen: Node) -> void:
+	screen.set_meta(UI_LANGUAGE_META, Localization.get_language())
+	screen.set_meta(UI_EPOCH_META, _ui_cache_epoch)
+
+
+func mark_ui_localized(screen: Node) -> void:
+	_tag_screen(screen)
+
+
+func _screen_is_current(screen: Node) -> bool:
+	# Active screens and deferred warmups can outlive an invalidation; validate again on every reuse.
+	return is_instance_valid(screen) and not screen.is_queued_for_deletion() and screen.get_meta(UI_LANGUAGE_META, "") == Localization.get_language() and int(screen.get_meta(UI_EPOCH_META, -1)) == _ui_cache_epoch
+
+
+func _discard_ui_screen(screen: Control) -> void:
+	if not is_instance_valid(screen): return
+	screen.hide()
+	if screen.get_parent() != null: screen.get_parent().remove_child(screen)
+	screen.queue_free()
 
 
 func is_warming_ui_scene() -> bool:
@@ -52,11 +83,13 @@ func is_warming_ui_scene() -> bool:
 
 
 func warm_ui_scene_cache_async(progress_callback: Callable = Callable()) -> int:
+	var epoch: int = _ui_cache_epoch
 	var scene_paths: Array[String] = [META_SCENE]
 	if not Game.is_web_build():
 		scene_paths.append(CARD_LIBRARY_SCENE)
 	var warmed: int = 0
 	for scene_index: int in range(scene_paths.size()):
+		if epoch != _ui_cache_epoch: break
 		var scene_path: String = scene_paths[scene_index]
 		if progress_callback.is_valid():
 			progress_callback.call(
@@ -72,18 +105,19 @@ func warm_ui_scene_cache_async(progress_callback: Callable = Callable()) -> int:
 		if screen == null:
 			continue
 		screen.visible = false
+		_tag_screen(screen)
 		_warming_ui_scene = true
 		get_tree().root.add_child(screen)
 		_warming_ui_scene = false
 		var wait_frames: int = 0
-		while is_instance_valid(screen) and not bool(screen.call("is_content_ready")) and wait_frames < 300:
+		while _screen_is_current(screen) and not bool(screen.call("is_content_ready")) and wait_frames < 300:
 			await get_tree().process_frame
 			wait_frames += 1
-		if is_instance_valid(screen) and bool(screen.call("is_content_ready")):
+		if _screen_is_current(screen) and bool(screen.call("is_content_ready")):
 			_ui_scene_cache[scene_path] = screen
 			warmed += 1
-		elif is_instance_valid(screen):
-			screen.queue_free()
+		else:
+			_discard_ui_screen(screen)
 	if progress_callback.is_valid():
 		progress_callback.call(Localization.get_text("boot.caching_ui_screens", "Preparing menus..."), 0.985)
 	return warmed
@@ -97,15 +131,22 @@ func take_meta_progress_content() -> Control:
 	if _ui_scene_cache.has(META_SCENE):
 		var screen: Control = _ui_scene_cache[META_SCENE] as Control
 		_ui_scene_cache.erase(META_SCENE)
-		if is_instance_valid(screen):
+		if _screen_is_current(screen):
 			if screen.get_parent() != null: screen.get_parent().remove_child(screen)
 			return screen
-	return load(META_SCENE).instantiate() as Control
+		_discard_ui_screen(screen)
+	var screen: Control = load(META_SCENE).instantiate() as Control
+	_tag_screen(screen)
+	return screen
 
 
 func get_meta_progress_dialog() -> MetaProgressDialog:
+	if is_instance_valid(_meta_dialog) and not _screen_is_current(_meta_dialog):
+		_discard_ui_screen(_meta_dialog)
+		_meta_dialog = null
 	if not is_instance_valid(_meta_dialog):
 		_meta_dialog = MetaProgressDialog.new()
+		_tag_screen(_meta_dialog)
 		get_tree().root.add_child(_meta_dialog)
 	# Control input order follows tree order, not z_index. Keep the persistent overlay after the current scene.
 	get_tree().root.move_child(_meta_dialog, get_tree().root.get_child_count() - 1)
@@ -535,6 +576,8 @@ func show_gold_delta(amount: int) -> void:
 
 func _change_scene(scene_path: String) -> void:
 	if is_instance_valid(_meta_dialog): _meta_dialog.close()
+	_transition_revision += 1
+	var revision: int = _transition_revision
 	var transition_started_us: int = Time.get_ticks_usec()
 	AudioManager.play_sfx("ui_page")
 	_show_transition_cover()
@@ -559,6 +602,10 @@ func _change_scene(scene_path: String) -> void:
 		schedule_current_battle_cards()
 	if not _profile_reset_pending: _cache_current_ui_scene(current_scene)
 	_profile_reset_pending = false
+	if _ui_scene_cache.has(scene_path) and not _screen_is_current(_ui_scene_cache[scene_path]):
+		var stale: Control = _ui_scene_cache[scene_path] as Control
+		_ui_scene_cache.erase(scene_path)
+		_discard_ui_screen(stale)
 	if _ui_scene_cache.has(scene_path):
 		if current_scene != null and current_scene.get_parent() == get_tree().root \
 		and _ui_scene_cache.get(current_scene.scene_file_path) != current_scene:
@@ -568,9 +615,9 @@ func _change_scene(scene_path: String) -> void:
 		var screen: Control = _ui_scene_cache[scene_path] as Control
 		_ui_scene_cache.erase(scene_path)
 		get_tree().current_scene = screen
-		screen.visible = true
 		screen.call("on_reenter")
-		call_deferred("_release_transition_cover", scene_path, transition_started_us)
+		screen.visible = true
+		call_deferred("_release_transition_cover", scene_path, transition_started_us, revision)
 		return
 	var packed_scene: PackedScene = _get_preloaded_scene(scene_path)
 	var swap_started_us: int = Time.get_ticks_usec()
@@ -580,7 +627,7 @@ func _change_scene(scene_path: String) -> void:
 		get_tree().change_scene_to_file(scene_path)
 	if scene_path == BATTLE_SCENE:
 		WebLoadMetrics.record("battle_scene_swap_request", (Time.get_ticks_usec() - swap_started_us) / 1000.0)
-	call_deferred("_release_transition_cover", scene_path, transition_started_us)
+	call_deferred("_release_transition_cover", scene_path, transition_started_us, revision)
 
 
 func _cache_current_ui_scene(current_scene: CanvasItem) -> void:
@@ -589,6 +636,7 @@ func _cache_current_ui_scene(current_scene: CanvasItem) -> void:
 	var scene_path: String = current_scene.scene_file_path
 	if scene_path != META_SCENE and scene_path != CARD_LIBRARY_SCENE:
 		return
+	if not _screen_is_current(current_scene): return
 	if not current_scene.has_method("is_content_ready") or not bool(current_scene.call("is_content_ready")):
 		return
 	if _ui_scene_cache.has(scene_path):
@@ -598,13 +646,13 @@ func _cache_current_ui_scene(current_scene: CanvasItem) -> void:
 
 
 func _on_language_changed(_language_code: String) -> void:
+	_ui_cache_epoch += 1
 	if is_instance_valid(_meta_dialog):
 		_meta_dialog.hide()
 		_meta_dialog.queue_free()
 		_meta_dialog = null
 	for cached_screen: Control in _ui_scene_cache.values():
-		if is_instance_valid(cached_screen):
-			cached_screen.queue_free()
+		_discard_ui_screen(cached_screen)
 	_ui_scene_cache.clear()
 
 
@@ -634,9 +682,15 @@ func _show_transition_cover() -> void:
 	_transition_cover.visible = true
 
 
-func _release_transition_cover(scene_path: String = "", started_us: int = 0) -> void:
+func _release_transition_cover(scene_path: String = "", started_us: int = 0, revision: int = -1) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
+	if revision != _transition_revision: return
+	var screen: Node = get_tree().current_scene
+	if screen == null or screen.scene_file_path != scene_path: return
+	if screen.has_meta(UI_LANGUAGE_META) and not _screen_is_current(screen):
+		_change_scene(scene_path)
+		return
 	if _transition_cover != null:
 		_transition_cover.visible = false
 	if scene_path == HUB_SCENE:

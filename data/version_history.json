@@ -1,9 +1,22 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.56.4",
+  "current_version": "QQ-0.56.5",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.56.5", "date": "2026-10-28",
+      "title_ja": "言語切り替え後の旧言語の一瞬表示を修正",
+      "title_en": "Prevent old-language flashes after switching languages",
+      "changes_ja": [
+        "画面キャッシュを作成時の言語・世代で検証し、言語切り替え前の画面や遅れて完了した読み込みを再利用しないようにしました。前の画面遷移の完了処理が、新しい画面の暗幕を早く外すことも防ぎます。",
+        "アカウント・ランキングは選択した言語の読み込みが完了するまで旧ページを表示しません。同じ言語での開き直しはキャッシュを維持し、Web側の言語設定と読み込み表示、再利用する3D戦況看板の見出しも更新します。"
+      ],
+      "changes_en": [
+        "Validate cached screens by language and cache generation; reject stale active screens and delayed warmup results. Prevent an earlier transition from revealing a newer screen prematurely.",
+        "Hide account and ranking pages until the selected language has loaded. Retain same-language cached pages, synchronize the browser language and localize loading messages and reused 3D battle-sign headings."
+      ]
+    },
     {
       "version": "QQ-0.56.4", "date": "2026-10-28",
       "title_ja": "ホイールスクロールを滑らかに変更",

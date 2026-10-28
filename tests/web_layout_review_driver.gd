@@ -12,6 +12,9 @@ var _wheel_bar: ScrollBar
 var _wheel_owner: Control
 var _wheel_started: int = -1
 var _wheel_samples: Array[Dictionary] = []
+var _record_localization: bool = false
+var _locale_frames: Array[Dictionary] = []
+var _locale_last_states: Dictionary = {}
 
 
 func _ready() -> void:
@@ -19,6 +22,7 @@ func _ready() -> void:
 	_window = JavaScriptBridge.get_interface("window")
 	_bridge = JavaScriptBridge.create_callback(_command)
 	_window.qqLayoutCommand = _bridge
+	RenderingServer.frame_pre_draw.connect(_sample_locale_frame)
 	call_deferred("_start_boot")
 
 
@@ -74,6 +78,11 @@ func _command(arguments: Array) -> void:
 		_wheel_bar = _wheel_owner.call("get_h_scroll_bar" if payload.get("horizontal", false) else "get_v_scroll_bar") as ScrollBar
 		_wheel_started = Time.get_ticks_msec()
 		_wheel_samples.clear()
+	elif String(payload.get("action", "")) == "locale_watch":
+		_record_localization = bool(payload.get("enabled", true))
+		if _record_localization:
+			_locale_frames.clear()
+			_locale_last_states.clear()
 	elif String(payload.get("action", "")) == "wheel_fixture_focus":
 		var screen: Control = get_tree().current_scene as Control
 		var target: Control = screen.find_child(String(payload["name"]), true, false) as Control
@@ -538,6 +547,39 @@ func _open_later_event(mode: String) -> void:
 		Game.apply_loaded_save(SaveData.from_dict(Game.build_save_data("facility").to_dict()))
 		if mode == "event_fallback": Database.events.clear()
 	SceneRouter.go_to_facility()
+
+
+func _visible_locale_titles(node: Node) -> Array[String]:
+	var titles: Array[String] = []
+	if node is CanvasItem and not (node as CanvasItem).is_visible_in_tree(): return titles
+	if node is Control and (node as Control).get_viewport() != get_viewport(): return titles
+	if node is Label:
+		var label: Label = node as Label
+		if label.theme_type_variation == "PageTitle" or label.name == "RunSetupTitle": titles.append(label.text)
+	for child: Node in node.get_children(): titles.append_array(_visible_locale_titles(child))
+	return titles
+
+
+func _sample_locale_frame() -> void:
+	if not _record_localization: return
+	var changed: bool = false
+	var cover: Control = SceneRouter.get("_transition_cover") as Control
+	for node: Node in get_tree().root.get_children():
+		if node is not Control or not (node as Control).is_visible_in_tree(): continue
+		if not node.scene_file_path.begins_with("res://scenes/") and not node is MetaProgressDialog: continue
+		var scope: Node = node
+		if node.scene_file_path == SceneRouter.HUB_SCENE:
+			var settings: Control = node.find_child("SettingsDialog", true, false) as Control
+			if settings != null and settings.visible: scope = settings.get("_content") as Control
+		var sample: Dictionary = {"scene": node.scene_file_path.get_file(), "language": Localization.get_language(), "covered": cover != null and cover.visible,
+			"valid": SceneRouter.call("_screen_is_current", scope), "titles": _visible_locale_titles(scope)}
+		var key: String = "%d:%d" % [node.get_instance_id(), scope.get_instance_id()]
+		var serialized: String = JSON.stringify(sample)
+		if _locale_last_states.get(key, "") != serialized:
+			_locale_last_states[key] = serialized
+			_locale_frames.append(sample)
+			changed = true
+	if changed: _window.qqLocaleFrames = JSON.stringify(_locale_frames)
 
 
 func _find_wheel_scroll(node: Node) -> ScrollContainer:

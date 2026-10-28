@@ -32,6 +32,7 @@ func refresh_content(
 	transient_text: String,
 	transient_visible: bool
 ) -> void:
+	refresh_language()
 	_info_label.text = info_text
 	_fatigue_label.text = fatigue_text
 	_ready_label.text = ready_text
@@ -43,6 +44,10 @@ func refresh_content(
 	var compact_mode: bool = ready_visible or countdown_visible or transient_visible
 	_info_label.position.y = -0.08 if compact_mode else -0.02
 	_fatigue_label.position.y = -0.72
+
+
+func refresh_language() -> void:
+	if _title_label != null: _title_label.text = Localization.get_text("battle.section.battle", "Battle")
 
 
 func get_button_anchor_world_position() -> Vector3:

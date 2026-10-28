@@ -268,6 +268,7 @@ func _refresh_ui() -> void:
 
 
 func _rebuild_card_rows(reset: bool = true, requested_generation: int = -1) -> void:
+	if not is_inside_tree(): return
 	var page_started_us: int = Time.get_ticks_usec()
 	var generation: int = _build_generation
 	if requested_generation >= 0 and requested_generation != generation:

@@ -162,7 +162,7 @@ func _queue_rebuild() -> void:
 
 
 func _build_page(generation: int) -> void:
-	if generation != _generation: return
+	if generation != _generation or not is_inside_tree(): return
 	var count: int = 0
 	while _next_index < _filtered_entries.size() and count < PAGE_SIZE:
 		var entry: Dictionary = _filtered_entries[_next_index]

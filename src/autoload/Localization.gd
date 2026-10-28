@@ -13,6 +13,7 @@ const LANGUAGE_LABELS := {
 
 var _current_language: String = DEFAULT_LANGUAGE
 var _translations_by_language: Dictionary = {}
+var _web_language: String = ""
 
 
 func _ready() -> void:
@@ -49,6 +50,9 @@ func set_language(language_code: String, emit_signal: bool = true) -> bool:
 	var normalized_code: String = normalize_language_code(language_code)
 	var changed: bool = normalized_code != _current_language
 	_current_language = normalized_code
+	if OS.has_feature("web") and _web_language != normalized_code:
+		_web_language = normalized_code
+		JavaScriptBridge.eval("document.documentElement.lang=%s;" % JSON.stringify(normalized_code), true)
 	if changed and emit_signal:
 		language_changed.emit(_current_language)
 	return changed

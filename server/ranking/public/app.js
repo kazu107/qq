@@ -5,6 +5,7 @@
   const t = (ja,en) => language === 'ja' ? ja : en;
   document.documentElement.lang=language;
   document.title='QueueQuest | '+t('無限ランキング','Infinite Rankings');
+  el('notice').textContent=t('読み込み中...','Loading...');
   const embedded = window.parent !== window;
   if (embedded) {
     document.body.classList.add('embedded');

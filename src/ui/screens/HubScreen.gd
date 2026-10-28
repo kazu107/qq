@@ -169,6 +169,7 @@ func _build_ui() -> void:
 		_build_developer_panel()
 		call_deferred("_warm_debug_card_pickers")
 	_refresh_account_button()
+	SceneRouter.mark_ui_localized(self)
 
 
 func _build_ranking_actions(parent: Control) -> void:

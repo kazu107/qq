@@ -62,6 +62,7 @@ func _rebuild_ui() -> void:
 	if Game.is_developer_mode_enabled() and not modal_mode:
 		_build_developer_panel()
 	if modal_mode: call_deferred("_update_modal_layout")
+	SceneRouter.mark_ui_localized(self)
 
 
 func _build_ui() -> void:

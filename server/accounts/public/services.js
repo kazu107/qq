@@ -1,20 +1,21 @@
 "use strict";
 (() => {
   const writer = crypto.randomUUID();
-  let overlay, panel, title, close, previousFocus, current, listener;
+  let overlay, panel, title, close, loading, previousFocus, current, listener;
   const frames = new Map();
   const snapshot = { state: "starting", blocked: false };
   function initialize() {
     if (overlay) return;
     const style = document.createElement("style");
-    style.textContent = `#qq-services{position:fixed;inset:0;z-index:100000;background:#020910bd;backdrop-filter:blur(7px);display:grid;place-items:center;padding:16px;color:#edf2ef;font:16px "Yu Gothic UI",sans-serif}#qq-services[hidden]{display:none}#qq-service-panel{width:min(1180px,100%);height:min(900px,94dvh);display:flex;flex-direction:column;background:#0c1721;border:1px solid #537084;border-top:3px solid #f1c76d;border-radius:16px;box-shadow:0 24px 100px #000a;overflow:hidden}#qq-service-header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid #344c5c}#qq-service-header strong{flex:1}#qq-service-close{border:1px solid #577080;border-radius:9px;background:#182b37;color:#f0f4f0;min-width:44px;height:38px;cursor:pointer;font-size:22px}#qq-service-close:disabled{opacity:.35;cursor:wait}#qq-service-panel iframe{width:100%;flex:1;border:0;min-height:0;background:#061019}#qq-service-panel iframe[hidden]{display:none}@media(max-width:600px){#qq-services{padding:5px}#qq-service-panel{height:98dvh;border-radius:10px}}`;
+    style.textContent = `#qq-services{position:fixed;inset:0;z-index:100000;background:#020910bd;backdrop-filter:blur(7px);display:grid;place-items:center;padding:16px;color:#edf2ef;font:16px "Yu Gothic UI",sans-serif}#qq-services[hidden]{display:none}#qq-service-panel{width:min(1180px,100%);height:min(900px,94dvh);display:flex;flex-direction:column;background:#0c1721;border:1px solid #537084;border-top:3px solid #f1c76d;border-radius:16px;box-shadow:0 24px 100px #000a;overflow:hidden}#qq-service-header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid #344c5c}#qq-service-header strong{flex:1}#qq-service-close{border:1px solid #577080;border-radius:9px;background:#182b37;color:#f0f4f0;min-width:44px;height:38px;cursor:pointer;font-size:22px}#qq-service-close:disabled{opacity:.35;cursor:wait}#qq-service-panel iframe{width:100%;flex:1;border:0;min-height:0;background:#061019}#qq-service-panel iframe[hidden],#qq-service-loading[hidden]{display:none}#qq-service-loading{flex:1;display:grid;place-items:center;color:#a9bbc4}@media(max-width:600px){#qq-services{padding:5px}#qq-service-panel{height:98dvh;border-radius:10px}}`;
     document.head.append(style);
     overlay = document.createElement("div"); overlay.id = "qq-services"; overlay.hidden = true;
     panel = document.createElement("section"); panel.id = "qq-service-panel"; panel.role = "dialog"; panel.setAttribute("aria-modal", "true"); panel.setAttribute("aria-labelledby", "qq-service-title");
     const header = document.createElement("div"); header.id = "qq-service-header";
     title = document.createElement("strong"); title.id = "qq-service-title";
     close = document.createElement("button"); close.id = "qq-service-close"; close.textContent = "\u00d7"; close.addEventListener("click", hide);
-    header.append(title, close); panel.append(header); overlay.append(panel); document.body.append(overlay);
+    loading = document.createElement("div"); loading.id = "qq-service-loading"; loading.role = "status";
+    header.append(title, close); panel.append(header, loading); overlay.append(panel); document.body.append(overlay);
     overlay.addEventListener("click", event => { if (event.target === overlay) hide(); });
     document.addEventListener("keydown", event => {
       if (overlay.hidden) return;
@@ -26,21 +27,42 @@
     if (snapshot.blocked || !overlay) return;
     overlay.hidden = true; previousFocus?.focus(); window.qqAccount?.refresh();
   }
+  function updateVisibleFrame() {
+    const selected = frames.get(current), waiting = selected?.dataset.ready !== "1";
+    for (const [kind, frame] of frames) frame.hidden = kind !== current || frame.dataset.ready !== "1";
+    loading.hidden = !waiting;
+    panel.setAttribute("aria-busy", String(waiting));
+  }
   function open(kind, language = "ja") {
     initialize();
     if (!["account", "rankings"].includes(kind)) return false;
     if (snapshot.blocked) kind = "account";
     current = kind;
     const english = language === "en";
+    language = english ? "en" : "ja";
     title.textContent = kind === "account" ? (english ? "Account & Cloud Save" : "アカウント・クラウド保存") : (english ? "Infinite Rankings" : "無限ランキング");
     close.setAttribute("aria-label", english ? "Return to game" : "ゲームに戻る"); close.disabled = snapshot.blocked;
+    loading.textContent = english ? "Loading..." : "読み込み中...";
     const url = `/${kind}?lang=${english ? "en" : "ja"}&embedded=1`;
     if (!frames.has(kind)) {
-      const frame = document.createElement("iframe"); frame.title = title.textContent; frame.src = url; frame.dataset.language = language;
-      frame.addEventListener("load", () => frame.contentWindow.postMessage({ type: "qq-cloud-state", data: snapshot }, location.origin));
+      const frame = document.createElement("iframe"); frame.title = title.textContent; frame.hidden = true; frame.dataset.ready = "0"; frame.src = url; frame.dataset.language = language;
+      frame.addEventListener("load", () => {
+        if (frames.get(kind) !== frame) return;
+        try {
+          const loaded = new URL(frame.contentWindow.location.href);
+          if (loaded.origin !== location.origin || loaded.searchParams.get("lang") !== frame.dataset.language || frame.contentDocument.documentElement.lang !== frame.dataset.language) return;
+        } catch { return; }
+        frame.dataset.ready = "1";
+        frame.contentWindow.postMessage({ type: "qq-cloud-state", data: snapshot }, location.origin);
+        updateVisibleFrame();
+      });
       frames.set(kind, frame); panel.append(frame);
-    } else if (frames.get(kind).dataset.language !== language) { frames.get(kind).src = url; frames.get(kind).dataset.language = language; }
-    for (const [key, frame] of frames) { frame.hidden = key !== kind; if (key === kind) frame.contentWindow?.postMessage({ type: "qq-service-refresh" }, location.origin); }
+    } else if (frames.get(kind).dataset.language !== language) {
+      const frame = frames.get(kind);
+      frame.hidden = true; frame.dataset.ready = "0"; frame.dataset.language = language; frame.title = title.textContent; frame.src = url;
+    }
+    updateVisibleFrame();
+    if (frames.get(kind).dataset.ready === "1") frames.get(kind).contentWindow?.postMessage({ type: "qq-service-refresh" }, location.origin);
     if (overlay.hidden) previousFocus = document.activeElement;
     overlay.hidden = false; close.focus(); return true;
   }

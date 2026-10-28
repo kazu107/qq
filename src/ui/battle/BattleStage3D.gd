@@ -110,6 +110,7 @@ func suspend_for_cache() -> void:
 
 
 func resume_from_cache() -> void:
+	if _battle_info_sign != null: _battle_info_sign.refresh_language()
 	visible = true
 	process_mode = Node.PROCESS_MODE_INHERIT
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
