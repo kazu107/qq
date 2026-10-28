@@ -153,7 +153,7 @@ func _build_ui() -> void:
 	inventory_scroll.name = "LoadoutInventoryScroll"
 	inventory_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inventory_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	loadout_panel.add_child(inventory_scroll)
 
 	_inventory_box = LoadoutInventoryGrid.new()

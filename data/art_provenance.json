@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "updated_at": "2026-10-26",
+  "updated_at": "2026-10-28",
   "batch_id": "blender_vertical_slice_01",
   "author": "QQ project",
   "tool": "Blender (per-batch version recorded in manifests)",
@@ -8699,6 +8699,222 @@
       "author": "QQ project",
       "license": "project-original",
       "third_party_inputs": []
+    },
+    {
+      "asset_id": "control_scrollbar_v_track",
+      "category": "control",
+      "visual_id": "scrollbar_v_track",
+      "runtime_path": "assets/icons/controls/scrollbar_v_track.png",
+      "source_collection": "scrollbar_v_track",
+      "size": [
+        24,
+        160
+      ],
+      "presentation": "transparent_orthographic_3d_nine_slice",
+      "export_sha256": "8a444c28d4e14213a0b8f8113f942226d02414ac573664e542c1d28daeb5ad47",
+      "generator": "tools/blender/build_scrollbar_skin.py",
+      "source_path": "art_src/blender/ui/qq_scrollbars.blend",
+      "source_sha256": "3f233f0bf007a27e125c157e0dcb807535081a309c7d3f10a985ec97cca00810",
+      "generator_sha256": {
+        "tools/blender/build_scrollbar_skin.py": "85a0aab247eba7ecf6b4db1aad1a14c5719692571b2cb067c48bb6bbadb50550",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_scrollbars.manifest.json",
+      "batch_id": "blender_scrollbars_13",
+      "replacement_status": "approved",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": [],
+      "tool": "Blender 5.2.2 LTS"
+    },
+    {
+      "asset_id": "control_scrollbar_v_grabber",
+      "category": "control",
+      "visual_id": "scrollbar_v_grabber",
+      "runtime_path": "assets/icons/controls/scrollbar_v_grabber.png",
+      "source_collection": "scrollbar_v_grabber",
+      "size": [
+        24,
+        160
+      ],
+      "presentation": "transparent_orthographic_3d_nine_slice",
+      "export_sha256": "c6fd1edca5fdb18e6fb815afa8206595da26c9bf51b97b535ed3ec36df6431e7",
+      "generator": "tools/blender/build_scrollbar_skin.py",
+      "source_path": "art_src/blender/ui/qq_scrollbars.blend",
+      "source_sha256": "3f233f0bf007a27e125c157e0dcb807535081a309c7d3f10a985ec97cca00810",
+      "generator_sha256": {
+        "tools/blender/build_scrollbar_skin.py": "85a0aab247eba7ecf6b4db1aad1a14c5719692571b2cb067c48bb6bbadb50550",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_scrollbars.manifest.json",
+      "batch_id": "blender_scrollbars_13",
+      "replacement_status": "approved",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": [],
+      "tool": "Blender 5.2.2 LTS"
+    },
+    {
+      "asset_id": "control_scrollbar_v_highlight",
+      "category": "control",
+      "visual_id": "scrollbar_v_highlight",
+      "runtime_path": "assets/icons/controls/scrollbar_v_highlight.png",
+      "source_collection": "scrollbar_v_highlight",
+      "size": [
+        24,
+        160
+      ],
+      "presentation": "transparent_orthographic_3d_nine_slice",
+      "export_sha256": "ee52a55769082dada3751fbc50e5cc109f7365bd51f7fc317718a5f08923596f",
+      "generator": "tools/blender/build_scrollbar_skin.py",
+      "source_path": "art_src/blender/ui/qq_scrollbars.blend",
+      "source_sha256": "3f233f0bf007a27e125c157e0dcb807535081a309c7d3f10a985ec97cca00810",
+      "generator_sha256": {
+        "tools/blender/build_scrollbar_skin.py": "85a0aab247eba7ecf6b4db1aad1a14c5719692571b2cb067c48bb6bbadb50550",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_scrollbars.manifest.json",
+      "batch_id": "blender_scrollbars_13",
+      "replacement_status": "approved",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": [],
+      "tool": "Blender 5.2.2 LTS"
+    },
+    {
+      "asset_id": "control_scrollbar_v_pressed",
+      "category": "control",
+      "visual_id": "scrollbar_v_pressed",
+      "runtime_path": "assets/icons/controls/scrollbar_v_pressed.png",
+      "source_collection": "scrollbar_v_pressed",
+      "size": [
+        24,
+        160
+      ],
+      "presentation": "transparent_orthographic_3d_nine_slice",
+      "export_sha256": "d27dd004ae6754b9e2f3d11596ba1686b3a64cf781f8f38636b90decd3b9674f",
+      "generator": "tools/blender/build_scrollbar_skin.py",
+      "source_path": "art_src/blender/ui/qq_scrollbars.blend",
+      "source_sha256": "3f233f0bf007a27e125c157e0dcb807535081a309c7d3f10a985ec97cca00810",
+      "generator_sha256": {
+        "tools/blender/build_scrollbar_skin.py": "85a0aab247eba7ecf6b4db1aad1a14c5719692571b2cb067c48bb6bbadb50550",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_scrollbars.manifest.json",
+      "batch_id": "blender_scrollbars_13",
+      "replacement_status": "approved",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": [],
+      "tool": "Blender 5.2.2 LTS"
+    },
+    {
+      "asset_id": "control_scrollbar_h_track",
+      "category": "control",
+      "visual_id": "scrollbar_h_track",
+      "runtime_path": "assets/icons/controls/scrollbar_h_track.png",
+      "source_collection": "scrollbar_h_track",
+      "size": [
+        160,
+        24
+      ],
+      "presentation": "transparent_orthographic_3d_nine_slice",
+      "export_sha256": "10e042a731270d339598513d90fb6f0179fd4c063b927cdcf1a89abc534a9697",
+      "generator": "tools/blender/build_scrollbar_skin.py",
+      "source_path": "art_src/blender/ui/qq_scrollbars.blend",
+      "source_sha256": "3f233f0bf007a27e125c157e0dcb807535081a309c7d3f10a985ec97cca00810",
+      "generator_sha256": {
+        "tools/blender/build_scrollbar_skin.py": "85a0aab247eba7ecf6b4db1aad1a14c5719692571b2cb067c48bb6bbadb50550",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_scrollbars.manifest.json",
+      "batch_id": "blender_scrollbars_13",
+      "replacement_status": "approved",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": [],
+      "tool": "Blender 5.2.2 LTS"
+    },
+    {
+      "asset_id": "control_scrollbar_h_grabber",
+      "category": "control",
+      "visual_id": "scrollbar_h_grabber",
+      "runtime_path": "assets/icons/controls/scrollbar_h_grabber.png",
+      "source_collection": "scrollbar_h_grabber",
+      "size": [
+        160,
+        24
+      ],
+      "presentation": "transparent_orthographic_3d_nine_slice",
+      "export_sha256": "8a20e01494146605f750b1da55867529e5bbb39cc62eb512823785322f3d12aa",
+      "generator": "tools/blender/build_scrollbar_skin.py",
+      "source_path": "art_src/blender/ui/qq_scrollbars.blend",
+      "source_sha256": "3f233f0bf007a27e125c157e0dcb807535081a309c7d3f10a985ec97cca00810",
+      "generator_sha256": {
+        "tools/blender/build_scrollbar_skin.py": "85a0aab247eba7ecf6b4db1aad1a14c5719692571b2cb067c48bb6bbadb50550",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_scrollbars.manifest.json",
+      "batch_id": "blender_scrollbars_13",
+      "replacement_status": "approved",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": [],
+      "tool": "Blender 5.2.2 LTS"
+    },
+    {
+      "asset_id": "control_scrollbar_h_highlight",
+      "category": "control",
+      "visual_id": "scrollbar_h_highlight",
+      "runtime_path": "assets/icons/controls/scrollbar_h_highlight.png",
+      "source_collection": "scrollbar_h_highlight",
+      "size": [
+        160,
+        24
+      ],
+      "presentation": "transparent_orthographic_3d_nine_slice",
+      "export_sha256": "02c118d6a538cb7a7325dc2102629ccca04100ce059e527cad001610f079bd0c",
+      "generator": "tools/blender/build_scrollbar_skin.py",
+      "source_path": "art_src/blender/ui/qq_scrollbars.blend",
+      "source_sha256": "3f233f0bf007a27e125c157e0dcb807535081a309c7d3f10a985ec97cca00810",
+      "generator_sha256": {
+        "tools/blender/build_scrollbar_skin.py": "85a0aab247eba7ecf6b4db1aad1a14c5719692571b2cb067c48bb6bbadb50550",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_scrollbars.manifest.json",
+      "batch_id": "blender_scrollbars_13",
+      "replacement_status": "approved",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": [],
+      "tool": "Blender 5.2.2 LTS"
+    },
+    {
+      "asset_id": "control_scrollbar_h_pressed",
+      "category": "control",
+      "visual_id": "scrollbar_h_pressed",
+      "runtime_path": "assets/icons/controls/scrollbar_h_pressed.png",
+      "source_collection": "scrollbar_h_pressed",
+      "size": [
+        160,
+        24
+      ],
+      "presentation": "transparent_orthographic_3d_nine_slice",
+      "export_sha256": "2191d1b9be2a6d85e13582d3b5b33ee8bf1ac1f8657abb7b41b221360ceca9fb",
+      "generator": "tools/blender/build_scrollbar_skin.py",
+      "source_path": "art_src/blender/ui/qq_scrollbars.blend",
+      "source_sha256": "3f233f0bf007a27e125c157e0dcb807535081a309c7d3f10a985ec97cca00810",
+      "generator_sha256": {
+        "tools/blender/build_scrollbar_skin.py": "85a0aab247eba7ecf6b4db1aad1a14c5719692571b2cb067c48bb6bbadb50550",
+        "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
+      },
+      "manifest_path": "art_src/blender/ui/qq_scrollbars.manifest.json",
+      "batch_id": "blender_scrollbars_13",
+      "replacement_status": "approved",
+      "author": "QQ project",
+      "license": "project-original",
+      "third_party_inputs": [],
+      "tool": "Blender 5.2.2 LTS"
     }
   ],
   "batch_ids": [
@@ -8716,6 +8932,7 @@
     "blender_echo_card_09",
     "blender_reservations_10",
     "blender_regeneration_11",
-    "blender_conversion_12"
+    "blender_conversion_12",
+    "blender_scrollbars_13"
   ]
 }

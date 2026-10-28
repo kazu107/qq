@@ -24,6 +24,12 @@ const FILES = new Map([
   ["/account/GoogleSans-Medium.ttf", ["GoogleSans-Medium.ttf", "font/ttf"]],
   ["/account/GoogleSans-OFL.txt", ["GoogleSans-OFL.txt", "text/plain; charset=utf-8"]],
 ]);
+for (const orientation of ["v", "h"]) {
+  for (const state of ["track", "grabber", "highlight", "pressed"]) {
+    const file = `scrollbar_${orientation}_${state}.png`;
+    FILES.set(`/account/scrollbars/${file}`, [`scrollbars/${file}`, "image/png"]);
+  }
+}
 
 function hash(value) { return createHash("sha256").update(value).digest("hex"); }
 function token() { return randomBytes(32).toString("base64url"); }

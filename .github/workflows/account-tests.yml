@@ -119,6 +119,10 @@ jobs:
           cat build/smooth-wheel.log
           grep -q SMOOTH_WHEEL_SMOKE_OK build/smooth-wheel.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/smooth-wheel.log; then exit 1; fi
+          godot --headless --path . res://tests/ScrollBarSkinSmoke.tscn --quit-after 1200 > build/scrollbar-skin.log 2>&1
+          cat build/scrollbar-skin.log
+          grep -q SCROLL_BAR_SKIN_SMOKE_OK build/scrollbar-skin.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/scrollbar-skin.log; then exit 1; fi
           godot --headless --path . res://tests/LanguageTransitionSmoke.tscn --quit-after 2400 > build/language-transition.log 2>&1
           cat build/language-transition.log
           grep -q LANGUAGE_TRANSITION_SMOKE_OK build/language-transition.log

@@ -4,6 +4,7 @@ const BACKGROUND_SCRIPT: GDScript = preload("res://src/ui/common/AtmosphereBackg
 const GAME_FONT: FontFile = preload("res://assets/fonts/NotoSansJP-GameSubset.ttf")
 const BACKGROUND_NODE_NAME: String = "GameAtmosphereBackground"
 const AUTHORED_CONTROL_PATH_TEMPLATE: String = "res://assets/icons/controls/%s.png"
+const SCROLL_BAR_WIDTH: float = 14.0
 
 const TEXT_MAIN: Color = Color(0.93, 0.95, 0.94, 1.0)
 const TEXT_MUTED: Color = Color(0.66, 0.72, 0.74, 1.0)
@@ -37,6 +38,14 @@ func _on_control_added(node: Node) -> void:
 		call_deferred("_decorate_action", node)
 	if node is ScrollContainer or node is RichTextLabel or node is TextEdit or node is ItemList or node is ScrollBar:
 		call_deferred("_prepare_smooth_scroll", node)
+	if node is ScrollBar:
+		call_deferred("_prepare_scroll_bar", node)
+
+
+func _prepare_scroll_bar(bar: ScrollBar) -> void:
+	if is_instance_valid(bar) and bar.is_inside_tree():
+		# Native popup windows do not always inherit the current screen's theme.
+		bar.theme = get_game_theme()
 
 
 func _prepare_smooth_scroll(control: Control) -> void:
@@ -159,6 +168,7 @@ func _build_theme() -> Theme:
 	_apply_slider_theme(theme)
 	_apply_container_theme(theme)
 	_apply_navigation_theme(theme)
+	_apply_scroll_bar_theme(theme)
 	_apply_input_theme(theme)
 	return theme
 
@@ -279,15 +289,45 @@ func _apply_navigation_theme(theme: Theme) -> void:
 	progress_background.content_margin_bottom = 6.0
 	theme.set_stylebox("background", "ProgressBar", progress_background)
 	theme.set_stylebox("fill", "ProgressBar", _make_flat_style(ACCENT_BLUE, Color.TRANSPARENT, 0, 6))
-	for type_name: String in ["VScrollBar", "HScrollBar"]:
-		theme.set_stylebox("scroll", type_name, _make_flat_style(Color(0.03, 0.05, 0.065, 0.65), Color.TRANSPARENT, 0, 4))
-		for state: String in ["grabber", "grabber_highlight", "grabber_pressed"]:
-			var thumb: StyleBoxFlat = _make_flat_style(Color(0.31, 0.52, 0.64, 0.8) if state == "grabber" else ACCENT_BLUE, Color.TRANSPARENT, 0, 4)
-			thumb.content_margin_left = 5.0
-			thumb.content_margin_right = 5.0
-			thumb.content_margin_top = 5.0
-			thumb.content_margin_bottom = 5.0
-			theme.set_stylebox(state, type_name, thumb)
+
+
+func _apply_scroll_bar_theme(theme: Theme) -> void:
+	var empty: Image = Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	empty.fill(Color.TRANSPARENT)
+	var empty_icon: Texture2D = ImageTexture.create_from_image(empty)
+	for orientation: String in ["v", "h"]:
+		var type_name: String = "VScrollBar" if orientation == "v" else "HScrollBar"
+		theme.set_stylebox("scroll", type_name, _make_scroll_bar_style(orientation, "track"))
+		theme.set_stylebox("scroll_focus", type_name, _make_scroll_bar_style(orientation, "track"))
+		for state: String in ["grabber", "highlight", "pressed"]:
+			var style_name: String = "grabber" if state == "grabber" else "grabber_" + state
+			theme.set_stylebox(style_name, type_name, _make_scroll_bar_style(orientation, state))
+		for icon: String in ["increment", "increment_highlight", "increment_pressed", "decrement", "decrement_highlight", "decrement_pressed"]:
+			theme.set_icon(icon, type_name, empty_icon)
+		theme.set_constant("increment_decrement_separation", type_name, 0)
+
+
+func _make_scroll_bar_style(orientation: String, state: String) -> StyleBox:
+	var texture: Texture2D = _load_authored_control("scrollbar_%s_%s" % [orientation, state])
+	var style: StyleBox
+	if texture != null:
+		var authored: StyleBoxTexture = StyleBoxTexture.new()
+		authored.texture = texture
+		authored.texture_margin_left = 6.0 if orientation == "v" else 18.0
+		authored.texture_margin_right = authored.texture_margin_left
+		authored.texture_margin_top = 18.0 if orientation == "v" else 6.0
+		authored.texture_margin_bottom = authored.texture_margin_top
+		style = authored
+	else:
+		style = _make_flat_style(PANEL_FILL_DEEP if state == "track" else ACCENT_BLUE, Color.TRANSPARENT, 0, 4)
+	# ScrollBar derives its thickness from the TRACK, not the thumb. Zero margins
+	# made previously scrollable lists allocate an invisible, zero-width bar.
+	var end_margin: float = 4.0 if state == "track" else 16.0
+	style.content_margin_left = SCROLL_BAR_WIDTH * 0.5 if orientation == "v" else end_margin
+	style.content_margin_right = style.content_margin_left
+	style.content_margin_top = end_margin if orientation == "v" else SCROLL_BAR_WIDTH * 0.5
+	style.content_margin_bottom = style.content_margin_top
+	return style
 
 
 func _apply_input_theme(theme: Theme) -> void:

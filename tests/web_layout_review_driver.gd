@@ -69,6 +69,15 @@ func _command(arguments: Array) -> void:
 		Game.meta_progress["points"] = 100
 		Game.meta_progress["achievement_stats"]["gold_spent"] = 100
 		SaveManager.save_game("hub")
+	elif String(payload.get("action", "")) == "scroll_bar_inventory_fixture":
+		Game.current_run.player_cards.assign(Database.get_all_card_ids())
+		get_tree().current_scene.call("_refresh_ui")
+	elif String(payload.get("action", "")) == "scroll_bar_log_fixture":
+		var engine: RealtimeBattleEngine = get_tree().current_scene.get("_engine") as RealtimeBattleEngine
+		engine.battle_state.logs.clear()
+		for index: int in 100:
+			engine.battle_state.logs.append("Log %03d: card resolved / shield / recovery" % index)
+		get_tree().current_scene.call("_refresh_ui", 1.0)
 	elif String(payload.get("action", "")) == "wheel_watch":
 		var scope: Node = get_tree().current_scene
 		if payload.get("scope", "") == "meta": scope = SceneRouter.get_meta_progress_dialog()
@@ -904,6 +913,19 @@ func _inspect() -> Dictionary:
 		"cloud_revision": int(SaveManager.profile_meta.get("revision", 0)),
 		"ranked_score": int(InfiniteScoreResolver.new().calculate(Game.current_run).get("total_score", 0)) if RankedSession.active() else 0,
 	})
+	var scroll_bars: Array[Dictionary] = []
+	for node: Node in get_tree().root.find_children("*", "ScrollBar", true, false):
+		var bar: ScrollBar = node as ScrollBar
+		if not bar.is_visible_in_tree(): continue
+		var rect: Rect2 = bar.get_global_rect()
+		var viewport: Viewport = bar.get_viewport()
+		if viewport != get_viewport() and viewport is Window:
+			rect.position += Vector2((viewport as Window).position)
+		var style: StyleBoxTexture = bar.get_theme_stylebox("grabber") as StyleBoxTexture
+		scroll_bars.append({"owner": String(bar.get_parent().name), "path": String(bar.get_path()), "horizontal": bar is HScrollBar,
+			"rect": _rect_values(rect), "value": bar.value, "page": bar.page, "max": bar.max_value,
+			"texture": style.texture.resource_path if style != null and style.texture != null else ""})
+	result["scroll_bars"] = scroll_bars
 	if screen != null:
 		var meta_dialog: MetaProgressDialog = SceneRouter.get("_meta_dialog") as MetaProgressDialog
 		var tutorial_dialog: BattleTutorialDialog = SceneRouter.get("_tutorial_dialog") as BattleTutorialDialog

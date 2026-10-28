@@ -7,6 +7,20 @@
 .cloud-comparison > div { border:1px solid var(--line); border-radius:10px; padding:12px; background:#06101988; }
 .cloud-comparison p { font-size:13px; }
 * { box-sizing: border-box; }
+* { scrollbar-width:thin; scrollbar-color:#75b5c7 #101b25; }
+@supports selector(::-webkit-scrollbar) {
+  * { scrollbar-width:auto; scrollbar-color:auto; }
+  ::-webkit-scrollbar { width:12px; height:12px; }
+  ::-webkit-scrollbar-track { background-color:#101b25; border:4px solid transparent; border-image:url("/account/scrollbars/scrollbar_v_track.png?v=13") 18 6 fill / 8px 4px stretch; }
+  ::-webkit-scrollbar-thumb { background-color:#75b5c7; background-clip:padding-box; border-radius:6px; min-height:32px; min-width:32px; border:4px solid transparent; border-image:url("/account/scrollbars/scrollbar_v_grabber.png?v=13") 18 6 fill / 10px 4px stretch; }
+  ::-webkit-scrollbar-thumb:hover { border-image-source:url("/account/scrollbars/scrollbar_v_highlight.png?v=13"); }
+  ::-webkit-scrollbar-thumb:active { border-image-source:url("/account/scrollbars/scrollbar_v_pressed.png?v=13"); }
+  ::-webkit-scrollbar-track:horizontal { border-image-source:url("/account/scrollbars/scrollbar_h_track.png?v=13"); border-image-slice:6 18 fill; border-image-width:4px 8px; }
+  ::-webkit-scrollbar-thumb:horizontal { border-image-source:url("/account/scrollbars/scrollbar_h_grabber.png?v=13"); border-image-slice:6 18 fill; border-image-width:4px 10px; }
+  ::-webkit-scrollbar-thumb:horizontal:hover { border-image-source:url("/account/scrollbars/scrollbar_h_highlight.png?v=13"); }
+  ::-webkit-scrollbar-thumb:horizontal:active { border-image-source:url("/account/scrollbars/scrollbar_h_pressed.png?v=13"); }
+  ::-webkit-scrollbar-corner { background:var(--panel); }
+}
 body { margin:0; min-height:100vh; color:var(--ink); font:16px/1.65 "Yu Gothic UI","Trebuchet MS",sans-serif; background:radial-gradient(ellipse at 0 0,#173e55 0,transparent 55%),radial-gradient(ellipse at 100% 100%,#46351c 0,transparent 50%),var(--bg); }
 .account-shell { width:min(100% - 40px,540px); margin:48px auto; }
 header { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:30px; }
