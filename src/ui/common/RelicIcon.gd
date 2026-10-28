@@ -25,6 +25,7 @@ static func get_cached_texture_count() -> int:
 var relic_id: String = ""
 var _icon_size: Vector2 = Vector2(48.0, 48.0)
 var _icon_rect: TextureRect
+var _presentation_key: Array = []
 
 
 func _ready() -> void:
@@ -32,6 +33,8 @@ func _ready() -> void:
 
 
 func set_icon_size(size: Vector2) -> void:
+	if _icon_size == size and custom_minimum_size == size:
+		return
 	_icon_size = size
 	custom_minimum_size = size
 	if _icon_rect != null:
@@ -45,6 +48,16 @@ func bind_relic_id(id: String, locked: bool = false) -> void:
 
 func bind(relic_def: RelicDef, locked: bool = false) -> void:
 	_ensure_visuals()
+	var engraved_id: String = ""
+	if relic_def != null and Game.current_run != null:
+		engraved_id = String(Dictionary(Game.current_run.relic_state.get(relic_def.id, {})).get("card_id", ""))
+	var engraved: CardDef = Database.get_card(engraved_id)
+	var key: Array = [Localization.get_language(), Database.presentation_revision, locked,
+		relic_def.id if relic_def != null else "", relic_def.name if relic_def != null else "",
+		relic_def.description if relic_def != null else "", engraved_id, engraved.name if engraved != null else ""]
+	if key == _presentation_key:
+		return
+	_presentation_key = key
 	if relic_def == null:
 		relic_id = ""
 		name = "RelicIcon_missing"
@@ -89,6 +102,7 @@ func _make_custom_tooltip(for_text: String) -> Object:
 
 func refresh_tooltip() -> void:
 	var relic_def: RelicDef = Database.get_relic(relic_id)
+	_presentation_key.clear()
 	tooltip_text = _build_tooltip(relic_def) if relic_def != null else ""
 
 

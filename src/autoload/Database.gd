@@ -28,9 +28,11 @@ var achievements: Dictionary = {}
 var achievement_order: Array[String] = []
 var battle_visuals: Dictionary = {}
 var load_errors: Array[String] = []
+var presentation_revision: int = 0
 
 
 func load_all() -> void:
+	presentation_revision += 1
 	cards.clear()
 	boss_cards.clear()
 	enemies.clear()

@@ -3,6 +3,7 @@ class_name LogPanel
 
 var _title_label: Label
 var _body_label: RichTextLabel
+var _rendered_logs: Array[String] = []
 
 
 func _ready() -> void:
@@ -25,4 +26,7 @@ func _ready() -> void:
 
 
 func refresh_logs(logs: Array[String]) -> void:
+	if logs == _rendered_logs:
+		return
+	_rendered_logs = logs.duplicate()
 	_body_label.text = "\n".join(logs)

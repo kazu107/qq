@@ -119,6 +119,10 @@ jobs:
           cat build/language-transition.log
           grep -q LANGUAGE_TRANSITION_SMOKE_OK build/language-transition.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/language-transition.log; then exit 1; fi
+          godot --headless --path . res://tests/BattlePresentationPerformanceSmoke.tscn --quit-after 2400 > build/battle-presentation.log 2>&1
+          cat build/battle-presentation.log
+          grep -q BATTLE_PRESENTATION_PERFORMANCE_SMOKE_OK build/battle-presentation.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/battle-presentation.log; then exit 1; fi
           godot --headless --path . res://tests/GradeFiveSmoke.tscn --quit-after 600 > build/grade-five.log 2>&1
           cat build/grade-five.log
           grep -q GRADE_FIVE_SMOKE_OK build/grade-five.log

@@ -90,6 +90,12 @@ var _effect_remainder_label: Label
 var _tile_size: Vector2 = Vector2(108.0, 108.0)
 var _face_summaries: Array[Dictionary] = []
 var _face_cast_time: float = 0.0
+var _face_data_key: Array = []
+var _face_layout_key: Array = []
+var _face_revision: int = 0
+var _tooltip_cache_key: Array = []
+var _cached_tooltips: Array[String] = []
+var _frame_key: Array = []
 
 
 func _ready() -> void:
@@ -159,7 +165,6 @@ func bind(
 	_set_card_face_data(card_def)
 
 	var meta_text: String = "%dS" % card_def.active_slot_cost
-	var tooltip_state: String = Localization.get_text("card.state.ready", "Ready")
 	var tooltip_blocked: String = ""
 	var modulate_color: Color = Color(1.0, 1.0, 1.0, 1.0)
 	var recovery_ratio: float = 1.0
@@ -169,27 +174,18 @@ func bind(
 			if can_use:
 				meta_text = Localization.get_text("card.meta.ready", "ready")
 			elif click_enabled:
-				tooltip_state = Localization.get_text("card.state.ready", "Ready")
 				tooltip_blocked = blocked_reason
 				if tooltip_blocked == "":
 					tooltip_blocked = Localization.get_text("card.blocked_slots", "Blocked: active slots full")
 				modulate_color = Color(0.84, 0.84, 0.84, 1.0)
 		CardRuntimeState.CardState.PREPARING:
 			meta_text = Localization.get_text("card.meta.casting", "casting")
-			tooltip_state = Localization.get_text("card.state.preparing", "Preparing")
-		CardRuntimeState.CardState.RESOLVING:
-			tooltip_state = Localization.get_text("card.state.resolving", "Resolving")
 		CardRuntimeState.CardState.COOLDOWN:
 			meta_text = "%.1fs" % runtime_state.get_display_cooldown_remaining()
-			tooltip_state = Localization.get_textf("card.state.cooldown", "Cooldown {seconds}s remaining", {
-				"seconds": "%.1f" % runtime_state.get_display_cooldown_remaining(),
-			})
 			recovery_ratio = _compute_cooldown_ratio(card_def, runtime_state)
 		CardRuntimeState.CardState.DISABLED:
-			tooltip_state = Localization.get_text("card.state.disabled", "Disabled")
 			modulate_color = Color(0.72, 0.72, 0.72, 1.0)
 		CardRuntimeState.CardState.INTERRUPTED:
-			tooltip_state = Localization.get_text("card.state.interrupted", "Interrupted")
 			modulate_color = Color(0.78, 0.78, 0.78, 1.0)
 
 	_state_label.text = ""
@@ -203,12 +199,7 @@ func bind(
 	_set_mouse_cursor(_can_use)
 	_apply_frame(_get_rarity_border(card_def.rarity))
 	_set_recovery_ratio(recovery_ratio)
-	_set_tooltip_variants(
-		_build_hand_tooltip(card_def, tooltip_state, tooltip_blocked, runtime_state, false),
-		_build_hand_tooltip(card_def, tooltip_state, tooltip_blocked, runtime_state, true),
-		_build_legacy_tooltip(card_def, tooltip_blocked, false),
-		_build_legacy_tooltip(card_def, tooltip_blocked, true)
-	)
+	_bind_cached_tooltips(card_def, tooltip_blocked)
 
 
 func bind_preview(
@@ -239,12 +230,7 @@ func bind_preview(
 	_apply_frame(_get_rarity_border(card_def.rarity))
 	_set_mouse_cursor(_can_use)
 	_set_recovery_ratio(1.0)
-	_set_tooltip_variants(
-		_build_preview_simple_tooltip(card_def, false),
-		_build_preview_simple_tooltip(card_def, true),
-		_build_legacy_tooltip(card_def, "", false),
-		_build_legacy_tooltip(card_def, "", true)
-	)
+	_bind_cached_tooltips(card_def)
 
 
 func bind_balance_preview(card_def: CardDef, comparison: CardDef) -> void:
@@ -269,7 +255,6 @@ func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: f
 	_state_badge.visible = false
 	_set_timeline_indicators(false, false)
 
-	var remaining: float = instance.get_remaining(battle_time)
 	_meta_label.text = Localization.get_text("card.meta.casting", "casting")
 	_meta_badge.visible = true
 	_meta_badge.color = BADGE_DARK
@@ -277,12 +262,7 @@ func bind_active(card_def: CardDef, instance: ActiveCardInstance, battle_time: f
 	_apply_frame(_get_active_border(instance.owner_side))
 	_set_mouse_cursor(false)
 	_set_recovery_ratio(_compute_active_ratio(instance, battle_time))
-	_set_tooltip_variants(
-		_build_active_tooltip(card_def, instance, remaining, false),
-		_build_active_tooltip(card_def, instance, remaining, true),
-		_build_legacy_tooltip(card_def, "", false),
-		_build_legacy_tooltip(card_def, "", true)
-	)
+	_bind_cached_tooltips(card_def)
 
 
 func bind_timeline(
@@ -320,12 +300,7 @@ func bind_timeline(
 	_set_mouse_cursor(false)
 	_set_recovery_ratio(1.0)
 	_set_timeline_indicators(true, is_next)
-	_set_tooltip_variants(
-		_build_timeline_tooltip(card_def, entry, remaining, false),
-		_build_timeline_tooltip(card_def, entry, remaining, true),
-		_build_legacy_tooltip(card_def, "", false),
-		_build_legacy_tooltip(card_def, "", true)
-	)
+	_bind_cached_tooltips(card_def)
 	if entry.owner_side == FatigueRules.SIDE:
 		var fatigue_tooltip: String = FatigueRules.get_tooltip(entry.fatigue_damage)
 		_set_tooltip_variants(fatigue_tooltip, _escape_bbcode(fatigue_tooltip), fatigue_tooltip, _escape_bbcode(fatigue_tooltip))
@@ -722,6 +697,11 @@ func _make_effect_chip_style(fill_color: Color, border_color: Color) -> StyleBox
 
 
 func _set_card_face_data(card_def: CardDef) -> void:
+	var key: Array = [_card_presentation_key(card_def), _card_presentation_key(_get_comparison_card(card_def)), Localization.get_language()]
+	if key == _face_data_key:
+		return
+	_face_data_key = key.duplicate(true)
+	_face_revision += 1
 	_face_summaries = CardFaceSummaryResolver.build_summaries(card_def, _get_comparison_card(card_def))
 	_face_cast_time = maxf(0.0, card_def.cast_time)
 	_refresh_card_face()
@@ -731,6 +711,10 @@ func _set_card_face_data(card_def: CardDef) -> void:
 func _refresh_card_face() -> void:
 	if _effect_strip == null or _name_bar == null:
 		return
+	var key: Array = [size, _tile_size, _face_revision, _name_label.text, _meta_badge.visible, _timeline_next_badge.visible]
+	if key == _face_layout_key:
+		return
+	_face_layout_key = key
 
 	var art: Rect2 = get_art_rect()
 	var resolved_width: float = art.size.x
@@ -859,7 +843,7 @@ func _format_face_number(value: float, decimals: int, force_sign: bool) -> Strin
 
 
 func _set_card_name(card_name: String) -> void:
-	if _name_label == null:
+	if _name_label == null or _name_label.text == card_name:
 		return
 	_name_label.text = card_name
 	_fit_name_label_to_text()
@@ -893,6 +877,10 @@ func _set_cost_value(cost: int) -> void:
 
 
 func _apply_frame(border_color: Color, border_width: int = 2, overlay_width: int = 4) -> void:
+	var key: Array = [border_color, border_width, overlay_width]
+	if key == _frame_key:
+		return
+	_frame_key = key
 	var hover_color: Color = border_color.lerp(Color(1.0, 1.0, 1.0, 1.0), 0.35)
 	var pressed_color: Color = border_color.lerp(Color(1.0, 0.92, 0.72, 1.0), 0.45)
 	add_theme_stylebox_override("normal", _make_stylebox(border_color, border_width))
@@ -1002,6 +990,31 @@ func _build_hand_tooltip(card_def: CardDef, _tooltip_state: String, tooltip_bloc
 		lines.append("")
 		lines.append(tooltip_blocked)
 	return "\n".join(lines)
+
+
+func _card_presentation_key(card: CardDef) -> Array:
+	if card == null:
+		return []
+	return [card.id, card.name, card.description, card.rarity, card.tags, card.boss_only,
+		card.loadout_cost, card.active_slot_cost, card.cast_time, card.recast_time,
+		card.target_type, card.effects, card.upgrade_profile, card.grade_overrides]
+
+
+func _bind_cached_tooltips(card: CardDef, blocked: String = "") -> void:
+	var key: Array = [Localization.get_language(), Database.presentation_revision,
+		_card_presentation_key(card), _card_presentation_key(_get_comparison_card(card)),
+		_card_presentation_key(Database.get_card(card.id))]
+	if key != _tooltip_cache_key:
+		# Snapshot values, not CardDef identity: combat context creates fresh copies,
+		# and the balance lab can edit nested effect dictionaries in place.
+		_tooltip_cache_key = key.duplicate(true)
+		_cached_tooltips.assign([_build_preview_simple_tooltip(card), _build_preview_simple_tooltip(card, true),
+			_build_legacy_tooltip(card), _build_legacy_tooltip(card, "", true)])
+	var suffix: String = "\n\n" + blocked if blocked != "" else ""
+	# Reset base text each bind so reservations/repeats cannot accumulate.
+	_set_tooltip_variants(_cached_tooltips[0] + suffix, _cached_tooltips[1] + suffix,
+		_cached_tooltips[2] + suffix, _cached_tooltips[3] + suffix)
+	_refresh_card_face()
 
 
 func _build_preview_simple_tooltip(card_def: CardDef, rich: bool = false) -> String:

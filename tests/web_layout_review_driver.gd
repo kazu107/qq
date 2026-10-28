@@ -15,6 +15,7 @@ var _wheel_samples: Array[Dictionary] = []
 var _record_localization: bool = false
 var _locale_frames: Array[Dictionary] = []
 var _locale_last_states: Dictionary = {}
+var _profile_auto_play: bool = false
 
 
 func _ready() -> void:
@@ -222,6 +223,22 @@ func _command(arguments: Array) -> void:
 		(screen.find_child("MetaContentScroll", true, false) as ScrollContainer).scroll_vertical = 0
 	elif String(payload.get("action", "")) == "battle_simulate":
 		_simulate_battle_result()
+	elif String(payload.get("action", "")) == "battle_profile_capture":
+		var battle: Control = get_tree().current_scene as Control
+		var engine: RealtimeBattleEngine = battle.get("_engine") as RealtimeBattleEngine
+		engine.set_audio_enabled(false)
+		engine.battle_state.enemy.hp = 10000
+		engine.battle_state.enemy.max_hp = 10000
+		engine.start_battle()
+		_profile_auto_play = true
+		var profiler: BattleFrameProfiler = battle.get("_frame_profiler") as BattleFrameProfiler
+		_window.qqFrameReport = ""
+		profiler.capture_finished.connect(func(report: Dictionary) -> void:
+			_profile_auto_play = false
+			report["battle_time"] = engine.battle_state.battle_time
+			report["events"] = engine.battle_state.battle_events.size()
+			_window.qqFrameReport = JSON.stringify(report), CONNECT_ONE_SHOT)
+		profiler.start_capture(float(payload.get("seconds", 8.0)))
 	elif String(payload.get("action", "")) == "timekeeper_advance":
 		_advance_timekeeper(float(payload.get("seconds", 0.0)))
 	elif String(payload.get("action", "")) == "feedback_damage":
@@ -396,6 +413,7 @@ func _simulate_battle_result() -> void:
 
 
 func _open_screen(screen: String) -> void:
+	_profile_auto_play = false
 	Game.clear_battle_tutorial()
 	if screen not in ["online_bots", "online_arena"]:
 		NetworkManager._clear_session(false)
@@ -477,6 +495,14 @@ func _open_screen(screen: String) -> void:
 			SceneRouter.go_to_arena()
 		"battle":
 			Game.start_new_run("balanced", 4242)
+			Game.developer_open_battle("scout")
+			SceneRouter.go_to_battle()
+		"battle_performance":
+			Game.settings["developer_mode"] = true
+			Game.start_new_run("balanced", 4242)
+			Game.current_run.max_hp = 10000
+			Game.current_run.player_hp = 10000
+			Game.current_run.relics.assign(Database.get_all_relic_ids().slice(0, 30))
 			Game.developer_open_battle("scout")
 			SceneRouter.go_to_battle()
 		"timekeeper":
@@ -591,6 +617,12 @@ func _find_wheel_scroll(node: Node) -> ScrollContainer:
 
 
 func _process(_delta: float) -> void:
+	if _profile_auto_play and get_tree().current_scene != null:
+		var engine: RealtimeBattleEngine = get_tree().current_scene.get("_engine") as RealtimeBattleEngine
+		if engine != null:
+			for runtime: CardRuntimeState in engine.battle_state.player.get_sorted_runtime_states():
+				if runtime.can_use():
+					engine.request_use_card("player", runtime.runtime_id)
 	if is_instance_valid(_wheel_bar) and is_instance_valid(_wheel_owner) and _wheel_started >= 0 and Time.get_ticks_msec() - _wheel_started < 1200:
 		var controller: SmoothWheelScroll = _wheel_owner.get_viewport().get_node_or_null(SmoothWheelScroll.NODE_NAME) as SmoothWheelScroll
 		_wheel_samples.append({"time": Time.get_ticks_msec() - _wheel_started, "value": _wheel_bar.value})

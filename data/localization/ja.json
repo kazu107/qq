@@ -2084,5 +2084,8 @@
   "conversion.dev.life": "生命転換を展開（50%）",
   "conversion.dev.shield": "防壁転換を展開（50%）",
   "conversion.dev.clear": "両者の転換と再展開待ちを解除",
-  "battle.analysis.metric.prevented": "無効化ダメージ"
+  "battle.analysis.metric.prevented": "無効化ダメージ",
+  "battle.profile.start": "戦闘負荷を計測（5秒）",
+  "battle.profile.title": "戦闘のフレーム計測",
+  "battle.profile.result": "計測フレーム数: {count}\nフレーム時間: 平均 {mean} / P95 {p95} / 最大 {maximum} ms\n33msを超えたフレーム: {slow}\nUI更新: 平均 {ui_mean} / P95 {ui_p95} / 最大 {ui_max} ms"
 }

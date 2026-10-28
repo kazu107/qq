@@ -30,6 +30,7 @@ var _battle_info_label: RichTextLabel
 var _slow_mode_label: Label
 var _result_label: Label
 var _developer_panel: DeveloperPanel
+var _frame_profiler: BattleFrameProfiler
 var _last_countdown_second: int = -1
 var _transition_timer: float = -1.0
 var _handled_finish: bool = false
@@ -1108,6 +1109,7 @@ func _layout_battle_sign_controls() -> void:
 
 
 func _refresh_ui(time_scale: float) -> void:
+	var profile_started_us: int = Time.get_ticks_usec() if _frame_profiler != null and _frame_profiler.is_processing() else 0
 	var battle_state := _engine.battle_state
 	if battle_state == null:
 		return
@@ -1255,6 +1257,8 @@ func _refresh_ui(time_scale: float) -> void:
 		)
 	_layout_battle_sign_controls()
 	_process_resolution_vfx(battle_state)
+	if profile_started_us > 0:
+		_frame_profiler.record_ui_time((Time.get_ticks_usec() - profile_started_us) / 1000.0)
 
 
 func _process_resolution_vfx(battle_state: BattleState) -> void:
@@ -1515,6 +1519,9 @@ func _to_dictionary_array(value: Variant) -> Array[Dictionary]:
 
 
 func _build_developer_panel() -> void:
+	_frame_profiler = BattleFrameProfiler.new()
+	add_child(_frame_profiler)
+	_frame_profiler.capture_finished.connect(_on_frame_capture_finished)
 	_developer_panel = DeveloperPanel.new()
 	add_child(_developer_panel)
 	_developer_panel.pin_top_right()
@@ -1527,6 +1534,7 @@ func _refresh_developer_panel() -> void:
 	_developer_panel.configure(
 		Localization.get_text("developer.title", "Developer Mode"),
 		[
+			{"id": "DevFrameProfile", "label": Localization.get_text("battle.profile.start", "Measure battle frames (5s)"), "callback": Callable(self, "_on_dev_frame_profile")},
 			{"id": "DevBattleDetails", "label": Localization.get_text("battle.analysis.details", "Battle details"), "callback": Callable(self, "_on_dev_battle_details"), "disabled": _lan_mode},
 			{"id": "DevEchoReady", "label": Localization.get_text("echo.dev.ready", "Add one Echo charge"), "callback": Callable(self, "_on_dev_echo").bind(false), "disabled": _lan_mode or RankedSession.active()},
 			{"id": "DevEchoClear", "label": Localization.get_text("echo.dev.clear", "Clear Echo charges"), "callback": Callable(self, "_on_dev_echo").bind(true), "disabled": _lan_mode or RankedSession.active()},
@@ -1551,6 +1559,31 @@ func _refresh_developer_panel() -> void:
 		],
 		Localization.get_text("battle.dev.summary", "Battle shortcuts for deterministic manual testing.")
 	)
+
+
+func _on_dev_frame_profile() -> void:
+	if Game.is_developer_mode_enabled() and _frame_profiler != null and not _frame_profiler.is_processing():
+		_frame_profiler.start_capture()
+		var button: Button = _developer_panel.find_child("DevFrameProfile", true, false) as Button
+		if button != null:
+			button.disabled = true
+
+
+func _on_frame_capture_finished(report: Dictionary) -> void:
+	var button: Button = _developer_panel.find_child("DevFrameProfile", true, false) as Button
+	if button != null:
+		button.disabled = false
+	var dialog: AcceptDialog = AcceptDialog.new()
+	dialog.title = Localization.get_text("battle.profile.title", "Battle frame timing")
+	dialog.dialog_text = Localization.get_textf("battle.profile.result", "Frames: {count}\nFrame time: mean {mean} / P95 {p95} / max {maximum} ms\nFrames over 33 ms: {slow}\nUI update: mean {ui_mean} / P95 {ui_p95} / max {ui_max} ms", {
+		"count": report.frame.count, "mean": "%.2f" % report.frame.mean_ms,
+		"p95": "%.2f" % report.frame.p95_ms, "maximum": "%.2f" % report.frame.max_ms,
+		"slow": report.frame.over_33ms, "ui_mean": "%.2f" % report.ui.mean_ms,
+		"ui_p95": "%.2f" % report.ui.p95_ms, "ui_max": "%.2f" % report.ui.max_ms})
+	add_child(dialog)
+	dialog.confirmed.connect(dialog.queue_free)
+	dialog.canceled.connect(dialog.queue_free)
+	dialog.popup_centered()
 
 
 func _on_dev_battle_details() -> void:
