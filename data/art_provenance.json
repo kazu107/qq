@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-10-29",
   "batch_id": "blender_vertical_slice_01",
   "author": "QQ project",
   "tool": "Blender (per-batch version recorded in manifests)",
@@ -10421,6 +10421,363 @@
       "author": "QQ project",
       "license": "project-original",
       "third_party_inputs": []
+    },
+    {
+      "asset_id": "clock_ruins",
+      "category": "environment",
+      "runtime_path": "assets/models/environment/biomes/clock_ruins.glb",
+      "source_path": "art_src/blender/environment/biomes/clock_ruins.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "cbb529ed016dd6a2c930c4a81ec16942e7841192b4a2e5c19ad168f6e200535b",
+      "replacement_status": "approved",
+      "triangles": 31776,
+      "surfaces": 23
+    },
+    {
+      "asset_id": "clock_ruins_background",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/clock_ruins.png",
+      "source_path": "art_src/blender/environment/biomes/clock_ruins.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "5841f65d5bfdbf25fcaf9aea1ed91dde0f9601c40a680acd56e676c87ea6d989",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "clock_ruins_shop",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/clock_ruins_shop.png",
+      "source_path": "art_src/blender/environment/biomes/facility_shop.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "f2e1578883d576f310f1b96e2f72b60e5c0fc28dac39f6792f3de57333fe826b",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/clock_ruins.blend"
+    },
+    {
+      "asset_id": "clock_ruins_forge",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/clock_ruins_forge.png",
+      "source_path": "art_src/blender/environment/biomes/facility_forge.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "17ecbf19bf7dd00244d9a04977db5278899a773668225e17a41aaef4b038c21a",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/clock_ruins.blend"
+    },
+    {
+      "asset_id": "clock_ruins_heal",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/clock_ruins_heal.png",
+      "source_path": "art_src/blender/environment/biomes/facility_heal.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "cbf40452e2f54b023fa507c353f0d10fb340e3e4ee73839b15f0731fac9e6500",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/clock_ruins.blend"
+    },
+    {
+      "asset_id": "brass_foundry",
+      "category": "environment",
+      "runtime_path": "assets/models/environment/biomes/brass_foundry.glb",
+      "source_path": "art_src/blender/environment/biomes/brass_foundry.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "03025f75ec6369a7ffb4f8618ace9115052eb64f29c7f850dc9edd626464c3f6",
+      "replacement_status": "approved",
+      "triangles": 25904,
+      "surfaces": 18
+    },
+    {
+      "asset_id": "brass_foundry_background",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/brass_foundry.png",
+      "source_path": "art_src/blender/environment/biomes/brass_foundry.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "aa0f62d9b911d1d4b47b2763988858e9ecf771cf73d8591e2c16f540fd88c2b7",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "brass_foundry_shop",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/brass_foundry_shop.png",
+      "source_path": "art_src/blender/environment/biomes/facility_shop.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "de0b7d03af235b617fc76328e85753de5f1577228399aaf9b96df077db145235",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/brass_foundry.blend"
+    },
+    {
+      "asset_id": "brass_foundry_forge",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/brass_foundry_forge.png",
+      "source_path": "art_src/blender/environment/biomes/facility_forge.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "2251c01adaa99331d576ddd6c8292cc675d38d959d87c4649f7f65a0f3072c67",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/brass_foundry.blend"
+    },
+    {
+      "asset_id": "brass_foundry_heal",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/brass_foundry_heal.png",
+      "source_path": "art_src/blender/environment/biomes/facility_heal.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "dc3c58625a66c08f65a353e7923f5f630a8e99244dd15c059fdcc1893fa08b7d",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/brass_foundry.blend"
+    },
+    {
+      "asset_id": "rift_gallery",
+      "category": "environment",
+      "runtime_path": "assets/models/environment/biomes/rift_gallery.glb",
+      "source_path": "art_src/blender/environment/biomes/rift_gallery.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "e106a098e2692b61d7685c915a8b05caed1e558e4d0763f78c7ce731fcd9f4c3",
+      "replacement_status": "approved",
+      "triangles": 12456,
+      "surfaces": 19
+    },
+    {
+      "asset_id": "rift_gallery_background",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/rift_gallery.png",
+      "source_path": "art_src/blender/environment/biomes/rift_gallery.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "047d1dae22df27f4eee31cb70b40bcafb055e18f5e3a489d188451dd770ffbb5",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "rift_gallery_shop",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/rift_gallery_shop.png",
+      "source_path": "art_src/blender/environment/biomes/facility_shop.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "85e24afbe209075cd147141e4af7d1640bce3be2c16823a6b521d89e8f77ae62",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/rift_gallery.blend"
+    },
+    {
+      "asset_id": "rift_gallery_forge",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/rift_gallery_forge.png",
+      "source_path": "art_src/blender/environment/biomes/facility_forge.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "2e65425d21f572408d3e94e36fb14ba9499270932cd9b857ef1a70df412ac39c",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/rift_gallery.blend"
+    },
+    {
+      "asset_id": "rift_gallery_heal",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/rift_gallery_heal.png",
+      "source_path": "art_src/blender/environment/biomes/facility_heal.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "e228fd67eeba170901a3ad7dd9e30d9072c3637078ceedae4b5ac2b55e89917a",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/rift_gallery.blend"
+    },
+    {
+      "asset_id": "forgotten_sanctuary",
+      "category": "environment",
+      "runtime_path": "assets/models/environment/biomes/forgotten_sanctuary.glb",
+      "source_path": "art_src/blender/environment/biomes/forgotten_sanctuary.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "fbeec786f5a7c19fdb56dd100478bcdafeb98e0c6f13baee59eecee60f441d43",
+      "replacement_status": "approved",
+      "triangles": 20960,
+      "surfaces": 20
+    },
+    {
+      "asset_id": "forgotten_sanctuary_background",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/forgotten_sanctuary.png",
+      "source_path": "art_src/blender/environment/biomes/forgotten_sanctuary.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "b21af2da217d234d85a48214fff2656e5df97f4864877d2c13843dca8fd109b7",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "forgotten_sanctuary_shop",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/forgotten_sanctuary_shop.png",
+      "source_path": "art_src/blender/environment/biomes/facility_shop.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "992e472fae199264be5a6b5008e5e1574aa8a6e5e04b4970b03c622985e2d2b1",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/forgotten_sanctuary.blend"
+    },
+    {
+      "asset_id": "forgotten_sanctuary_forge",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/forgotten_sanctuary_forge.png",
+      "source_path": "art_src/blender/environment/biomes/facility_forge.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "b965b2134cd81d3b285bfffbd9d1d094abac867131999fa69a4b1acc118ba615",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/forgotten_sanctuary.blend"
+    },
+    {
+      "asset_id": "forgotten_sanctuary_heal",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/forgotten_sanctuary_heal.png",
+      "source_path": "art_src/blender/environment/biomes/facility_heal.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "4e7f6a6fc22a9d6029db262b3c78e1435a27c9e58d735636b55491ac03abafb3",
+      "replacement_status": "approved",
+      "region_source": "art_src/blender/environment/biomes/forgotten_sanctuary.blend"
+    },
+    {
+      "asset_id": "timekeeper_engine",
+      "category": "environment",
+      "runtime_path": "assets/models/environment/biomes/timekeeper_engine.glb",
+      "source_path": "art_src/blender/environment/biomes/timekeeper_engine.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "6fa58d548da6cf12cc5b6a8721cfc6d9fe318a8fb3c518559389c6be482b387a",
+      "replacement_status": "approved",
+      "triangles": 29656,
+      "surfaces": 20
+    },
+    {
+      "asset_id": "timekeeper_engine_background",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/timekeeper_engine.png",
+      "source_path": "art_src/blender/environment/biomes/timekeeper_engine.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "e9d0bdd0600b36e01b8a39087ee9fa9281bd291bb9f8899bd580297a26027f98",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "paradox_reactor",
+      "category": "environment",
+      "runtime_path": "assets/models/environment/biomes/paradox_reactor.glb",
+      "source_path": "art_src/blender/environment/biomes/paradox_reactor.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "9ba01d2caeef4ec9eb45e8fe027311eddb9590955e31557c8f38671d2f2878ce",
+      "replacement_status": "approved",
+      "triangles": 13468,
+      "surfaces": 17
+    },
+    {
+      "asset_id": "paradox_reactor_background",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/paradox_reactor.png",
+      "source_path": "art_src/blender/environment/biomes/paradox_reactor.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "b9f86fce66d191ef7b598dcb38804c4018d514c8dbdb9f25b4ba24a30a843602",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "axiom_altar",
+      "category": "environment",
+      "runtime_path": "assets/models/environment/biomes/axiom_altar.glb",
+      "source_path": "art_src/blender/environment/biomes/axiom_altar.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "ad2d936fc3c0e11a89e88bdf7a1fca9b114f2c3042773f7a683947a75e0b1146",
+      "replacement_status": "approved",
+      "triangles": 21144,
+      "surfaces": 19
+    },
+    {
+      "asset_id": "axiom_altar_background",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/axiom_altar.png",
+      "source_path": "art_src/blender/environment/biomes/axiom_altar.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "07b050b5e6188324f879fbc87d25a27d2b0bce9fdd554ae52c41e2f6b0a8f641",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "eternity_temple",
+      "category": "environment",
+      "runtime_path": "assets/models/environment/biomes/eternity_temple.glb",
+      "source_path": "art_src/blender/environment/biomes/eternity_temple.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "21a153859cfda7e763e53bd19a9f1ce22ba914572faf2f14823451b4946541c0",
+      "replacement_status": "approved",
+      "triangles": 23884,
+      "surfaces": 20
+    },
+    {
+      "asset_id": "eternity_temple_background",
+      "category": "background",
+      "runtime_path": "assets/backgrounds/biomes/eternity_temple.png",
+      "source_path": "art_src/blender/environment/biomes/eternity_temple.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "8e7012ec7526c70ef2921486ffe18b3cf1de4aab7671772726fd756de044f1c5",
+      "replacement_status": "approved"
+    },
+    {
+      "asset_id": "clock_ruins_infinite",
+      "category": "environment_overlay",
+      "runtime_path": "assets/models/environment/biomes/clock_ruins_infinite.glb",
+      "source_path": "art_src/blender/environment/biomes/clock_ruins_infinite.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "5f7b083a73afa2b991e5c870febf07a1ee5247f3bf424540bd21387a8fba5586",
+      "replacement_status": "approved",
+      "triangles": 760,
+      "surfaces": 2
+    },
+    {
+      "asset_id": "brass_foundry_infinite",
+      "category": "environment_overlay",
+      "runtime_path": "assets/models/environment/biomes/brass_foundry_infinite.glb",
+      "source_path": "art_src/blender/environment/biomes/brass_foundry_infinite.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "f30d68b90925c87692ab66f3128e681aa151a285f2c701d48a9e59a2a70f5a8d",
+      "replacement_status": "approved",
+      "triangles": 19640,
+      "surfaces": 3
+    },
+    {
+      "asset_id": "rift_gallery_infinite",
+      "category": "environment_overlay",
+      "runtime_path": "assets/models/environment/biomes/rift_gallery_infinite.glb",
+      "source_path": "art_src/blender/environment/biomes/rift_gallery_infinite.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "2056d45cb00036b50dc4dd477ac3c499ef8c0e090718080bc564bc8a0e20fcf9",
+      "replacement_status": "approved",
+      "triangles": 200,
+      "surfaces": 1
+    },
+    {
+      "asset_id": "forgotten_sanctuary_infinite",
+      "category": "environment_overlay",
+      "runtime_path": "assets/models/environment/biomes/forgotten_sanctuary_infinite.glb",
+      "source_path": "art_src/blender/environment/biomes/forgotten_sanctuary_infinite.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "32cc3dcf3f21986e276e85341f2e2a542103a11257854c4d66a4d03c317b7715",
+      "replacement_status": "approved",
+      "triangles": 5560,
+      "surfaces": 3
+    },
+    {
+      "asset_id": "facility_shop",
+      "category": "facility_3d",
+      "runtime_path": "assets/models/environment/biomes/facility_shop.glb",
+      "source_path": "art_src/blender/environment/biomes/facility_shop.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "31826ce6797f0afa2b3b8cac9de3478fb7933983bdb14299fc765ddbc8c76191",
+      "replacement_status": "approved",
+      "triangles": 956,
+      "surfaces": 3
+    },
+    {
+      "asset_id": "facility_forge",
+      "category": "facility_3d",
+      "runtime_path": "assets/models/environment/biomes/facility_forge.glb",
+      "source_path": "art_src/blender/environment/biomes/facility_forge.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "1742568d56d0f33f13c27cebcf24f13bc28ff316cd603f9682058e6c97ae289c",
+      "replacement_status": "approved",
+      "triangles": 2872,
+      "surfaces": 5
+    },
+    {
+      "asset_id": "facility_heal",
+      "category": "facility_3d",
+      "runtime_path": "assets/models/environment/biomes/facility_heal.glb",
+      "source_path": "art_src/blender/environment/biomes/facility_heal.blend",
+      "generator": "tools/blender/build_battle_biomes.py",
+      "export_sha256": "9e49205813b070d05802189bd7528e63a21262646ee63d5af93758c1b622eb71",
+      "replacement_status": "approved",
+      "triangles": 3552,
+      "surfaces": 8
     }
   ],
   "batch_ids": [

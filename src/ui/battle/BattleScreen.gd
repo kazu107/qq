@@ -1306,6 +1306,9 @@ func _configure_battle_stage() -> void:
 		local_visual_id,
 		opponent_visual_id
 	)
+	var field_run: RunState = _local_run if _lan_mode else Game.current_run
+	var field_context: Dictionary = BattleEnvironmentArt.get_context(field_run, opponent_visual_id, _tutorial_mode)
+	_battle_stage.configure_environment(String(field_context["id"]), bool(field_context["infinite"]))
 
 
 func _uses_compact_lan_events() -> bool:

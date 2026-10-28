@@ -112,6 +112,24 @@ func _command(arguments: Array) -> void:
 			if target != null and scroll.is_ancestor_of(target): scroll.ensure_control_visible(target)
 	elif String(payload.get("action", "")) == "screen":
 		_open_screen(String(payload.get("screen", "hub")))
+	elif String(payload.get("action", "")) == "environment_fixture":
+		var stage: BattleStage3D = get_tree().current_scene.get("_battle_stage") as BattleStage3D
+		stage.configure_environment(String(payload.get("id", "clock_ruins")), bool(payload.get("infinite", false)))
+	elif String(payload.get("action", "")) == "environment_facility_fixture":
+		Game.settings["developer_mode"] = false
+		Game.start_new_run("balanced", 4242)
+		Game.current_run.map_state = MapGenerator.new().generate_infinite_run(4242)
+		var step: int = int(payload.get("region", 0)) * 7
+		var node: Dictionary = Game._get_node(step, 0)
+		node["type"] = String(payload.get("facility", "shop"))
+		Game._set_node(step, 0, node)
+		Game.current_run.map_state["current_step"] = step
+		Game.current_run.map_state["active_node_id"] = node["id"]
+		Game._prepare_non_battle_node(step, 0)
+		SceneRouter.go_to_facility()
+	elif String(payload.get("action", "")) == "environment_lab_fixture":
+		Game.settings["developer_mode"] = true
+		SceneRouter.go_to_battle_animation_lab()
 	elif String(payload.get("action", "")) == "balance_open":
 		Game.settings["developer_mode"] = true
 		SceneRouter.go_to_balance_lab()
@@ -724,6 +742,12 @@ func _inspect() -> Dictionary:
 	if not _feedback_samples.is_empty():
 		result["feedback"] = {"samples": _feedback_samples, "immediate_audio": _feedback_initial_audio, "audio": AudioManager.get_play_history()}
 	if screen != null:
+		var background: AtmosphereBackground = screen.get_node_or_null(UiTheme.BACKGROUND_NODE_NAME) as AtmosphereBackground
+		if background != null and background.get("_authored_texture") != null:
+			result["background"] = (background.get("_authored_texture") as Texture2D).resource_path
+		if screen.scene_file_path == SceneRouter.BATTLE_SCENE:
+			var field_stage: BattleStage3D = screen.get("_battle_stage") as BattleStage3D
+			if field_stage != null: result["environment"] = field_stage.get_environment_context()
 		if screen.scene_file_path.get_file().get_basename() == "Battle":
 			var bleed_engine: RealtimeBattleEngine = screen.get("_engine") as RealtimeBattleEngine
 			if bleed_engine != null and bleed_engine.battle_state != null:

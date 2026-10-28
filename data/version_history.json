@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.57.1",
+  "current_version": "QQ-0.58.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.58.0", "date": "2026-10-29",
+      "title_ja": "地域とボスごとのBlender製フィールド",
+      "title_en": "Blender battlefields for every region and boss",
+      "changes_ja": [
+        "通常4地域とボス4体に専用の3D背景を追加しました。時計遺跡、機械工房、浮遊回廊、聖域と、それぞれのボス会場へ進行に合わせて切り替わります。戦闘床、キャラクター、カメラ、UIの位置は維持します。",
+        "無限モード第2周以降は夕景の結晶、過熱した蒸気口、漂う破片、夜の光る紋章を追加します。共有モデルと照明で外観を変え、戦闘ルールや数値は変更しません。",
+        "ショップ・鍛冶屋・回復施設のBlender製モデルと地域別の背景12枚を追加しました。マップにも地域の背景を使います。起動時にフレームを分けて素材を先読みし、戦闘画面で背景のインスタンスを再利用します。開発者の戦闘アニメーションラボから全フィールドと無限差分を確認できます。"
+      ],
+      "changes_en": [
+        "Add original Blender scenery for four regions and four boss arenas. Change fields with progression while preserving the shared board, actors, camera and UI positions.",
+        "Add dusk crystals, overheated vents, drifting debris and luminous night runes for later Infinite cycles using shared overlays and lighting. No gameplay or balance changes.",
+        "Add three editable facility prop kits and twelve regional shop, forge and recovery backgrounds. Use regional map backdrops, frame-spread startup preloading, retained field instances, replay scenery and a developer-lab field selector."
+      ]
+    },
     {
       "version": "QQ-0.57.1", "date": "2026-10-28",
       "title_ja": "メタ進行の集計を上部へ移動し一覧を拡大",

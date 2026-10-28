@@ -19,6 +19,10 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	z_index = -4096
 	_authored_texture = ArtCatalog.get_texture("assets/backgrounds/hub.png")
+	var screen_path: String = get_parent().scene_file_path
+	if Game.current_run != null and (screen_path.contains("Facility") or screen_path.contains("Map")):
+		var facility: String = Game.get_active_facility_type() if screen_path.contains("Facility") else ""
+		_authored_texture = ArtCatalog.get_texture(BattleEnvironmentArt.background_for(Game.current_run, facility))
 	if _glow_texture == null:
 		var gradient: Gradient = Gradient.new()
 		gradient.colors = PackedColorArray([Color.WHITE, Color(1.0, 1.0, 1.0, 0.0)])

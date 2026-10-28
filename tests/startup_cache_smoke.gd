@@ -28,6 +28,9 @@ func _run() -> void:
 	if int(summary.get("scenes", 0)) < 12:
 		_fail("Startup cache smoke failed: scene cache did not include all major screens")
 		return
+	if int(summary.get("environment_biomes", 0)) != 12:
+		_fail("Startup cache smoke failed: eight regional/boss fields and four Infinite overlays were not cached")
+		return
 	if CardButton.get_cached_texture_count() < expected_card_icons:
 		_fail("Startup cache smoke failed: card textures were not fully cached")
 		return

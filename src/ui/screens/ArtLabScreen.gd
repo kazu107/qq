@@ -9,6 +9,8 @@ const CATEGORIES: Dictionary = {
 	"control": ["操作部品", "Controls"], "background": ["背景", "Backgrounds"],
 	"branding": ["ロゴ", "Branding"], "environment": ["フィールド", "Field"],
 	"achievement": ["実績アイコン", "Achievements"],
+	"environment_overlay": ["無限フィールド差分", "Infinite scenery"],
+	"facility_3d": ["施設モデル", "Facility models"],
 }
 
 var _catalog: Array[Dictionary] = []
@@ -213,8 +215,8 @@ func _add_tile(entry: Dictionary) -> void:
 		var path: String = String(entry.get("runtime_path", ""))
 		if category in ["character_3d", "enemy_3d"]:
 			path = "assets/portraits/%s.png" % id
-		elif category == "environment":
-			path = "assets/backgrounds/hub.png"
+		elif category in ["environment", "environment_overlay", "facility_3d"]:
+			path = _environment_thumbnail(id)
 		var image: TextureRect = TextureRect.new()
 		image.texture = ArtCatalog.get_texture(path) if path.ends_with(".png") or path.ends_with(".svg") else null
 		image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -275,12 +277,19 @@ func _open_preview(entry: Dictionary) -> void:
 		content.add_child(model)
 		model.show_starter(String(entry.get("asset_id", "")))
 		model.set_auto_frame(true)
-	elif String(entry.get("category", "")) == "environment":
+	elif String(entry.get("category", "")) in ["environment", "environment_overlay", "facility_3d"]:
 		var field: BattleStage3D = BattleStage3D.new()
 		field.custom_minimum_size.y = 240.0
 		field.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		content.add_child(field)
 		field.configure_combatants("player", "enemy", "player", "balanced", "scout")
+		var id: String = String(entry.get("asset_id", ""))
+		if String(entry.get("category", "")) == "facility_3d":
+			field.configure_environment("clock_ruins")
+			var props: PackedScene = BattleEnvironmentArt.get_scene(id)
+			if props != null: (field.get("_world_root") as Node3D).add_child(props.instantiate())
+		elif id != "environment_field":
+			field.configure_environment(id.trim_suffix("_infinite"), id.ends_with("_infinite"))
 	else:
 		var image: TextureRect = TextureRect.new()
 		image.texture = ArtCatalog.get_texture(String(entry.get("runtime_path", "")))
@@ -323,3 +332,10 @@ func _close_preview() -> void:
 		if is_instance_valid(_previous_focus):
 			_previous_focus.grab_focus()
 		_previous_focus = null
+
+
+func _environment_thumbnail(id: String) -> String:
+	if id.begins_with("facility_"):
+		return BattleEnvironmentArt.BACKGROUND_ROOT + "clock_ruins_" + id.trim_prefix("facility_") + ".png"
+	var path: String = BattleEnvironmentArt.BACKGROUND_ROOT + id.trim_suffix("_infinite") + ".png"
+	return path if ResourceLoader.exists("res://" + path) else "assets/backgrounds/hub.png"

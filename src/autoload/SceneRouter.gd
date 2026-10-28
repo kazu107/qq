@@ -193,6 +193,7 @@ func warm_battle_stage_cache_async() -> bool:
 	add_child(stage)
 	_battle_stage_cache = stage
 	stage.configure_combatants("player", "enemy", "player", "balanced", "scout")
+	stage.configure_environment("clock_ruins")
 	await _wait_for_battle_stage_frame()
 	await _wait_for_battle_stage_frame()
 	stage.suspend_for_cache()

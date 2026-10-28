@@ -472,6 +472,23 @@ QQ-0.34.0で、追加の36操作・ナビゲーションアイコンを制作し
 
 ## 12. 更新チェックリスト
 
+### QQ-0.58.0 追加: 地域別フィールド
+
+既存素材に加えて35点をBlenderで制作・登録しました。詳細は [BLENDER_BATTLE_BIOMES.md](BLENDER_BATTLE_BIOMES.md) を参照してください。
+
+| 分類 | 点数 | 実行用ファイル |
+| --- | --- | --- |
+| 通常地域・ボスの背景3D | 8 | `assets/models/environment/biomes/{clock_ruins,brass_foundry,rift_gallery,forgotten_sanctuary,timekeeper_engine,paradox_reactor,axiom_altar,eternity_temple}.glb` |
+| 無限モードの共有追加造形 | 4 | `assets/models/environment/biomes/*_infinite.glb` |
+| ショップ・鍛冶屋・回復の施設3D | 3 | `assets/models/environment/biomes/facility_*.glb` |
+| 地域・ボスの全景レンダー | 8 | `assets/backgrounds/biomes/*.png`（施設以外） |
+| 地域別施設レンダー | 12 | `assets/backgrounds/biomes/*_{shop,forge,heal}.png` |
+
+15個の編集原本とハッシュ台帳を `art_src/blender/environment/biomes/` に保存しています。
+図形・素材・照明を使ったオリジナル制作で、外部画像や他作品のモデルは使用していません。
+
+### チェック項目
+
 新しいカード、遺物、スターター、敵、状態、UIアイコンを追加したときは、次を同じコミットで確認します。
 
 - データIDとファイル名が完全一致している。

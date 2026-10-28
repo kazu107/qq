@@ -82,6 +82,92 @@ var _local_engine_side: String = "player"
 var _local_visual_id: String = "default_player"
 var _opponent_visual_id: String = "default_enemy"
 var _environment_detail_counts: Dictionary = {}
+var _field_cache: Dictionary = {}
+var _field_id: String = "legacy_meadow"
+var _infinite_field: bool = false
+var _ambient_time: float = 0.0
+var _floating_scenery: Array[Node3D] = []
+
+
+func configure_environment(field_id: String, infinite_variant: bool = false) -> void:
+	field_id = String(BattleEnvironmentArt.get_field(field_id)["id"])
+	if _field_id == field_id and _infinite_field == infinite_variant:
+		return
+	var scene: PackedScene = BattleEnvironmentArt.get_scene(field_id)
+	if scene == null or _world_root == null:
+		return
+	if _authored_field != null: _authored_field.visible = false
+	for node: Node3D in _field_cache.values(): node.visible = false
+	if not _field_cache.has(field_id):
+		var field: Node3D = scene.instantiate() as Node3D
+		field.name = "Biome_" + field_id
+		field.set_meta("blender_source", "art_src/blender/environment/biomes/" + field_id + ".blend")
+		_world_root.add_child(field)
+		_field_cache[field_id] = field
+	var active: Node3D = _field_cache[field_id] as Node3D
+	active.visible = true
+	_field_id = field_id
+	_infinite_field = infinite_variant
+	_floating_scenery.clear()
+	var float_group: Node3D = active.find_child("MovingFloat", true, false) as Node3D
+	if float_group != null: _floating_scenery.append(float_group)
+	if infinite_variant:
+		var overlay_id: String = BattleEnvironmentArt.get_overlay_id(field_id)
+		if not _field_cache.has(overlay_id):
+			var overlay_scene: PackedScene = BattleEnvironmentArt.get_scene(overlay_id)
+			if overlay_scene != null:
+				var overlay: Node3D = overlay_scene.instantiate() as Node3D
+				overlay.name = "Biome_" + overlay_id
+				_world_root.add_child(overlay)
+				_field_cache[overlay_id] = overlay
+		if _field_cache.has(overlay_id):
+			var overlay: Node3D = _field_cache[overlay_id] as Node3D
+			overlay.visible = true
+			var floating: Node3D = overlay.find_child("MovingFloat", true, false) as Node3D
+			if floating != null: _floating_scenery.append(floating)
+	_ambient_time = 0.0
+	_apply_biome_lighting()
+	_environment_detail_counts = {"field": field_id, "infinite": infinite_variant, "grid_columns": 7, "grid_rows": 5}
+
+
+func get_environment_context() -> Dictionary:
+	return {"id": _field_id, "infinite": _infinite_field, "cached_instances": _field_cache.size()}
+
+
+func _apply_biome_lighting() -> void:
+	var theme_id: String = String(BattleEnvironmentArt.get_field(_field_id)["theme"])
+	var accent: Color = Color(0.33, 0.72, 0.57)
+	var horizon: Color = Color(0.30, 0.43, 0.36)
+	match theme_id:
+		"foundry":
+			accent = Color(1.0, 0.38, 0.12)
+			horizon = Color(0.24, 0.25, 0.28)
+		"rift":
+			accent = Color(0.18, 0.65, 1.0)
+			horizon = Color(0.19, 0.30, 0.43)
+		"sanctuary":
+			accent = Color(0.57, 0.76, 1.0)
+			horizon = Color(0.25, 0.32, 0.43)
+	if _infinite_field:
+		horizon = horizon.darkened(0.48)
+		if theme_id == "meadow": accent = Color(0.97, 0.48, 0.29)
+	var env: Environment = (_world_root.get_node("BattleWorldEnvironment") as WorldEnvironment).environment
+	var sky: ProceduralSkyMaterial = env.sky.sky_material as ProceduralSkyMaterial
+	sky.sky_top_color = horizon.darkened(0.58)
+	sky.sky_horizon_color = horizon
+	sky.ground_horizon_color = horizon.darkened(0.12)
+	sky.ground_bottom_color = horizon.darkened(0.55)
+	env.ambient_light_color = Color(0.30, 0.33, 0.38)
+	env.ambient_light_energy = 0.30 if _infinite_field else 0.42
+	var key: DirectionalLight3D = _world_root.get_node("BattleKeyLight") as DirectionalLight3D
+	key.light_color = Color(0.88, 0.94, 1.0)
+	key.light_energy = 0.76 if _infinite_field else 0.95
+	var warm: OmniLight3D = _world_root.get_node("BattleWarmFill") as OmniLight3D
+	warm.light_color = accent
+	warm.light_energy = 0.50 if _infinite_field else 0.36
+	var cool: OmniLight3D = _world_root.get_node("BattleCoolFill") as OmniLight3D
+	cool.light_color = Color(0.32, 0.53, 0.72)
+	cool.light_energy = 0.30
 var _authored_field: Node3D
 var _playback_speed: float = 1.0
 var _battle_end_queued: bool = false
@@ -120,6 +206,9 @@ func resume_from_cache() -> void:
 func _process(delta: float) -> void:
 	_refresh_status_tooltip()
 	delta *= _playback_speed
+	_ambient_time += delta
+	for node: Node3D in _floating_scenery:
+		node.position.y = sin(_ambient_time * 1.25) * 0.10
 	_update_event_queue(delta)
 	_update_effects(delta)
 	_update_floating_combat_texts(delta)

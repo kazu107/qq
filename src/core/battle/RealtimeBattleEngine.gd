@@ -591,6 +591,7 @@ func build_summary(include_battle_events: bool = true) -> Dictionary:
 			"frames": recording.frames.duplicate(true), "interval": recording.interval,
 			"player_visual": _player_run.starter_id if _player_run != null else "default_player",
 			"enemy_visual": _enemy_run.starter_id if _enemy_run != null else battle_state.enemy.unit_id,
+			"environment": BattleEnvironmentArt.get_context(_player_run, battle_state.enemy.unit_id),
 		}
 	summary["analysis"] = analysis.to_dict()
 	return summary

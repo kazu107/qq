@@ -53,6 +53,7 @@ func _ready() -> void:
 	_build_ui()
 	await get_tree().process_frame
 	_reconfigure_stage()
+	_stage.configure_environment("clock_ruins")
 	set_process(true)
 
 
@@ -129,6 +130,22 @@ func _build_ui() -> void:
 	var controls := VBoxContainer.new()
 	controls.add_theme_constant_override("separation", 10)
 	controls_margin.add_child(controls)
+	var scenery_row := HBoxContainer.new()
+	controls.add_child(scenery_row)
+	var scenery := OptionButton.new()
+	scenery.name = "BattleEnvironmentSelect"
+	for field: Dictionary in BattleEnvironmentArt.FIELDS:
+		scenery.add_item(String(field["ja"] if Localization.get_language() == "ja" else field["en"]))
+	scenery.custom_minimum_size = Vector2(300, 40)
+	var infinite := CheckButton.new()
+	infinite.name = "BattleEnvironmentInfinite"
+	infinite.text = _localized("無限モード差分", "Infinite variant")
+	var change_field: Callable = func(_value: Variant) -> void:
+		_stage.configure_environment(String(BattleEnvironmentArt.FIELDS[scenery.selected]["id"]), infinite.button_pressed)
+	scenery.item_selected.connect(change_field)
+	infinite.toggled.connect(change_field)
+	_add_labeled_control(scenery_row, _localized("フィールド", "Field"), scenery)
+	scenery_row.add_child(infinite)
 
 	var model_row := HBoxContainer.new()
 	model_row.add_theme_constant_override("separation", 12)
