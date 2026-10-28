@@ -50,7 +50,7 @@ func _run() -> void:
 	if search_edit == null:
 		_fail("SFX lab smoke failed: search field was missing")
 		return
-	search_edit.text = "card_quick_slash"
+	search_edit.text = "card_ascendant_edge"
 	search_edit.text_changed.emit(search_edit.text)
 	await get_tree().process_frame
 	var visible_tiles: int = 0
@@ -63,7 +63,7 @@ func _run() -> void:
 		return
 
 	AudioManager.clear_play_history()
-	var target_button: Button = lab.find_child("Play_card_quick_slash", true, false) as Button
+	var target_button: Button = lab.find_child("Play_card_ascendant_edge", true, false) as Button
 	target_button.pressed.emit()
 	if AudioManager.get_last_sfx_id() != "card_quick_slash":
 		_fail("SFX lab smoke failed: play button did not route to AudioManager")
@@ -73,6 +73,11 @@ func _run() -> void:
 		button.pressed.emit()
 		if AudioManager.get_last_sfx_id() != String(AudioManager.BOSS_CARD_SOUNDS[id]):
 			_fail("SFX lab smoke failed: boss alias playback failed for " + id)
+			return
+	for id: String in Database.get_enemy_card_ids():
+		(lab.find_child("Play_card_%s" % id, true, false) as Button).pressed.emit()
+		if AudioManager.get_last_sfx_id() != String(AudioManager.CARD_SOUND_ALIASES[id]):
+			_fail("SFX lab smoke failed: enemy alias playback failed for " + id)
 			return
 	search_edit.text = "timekeeper_"
 	search_edit.text_changed.emit(search_edit.text)

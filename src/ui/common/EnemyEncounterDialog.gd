@@ -46,6 +46,9 @@ func open(data: Dictionary) -> void:
 	if Game.current_run.infinite_mode:
 		_enemy_name.text += "  ∞%d" % RealtimeBattleEngine._get_infinite_power(Game.current_run)
 	_note.text = Localization.get_text("encounter.hazard_note", "Rewards after every battle. You may withdraw between waves.") if data["node_type"] == "hazard" else Localization.get_text("encounter.note", "Review the enemy before entering battle.")
+	var definition: EnemyDef = Database.get_enemy(unit.unit_id)
+	if definition != null and definition.description != "":
+		_note.text = definition.description
 	for child: Node in _stats.get_children():
 		_stats.remove_child(child)
 		child.queue_free()

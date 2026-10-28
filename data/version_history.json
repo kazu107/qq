@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.56.10",
+  "current_version": "QQ-0.57.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.57.0", "date": "2026-10-28",
+      "title_ja": "無限モード第2周以降の強化個体と敵専用カード",
+      "title_en": "Ascended enemies and exclusive cards for later Infinite cycles",
+      "changes_ja": [
+        "既存の敵18種類に色違いの強化個体を追加しました。無限モード第2周以降の通常戦闘・エリート・ボス・危険地帯に登場し、役割別の新編成と敵専用カード8枚を使います。第1周、通常モード、アリーナの元の敵編成は維持します。",
+        "元の3Dモデルとアニメーションを共有し、装甲・金属の縁取り・発光色を変更します。Blender製のポートレート18枚と専用カード画像8枚を追加し、敵情報画面には編成の戦い方も表示します。開発者の戦闘ラボからも選択できます。",
+        "後続周の危険地帯も、その周内のエリアに合う敵を出すようにしました。既存ランの撃破数・報酬を保ったまま未撃破の敵を更新します。ランキングルールはinfinite-16へ更新し、準備中の状態は維持します。"
+      ],
+      "changes_en": [
+        "Add ascended variants of all 18 enemies for cycle 2+ Infinite battles, elites, bosses and hazards. Curate archetype-focused loadouts with eight enemy-exclusive cards; preserve first-cycle, Normal and Arena base encounters.",
+        "Share original GLBs and animations with cached armor, trim and glow material variants. Add 18 Blender bust portraits and eight original card illustrations, enemy-intel tactics and developer-lab selection.",
+        "Repeat hazard archetypes by local area in later cycles and migrate remaining opponents without losing cleared waves or rewards. Advance the gameplay revision to infinite-16 while keeping ranking in preparing."
+      ]
+    },
     {
       "version": "QQ-0.56.10", "date": "2026-10-28",
       "title_ja": "Blender製の細身スクロールバーを全体に適用",

@@ -22,6 +22,8 @@ const RECONNECT_GRACE_SECONDS: float = 15.0
 const CONTENT_PATHS: Array[String] = [
 	"res://data/cards.json",
 	"res://data/boss_cards.json",
+	"res://data/enemy_cards.json",
+	"res://data/infinite_enemy_variants.json",
 	"res://data/relics.json",
 	"res://data/starters.json",
 	"res://data/battle_visuals.json",

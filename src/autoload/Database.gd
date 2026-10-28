@@ -2,6 +2,7 @@ extends Node
 
 const CARDS_PATH := "res://data/cards.json"
 const BOSS_CARDS_PATH := "res://data/boss_cards.json"
+const ENEMY_CARDS_PATH := "res://data/enemy_cards.json"
 const ENEMIES_PATH := "res://data/enemies.json"
 const STARTERS_PATH := "res://data/starters.json"
 const REWARDS_PATH := "res://data/rewards.json"
@@ -15,6 +16,7 @@ const BATTLE_VISUALS_PATH := "res://data/battle_visuals.json"
 
 var cards: Dictionary = {}
 var boss_cards: Dictionary = {}
+var enemy_cards: Dictionary = {}
 var enemies: Dictionary = {}
 var starters: Array[Dictionary] = []
 var rewards: Dictionary = {}
@@ -35,6 +37,7 @@ func load_all() -> void:
 	presentation_revision += 1
 	cards.clear()
 	boss_cards.clear()
+	enemy_cards.clear()
 	enemies.clear()
 	starters.clear()
 	rewards.clear()
@@ -54,6 +57,10 @@ func load_all() -> void:
 		var boss_card: CardDef = CardDef.from_dict(data)
 		boss_card.boss_only = true
 		boss_cards[boss_card.id] = boss_card
+	for data: Dictionary in _load_json_array(ENEMY_CARDS_PATH):
+		var card: CardDef = CardDef.from_dict(data)
+		card.enemy_only = true
+		enemy_cards[card.id] = card
 	_load_enemies()
 	starters = _load_json_dictionary_array(STARTERS_PATH)
 	rewards = _load_json_dictionary(REWARDS_PATH)
@@ -64,6 +71,8 @@ func load_all() -> void:
 	_load_events()
 	_load_achievements()
 	battle_visuals = _load_json_dictionary(BATTLE_VISUALS_PATH)
+	InfiniteEnemyCatalog.reload()
+	InfiniteEnemyCatalog.apply_definitions(enemies, battle_visuals)
 	_apply_localization()
 
 	if load_errors.is_empty():
@@ -81,7 +90,7 @@ func load_all() -> void:
 
 
 func get_card(card_id: String) -> CardDef:
-	return cards.get(card_id, boss_cards.get(card_id)) as CardDef
+	return cards.get(card_id, boss_cards.get(card_id, enemy_cards.get(card_id))) as CardDef
 
 
 func is_collectible_card(card_id: String) -> bool:
@@ -92,6 +101,12 @@ func get_boss_card_ids() -> Array[String]:
 	var ids: Array[String] = []
 	for id: String in boss_cards:
 		ids.append(id)
+	return ids
+
+
+func get_enemy_card_ids() -> Array[String]:
+	var ids: Array[String] = []
+	ids.assign(enemy_cards.keys())
 	return ids
 
 
@@ -259,6 +274,10 @@ func _load_achievements() -> void:
 
 
 func _apply_localization() -> void:
+	for id: String in enemy_cards:
+		var card: CardDef = enemy_cards[id]
+		card.name = Localization.get_text("card.%s.name" % id, card.name)
+		card.description = Localization.get_text("card.%s.description" % id, card.description)
 	for id: String in boss_cards:
 		var card: CardDef = boss_cards[id]
 		card.name = Localization.get_text("card.%s.name" % id, card.name)

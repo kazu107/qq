@@ -179,6 +179,42 @@ func _command(arguments: Array) -> void:
 			InfiniteScoreResolver.new().start_fresh(Game.current_run)
 		Game.settings["developer_mode"] = false
 		SceneRouter.go_to_map()
+	elif String(payload.get("action", "")) == "ascended_fixture":
+		NetworkManager._clear_session(false)
+		Game.clear_battle_tutorial()
+		Game.set_language(String(payload.get("language", "ja")))
+		Game.start_new_run("balanced", 4242)
+		Game.settings["developer_mode"] = false
+		var run: RunState = Game.current_run
+		run.infinite_mode = true
+		run.max_hp = 500
+		run.player_hp = 500
+		run.attack = 8
+		run.loadout_limit = 100
+		for id: String in run.equipped_cards: run.card_upgrades[id] = 2
+		var generator: MapGenerator = MapGenerator.new()
+		run.map_state = generator.generate_infinite_run(4242)
+		var cycle: int = int(payload.get("cycle", 2))
+		for index: int in range(1, cycle): generator.append_infinite_cycle(run.map_state, 4242)
+		var step: int = (cycle - 1) * 28
+		var rows: Array = run.map_state["steps"]
+		run.map_state["current_step"] = step
+		if step > 0:
+			rows[step-1]["nodes"][0]["status"] = "completed"
+			rows[step-1]["nodes"][0]["next_ids"] = rows[step]["nodes"].map(func(node: Dictionary) -> String: return String(node["id"]))
+		MapRouteGraph.unlock(run.map_state, step)
+		var enemy_id: String = InfiniteEnemyCatalog.resolve(String(payload.get("enemy", "scout")), cycle)
+		var node: Dictionary = rows[step]["nodes"][0]
+		node["enemy_id"] = enemy_id
+		if enemy_id.begins_with("boss_"):
+			node["type"] = "boss"
+			node.erase("encounter_queue")
+		else:
+			var queue: Array = node.get("encounter_queue", [enemy_id])
+			queue[0] = enemy_id
+			node["encounter_queue"] = queue
+		InfiniteScoreResolver.new().start_fresh(run)
+		SceneRouter.go_to_map()
 	elif String(payload.get("action", "")) == "encounter_win":
 		var screen: Control = get_tree().current_scene as Control
 		if screen.scene_file_path == SceneRouter.BATTLE_SCENE:
@@ -688,6 +724,19 @@ func _inspect() -> Dictionary:
 			var bleed_engine: RealtimeBattleEngine = screen.get("_engine") as RealtimeBattleEngine
 			if bleed_engine != null and bleed_engine.battle_state != null:
 				var enemy: UnitState = bleed_engine.battle_state.enemy
+				var visual_stage: BattleStage3D = screen.get("_battle_stage") as BattleStage3D
+				var actor: BattleActor3D = visual_stage.get("_enemy_actor") as BattleActor3D
+				var colors: Array[String] = []
+				if actor.get_authored_model_root() != null:
+					for mesh: MeshInstance3D in actor.get_authored_model_root().find_children("*", "MeshInstance3D", true, false):
+						for surface: int in mesh.mesh.get_surface_count():
+							var material: StandardMaterial3D = mesh.get_surface_override_material(surface) as StandardMaterial3D
+							if material != null and not colors.has(material.albedo_color.to_html()): colors.append(material.albedo_color.to_html())
+				var cards: Array[String] = []
+				for runtime: CardRuntimeState in enemy.card_runtime_states: cards.append(runtime.card_id)
+				result["infinite_enemy"] = {"id":enemy.unit_id, "name":enemy.display_name, "variant":InfiniteEnemyCatalog.is_variant(enemy.unit_id),
+					"hp":enemy.max_hp, "attack":enemy.attack, "cards":cards, "model":actor.get_authored_model_path(), "colors":colors,
+					"grade":enemy.temporary_card_modifiers.get(cards[0], {}).get("tier", 0)}
 				var stage: BattleStage3D = screen.get("_battle_stage") as BattleStage3D
 				var regions: Array[Dictionary] = []
 				for region: Dictionary in stage.get_enemy_status_model().get_status_regions():

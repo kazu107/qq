@@ -136,6 +136,7 @@ func append_infinite_cycle(map_state: Dictionary, seed: int) -> void:
 	map_state["cycle_count"] = cycle_index + 1
 	map_state["infinite"] = true
 	map_state["encounter_growth_version"] = ENCOUNTER_GROWTH_VERSION
+	map_state["enemy_variant_version"] = InfiniteEnemyCatalog.MAP_VERSION
 
 
 func _remap_infinite_nodes(nodes: Array, cycle_number: int, step_index: int, area_offset: int, infinite_power: int) -> Array:
@@ -153,6 +154,7 @@ func _remap_infinite_nodes(nodes: Array, cycle_number: int, step_index: int, are
 		node_data["area"] = int(node_data.get("area", 1)) + area_offset
 		node_data["status"] = "locked"
 		_apply_encounter_growth(node_data, step_index, true)
+		InfiniteEnemyCatalog.upgrade_node(node_data, cycle_number)
 		remapped.append(node_data)
 	return remapped
 
@@ -179,9 +181,10 @@ func _apply_encounter_growth(node: Dictionary, step_index: int, infinite: bool) 
 		if first == "": return
 		var pool: Array = _normal_enemy_pool(int(node.get("area", 1)))
 		var enemies: Array[String] = [first]
-		var start: int = maxi(0, pool.find(first))
+		var start: int = maxi(0, pool.find(InfiniteEnemyCatalog.base_id(first)))
 		for index: int in range(1, EncounterSeries.normal_battle_count(step_index)):
-			enemies.append(String(pool[(start + index) % pool.size()]))
+			var id: String = String(pool[(start + index) % pool.size()])
+			enemies.append(InfiniteEnemyCatalog.resolve(id, 1 + floori(float(step_index) / 28.0)) if infinite else id)
 		node["encounter_queue"] = enemies
 
 

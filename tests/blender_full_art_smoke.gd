@@ -32,6 +32,8 @@ func _run() -> void:
 		_require_image("assets/icons/cards/%s.png" % id, 512)
 	for id: String in Database.get_boss_card_ids():
 		_require_image("assets/icons/cards/%s.png" % id, 512)
+	for id: String in Database.get_enemy_card_ids():
+		_require_image("assets/icons/cards/%s.png" % id, 512)
 	for id: String in Database.get_all_relic_ids():
 		_require_image("assets/icons/relics/%s.png" % id, 512)
 	_require_image("assets/icons/cards/environment_fatigue.png", 512)
@@ -43,7 +45,7 @@ func _run() -> void:
 		var path: String = String(profile.get("model_scene", ""))
 		_check(not path.is_empty() and _paths.has(path.trim_prefix("res://")), "Missing Blender model " + id)
 	for id: String in _character_ids():
-		_require_image("assets/portraits/%s.png" % id, 1024)
+		_require_image("assets/portraits/%s.png" % id, 512 if InfiniteEnemyCatalog.is_variant(id) else 1024)
 		var profile: Dictionary = Database.get_battle_visual_profile(id)
 		var model: PackedScene = ResourceLoader.load(String(profile.get("model_scene", ""))) as PackedScene
 		_check(model != null, "Could not import model " + id)
@@ -84,7 +86,7 @@ func _run() -> void:
 			push_error("Blender full art smoke: " + failure)
 		get_tree().quit(1)
 		return
-	print("BLENDER_FULL_ART_SMOKE_OK all cards/relics, 25 rigs/portraits, icons, field and backgrounds")
+	print("BLENDER_FULL_ART_SMOKE_OK all cards/relics, %d character profiles/portraits with shared rigs, icons, field and backgrounds" % _character_ids().size())
 	get_tree().quit()
 
 

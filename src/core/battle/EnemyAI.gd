@@ -15,7 +15,7 @@ func reset() -> void:
 
 
 func update(engine: RealtimeBattleEngine, delta: float) -> void:
-	if side == "enemy" and engine.battle_state != null and engine.battle_state.enemy.unit_id == "boss_timekeeper":
+	if side == "enemy" and engine.battle_state != null and InfiniteEnemyCatalog.base_id(engine.battle_state.enemy.unit_id) == "boss_timekeeper":
 		_update_timekeeper(engine)
 		return
 	_think_timer -= delta
@@ -68,6 +68,9 @@ func _update_timekeeper(engine: RealtimeBattleEngine) -> void:
 	if _timekeeper_cycle != strike.instance_id:
 		_timekeeper_cycle = strike.instance_id
 		_mark_attempted = false
+	if InfiniteEnemyCatalog.is_variant(state.enemy.unit_id) and state.enemy.shield < 4 and strike.get_remaining(state.battle_time) > 12.0:
+		if _use_timekeeper_card(engine, "ascendant_bulwark"):
+			return
 	# Reserve the final window for the mark; amplify repeatedly while time remains.
 	if not _mark_attempted and strike.scheduled_time - state.battle_time <= 8.0:
 		_mark_attempted = _use_timekeeper_card(engine, "timekeeper_time_mark")
@@ -143,6 +146,8 @@ func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, 
 	if card_def.interruptible:
 		score -= 1.0
 	score += _role_bonus(enemy, card_def)
+	if InfiniteEnemyCatalog.is_variant(enemy.unit_id):
+		score += _ascended_bonus(engine, enemy, card_def)
 	score += float(enemy.speed) * 0.1
 	score -= card_def.cast_time * 0.1
 	score += float(runtime_state.loadout_index) * 0.01
@@ -150,7 +155,7 @@ func _score_card(engine: RealtimeBattleEngine, runtime_state: CardRuntimeState, 
 
 
 func _role_bonus(enemy: UnitState, card_def: CardDef) -> float:
-	match enemy.unit_id:
+	match InfiniteEnemyCatalog.base_id(enemy.unit_id):
 		"raider":
 			if card_def.tags.has("bleed") or card_def.tags.has("attack"):
 				return 2.0
@@ -168,6 +173,23 @@ func _role_bonus(enemy: UnitState, card_def: CardDef) -> float:
 			if card_def.tags.has("finisher"):
 				return 1.5
 	return 0.0
+
+
+func _ascended_bonus(engine: RealtimeBattleEngine, unit: UnitState, card: CardDef) -> float:
+	var bonus: float = 0.0
+	for effect: Dictionary in card.effects:
+		if effect.get("type", "") == "gain_shield":
+			for runtime: CardRuntimeState in unit.card_runtime_states:
+				if not runtime.can_use(): continue
+				var candidate: CardDef = Database.get_card(runtime.card_id)
+				if candidate == null: continue
+				for cost: Dictionary in candidate.effects:
+					if cost.get("type", "") == "consume_shield" and unit.shield < int(cost.get("amount", 0)) + ceili(candidate.cast_time):
+						return 10.0
+		elif effect.get("type", "") == "timeline_flow":
+			var count: int = engine.battle_state.get_active_instances_for_side("player" if side == "enemy" else "enemy").size()
+			bonus += 4.0 + count * 2.0 if count > 0 else -5.0
+	return bonus
 
 
 func _score_reservation(engine: RealtimeBattleEngine, effect: Dictionary, recipient: UnitState) -> float:

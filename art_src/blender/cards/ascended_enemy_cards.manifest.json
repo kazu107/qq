@@ -1,0 +1,97 @@
+{
+  "format_version": 1,
+  "batch_id": "blender_ascended_enemies_14",
+  "source": "art_src/blender/cards/ascended_enemy_cards.blend",
+  "source_sha256": "575415ff5a843a33663db6441da691e5d57fb24ca8753005156dc97fd2835b99",
+  "generator": "tools/blender/build_infinite_enemy_art.py",
+  "generator_sha256": {
+    "tools/blender/build_infinite_enemy_art.py": "9cebc8283e34a4c63f9aa843d1987ea292f6623ada9febf113ba0630ec77bc77",
+    "data/infinite_enemy_variants.json": "00b32eab3a70fe5ffc40bf9f5ba6fb731e307b58f494c2797af20436f2051c55",
+    "data/battle_visuals.json": "e21cf248df4953c2def148dbd0f2727319f27aca2d1e2033784763a8d1b67f0b"
+  },
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "asset_id": "ascendant_edge",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/ascendant_edge.png",
+      "size": 512,
+      "source_collection": "ascendant_edge",
+      "presentation": "enemy_card_action_illustration",
+      "environment_family": "courtyard",
+      "export_sha256": "8cafbcaef3f286b5b51e3932a14ec4440427cf44b9021a84ca402b11ae2f136a"
+    },
+    {
+      "asset_id": "ascendant_bulwark",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/ascendant_bulwark.png",
+      "size": 512,
+      "source_collection": "ascendant_bulwark",
+      "presentation": "enemy_card_action_illustration",
+      "environment_family": "fortress",
+      "export_sha256": "d838a3bb97f064e5ea35ef50c1d65c812e59c92af940744318faadb624e41d96"
+    },
+    {
+      "asset_id": "ascendant_brand",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/ascendant_brand.png",
+      "size": 512,
+      "source_collection": "ascendant_brand",
+      "presentation": "enemy_card_action_illustration",
+      "environment_family": "corrupted_lab",
+      "export_sha256": "9f6c43c2b440fbb162c9d2879111ef531d98db3cb93efddd0ba5f6dfa46c4a4f"
+    },
+    {
+      "asset_id": "ascendant_mend",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/ascendant_mend.png",
+      "size": 512,
+      "source_collection": "ascendant_mend",
+      "presentation": "enemy_card_action_illustration",
+      "environment_family": "infirmary",
+      "export_sha256": "a805c3be395d4ac1b7fba3c23bf7d37006c293ff4b52f74d0e3ef9181db6d780"
+    },
+    {
+      "asset_id": "ascendant_clock",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/ascendant_clock.png",
+      "size": 512,
+      "source_collection": "ascendant_clock",
+      "presentation": "enemy_card_action_illustration",
+      "environment_family": "time_vault",
+      "export_sha256": "a2710859d066ddecbbfed8422b49a81082aefcd8dfc29d9142b2f0cae3b0f28a"
+    },
+    {
+      "asset_id": "ascendant_echo",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/ascendant_echo.png",
+      "size": 512,
+      "source_collection": "ascendant_echo",
+      "presentation": "enemy_card_action_illustration",
+      "environment_family": "time_vault",
+      "export_sha256": "d604d490561e770426cbac9d918688a061fbebef5eab8b90f7de65913932125e"
+    },
+    {
+      "asset_id": "ascendant_siege",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/ascendant_siege.png",
+      "size": 512,
+      "source_collection": "ascendant_siege",
+      "presentation": "enemy_card_action_illustration",
+      "environment_family": "workshop",
+      "export_sha256": "2d0f1297e945e470182b60a96c51a86f3dab6a6d1ff797612b4dd6572de5d382"
+    },
+    {
+      "asset_id": "ascendant_verdict",
+      "category": "card",
+      "runtime_path": "assets/icons/cards/ascendant_verdict.png",
+      "size": 512,
+      "source_collection": "ascendant_verdict",
+      "presentation": "enemy_card_action_illustration",
+      "environment_family": "courtyard",
+      "export_sha256": "b7a35b081b3f218fe9c52f20f71b795bdbd7d54eb55a31b9fa2c6a5ff02034a1"
+    }
+  ],
+  "third_party_inputs": [],
+  "license": "project-original"
+}

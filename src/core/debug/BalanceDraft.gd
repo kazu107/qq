@@ -69,7 +69,7 @@ static func warm_catalog() -> void:
 	var consumers_text: String = FileAccess.get_file_as_string("res://data/balance_lab_consumers.json").replace("\r\n", "\n")
 	_consumers = JSON.parse_string(consumers_text)
 	signature += consumers_text
-	for pair: Array in [["card", Database.CARDS_PATH], ["card", Database.BOSS_CARDS_PATH], ["relic", Database.RELICS_PATH]]:
+	for pair: Array in [["card", Database.CARDS_PATH], ["card", Database.BOSS_CARDS_PATH], ["card", Database.ENEMY_CARDS_PATH], ["relic", Database.RELICS_PATH]]:
 		var source: String = FileAccess.get_file_as_string(pair[1]).replace("\r\n", "\n")
 		signature += source
 		for row: Dictionary in JSON.parse_string(source):

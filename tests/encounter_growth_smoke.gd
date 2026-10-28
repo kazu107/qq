@@ -38,7 +38,7 @@ func _test_boundaries() -> void:
 	for step: int in [1, 14, 15, 28, 29, 35, 36, 42, 43, 49, 50, 56, 57, 70, 71, 1001]:
 		_check(EncounterSeries.normal_battle_count(step - 1) == 1 + floori(float(step - 1) / 14.0), "normal count boundary at step %d" % step)
 		var expected: int = 3 if step <= 28 else 4 + floori(float(step - 29) / 7.0)
-		_check(EncounterSeries.build_hazard_queue(13, step - 1, true).size() == expected, "infinite hazard boundary at step %d" % step)
+		_check(EncounterSeries.build_hazard_queue(12, step - 1, true).size() == expected, "infinite hazard boundary at step %d" % step)
 	_check(EncounterSeries.normal_battle_count(-10) == 1, "negative step must not remove the first enemy")
 	_check(EncounterSeries.build_hazard_queue(2, 2, true) == ["raider", "guardian"], "first-cycle two-wave hazard changed")
 	_check(EncounterSeries.build_hazard_queue(3, 4, false) == ["chronoguard", "disruptor", "brute"], "normal three-wave hazard changed")

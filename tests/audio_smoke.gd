@@ -163,7 +163,7 @@ func _run() -> void:
 
 func _assert_sfx_assets() -> void:
 	var catalog: Array[Dictionary] = AudioManager.get_sfx_catalog()
-	var expected_count: int = EXPECTED_SHARED_SFX_COUNT + Database.get_all_card_ids().size() + Database.get_boss_card_ids().size() + Database.get_all_relic_ids().size()
+	var expected_count: int = EXPECTED_SHARED_SFX_COUNT + Database.get_all_card_ids().size() + Database.get_boss_card_ids().size() + Database.get_enemy_card_ids().size() + Database.get_all_relic_ids().size()
 	if catalog.size() != expected_count:
 		_fail("Audio smoke failed: catalog size was %d, expected %d" % [catalog.size(), expected_count])
 		return

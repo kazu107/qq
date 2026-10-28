@@ -7,14 +7,15 @@ static func normal_battle_count(step_index: int) -> int:
 
 
 static func build_hazard_queue(area: int, step_index: int = 0, infinite: bool = false) -> Array[String]:
+	var local_area: int = 1 + (maxi(1, area) - 1) % 12 if infinite else area
 	var pattern: Array[String]
-	if area <= 2:
+	if local_area <= 2:
 		pattern = ["raider", "guardian"]
-	elif area <= 3:
+	elif local_area <= 3:
 		pattern = ["chronoguard", "disruptor", "brute"]
-	elif area <= 6:
+	elif local_area <= 6:
 		pattern = ["phase_stalker", "echo_revenant", "void_bastion"]
-	elif area <= 9:
+	elif local_area <= 9:
 		pattern = ["rift_predator", "entropy_colossus", "rift_predator"]
 	else:
 		pattern = ["omega_seraph", "grave_architect", "omega_seraph"]
@@ -23,7 +24,8 @@ static func build_hazard_queue(area: int, step_index: int = 0, infinite: bool = 
 		count = 4 + floori(float(step_index - 28) / 7.0)
 	var enemies: Array[String] = []
 	for index: int in count:
-		enemies.append(pattern[index % pattern.size()])
+		var id: String = pattern[index % pattern.size()]
+		enemies.append(InfiniteEnemyCatalog.resolve(id, 1 + floori(float(step_index) / 28.0)) if infinite else id)
 	return enemies
 
 

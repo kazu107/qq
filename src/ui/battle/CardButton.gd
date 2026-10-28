@@ -995,7 +995,7 @@ func _build_hand_tooltip(card_def: CardDef, _tooltip_state: String, tooltip_bloc
 func _card_presentation_key(card: CardDef) -> Array:
 	if card == null:
 		return []
-	return [card.id, card.name, card.description, card.rarity, card.tags, card.boss_only,
+	return [card.id, card.name, card.description, card.rarity, card.tags, card.boss_only, card.enemy_only,
 		card.loadout_cost, card.active_slot_cost, card.cast_time, card.recast_time,
 		card.target_type, card.effects, card.upgrade_profile, card.grade_overrides]
 
@@ -1074,6 +1074,8 @@ func _build_battle_tooltip_lines(card_def: CardDef, rich: bool = false) -> Array
 	var lines: Array[String] = [card_def.name]
 	if card_def.boss_only:
 		lines.append(Localization.get_text("card.boss_only", "Boss only - not collectible"))
+	elif card_def.enemy_only:
+		lines.append(Localization.get_text("card.enemy_only", "Enemy only - not collectible"))
 	_append_battle_effect_lines(lines, card_def, rich)
 	lines.append(Localization.get_textf("card.tooltip.cast", "Cast: {value}s", {
 		"value": _format_compared_float(card_def.cast_time, base_cast_time, 1, false, rich),

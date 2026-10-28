@@ -23,7 +23,14 @@ static func multiplier(cycle: int) -> float:
 
 
 static func par_time(enemy_id: String, cycle: int) -> float:
-	return float(RunScoreResolver.ENEMY_PAR_TIMES.get(enemy_id, 60.0)) * RealtimeBattleEngine.get_infinite_hp_multiplier(maxi(1, cycle))
+	var base_id: String = InfiniteEnemyCatalog.base_id(enemy_id)
+	var hp_ratio: float = 1.0
+	if base_id != enemy_id:
+		var base: EnemyDef = Database.get_enemy(base_id)
+		var variant: EnemyDef = Database.get_enemy(enemy_id)
+		if base != null and variant != null:
+			hp_ratio = float(variant.max_hp) / maxf(1.0, base.max_hp)
+	return float(RunScoreResolver.ENEMY_PAR_TIMES.get(base_id, 60.0)) * hp_ratio * RealtimeBattleEngine.get_infinite_hp_multiplier(maxi(1, cycle))
 
 
 func ensure_initialized(run: RunState) -> void:

@@ -1298,7 +1298,7 @@ func _configure_battle_stage() -> void:
 		opponent_visual_id = String(tutorial.get("enemy_id", "scout"))
 	elif Game.current_run != null:
 		local_visual_id = Game.current_run.starter_id
-		opponent_visual_id = Game.pending_enemy_id
+		opponent_visual_id = opponent_unit.unit_id
 	_battle_stage.configure_combatants(
 		local_unit.unit_id,
 		opponent_unit.unit_id,

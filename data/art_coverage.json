@@ -1,7 +1,7 @@
 {
   "updated_at": "2026-10-28",
   "complete": true,
-  "registered_assets": 395,
+  "registered_assets": 421,
   "coverage": {
     "Cards": {
       "done": 122,
@@ -79,6 +79,16 @@
       "remaining": []
     },
     "Scrollbars": {
+      "done": 8,
+      "total": 8,
+      "remaining": []
+    },
+    "Ascended enemy portraits": {
+      "done": 18,
+      "total": 18,
+      "remaining": []
+    },
+    "Enemy-only cards": {
       "done": 8,
       "total": 8,
       "remaining": []

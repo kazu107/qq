@@ -21,6 +21,10 @@ const CARD_SOUND_ALIASES: Dictionary = {
 	"regen_emergency": "card_repair_burst", "regen_bloodwrap": "card_blood_siphon", "regen_burst": "card_repair_burst",
 	"regen_spring": "card_purge_pulse", "regen_tank": "card_repair_burst",
 	"life_conversion": "card_guard", "barrier_conversion": "card_guard",
+	"ascendant_edge": "card_quick_slash", "ascendant_bulwark": "card_guard",
+	"ascendant_brand": "card_bleed_cut", "ascendant_mend": "card_repair_burst",
+	"ascendant_clock": "card_delay_step", "ascendant_echo": "card_sequence_loader",
+	"ascendant_siege": "card_bulwark_cannon", "ascendant_verdict": "card_meteor_crash",
 }
 const SFX_VOLUME_OFFSETS_DB: Dictionary = {
 	"run_start": -3.0,
@@ -276,6 +280,7 @@ func _build_sfx_catalog() -> Array[Dictionary]:
 
 	var card_ids: Array[String] = Database.get_all_card_ids()
 	card_ids.append_array(Database.get_boss_card_ids())
+	card_ids.append_array(Database.get_enemy_card_ids())
 	card_ids.sort()
 	for card_id: String in card_ids:
 		var card_def: CardDef = Database.get_card(card_id)

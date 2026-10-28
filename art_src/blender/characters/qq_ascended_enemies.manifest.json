@@ -1,0 +1,1079 @@
+{
+  "format_version": 1,
+  "batch_id": "blender_ascended_enemies_14",
+  "source": "art_src/blender/characters/qq_ascended_enemies.blend",
+  "source_sha256": "31e3470a22c5af084d9a73edad1ec1d39efe5c5315f671ea82af6ebcebcdbb6d",
+  "generator": "tools/blender/build_infinite_enemy_art.py",
+  "generator_sha256": {
+    "tools/blender/build_infinite_enemy_art.py": "9cebc8283e34a4c63f9aa843d1987ea292f6623ada9febf113ba0630ec77bc77",
+    "data/infinite_enemy_variants.json": "00b32eab3a70fe5ffc40bf9f5ba6fb731e307b58f494c2797af20436f2051c55",
+    "data/battle_visuals.json": "e21cf248df4953c2def148dbd0f2727319f27aca2d1e2033784763a8d1b67f0b"
+  },
+  "blender_version": "5.2.2 LTS",
+  "assets": [
+    {
+      "asset_id": "portrait_scout_ascended",
+      "visual_id": "scout_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/scout_ascended.png",
+      "size": 512,
+      "source_collection": "scout_ascended",
+      "source_model": "assets/models/battle/scout.glb",
+      "source_model_sha256": "6aa3fe530e55405d4d740344d78973de2c99d8556a35625211b4a036a168fd62",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "bcfb5dbd75ef7c470770b3f87fc0614f3952ddae8da33888cb0ff8fa4e1c765c",
+      "palette": {
+        "armor": [
+          0.14901960784313725,
+          0.49411764705882355,
+          0.9098039215686274
+        ],
+        "edge": [
+          0.36176470588235293,
+          0.6205882352941177,
+          0.9323529411764706
+        ],
+        "cloth": [
+          0.06274509803921569,
+          0.16470588235294117,
+          0.2627450980392157
+        ],
+        "cloth_shadow": [
+          0.0407843137254902,
+          0.10705882352941176,
+          0.17078431372549022
+        ],
+        "dark": [
+          0.050196078431372554,
+          0.13176470588235295,
+          0.21019607843137256
+        ],
+        "glow": [
+          0.7215686274509804,
+          0.9529411764705882,
+          1.0
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_brute_ascended",
+      "visual_id": "brute_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/brute_ascended.png",
+      "size": 512,
+      "source_collection": "brute_ascended",
+      "source_model": "assets/models/battle/brute.glb",
+      "source_model_sha256": "0f663e1e321ce0b4fa7e464d812575961c6ceda2e48b5524456345676b2d96ba",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "32cb52119fe4c81809c29d78788e961bd1d834cb37dbef0677bfb486ec7161c9",
+      "palette": {
+        "armor": [
+          0.7411764705882353,
+          0.2823529411764706,
+          0.13725490196078433
+        ],
+        "edge": [
+          0.8058823529411765,
+          0.46176470588235297,
+          0.35294117647058826
+        ],
+        "cloth": [
+          0.15294117647058825,
+          0.09019607843137255,
+          0.10196078431372549
+        ],
+        "cloth_shadow": [
+          0.09941176470588237,
+          0.05862745098039216,
+          0.06627450980392156
+        ],
+        "dark": [
+          0.12235294117647061,
+          0.07215686274509804,
+          0.0815686274509804
+        ],
+        "glow": [
+          1.0,
+          0.7019607843137254,
+          0.2980392156862745
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_disruptor_ascended",
+      "visual_id": "disruptor_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/disruptor_ascended.png",
+      "size": 512,
+      "source_collection": "disruptor_ascended",
+      "source_model": "assets/models/battle/disruptor.glb",
+      "source_model_sha256": "15c1a505ca7921d886d9eb54e646bb9e9d56e32fcea3a84488cbbbc9f647a8bf",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "2f33aff50272e108b0ba6de4595c4eba260825fc50337dd84d3037d40e2757e6",
+      "palette": {
+        "armor": [
+          0.7686274509803922,
+          0.8509803921568627,
+          0.9058823529411765
+        ],
+        "edge": [
+          0.8264705882352942,
+          0.888235294117647,
+          0.9294117647058824
+        ],
+        "cloth": [
+          0.14901960784313725,
+          0.10980392156862745,
+          0.28627450980392155
+        ],
+        "cloth_shadow": [
+          0.09686274509803922,
+          0.07137254901960785,
+          0.186078431372549
+        ],
+        "dark": [
+          0.1192156862745098,
+          0.08784313725490196,
+          0.22901960784313724
+        ],
+        "glow": [
+          0.7176470588235294,
+          0.5764705882352941,
+          1.0
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_guardian_ascended",
+      "visual_id": "guardian_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/guardian_ascended.png",
+      "size": 512,
+      "source_collection": "guardian_ascended",
+      "source_model": "assets/models/battle/guardian.glb",
+      "source_model_sha256": "059e8ac63464f230abaf4caf6d3d5f4f135d0e6963e790ebcbc3af4527d1242e",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "3ade5ebee475273a60041971f48fff66e543fbd2b5c5303fbd610896f2f83541",
+      "palette": {
+        "armor": [
+          0.7764705882352941,
+          0.6,
+          0.22745098039215686
+        ],
+        "edge": [
+          0.8323529411764706,
+          0.7,
+          0.42058823529411765
+        ],
+        "cloth": [
+          0.0784313725490196,
+          0.16470588235294117,
+          0.25882352941176473
+        ],
+        "cloth_shadow": [
+          0.050980392156862744,
+          0.10705882352941176,
+          0.1682352941176471
+        ],
+        "dark": [
+          0.06274509803921569,
+          0.13176470588235295,
+          0.2070588235294118
+        ],
+        "glow": [
+          0.5529411764705883,
+          0.9137254901960784,
+          1.0
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_raider_ascended",
+      "visual_id": "raider_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/raider_ascended.png",
+      "size": 512,
+      "source_collection": "raider_ascended",
+      "source_model": "assets/models/battle/raider.glb",
+      "source_model_sha256": "775e6ffa288375bca5a82c2a7218590e509854d0cd251e9d015ba30073105c72",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "03fe2b157e5ea14ce38005b3ddfe01593ae07e87ded5ea26518986edc9f1bf74",
+      "palette": {
+        "armor": [
+          0.6627450980392157,
+          0.12549019607843137,
+          0.28627450980392155
+        ],
+        "edge": [
+          0.7470588235294118,
+          0.34411764705882353,
+          0.4647058823529412
+        ],
+        "cloth": [
+          0.1568627450980392,
+          0.10588235294117647,
+          0.18823529411764706
+        ],
+        "cloth_shadow": [
+          0.10196078431372549,
+          0.06882352941176471,
+          0.1223529411764706
+        ],
+        "dark": [
+          0.12549019607843137,
+          0.08470588235294119,
+          0.15058823529411766
+        ],
+        "glow": [
+          1.0,
+          0.44313725490196076,
+          0.5882352941176471
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_medic_drone_ascended",
+      "visual_id": "medic_drone_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/medic_drone_ascended.png",
+      "size": 512,
+      "source_collection": "medic_drone_ascended",
+      "source_model": "assets/models/battle/medic_drone.glb",
+      "source_model_sha256": "a2a84ee20009a25c7e319b3d6cd33bd0697b3a7345113ddbe71711f544141304",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "1f22bb219b14ba9c74762daba02db2f19a84b19adf2488b6eb622e920ca7508e",
+      "palette": {
+        "armor": [
+          0.8352941176470589,
+          0.9058823529411765,
+          0.8666666666666667
+        ],
+        "edge": [
+          0.8764705882352941,
+          0.9294117647058824,
+          0.9
+        ],
+        "cloth": [
+          0.08627450980392157,
+          0.23921568627450981,
+          0.2196078431372549
+        ],
+        "cloth_shadow": [
+          0.05607843137254902,
+          0.1554901960784314,
+          0.1427450980392157
+        ],
+        "dark": [
+          0.06901960784313725,
+          0.19137254901960787,
+          0.17568627450980392
+        ],
+        "glow": [
+          0.3254901960784314,
+          0.9411764705882353,
+          0.6941176470588235
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_chronoguard_ascended",
+      "visual_id": "chronoguard_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/chronoguard_ascended.png",
+      "size": 512,
+      "source_collection": "chronoguard_ascended",
+      "source_model": "assets/models/battle/chronoguard.glb",
+      "source_model_sha256": "3f3db405cbc8fa33ac660515a8cc64e0081bcee2ef75a3d77571ce17e5c5cb56",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "0aa7ba1c75a054a5e528acc66ecc391540e955633954eec15264163c59b1d93a",
+      "palette": {
+        "armor": [
+          0.7098039215686275,
+          0.8156862745098039,
+          0.9058823529411765
+        ],
+        "edge": [
+          0.7823529411764706,
+          0.861764705882353,
+          0.9294117647058824
+        ],
+        "cloth": [
+          0.08235294117647059,
+          0.11372549019607843,
+          0.2627450980392157
+        ],
+        "cloth_shadow": [
+          0.05352941176470588,
+          0.07392156862745099,
+          0.17078431372549022
+        ],
+        "dark": [
+          0.06588235294117648,
+          0.09098039215686275,
+          0.21019607843137256
+        ],
+        "glow": [
+          0.45098039215686275,
+          0.8470588235294118,
+          1.0
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_boss_timekeeper_ascended",
+      "visual_id": "boss_timekeeper_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/boss_timekeeper_ascended.png",
+      "size": 512,
+      "source_collection": "boss_timekeeper_ascended",
+      "source_model": "assets/models/battle/boss_timekeeper.glb",
+      "source_model_sha256": "45ace9bc50df5152652703199c9ceead6f8c6384fc9cddf821675f4b10897788",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "135bccc3f9e0bf80bc44a53460f6ab3b1ee92b49ff7c57fec6d3c64f76ed86ab",
+      "palette": {
+        "armor": [
+          0.13725490196078433,
+          0.1843137254901961,
+          0.25098039215686274
+        ],
+        "edge": [
+          0.35294117647058826,
+          0.38823529411764707,
+          0.43823529411764706
+        ],
+        "cloth": [
+          0.050980392156862744,
+          0.09019607843137255,
+          0.1411764705882353
+        ],
+        "cloth_shadow": [
+          0.03313725490196078,
+          0.05862745098039216,
+          0.09176470588235294
+        ],
+        "dark": [
+          0.0407843137254902,
+          0.07215686274509804,
+          0.11294117647058824
+        ],
+        "glow": [
+          0.35294117647058826,
+          0.9098039215686274,
+          1.0
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_phase_stalker_ascended",
+      "visual_id": "phase_stalker_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/phase_stalker_ascended.png",
+      "size": 512,
+      "source_collection": "phase_stalker_ascended",
+      "source_model": "assets/models/battle/phase_stalker.glb",
+      "source_model_sha256": "2544dca8283fe7a40c278aa54ee1c9df5cadf9154edad74c33c3d1f179003648",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "ddbf8cc206fe0c747a55e99a1e4381bd8bb8281b1f36dab5853fdbc96c28a506",
+      "palette": {
+        "armor": [
+          0.1411764705882353,
+          0.47843137254901963,
+          0.7058823529411765
+        ],
+        "edge": [
+          0.3558823529411765,
+          0.6088235294117648,
+          0.7794117647058824
+        ],
+        "cloth": [
+          0.06666666666666667,
+          0.10980392156862745,
+          0.20392156862745098
+        ],
+        "cloth_shadow": [
+          0.043333333333333335,
+          0.07137254901960785,
+          0.13254901960784313
+        ],
+        "dark": [
+          0.05333333333333334,
+          0.08784313725490196,
+          0.1631372549019608
+        ],
+        "glow": [
+          0.615686274509804,
+          0.9215686274509803,
+          1.0
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_void_bastion_ascended",
+      "visual_id": "void_bastion_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/void_bastion_ascended.png",
+      "size": 512,
+      "source_collection": "void_bastion_ascended",
+      "source_model": "assets/models/battle/void_bastion.glb",
+      "source_model_sha256": "37435d04195fb47c3f5ec3835653a59079bfd5e6ccbbbc4a7d6e2c24e7e7d6b6",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "1615a54a836a8c92bbca12e029c5786faef6ece2b4dad92bb186771d23d44526",
+      "palette": {
+        "armor": [
+          0.8549019607843137,
+          0.8313725490196079,
+          0.788235294117647
+        ],
+        "edge": [
+          0.8911764705882352,
+          0.8735294117647059,
+          0.8411764705882353
+        ],
+        "cloth": [
+          0.2,
+          0.13725490196078433,
+          0.2627450980392157
+        ],
+        "cloth_shadow": [
+          0.13,
+          0.08921568627450982,
+          0.17078431372549022
+        ],
+        "dark": [
+          0.16000000000000003,
+          0.10980392156862746,
+          0.21019607843137256
+        ],
+        "glow": [
+          0.8666666666666667,
+          0.6039215686274509,
+          0.9764705882352941
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_echo_revenant_ascended",
+      "visual_id": "echo_revenant_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/echo_revenant_ascended.png",
+      "size": 512,
+      "source_collection": "echo_revenant_ascended",
+      "source_model": "assets/models/battle/echo_revenant.glb",
+      "source_model_sha256": "d5e603e3f7d81603ff9e3de4a872ee73ed75d33cafe46420630c0e9de34ec15b",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "545b3b807af9e1f9f0e27c73b94306acf06bcfa1dc2e10f745aae977f7ea101b",
+      "palette": {
+        "armor": [
+          0.10196078431372549,
+          0.6196078431372549,
+          0.6862745098039216
+        ],
+        "edge": [
+          0.3264705882352941,
+          0.7147058823529412,
+          0.7647058823529411
+        ],
+        "cloth": [
+          0.08235294117647059,
+          0.1450980392156863,
+          0.2235294117647059
+        ],
+        "cloth_shadow": [
+          0.05352941176470588,
+          0.0943137254901961,
+          0.14529411764705882
+        ],
+        "dark": [
+          0.06588235294117648,
+          0.11607843137254903,
+          0.17882352941176471
+        ],
+        "glow": [
+          0.6274509803921569,
+          1.0,
+          0.8666666666666667
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_boss_paradox_core_ascended",
+      "visual_id": "boss_paradox_core_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/boss_paradox_core_ascended.png",
+      "size": 512,
+      "source_collection": "boss_paradox_core_ascended",
+      "source_model": "assets/models/battle/boss_paradox_core.glb",
+      "source_model_sha256": "fa97793b66e46dbee1ba19aafb239cd11816fd32f04e69ccfbb0771a96e578d3",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "2cda30430b5092aedc064054e8eaf8d46e1e0c7469f8d008b544d24bdb4bf6fa",
+      "palette": {
+        "armor": [
+          0.27058823529411763,
+          0.1450980392156863,
+          0.3176470588235294
+        ],
+        "edge": [
+          0.45294117647058824,
+          0.3588235294117647,
+          0.48823529411764705
+        ],
+        "cloth": [
+          0.09019607843137255,
+          0.08235294117647059,
+          0.1607843137254902
+        ],
+        "cloth_shadow": [
+          0.05862745098039216,
+          0.05352941176470588,
+          0.10450980392156864
+        ],
+        "dark": [
+          0.07215686274509804,
+          0.06588235294117648,
+          0.12862745098039216
+        ],
+        "glow": [
+          0.9686274509803922,
+          0.6078431372549019,
+          0.9058823529411765
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_rift_predator_ascended",
+      "visual_id": "rift_predator_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/rift_predator_ascended.png",
+      "size": 512,
+      "source_collection": "rift_predator_ascended",
+      "source_model": "assets/models/battle/rift_predator.glb",
+      "source_model_sha256": "bc793cbd085dda2cb6f4c83ec46648883c5b0ad13f2a8ff46e0bc4e7bfceb679",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "90ab09d99d9895141347f0edbe46af0535ca8dde3d43203b6ceb11d878cbcd5f",
+      "palette": {
+        "armor": [
+          0.23529411764705882,
+          0.2980392156862745,
+          0.3803921568627451
+        ],
+        "edge": [
+          0.4264705882352941,
+          0.47352941176470587,
+          0.5352941176470588
+        ],
+        "cloth": [
+          0.08627450980392157,
+          0.12156862745098039,
+          0.19215686274509805
+        ],
+        "cloth_shadow": [
+          0.05607843137254902,
+          0.07901960784313726,
+          0.12490196078431373
+        ],
+        "dark": [
+          0.06901960784313725,
+          0.09725490196078432,
+          0.15372549019607845
+        ],
+        "glow": [
+          1.0,
+          0.8823529411764706,
+          0.4196078431372549
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_entropy_colossus_ascended",
+      "visual_id": "entropy_colossus_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/entropy_colossus_ascended.png",
+      "size": 512,
+      "source_collection": "entropy_colossus_ascended",
+      "source_model": "assets/models/battle/entropy_colossus.glb",
+      "source_model_sha256": "e22caa1ecec7a46c9734789814793a8b5d3e7fe73405d508d2f146acaee3a1b9",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "65c44b1831fcdd6dae26b72d90d4691d0df7c8dfd59470f32af626de88a9ee14",
+      "palette": {
+        "armor": [
+          0.38823529411764707,
+          0.21568627450980393,
+          0.17647058823529413
+        ],
+        "edge": [
+          0.5411764705882354,
+          0.4117647058823529,
+          0.38235294117647056
+        ],
+        "cloth": [
+          0.1411764705882353,
+          0.10980392156862745,
+          0.13725490196078433
+        ],
+        "cloth_shadow": [
+          0.09176470588235294,
+          0.07137254901960785,
+          0.08921568627450982
+        ],
+        "dark": [
+          0.11294117647058824,
+          0.08784313725490196,
+          0.10980392156862746
+        ],
+        "glow": [
+          1.0,
+          0.596078431372549,
+          0.25882352941176473
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_boss_axiom_breaker_ascended",
+      "visual_id": "boss_axiom_breaker_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/boss_axiom_breaker_ascended.png",
+      "size": 512,
+      "source_collection": "boss_axiom_breaker_ascended",
+      "source_model": "assets/models/battle/boss_axiom_breaker.glb",
+      "source_model_sha256": "d7d917d6ccebda04fff3809a0674ad6e53ddfc665c9e00a3277bf3ddfd8b8d21",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "dbc896895803752c2fe1f4a1a12ec590442cf74c9b960fdbda063ec020dd2d25",
+      "palette": {
+        "armor": [
+          0.8392156862745098,
+          0.8784313725490196,
+          0.8627450980392157
+        ],
+        "edge": [
+          0.8794117647058823,
+          0.9088235294117647,
+          0.8970588235294118
+        ],
+        "cloth": [
+          0.10588235294117647,
+          0.19215686274509805,
+          0.29411764705882354
+        ],
+        "cloth_shadow": [
+          0.06882352941176471,
+          0.12490196078431373,
+          0.1911764705882353
+        ],
+        "dark": [
+          0.08470588235294119,
+          0.15372549019607845,
+          0.23529411764705885
+        ],
+        "glow": [
+          0.44313725490196076,
+          0.796078431372549,
+          1.0
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_omega_seraph_ascended",
+      "visual_id": "omega_seraph_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/omega_seraph_ascended.png",
+      "size": 512,
+      "source_collection": "omega_seraph_ascended",
+      "source_model": "assets/models/battle/omega_seraph.glb",
+      "source_model_sha256": "2fac5b140b028d6c928b2a655350b2fed7fd25bdf4632b89b5ab5e94c13580c6",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "c7d5728f7f44259a07fdfded60a02e2cae65bc8e3b8b7b054399cbc0da710843",
+      "palette": {
+        "armor": [
+          0.40784313725490196,
+          0.3607843137254902,
+          0.6313725490196078
+        ],
+        "edge": [
+          0.5558823529411765,
+          0.5205882352941176,
+          0.7235294117647059
+        ],
+        "cloth": [
+          0.1450980392156863,
+          0.1450980392156863,
+          0.25098039215686274
+        ],
+        "cloth_shadow": [
+          0.0943137254901961,
+          0.0943137254901961,
+          0.1631372549019608
+        ],
+        "dark": [
+          0.11607843137254903,
+          0.11607843137254903,
+          0.20078431372549022
+        ],
+        "glow": [
+          0.6039215686274509,
+          0.9568627450980393,
+          0.8352941176470589
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_grave_architect_ascended",
+      "visual_id": "grave_architect_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/grave_architect_ascended.png",
+      "size": 512,
+      "source_collection": "grave_architect_ascended",
+      "source_model": "assets/models/battle/grave_architect.glb",
+      "source_model_sha256": "1600e050056cfde1374af165edbaa50b6597d16109fd728e55e6095b54fe2a47",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "8fb0f57f951078bba0382b4e2a888ef1b81a9c06a50f938bb63f16f0fdd3daaa",
+      "palette": {
+        "armor": [
+          0.7019607843137254,
+          0.7607843137254902,
+          0.7372549019607844
+        ],
+        "edge": [
+          0.776470588235294,
+          0.8205882352941176,
+          0.8029411764705883
+        ],
+        "cloth": [
+          0.11764705882352941,
+          0.20392156862745098,
+          0.19607843137254902
+        ],
+        "cloth_shadow": [
+          0.07647058823529412,
+          0.13254901960784313,
+          0.12745098039215685
+        ],
+        "dark": [
+          0.09411764705882353,
+          0.1631372549019608,
+          0.1568627450980392
+        ],
+        "glow": [
+          0.4666666666666667,
+          0.9294117647058824,
+          0.7294117647058823
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    },
+    {
+      "asset_id": "portrait_boss_eternity_zero_ascended",
+      "visual_id": "boss_eternity_zero_ascended",
+      "category": "portrait",
+      "runtime_path": "assets/portraits/boss_eternity_zero_ascended.png",
+      "size": 512,
+      "source_collection": "boss_eternity_zero_ascended",
+      "source_model": "assets/models/battle/boss_eternity_zero.glb",
+      "source_model_sha256": "d92b54a94b63580b802710ac99709d7167f7240a3887206151eeaeebfd8cf5e7",
+      "presentation": "same_model_recolored_bust",
+      "export_sha256": "2dbe719408b258d1dae6d6240989ff56062ba3e5facacf5216d22dd5e002749b",
+      "palette": {
+        "armor": [
+          0.19607843137254902,
+          0.19607843137254902,
+          0.2823529411764706
+        ],
+        "edge": [
+          0.3970588235294118,
+          0.3970588235294118,
+          0.46176470588235297
+        ],
+        "cloth": [
+          0.07450980392156863,
+          0.09411764705882353,
+          0.12549019607843137
+        ],
+        "cloth_shadow": [
+          0.04843137254901961,
+          0.0611764705882353,
+          0.0815686274509804
+        ],
+        "dark": [
+          0.0596078431372549,
+          0.07529411764705883,
+          0.10039215686274511
+        ],
+        "glow": [
+          0.7607843137254902,
+          0.6470588235294118,
+          1.0
+        ],
+        "trim": [
+          0.9607843137254902,
+          0.7803921568627451,
+          0.4235294117647059
+        ],
+        "metal": [
+          0.5647058823529412,
+          0.6509803921568628,
+          0.7058823529411765
+        ],
+        "silver": [
+          0.8549019607843137,
+          0.8980392156862745,
+          0.9215686274509803
+        ]
+      }
+    }
+  ],
+  "third_party_inputs": [],
+  "license": "project-original"
+}

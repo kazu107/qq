@@ -3,6 +3,7 @@ class_name CardDef
 
 var id: String = ""
 var boss_only: bool = false
+var enemy_only: bool = false
 var timeline_scale_excluded: bool = false
 var name: String = ""
 var description: String = ""
@@ -24,6 +25,7 @@ static func from_dict(data: Dictionary) -> CardDef:
 	var card_def := CardDef.new()
 	card_def.id = String(data.get("id", ""))
 	card_def.boss_only = bool(data.get("boss_only", false))
+	card_def.enemy_only = bool(data.get("enemy_only", false))
 	card_def.timeline_scale_excluded = bool(data.get("timeline_scale_excluded", false))
 	card_def.name = String(data.get("name", card_def.id))
 	card_def.description = String(data.get("description", ""))
@@ -46,6 +48,7 @@ func to_dict() -> Dictionary:
 	return {
 		"id": id,
 		"boss_only": boss_only,
+		"enemy_only": enemy_only,
 		"timeline_scale_excluded": timeline_scale_excluded,
 		"name": name,
 		"description": description,

@@ -41,12 +41,14 @@ const ACTION_DURATIONS: Dictionary = {
 }
 
 static var _authored_scene_cache: Dictionary = {}
+static var _variant_material_cache: Dictionary = {}
 
 var actor_side: String = "player"
 var _humanoid: CommonBattleHumanoid3D
 var _authored_model: Node3D
 var _authored_skeleton: Skeleton3D
 var _authored_model_path: String = ""
+var _applied_palette_signature: String = ""
 var _authored_bone_pairs: Array[Vector2i] = []
 var _platform_mesh: MeshInstance3D
 var _platform_material: StandardMaterial3D
@@ -836,6 +838,7 @@ func _configure_authored_model() -> void:
 		return
 	if model_path == _authored_model_path and is_using_authored_model():
 		_authored_model.scale = _humanoid.get_body_scale()
+		_apply_authored_palette()
 		_set_procedural_geometry_visible(false)
 		_sync_authored_pose()
 		return
@@ -861,6 +864,7 @@ func _configure_authored_model() -> void:
 		_set_procedural_geometry_visible(true)
 		return
 	_authored_model_path = model_path
+	_apply_authored_palette()
 	_build_authored_bone_pairs()
 	if _authored_bone_pairs.is_empty():
 		push_warning("Authored battle model has no compatible bones: %s" % model_path)
@@ -872,12 +876,48 @@ func _configure_authored_model() -> void:
 
 
 func _clear_authored_model() -> void:
+	_applied_palette_signature = ""
 	_authored_bone_pairs.clear()
 	_authored_skeleton = null
 	_authored_model_path = ""
 	if _authored_model != null and is_instance_valid(_authored_model):
 		_authored_model.free()
 	_authored_model = null
+
+
+static func get_cached_variant_material_count() -> int:
+	return _variant_material_cache.size()
+
+
+func _apply_authored_palette() -> void:
+	if _authored_model == null: return
+	var palette: Dictionary = Dictionary(_visual_profile.get("material_palette", {}))
+	var signature: String = JSON.stringify(palette)
+	if signature == _applied_palette_signature: return
+	_applied_palette_signature = signature
+	for node: Node in _authored_model.find_children("*", "MeshInstance3D", true, false):
+		var instance: MeshInstance3D = node as MeshInstance3D
+		if instance.mesh == null: continue
+		for surface: int in instance.mesh.get_surface_count():
+			var original: StandardMaterial3D = instance.mesh.surface_get_material(surface) as StandardMaterial3D
+			if original == null: continue
+			var role: String = InfiniteEnemyCatalog.material_role(original.resource_name)
+			if palette.is_empty() or not palette.has(role):
+				instance.set_surface_override_material(surface, null)
+				continue
+			var color_text: String = String(palette[role]).trim_prefix("#")
+			var key: String = "%d:%s:%s" % [original.get_instance_id(), role, color_text]
+			if not _variant_material_cache.has(key):
+				# Never mutate shared GLB materials: base enemies and other actors use them too.
+				var material: StandardMaterial3D = original.duplicate() as StandardMaterial3D
+				material.albedo_color = Color.from_string("#" + color_text, original.albedo_color)
+				if role in ["armor", "edge", "trim"]: material.metallic = maxf(material.metallic, 0.55)
+				if role == "glow":
+					material.emission_enabled = true
+					material.emission = material.albedo_color
+					material.emission_energy_multiplier = maxf(material.emission_energy_multiplier, 1.0)
+				_variant_material_cache[key] = material
+			instance.set_surface_override_material(surface, _variant_material_cache[key] as Material)
 
 
 func _build_authored_bone_pairs() -> void:

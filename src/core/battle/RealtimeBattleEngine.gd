@@ -70,6 +70,7 @@ func setup_sandbox(player_run: RunState, enemy_id: String, draft: BalanceDraft) 
 
 func _setup_internal(player_run: RunState, enemy_id: String) -> void:
 	balance_limit_reached = false
+	enemy_id = InfiniteEnemyCatalog.resolve_for_run(enemy_id, player_run)
 	var enemy_def := Database.get_enemy(enemy_id)
 	if enemy_def == null:
 		push_error("Enemy not found: %s" % enemy_id)
@@ -235,7 +236,7 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 	var card_def: CardDef = _get_card_def(side, runtime_state.card_id)
 	if card_def == null:
 		return false
-	if card_def.boss_only and (side == "player" or _pvp_mode):
+	if (card_def.boss_only or card_def.enemy_only) and (side == "player" or _pvp_mode):
 		return false
 	var commit_profile: Dictionary = _relic_controller.build_commit_profile(side, card_def)
 	var commit_reservations: Array[Dictionary] = ReservedCardRules.select(unit.card_reservations, card_def, "commit")
@@ -452,7 +453,7 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 	var card_def: CardDef = _get_card_def(side, queued_card_id)
 	if card_def == null:
 		return 0
-	if card_def.boss_only and (side == "player" or _pvp_mode):
+	if (card_def.boss_only or card_def.enemy_only) and (side == "player" or _pvp_mode):
 		return 0
 
 	var unit: UnitState = battle_state.get_unit(side)
@@ -679,7 +680,7 @@ func _start_battle() -> void:
 		}
 	))
 	_play_sfx("boss_intro" if battle_state.enemy.unit_id.begins_with("boss_") else "battle_start")
-	if not _pvp_mode and _enemy_ai_enabled and battle_state.enemy.unit_id == "boss_timekeeper":
+	if not _pvp_mode and _enemy_ai_enabled and InfiniteEnemyCatalog.base_id(battle_state.enemy.unit_id) == "boss_timekeeper":
 		_enemy_ai.update(self, 0.0)
 
 
@@ -1320,6 +1321,9 @@ static func _build_scaled_enemy_def(enemy_def: EnemyDef, infinite_power: int) ->
 	scaled_def.cards = enemy_def.cards.duplicate()
 	scaled_def.role = enemy_def.role
 	scaled_def.passive = enemy_def.passive.duplicate(true)
+	scaled_def.base_enemy_id = enemy_def.base_enemy_id
+	scaled_def.infinite_only = enemy_def.infinite_only
+	scaled_def.description = enemy_def.description
 	return scaled_def
 
 
@@ -1343,6 +1347,8 @@ static func _apply_enemy_card_scaling(enemy_unit: UnitState, infinite_power: int
 
 
 static func build_enemy_preview(run: RunState, enemy_id: String, node: Dictionary) -> UnitState:
+	if run != null and run.infinite_mode and not run.arena_mode:
+		enemy_id = InfiniteEnemyCatalog.resolve(enemy_id, int(node.get("infinite_power", _get_infinite_power(run))))
 	var definition: EnemyDef = Database.get_enemy(enemy_id)
 	if definition == null: return null
 	var power: int = 0

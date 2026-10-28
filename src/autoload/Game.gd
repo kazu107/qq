@@ -330,6 +330,7 @@ func prepare_next_battle() -> String:
 			pending_enemy_id = EncounterSeries.next_enemy(active_node)
 		if pending_enemy_id == "":
 			pending_enemy_id = _roll_enemy_id()
+	pending_enemy_id = InfiniteEnemyCatalog.resolve_for_run(pending_enemy_id, current_run)
 	current_screen_hint = "battle"
 	SaveManager.save_game(current_screen_hint)
 	return pending_enemy_id
@@ -399,7 +400,7 @@ func complete_battle(summary: Dictionary) -> void:
 
 	_meta_progress_service.increment_achievement_stat(meta_progress, "victories")
 	_award_content_victory()
-	if node_type == "boss" or String(summary.get("enemy_id", "")) == "boss_timekeeper":
+	if node_type == "boss" or InfiniteEnemyCatalog.base_id(String(summary.get("enemy_id", ""))) == "boss_timekeeper":
 		_meta_progress_service.increment_achievement_stat(meta_progress, "boss_wins")
 
 	current_run.encounters_cleared += 1
@@ -2140,6 +2141,8 @@ func get_encounter_preview(node_id: String = "") -> Dictionary:
 		node = _get_node(int(location["step_index"]), int(location["node_index"]))
 	if node.get("type", "") not in ["normal_battle", "elite_battle", "boss", "hazard"]: return {}
 	var enemy_id: String = EncounterSeries.next_enemy(node)
+	if current_run != null and current_run.infinite_mode and not current_run.arena_mode:
+		enemy_id = InfiniteEnemyCatalog.resolve(enemy_id, int(node.get("infinite_power", RealtimeBattleEngine._get_infinite_power(current_run))))
 	if enemy_id == "" or Database.get_enemy(enemy_id) == null: return {}
 	return {"node_id": String(node.get("id", "")), "node_type": String(node.get("type", "")),
 		"enemy_id": enemy_id, "index": EncounterSeries.cleared(node) + 1, "total": EncounterSeries.queue(node).size(),
@@ -2732,6 +2735,8 @@ func _ensure_map_state() -> void:
 	_map_generator.upgrade_pending_choices(current_run.map_state, current_run.seed)
 	MapRouteGraph.migrate(current_run.map_state, current_run.seed)
 	_map_generator.upgrade_encounter_growth(current_run.map_state, current_run.infinite_mode)
+	if current_run.infinite_mode:
+		InfiniteEnemyCatalog.upgrade_map(current_run.map_state)
 
 
 func _prepare_non_battle_node(step_index: int, node_index: int) -> void:
