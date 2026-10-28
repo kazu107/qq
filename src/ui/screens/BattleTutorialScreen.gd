@@ -1,13 +1,86 @@
 extends Control
 
+signal close_requested
+
+var modal_mode: bool = false
 var _tutorials: Array[Dictionary] = []
+var _margin: MarginContainer
+var _list: GridContainer
+var _back_button: Button
+var _title_label: Label
+var _item_rows: Array[BoxContainer] = []
+var _item_actions: Array[BoxContainer] = []
 
 
 func _ready() -> void:
-	Database.load_all()
+	if Database.cards.is_empty():
+		Database.load_all()
 	_tutorials = BattleTutorialCatalog.get_all()
 	_build_ui()
+	resized.connect(_update_layout)
+	set_modal_mode(modal_mode)
 	_schedule_battle_preload()
+	SceneRouter.mark_ui_localized(self)
+
+
+func set_modal_mode(enabled: bool) -> void:
+	modal_mode = enabled
+	if _margin == null:
+		return
+	_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_margin.add_theme_constant_override("margin_left", 0 if modal_mode else 72)
+	_margin.add_theme_constant_override("margin_top", 0 if modal_mode else 52)
+	_margin.add_theme_constant_override("margin_right", 0 if modal_mode else 72)
+	_margin.add_theme_constant_override("margin_bottom", 0 if modal_mode else 52)
+	_back_button.text = Localization.get_text("common.close", "Close") if modal_mode else Localization.get_text("common.back_hub", "Back to Hub")
+	UiIconHelper.decorate(_back_button, "close" if modal_mode else "home")
+	var background: Control = get_node_or_null(UiTheme.BACKGROUND_NODE_NAME) as Control
+	if background != null:
+		background.visible = not modal_mode
+	_update_layout()
+
+
+func on_modal_open() -> void:
+	_schedule_battle_preload()
+	_update_layout()
+
+
+func focus_modal() -> void:
+	if not modal_mode or not is_visible_in_tree():
+		return
+	var controls: Array[Control] = [_back_button]
+	for node: Node in _list.find_children("TutorialStart_*", "Button", true, false):
+		controls.append(node as Control)
+	for index: int in controls.size():
+		controls[index].focus_next = controls[index].get_path_to(controls[(index + 1) % controls.size()])
+		controls[index].focus_previous = controls[index].get_path_to(controls[(index - 1 + controls.size()) % controls.size()])
+	_back_button.grab_focus()
+
+
+func _update_layout() -> void:
+	if _list == null:
+		return
+	var available: float = maxf(0.0, size.x - _margin.get_theme_constant("margin_left") - _margin.get_theme_constant("margin_right"))
+	_list.columns = 2 if available >= 1240.0 else 1
+	var item_width: float = (available - 18.0 * (_list.columns - 1)) / _list.columns
+	var compact: bool = item_width < 560.0
+	var narrow_header: bool = modal_mode and available < 560.0
+	_title_label.add_theme_font_size_override("font_size", 24 if narrow_header else 34)
+	_back_button.custom_minimum_size = Vector2(44.0 if narrow_header else 160.0, 44.0)
+	_back_button.text = "" if narrow_header else (Localization.get_text("common.close", "Close") if modal_mode else Localization.get_text("common.back_hub", "Back to Hub"))
+	_back_button.tooltip_text = Localization.get_text("common.close", "Close") if modal_mode else Localization.get_text("common.back_hub", "Back to Hub")
+	for row: BoxContainer in _item_rows:
+		row.vertical = compact
+	for action: BoxContainer in _item_actions:
+		action.vertical = not compact or item_width < 460.0
+		action.custom_minimum_size.x = 0.0 if compact else 148.0
+
+
+func _on_back_pressed() -> void:
+	if modal_mode:
+		close_requested.emit()
+	else:
+		SceneRouter.go_to_hub()
 
 
 func _schedule_battle_preload() -> void:
@@ -32,6 +105,7 @@ func get_tutorial_count() -> int:
 
 func _build_ui() -> void:
 	var margin := MarginContainer.new()
+	_margin = margin
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 72)
 	margin.add_theme_constant_override("margin_top", 52)
@@ -51,15 +125,17 @@ func _build_ui() -> void:
 	heading_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(heading_box)
 	var title := Label.new()
+	_title_label = title
 	title.text = Localization.get_text("tutorial.catalog.title", "Tutorials")
 	title.add_theme_font_size_override("font_size", 34)
 	title.add_theme_color_override("font_color", Color(0.96, 0.98, 1.0, 1.0))
 	heading_box.add_child(title)
 	var back := Button.new()
+	_back_button = back
 	back.name = "TutorialBackButton"
 	back.text = Localization.get_text("common.back_hub", "Back to Hub")
 	back.custom_minimum_size = Vector2(160.0, 42.0)
-	back.pressed.connect(SceneRouter.go_to_hub)
+	back.pressed.connect(_on_back_pressed)
 	header.add_child(back)
 
 	var divider := HSeparator.new()
@@ -71,6 +147,7 @@ func _build_ui() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	root.add_child(scroll)
 	var list := GridContainer.new()
+	_list = list
 	list.name = "TutorialList"
 	list.columns = 2
 	list.add_theme_constant_override("h_separation", 18)
@@ -86,7 +163,7 @@ func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	var panel := PanelContainer.new()
 	panel.name = "TutorialItem_%s" % String(tutorial["id"])
 	panel.mouse_entered.connect(SceneRouter.schedule_battle_visuals.bind("balanced", String(tutorial.get("enemy_id", ""))))
-	panel.custom_minimum_size = Vector2(760.0, 200.0)
+	panel.custom_minimum_size = Vector2(0.0, 200.0)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_theme_stylebox_override("panel", _make_item_style())
 
@@ -96,13 +173,14 @@ func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	margin.add_theme_constant_override("margin_right", 24)
 	margin.add_theme_constant_override("margin_bottom", 20)
 	panel.add_child(margin)
-	var row := HBoxContainer.new()
+	var row := BoxContainer.new()
+	_item_rows.append(row)
 	row.add_theme_constant_override("separation", 22)
 	margin.add_child(row)
 
 	var number := Label.new()
 	number.text = "%02d" % (index + 1)
-	number.custom_minimum_size = Vector2(66.0, 0.0)
+	number.custom_minimum_size = Vector2(44.0, 0.0)
 	number.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	number.add_theme_font_size_override("font_size", 30)
@@ -126,8 +204,10 @@ func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	description.add_theme_color_override("font_color", Color(0.74, 0.82, 0.88, 1.0))
 	copy.add_child(description)
 
-	var action := VBoxContainer.new()
-	action.custom_minimum_size = Vector2(180.0, 0.0)
+	var action := BoxContainer.new()
+	action.vertical = true
+	_item_actions.append(action)
+	action.custom_minimum_size = Vector2(148.0, 0.0)
 	action.alignment = BoxContainer.ALIGNMENT_CENTER
 	action.add_theme_constant_override("separation", 8)
 	row.add_child(action)
@@ -145,7 +225,7 @@ func _build_tutorial_item(tutorial: Dictionary, index: int) -> Control:
 	start.name = "TutorialStart_%s" % String(tutorial["id"])
 	start.theme_type_variation = "PrimaryButton"
 	start.text = Localization.get_text("tutorial.catalog.start", "Start")
-	start.custom_minimum_size = Vector2(180.0, 46.0)
+	start.custom_minimum_size = Vector2(120.0, 46.0)
 	start.pressed.connect(SceneRouter.start_battle_tutorial.bind(String(tutorial["id"])))
 	action.add_child(start)
 	return panel

@@ -107,6 +107,10 @@ jobs:
           cat build/meta-modal.log
           grep -q META_MODAL_SMOKE_OK build/meta-modal.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/meta-modal.log; then exit 1; fi
+          godot --headless --path . res://tests/TutorialModalSmoke.tscn --quit-after 2400 > build/tutorial-modal.log 2>&1
+          cat build/tutorial-modal.log
+          grep -q TUTORIAL_MODAL_SMOKE_OK build/tutorial-modal.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/tutorial-modal.log; then exit 1; fi
           godot --headless --path . res://tests/HubBackgroundSmoke.tscn --quit-after 600 > build/hub-background.log 2>&1
           cat build/hub-background.log
           grep -q HUB_BACKGROUND_SMOKE_OK build/hub-background.log

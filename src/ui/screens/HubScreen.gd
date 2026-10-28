@@ -146,7 +146,7 @@ func _build_ui() -> void:
 	var tutorial_button: Button = Button.new()
 	tutorial_button.name = "BattleTutorialButton"
 	tutorial_button.text = Localization.get_text("hub.tutorial", "Battle Tutorial")
-	tutorial_button.pressed.connect(SceneRouter.go_to_battle_tutorial)
+	tutorial_button.pressed.connect(_on_open_battle_tutorial)
 	_setup_navigation_button(navigation, tutorial_button, "tutorial")
 
 	var meta_button: Button = Button.new()
@@ -497,6 +497,7 @@ func _refresh_version_history_content() -> void:
 
 
 func _open_version_history() -> void:
+	if SceneRouter.is_battle_tutorial_dialog_open(): return
 	if _version_history_overlay == null:
 		return
 	_refresh_version_history_content()
@@ -512,6 +513,7 @@ func _close_version_history() -> void:
 
 
 func _open_settings() -> void:
+	if SceneRouter.is_battle_tutorial_dialog_open(): return
 	if SceneRouter.is_meta_progress_dialog_open(): return
 	if is_instance_valid(_settings_dialog) and _settings_dialog.visible: return
 	if _version_history_overlay != null and _version_history_overlay.visible: _close_version_history()
@@ -889,6 +891,7 @@ func _on_dev_turn_off() -> void:
 
 
 func _on_open_meta_progress() -> void:
+	if SceneRouter.is_battle_tutorial_dialog_open(): return
 	if is_instance_valid(_settings_dialog) and _settings_dialog.visible: return
 	if _version_history_overlay != null and _version_history_overlay.visible: _close_version_history()
 	var dialog: MetaProgressDialog = SceneRouter.get_meta_progress_dialog()
@@ -896,6 +899,14 @@ func _on_open_meta_progress() -> void:
 	if not dialog.dismissed.is_connected(_on_meta_closed): dialog.dismissed.connect(_on_meta_closed)
 	_meta_snapshot = JSON.stringify(Game.meta_progress)
 	dialog.open()
+
+
+func _on_open_battle_tutorial() -> void:
+	if NetworkManager.is_session_connected() or SceneRouter.is_meta_progress_dialog_open(): return
+	if is_instance_valid(_settings_dialog) and _settings_dialog.visible: return
+	if _version_history_overlay != null and _version_history_overlay.visible: _close_version_history()
+	Game.clear_battle_tutorial()
+	SceneRouter.get_battle_tutorial_dialog().open()
 
 
 func _on_meta_closed() -> void:

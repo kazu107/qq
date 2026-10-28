@@ -348,6 +348,11 @@ func _command(arguments: Array) -> void:
 	elif String(payload.get("action", "")) == "tutorial_start":
 		_tutorial_samples.clear()
 		SceneRouter.start_battle_tutorial(String(payload.get("tutorial", "battle_basics")))
+	elif String(payload.get("action", "")) == "tutorial_exit":
+		get_tree().current_scene.call("_exit_tutorial_to_list")
+	elif String(payload.get("action", "")) == "tutorial_modal_focus":
+		var content: Control = SceneRouter.get_battle_tutorial_dialog().get("_content") as Control
+		(content.find_child("TutorialScroll", true, false) as ScrollContainer).ensure_control_visible(content.find_child(String(payload["name"]), true, false) as Control)
 	elif String(payload.get("action", "")) == "tutorial_seek":
 		_seek_tutorial(String(payload.get("key", "")))
 	elif String(payload.get("action", "")) == "art_preview":
@@ -901,6 +906,17 @@ func _inspect() -> Dictionary:
 	})
 	if screen != null:
 		var meta_dialog: MetaProgressDialog = SceneRouter.get("_meta_dialog") as MetaProgressDialog
+		var tutorial_dialog: BattleTutorialDialog = SceneRouter.get("_tutorial_dialog") as BattleTutorialDialog
+		if tutorial_dialog != null:
+			var content: Control = tutorial_dialog.get("_content") as Control
+			var scroll: ScrollContainer = content.find_child("TutorialScroll", true, false) as ScrollContainer
+			var focused: Control = get_viewport().gui_get_focus_owner()
+			result["tutorial_modal"] = {"visible": tutorial_dialog.visible, "content_instance": content.get_instance_id(),
+				"rect": _rect_values((tutorial_dialog.get("_frame") as Control).get_global_rect()),
+				"columns": (content.find_child("TutorialList", true, false) as GridContainer).columns, "count": content.call("get_tutorial_count"),
+				"focus_inside": focused != null and tutorial_dialog.is_ancestor_of(focused), "hint": Game.current_screen_hint,
+				"horizontal_overflow": scroll.get_h_scroll_bar().max_value - scroll.get_h_scroll_bar().page, "scroll": scroll.scroll_vertical}
+			_collect_controls(tutorial_dialog, controls, false)
 		if meta_dialog != null:
 			var content: Control = meta_dialog.get("_content") as Control
 			var scroll: ScrollContainer = content.find_child("MetaWindowScroll", true, false) as ScrollContainer

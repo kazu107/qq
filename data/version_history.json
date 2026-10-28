@@ -1,9 +1,22 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.56.7",
+  "current_version": "QQ-0.56.8",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.56.8", "date": "2026-10-28",
+      "title_ja": "チュートリアル一覧をウィンドウ化",
+      "title_en": "Open tutorials in an in-game window",
+      "changes_ja": [
+        "チュートリアル一覧を、ハブの上に重ねて開くウィンドウに変更しました。閉じる・Esc・背景クリックに対応し、開き直すと一覧とスクロール位置を再利用します。",
+        "画面幅に応じて一覧を1列・2列に切り替えます。レッスンは通常の戦闘画面で開始し、終了時はハブ上の一覧ウィンドウへ戻ります。言語やアカウントの変更時は古い内容を再利用しません。"
+      ],
+      "changes_en": [
+        "Open the tutorial catalog over the Hub without replacing the scene. Support Close, Escape and backdrop clicks, and reuse the catalog and scroll position when reopened.",
+        "Adapt lessons to one or two columns. Lessons still use the regular battle screen and return to the catalog window over the Hub. Invalidate cached content after language or profile changes."
+      ]
+    },
     {
       "version": "QQ-0.56.7", "date": "2026-10-28",
       "title_ja": "戦闘UIの再生成を抑えて負荷を軽減",

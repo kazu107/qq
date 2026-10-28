@@ -42,6 +42,7 @@ var _warming_battle_visuals: bool = false
 var _warmed_battle_visual_pairs: Dictionary = {}
 var _debug_return_scene_path: String = HUB_SCENE
 var _meta_dialog: MetaProgressDialog
+var _tutorial_dialog: BattleTutorialDialog
 var _ui_cache_epoch: int = 0
 var _transition_revision: int = 0
 
@@ -155,6 +156,22 @@ func get_meta_progress_dialog() -> MetaProgressDialog:
 
 func is_meta_progress_dialog_open() -> bool:
 	return is_instance_valid(_meta_dialog) and _meta_dialog.visible
+
+
+func get_battle_tutorial_dialog() -> BattleTutorialDialog:
+	if is_instance_valid(_tutorial_dialog) and not _screen_is_current(_tutorial_dialog):
+		_discard_ui_screen(_tutorial_dialog)
+		_tutorial_dialog = null
+	if not is_instance_valid(_tutorial_dialog):
+		_tutorial_dialog = BattleTutorialDialog.new()
+		_tag_screen(_tutorial_dialog)
+		get_tree().root.add_child(_tutorial_dialog)
+	get_tree().root.move_child(_tutorial_dialog, get_tree().root.get_child_count() - 1)
+	return _tutorial_dialog
+
+
+func is_battle_tutorial_dialog_open() -> bool:
+	return is_instance_valid(_tutorial_dialog) and _tutorial_dialog.visible
 
 
 func _process(_delta: float) -> void:
@@ -410,7 +427,22 @@ func go_to_battle_tutorial() -> void:
 	if NetworkManager.is_session_connected():
 		return
 	Game.clear_battle_tutorial()
-	_change_scene(BATTLE_TUTORIAL_SCENE)
+	var screen: Node = get_tree().current_scene
+	if screen != null and screen.scene_file_path == HUB_SCENE:
+		screen.call("_on_open_battle_tutorial")
+		return
+	_change_scene(HUB_SCENE)
+	call_deferred("_open_battle_tutorial_after_hub", _transition_revision)
+
+
+func _open_battle_tutorial_after_hub(revision: int) -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if revision != _transition_revision:
+		return
+	var screen: Node = get_tree().current_scene
+	if screen != null and screen.scene_file_path == HUB_SCENE and not NetworkManager.is_session_connected():
+		screen.call("_on_open_battle_tutorial")
 
 
 func start_battle_tutorial(tutorial_id: String) -> void:
@@ -576,6 +608,7 @@ func show_gold_delta(amount: int) -> void:
 
 func _change_scene(scene_path: String) -> void:
 	if is_instance_valid(_meta_dialog): _meta_dialog.close()
+	if is_instance_valid(_tutorial_dialog): _tutorial_dialog.close()
 	_transition_revision += 1
 	var revision: int = _transition_revision
 	var transition_started_us: int = Time.get_ticks_usec()
@@ -651,6 +684,10 @@ func _on_language_changed(_language_code: String) -> void:
 		_meta_dialog.hide()
 		_meta_dialog.queue_free()
 		_meta_dialog = null
+	if is_instance_valid(_tutorial_dialog):
+		_tutorial_dialog.hide()
+		_tutorial_dialog.queue_free()
+		_tutorial_dialog = null
 	for cached_screen: Control in _ui_scene_cache.values():
 		_discard_ui_screen(cached_screen)
 	_ui_scene_cache.clear()
