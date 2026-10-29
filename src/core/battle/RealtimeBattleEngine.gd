@@ -72,7 +72,6 @@ func setup_sandbox(player_run: RunState, enemy_id: String, draft: BalanceDraft) 
 func _setup_internal(player_run: RunState, enemy_id: String) -> void:
 	balance_limit_reached = false
 	_achievement_eligible_at_start = balance_sandbox == null and not Game.is_developer_mode_enabled() and not Game.is_battle_tutorial_active()
-	if not _achievement_eligible_at_start: player_run.achievement_state["excluded"] = true
 	enemy_id = InfiniteEnemyCatalog.resolve_for_run(enemy_id, player_run)
 	var enemy_def := Database.get_enemy(enemy_id)
 	if enemy_def == null:

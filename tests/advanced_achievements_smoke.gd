@@ -115,6 +115,18 @@ func test_all() -> void:
 	DamageResolver.apply_fixed_damage(unit,15)
 	check(unit.combat_totals["blocked"]==15,"Actual shield block was not recorded")
 	engine.dispose()
+	Game.settings["developer_mode"]=true
+	var readonly_run: RunState=run_with(["quick_slash"])
+	var original: String=JSON.stringify(readonly_run.to_dict())
+	engine=engine_for(readonly_run)
+	check(JSON.stringify(readonly_run.to_dict())==original,"Private battle initialization mutated its caller's run")
+	Game.settings["developer_mode"]=false
+	check(not engine.build_summary()["achievement_eligible"],"Disabling developer mode made an already-started debug battle eligible")
+	engine.dispose()
+	Game.current_run=readonly_run
+	Game.settings["developer_mode"]=true
+	Game.set_developer_mode_enabled(false)
+	check(bool(readonly_run.achievement_state.get("excluded",false)),"A legacy developer run became eligible after turning the mode off")
 	test_remaining_metrics(meta)
 	test_progression(meta)
 	test_game_result_wiring()

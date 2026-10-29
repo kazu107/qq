@@ -1,9 +1,16 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.60.0",
+  "current_version": "QQ-0.60.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.60.1", "date": "2026-10-30",
+      "title_ja": "検証用戦闘の初期化でランを書き換えないよう修正",
+      "title_en": "Keep private battle initialization read-only",
+      "changes_ja": ["CIで見つかった、開発者モードの戦闘初期化が呼び出し元のランへ実績用フラグを書き込む問題を修正しました。除外判定は戦闘開始時に保持し、通常の開発者操作によるランの除外も維持します。戦闘中だけのGrade強化やバランス検証が実セーブへ漏れないことを再確認しました。"],
+      "changes_en": ["Fix CI-detected mutation of a caller's run when initializing a private developer battle. Retain the initial eligibility decision and explicit developer-run exclusions without changing the caller's data. Verify that battle-only Grades and balance trials remain isolated from real saves."]
+    },
     {
       "version": "QQ-0.60.0", "date": "2026-10-30",
       "title_ja": "戦術を評価する18系統・58段階の実績",

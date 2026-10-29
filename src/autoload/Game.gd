@@ -349,7 +349,7 @@ func complete_battle(summary: Dictionary) -> void:
 	if current_run == null:
 		return
 	ensure_meta_initialized()
-	if is_developer_mode_enabled(): current_run.achievement_state["excluded"] = true
+	if is_developer_mode_enabled() or (summary.has("achievement_eligible") and not bool(summary["achievement_eligible"])): current_run.achievement_state["excluded"] = true
 	var receipt: String = String(summary.get("control_receipt_id", ""))
 	if receipt != "" and Array(current_run.achievement_state.get("battle_receipts", [])).has(receipt): return
 	if current_run.infinite_mode and not current_run.arena_mode:
@@ -1426,8 +1426,9 @@ func is_developer_mode_enabled() -> bool:
 
 func set_developer_mode_enabled(enabled: bool) -> void:
 	ensure_meta_initialized()
+	var was_enabled: bool = is_developer_mode_enabled()
 	settings["developer_mode"] = enabled and AccountSession.can_use_developer_mode()
-	if bool(settings["developer_mode"]) and current_run != null: current_run.achievement_state["excluded"] = true
+	if (was_enabled or bool(settings["developer_mode"])) and current_run != null: current_run.achievement_state["excluded"] = true
 	if bool(settings["developer_mode"]): RankedSession.disqualify("developer_mode")
 	SaveManager.save_game(current_screen_hint)
 
