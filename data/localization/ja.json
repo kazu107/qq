@@ -202,6 +202,7 @@
   "hub.continue_arena": "アリーナを続ける",
   "hub.infinite_mode": "無限モード",
   "hub.meta_progress": "メタ進行",
+  "hub.achievement_notification": "報酬を受け取れる実績が{count}件あります。",
   "hub.card_library": "カード・遺物図鑑",
   "hub.settings": "設定",
   "hub.settings.tooltip": "設定を開く",

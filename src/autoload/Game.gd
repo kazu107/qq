@@ -1,5 +1,7 @@
 extends Node
 
+signal meta_achievement_claimed
+
 const WEB_MULTIPLAYER_ENABLED: bool = true
 
 const ARENA_SERVICE_SCRIPT: GDScript = preload("res://src/core/arena/ArenaService.gd")
@@ -817,6 +819,11 @@ func get_meta_achievement_entries() -> Array[Dictionary]:
 	return _meta_progress_service.build_achievement_entries(meta_progress)
 
 
+func get_claimable_achievement_count() -> int:
+	ensure_meta_initialized()
+	return _meta_progress_service.count_claimable_achievements(meta_progress)
+
+
 func record_gold_spent(amount: int) -> void:
 	if amount <= 0:
 		return
@@ -902,6 +909,7 @@ func claim_meta_achievement(achievement_id: String) -> bool:
 	if claimed:
 		AudioManager.play_sfx("achievement_claim")
 		SaveManager.request_save(current_screen_hint)
+		meta_achievement_claimed.emit()
 	return claimed
 
 

@@ -19,6 +19,7 @@ var _settings_dialog: SettingsDialog
 var _settings_language: String
 var _settings_developer: bool
 var _meta_snapshot: String
+var _achievement_notification: Panel
 
 
 func _ready() -> void:
@@ -28,6 +29,9 @@ func _ready() -> void:
 	RankedSession.changed.connect(_refresh_ranking_status)
 	RankedSession.changed.connect(_refresh_ranking_access)
 	CloudSession.changed.connect(_refresh_cloud_status)
+	CloudSession.changed.connect(_refresh_achievement_notification)
+	SaveManager.profile_saved.connect(_on_profile_saved)
+	Game.meta_achievement_claimed.connect(_refresh_achievement_notification)
 	_build_ui()
 	AccountSession.refresh()
 
@@ -154,6 +158,7 @@ func _build_ui() -> void:
 	meta_button.text = Localization.get_text("hub.meta_progress", "Meta Progress")
 	meta_button.pressed.connect(_on_open_meta_progress)
 	_setup_navigation_button(navigation, meta_button, "meta_points")
+	_build_achievement_notification(meta_button)
 
 	var library_button: Button = Button.new()
 	library_button.name = "HubCardLibraryButton"
@@ -170,6 +175,50 @@ func _build_ui() -> void:
 		call_deferred("_warm_debug_card_pickers")
 	_refresh_account_button()
 	SceneRouter.mark_ui_localized(self)
+
+
+func _build_achievement_notification(button: Button) -> void:
+	_achievement_notification = Panel.new()
+	_achievement_notification.name = "HubAchievementNotification"
+	_achievement_notification.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_achievement_notification.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_achievement_notification.offset_left = -28.0
+	_achievement_notification.offset_top = -5.0
+	_achievement_notification.offset_right = -6.0
+	_achievement_notification.offset_bottom = 17.0
+	_achievement_notification.z_index = 2
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color("d3444f")
+	style.border_color = Color("ffe6b6")
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(11)
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.4)
+	style.shadow_size = 3
+	_achievement_notification.add_theme_stylebox_override("panel", style)
+	var mark: Label = Label.new()
+	mark.text = "!"
+	mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mark.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mark.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mark.add_theme_font_size_override("font_size", 14)
+	mark.add_theme_color_override("font_color", Color.WHITE)
+	_achievement_notification.add_child(mark)
+	button.add_child(_achievement_notification)
+	_refresh_achievement_notification()
+
+
+func _refresh_achievement_notification() -> void:
+	if not is_instance_valid(_achievement_notification): return
+	var count: int = Game.get_claimable_achievement_count()
+	_achievement_notification.visible = count > 0
+	_achievement_notification.set_meta("claimable_count", count)
+	var button: Button = _achievement_notification.get_parent() as Button
+	button.tooltip_text = Localization.get_textf("hub.achievement_notification", "{count} achievements have rewards ready to claim.", {"count":count}) if count > 0 else ""
+
+
+func _on_profile_saved(_profile: String) -> void:
+	_refresh_achievement_notification()
 
 
 func _build_ranking_actions(parent: Control) -> void:
@@ -910,6 +959,7 @@ func _on_open_battle_tutorial() -> void:
 
 
 func _on_meta_closed() -> void:
+	_refresh_achievement_notification()
 	if JSON.stringify(Game.meta_progress) != _meta_snapshot: _rebuild_menu("HubMetaProgressButton")
 
 

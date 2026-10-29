@@ -1,9 +1,22 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.59.0",
+  "current_version": "QQ-0.59.1",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.59.1", "date": "2026-10-29",
+      "title_ja": "受け取り可能な実績をメニューで通知",
+      "title_en": "Notify claimable achievements on the main menu",
+      "changes_ja": [
+        "未受領の実績報酬があるとき、メインメニューのメタ進行ボタン右上に赤い通知マークを表示します。ホバーすると受け取り可能な実績の件数を確認できます。一覧を開くだけでは消えず、段階式実績の次の報酬も受け取り可能なら通知を維持します。",
+        "受領・保存・クラウド同期・メニュー再表示時に通知を更新します。毎フレームの判定や一覧の再生成は行わず、ボタンの大きさとクリック範囲は変えません。"
+      ],
+      "changes_en": [
+        "Show a red badge at the top-right of the main menu's Meta Progress button while achievement rewards are claimable, with a count in the hover hint. Opening the list does not dismiss it; keep it visible when another tier is already claimable.",
+        "Refresh on claims, saves, cloud changes and menu entry without per-frame polling or rebuilding achievement rows. Preserve the button's size and clickable area."
+      ]
+    },
     {
       "version": "QQ-0.59.0", "date": "2026-10-29",
       "title_ja": "新しいカードを体験する4つのチュートリアル",

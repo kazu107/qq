@@ -624,11 +624,7 @@ func is_achievement_claimable(meta_progress: Dictionary, achievement_id: String)
 	return _get_condition_value(meta_progress, stat_id) >= target_value
 
 
-func build_achievement_entries(meta_progress: Dictionary) -> Array[Dictionary]:
-	ensure_defaults(meta_progress)
-	var entries: Array[Dictionary] = []
-	var claimed_ids: Array[String] = _to_string_array(meta_progress.get("claimed_achievements", []))
-	# Snapshot normalized values once rather than normalizing all tiers again for every row.
+func _achievement_condition_values(meta_progress: Dictionary) -> Dictionary:
 	var condition_values: Dictionary = Dictionary(meta_progress["achievement_stats"]).duplicate()
 	condition_values.merge({"best_clear": int(meta_progress.get("best_clear", 0)),
 		"unlocked_cards": Array(meta_progress.get("unlocked_cards", [])).size(),
@@ -636,6 +632,37 @@ func build_achievement_entries(meta_progress: Dictionary) -> Array[Dictionary]:
 		"unlocked_starters": Array(meta_progress.get("unlocked_starters", [])).size(),
 		"unlocked_step_tier": int(meta_progress.get("unlocked_step_tier", 1)),
 		"infinite_mode_unlocked": 1 if bool(meta_progress.get("infinite_mode_unlocked", false)) else 0}, true)
+	return condition_values
+
+
+func count_claimable_achievements(meta_progress: Dictionary) -> int:
+	ensure_defaults(meta_progress)
+	var values: Dictionary = _achievement_condition_values(meta_progress)
+	var claimed_ids: Array[String] = _to_string_array(meta_progress.get("claimed_achievements", []))
+	var count: int = 0
+	# Count the next claimable tier without building localized rows or reward text.
+	for id: String in Database.get_all_achievement_ids():
+		var achievement: Dictionary = Database.get_achievement(id)
+		var tiers: Array = _get_achievement_tiers(achievement)
+		var condition: Dictionary
+		if not tiers.is_empty():
+			var claimed: int = _get_claimed_tier_count(meta_progress, id, tiers.size())
+			if claimed >= tiers.size(): continue
+			condition = _get_tier_condition(achievement, Dictionary(tiers[claimed]))
+		else:
+			if claimed_ids.has(id): continue
+			condition = Dictionary(achievement.get("condition", {}))
+		if int(values.get(String(condition.get("stat", "")), 0)) >= int(condition.get("value", 1)):
+			count += 1
+	return count
+
+
+func build_achievement_entries(meta_progress: Dictionary) -> Array[Dictionary]:
+	ensure_defaults(meta_progress)
+	var entries: Array[Dictionary] = []
+	var claimed_ids: Array[String] = _to_string_array(meta_progress.get("claimed_achievements", []))
+	# Snapshot normalized values once rather than normalizing all tiers again for every row.
+	var condition_values: Dictionary = _achievement_condition_values(meta_progress)
 	for achievement_id in Database.get_all_achievement_ids():
 		var achievement_data: Dictionary = Database.get_achievement(achievement_id)
 		if achievement_data.is_empty():

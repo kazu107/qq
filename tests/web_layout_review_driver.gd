@@ -69,6 +69,16 @@ func _command(arguments: Array) -> void:
 		Game.meta_progress["points"] = 100
 		Game.meta_progress["achievement_stats"]["gold_spent"] = 100
 		SaveManager.save_game("hub")
+	elif String(payload.get("action", "")) == "achievement_notice_fixture":
+		Game.meta_progress = Database.meta_progress_template.duplicate(true)
+		Game.ensure_meta_initialized()
+		for entry: Dictionary in Game.get_meta_achievement_entries():
+			if entry["claimable"]: Game.meta_progress["achievement_claim_counts"][entry["id"]] = entry["tier_count"]
+		for stat: String in Dictionary(payload.get("stats", {})):
+			Game.meta_progress["achievement_stats"][stat] = int(payload["stats"][stat])
+		Game.settings["developer_mode"] = false
+		SaveManager.request_save("hub")
+		SaveManager.flush_requested_save()
 	elif String(payload.get("action", "")) == "scroll_bar_inventory_fixture":
 		Game.current_run.player_cards.assign(Database.get_all_card_ids())
 		get_tree().current_scene.call("_refresh_ui")
@@ -743,6 +753,12 @@ func _inspect() -> Dictionary:
 	if not _feedback_samples.is_empty():
 		result["feedback"] = {"samples": _feedback_samples, "immediate_audio": _feedback_initial_audio, "audio": AudioManager.get_play_history()}
 	if screen != null:
+		var achievement_badge: Control = screen.find_child("HubAchievementNotification", true, false) as Control
+		if achievement_badge != null:
+			result["achievement_notice"] = {"visible":achievement_badge.visible, "count":achievement_badge.get_meta("claimable_count", 0),
+				"rect":_rect_values(achievement_badge.get_global_rect()), "input":achievement_badge.mouse_filter,
+				"button_rect":_rect_values((achievement_badge.get_parent() as Control).get_global_rect()),
+				"tooltip":(achievement_badge.get_parent() as Control).tooltip_text}
 		var background: AtmosphereBackground = screen.get_node_or_null(UiTheme.BACKGROUND_NODE_NAME) as AtmosphereBackground
 		if background != null and background.get("_authored_texture") != null:
 			result["background"] = (background.get("_authored_texture") as Texture2D).resource_path
