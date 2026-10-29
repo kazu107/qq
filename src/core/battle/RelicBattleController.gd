@@ -366,6 +366,10 @@ func apply_status(source_side: String, target_side: String, status_id: String, d
 
 
 func remove_status(source_side: String, target_side: String, status_id: String) -> void:
+	var removed_negative: bool = source_side == target_side and NEGATIVE_STATUSES.has(status_id) and _state.get_unit(target_side).has_status(status_id)
+	if removed_negative:
+		var observed: Dictionary = _engine.analysis.achievement_side(source_side)
+		observed["cleanses"] = int(observed["cleanses"]) + 1
 	var unit: UnitState = _state.get_unit(target_side)
 	var data: Dictionary = Dictionary(unit.statuses.get(status_id, {}))
 	var remaining: float = float(data.get("duration", 0.0))

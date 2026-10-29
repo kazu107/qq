@@ -47,7 +47,7 @@ func _run() -> void:
 		var reward: Label = scene.find_child("AchievementReward_" + id, true, false) as Label
 		var bar: ProgressBar = scene.find_child("AchievementProgressBar_" + id, true, false) as ProgressBar
 		_check(icon != null and icon.texture == AchievementIconCatalog.get_icon(id), "wrong icon binding: " + id)
-		_check(icon.size.is_equal_approx(Vector2(88, 88)), "icon must stay square and not expand with text")
+		_check(icon.size.is_equal_approx(Vector2(104, 104)), "icon must stay square and not expand with text")
 		_check(icon.get_global_rect().end.x < label.get_global_rect().position.x, "icon is not left of upper text")
 		_check(absf(icon.global_position.y - label.global_position.y) <= 1.0, "icon not aligned with top text row")
 		_check(bar.global_position.y >= maxf(icon.get_global_rect().end.y, reward.get_global_rect().end.y), "bar overlaps upper icon/text")

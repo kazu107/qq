@@ -88,6 +88,8 @@ func ensure_defaults(meta_progress: Dictionary) -> void:
 		meta_progress.get("achievement_stats", {}),
 		DEFAULT_ACHIEVEMENT_STATS
 	)
+	for key: String in AdvancedAchievementProgress.DEFAULT_STATS:
+		meta_progress["achievement_stats"][key] = maxi(0, int(meta_progress["achievement_stats"].get(key, 0)))
 	meta_progress["permanent_bonuses"] = _normalized_int_dictionary(
 		meta_progress.get("permanent_bonuses", {}),
 		DEFAULT_PERMANENT_BONUSES

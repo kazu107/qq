@@ -7,6 +7,7 @@ static func apply_damage(attacker: UnitState, defender: UnitState, base_amount: 
 	var hp_before: int = defender.hp
 	var result: Dictionary = apply_fixed_damage(defender, raw)
 	attacker.combat_totals["damage"] = int(attacker.combat_totals["damage"]) + maxi(0, hp_before - defender.hp)
+	attacker.achievement_max_hit = maxi(attacker.achievement_max_hit, maxi(0, hp_before - defender.hp))
 	attacker.combat_totals["absorbed"] = int(attacker.combat_totals["absorbed"]) + int(result["shield_absorb"])
 	return result
 

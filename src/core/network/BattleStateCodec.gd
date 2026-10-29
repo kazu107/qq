@@ -15,6 +15,7 @@ const NETWORK_RESULT_SCALAR_KEYS: Array[String] = [
 	"amount",
 ]
 const NETWORK_SUMMARY_KEYS: Array[String] = [
+	"achievement_eligible",
 	"analysis",
 	"battle_id",
 	"winner",

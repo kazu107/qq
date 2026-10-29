@@ -242,6 +242,7 @@ func start_new_run(starter_id: String, seed_override: int = 0) -> void:
 		return
 	suspended_runs.erase(RUN_SETUP_MODE_NORMAL)
 	current_run = RunState.from_starter(starter, seed_override)
+	if is_developer_mode_enabled(): current_run.achievement_state["excluded"] = true
 	current_run.content_pool = ContentPoolService.build_snapshot(meta_progress)
 	_apply_permanent_bonuses_to_run(current_run)
 	current_run.map_state = _map_generator.generate_run(current_run.seed, get_unlocked_step_tier())
@@ -269,6 +270,7 @@ func start_infinite_run(starter_id: String = "", seed_override: int = 0) -> bool
 		return false
 	suspended_runs.erase(RUN_SETUP_MODE_NORMAL)
 	current_run = RunState.from_starter(starter, seed_override)
+	if is_developer_mode_enabled(): current_run.achievement_state["excluded"] = true
 	current_run.content_pool = ContentPoolService.build_snapshot(meta_progress)
 	current_run.infinite_mode = true
 	_apply_permanent_bonuses_to_run(current_run)
@@ -297,6 +299,7 @@ func start_arena_run(starter_id: String, seed_override: int = 0) -> bool:
 		return false
 	suspended_runs.erase(RUN_SETUP_MODE_ARENA)
 	current_run = RunState.from_starter(starter, seed_override)
+	if is_developer_mode_enabled(): current_run.achievement_state["excluded"] = true
 	current_run.content_pool = ContentPoolService.build_snapshot(meta_progress, true)
 	_arena_service.configure_run(current_run, _get_arena_card_pool_ids(), _get_arena_relic_pool_ids())
 	pending_enemy_id = ""
@@ -346,10 +349,14 @@ func complete_battle(summary: Dictionary) -> void:
 	if current_run == null:
 		return
 	ensure_meta_initialized()
+	if is_developer_mode_enabled(): current_run.achievement_state["excluded"] = true
+	var receipt: String = String(summary.get("control_receipt_id", ""))
+	if receipt != "" and Array(current_run.achievement_state.get("battle_receipts", [])).has(receipt): return
 	if current_run.infinite_mode and not current_run.arena_mode:
 		var context: Dictionary = Dictionary(summary.get("infinite_score_context", {}))
 		if not context.is_empty() and InfiniteScoreResolver.new().was_result_recorded(current_run, context):
 			return
+	current_run.achievement_state["last_battle_eligible"] = AdvancedAchievementProgress.record_battle(meta_progress, current_run, summary)
 
 	var active_node: Dictionary = get_active_map_node()
 	last_battle_summary = summary.duplicate(true)
@@ -1420,6 +1427,7 @@ func is_developer_mode_enabled() -> bool:
 func set_developer_mode_enabled(enabled: bool) -> void:
 	ensure_meta_initialized()
 	settings["developer_mode"] = enabled and AccountSession.can_use_developer_mode()
+	if bool(settings["developer_mode"]) and current_run != null: current_run.achievement_state["excluded"] = true
 	if bool(settings["developer_mode"]): RankedSession.disqualify("developer_mode")
 	SaveManager.save_game(current_screen_hint)
 
@@ -1452,6 +1460,7 @@ func developer_start_arena(starter_id: String = "balanced") -> void:
 func developer_open_battle(enemy_id: String = "scout", starter_id: String = "balanced") -> void:
 	if current_run == null or current_run.run_complete:
 		start_new_run(starter_id)
+	current_run.achievement_state["excluded"] = true
 	pending_enemy_id = enemy_id
 	reward_options.clear()
 	last_battle_summary.clear()
@@ -1482,6 +1491,7 @@ func developer_open_custom_battle(enemy_id: String, starter_id: String, card_ids
 				current_run.card_upgrades[card_id] = tier
 
 	pending_enemy_id = resolved_enemy_id
+	current_run.achievement_state["excluded"] = true
 	reward_options.clear()
 	last_battle_summary.clear()
 	last_reward_bundle.clear()
@@ -1628,6 +1638,11 @@ func _update_latest_battle_history(values: Dictionary) -> void:
 func record_online_battle_control(summary: Dictionary, side: String, match_id: String) -> bool:
 	if match_id == "": return false
 	if not _meta_progress_service.record_battle_control(meta_progress, summary, side, "web:" + match_id): return false
+	var run: RunState = NetworkManager.get_local_arena_run()
+	if run != null and not NetworkManager.is_local_spectator() and not is_developer_mode_enabled():
+		var receipt: Dictionary = summary.duplicate(false)
+		receipt["control_receipt_id"] = "web:" + match_id
+		AdvancedAchievementProgress.record_battle(meta_progress, run, receipt, side, true)
 	SaveManager.request_save(current_screen_hint)
 	return true
 
@@ -2836,6 +2851,7 @@ func _handle_hazard_victory() -> void:
 	var queue: Array[String] = _to_string_array(node_data.get("hazard_queue", []))
 	var cleared_waves: int = int(node_data.get("hazard_cleared_waves", 0)) + 1
 	node_data["hazard_cleared_waves"] = cleared_waves
+	AdvancedAchievementProgress.record_hazard(meta_progress, current_run, node_data)
 	_set_node(step_index, node_index, node_data)
 
 	last_reward_bundle = preview_reward_package("hazard", current_run.current_area)
@@ -3112,6 +3128,7 @@ func _is_active_node_final_step() -> bool:
 
 
 func _record_completed_run_rank() -> void:
+	if not is_developer_mode_enabled(): AdvancedAchievementProgress.record_clear(meta_progress, current_run)
 	if current_run == null or current_run.infinite_mode or current_run.defeated or not current_run.run_complete:
 		return
 	var score_data: Dictionary = RunScoreResolver.new().calculate(current_run)
@@ -3174,6 +3191,7 @@ func _complete_active_map_node_and_advance() -> void:
 
 	var next_step: int = step_index + 1
 	current_run.map_state["current_step"] = next_step
+	if not is_developer_mode_enabled(): AdvancedAchievementProgress.record_infinite_step(meta_progress, current_run, next_step)
 	if next_step >= steps.size() and current_run.infinite_mode:
 		_map_generator.append_infinite_cycle(current_run.map_state, current_run.seed)
 		var cycle_number: int = int(current_run.map_state.get("cycle_count", 1))

@@ -28,6 +28,7 @@ var relic_delay_hits: int = 0
 var relic_flags: Dictionary = {}
 var effect_repeats: int = 1
 var card_reservations: Array[Dictionary] = []
+var achievement_commit_reservations: Array[Dictionary] = []
 var regen_applications: Array[Dictionary] = []
 var damage_prevented: int = 0
 var continuous_shift_battle_time: float = -1.0

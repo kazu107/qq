@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-10-30",
   "complete": true,
-  "registered_assets": 421,
+  "registered_assets": 474,
   "coverage": {
     "Cards": {
       "done": 122,
@@ -74,8 +74,8 @@
       "remaining": []
     },
     "Achievements": {
-      "done": 30,
-      "total": 30,
+      "done": 48,
+      "total": 48,
       "remaining": []
     },
     "Scrollbars": {

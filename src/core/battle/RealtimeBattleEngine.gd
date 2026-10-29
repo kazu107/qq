@@ -25,6 +25,7 @@ var resolution_metrics: Dictionary = {}
 var record_visuals: bool = true
 var balance_sandbox: BalanceDraft
 var balance_limit_reached: bool = false
+var _achievement_eligible_at_start: bool = false
 
 
 func set_audio_enabled(enabled: bool) -> void:
@@ -70,6 +71,8 @@ func setup_sandbox(player_run: RunState, enemy_id: String, draft: BalanceDraft) 
 
 func _setup_internal(player_run: RunState, enemy_id: String) -> void:
 	balance_limit_reached = false
+	_achievement_eligible_at_start = balance_sandbox == null and not Game.is_developer_mode_enabled() and not Game.is_battle_tutorial_active()
+	if not _achievement_eligible_at_start: player_run.achievement_state["excluded"] = true
 	enemy_id = InfiniteEnemyCatalog.resolve_for_run(enemy_id, player_run)
 	var enemy_def := Database.get_enemy(enemy_id)
 	if enemy_def == null:
@@ -98,6 +101,8 @@ func _setup_internal(player_run: RunState, enemy_id: String) -> void:
 	_enemy_ai.reset()
 	_boss_passive_timer = float(enemy_def.passive.get("interval", 0.0))
 	_timeline_flows.clear()
+	battle_state.player.reset_achievement_observation()
+	battle_state.enemy.reset_achievement_observation()
 	analysis.capture_state(battle_state, true)
 	if balance_sandbox == null: RankedSession.attach(self, player_run, enemy_id)
 
@@ -114,6 +119,7 @@ func setup_pvp(
 		return
 	_player_run = player_run
 	_enemy_run = opponent_run
+	_achievement_eligible_at_start = not Game.is_developer_mode_enabled() and not Game.is_battle_tutorial_active()
 	_control_receipt_id = Crypto.new().generate_random_bytes(16).hex_encode()
 	_pvp_mode = true
 	_infinite_score_context.clear()
@@ -129,6 +135,8 @@ func setup_pvp(
 	_relic_controller.setup(self, battle_state, _player_run, _enemy_run)
 	_relic_controller.apply_unit_setup("player", battle_state.player)
 	_relic_controller.apply_unit_setup("enemy", battle_state.enemy)
+	battle_state.player.reset_achievement_observation()
+	battle_state.enemy.reset_achievement_observation()
 	_enemy_ai.reset()
 	_boss_passive_timer = 0.0
 	_timeline_flows.clear()
@@ -273,6 +281,8 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 	instance.sort_key = instance.scheduled_time - card_def.priority_modifier
 	instance.shield_cost_paid = shield_cost
 	instance.source_card_id = card_def.id
+	instance.achievement_commit_reservations = commit_reservations.duplicate(true)
+	analysis.record_reservation_use(side, commit_reservations)
 	_relic_controller.after_commit(side, instance, card_def, commit_profile, shield_before)
 
 	battle_state.active_instances.append(instance)
@@ -574,6 +584,7 @@ func build_summary(include_battle_events: bool = true) -> Dictionary:
 		"log_count": battle_state.logs.size(),
 		"battle_event_count": battle_state.battle_events.size(),
 		"pvp": _pvp_mode,
+		"achievement_eligible": _achievement_eligible_at_start and balance_sandbox == null and not Game.is_battle_tutorial_active() and not Game.is_developer_mode_enabled() and not bool(_player_run.achievement_state.get("excluded", false)),
 		"forced_hazard_withdraw": _relic_controller.was_forced_hazard_withdraw("player"),
 		"relic_bonus_gold": _relic_controller.victory_gold_bonus("player") if battle_state.winner == "player" else 0,
 		"player_relic_bonus_gold": _relic_controller.victory_gold_bonus("player") if battle_state.winner == "player" else 0,
@@ -917,6 +928,7 @@ func _resolve_due_entries() -> void:
 		var resolved_card_def: CardDef = _relic_controller.prepare_resolution_card(instance.owner_side, instance, card_def)
 		if not instance.is_auto_queued:
 			instance.card_reservations = ReservedCardRules.select(unit.card_reservations, card_def, "resolve", true)
+			analysis.record_reservation_use(instance.owner_side, instance.card_reservations, instance.achievement_commit_reservations)
 		resolution_metrics = {"damage": 0, "absorbed": 0, "shield": 0, "heal": 0}
 		var messages: Array[String] = []
 		var effect_resolutions: Array[Dictionary] = []
@@ -991,6 +1003,7 @@ func _resolve_due_entries() -> void:
 				"fully_blocked": fully_blocked,
 				"effect_resolutions": effect_resolutions,
 				"effect_repeats": maxi(1, effect_resolutions.size()),
+				"is_auto_queued": instance.is_auto_queued,
 				"damage_prevented": instance.damage_prevented,
 			},
 			target_unit.hp - target_hp_before,
@@ -1040,6 +1053,9 @@ func _force_interrupt(instance: ActiveCardInstance) -> bool:
 		return false
 	var timeline_before: Array[Dictionary] = _snapshot_timeline()
 	battle_state.remove_active_instance(instance.instance_id)
+	if instance.get_remaining(battle_state.battle_time) <= 1.000001:
+		var observed: Dictionary = analysis.achievement_side(_opponent_side(instance.owner_side))
+		observed["clutch_interrupts"] = int(observed["clutch_interrupts"]) + 1
 	unit.active_slots_used = max(0, unit.active_slots_used - instance.slot_cost)
 	if runtime_state != null:
 		runtime_state.state = CardRuntimeState.CardState.INTERRUPTED

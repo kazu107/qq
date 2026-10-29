@@ -3,7 +3,7 @@
   "blender_version": "5.2.2 LTS",
   "generator": "tools/blender/build_achievement_icons.py",
   "generator_sha256": {
-    "tools/blender/build_achievement_icons.py": "3d98455b9e8428093d6b1ef2046cf666624a89c4cce160cf997fd307e471d5a0",
+    "tools/blender/build_achievement_icons.py": "438ed8d444634b2003e06e3e4e6056b50d92f5d7c278376fdea28d42c231e4c9",
     "tools/blender/build_ui_batch.py": "5b9fea360619b1ff963f732703fb2ac276f5b33942e604d31dfa48b48694c77c"
   },
   "source": "art_src/blender/achievements/qq_achievements.blend",
@@ -610,5 +610,5 @@
       "visible_pixels_at_48px": 363
     }
   ],
-  "finalizer_sha256": "3fb7ae51c903fd4ac95e933b1a10f72a079a54e7a012907a8efab524b1b65597"
+  "finalizer_sha256": "6462807803f85e326f4a866044973b1ceb86ede440393fe1a7fae7d1629e9c61"
 }

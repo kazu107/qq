@@ -69,7 +69,7 @@ func _run() -> void:
 
 
 func _test_tiers() -> void:
-	_check(Database.get_all_achievement_ids().size() == 30, "four new groups missing")
+	_check(Database.get_all_achievement_ids().size() == 48, "achievement groups missing")
 	var stages: int = 0
 	for id: String in Database.get_all_achievement_ids():
 		var definition: Dictionary = Database.get_achievement(id)
@@ -77,7 +77,7 @@ func _test_tiers() -> void:
 		stages += tiers.size()
 		if NEW_IDS.has(id):
 			_check(tiers.size() == 12, "new achievements require twelve tiers")
-		elif not FINITE_IDS.has(id):
+		elif not FINITE_IDS.has(id) and int(definition.get("tracking_version", 0)) != 1:
 			var original_count: int = tiers.size() - (8 if id == "victory_milestones" else 6)
 			_check(original_count >= 4, "existing achievement extension missing")
 			var legacy: Dictionary = _fresh()
@@ -98,7 +98,7 @@ func _test_tiers() -> void:
 			_check(int(tier["condition"]["value"]) > 0 and not Array(tier["rewards"]).is_empty(), "invalid tier target/reward")
 			if index > 0 and tiers[index - 1]["condition"]["stat"] == tier["condition"]["stat"]:
 				_check(int(tier["condition"]["value"]) > int(tiers[index - 1]["condition"]["value"]), "thresholds must grow")
-	_check(stages == 296, "total stage count is incorrect")
+	_check(stages == 354, "total stage count is incorrect")
 	for id: String in NEW_IDS:
 		var meta: Dictionary = _fresh()
 		for tier: Dictionary in Database.get_achievement(id)["tiers"]:

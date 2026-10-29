@@ -272,6 +272,27 @@ func _command(arguments: Array) -> void:
 		Game.meta_progress["achievement_stats"].merge(Dictionary(payload.get("stats", {})), true)
 		Game.meta_progress["achievement_claim_counts"] = Dictionary(payload.get("claims", {})).duplicate(true)
 		_open_screen("meta")
+	elif String(payload.get("action", "")) == "tactical_battle_fixture":
+		NetworkManager._clear_session(false)
+		Game.clear_battle_tutorial()
+		Game.settings["developer_mode"] = false
+		Game.meta_progress = Database.meta_progress_template.duplicate(true)
+		Game.ensure_meta_initialized()
+		Game.start_new_run("balanced", 4242)
+		Game.current_run.player_cards.assign(["reserve_focus", "echo_cast", "quick_slash"])
+		Game.current_run.equipped_cards.assign(Game.current_run.player_cards)
+		Game.current_run.loadout_limit = 20
+		var node: Dictionary = Game._get_node(0, 0)
+		node["type"] = "normal_battle"
+		node["enemy_id"] = "scout"
+		Game._set_node(0, 0, node)
+		Game.select_map_node(String(node["id"]))
+		SceneRouter.go_to_battle()
+	elif String(payload.get("action", "")) == "tactical_battle_prepare":
+		var engine: RealtimeBattleEngine = get_tree().current_scene.get("_engine") as RealtimeBattleEngine
+		engine.set_enemy_ai_enabled(false)
+		engine.battle_state.enemy.max_hp = 24
+		engine.battle_state.enemy.hp = 24
 	elif String(payload.get("action", "")) == "achievement_focus":
 		var screen: Control = get_tree().current_scene as Control
 		var row: Control = screen.find_child("MetaAchievementFrame_" + String(payload.get("id", "")), true, false) as Control
@@ -750,6 +771,7 @@ func _inspect() -> Dictionary:
 	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
 	var controls: Array[Dictionary] = []
 	var result: Dictionary = {}
+	result["tactical_stats"] = Dictionary(Game.meta_progress.get("achievement_stats", {})).duplicate(true)
 	if not _feedback_samples.is_empty():
 		result["feedback"] = {"samples": _feedback_samples, "immediate_audio": _feedback_initial_audio, "audio": AudioManager.get_play_history()}
 	if screen != null:
@@ -783,6 +805,14 @@ func _inspect() -> Dictionary:
 					"hp":enemy.max_hp, "attack":enemy.attack, "cards":cards, "model":actor.get_authored_model_path(), "colors":colors,
 					"grade":enemy.temporary_card_modifiers.get(cards[0], {}).get("tier", 0)}
 				var stage: BattleStage3D = screen.get("_battle_stage") as BattleStage3D
+				var tactical_cards: Array[Dictionary] = []
+				var tactical_hand: CardHandPanel = screen.get("_card_hand_panel") as CardHandPanel
+				for runtime: CardRuntimeState in bleed_engine.battle_state.player.card_runtime_states:
+					var button: CardButton = tactical_hand.get_button_for_runtime_id(runtime.runtime_id)
+					if button != null: tactical_cards.append({"id":runtime.card_id,"ready":runtime.can_use(),"rect":_rect_values(button.get_global_rect())})
+				result["tactical_battle"] = {"cards":tactical_cards,"repeat":bleed_engine.battle_state.player.repeat_charges,
+					"reservations":bleed_engine.battle_state.player.card_reservations.size(),"winner":bleed_engine.battle_state.winner,
+					"eligible":bleed_engine.build_summary(false).get("achievement_eligible",false)}
 				var regions: Array[Dictionary] = []
 				for region: Dictionary in stage.get_enemy_status_model().get_status_regions():
 					if region["id"] != "bleed": continue

@@ -5,7 +5,14 @@ const BLEED_TICK_INTERVAL := BleedRules.TICK_INTERVAL
 
 var unit_id: String = ""
 var display_name: String = ""
-var hp: int = 1
+var achievement_hp_lost: int = 0
+var achievement_lowest_hp_ratio: float = 1.0
+var achievement_max_hit: int = 0
+var hp: int = 1:
+	set(value):
+		achievement_hp_lost += maxi(0, hp - value)
+		hp = value
+		achievement_lowest_hp_ratio = minf(achievement_lowest_hp_ratio, clampf(float(value) / maxi(1, max_hp), 0.0, 1.0))
 var max_hp: int = 1
 var shield: int = 0
 var attack: int = 0
@@ -30,6 +37,12 @@ var combat_totals: Dictionary = {"damage": 0, "absorbed": 0, "damage_taken": 0, 
 
 func is_alive() -> bool:
 	return hp > 0
+
+
+func reset_achievement_observation() -> void:
+	achievement_hp_lost = 0
+	achievement_max_hit = 0
+	achievement_lowest_hp_ratio = clampf(float(hp) / maxi(1, max_hp), 0.0, 1.0)
 
 
 func get_attack_value() -> int:

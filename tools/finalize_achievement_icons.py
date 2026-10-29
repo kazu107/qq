@@ -67,7 +67,9 @@ def register(meta):
     path = ROOT / "data/art_coverage.json"
     coverage = json.loads(path.read_text(encoding="utf-8"))
     coverage["updated_at"], coverage["registered_assets"] = DATE, len(entries)
-    coverage["coverage"]["Achievements"] = {"done": len(meta["assets"]), "total": len(meta["assets"]), "remaining": []}
+    all_ids = {e["id"] for e in json.loads((ROOT/"data/achievements.json").read_text(encoding="utf-8"))}
+    registered = {e["visual_id"] for e in entries if e.get("category") == "achievement"}
+    coverage["coverage"]["Achievements"] = {"done": len(registered), "total": len(all_ids), "remaining": sorted(all_ids-registered)}
     save_json(path, coverage)
 
 
@@ -76,7 +78,7 @@ def main():
     parser.add_argument("--validate-only", action="store_true")
     args = parser.parse_args()
     meta = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    expected = {entry["id"] for entry in json.loads((ROOT / "data/achievements.json").read_text(encoding="utf-8"))}
+    expected = {entry["id"] for entry in json.loads((ROOT / "data/achievements.json").read_text(encoding="utf-8")) if entry.get("tracking_version") != 1}
     assert {entry["visual_id"] for entry in meta["assets"]} == expected
     assert sha(ROOT / meta["source"]) == meta["source_sha256"]
     for path, digest in meta["generator_sha256"].items(): assert sha(ROOT / path) == digest, path

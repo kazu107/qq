@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 const require = createRequire(import.meta.url);
+const newDefinitions = require('../data/achievements.json').filter(entry => entry.tracking_version === 1);
+const newStats = Object.fromEntries(newDefinitions.map(entry => [entry.condition.stat, entry.condition.value]));
 const { createQqServer } = require('../server/server.js');
 const { chromium } = process.env.QQ_NODE_MODULES
   ? createRequire(resolve(process.env.QQ_NODE_MODULES, '../package.json'))('playwright') : require('playwright');
@@ -30,7 +32,7 @@ try {
     return page.evaluate(() => JSON.parse(window.qqLayoutState));
   }
   function bounds(state) {
-    assert.equal(state.achievements.cards.length, 30);
+    assert.equal(state.achievements.cards.length, 48);
     for (const card of state.achievements.cards) {
       const [left, top, width, height] = card.rect;
       for (const [key, [x, y, w, h]] of Object.entries(card.parts)) {
@@ -60,9 +62,9 @@ try {
     await page.setViewportSize(viewport);
     await command('screen', { screen: 'hub' });
     let state = await command('achievement_fixture', { language,
-      stats: { infinite_score_total: 1100, timeline_delay_ms: 10125, timeline_advance_ms: 9875, cards_interrupted: 2, victories: 250, gold_spent: 20000 },
+      stats: { ...newStats, infinite_score_total: 1100, timeline_delay_ms: 10125, timeline_advance_ms: 9875, cards_interrupted: 2, victories: 250, gold_spent: 20000 },
       claims: { victory_milestones: 6, big_spender: 8 } });
-    for (let attempt = 0; state.achievements.cards.length < 30 && attempt < 30; attempt++) state = await command('inspect');
+    for (let attempt = 0; state.achievements.cards.length < 48 && attempt < 40; attempt++) state = await command('inspect');
     bounds(state);
     const instances = state.achievements.cards.map(card => card.instance);
     assert.equal(state.achievement_progress.victory_milestones.tiers, 14);
@@ -72,11 +74,11 @@ try {
     assert(state.achievement_progress.timeline_accelerator.disabled);
     assert(state.achievement_progress.timeline_delayer.progress.includes('10.1'));
     assert(!state.achievement_progress.timeline_delayer.progress.includes('10125'));
-    for (const id of ['infinite_score_collector', 'timeline_delayer', 'timeline_accelerator', 'cast_breaker', 'victory_milestones', 'big_spender']) {
+    for (const id of ['infinite_score_collector', 'timeline_delayer', 'timeline_accelerator', 'cast_breaker', 'victory_milestones', 'big_spender', ...newDefinitions.map(entry => entry.id)]) {
       state = await command('achievement_focus', { id });
       bounds(state);
       const before = state.achievement_progress[id];
-      assert(before.tiers >= 10);
+      assert(newDefinitions.some(entry => entry.id === id) ? before.tiers >= 3 : before.tiers >= 10);
       await page.screenshot({ path: resolve(output, `${id}-${language}-${viewport.width}x${viewport.height}.png`) });
       if (before.disabled) continue;
       state = await clickClaim(state, id);
@@ -85,7 +87,7 @@ try {
       assert.deepEqual(state.achievements.cards.map(card => card.instance), instances, 'Claim rebuilt the entire achievement grid');
       assert(state.achievement_progress[id].disabled, 'Unreached next tier was enabled');
     }
-    cases.push(`${language} ${viewport.width}x${viewport.height}: 30 groups, fractional seconds, progress above bars, new/extended stage claims and cached widgets`);
+    cases.push(`${language} ${viewport.width}x${viewport.height}: 48 groups, fractional seconds, progress above bars, all 18 tactical claims and cached widgets`);
   }
   for (const viewport of [{ width: 960, height: 600 }, { width: 900, height: 1200 }]) {
     await page.setViewportSize(viewport);

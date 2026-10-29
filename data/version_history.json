@@ -1,9 +1,26 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.59.1",
+  "current_version": "QQ-0.60.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.60.0", "date": "2026-10-30",
+      "title_ja": "戦術を評価する18系統・58段階の実績",
+      "title_en": "Eighteen tactical achievement groups with 58 tiers",
+      "changes_ja": [
+        "予約・反響・リジェネ・転換・自動投入・浄化・単発火力、無傷や逆境からの勝利、間一髪の中断、危険地帯制覇など18系統を追加しました。既存と合わせて48系統になり、追加58段階ではメタポイントを受け取れます。",
+        "実際のHPダメージ・回復・防御だけを集計し、過剰ダメージ、過剰回復、シールドの自然減少や消費コストは除外します。単発記録では反響の2回分を合算しません。最大値と累計値を区別し、同じカードのGrade違いは同じ種類として扱います。",
+        "チュートリアル・デバッグ・シミュレーション・観戦を除外し、戦闘結果の重複送信やセーブ再開で二重加算されないようにしました。Web対戦は参加者本人の統計のみ、連勝街道はソロアリーナのみを対象にします。新しい実績アイコン18点をBlenderで制作し、先読みキャッシュと通知マークにも対応しました。",
+        "カード・遺物・敵の数値は維持します。進行報酬の拡張に合わせてランキングルール番号をinfinite-17へ同期更新し、ランキング準備中と既存データは維持します。"
+      ],
+      "changes_en": [
+        "Add eighteen achievement groups with 58 meta-point reward tiers, bringing the catalog to 48 groups. Cover reservations, Echo, regeneration, conversion, automation, cleanses, single hits, battle challenges and progression records.",
+        "Count actual HP damage, recovery and shield absorption, excluding overkill, overhealing, shield decay and shield costs. Keep Echo hits separate for single-hit records, distinguish lifetime totals from personal bests, and count a card only once across Grades.",
+        "Exclude tutorial, developer, simulation and spectator sessions; deduplicate battle receipts across reloads. Attribute Web results to the local participant only and restrict Arena streaks to solo play. Add eighteen editable Blender icons with startup caching and menu notifications.",
+        "Preserve all card, relic and enemy values. Synchronize the progression revision to infinite-17 while retaining preparing ranking availability and existing saves."
+      ]
+    },
     {
       "version": "QQ-0.59.1", "date": "2026-10-29",
       "title_ja": "受け取り可能な実績をメニューで通知",

@@ -46,7 +46,7 @@ func _run() -> void:
 	window_scroll.scroll_vertical = 0
 	hub.call("_open_settings")
 	_check(hub.find_child("SettingsDialog", true, false) == null, "settings opened behind the meta modal")
-	_check((content.find_child("MetaAchievementBox", true, false) as GridContainer).get_child_count() == 30, "achievement list incomplete")
+	_check((content.find_child("MetaAchievementBox", true, false) as GridContainer).get_child_count() == 48, "achievement list incomplete")
 	_check(content.find_children("*", "SubViewport", true, false).is_empty(), "unlock icons must not create live 3D viewports")
 	for entry: Dictionary in Game.get_meta_starter_entries():
 		var id: String = String(entry["id"])

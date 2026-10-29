@@ -294,7 +294,7 @@ def main():
     scene.render.resolution_x=scene.render.resolution_y=1024
     scene.cycles.samples=24
     scene.camera.data.ortho_scale=2.78
-    ids=[entry["id"] for entry in json.loads((ROOT/"data/achievements.json").read_text(encoding="utf-8"))]
+    ids=[entry["id"] for entry in json.loads((ROOT/"data/achievements.json").read_text(encoding="utf-8")) if entry["id"] in MOTIFS]
     assert set(ids)==set(MOTIFS), "Update sculptures when adding an achievement"
     collections,entries=[],[]
     for icon in ids:

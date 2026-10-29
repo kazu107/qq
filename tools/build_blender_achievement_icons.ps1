@@ -14,6 +14,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Achievement PNG validation failed" }
     & $BlenderPath --background --factory-startup --python-exit-code 1 -t 4 --python tools/blender/build_achievement_icons.py -- --validate-only
     if ($LASTEXITCODE -ne 0) { throw "Achievement Blender source validation failed" }
+    & $BlenderPath --background --factory-startup --python-exit-code 1 -t 4 --python tools/blender/build_advanced_achievement_icons.py
+    if ($LASTEXITCODE -ne 0) { throw "Advanced achievement rendering failed" }
+    & $PythonPath tools/finalize_advanced_achievement_icons.py
+    if ($LASTEXITCODE -ne 0) { throw "Advanced achievement finalization failed" }
 } finally {
     Pop-Location
 }

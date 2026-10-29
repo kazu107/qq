@@ -14,6 +14,31 @@ var timeline_control: Dictionary = {
 	"enemy": {"delay_seconds": 0.0, "advance_seconds": 0.0, "interrupts": 0},
 }
 var _sample_interval: float = 0.5
+var achievement_metrics: Dictionary = {}
+
+
+func achievement_side(side: String) -> Dictionary:
+	if not achievement_metrics.has(side):
+		achievement_metrics[side] = {"reservation_uses":0, "max_reservation_kinds":0, "echo_uses":0,
+			"auto_resolutions":0, "cleanses":0, "clutch_interrupts":0, "regen_healing":0, "card_ids":[]}
+	return achievement_metrics[side]
+
+
+func record_reservation_use(owner: String, entries: Array[Dictionary], commit_entries: Array[Dictionary] = []) -> void:
+	var friendly: Array[String] = []
+	for entry: Dictionary in entries:
+		var source: String = String(entry.get("source_side", ""))
+		if source in ["player", "enemy"]:
+			var metrics: Dictionary = achievement_side(source)
+			metrics["reservation_uses"] = int(metrics["reservation_uses"]) + 1
+	var combined: Array[Dictionary] = entries.duplicate()
+	combined.append_array(commit_entries)
+	for entry: Dictionary in combined:
+		if entry.get("source_side", "") == owner and not bool(entry.get("hostile", false)):
+			var kind: String = String(entry.get("reservation", ""))
+			if not friendly.has(kind): friendly.append(kind)
+	var own: Dictionary = achievement_side(owner)
+	own["max_reservation_kinds"] = maxi(int(own["max_reservation_kinds"]), friendly.size())
 
 
 func record_timeline_shift(source_side: String, actual_delta: float) -> void:
@@ -37,6 +62,10 @@ func capture_state(state: BattleState, force: bool = false) -> void:
 		var unit: UnitState = state.get_unit(side)
 		totals[side] = unit.combat_totals.duplicate()
 		combatants[side] = {"id": unit.unit_id, "name": unit.display_name, "max_hp": unit.max_hp}
+		var observed: Dictionary = achievement_side(side)
+		observed["hp_lost"] = unit.achievement_hp_lost
+		observed["lowest_hp_ratio"] = unit.achievement_lowest_hp_ratio
+		observed["max_hit"] = unit.achievement_max_hit
 	_append_hp({"time": state.battle_time, "player": state.player.hp, "enemy": state.enemy.hp})
 
 
@@ -85,6 +114,10 @@ func record(event: Dictionary) -> void:
 		actor = "enemy"
 	var card_id: String = String(event.get("card_id", ""))
 	var key: String = actor + ":" + card_id
+	var observed: Dictionary = achievement_side(actor)
+	if not Array(observed["card_ids"]).has(card_id): observed["card_ids"].append(card_id)
+	if bool(result.get("is_auto_queued", false)): observed["auto_resolutions"] = int(observed["auto_resolutions"]) + 1
+	if int(result.get("effect_repeats", 1)) > 1: observed["echo_uses"] = int(observed["echo_uses"]) + 1
 	var row: Dictionary = rows.get(key, {"actor": actor, "card_id": card_id, "casts": 0, "damage": 0, "absorbed": 0, "shield": 0, "heal": 0})
 	row["casts"] = int(row["casts"]) + 1
 	var metrics: Dictionary = Dictionary(result.get("metrics", {}))
@@ -113,6 +146,8 @@ func record_reservation_proc(side: String, kind: String, metrics: Dictionary) ->
 
 func record_heal_tick(side: String, card_id: String, amount: int) -> void:
 	if amount <= 0: return
+	var observed: Dictionary = achievement_side(side)
+	observed["regen_healing"] = int(observed["regen_healing"]) + amount
 	var key: String = side + ":" + card_id
 	var row: Dictionary = rows.get(key, {"actor": side, "card_id": card_id, "casts": 0, "damage": 0, "absorbed": 0, "shield": 0, "heal": 0})
 	row["heal"] = int(row["heal"]) + amount
@@ -130,7 +165,7 @@ func to_dict() -> Dictionary:
 	return {"cards": rows.values().duplicate(true), "fatigue_hits": fatigue_hits,
 		"fatigue_hp_damage": fatigue_hp_damage, "fatigue_shield_damage": fatigue_shield_damage,
 		"totals": totals.duplicate(true), "combatants": combatants.duplicate(true), "hp_history": hp_history.duplicate(true),
-		"timeline_control": timeline_control.duplicate(true)}
+		"timeline_control": timeline_control.duplicate(true), "achievement_metrics":achievement_metrics.duplicate(true)}
 
 
 static func get_totals(data: Dictionary) -> Dictionary:

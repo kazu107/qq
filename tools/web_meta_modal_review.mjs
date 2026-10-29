@@ -43,7 +43,7 @@ try {
   let state = await command('meta_modal_fixture');
   const hub = state.screen_instance;
   state = await click(state, 'HubMetaProgressButton'); state = await ready();
-  assert.equal(state.screen_instance, hub); assert.equal(state.meta_modal.hint, 'hub'); assert.equal(state.meta_modal.rows.length, 30);
+  assert.equal(state.screen_instance, hub); assert.equal(state.meta_modal.hint, 'hub'); assert.equal(state.meta_modal.rows.length, 48);
   const cached = state.meta_modal.content_instance, rows = state.meta_modal.rows;
   assert.equal(state.meta_modal.columns, 2);
   assert.equal(state.meta_modal.summary_columns, 4);
