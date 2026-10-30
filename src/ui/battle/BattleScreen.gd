@@ -60,6 +60,8 @@ var _pending_result_is_local: bool = false
 var _tutorial_mode: bool = false
 var _tutorial_overlay: BattleTutorialOverlay
 var _tutorial_director: BattleTutorialDirector
+var _sandbox_mode: bool = false
+var _sandbox_dock: SandboxBattleDock
 
 
 func _ready() -> void:
@@ -67,6 +69,11 @@ func _ready() -> void:
 	_build_ui()
 	WebLoadMetrics.record("battle_ui_build", (Time.get_ticks_usec() - ready_started_us) / 1000.0)
 	_engine.set_defer_resolution_audio(true)
+	_sandbox_mode = SandboxSession.active
+	if _sandbox_mode:
+		_setup_sandbox_battle()
+		WebLoadMetrics.record("battle_ready",(Time.get_ticks_usec()-ready_started_us)/1000.0,{"mode":"sandbox"})
+		return
 	_tutorial_mode = Game.is_battle_tutorial_active()
 	if _tutorial_mode:
 		_setup_tutorial_battle()
@@ -130,6 +137,13 @@ func detach_battle_stage_for_cache() -> BattleStage3D:
 func _process(delta: float) -> void:
 	if _engine.battle_state == null:
 		return
+	if _sandbox_mode:
+		_sandbox_dock.process_battle(delta)
+		_refresh_ui(1.0)
+		if _engine.battle_state.winner!="" and not _handled_finish:
+			_handled_finish=true
+			_queue_battle_result(_engine.build_summary(),false,false)
+		return
 	if _tutorial_mode:
 		_process_tutorial_battle(delta)
 		return
@@ -151,6 +165,18 @@ func _process(delta: float) -> void:
 		_transition_timer -= delta
 		if _transition_timer <= 0.0:
 			_advance_after_battle()
+
+
+func _setup_sandbox_battle() -> void:
+	if not _engine.setup_playground(SandboxSession.config):SceneRouter.go_to_sandbox();return
+	_local_run = _engine.get_run_for_side("player")
+	_opponent_run = _engine.get_run_for_side("enemy")
+	_timeline_panel.balance_engine = _engine
+	_configure_battle_stage()
+	_timeline_panel.set_fixed_horizon(_compute_timeline_horizon())
+	_sandbox_dock=SandboxBattleDock.new();add_child(_sandbox_dock);_sandbox_dock.configure(self,_engine)
+	move_child(_analysis_panel,get_child_count()-1)
+	set_process(true);_refresh_ui(1.0)
 
 
 func _setup_tutorial_battle() -> void:
@@ -700,6 +726,10 @@ func _show_analysis(summary: Dictionary, return_to_round_results: bool) -> void:
 	if _lan_mode:
 		replay_available = NetworkManager.get_last_online_replay_path() != ""
 	_analysis_panel.show_result(summary, _local_side, _spectator_mode, replay_available)
+	if _sandbox_mode:
+		_analysis_panel.set_replay_available(true)
+		(_analysis_panel.get("_replay_button") as Button).text="同条件で再戦" if Localization.get_language()=="ja" else "Restart"
+		(_analysis_panel.find_child("BattleContinueButton",true,false) as Button).text="設定へ" if Localization.get_language()=="ja" else "Setup"
 
 
 func _queue_battle_result(summary: Dictionary, return_to_round_results: bool, complete_local_run: bool) -> void:
@@ -727,6 +757,7 @@ func _on_battle_end_presentation_finished() -> void:
 
 
 func _on_analysis_continue_requested() -> void:
+	if _sandbox_mode:SceneRouter.go_to_sandbox();return
 	if _analysis_panel != null:
 		_analysis_panel.visible = false
 	if _analysis_returns_to_round_results:
@@ -737,6 +768,7 @@ func _on_analysis_continue_requested() -> void:
 
 
 func _on_analysis_replay_requested() -> void:
+	if _sandbox_mode:SceneRouter.start_sandbox(SandboxSession.config);return
 	var replay_path: String = NetworkManager.get_last_online_replay_path() if _lan_mode else Game.get_last_replay_export_path()
 	if replay_path == "":
 		AudioManager.play_sfx("ui_error")
@@ -1205,12 +1237,12 @@ func _refresh_ui(time_scale: float) -> void:
 	if _run_info_banner != null:
 		if _lan_mode:
 			_run_info_banner.refresh_run(_local_run, local_unit.hp, local_unit.max_hp, "ONLINE" if NetworkManager.is_online_session() else "LAN")
-		elif _tutorial_mode:
-			_run_info_banner.refresh_run(_local_run, local_unit.hp, local_unit.max_hp, Localization.get_text("tutorial.banner", "TUTORIAL"))
+		elif _tutorial_mode or _sandbox_mode:
+			_run_info_banner.refresh_run(_local_run, local_unit.hp, local_unit.max_hp, "SANDBOX" if _sandbox_mode else Localization.get_text("tutorial.banner", "TUTORIAL"))
 		else:
 			_run_info_banner.refresh(local_unit.hp, local_unit.max_hp)
 	_battle_stage.refresh_unit_status(local_unit, opponent_unit, preview_slot_cost)
-	_enemy_cards_panel.refresh_cards(opponent_unit, _opponent_run if _lan_mode else null, "player" if _lan_mode else "enemy")
+	_enemy_cards_panel.refresh_cards(opponent_unit, _opponent_run if _lan_mode or _sandbox_mode else null, "player" if _lan_mode else "enemy")
 	_card_hand_panel.refresh_cards(local_unit, _get_active_run(), "player")
 	var preview_entry: TimelineEntry = _build_hover_preview_entry(battle_state, preview_runtime_state, preview_card_def)
 	_timeline_panel.refresh_timeline(
@@ -1220,7 +1252,7 @@ func _refresh_ui(time_scale: float) -> void:
 		preview_entry,
 		preview_card_def,
 		_local_side,
-		_opponent_run if _lan_mode else null,
+		_opponent_run if _lan_mode or _sandbox_mode else null,
 		local_unit,
 		opponent_unit
 	)
@@ -1233,6 +1265,8 @@ func _refresh_ui(time_scale: float) -> void:
 			Localization.get_textf("battle.info.time", "Battle Time {value}s", {"value": "%.1f" % battle_state.battle_time}),
 			Localization.get_textf("lan.battle.opponent", "Opponent: {value}", {"value": opponent_unit.display_name}),
 		])
+	elif _sandbox_mode:
+		battle_info_text="SANDBOX\n%.1fs\n%s"%[battle_state.battle_time,Localization.get_text("battle.info.current_enemy","Current Enemy: {value}").format({"value":battle_state.enemy.display_name})]
 	elif _tutorial_mode:
 		battle_info_text = "\n".join([
 			Localization.get_text("tutorial.banner", "TUTORIAL"),
@@ -1257,6 +1291,7 @@ func _refresh_ui(time_scale: float) -> void:
 			"damage": (battle_state.fatigue_waves + 1) * FatigueRules.DAMAGE_STEP,
 			"seconds": ceili(fatigue_remaining),
 		})
+	if _sandbox_mode and not bool(_engine.sandbox_options.get("fatigue",true)):fatigue_text="疲労なし" if Localization.get_language()=="ja" else "Fatigue off"
 	_battle_info_label.text = "[center]%s\n[color=#e6a35a]%s[/color][/center]" % [battle_info_text, fatigue_text]
 	if _battle_info_sign != null:
 		var transient_text: String = _result_label.text if _result_label.visible else _slow_mode_label.text
@@ -1303,7 +1338,10 @@ func _configure_battle_stage() -> void:
 		return
 	var local_visual_id: String = "default_player"
 	var opponent_visual_id: String = "default_enemy"
-	if _lan_mode:
+	if _sandbox_mode:
+		local_visual_id=String(SandboxSession.config["player"]["visual"])
+		opponent_visual_id=String(SandboxSession.config["enemy"]["visual"])
+	elif _lan_mode:
 		if _local_run != null:
 			local_visual_id = _local_run.starter_id
 		if _opponent_run != null:
@@ -1325,6 +1363,7 @@ func _configure_battle_stage() -> void:
 	var field_run: RunState = _local_run if _lan_mode else Game.current_run
 	var field_context: Dictionary = BattleEnvironmentArt.get_context(field_run, opponent_visual_id, _tutorial_mode)
 	_battle_stage.configure_environment(String(field_context["id"]), bool(field_context["infinite"]))
+	if _sandbox_mode:_battle_stage.configure_environment(String(SandboxSession.config["rules"]["field"]),int(SandboxSession.config["rules"]["power"])>1)
 
 
 func _uses_compact_lan_events() -> bool:
@@ -1422,7 +1461,7 @@ func _get_hovered_player_runtime_state(battle_state: BattleState) -> CardRuntime
 
 
 func _get_active_run() -> RunState:
-	if _lan_mode or _tutorial_mode:
+	if _lan_mode or _tutorial_mode or _sandbox_mode:
 		return _local_run
 	return Game.current_run
 
@@ -1431,6 +1470,7 @@ func _get_hover_preview_card_def(runtime_state: CardRuntimeState) -> CardDef:
 	var run_state: RunState = _get_active_run()
 	if runtime_state == null or run_state == null:
 		return null
+	if _sandbox_mode:return _engine._get_card_def("player",runtime_state.card_id,runtime_state.runtime_id)
 	return CardUpgradeResolver.build_effective_card(runtime_state.card_id, run_state)
 
 
@@ -1482,6 +1522,13 @@ func _build_hover_preview_entry(
 func _compute_timeline_horizon() -> float:
 	if _engine.battle_state == null:
 		return TimelinePanel.DEFAULT_TIMELINE_HORIZON
+	if _sandbox_mode:
+		var horizon: float=FatigueRules.CAST_TIME if bool(_engine.sandbox_options.get("fatigue",true)) else TimelinePanel.DEFAULT_TIMELINE_HORIZON
+		for side: String in ["player","enemy"]:
+			for runtime: CardRuntimeState in _engine.battle_state.get_unit(side).card_runtime_states:
+				var card: CardDef=_engine._get_card_def(side,runtime.card_id,runtime.runtime_id)
+				if card!=null and not card.timeline_scale_excluded:horizon=maxf(horizon,card.cast_time)
+		return horizon
 	return TimelinePanel.compute_loadout_horizon(
 		_engine.battle_state.player, _engine.battle_state.enemy,
 		_get_active_run(), NetworkManager.get_match_run("enemy") if _lan_mode else null

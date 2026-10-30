@@ -6,6 +6,7 @@ const RUN_SETUP_SCENE := "res://scenes/run_setup/RunSetup.tscn"
 const ARENA_SCENE := "res://scenes/arena/Arena.tscn"
 const ONLINE_LOBBY_SCENE := "res://scenes/online/OnlineLobby.tscn"
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
+const SANDBOX_SCENE := "res://scenes/sandbox/SandboxSetup.tscn"
 const REWARD_SCENE := "res://scenes/reward/Reward.tscn"
 const RESULT_SCENE := "res://scenes/result/RunResult.tscn"
 const MAP_SCENE := "res://scenes/map/Map.tscn"
@@ -293,6 +294,11 @@ func _warm_pending_battle_visuals_async() -> void:
 
 func _current_battle_card_ids() -> Array[String]:
 	var card_ids: Array[String] = []
+	if SandboxSession.active:
+		for side: String in ["player","enemy"]:
+			for card: Dictionary in SandboxSession.config[side]["cards"]:
+				if not card_ids.has(String(card["id"])): card_ids.append(String(card["id"]))
+		return card_ids
 	if Game.is_battle_tutorial_active():
 		var tutorial: Dictionary = BattleTutorialCatalog.get_tutorial(Game.active_battle_tutorial_id)
 		for raw_card_id: Variant in Array(tutorial.get("cards", [])):
@@ -347,6 +353,7 @@ func warm_scene_cache() -> void:
 		BATTLE_ANIMATION_LAB_SCENE,
 		AUTOMATED_BATTLE_LAB_SCENE,
 		BALANCE_LAB_SCENE,
+		SANDBOX_SCENE,
 		BATTLE_TUTORIAL_SCENE,
 	]
 	if Game.WEB_MULTIPLAYER_ENABLED:
@@ -368,7 +375,20 @@ func go_to_title() -> void:
 
 
 func go_to_hub() -> void:
+	SandboxSession.active = false
 	_change_scene(HUB_SCENE)
+
+
+func go_to_sandbox() -> void:
+	if NetworkManager.is_session_connected(): return
+	SandboxSession.active = false
+	_change_scene(SANDBOX_SCENE)
+
+
+func start_sandbox(raw: Dictionary) -> bool:
+	if not SandboxSession.begin(raw): return false
+	_change_scene(BATTLE_SCENE)
+	return true
 
 
 func go_to_run_setup(mode: String = Game.RUN_SETUP_MODE_NORMAL) -> void:
@@ -389,6 +409,7 @@ func go_to_online_lobby() -> void:
 
 
 func go_to_battle() -> void:
+	SandboxSession.active = false
 	_change_scene(BATTLE_SCENE)
 
 
@@ -608,6 +629,7 @@ func show_gold_delta(amount: int) -> void:
 
 
 func _change_scene(scene_path: String) -> void:
+	if scene_path not in [BATTLE_SCENE,SANDBOX_SCENE]:SandboxSession.active=false
 	if is_instance_valid(_meta_dialog): _meta_dialog.close()
 	if is_instance_valid(_tutorial_dialog): _tutorial_dialog.close()
 	_transition_revision += 1

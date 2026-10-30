@@ -18,6 +18,15 @@ func _pi(side: String, id: String, key: String, fallback: int) -> int:
 
 
 func _loadout_cost(side: String, run: RunState) -> int:
+	if _engine.public_sandbox:
+		var cost: int = 0
+		var base_count: int = 0
+		for runtime: CardRuntimeState in _state.get_unit(side).card_runtime_states:
+			var tier: int = int(_state.get_unit(side).sandbox_card_tiers.get(runtime.runtime_id, 0))
+			cost += CardUpgradeResolver.build_card_at_tier(runtime.card_id, tier).loadout_cost
+			if tier == 0: base_count += 1
+		if has_relic(side, "unpolished_motherboard"): cost -= mini(3, maxi(0, base_count - 1))
+		return maxi(0, cost)
 	if _engine.balance_sandbox == null: return RelicService.get_effective_loadout_cost(run)
 	var total: int = 0
 	var base_cards: int = 0
@@ -189,7 +198,8 @@ func build_commit_profile(side: String, card_def: CardDef) -> Dictionary:
 		var used: int = mini(tokens, int(profile["shield_cost"]))
 		profile["shield_cost"] = maxi(0, int(profile["shield_cost"]) - used)
 		flags["shield_discount_used"] = used
-	if has_relic(side, "unpolished_motherboard") and CardUpgradeResolver.get_tier(run, card_def.id) == 0 and _is_discounted_base_card(run, card_def.id):
+	var discounted: bool = _is_discounted_sandbox_copy(side, card_def) if _engine.public_sandbox else (CardUpgradeResolver.get_tier(run, card_def.id) == 0 and _is_discounted_base_card(run, card_def.id))
+	if has_relic(side, "unpolished_motherboard") and discounted:
 		profile["cast_time"] = float(profile["cast_time"]) * _p(side, "unpolished_motherboard", "cast_multiplier", 1.12)
 	_apply_engraving_profile(side, card_def, profile)
 	return profile
@@ -250,6 +260,8 @@ func was_forced_hazard_withdraw(side: String) -> bool:
 
 func prepare_resolution_card(side: String, instance: ActiveCardInstance, card_def: CardDef) -> CardDef:
 	var result: CardDef = CardDef.from_dict(card_def.to_dict())
+	if _engine.public_sandbox:
+		for key: StringName in card_def.get_meta_list(): result.set_meta(key, card_def.get_meta(key))
 	if instance.relic_effect_bonus != 0:
 		_add_primary_effect(result, instance.relic_effect_bonus)
 	if _integer(side, "next_attack_bonus") > 0 and card_def.tags.has("attack"):
@@ -492,7 +504,7 @@ func _handle_manual_sequences(side: String, instance: ActiveCardInstance, card_d
 		_set_value(side, "distinct_manual_ids", ids)
 	if has_relic(side, "grade_staircase") and not _flag(side, "grade_staircase_used"):
 		var expected: int = _integer(side, "grade_staircase_next")
-		var grade: int = CardUpgradeResolver.get_battle_tier(_run(side), _state.get_unit(side), card_def.id)
+		var grade: int = int(card_def.get_meta("sandbox_grade", 0)) if _engine.public_sandbox else CardUpgradeResolver.get_battle_tier(_run(side), _state.get_unit(side), card_def.id)
 		if grade == expected:
 			expected += 1
 			if expected >= 4:
@@ -507,7 +519,7 @@ func _handle_manual_sequences(side: String, instance: ActiveCardInstance, card_d
 	if has_relic(side, "grade_differential_wheel"):
 		var previous_grade: int = _integer(side, "previous_grade")
 		var previous_time: float = _number(side, "previous_grade_time")
-		var current_grade: int = CardUpgradeResolver.get_battle_tier(_run(side), _state.get_unit(side), card_def.id)
+		var current_grade: int = int(card_def.get_meta("sandbox_grade", 0)) if _engine.public_sandbox else CardUpgradeResolver.get_battle_tier(_run(side), _state.get_unit(side), card_def.id)
 		if previous_time > 0.0 and _state.battle_time - previous_time <= _p(side, "grade_differential_wheel", "window", 8.0) and previous_grade > current_grade:
 			var reduction: float = minf(_p(side, "grade_differential_wheel", "max_amount", 4.5), float(previous_grade - current_grade) * _p(side, "grade_differential_wheel", "amount_per_grade", 1.5))
 			var runtime_state: CardRuntimeState = _state.get_unit(side).get_runtime_state(instance.runtime_id)
@@ -702,6 +714,18 @@ func _hazard_wave(run: RunState) -> int:
 			if String(node.get("id", "")) == active_id and String(node.get("type", "")) == "hazard":
 				return int(node.get("hazard_cleared_waves", 0)) + 1
 	return 0
+
+
+func _is_discounted_sandbox_copy(side: String, card_def: CardDef) -> bool:
+	if int(card_def.get_meta("sandbox_base_grade", 0)) != 0: return false
+	var base_seen: int = 0
+	var unit: UnitState = _state.get_unit(side)
+	for runtime: CardRuntimeState in unit.card_runtime_states:
+		if int(unit.sandbox_card_tiers.get(runtime.runtime_id, 0)) != 0: continue
+		base_seen += 1
+		if runtime.runtime_id == String(card_def.get_meta("sandbox_runtime", "")):
+			return base_seen >= 2 and base_seen <= 4
+	return false
 
 
 func _is_discounted_base_card(run: RunState, card_id: String) -> bool:

@@ -1,9 +1,24 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.60.1",
+  "current_version": "QQ-0.61.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-0.61.0", "date": "2026-10-30",
+      "title_ja": "自由な編成で試せるサンドボックス",
+      "title_en": "Build and test freely in Sandbox",
+      "changes_ja": [
+        "メインメニューにサンドボックスを追加しました。開発者モードや解放状況に関係なく、両陣営のモデル・HP・攻撃・速度・初期シールド・スロット・カード・遺物を設定できます。同じカードも1枚ずつ基本〜+5のGradeを選べます。",
+        "通常の3D戦闘画面で一時停止・速度変更・コマ送り・敵カードの手動登録・HP全快・状態解除・再使用リセット・統計・同条件での再戦ができます。AI・疲労・不死・ボス固有行動・無限強化・フィールドも切り替えられます。",
+        "設定の名前付き保存・読み込み、通常ランの編成コピー、標的・ボス・リジェネ・反響のサンプルに対応しました。設定はこの端末のプロフィールごとに保存し、通常ラン・アリーナ・実績・報酬・ランキングには加算しません。ランキング準備中と既存のルール番号は維持します。"
+      ],
+      "changes_en": [
+        "Add Sandbox to the main menu without developer or unlock requirements. Configure both models, HP, attack, speed, initial shield, slots, cards and relics, including independent base through +5 Grades for duplicate cards.",
+        "Use the full 3D battle screen with pause, speed, stepping, manual enemy cards, healing, status and recast resets, statistics and rematches. Customize AI, fatigue, immortality, boss behavior, Infinite power and battlefield.",
+        "Save named presets per local profile, copy a normal run and try dummy, boss, regeneration and Echo examples. Keep normal runs, Arena, achievements, rewards and ranking isolated; retain preparing ranking availability and its existing ruleset."
+      ]
+    },
     {
       "version": "QQ-0.60.1", "date": "2026-10-30",
       "title_ja": "検証用戦闘の初期化でランを書き換えないよう修正",

@@ -2,8 +2,8 @@ extends RefCounted
 class_name CardTooltipResolver
 
 
-static func build_context(card_id: String, run_state: RunState = null, unit: UnitState = null) -> Dictionary:
-	var current_card: CardDef = _build_current_card(card_id, run_state, unit)
+static func build_context(card_id: String, run_state: RunState = null, unit: UnitState = null, runtime_id: String = "") -> Dictionary:
+	var current_card: CardDef = _build_current_card(card_id, run_state, unit, runtime_id)
 	var database_card: CardDef = Database.get_card(card_id)
 	if current_card == null or database_card == null:
 		return {"card": current_card, "comparison": null}
@@ -15,7 +15,7 @@ static func build_context(card_id: String, run_state: RunState = null, unit: Uni
 		current_attack = unit.get_attack_value()
 		current_card.cast_time = maxf(0.0, current_card.cast_time * unit.get_cast_time_multiplier())
 		if _has_runtime_stat_adjustment(unit, baseline_attack):
-			comparison_card = _build_current_card(card_id, run_state, unit)
+			comparison_card = _build_current_card(card_id, run_state, unit, runtime_id)
 			_apply_attack_to_damage(comparison_card, baseline_attack)
 
 	_apply_attack_to_damage(current_card, current_attack)
@@ -30,9 +30,13 @@ static func build_context(card_id: String, run_state: RunState = null, unit: Uni
 	}
 
 
-static func _build_current_card(card_id: String, run_state: RunState, unit: UnitState) -> CardDef:
+static func _build_current_card(card_id: String, run_state: RunState, unit: UnitState, runtime_id: String = "") -> CardDef:
 	var card_def: CardDef
-	if run_state != null:
+	if unit != null and unit.sandbox_card_tiers.has(runtime_id):
+		var totals: Dictionary = Dictionary(unit.temporary_card_modifiers.get(card_id,{}))
+		var tier: int = clampi(int(unit.sandbox_card_tiers[runtime_id])+int(totals.get("tier",0))+CardUpgradeResolver.battle_grade_bonus(unit,card_id),0,CardUpgradeResolver.MAX_TIER)
+		card_def = CardUpgradeResolver.build_card_with_modifiers(card_id,totals,tier)
+	elif run_state != null:
 		card_def = CardUpgradeResolver.build_effective_card(card_id, run_state, null, CardUpgradeResolver.battle_grade_bonus(unit, card_id))
 	elif unit != null and (unit.temporary_card_modifiers.has(card_id) or CardUpgradeResolver.battle_grade_bonus(unit, card_id) != 0):
 		var modifier_totals: Dictionary = Dictionary(unit.temporary_card_modifiers.get(card_id, {}))

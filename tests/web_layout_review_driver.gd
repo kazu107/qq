@@ -65,6 +65,16 @@ func _command(arguments: Array) -> void:
 			Game.stash_active_run_for_hub()
 		SaveManager.save_game(Game.current_screen_hint)
 		if bool(payload.get("sync", false)): CloudSession.sync_now()
+	elif String(payload.get("action", "")) == "sandbox_fixture":
+		Game.settings["developer_mode"] = false
+		Game.start_new_run("balanced", 4242)
+		Game.stash_active_run_for_hub()
+		Game.meta_progress["points"] = 37
+		SaveManager.save_game("hub")
+	elif String(payload.get("action", "")) == "sandbox_focus":
+		var target: Control = get_tree().current_scene.find_child(String(payload["name"]), true, false) as Control
+		var scroll: ScrollContainer = get_tree().current_scene.find_child("SandboxSetupScroll", true, false) as ScrollContainer
+		if target != null and scroll.is_ancestor_of(target): scroll.ensure_control_visible(target)
 	elif String(payload.get("action", "")) == "meta_modal_fixture":
 		Game.meta_progress["points"] = 100
 		Game.meta_progress["achievement_stats"]["gold_spent"] = 100
@@ -771,10 +781,30 @@ func _inspect() -> Dictionary:
 	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
 	var controls: Array[Dictionary] = []
 	var result: Dictionary = {}
+	result["sandbox_progress_hash"] = JSON.stringify({"run":Game.current_run.to_dict() if Game.current_run!=null else {},"suspended":Game.suspended_runs,"meta":Game.meta_progress,"hint":Game.current_screen_hint,"enemy":Game.pending_enemy_id,"rewards":Game.reward_options}).sha256_text()
+	result["sandbox_presets"] = SandboxSession.presets().keys()
+	result["developer"] = Game.is_developer_mode_enabled()
 	result["tactical_stats"] = Dictionary(Game.meta_progress.get("achievement_stats", {})).duplicate(true)
 	if not _feedback_samples.is_empty():
 		result["feedback"] = {"samples": _feedback_samples, "immediate_audio": _feedback_initial_audio, "audio": AudioManager.get_play_history()}
 	if screen != null:
+		if screen.scene_file_path == SceneRouter.SANDBOX_SCENE:
+			var scroll: ScrollContainer = screen.find_child("SandboxSetupScroll", true, false) as ScrollContainer
+			var columns: GridContainer = screen.find_child("SandboxSides", true, false) as GridContainer
+			var catalog: Control = screen.find_child("SandboxCatalog", true, false) as Control
+			result["sandbox_setup"] = {"data":screen.get("data"),"columns":columns.columns,"horizontal_overflow":scroll.get_h_scroll_bar().max_value-scroll.get_h_scroll_bar().page,
+				"models":screen.find_children("SandboxModel_*","SubViewportContainer",true,false).size(),"catalog":catalog!=null,
+				"cards_available":SandboxConfig.catalog("card").size(),"relics_available":SandboxConfig.catalog("relic").size()}
+		if screen.scene_file_path == SceneRouter.BATTLE_SCENE and screen.get("_sandbox_mode"):
+			var private_engine: RealtimeBattleEngine = screen.get("_engine") as RealtimeBattleEngine
+			var dock: SandboxBattleDock = screen.get("_sandbox_dock") as SandboxBattleDock
+			var grades: Array[int] = []
+			for runtime: CardRuntimeState in private_engine.battle_state.player.card_runtime_states:
+				grades.append(int(private_engine.battle_state.player.sandbox_card_tiers.get(runtime.runtime_id,0)))
+			result["sandbox_battle"] = {"active":private_engine.public_sandbox,"time":private_engine.battle_state.battle_time,"paused":dock.paused,"grades":grades,
+				"player_hp":private_engine.battle_state.player.hp,"enemy_hp":private_engine.battle_state.enemy.hp,"enemy_shield":private_engine.battle_state.enemy.shield,
+				"instances":private_engine.battle_state.active_instances.size(),"winner":private_engine.battle_state.winner,"dock":_rect_values(dock.get_global_rect()),
+				"eligible":private_engine.build_summary(false)["achievement_eligible"]}
 		var achievement_badge: Control = screen.find_child("HubAchievementNotification", true, false) as Control
 		if achievement_badge != null:
 			result["achievement_notice"] = {"visible":achievement_badge.visible, "count":achievement_badge.get_meta("claimable_count", 0),

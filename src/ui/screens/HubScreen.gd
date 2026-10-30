@@ -165,6 +165,12 @@ func _build_ui() -> void:
 	library_button.text = Localization.get_text("hub.card_library", "Card & Relic Library")
 	library_button.pressed.connect(_on_open_card_library)
 	_setup_navigation_button(navigation, library_button, "card_owned")
+	var sandbox_button: Button = Button.new()
+	sandbox_button.name = "SandboxModeButton"
+	sandbox_button.text = "サンドボックス" if Localization.get_language() == "ja" else "Sandbox"
+	sandbox_button.disabled = NetworkManager.is_session_connected()
+	sandbox_button.pressed.connect(SceneRouter.go_to_sandbox)
+	_setup_navigation_button(navigation,sandbox_button,"arena")
 
 	_build_version_history_overlay()
 	_build_ranking_actions(root)

@@ -55,7 +55,7 @@ func refresh_cards(unit: UnitState, run_state: RunState = null, _owner_side: Str
 			continue
 
 		var runtime_state: CardRuntimeState = runtime_states[index]
-		var tooltip_context: Dictionary = CardTooltipResolver.build_context(runtime_state.card_id, run_state, unit)
+		var tooltip_context: Dictionary = CardTooltipResolver.build_context(runtime_state.card_id, run_state, unit, runtime_state.runtime_id)
 		var card_def: CardDef = tooltip_context.get("card") as CardDef
 		if card_def == null:
 			button.visible = false

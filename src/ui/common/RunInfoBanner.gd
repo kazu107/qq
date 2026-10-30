@@ -19,7 +19,7 @@ func _ready() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_theme_stylebox_override("panel", _make_banner_stylebox())
 	_build_ui()
-	refresh()
+	if not SandboxSession.active: refresh()
 
 
 func add_trailing_control(control: Control) -> void:

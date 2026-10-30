@@ -74,6 +74,7 @@ static func decorate(button: Button, id: String, hint: String = "", compact: boo
 
 
 static func decorate_default(button: Button) -> void:
+	if bool(button.get_meta("skip_auto_icon", false)): return
 	if button is OptionButton or button is CheckButton or button is CheckBox or button is CardButton or button.icon != null or button.text == "":
 		return
 	# Data IDs in UnlockCard_foo / ClaimAchievement_foo are not action names.

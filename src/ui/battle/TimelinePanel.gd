@@ -526,8 +526,9 @@ func _resolve_card_context(
 	local_unit: UnitState,
 	opponent_unit: UnitState
 ) -> Dictionary:
-	if balance_engine != null and balance_engine.balance_sandbox != null and entry.owner_side != FatigueRules.SIDE:
-		var current: CardDef = balance_engine._get_card_def(entry.owner_side, entry.card_id)
+	if balance_engine != null and (balance_engine.balance_sandbox != null or balance_engine.public_sandbox) and entry.owner_side != FatigueRules.SIDE:
+		if balance_engine.public_sandbox: return CardTooltipResolver.build_context(entry.card_id,balance_engine.get_run_for_side(entry.owner_side),balance_engine.battle_state.get_unit(entry.owner_side),entry.runtime_id)
+		var current: CardDef = balance_engine._get_card_def(entry.owner_side, entry.card_id, entry.runtime_id)
 		var unit: UnitState = balance_engine.battle_state.get_unit(entry.owner_side)
 		CardTooltipResolver._apply_attack_to_damage(current, unit.get_attack_value())
 		return {"card": current, "comparison": null}

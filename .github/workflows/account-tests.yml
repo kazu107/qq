@@ -135,6 +135,11 @@ jobs:
           cat build/grade-five.log
           grep -q GRADE_FIVE_SMOKE_OK build/grade-five.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/grade-five.log; then exit 1; fi
+          mkdir -p build/sandbox-test-home
+          HOME="$PWD/build/sandbox-test-home" godot --headless --path . res://tests/SandboxModeSmoke.tscn --quit-after 2400 > build/sandbox-mode.log 2>&1
+          cat build/sandbox-mode.log
+          grep -q SANDBOX_MODE_SMOKE_OK build/sandbox-mode.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/sandbox-mode.log; then exit 1; fi
           godot --headless --path . res://tests/BalanceLabSmoke.tscn --quit-after 600 > build/balance-lab.log 2>&1
           cat build/balance-lab.log
           grep -q BALANCE_LAB_SMOKE_OK build/balance-lab.log

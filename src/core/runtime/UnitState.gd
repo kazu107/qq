@@ -25,6 +25,7 @@ var statuses: Dictionary = {}
 var active_slots_used: int = 0
 var active_slot_max: int = 3
 var card_runtime_states: Array[CardRuntimeState] = []
+var sandbox_card_tiers: Dictionary = {}
 var temporary_card_modifiers: Dictionary = {}
 var battle_card_modifiers: Dictionary = {}
 var last_used_runtime_id: String = ""

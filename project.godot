@@ -35,6 +35,7 @@ NetworkManager="*res://src/autoload/NetworkManager.gd"
 AccountSession="*res://src/autoload/AccountSession.gd"
 RankedSession="*res://src/autoload/RankedSession.gd"
 CloudSession="*res://src/autoload/CloudSession.gd"
+SandboxSession="*res://src/autoload/SandboxSession.gd"
 
 [display]
 

@@ -15,7 +15,7 @@ func reset() -> void:
 
 
 func update(engine: RealtimeBattleEngine, delta: float) -> void:
-	if side == "enemy" and engine.battle_state != null and InfiniteEnemyCatalog.base_id(engine.battle_state.enemy.unit_id) == "boss_timekeeper":
+	if side == "enemy" and engine.battle_state != null and InfiniteEnemyCatalog.base_id(engine.battle_state.enemy.unit_id) == "boss_timekeeper" and (not engine.public_sandbox or (bool(engine.sandbox_options.get("boss_passive",true)) and engine.battle_state.enemy.card_runtime_states.any(func(r:CardRuntimeState)->bool:return r.card_id=="timekeeper_final_strike"))):
 		_update_timekeeper(engine)
 		return
 	_think_timer -= delta
@@ -36,7 +36,7 @@ func update(engine: RealtimeBattleEngine, delta: float) -> void:
 	for runtime_state in enemy.card_runtime_states:
 		if not runtime_state.can_use():
 			continue
-		var card_def := Database.get_card(runtime_state.card_id)
+		var card_def: CardDef = engine._get_card_def(side,runtime_state.card_id,runtime_state.runtime_id) if engine.public_sandbox else Database.get_card(runtime_state.card_id)
 		if card_def == null:
 			continue
 		var profile: Dictionary = {"cast_time": card_def.cast_time, "slot_cost": card_def.active_slot_cost}

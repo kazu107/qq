@@ -26,6 +26,8 @@ var record_visuals: bool = true
 var balance_sandbox: BalanceDraft
 var balance_limit_reached: bool = false
 var _achievement_eligible_at_start: bool = false
+var public_sandbox: bool = false
+var sandbox_options: Dictionary = {}
 
 
 func set_audio_enabled(enabled: bool) -> void:
@@ -58,12 +60,14 @@ func _play_card_resolution(card_def: CardDef, fully_blocked: bool) -> void:
 
 
 func setup(player_run: RunState, enemy_id: String) -> void:
+	public_sandbox = false
 	balance_sandbox = null
 	_setup_internal(player_run, enemy_id)
 
 
 func setup_sandbox(player_run: RunState, enemy_id: String, draft: BalanceDraft) -> bool:
 	if not Game.is_developer_mode_enabled() or NetworkManager.is_session_connected() or draft == null: return false
+	public_sandbox = false
 	balance_sandbox = draft.frozen()
 	_setup_internal(RunState.from_dict(player_run.to_dict()), enemy_id)
 	return true
@@ -103,7 +107,7 @@ func _setup_internal(player_run: RunState, enemy_id: String) -> void:
 	battle_state.player.reset_achievement_observation()
 	battle_state.enemy.reset_achievement_observation()
 	analysis.capture_state(battle_state, true)
-	if balance_sandbox == null: RankedSession.attach(self, player_run, enemy_id)
+	if balance_sandbox == null and not public_sandbox: RankedSession.attach(self, player_run, enemy_id)
 
 
 func setup_pvp(
@@ -113,6 +117,7 @@ func setup_pvp(
 	opponent_name: String = "Player 2"
 ) -> void:
 	balance_sandbox = null
+	public_sandbox = false
 	if player_run == null or opponent_run == null:
 		push_error("PvP battle requires two valid run states")
 		return
@@ -159,9 +164,9 @@ func update(delta: float) -> void:
 	_tick_shields(delta)
 	_tick_statuses(delta)
 	if not _pvp_mode and _enemy_ai_enabled:
-		_process_boss_passive(delta)
+		if not public_sandbox or bool(sandbox_options.get("boss_passive",true)): _process_boss_passive(delta)
 		_enemy_ai.update(self, delta)
-	_tick_fatigue()
+	if not public_sandbox or bool(sandbox_options.get("fatigue",true)): _tick_fatigue()
 	_tick_timeline_flows(delta)
 	_resolve_due_entries()
 	_check_victory()
@@ -240,10 +245,10 @@ func request_use_card(side: String, runtime_id: String) -> bool:
 	if runtime_state == null or not runtime_state.can_use():
 		return false
 
-	var card_def: CardDef = _get_card_def(side, runtime_state.card_id)
+	var card_def: CardDef = _get_card_def(side, runtime_state.card_id, runtime_state.runtime_id)
 	if card_def == null:
 		return false
-	if (card_def.boss_only or card_def.enemy_only) and (side == "player" or _pvp_mode):
+	if not public_sandbox and (card_def.boss_only or card_def.enemy_only) and (side == "player" or _pvp_mode):
 		return false
 	var commit_profile: Dictionary = _relic_controller.build_commit_profile(side, card_def)
 	var commit_reservations: Array[Dictionary] = ReservedCardRules.select(unit.card_reservations, card_def, "commit")
@@ -435,10 +440,9 @@ func empower_cards(side: String, source_card_id: String, effect: Dictionary) -> 
 		if Database.get_card(card_id) == null:
 			continue
 		if stat in ["grade", "tier"]:
-			var unit: UnitState = battle_state.get_unit(side)
-			var before: int = CardUpgradeResolver.get_battle_tier(get_run_for_side(side), unit, card_id)
+			var before: int = _modifier_grade(side, card_id)
 			add_battle_card_modifier(side, card_id, "grade", amount)
-			if CardUpgradeResolver.get_battle_tier(get_run_for_side(side), unit, card_id) == before: continue
+			if _modifier_grade(side, card_id) == before: continue
 		else: _add_temporary_card_modifier(side, card_id, stat, amount)
 		changed += 1
 	return changed
@@ -459,10 +463,10 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 	var queued_card_id: String = String(effect.get("card_id", "self"))
 	if queued_card_id == "" or queued_card_id == "self":
 		queued_card_id = source_instance.card_id
-	var card_def: CardDef = _get_card_def(side, queued_card_id)
+	var card_def: CardDef = _get_card_def(side, queued_card_id, source_instance.runtime_id if queued_card_id == source_instance.card_id else "")
 	if card_def == null:
 		return 0
-	if (card_def.boss_only or card_def.enemy_only) and (side == "player" or _pvp_mode):
+	if not public_sandbox and (card_def.boss_only or card_def.enemy_only) and (side == "player" or _pvp_mode):
 		return 0
 
 	var unit: UnitState = battle_state.get_unit(side)
@@ -473,7 +477,7 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 		cast_duration = card_def.cast_time * unit.get_cast_time_multiplier()
 
 	var queue_count: int = _resolve_auto_queue_count(unit, effect)
-	if balance_sandbox != null:
+	if balance_sandbox != null or public_sandbox:
 		var remaining: int = maxi(0, 256 - battle_state.active_instances.size())
 		if queue_count > remaining: balance_limit_reached = true
 		queue_count = mini(queue_count, remaining)
@@ -490,6 +494,14 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 		battle_state.next_instance_id += 1
 		instance.owner_side = side
 		instance.runtime_id = "__auto_%s_%d" % [side, instance.instance_id]
+		if public_sandbox:
+			var inherited: int = 0
+			if queued_card_id == source_instance.card_id:
+				inherited = int(unit.sandbox_card_tiers.get(source_instance.runtime_id,0))
+			else:
+				for runtime: CardRuntimeState in unit.card_runtime_states:
+					if runtime.card_id == queued_card_id: inherited = int(unit.sandbox_card_tiers.get(runtime.runtime_id,0)); break
+			unit.sandbox_card_tiers[instance.runtime_id] = inherited
 		instance.card_id = queued_card_id
 		instance.card_name = card_def.name
 		instance.priority_modifier = card_def.priority_modifier
@@ -583,6 +595,7 @@ func build_summary(include_battle_events: bool = true) -> Dictionary:
 		"log_count": battle_state.logs.size(),
 		"battle_event_count": battle_state.battle_events.size(),
 		"pvp": _pvp_mode,
+		"sandbox": public_sandbox,
 		"achievement_eligible": _achievement_eligible_at_start and balance_sandbox == null and not Game.is_battle_tutorial_active() and not Game.is_developer_mode_enabled() and not bool(_player_run.achievement_state.get("excluded", false)),
 		"forced_hazard_withdraw": _relic_controller.was_forced_hazard_withdraw("player"),
 		"relic_bonus_gold": _relic_controller.victory_gold_bonus("player") if battle_state.winner == "player" else 0,
@@ -910,7 +923,7 @@ func _resolve_due_entries() -> void:
 
 		var unit := battle_state.get_unit(instance.owner_side)
 		var runtime_state: CardRuntimeState = unit.get_runtime_state(instance.runtime_id)
-		var card_def: CardDef = _get_card_def(instance.owner_side, instance.card_id)
+		var card_def: CardDef = _get_card_def(instance.owner_side, instance.card_id, instance.runtime_id)
 		if card_def == null or (runtime_state == null and not instance.is_auto_queued):
 			battle_state.remove_active_instance(instance.instance_id)
 			_timeline_resolver.rebuild_timeline(battle_state)
@@ -936,7 +949,7 @@ func _resolve_due_entries() -> void:
 			instance.effect_repeats = RepeatRules.EFFECT_REPEATS
 			var multiplier: float = CardEffectResolver.take_attack_multiplier(unit, resolved_card_def)
 			for repeat_index: int in instance.effect_repeats:
-				var repeat_card: CardDef = resolved_card_def if repeat_index == 0 else _relic_controller.prepare_resolution_card(instance.owner_side, instance, _get_card_def(instance.owner_side, instance.card_id))
+				var repeat_card: CardDef = resolved_card_def if repeat_index == 0 else _relic_controller.prepare_resolution_card(instance.owner_side, instance, _get_card_def(instance.owner_side, instance.card_id, instance.runtime_id))
 				var before_player: Dictionary = _snapshot_unit(battle_state.player)
 				var before_enemy: Dictionary = _snapshot_unit(battle_state.enemy)
 				var before_metrics: Dictionary = resolution_metrics.duplicate()
@@ -982,6 +995,7 @@ func _resolve_due_entries() -> void:
 			"slots_before": unit.active_slots_used + instance.slot_cost,
 			"fully_blocked": fully_blocked,
 		})
+		if public_sandbox and instance.is_auto_queued:unit.sandbox_card_tiers.erase(instance.runtime_id)
 		_record_event(_build_basic_event(
 			"resolve_card",
 			unit.unit_id,
@@ -1047,7 +1061,7 @@ func _force_interrupt(instance: ActiveCardInstance) -> bool:
 	var unit := battle_state.get_unit(instance.owner_side)
 	var slots_before: int = unit.active_slots_used
 	var runtime_state := unit.get_runtime_state(instance.runtime_id)
-	var card_def: CardDef = _get_card_def(instance.owner_side, instance.card_id)
+	var card_def: CardDef = _get_card_def(instance.owner_side, instance.card_id, instance.runtime_id)
 	if card_def == null or runtime_state == null and not instance.is_auto_queued:
 		return false
 	var timeline_before: Array[Dictionary] = _snapshot_timeline()
@@ -1060,6 +1074,7 @@ func _force_interrupt(instance: ActiveCardInstance) -> bool:
 		runtime_state.state = CardRuntimeState.CardState.INTERRUPTED
 		runtime_state.begin_cooldown(card_def.recast_time)
 	_relic_controller.after_interrupt(instance.owner_side, instance, card_def, runtime_state, slots_before)
+	if public_sandbox and instance.is_auto_queued:unit.sandbox_card_tiers.erase(instance.runtime_id)
 	battle_state.add_log(Localization.get_textf("battle.log.card_was_interrupted", "{unit_name}'s {card_name} was interrupted", {
 		"unit_name": unit.display_name,
 		"card_name": card_def.name,
@@ -1165,13 +1180,29 @@ func interrupt_instance(instance: ActiveCardInstance) -> bool:
 	return instance != null and _force_interrupt(instance)
 
 
+func _modifier_base_grade(side: String, card_id: String) -> int:
+	var unit: UnitState = battle_state.get_unit(side)
+	if public_sandbox:
+		# Shared growth must stop only when every selected copy reaches the cap.
+		var base: int = CardUpgradeResolver.MAX_TIER
+		for runtime: CardRuntimeState in unit.card_runtime_states:
+			if runtime.card_id == card_id:
+				base = mini(base, int(unit.sandbox_card_tiers.get(runtime.runtime_id, 0)))
+		return clampi(base + int(Dictionary(unit.temporary_card_modifiers.get(card_id, {})).get("tier", 0)), 0, CardUpgradeResolver.MAX_TIER)
+	return CardUpgradeResolver.get_tier(get_run_for_side(side), card_id) if get_run_for_side(side) != null else int(Dictionary(unit.temporary_card_modifiers.get(card_id, {})).get("tier", 0))
+
+
+func _modifier_grade(side: String, card_id: String) -> int:
+	return clampi(_modifier_base_grade(side, card_id) + CardUpgradeResolver.battle_grade_bonus(battle_state.get_unit(side), card_id), 0, CardUpgradeResolver.MAX_TIER)
+
+
 func add_battle_card_modifier(side: String, card_id: String, stat: String, amount: float) -> void:
 	var unit: UnitState = battle_state.get_unit(side)
 	if unit == null:
 		return
 	var card_modifiers: Dictionary = Dictionary(unit.battle_card_modifiers.get(card_id, {}))
 	if stat in ["grade", "tier"]:
-		var base: int = CardUpgradeResolver.get_tier(get_run_for_side(side), card_id) if get_run_for_side(side) != null else int(Dictionary(unit.temporary_card_modifiers.get(card_id, {})).get("tier", 0))
+		var base: int = _modifier_base_grade(side, card_id)
 		card_modifiers["grade"] = clampi(base + CardUpgradeResolver.battle_grade_bonus(unit, card_id) + roundi(amount), 0, CardUpgradeResolver.MAX_TIER) - base
 		card_modifiers.erase("tier")
 		unit.battle_card_modifiers[card_id] = card_modifiers
@@ -1200,6 +1231,9 @@ func remove_status_from_card(source_side: String, target_side: String, status_id
 
 
 func prevent_lethal(side: String) -> bool:
+	if public_sandbox and bool(sandbox_options.get("immortal_"+side,false)) and battle_state.get_unit(side).hp<=0:
+		battle_state.get_unit(side).hp=1
+		return true
 	return _relic_controller.prevent_lethal(side)
 
 
@@ -1265,6 +1299,9 @@ func _opponent_side(side: String) -> String:
 
 
 func _check_victory() -> void:
+	if public_sandbox:
+		for side: String in ["player","enemy"]:
+			if bool(sandbox_options.get("immortal_"+side,false)) and battle_state.get_unit(side).hp <= 0: battle_state.get_unit(side).hp = 1
 	var previous_winner := battle_state.winner
 	if battle_state.player.hp <= 0 and battle_state.enemy.hp <= 0:
 		battle_state.winner = "draw"
@@ -1375,12 +1412,23 @@ static func build_enemy_preview(run: RunState, enemy_id: String, node: Dictionar
 	return unit
 
 
-func _get_card_def(side: String, card_id: String) -> CardDef:
+func _get_card_def(side: String, card_id: String, runtime_id: String = "") -> CardDef:
 	var unit: UnitState = battle_state.get_unit(side) if battle_state != null else null
 	var card_def: CardDef = null
 	var source: CardDef = balance_sandbox.source_card(card_id) if balance_sandbox != null else null
 	var grade_bonus: int = CardUpgradeResolver.battle_grade_bonus(unit, card_id)
-	if _pvp_mode:
+	if public_sandbox and unit != null:
+		var totals: Dictionary = Dictionary(unit.temporary_card_modifiers.get(card_id,{}))
+		var selected_tier: int = int(unit.sandbox_card_tiers.get(runtime_id,0))
+		if not unit.sandbox_card_tiers.has(runtime_id):
+			for runtime: CardRuntimeState in unit.card_runtime_states:
+				if runtime.card_id == card_id: selected_tier = int(unit.sandbox_card_tiers.get(runtime.runtime_id,0)); break
+		var tier: int = clampi(selected_tier+int(totals.get("tier",0))+grade_bonus,0,CardUpgradeResolver.MAX_TIER)
+		card_def = CardUpgradeResolver.build_card_with_modifiers(card_id,totals,tier)
+		card_def.set_meta("sandbox_grade", tier)
+		card_def.set_meta("sandbox_base_grade", selected_tier)
+		card_def.set_meta("sandbox_runtime", runtime_id)
+	elif _pvp_mode:
 		card_def = CardUpgradeResolver.build_effective_card(card_id, get_run_for_side(side), source, grade_bonus)
 	elif side == "player":
 		card_def = CardUpgradeResolver.build_effective_card(card_id, _player_run, source, grade_bonus)
@@ -1393,6 +1441,39 @@ func _get_card_def(side: String, card_id: String) -> CardDef:
 	if card_def != null and unit != null:
 		CardUpgradeResolver.apply_modifier_totals(card_def, Dictionary(unit.battle_card_modifiers.get(card_id, {})))
 	return card_def
+
+
+func setup_playground(raw: Dictionary) -> bool:
+	if NetworkManager.is_session_connected(): return false
+	var config: Dictionary = SandboxConfig.normalize(raw)
+	if not SandboxConfig.errors(config).is_empty(): return false
+	public_sandbox = true; balance_sandbox = null; sandbox_options = config["rules"].duplicate(true)
+	var player: RunState = SandboxConfig.make_run(config,"player")
+	_setup_internal(player,String(config["enemy_id"]))
+	_achievement_eligible_at_start = false
+	_enemy_run = SandboxConfig.make_run(config,"enemy")
+	battle_state.player = _build_run_unit(player,"player",Localization.get_text("battle.player_name","Player"))
+	var power: int = int(sandbox_options["power"])
+	if power > 0:
+		_enemy_run.max_hp = maxi(1,roundi(_enemy_run.max_hp*get_infinite_hp_multiplier(power)))
+		_enemy_run.player_hp = mini(_enemy_run.max_hp,roundi(_enemy_run.player_hp*get_infinite_hp_multiplier(power)))
+		_enemy_run.attack += maxi(1,power); _enemy_run.speed += maxi(1,ceili(power*.5))
+	battle_state.enemy = _build_run_unit(_enemy_run,"enemy",Database.get_enemy(String(config["enemy_id"])).name)
+	battle_state.enemy.unit_id = String(config["enemy_id"])
+	battle_state.relic_runtime_state.clear()
+	_apply_enemy_card_scaling(battle_state.enemy,power)
+	_relic_controller.setup(self,battle_state,player,_enemy_run)
+	for side: String in ["player","enemy"]:
+		var unit: UnitState = battle_state.get_unit(side)
+		unit.shield += int(config[side]["shield"])
+		unit.active_slot_max = int(config[side]["slots"])
+		for runtime: CardRuntimeState in unit.card_runtime_states:
+			unit.sandbox_card_tiers[runtime.runtime_id] = int(config[side]["cards"][runtime.loadout_index]["tier"])
+		_relic_controller.apply_unit_setup(side,unit)
+		unit.reset_achievement_observation()
+	_enemy_ai.reset(); _enemy_ai_enabled = bool(sandbox_options["enemy_ai"])
+	analysis = BattleAnalysis.new(); analysis.capture_state(battle_state,true)
+	return true
 
 
 func sandbox_relic_value(side: String, id: String, key: String, fallback: float) -> float:
