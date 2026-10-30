@@ -197,12 +197,14 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
     const room = rooms.get(client.room);
     const targetWins = sanitizeTargetWins(message.targetWins);
     const maxPlayers = sanitizeMaxPlayers(message.maxPlayers);
-    if (!room || targetWins === null || maxPlayers === null || countParticipants(room, clients, "player") > maxPlayers) {
+    const gameMode = message.gameMode ?? room?.gameMode ?? "arena";
+    if (!room || !["arena", "sandbox"].includes(gameMode) || targetWins === null || maxPlayers === null || countParticipants(room, clients, "player") > maxPlayers || (room.active && gameMode !== room.gameMode)) {
       sendError(socket, "invalid_room_settings", "The room settings are invalid.");
       return;
     }
     room.targetWins = targetWins;
     room.maxPlayers = maxPlayers;
+    room.gameMode = gameMode;
     broadcastRoomLists(rooms, clients);
     return;
   }
@@ -262,6 +264,7 @@ function handleMessage(socket, message, rooms, clients, iceServers) {
         protocolVersion,
         contentHash,
         hostName: sanitizeDisplayName(message.name),
+        gameMode: "arena",
         targetWins: sanitizeTargetWins(message.targetWins) ?? DEFAULT_TARGET_WINS,
         maxPlayers: sanitizeMaxPlayers(message.maxPlayers) ?? DEFAULT_PLAYERS,
         peers: new Map([[1, socket]]),
@@ -445,6 +448,7 @@ function buildRoomList(rooms, clients, client) {
       spectators: countParticipants(room, clients, "spectator"),
       maxSpectators: MAX_SPECTATORS,
       targetWins: room.targetWins,
+      gameMode: room.gameMode || "arena",
       joinable: countParticipants(room, clients, "player") < room.maxPlayers,
       spectatorJoinable: countParticipants(room, clients, "spectator") < MAX_SPECTATORS,
     });

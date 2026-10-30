@@ -8,6 +8,10 @@ const STAT_LIMITS: Dictionary = {"max_hp":[1,1000000], "hp":[1,1000000], "attack
 static var _catalog: Dictionary = {}
 
 
+static func _text(value: Variant, fallback: String = "") -> String:
+	return value if value is String else fallback
+
+
 static func _bounded(value: Variant, fallback: int, minimum: int, maximum: int) -> int:
 	if value is not int and value is not float:return fallback
 	if not is_finite(float(value)):return fallback
@@ -37,7 +41,7 @@ static func defaults() -> Dictionary:
 
 static func normalize(raw: Dictionary) -> Dictionary:
 	var result: Dictionary = defaults()
-	var enemy_id: String = String(raw.get("enemy_id","scout"))
+	var enemy_id: String = _text(raw.get("enemy_id"),"scout")
 	if Database.get_enemy(enemy_id) != null: result["enemy_id"] = enemy_id
 	for side: String in ["player","enemy"]:
 		var source: Dictionary = raw.get(side,{}) if raw.get(side,{}) is Dictionary else {}
@@ -47,25 +51,25 @@ static func normalize(raw: Dictionary) -> Dictionary:
 			if value is int or value is float:
 				if is_finite(float(value)): target[stat] = _bounded(value,int(target[stat]),STAT_LIMITS[stat][0],STAT_LIMITS[stat][1])
 		target["hp"] = mini(int(target["hp"]),int(target["max_hp"]))
-		var visual: String = String(source.get("visual",target["visual"]))
+		var visual: String = _text(source.get("visual"),target["visual"])
 		if Database.battle_visuals.has(visual): target["visual"] = visual
 		if source.get("cards") is Array:
 			target["cards"] = []
 			for value: Variant in Array(source["cards"]).slice(0,MAX_CARDS):
 				if value is not Dictionary: continue
-				var id: String = String(value.get("id",""))
+				var id: String = _text(value.get("id"))
 				if Database.get_card(id) != null: target["cards"].append({"id":id,"tier":_bounded(value.get("tier",0),0,0,CardUpgradeResolver.MAX_TIER)})
 		if source.get("relics") is Array:
 			target["relics"] = []
 			for value: Variant in Array(source["relics"]).slice(0,MAX_RELICS):
-				var id: String = String(value)
+				var id: String = _text(value)
 				if Database.get_relic(id) != null and not target["relics"].has(id): target["relics"].append(id)
 	var rules: Dictionary = raw.get("rules",{}) if raw.get("rules",{}) is Dictionary else {}
 	for key: String in ["fatigue","enemy_ai","player_ai","boss_passive","ignore_cost","immortal_player","immortal_enemy"]:
 		if rules.get(key) is bool: result["rules"][key] = rules[key]
 	result["rules"]["power"] = _bounded(rules.get("power",0),0,0,100)
 	result["rules"]["seed"] = _bounded(rules.get("seed",4242),4242,1,2147483647)
-	result["rules"]["field"] = String(BattleEnvironmentArt.get_field(String(rules.get("field","clock_ruins")))["id"])
+	result["rules"]["field"] = String(BattleEnvironmentArt.get_field(_text(rules.get("field"),"clock_ruins"))["id"])
 	return result
 
 

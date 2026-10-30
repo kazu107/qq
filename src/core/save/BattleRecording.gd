@@ -38,6 +38,7 @@ func _unit_frame(unit: UnitState, initial: bool = false) -> Dictionary:
 		"card_reservations": unit.card_reservations.duplicate(true),
 		"active_slots_used": unit.active_slots_used, "active_slot_max": unit.active_slot_max,
 		"temporary_card_modifiers": unit.temporary_card_modifiers.duplicate(true), "battle_card_modifiers": unit.battle_card_modifiers.duplicate(true),
+		"sandbox_card_tiers": unit.sandbox_card_tiers.duplicate(true),
 		"cast_time_modifier": unit.cast_time_modifier}
 
 

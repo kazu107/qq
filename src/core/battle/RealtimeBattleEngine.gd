@@ -39,6 +39,7 @@ func set_defer_resolution_audio(enabled: bool) -> void:
 
 
 func dispose() -> void:
+	public_sandbox=false;sandbox_options.clear()
 	_relic_controller.detach()
 	battle_state = null
 	_player_run = null
@@ -61,6 +62,7 @@ func _play_card_resolution(card_def: CardDef, fully_blocked: bool) -> void:
 
 func setup(player_run: RunState, enemy_id: String) -> void:
 	public_sandbox = false
+	sandbox_options.clear()
 	balance_sandbox = null
 	_setup_internal(player_run, enemy_id)
 
@@ -68,6 +70,7 @@ func setup(player_run: RunState, enemy_id: String) -> void:
 func setup_sandbox(player_run: RunState, enemy_id: String, draft: BalanceDraft) -> bool:
 	if not Game.is_developer_mode_enabled() or NetworkManager.is_session_connected() or draft == null: return false
 	public_sandbox = false
+	sandbox_options.clear()
 	balance_sandbox = draft.frozen()
 	_setup_internal(RunState.from_dict(player_run.to_dict()), enemy_id)
 	return true
@@ -118,6 +121,7 @@ func setup_pvp(
 ) -> void:
 	balance_sandbox = null
 	public_sandbox = false
+	sandbox_options.clear()
 	if player_run == null or opponent_run == null:
 		push_error("PvP battle requires two valid run states")
 		return
@@ -478,7 +482,7 @@ func auto_queue_card(side: String, source_instance: ActiveCardInstance, effect: 
 
 	var queue_count: int = _resolve_auto_queue_count(unit, effect)
 	if balance_sandbox != null or public_sandbox:
-		var remaining: int = maxi(0, 256 - battle_state.active_instances.size())
+		var remaining: int = maxi(0, int(sandbox_options.get("max_active",256)) - battle_state.active_instances.size())
 		if queue_count > remaining: balance_limit_reached = true
 		queue_count = mini(queue_count, remaining)
 	if queue_count <= 0:
@@ -1445,6 +1449,20 @@ func _get_card_def(side: String, card_id: String, runtime_id: String = "") -> Ca
 
 func setup_playground(raw: Dictionary) -> bool:
 	if NetworkManager.is_session_connected(): return false
+	return _setup_playground(raw)
+
+
+func setup_network_playground(raw: Dictionary, player_name: String, enemy_name: String) -> bool:
+	if not _setup_playground(raw): return false
+	_pvp_mode=true;_manual_start_required=true;_enemy_ai_enabled=false;_enemy_name=enemy_name
+	sandbox_options["max_active"]=NetworkSandboxConfig.MAX_ACTIVE
+	battle_state.player.unit_id="player";battle_state.enemy.unit_id="enemy"
+	battle_state.player.display_name=player_name;battle_state.enemy.display_name=enemy_name
+	if record_visuals:recording.capture(battle_state,true)
+	return true
+
+
+func _setup_playground(raw: Dictionary) -> bool:
 	var config: Dictionary = SandboxConfig.normalize(raw)
 	if not SandboxConfig.errors(config).is_empty(): return false
 	public_sandbox = true; balance_sandbox = null; sandbox_options = config["rules"].duplicate(true)
@@ -1473,6 +1491,7 @@ func setup_playground(raw: Dictionary) -> bool:
 		unit.reset_achievement_observation()
 	_enemy_ai.reset(); _enemy_ai_enabled = bool(sandbox_options["enemy_ai"])
 	analysis = BattleAnalysis.new(); analysis.capture_state(battle_state,true)
+	if record_visuals:recording.capture(battle_state,true)
 	return true
 
 

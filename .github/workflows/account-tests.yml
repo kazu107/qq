@@ -140,6 +140,11 @@ jobs:
           cat build/sandbox-mode.log
           grep -q SANDBOX_MODE_SMOKE_OK build/sandbox-mode.log
           if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/sandbox-mode.log; then exit 1; fi
+          mkdir -p build/network-sandbox-test-home
+          HOME="$PWD/build/network-sandbox-test-home" godot --headless --path . res://tests/NetworkSandboxSmoke.tscn --quit-after 1200 > build/network-sandbox.log 2>&1
+          cat build/network-sandbox.log
+          grep -q NETWORK_SANDBOX_SMOKE_OK build/network-sandbox.log
+          if grep -Eq 'SCRIPT ERROR|Parse Error|^ERROR:' build/network-sandbox.log; then exit 1; fi
           godot --headless --path . res://tests/BalanceLabSmoke.tscn --quit-after 600 > build/balance-lab.log 2>&1
           cat build/balance-lab.log
           grep -q BALANCE_LAB_SMOKE_OK build/balance-lab.log

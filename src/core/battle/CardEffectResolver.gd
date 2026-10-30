@@ -44,6 +44,8 @@ static func resolve(engine: RealtimeBattleEngine, battle_state: BattleState, ins
 				messages.append(Localization.get_textf("battle.log.echo_ready", "Gained {amount} Echo charge(s); {charges}/3 ready.", {"amount": added, "charges": actor.repeat_charges}))
 			"next_attack_multiplier":
 				actor.charge_next_attack(float(effect.get("multiplier", 2.0)))
+				if engine.public_sandbox and actor.next_attack_multiplier>1000000:
+					actor.next_attack_multiplier=1000000;engine.balance_limit_reached=true
 				messages.append(Localization.get_textf("battle.log.attack_charge", "Next resolved attack is now {multiplier} times as strong.", {"multiplier": String.num(actor.next_attack_multiplier, 0)}))
 			"consume_shield":
 				if additional_repeat: continue

@@ -12,6 +12,7 @@ var _room_code_edit: LineEdit
 var _join_as_spectator_check: CheckButton
 var _lobby_max_players_spin: SpinBox
 var _lobby_target_wins_spin: SpinBox
+var _lobby_mode_option: OptionButton
 var _lobby_initial_gold_spin: SpinBox
 var _lobby_match_gold_spin: SpinBox
 var _lobby_initial_max_hp_spin: SpinBox
@@ -78,7 +79,7 @@ func _ready() -> void:
 	if NetworkManager.is_lan_arena_session_active():
 		if NetworkManager.has_active_match() or NetworkManager.is_local_waiting_for_round_results():
 			call_deferred("_open_battle_scene")
-		elif not NetworkManager.is_local_spectator():
+		elif not NetworkManager.is_local_spectator() or NetworkManager.is_network_sandbox_active():
 			call_deferred("_open_arena_scene")
 	if auto_open_details:
 		call_deferred("_show_details_overlay")
@@ -361,6 +362,12 @@ func _build_lobby_panel(panel: PanelContainer) -> void:
 	box.add_child(divider)
 
 	box.add_child(_make_section_title(Localization.get_text("online.rules", "MATCH RULES")))
+	_lobby_mode_option=OptionButton.new();_lobby_mode_option.name="OnlineGameMode"
+	_lobby_mode_option.add_item("アリーナ" if Localization.get_language()=="ja" else "Arena")
+	_lobby_mode_option.add_item("サンドボックス" if Localization.get_language()=="ja" else "Sandbox")
+	_lobby_mode_option.item_selected.connect(func(index:int)->void:
+		if not _refreshing_rules:NetworkManager.set_online_game_mode("sandbox" if index==1 else "arena");_refresh_all())
+	box.add_child(_lobby_mode_option)
 	var rules_grid: GridContainer = GridContainer.new()
 	rules_grid.name = "OnlineLobbyRulesGrid"
 	rules_grid.columns = 3
@@ -628,6 +635,8 @@ func _refresh_all() -> void:
 		"total": NetworkManager.get_player_capacity(),
 	})
 	_refreshing_rules = true
+	_lobby_mode_option.select(1 if NetworkManager.get_online_game_mode()=="sandbox" else 0)
+	_lobby_mode_option.disabled=not NetworkManager.is_host() or NetworkManager.is_lan_arena_session_active()
 	_lobby_max_players_spin.set_value_no_signal(float(NetworkManager.get_online_max_players()))
 	_lobby_target_wins_spin.set_value_no_signal(float(NetworkManager.get_online_target_wins()))
 	var arena_rules: Dictionary = NetworkManager.get_online_arena_rules()
@@ -651,6 +660,7 @@ func _refresh_all() -> void:
 	]
 	for control in rule_controls:
 		control.editable = NetworkManager.is_host()
+		control.get_parent().visible=control==_lobby_max_players_spin or NetworkManager.get_online_game_mode()!="sandbox"
 	_refreshing_rules = false
 	_start_button.visible = NetworkManager.is_host()
 	_start_button.disabled = not NetworkManager.can_start_match()
@@ -951,6 +961,7 @@ func _refresh_online_rooms(rooms: Array[Dictionary]) -> void:
 				"code": String(room_data.get("code", "")),
 			}
 		)
+		room_text += " | "+("サンドボックス" if Localization.get_language()=="ja" else "Sandbox") if room_data.get("gameMode","")=="sandbox" else " | Arena"
 		if int(room_data.get("bots", 0)) > 0:
 			room_text += Localization.get_textf("online.bot.count", " | Bots {count}", {"count": int(room_data.get("bots", 0))})
 		if not joinable:
@@ -1152,7 +1163,7 @@ func _on_match_started(_payload: Dictionary) -> void:
 
 
 func _on_arena_preparation_started(_snapshot: Dictionary) -> void:
-	if NetworkManager.is_local_spectator():
+	if NetworkManager.is_local_spectator() and not NetworkManager.is_network_sandbox_active():
 		_refresh_all()
 		return
 	if _opening_battle:

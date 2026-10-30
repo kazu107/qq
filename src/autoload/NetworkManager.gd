@@ -21,6 +21,7 @@ signal online_host_status_changed(status: Dictionary)
 signal online_rooms_changed(rooms: Array[Dictionary])
 signal arena_round_results_changed(snapshot: Dictionary)
 signal online_replay_ready(path: String)
+signal sandbox_statistics_received(summary: Dictionary)
 
 enum ConnectionState {
 	OFFLINE,
@@ -94,6 +95,10 @@ var _reconnecting: bool = false
 var _closing_peer: bool = false
 var _explicit_peer_leaves: Dictionary = {}
 var _arena_coordinator: LanArenaCoordinator = LanArenaCoordinator.new()
+var _online_game_mode: String = "arena"
+var _sandbox_configs: Dictionary = {}
+var _sandbox_rules: Dictionary = {}
+var _sandbox_revision: int = 0
 var _arena_session_active: bool = false
 var _arena_phase: String = ""
 var _arena_session_id: String = ""
@@ -368,7 +373,7 @@ func set_online_target_wins(value: int) -> bool:
 	if target_wins == _online_target_wins:
 		return true
 	_online_target_wins = target_wins
-	_web_signaling.update_room(target_wins, _online_max_players)
+	_web_signaling.update_room(target_wins, _online_max_players, _online_game_mode)
 	_broadcast_lobby_state()
 	return true
 
@@ -386,7 +391,7 @@ func set_online_max_players(value: int) -> bool:
 	if capacity == _online_max_players:
 		return true
 	_online_max_players = capacity
-	_web_signaling.update_room(_online_target_wins, _online_max_players)
+	_web_signaling.update_room(_online_target_wins, _online_max_players, _online_game_mode)
 	_broadcast_lobby_state()
 	return true
 
@@ -488,8 +493,10 @@ func _process_arena_bots(delta: float) -> void:
 			if not is_bot_peer(peer_id) or bool(_arena_ready_by_peer.get(str(peer_id), false)):
 				continue
 			var run: RunState = _arena_runs_by_peer.get(peer_id) as RunState
-			_arena_bot.prepare(_arena_coordinator, run)
-			_arena_ready_by_peer[str(peer_id)] = _arena_coordinator.has_valid_loadout(run) and not _arena_coordinator.has_pending_reward(run)
+			if is_network_sandbox_active():_arena_ready_by_peer[str(peer_id)]=NetworkSandboxConfig.valid(_sandbox_configs[str(peer_id)],_sandbox_rules)
+			else:
+				_arena_bot.prepare(_arena_coordinator, run)
+				_arena_ready_by_peer[str(peer_id)] = _arena_coordinator.has_valid_loadout(run) and not _arena_coordinator.has_pending_reward(run)
 			_arena_standings = ArenaTournamentCoordinator.build_standings(_arena_player_peer_ids, _profiles_by_peer, _arena_runs_by_peer)
 			_arena_public_details = _build_arena_public_details()
 			_send_arena_preparation_state()
@@ -590,6 +597,189 @@ func consume_arena_details_auto_open_request() -> bool:
 		return false
 	_arena_details_auto_open_pending = false
 	return true
+
+
+func get_online_game_mode() -> String:
+	return _online_game_mode
+
+
+func is_network_sandbox_active() -> bool:
+	return _online_game_mode=="sandbox" and _arena_session_active
+
+
+func set_online_game_mode(value: String) -> bool:
+	if not _is_host or _match_active or _arena_session_active or value not in ["arena","sandbox"]: return false
+	if value==_online_game_mode:return true
+	_online_game_mode=value
+	if value=="arena":_sandbox_configs.clear();_sandbox_rules.clear();_sandbox_revision=0
+	for id: int in _profiles_by_peer:
+		_profiles_by_peer[id]["ready"]=is_bot_peer(id)
+	_local_profile["ready"]=is_bot_peer(1)
+	_web_signaling.update_room(_online_target_wins,_online_max_players,_online_game_mode)
+	_broadcast_lobby_state()
+	return true
+
+
+func get_sandbox_snapshot() -> Dictionary:
+	return {"mode":_online_game_mode,"configs":_sandbox_configs.duplicate(true),"rules":_sandbox_rules.duplicate(true),"revision":_sandbox_revision,"session_id":_arena_session_id,"ready":_arena_ready_by_peer.duplicate(true)}
+
+
+func _apply_sandbox_snapshot(value: Dictionary) -> void:
+	_online_game_mode="sandbox" if value.get("mode","")=="sandbox" else "arena"
+	if _online_game_mode!="sandbox":
+		_sandbox_configs.clear();_sandbox_rules.clear();_sandbox_revision=0;return
+	_sandbox_configs=Dictionary(value.get("configs",{})).duplicate(true)
+	_sandbox_rules=NetworkSandboxConfig.rules(Dictionary(value.get("rules",{})))
+	_sandbox_revision=int(value.get("revision",0))
+
+
+func submit_sandbox_setup(target_peer_id: int, side: Dictionary, shared: Dictionary = {}) -> bool:
+	if not is_network_sandbox_active() or _arena_phase!="preparation":return false
+	return submit_arena_action("sandbox_edit",{"target":target_peer_id,"side":side,"rules":shared,"revision":_sandbox_revision,"session_id":_arena_session_id})
+
+
+func set_sandbox_ready(ready: bool) -> bool:
+	return submit_arena_action("set_ready",{"ready":ready,"revision":_sandbox_revision,"session_id":_arena_session_id})
+
+
+func _apply_sandbox_setup_action(peer_id: int, action: String, payload: Dictionary) -> bool:
+	if String(payload.get("session_id",""))!=_arena_session_id or int(payload.get("revision",-1))!=_sandbox_revision:return false
+	if action=="set_ready":
+		if not _arena_player_peer_ids.has(peer_id):return false
+		var ready: bool=payload.get("ready",false)==true
+		if ready and not NetworkSandboxConfig.valid(_sandbox_configs[str(peer_id)],_sandbox_rules):return false
+		_arena_ready_by_peer[str(peer_id)]=ready
+	elif action=="sandbox_edit":
+		var target: int=int(payload.get("target",-1))
+		if not _arena_player_peer_ids.has(target):return false
+		if not payload.get("side") is Dictionary:return false
+		var side: Dictionary=NetworkSandboxConfig.side(payload["side"])
+		if target!=peer_id and (peer_id!=1 or (side!=_sandbox_configs.get(str(target),{}) and not bool(_sandbox_rules.get("edit_opponents",false)))):return false
+		var shared: Dictionary=_sandbox_rules
+		if peer_id==1 and payload.get("rules") is Dictionary and not Dictionary(payload["rules"]).is_empty():shared=NetworkSandboxConfig.rules(payload["rules"])
+		if side==_sandbox_configs.get(str(target),{}) and shared==_sandbox_rules:return true
+		var rules_changed: bool=shared!=_sandbox_rules
+		_sandbox_configs[str(target)]=side;_sandbox_rules=shared;_sandbox_revision+=1
+		for id: int in _arena_player_peer_ids:
+			if rules_changed or id==target:_arena_ready_by_peer[str(id)]=false
+			_arena_runs_by_peer[id]=SandboxConfig.make_run(NetworkSandboxConfig.match_config(_sandbox_configs[str(id)],_sandbox_configs[str(id)],_sandbox_rules),"player")
+	else:return false
+	return true
+
+
+func sandbox_match_control(action: String, match_id: String, value: float = 0.0, side: String = "player") -> bool:
+	if not _is_host or not is_network_sandbox_active() or _arena_phase!="battle":return false
+	var context: Dictionary=_parallel_match_contexts.get(match_id,{})
+	if context.is_empty() or bool(context.get("finished",false)) or int(context.get("reconnecting_peer_id",-1))>0:return false
+	var engine: RealtimeBattleEngine=context["engine"]
+	match action:
+		"pause":context["sandbox_paused"]=value>0
+		"speed":context["sandbox_speed"]=clampf(value,.25,4)
+		"step":
+			if not bool(context.get("countdown_finished",false)):return false
+			context["sandbox_paused"]=true
+			if not NetworkSandboxConfig.advance(engine,clampf(value,.1,1),context.get("bot_ais",[])):context["sandbox_safety"]=true
+		"heal","clear_status","clear_shield","reset_recast":
+			if side not in ["player","enemy"]:return false
+			var unit: UnitState=engine.battle_state.get_unit(side)
+			if action=="heal":unit.hp=unit.max_hp
+			elif action=="clear_shield":unit.shield=0
+			elif action=="clear_status":unit.statuses.clear();unit.card_reservations.clear();unit.repeat_charges=0;unit.next_attack_multiplier=1
+			else:
+				for runtime: CardRuntimeState in unit.card_runtime_states:
+					if runtime.state==CardRuntimeState.CardState.COOLDOWN:runtime.set_cooldown_remaining(0)
+		"queue_card":
+			if side not in ["player","enemy"] or not bool(context.get("countdown_finished",false)):return false
+			var runtimes: Array[CardRuntimeState]=engine.battle_state.get_unit(side).card_runtime_states
+			var index: int=int(value)
+			if index<0 or index>=runtimes.size():return false
+			if not engine.request_use_card(side,runtimes[index].runtime_id):return false
+		"restart":
+			var config: Dictionary=Dictionary(context["payload"]["sandbox_config"])
+			engine.setup_network_playground(config,String(context["payload"]["player_name"]),String(context["payload"]["enemy_name"]))
+			# A fresh match ID rejects commands still in flight from the old battle.
+			var replacement: String=match_id+"x"
+			context["match_id"]=replacement;context["payload"]["match_id"]=replacement
+			context["last_snapshot"]={};context["snapshot_sequence"]=0
+			context["ready_by_side"]={"player":false,"enemy":false};context["countdown_active"]=false;context["countdown_finished"]=false
+			context["sandbox_paused"]=false;context["sandbox_safety"]=false
+			_parallel_match_contexts.erase(match_id);_parallel_match_contexts[replacement]=context
+			for index: int in _arena_round_results.size():
+				if _arena_round_results[index]["match_id"]==match_id:_arena_round_results[index]["match_id"]=replacement
+			for id: int in _to_int_array(context["viewer_peer_ids"]):
+				_match_id_by_peer[id]=replacement
+				if id==1:_apply_match_started(context["payload"])
+				elif not _online_reconnect_reservations.has(id):_receive_match_started_rpc.rpc_id(id,context["payload"])
+			_publish_parallel_context_snapshot(replacement,true);_broadcast_arena_round_results();return true
+		_:return false
+	_parallel_match_contexts[match_id]=context
+	_publish_parallel_context_snapshot(match_id,true)
+	return true
+
+
+func get_sandbox_match_control(match_id: String) -> Dictionary:
+	if _is_host and _parallel_match_contexts.has(match_id):
+		var context: Dictionary=_parallel_match_contexts[match_id]
+		return {"paused":bool(context.get("sandbox_paused",false)),"speed":float(context.get("sandbox_speed",1.0)),"safety":bool(context.get("sandbox_safety",false))}
+	return Dictionary(_last_snapshot.get("sandbox_control",{})).duplicate(true)
+
+
+func sandbox_return_to_setup() -> bool:
+	if not _is_host or not is_network_sandbox_active():return false
+	_prepare_next_tournament_round()
+	return true
+
+
+func request_sandbox_spectate(match_id: String) -> bool:
+	if not is_network_sandbox_active() or not is_local_spectator():return false
+	if _is_host:return _sandbox_spectate(1,match_id)
+	_sandbox_spectate_rpc.rpc_id(1,match_id);return true
+
+
+@rpc("any_peer","call_remote","reliable",0)
+func _sandbox_spectate_rpc(match_id: String) -> void:
+	if _is_host and _consume_command_rate(multiplayer.get_remote_sender_id()):_sandbox_spectate(multiplayer.get_remote_sender_id(),match_id)
+
+
+func _sandbox_spectate(peer_id: int, match_id: String) -> bool:
+	if not is_network_sandbox_active() or String(_get_profile_for_peer(peer_id).get("role",""))!=LanProtocol.ROLE_SPECTATOR or not _parallel_match_contexts.has(match_id):return false
+	for id: String in _parallel_match_contexts:
+		var viewers: Array=_parallel_match_contexts[id]["viewer_peer_ids"]
+		viewers.erase(peer_id)
+	var context: Dictionary=_parallel_match_contexts[match_id]
+	context["viewer_peer_ids"].append(peer_id);_match_id_by_peer[peer_id]=match_id
+	if peer_id==1:_apply_match_started(context["payload"])
+	else:_receive_match_started_rpc.rpc_id(peer_id,context["payload"])
+	_publish_parallel_context_snapshot(match_id,true);_broadcast_parallel_battle_start_state(match_id)
+	if bool(context.get("finished",false)):
+		if peer_id==1:_apply_match_finished(context["result"])
+		else:_receive_match_finished_rpc.rpc_id(peer_id,context["result"])
+	return true
+
+
+func request_sandbox_statistics(match_id: String) -> void:
+	if not is_network_sandbox_active():return
+	if _is_host:_send_sandbox_statistics(1,match_id)
+	else:_sandbox_statistics_rpc.rpc_id(1,match_id)
+
+
+@rpc("any_peer","call_remote","reliable",0)
+func _sandbox_statistics_rpc(match_id: String) -> void:
+	if _is_host and _consume_command_rate(multiplayer.get_remote_sender_id()):_send_sandbox_statistics(multiplayer.get_remote_sender_id(),match_id)
+
+
+func _send_sandbox_statistics(peer_id: int, match_id: String) -> void:
+	if not is_network_sandbox_active() or not _parallel_match_contexts.has(match_id):return
+	var context: Dictionary=_parallel_match_contexts[match_id]
+	if peer_id!=1 and not Array(context["viewer_peer_ids"]).has(peer_id):return
+	var summary: Dictionary=BattleStateCodec.encode_match_summary((context["engine"] as RealtimeBattleEngine).build_summary(false))
+	if peer_id==1:sandbox_statistics_received.emit(summary)
+	else:_sandbox_statistics_result_rpc.rpc_id(peer_id,summary)
+
+
+@rpc("authority","call_remote","reliable",0)
+func _sandbox_statistics_result_rpc(summary: Dictionary) -> void:
+	if is_network_sandbox_active():sandbox_statistics_received.emit(summary)
 
 
 func get_online_arena_rules() -> Dictionary:
@@ -774,6 +964,11 @@ func start_lan_arena_preparation() -> bool:
 		var peer_id: int = _arena_player_peer_ids[player_index]
 		var profile: Dictionary = Dictionary(_profiles_by_peer.get(peer_id, {}))
 		var run_state: RunState = _arena_coordinator.create_run(profile, base_seed + player_index * 7919, arena_rules)
+		if _online_game_mode=="sandbox":
+			var side: Dictionary=NetworkSandboxConfig.side(SandboxConfig.side_from_starter(String(profile.get("starter_id","balanced"))))
+			_sandbox_configs[str(peer_id)]=side
+			_sandbox_rules=NetworkSandboxConfig.rules(_sandbox_rules)
+			run_state=SandboxConfig.make_run(NetworkSandboxConfig.match_config(side,side,_sandbox_rules),"player")
 		if run_state == null:
 			_arena_runs_by_peer.clear()
 			return false
@@ -781,6 +976,7 @@ func start_lan_arena_preparation() -> bool:
 	_arena_runs_by_side.clear()
 	_arena_session_id = "%d-%d" % [base_seed, Time.get_ticks_msec()]
 	_arena_session_active = true
+	if _online_game_mode=="sandbox":_sandbox_revision+=1
 	_web_signaling.set_room_active(true)
 	_arena_phase = "preparation"
 	_arena_ready_by_side = {"player": false, "enemy": false}
@@ -1243,13 +1439,17 @@ func _find_tournament_winner_peer_id() -> int:
 
 
 func _prepare_next_tournament_round() -> void:
+	if is_network_sandbox_active():
+		_sandbox_revision+=1
+		for id: int in _arena_player_peer_ids:
+			_arena_runs_by_peer[id]=SandboxConfig.make_run(NetworkSandboxConfig.match_config(_sandbox_configs[str(id)],_sandbox_configs[str(id)],_sandbox_rules),"player")
 	var completed_round: int = _arena_round_index + 1
 	var runs: Array[RunState] = []
 	for peer_id in _arena_player_peer_ids:
 		var run_state: RunState = _arena_runs_by_peer.get(peer_id) as RunState
 		if run_state != null:
 			runs.append(run_state)
-	if not runs.is_empty():
+	if not runs.is_empty() and not is_network_sandbox_active():
 		var interval: int = maxi(1, runs[0].arena_special_reward_interval)
 		if completed_round % interval == 0:
 			_arena_coordinator.assign_shared_special_rewards_to_runs(
@@ -1259,7 +1459,7 @@ func _prepare_next_tournament_round() -> void:
 			)
 	_arena_round_index += 1
 	_arena_pair_index = 0
-	_arena_pairings = ArenaTournamentCoordinator.build_round_pairings(_arena_player_peer_ids, _arena_round_index)
+	_arena_pairings = ArenaTournamentCoordinator.build_round_pairings(_arena_player_peer_ids, 0 if is_network_sandbox_active() else _arena_round_index)
 	_active_match_peer_ids.clear()
 	_arena_runs_by_side.clear()
 	_dispose_parallel_match_contexts()
@@ -1325,6 +1525,7 @@ func _submit_local_command(kind: String, runtime_id: String, extra: Dictionary =
 		"kind": kind,
 		"runtime_id": runtime_id,
 		"client_ticks_msec": Time.get_ticks_msec(),
+		"match_id": String(_match_payload.get("match_id","")),
 	}
 	command.merge(extra, true)
 	if _is_host:
@@ -1602,6 +1803,7 @@ func _submit_profile_rpc(raw_profile: Dictionary, room_proof: String = "") -> vo
 @rpc("authority", "call_remote", "reliable", 0)
 func _receive_lobby_state_rpc(snapshot: Dictionary) -> void:
 	_public_lobby_snapshot = snapshot.duplicate(true)
+	_apply_sandbox_snapshot(Dictionary(snapshot.get("sandbox",{})))
 	if String(snapshot.get("session_scope", "")) == SESSION_SCOPE_ONLINE:
 		_online_target_wins = clampi(
 			int(snapshot.get("target_wins", ArenaService.TARGET_WINS)),
@@ -1824,6 +2026,12 @@ func _apply_arena_action_for_peer(
 ) -> bool:
 	if not _is_host or not _arena_session_active or _arena_phase != "preparation":
 		return false
+	if is_network_sandbox_active():
+		var accepted: bool=_apply_sandbox_setup_action(peer_id,action,payload)
+		_send_arena_action_result(peer_id,action,accepted,{"accepted":accepted,"revision":_sandbox_revision})
+		_send_arena_preparation_state()
+		if accepted and _are_all_arena_players_ready():_start_arena_match_from_preparation()
+		return accepted
 	var run_state: RunState = _arena_runs_by_peer.get(peer_id) as RunState
 	if run_state == null:
 		return false
@@ -1908,6 +2116,7 @@ func _build_arena_snapshot(peer_id: int) -> Dictionary:
 		"content_hash": LanProtocol.build_content_hash(),
 		"arena_session_id": _arena_session_id,
 		"phase": _arena_phase,
+		"sandbox": get_sandbox_snapshot(),
 		"local_peer_id": peer_id,
 		"spectator": spectator,
 		"run": run_state.to_dict() if run_state != null else {},
@@ -1928,6 +2137,7 @@ func _build_arena_snapshot(peer_id: int) -> Dictionary:
 func _apply_arena_preparation_state(snapshot: Dictionary) -> void:
 	if snapshot.is_empty():
 		return
+	_apply_sandbox_snapshot(Dictionary(snapshot.get("sandbox",{})))
 	if int(snapshot.get("protocol_version", -1)) != LanProtocol.PROTOCOL_VERSION:
 		_emit_error("protocol_mismatch", "Network protocol versions do not match.")
 		return
@@ -2000,7 +2210,7 @@ func _start_parallel_round_matches() -> bool:
 			_dispose_parallel_match_contexts()
 			_match_id_by_peer.clear()
 			return false
-		if not _arena_coordinator.has_valid_loadout(player_run) or not _arena_coordinator.has_valid_loadout(enemy_run):
+		if not is_network_sandbox_active() and (not _arena_coordinator.has_valid_loadout(player_run) or not _arena_coordinator.has_valid_loadout(enemy_run)):
 			_dispose_parallel_match_contexts()
 			_match_id_by_peer.clear()
 			return false
@@ -2037,6 +2247,9 @@ func _start_parallel_round_matches() -> bool:
 			"standings": _arena_standings.duplicate(true),
 		}
 		var engine: RealtimeBattleEngine = RealtimeBattleEngine.new()
+		if is_network_sandbox_active():
+			payload["sandbox"]=get_sandbox_snapshot()
+			payload["sandbox_config"]=NetworkSandboxConfig.match_config(_sandbox_configs[str(player_peer_id)],_sandbox_configs[str(enemy_peer_id)],_sandbox_rules)
 		# Visual frames stay on the host during battle and are transferred only after resolution.
 		engine.record_visuals = true
 		engine.set_audio_enabled(false)
@@ -2046,6 +2259,7 @@ func _start_parallel_round_matches() -> bool:
 			String(payload.get("player_name", "Player")),
 			String(payload.get("enemy_name", "Opponent"))
 		)
+		if is_network_sandbox_active():engine.setup_network_playground(payload["sandbox_config"],String(payload["player_name"]),String(payload["enemy_name"]))
 		var viewer_peer_ids: Array[int] = []
 		for participant: int in [player_peer_id, enemy_peer_id]:
 			if not is_bot_peer(participant):
@@ -2175,9 +2389,13 @@ func _process_parallel_matches(delta: float) -> void:
 			_emit_parallel_countdown_finished(match_id)
 			_publish_parallel_context_snapshot(match_id, true)
 		if bool(context.get("countdown_finished", false)) and engine.battle_state.winner == "":
-			for ai: EnemyAI in Array(context.get("bot_ais", [])):
-				ai.update(engine, delta)
-			engine.update(delta)
+			if is_network_sandbox_active():
+				if not bool(context.get("sandbox_paused",false)):
+					if not NetworkSandboxConfig.advance(engine,delta*float(context.get("sandbox_speed",1.0)),context.get("bot_ais",[])):
+						context["sandbox_paused"]=true;context["sandbox_safety"]=true
+			else:
+				for ai: EnemyAI in Array(context.get("bot_ais", [])):ai.update(engine, delta)
+				engine.update(delta)
 		var snapshot_elapsed: float = float(context.get("snapshot_elapsed", 0.0)) + delta
 		if snapshot_elapsed >= 1.0 / 12.0:
 			snapshot_elapsed = fmod(snapshot_elapsed, 1.0 / 12.0)
@@ -2206,6 +2424,7 @@ func _publish_parallel_context_snapshot(match_id: String, reliable: bool) -> boo
 	outgoing["sequence"] = sequence
 	outgoing["match_id"] = match_id
 	outgoing["server_ticks_msec"] = Time.get_ticks_msec()
+	if is_network_sandbox_active():outgoing["sandbox_control"]={"paused":bool(context.get("sandbox_paused",false)),"speed":float(context.get("sandbox_speed",1.0)),"safety":bool(context.get("sandbox_safety",false))}
 	context["snapshot_sequence"] = sequence
 	context["last_snapshot"] = outgoing.duplicate(true)
 	_parallel_match_contexts[match_id] = context
@@ -2293,6 +2512,7 @@ func _apply_parallel_battle_command(peer_id: int, command: Dictionary) -> bool:
 	var context: Dictionary = Dictionary(_parallel_match_contexts.get(match_id, {}))
 	if context.is_empty() or bool(context.get("finished", false)):
 		return false
+	if is_network_sandbox_active() and String(command.get("match_id",""))!=match_id:return false
 	var player_peer_id: int = int(context.get("player_peer_id", -1))
 	var enemy_peer_id: int = int(context.get("enemy_peer_id", -1))
 	var side: String = "player" if peer_id == player_peer_id else "enemy" if peer_id == enemy_peer_id else "spectator"
@@ -2371,13 +2591,13 @@ func _finish_parallel_match(match_id: String, forced_winner: String = "", finish
 	var enemy_state: UnitState = engine.battle_state.enemy
 	player_run.temporary_card_modifiers = player_state.temporary_card_modifiers.duplicate(true)
 	enemy_run.temporary_card_modifiers = enemy_state.temporary_card_modifiers.duplicate(true)
-	var player_progress: Dictionary = _arena_coordinator.apply_battle_result(
+	var player_progress: Dictionary = {} if is_network_sandbox_active() else _arena_coordinator.apply_battle_result(
 		player_run,
 		winner == "player",
 		player_state.hp,
 		int(result.get("player_relic_bonus_gold", 0))
 	)
-	var enemy_progress: Dictionary = _arena_coordinator.apply_battle_result(
+	var enemy_progress: Dictionary = {} if is_network_sandbox_active() else _arena_coordinator.apply_battle_result(
 		enemy_run,
 		winner == "enemy",
 		enemy_state.hp,
@@ -2590,7 +2810,7 @@ func _acknowledge_round_results_for_peer(peer_id: int) -> bool:
 	for player_peer_id in _arena_player_peer_ids:
 		if not bool(_arena_round_continue_by_peer.get(str(player_peer_id), false)):
 			return true
-	var tournament_winner_peer_id: int = _find_tournament_winner_peer_id()
+	var tournament_winner_peer_id: int = -1 if is_network_sandbox_active() else _find_tournament_winner_peer_id()
 	if tournament_winner_peer_id > 0:
 		_finish_arena_session("winner", "target_wins", tournament_winner_peer_id)
 	else:
@@ -2772,6 +2992,7 @@ func _process_battle_countdown() -> void:
 
 
 func _apply_match_started(payload: Dictionary) -> void:
+	if payload.has("sandbox"):_apply_sandbox_snapshot(Dictionary(payload["sandbox"]))
 	if int(payload.get("protocol_version", -1)) != LanProtocol.PROTOCOL_VERSION:
 		_emit_error("protocol_mismatch", "Network protocol versions do not match.")
 		return
@@ -2789,6 +3010,7 @@ func _apply_match_started(payload: Dictionary) -> void:
 	_waiting_for_reconnect = false
 	_last_received_snapshot_sequence = 0
 	if not same_match:
+		_last_snapshot.clear()
 		_battle_ready_by_side = {"player": false, "enemy": false}
 		_battle_countdown_active = false
 		_battle_countdown_deadline_msec = 0
@@ -2812,6 +3034,7 @@ func _apply_battle_snapshot(snapshot: Dictionary) -> void:
 
 
 func _apply_match_finished(result: Dictionary) -> void:
+	if String(result.get("match_id",""))!="" and String(result.get("match_id",""))!=String(_match_payload.get("match_id","")):return
 	var final_snapshot: Dictionary = Dictionary(result.get("final_snapshot", {}))
 	if not final_snapshot.is_empty():
 		_apply_battle_snapshot(final_snapshot)
@@ -2820,7 +3043,7 @@ func _apply_match_finished(result: Dictionary) -> void:
 	_waiting_for_reconnect = false
 	_last_match_result = result.duplicate(true)
 	var local_id: int = multiplayer.get_unique_id()
-	if not is_local_spectator():
+	if not is_local_spectator() and not bool(result.get("sandbox",false)):
 		if local_id == int(result.get("player_peer_id", -1)):
 			Game.record_online_battle_control(result, "player", String(result.get("match_id", "")))
 		elif local_id == int(result.get("enemy_peer_id", -1)):
@@ -2933,6 +3156,7 @@ func _broadcast_lobby_state() -> void:
 		"arena_active": _arena_session_active,
 		"target_wins": _online_target_wins,
 		"arena_rules": _build_online_arena_rules(),
+		"sandbox": get_sandbox_snapshot(),
 		"arena_phase": _arena_phase,
 		"arena_round_index": _arena_round_index,
 		"arena_pair_index": _arena_pair_index,
@@ -3295,6 +3519,7 @@ func _to_int_array(value: Variant) -> Array[int]:
 
 
 func _clear_session(clear_profile: bool) -> void:
+	_online_game_mode="arena";_sandbox_configs.clear();_sandbox_rules.clear();_sandbox_revision=0
 	_bot_fill_requested = false
 	_bot_request_pending = false
 	_bot_phase_key = ""

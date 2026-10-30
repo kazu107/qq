@@ -7,6 +7,7 @@ const ARENA_SCENE := "res://scenes/arena/Arena.tscn"
 const ONLINE_LOBBY_SCENE := "res://scenes/online/OnlineLobby.tscn"
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const SANDBOX_SCENE := "res://scenes/sandbox/SandboxSetup.tscn"
+const NETWORK_SANDBOX_SCENE := "res://scenes/sandbox/NetworkSandboxSetup.tscn"
 const REWARD_SCENE := "res://scenes/reward/Reward.tscn"
 const RESULT_SCENE := "res://scenes/result/RunResult.tscn"
 const MAP_SCENE := "res://scenes/map/Map.tscn"
@@ -299,6 +300,11 @@ func _current_battle_card_ids() -> Array[String]:
 			for card: Dictionary in SandboxSession.config[side]["cards"]:
 				if not card_ids.has(String(card["id"])): card_ids.append(String(card["id"]))
 		return card_ids
+	if NetworkManager.is_network_sandbox_active():
+		for value: Dictionary in NetworkManager.get_sandbox_snapshot()["configs"].values():
+			for card: Dictionary in value["cards"]:
+				if not card_ids.has(String(card["id"])):card_ids.append(String(card["id"]))
+		return card_ids
 	if Game.is_battle_tutorial_active():
 		var tutorial: Dictionary = BattleTutorialCatalog.get_tutorial(Game.active_battle_tutorial_id)
 		for raw_card_id: Variant in Array(tutorial.get("cards", [])):
@@ -354,6 +360,7 @@ func warm_scene_cache() -> void:
 		AUTOMATED_BATTLE_LAB_SCENE,
 		BALANCE_LAB_SCENE,
 		SANDBOX_SCENE,
+		NETWORK_SANDBOX_SCENE,
 		BATTLE_TUTORIAL_SCENE,
 	]
 	if Game.WEB_MULTIPLAYER_ENABLED:
@@ -397,7 +404,7 @@ func go_to_run_setup(mode: String = Game.RUN_SETUP_MODE_NORMAL) -> void:
 
 
 func go_to_arena() -> void:
-	_change_scene(ARENA_SCENE)
+	_change_scene(NETWORK_SANDBOX_SCENE if NetworkManager.is_network_sandbox_active() else ARENA_SCENE)
 
 
 func go_to_online_lobby() -> void:

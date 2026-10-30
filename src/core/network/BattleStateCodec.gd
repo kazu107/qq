@@ -15,6 +15,7 @@ const NETWORK_RESULT_SCALAR_KEYS: Array[String] = [
 	"amount",
 ]
 const NETWORK_SUMMARY_KEYS: Array[String] = [
+	"sandbox",
 	"achievement_eligible",
 	"analysis",
 	"battle_id",
@@ -180,6 +181,7 @@ static func _encode_unit(unit: UnitState) -> Dictionary:
 		"runtime_states": runtime_states,
 		"temporary_card_modifiers": unit.temporary_card_modifiers.duplicate(true),
 		"battle_card_modifiers": unit.battle_card_modifiers.duplicate(true),
+		"sandbox_card_tiers": unit.sandbox_card_tiers.duplicate(true),
 		"last_used_runtime_id": unit.last_used_runtime_id,
 		"previous_used_runtime_id": unit.previous_used_runtime_id,
 		"cast_time_modifier": unit.cast_time_modifier,
@@ -224,6 +226,7 @@ static func _decode_unit(payload: Dictionary) -> UnitState:
 	unit.set_runtime_states(runtime_states)
 	unit.temporary_card_modifiers = Dictionary(payload.get("temporary_card_modifiers", {})).duplicate(true)
 	unit.battle_card_modifiers = Dictionary(payload.get("battle_card_modifiers", {})).duplicate(true)
+	unit.sandbox_card_tiers = Dictionary(payload.get("sandbox_card_tiers", {})).duplicate(true)
 	unit.last_used_runtime_id = String(payload.get("last_used_runtime_id", ""))
 	unit.previous_used_runtime_id = String(payload.get("previous_used_runtime_id", ""))
 	unit.cast_time_modifier = maxf(0.05, float(payload.get("cast_time_modifier", 1.0)))

@@ -6,21 +6,43 @@ var _window: JavaScriptObject
 var _elapsed: float = 0.0
 var _ticks: int = 0
 var _error: String = ""
+var _sandbox_stats: Dictionary = {}
+var _sandbox_action: Dictionary = {}
 
 
 func _ready() -> void:
 	Database.load_all()
+	Game.ensure_meta_initialized()
 	Game.settings["developer_mode"] = true
 	_bridge = JavaScriptBridge.create_callback(_command)
 	_window = JavaScriptBridge.get_interface("window")
 	_window.qqCommand = _bridge
 	NetworkManager.network_error.connect(func(code: String, message: String) -> void: _error = code + ":" + message)
+	NetworkManager.sandbox_statistics_received.connect(func(summary:Dictionary)->void:_sandbox_stats=summary)
+	NetworkManager.arena_action_result_received.connect(func(action:String,accepted:bool,result:Dictionary)->void:_sandbox_action={"action":action,"accepted":accepted,"result":result})
 
 
 func _command(args: Array) -> void:
 	var payload: Dictionary = JSON.parse_string(String(args[0]))
 	var action: String = String(payload.get("action", ""))
 	match action:
+		"sandbox_old_command":NetworkManager._submit_local_command("card",NetworkManager.get_local_side()+"_0",{"match_id":String(payload["match"])})
+		"sandbox_return":NetworkManager.sandbox_return_to_setup()
+		"use_card":NetworkManager.submit_card_command(NetworkManager.get_local_side()+"_"+str(int(payload.get("index",0))))
+		"sandbox_mode":NetworkManager.set_online_game_mode("sandbox")
+		"sandbox_setup":
+			var snapshot: Dictionary=NetworkManager.get_sandbox_snapshot()
+			var id: int=int(payload.get("target",multiplayer.get_unique_id()))
+			var side: Dictionary=Dictionary(snapshot["configs"].get(str(id),{})).duplicate(true)
+			side.merge(Dictionary(payload.get("side",{})),true)
+			NetworkManager.submit_sandbox_setup(id,side,Dictionary(payload.get("rules",{})))
+		"sandbox_ready":NetworkManager.set_sandbox_ready(bool(payload.get("ready",true)))
+		"sandbox_control":
+			var id: String=String(payload.get("match",NetworkManager.get_match_payload().get("match_id","")))
+			NetworkManager.sandbox_match_control(String(payload["kind"]),id,float(payload.get("value",0)),String(payload.get("side","player")))
+		"sandbox_watch":NetworkManager.request_sandbox_spectate(String(payload["match"]))
+		"sandbox_statistics":NetworkManager.request_sandbox_statistics(String(NetworkManager.get_match_payload().get("match_id","")))
+		"sandbox_stale":NetworkManager.submit_arena_action("set_ready",{"ready":true,"revision":-1,"session_id":NetworkManager._arena_session_id})
 		"host":
 			NetworkManager.host_online_lobby("P1", "balanced", String(payload["room"]), 0, false, 3, int(payload.get("players", 4)))
 		"join":
@@ -104,6 +126,11 @@ func _process(delta: float) -> void:
 			"time": engine.battle_state.battle_time, "active": engine.battle_state.active_instances.size(),
 			"finished": context.get("finished", false)})
 	var state: Dictionary = {"ticks": _ticks, "error": _error, "players": NetworkManager.get_lobby_players(),
+		"sandbox":NetworkManager.get_sandbox_snapshot(),"sandbox_control":snapshot.get("sandbox_control",{}),"sandbox_stats":_sandbox_stats,"sandbox_action":_sandbox_action,
+		"sandbox_grades":Dictionary(snapshot.get("player",{})).get("sandbox_card_tiers",{}),
+		"active_count":Array(snapshot.get("active_instances",[])).size(),
+		"progress_hash":JSON.stringify({"run":Game.current_run.to_dict() if Game.current_run!=null else {},"suspended":Game.suspended_runs,"meta":Game.meta_progress}).sha256_text(),
+		"progress_state":{"run":Game.current_run.to_dict() if Game.current_run!=null else {},"suspended":Game.suspended_runs.duplicate(true),"meta":Game.meta_progress.duplicate(true)},
 		"gold_spent": Dictionary(Game.meta_progress.get("achievement_stats", {})).get("gold_spent", 0),
 		"saved_gold_spent": Dictionary(SaveManager.current_save.meta_progress.get("achievement_stats", {})).get("gold_spent", 0),
 		"room": NetworkManager.get_online_room_code(),

@@ -24,6 +24,7 @@ var _closing: bool = false
 var _last_socket_state: int = WebSocketPeer.STATE_CLOSED
 var _host_name: String = ""
 var _target_wins: int = ArenaService.TARGET_WINS
+var _game_mode: String = "arena"
 var _max_players: int = LanProtocol.DEFAULT_PLAYERS
 var _spectator_join: bool = false
 var _reconnect_token: String = ""
@@ -37,6 +38,7 @@ func start_host(
 	target_wins: int = ArenaService.TARGET_WINS,
 	max_players: int = LanProtocol.DEFAULT_PLAYERS
 ) -> Error:
+	_game_mode="arena"
 	var start_error: Error = _start("host", room_code, protocol_version, content_hash)
 	if start_error == OK:
 		_host_name = host_name.strip_edges()
@@ -63,15 +65,17 @@ func start_directory(protocol_version: int, content_hash: String) -> Error:
 	return _start("directory", "", protocol_version, content_hash)
 
 
-func update_room(target_wins: int, max_players: int = LanProtocol.DEFAULT_PLAYERS) -> void:
+func update_room(target_wins: int, max_players: int = LanProtocol.DEFAULT_PLAYERS, game_mode: String = "") -> void:
 	if _role != "host":
 		return
 	_target_wins = target_wins
+	if game_mode in ["arena","sandbox"]:_game_mode=game_mode
 	_max_players = LanProtocol.sanitize_player_capacity(max_players)
 	_send({
 		"type": "update_room",
 		"targetWins": target_wins,
 		"maxPlayers": _max_players,
+		"gameMode": _game_mode,
 	})
 
 

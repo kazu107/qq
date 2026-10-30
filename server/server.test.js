@@ -135,12 +135,19 @@ test("room directory tracks compatible rooms, player counts, and host rules", as
     maxSpectators: 4,
     targetWins: 7,
     joinable: true,
+    gameMode: "arena",
     spectatorJoinable: true,
   }]);
 
   const updatedRules = receive(directory);
   send(host, { type: "update_room", targetWins: 4, maxPlayers: 2 });
   assert.equal((await updatedRules).rooms[0].targetWins, 4);
+
+  const sandboxList = receive(directory);
+  send(host, { type: "update_room", targetWins: 4, maxPlayers: 2, gameMode: "sandbox" });
+  assert.equal((await sandboxList).rooms[0].gameMode, "sandbox");
+  send(host, { type: "update_room", targetWins: 4, maxPlayers: 2, gameMode: "invalid" });
+  assert.equal((await receive(host)).code, "invalid_room_settings");
 
   const joinedList = receive(directory);
   const hostPeerJoined = receive(host);

@@ -1,9 +1,26 @@
 {
   "scheme": "QQ-MAJOR.MINOR.PATCH",
-  "current_version": "QQ-0.61.0",
+  "current_version": "QQ-1.0.0",
   "history_note_ja": "QQ-0.9.2以前の番号は、正式な番号運用前のGit履歴から再構成した推定版です。",
   "history_note_en": "Versions through QQ-0.9.2 are estimated milestones reconstructed from Git history before formal versioning began.",
   "releases": [
+    {
+      "version": "QQ-1.0.0", "date": "2026-10-31",
+      "title_ja": "Web対戦のサンドボックス",
+      "title_en": "Multiplayer Sandbox",
+      "changes_ja": [
+        "Web対戦のロビーにアリーナ／サンドボックスの切り替えを追加しました。全員が自分のモデル・ステータス・カード・個別Grade・遺物を編集でき、編成と準備状態を共有します。ショップや報酬なしで自由に再戦できます。",
+        "2・4・6・8人の偶数対戦と観戦に対応します。4人以上はペアごとの並行戦闘となり、ホストは試合を選んで一時停止・速度変更・コマ送り・HP全快・状態解除・カード登録・リセットを操作できます。観戦先の切り替えと、同じ席への再接続にも対応しました。",
+        "編成やルールの変更で準備状態を解除し、古い設定への準備完了や再戦前のカード操作を拒否します。通常ラン・アリーナ進行・実績・メタポイント・ランキングには加算しません。オンラインでは片側16枚・遺物8個・同時カード32枚までの安全制限を設けます。",
+        "個別Gradeと共有操作を同期するため対戦プロトコルを14、スナップショットを5へ更新しました。旧版とは接続できないため、参加者全員でページを再読み込みしてください。通信互換性変更に合わせてメジャー番号を更新し、ランキング準備中とinfinite-17は維持します。"
+      ],
+      "changes_en": [
+        "Choose Arena or Sandbox in a Web lobby. Each participant edits models, stats, cards, per-copy Grades and relics while sharing setups and readiness. Rematch freely without shops or rewards.",
+        "Support even groups of 2, 4, 6 or 8 players with parallel pairings, spectator switching and same-seat reconnection. The host can select a match to pause, change speed, step time, heal, clear statuses, queue cards or reset it.",
+        "Invalidate readiness after setup/rule edits and reject stale setup and match commands. Keep normal runs, Arena progression, achievements, meta points and ranking isolated. Online safety limits are 16 cards and 8 relics per side, with 32 simultaneous timeline cards.",
+        "Upgrade network protocol to 14 and snapshot format to 5 for per-copy Grades and shared controls. All players must reload; older clients are incompatible. Increment the major game version for this compatibility change while retaining preparing ranking availability and infinite-17."
+      ]
+    },
     {
       "version": "QQ-0.61.0", "date": "2026-10-30",
       "title_ja": "自由な編成で試せるサンドボックス",

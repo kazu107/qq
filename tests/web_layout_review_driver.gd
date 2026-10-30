@@ -65,6 +65,13 @@ func _command(arguments: Array) -> void:
 			Game.stash_active_run_for_hub()
 		SaveManager.save_game(Game.current_screen_hint)
 		if bool(payload.get("sync", false)): CloudSession.sync_now()
+	elif String(payload.get("action", "")) == "network_connect":
+		Game.settings["developer_mode"]=false
+		if payload.get("host",false):NetworkManager.host_online_lobby("Host","balanced",String(payload["room"]),0,false,3,2)
+		else:NetworkManager.join_online_lobby("","Guest","balanced",String(payload["room"]),0,false)
+		SceneRouter.go_to_online_lobby()
+	elif String(payload.get("action", "")) == "network_leave":
+		NetworkManager.leave_session();SceneRouter.go_to_hub()
 	elif String(payload.get("action", "")) == "sandbox_fixture":
 		Game.settings["developer_mode"] = false
 		Game.start_new_run("balanced", 4242)
@@ -781,6 +788,7 @@ func _inspect() -> Dictionary:
 	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
 	var controls: Array[Dictionary] = []
 	var result: Dictionary = {}
+	result["network"]={"connected":NetworkManager.is_session_connected(),"mode":NetworkManager.get_online_game_mode(),"phase":NetworkManager.get_lan_arena_phase(),"players":NetworkManager.get_lobby_players(),"sandbox":NetworkManager.get_sandbox_snapshot(),"match_id":NetworkManager.get_match_payload().get("match_id",""),"control":NetworkManager.get_last_snapshot().get("sandbox_control",{}),"time":NetworkManager.get_last_snapshot().get("battle_time",0)}
 	result["sandbox_progress_hash"] = JSON.stringify({"run":Game.current_run.to_dict() if Game.current_run!=null else {},"suspended":Game.suspended_runs,"meta":Game.meta_progress,"hint":Game.current_screen_hint,"enemy":Game.pending_enemy_id,"rewards":Game.reward_options}).sha256_text()
 	result["sandbox_presets"] = SandboxSession.presets().keys()
 	result["developer"] = Game.is_developer_mode_enabled()
@@ -788,7 +796,7 @@ func _inspect() -> Dictionary:
 	if not _feedback_samples.is_empty():
 		result["feedback"] = {"samples": _feedback_samples, "immediate_audio": _feedback_initial_audio, "audio": AudioManager.get_play_history()}
 	if screen != null:
-		if screen.scene_file_path == SceneRouter.SANDBOX_SCENE:
+		if screen.scene_file_path in [SceneRouter.SANDBOX_SCENE,SceneRouter.NETWORK_SANDBOX_SCENE]:
 			var scroll: ScrollContainer = screen.find_child("SandboxSetupScroll", true, false) as ScrollContainer
 			var columns: GridContainer = screen.find_child("SandboxSides", true, false) as GridContainer
 			var catalog: Control = screen.find_child("SandboxCatalog", true, false) as Control

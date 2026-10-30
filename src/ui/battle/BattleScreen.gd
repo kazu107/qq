@@ -62,6 +62,8 @@ var _tutorial_overlay: BattleTutorialOverlay
 var _tutorial_director: BattleTutorialDirector
 var _sandbox_mode: bool = false
 var _sandbox_dock: SandboxBattleDock
+var _network_sandbox_dock: NetworkSandboxBattleDock
+var _network_sandbox_control: Dictionary = {}
 
 
 func _ready() -> void:
@@ -347,6 +349,12 @@ func _setup_lan_battle() -> bool:
 		String(payload.get("player_name", "Player 1")),
 		String(payload.get("enemy_name", "Player 2"))
 	)
+	if payload.has("sandbox_config"):
+		_engine.setup_network_playground(payload["sandbox_config"],String(payload["player_name"]),String(payload["enemy_name"]))
+		_timeline_panel.balance_engine=_engine
+		if _network_sandbox_dock!=null:remove_child(_network_sandbox_dock);_network_sandbox_dock.queue_free()
+		_network_sandbox_dock=NetworkSandboxBattleDock.new();add_child(_network_sandbox_dock);_network_sandbox_dock.configure(self)
+		move_child(_analysis_panel,get_child_count()-1)
 	_processed_vfx_event_count = 0
 	_lan_battle_event_total = 0
 	_lan_snapshot_initialized = false
@@ -378,8 +386,8 @@ func _process_lan_battle(delta: float) -> void:
 			_publish_lan_snapshot(false)
 	else:
 		var state: BattleState = _engine.battle_state
-		if not NetworkManager.is_local_match_waiting_for_reconnect() and _engine.has_battle_started() and state.winner == "":
-			state.battle_time = _network_clock.advance(delta, NetworkManager.get_connection_ping_ms())
+		if not NetworkManager.is_local_match_waiting_for_reconnect() and not bool(_network_sandbox_control.get("paused",false)) and _engine.has_battle_started() and state.winner == "":
+			state.battle_time = _network_clock.advance(delta*float(_network_sandbox_control.get("speed",1.0)), NetworkManager.get_connection_ping_ms())
 
 	_refresh_ui(1.0)
 	if NetworkManager.is_host() and not parallel_round and _engine.battle_state.winner != "" and not _lan_finish_submitted:
@@ -402,6 +410,7 @@ func _publish_lan_snapshot(reliable: bool) -> void:
 
 
 func _connect_lan_signals() -> void:
+	if not NetworkManager.match_started.is_connected(_on_network_sandbox_match_changed):NetworkManager.match_started.connect(_on_network_sandbox_match_changed)
 	if not NetworkManager.battle_snapshot_received.is_connected(_on_lan_snapshot_received):
 		NetworkManager.battle_snapshot_received.connect(_on_lan_snapshot_received)
 	if not NetworkManager.battle_command_received.is_connected(_on_lan_battle_command_received):
@@ -430,17 +439,26 @@ func _on_lan_snapshot_received(snapshot: Dictionary) -> void:
 	_apply_lan_snapshot(snapshot)
 
 
+func _on_network_sandbox_match_changed(payload: Dictionary) -> void:
+	if not _lan_mode or not payload.has("sandbox_config"):return
+	_handled_finish=false;_pending_result.clear();_round_results_acknowledged=false
+	_analysis_panel.hide();_round_results_overlay.hide();_network_sandbox_control.clear()
+	_snap_hp_on_next_snapshot=true;_setup_lan_battle()
+
+
 func _apply_lan_snapshot(snapshot: Dictionary) -> void:
 	var decoded_state: BattleState = BattleStateCodec.decode(snapshot)
 	if decoded_state == null:
 		return
 	var snapshot_started: bool = bool(snapshot.get("battle_started", false))
+	_network_sandbox_control=Dictionary(snapshot.get("sandbox_control",{})).duplicate(true)
+	if _battle_stage!=null and not _network_sandbox_control.is_empty():_battle_stage.set_playback_speed(0.0 if _network_sandbox_control.get("paused",false) else minf(2.0,float(_network_sandbox_control.get("speed",1))))
 	var display_battle_time: float = decoded_state.battle_time
 	var snapshot_client: bool = NetworkManager.is_parallel_arena_round() or not NetworkManager.is_host()
 	if snapshot_client:
 		display_battle_time = _network_clock.apply_snapshot(
 			decoded_state.battle_time,
-			snapshot_started,
+			snapshot_started and not bool(_network_sandbox_control.get("paused",false)),
 			decoded_state.winner != ""
 		)
 	_lan_battle_event_total = maxi(
@@ -516,7 +534,7 @@ func _on_arena_round_results_changed(_snapshot: Dictionary) -> void:
 func _on_lan_arena_preparation_changed(snapshot: Dictionary) -> void:
 	if not _lan_mode or String(snapshot.get("phase", "")) != "preparation":
 		return
-	if _round_results_acknowledged:
+	if _round_results_acknowledged or NetworkManager.is_network_sandbox_active():
 		SceneRouter.go_to_arena()
 
 
@@ -1064,7 +1082,7 @@ func _refresh_round_results_overlay() -> void:
 			{"ready": ready_count, "total": ready_total}
 		)
 	else:
-		_round_results_continue.text = Localization.get_text("online.round_results.continue", "CLAIM REWARDS / CONTINUE")
+		_round_results_continue.text = ("編成へ" if Localization.get_language()=="ja" else "Edit Setup") if NetworkManager.is_network_sandbox_active() else Localization.get_text("online.round_results.continue", "CLAIM REWARDS / CONTINUE")
 
 
 func _refresh_local_round_outcome() -> void:
@@ -1291,7 +1309,7 @@ func _refresh_ui(time_scale: float) -> void:
 			"damage": (battle_state.fatigue_waves + 1) * FatigueRules.DAMAGE_STEP,
 			"seconds": ceili(fatigue_remaining),
 		})
-	if _sandbox_mode and not bool(_engine.sandbox_options.get("fatigue",true)):fatigue_text="疲労なし" if Localization.get_language()=="ja" else "Fatigue off"
+	if _engine.public_sandbox and not bool(_engine.sandbox_options.get("fatigue",true)):fatigue_text="疲労なし" if Localization.get_language()=="ja" else "Fatigue off"
 	_battle_info_label.text = "[center]%s\n[color=#e6a35a]%s[/color][/center]" % [battle_info_text, fatigue_text]
 	if _battle_info_sign != null:
 		var transient_text: String = _result_label.text if _result_label.visible else _slow_mode_label.text
@@ -1364,6 +1382,10 @@ func _configure_battle_stage() -> void:
 	var field_context: Dictionary = BattleEnvironmentArt.get_context(field_run, opponent_visual_id, _tutorial_mode)
 	_battle_stage.configure_environment(String(field_context["id"]), bool(field_context["infinite"]))
 	if _sandbox_mode:_battle_stage.configure_environment(String(SandboxSession.config["rules"]["field"]),int(SandboxSession.config["rules"]["power"])>1)
+	elif _lan_mode and NetworkManager.is_network_sandbox_active():
+		var setup: Dictionary=NetworkManager.get_match_payload().get("sandbox_config",{})
+		_battle_stage.configure_environment(String(setup["rules"]["field"]),false)
+		_battle_stage.configure_combatants(local_unit.unit_id,opponent_unit.unit_id,_local_side,String(setup[_local_side]["visual"]),String(setup["enemy" if _local_side=="player" else "player"]["visual"]))
 
 
 func _uses_compact_lan_events() -> bool:
@@ -1470,7 +1492,7 @@ func _get_hover_preview_card_def(runtime_state: CardRuntimeState) -> CardDef:
 	var run_state: RunState = _get_active_run()
 	if runtime_state == null or run_state == null:
 		return null
-	if _sandbox_mode:return _engine._get_card_def("player",runtime_state.card_id,runtime_state.runtime_id)
+	if _sandbox_mode or (_lan_mode and NetworkManager.is_network_sandbox_active()):return _engine._get_card_def(_local_side,runtime_state.card_id,runtime_state.runtime_id)
 	return CardUpgradeResolver.build_effective_card(runtime_state.card_id, run_state)
 
 
@@ -1522,7 +1544,7 @@ func _build_hover_preview_entry(
 func _compute_timeline_horizon() -> float:
 	if _engine.battle_state == null:
 		return TimelinePanel.DEFAULT_TIMELINE_HORIZON
-	if _sandbox_mode:
+	if _sandbox_mode or (_lan_mode and NetworkManager.is_network_sandbox_active()):
 		var horizon: float=FatigueRules.CAST_TIME if bool(_engine.sandbox_options.get("fatigue",true)) else TimelinePanel.DEFAULT_TIMELINE_HORIZON
 		for side: String in ["player","enemy"]:
 			for runtime: CardRuntimeState in _engine.battle_state.get_unit(side).card_runtime_states:
